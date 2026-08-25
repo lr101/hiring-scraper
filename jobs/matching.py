@@ -10,6 +10,8 @@ from typing import Any
 from jobs.models import Job, JobMatch, ProfileLocation, SearchProfile
 
 EARTH_RADIUS_KM = 6371.0088
+MIN_JOB_MATCH_SCORE = -32_768
+MAX_JOB_MATCH_SCORE = 32_767
 DEFAULT_WEIGHTS = {
     "title": 50,
     "required_skills": 30,
@@ -124,7 +126,7 @@ def evaluate_job(*, job: Job, profile: SearchProfile) -> MatchEvaluation:
     location_score, location_explanation = _location_score(
         job=job, profile=profile, weights=weights
     )
-    score = title_score + required_score + preferred_score + location_score
+    score = _clamp_score(title_score + required_score + preferred_score + location_score)
     explanation: dict[str, Any] = {
         "title": {"matched_terms": title_matches, "score": title_score},
         "skills": {
@@ -135,6 +137,9 @@ def evaluate_job(*, job: Job, profile: SearchProfile) -> MatchEvaluation:
         "location": location_explanation,
         "score": score,
     }
+    salary_explanation = _salary_explanation(job=job, profile=profile)
+    if salary_explanation is not None:
+        explanation["salary"] = salary_explanation
     if score < profile.minimum_score and location_explanation["status"] != "unknown":
         return MatchEvaluation(
             is_match=False,
@@ -186,9 +191,8 @@ def _hard_filter_result(*, job: Job, profile: SearchProfile) -> MatchEvaluation 
 
     if _nonempty_value_is_not_allowed(job.employment_type, profile.employment_types):
         return _rejected("employment type does not match")
-    if job.salary_max is not None and profile.minimum_salary is not None:
-        if job.salary_max < Decimal(profile.minimum_salary):
-            return _rejected("salary is below profile minimum")
+    if _salary_is_below_profile_minimum(job=job, profile=profile):
+        return _rejected("salary is below profile minimum")
     if _german_requirement_exceeds(job.language_requirement, profile.maximum_german_level):
         return _rejected("German requirement exceeds profile maximum")
     if _nonempty_value_is_not_allowed(job.department, profile.departments):
@@ -230,10 +234,41 @@ def _location_score(
 
 def _weights_for(profile: SearchProfile) -> dict[str, int]:
     weights = DEFAULT_WEIGHTS.copy()
-    for key, value in profile.weights.items():
-        if key in weights and isinstance(value, int) and not isinstance(value, bool):
+    profile_weights = profile.weights
+    if not isinstance(profile_weights, dict):
+        return weights
+    for key, value in profile_weights.items():
+        if (
+            key in weights
+            and isinstance(value, int)
+            and not isinstance(value, bool)
+            and MIN_JOB_MATCH_SCORE <= value <= MAX_JOB_MATCH_SCORE
+        ):
             weights[key] = value
     return weights
+
+
+def _clamp_score(score: int) -> int:
+    return max(MIN_JOB_MATCH_SCORE, min(MAX_JOB_MATCH_SCORE, score))
+
+
+def _salary_is_below_profile_minimum(*, job: Job, profile: SearchProfile) -> bool:
+    return (
+        job.salary_max is not None
+        and profile.minimum_salary is not None
+        and _salary_currency_is_eur(job)
+        and job.salary_max < Decimal(profile.minimum_salary)
+    )
+
+
+def _salary_explanation(*, job: Job, profile: SearchProfile) -> dict[str, str] | None:
+    if profile.minimum_salary is None or job.salary_max is None or _salary_currency_is_eur(job):
+        return None
+    return {"status": "unavailable", "currency": job.salary_currency}
+
+
+def _salary_currency_is_eur(job: Job) -> bool:
+    return normalize_text(job.salary_currency) == "eur"
 
 
 def _normalized_list(values: object) -> list[str]:

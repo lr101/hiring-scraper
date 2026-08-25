@@ -4,6 +4,8 @@ import pytest
 
 from jobs.matching import (
     DEFAULT_WEIGHTS,
+    MAX_JOB_MATCH_SCORE,
+    MIN_JOB_MATCH_SCORE,
     evaluate_job,
     haversine_distance_km,
     normalize_text,
@@ -42,6 +44,56 @@ def test_haversine_distance_km_returns_known_city_distance() -> None:
     assert berlin_to_hamburg == pytest.approx(255.3, abs=0.5)
 
 
+@pytest.mark.parametrize("weights", [None, [], "title=80"])
+def test_malformed_weight_values_fall_back_to_defaults(weights: object) -> None:
+    evaluation = evaluate_job(
+        job=make_job(title="Software Engineer"),
+        profile=make_profile(included_titles=["software engineer"], weights=weights),
+    )
+
+    assert evaluation.score == DEFAULT_WEIGHTS["title"] + DEFAULT_WEIGHTS["location"]
+
+
+def test_invalid_weight_entries_fall_back_to_defaults() -> None:
+    evaluation = evaluate_job(
+        job=make_job(title="Software Engineer"),
+        profile=make_profile(
+            included_titles=["software engineer"],
+            weights={"title": 32_768, "location": True, "unknown_location": -32_769},
+        ),
+    )
+
+    assert evaluation.score == DEFAULT_WEIGHTS["title"] + DEFAULT_WEIGHTS["location"]
+
+
+@pytest.mark.django_db
+def test_scores_at_storage_boundary_are_clamped_before_persistence() -> None:
+    profile = make_saved_profile(
+        included_titles=["software engineer"],
+        weights={"title": MAX_JOB_MATCH_SCORE, "location": MAX_JOB_MATCH_SCORE},
+    )
+    job = make_saved_job(title="Software Engineer")
+
+    match = update_job_match(job=job, profile=profile)
+
+    assert match is not None
+    assert match.score == MAX_JOB_MATCH_SCORE
+    assert JobMatch.objects.get(pk=match.pk).score == MAX_JOB_MATCH_SCORE
+
+    profile.weights = {"title": MIN_JOB_MATCH_SCORE, "unknown_location": MIN_JOB_MATCH_SCORE}
+    profile.save(update_fields=["weights"])
+    job.remote_type = Job.RemoteType.ONSITE
+    job.latitude = None
+    job.longitude = None
+    job.save(update_fields=["remote_type", "latitude", "longitude"])
+
+    match = update_job_match(job=job, profile=profile)
+
+    assert match is not None
+    assert match.score == MIN_JOB_MATCH_SCORE
+    assert JobMatch.objects.get(pk=match.pk).score == MIN_JOB_MATCH_SCORE
+
+
 def test_required_skill_group_explains_the_matching_alternative() -> None:
     evaluation = evaluate_job(
         job=make_job(skills=["Azure"]),
@@ -49,6 +101,17 @@ def test_required_skill_group_explains_the_matching_alternative() -> None:
     )
 
     assert evaluation.explanation["skills"]["required_groups"] == ["azure"]
+
+
+@pytest.mark.parametrize("currency", ["PLN", ""])
+def test_non_eur_salary_does_not_fail_eur_minimum_and_explains_the_gap(currency: str) -> None:
+    evaluation = evaluate_job(
+        job=make_job(salary_max=Decimal("100000"), salary_currency=currency),
+        profile=make_profile(minimum_salary=90_000),
+    )
+
+    assert evaluation.is_match is True
+    assert evaluation.explanation["salary"] == {"status": "unavailable", "currency": currency}
 
 
 @pytest.mark.django_db
@@ -120,6 +183,30 @@ def test_onsite_job_matches_when_any_configured_city_radius_contains_it() -> Non
 
     assert evaluation.is_match is True
     assert evaluation.explanation["location"]["city"] == "Within radius"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [
+        ("department", "Finance", "department does not match"),
+        ("industry", "Retail", "industry does not match"),
+        ("seniority", "Junior", "seniority does not match"),
+    ],
+)
+def test_metadata_hard_filter_rejections_are_independent(
+    field: str, value: str, reason: str
+) -> None:
+    job = make_job(department="Engineering", industry="Technology", seniority="Senior")
+    setattr(job, field, value)
+
+    evaluation = evaluate_job(
+        job=job,
+        profile=make_profile(
+            departments=["engineering"], industries=["technology"], seniority_levels=["senior"]
+        ),
+    )
+
+    assert evaluation.reason == reason
 
 
 def test_hard_filters_reject_closed_foreign_disabled_and_excluded_jobs() -> None:
@@ -211,6 +298,17 @@ def test_hard_filters_reject_closed_foreign_disabled_and_excluded_jobs() -> None
     )
 
 
+def test_minimum_score_rejects_an_otherwise_eligible_job() -> None:
+    evaluation = evaluate_job(
+        job=make_job(title="Software Engineer"),
+        profile=make_profile(included_titles=["software engineer"], minimum_score=61),
+    )
+
+    assert evaluation.is_match is False
+    assert evaluation.score == 60
+    assert evaluation.reason == "score is below profile minimum"
+
+
 def test_weighted_score_and_explanation_report_each_matching_component() -> None:
     evaluation = evaluate_job(
         job=make_job(
@@ -266,6 +364,29 @@ def test_update_job_match_creates_once_updates_score_and_removes_stale_match() -
 
     assert update_job_match(job=job, profile=profile) is None
     assert JobMatch.objects.filter(job=job, profile=profile).exists() is False
+
+
+@pytest.mark.django_db
+def test_stale_match_deletion_does_not_remove_another_users_profile_match() -> None:
+    strict_profile = make_saved_profile(included_titles=["software engineer"])
+    broad_profile = make_saved_profile()
+    job = make_saved_job(title="Software Engineer")
+
+    strict_match = update_job_match(job=job, profile=strict_profile)
+    broad_match = update_job_match(job=job, profile=broad_profile)
+
+    assert strict_match is not None
+    assert broad_match is not None
+    assert strict_profile.user_id != broad_profile.user_id
+
+    job.title = "Accountant"
+    job.save(update_fields=["title"])
+
+    assert update_job_match(job=job, profile=strict_profile) is None
+    assert JobMatch.objects.filter(job=job, profile=strict_profile).exists() is False
+    assert (
+        JobMatch.objects.filter(pk=broad_match.pk, job=job, profile=broad_profile).exists() is True
+    )
 
 
 def make_profile(**overrides: object) -> SearchProfile:
