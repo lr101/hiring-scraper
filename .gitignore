@@ -1,0 +1,12 @@
+.worktrees/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.env
+*.sqlite3
+staticfiles/
+
