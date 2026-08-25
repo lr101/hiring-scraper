@@ -1,0 +1,126 @@
+from __future__ import annotations
+
+import time
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Protocol
+
+import httpx
+
+
+@dataclass(frozen=True, slots=True)
+class RawJob:
+    """A source-independent job record returned by a collector adapter."""
+
+    external_id: str
+    canonical_url: str
+    title: str
+    application_url: str = ""
+    description_html: str = ""
+    description_text: str = ""
+    city: str = ""
+    state: str = ""
+    country_code: str = "DE"
+    locations: list[str] = field(default_factory=list)
+    latitude: float | None = None
+    longitude: float | None = None
+    remote_type: str = "unknown"
+    employment_type: str = ""
+    seniority: str = ""
+    department: str = ""
+    industry: str = ""
+    salary_min: Decimal | None = None
+    salary_max: Decimal | None = None
+    salary_currency: str = "EUR"
+    language_requirement: str = ""
+    skills: list[str] = field(default_factory=list)
+    posted_at: datetime | None = None
+    expires_at: datetime | None = None
+    raw_payload: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True, slots=True)
+class CollectionResult:
+    raw_jobs: list[RawJob]
+    requests_made: int = 0
+
+
+class Collector(Protocol):
+    def collect(self) -> CollectionResult: ...
+
+
+class SourceLike(Protocol):
+    kind: str
+
+
+CollectorFactory = Callable[[SourceLike], Collector]
+
+
+class CollectorRegistry:
+    """Maps persisted source kinds to collector factories."""
+
+    def __init__(self) -> None:
+        self._factories: dict[str, CollectorFactory] = {}
+
+    def register(self, kind: str, factory: CollectorFactory) -> None:
+        self._factories[kind] = factory
+
+    def create(self, source: SourceLike) -> Collector:
+        try:
+            factory = self._factories[source.kind]
+        except KeyError as error:
+            message = f"No collector is registered for source kind {source.kind!r}."
+            raise LookupError(message) from error
+        return factory(source)
+
+
+class BotProtectionDetected(RuntimeError):
+    """A source returned a bot challenge instead of a jobs response."""
+
+
+class HTTPCollector:
+    """Small HTTP boundary for adapters that fetch career-site responses."""
+
+    def __init__(self, source: SourceLike, *, client: httpx.Client | None = None) -> None:
+        self.source = source
+        self._client = client or httpx.Client(follow_redirects=True, timeout=30.0)
+        self._owns_client = client is None
+        self.requests_made = 0
+
+    def fetch(self, url: str) -> httpx.Response:
+        if self.requests_made:
+            delay = getattr(self.source, "request_delay_seconds", 0)
+            if delay:
+                time.sleep(delay)
+        self.requests_made += 1
+        response = self._client.get(url)
+        if is_bot_protection_response(response):
+            raise BotProtectionDetected(f"Bot protection detected for {url}.")
+        response.raise_for_status()
+        return response
+
+    def close(self) -> None:
+        if self._owns_client:
+            self._client.close()
+
+
+def is_bot_protection_response(response: httpx.Response) -> bool:
+    """Recognize common challenge pages before adapters try to parse them."""
+    if response.status_code in {403, 429}:
+        return True
+    headers = {key.casefold(): value.casefold() for key, value in response.headers.items()}
+    if headers.get("cf-mitigated") == "challenge":
+        return True
+    body = response.text.casefold()
+    return any(
+        marker in body
+        for marker in (
+            "captcha",
+            "cloudflare ray id",
+            "unusual traffic",
+            "verify you are human",
+            "access denied",
+        )
+    )
