@@ -126,7 +126,8 @@ def evaluate_job(*, job: Job, profile: SearchProfile) -> MatchEvaluation:
     location_score, location_explanation = _location_score(
         job=job, profile=profile, weights=weights
     )
-    score = _clamp_score(title_score + required_score + preferred_score + location_score)
+    raw_score = title_score + required_score + preferred_score + location_score
+    score = _clamp_score(raw_score)
     explanation: dict[str, Any] = {
         "title": {"matched_terms": title_matches, "score": title_score},
         "skills": {
@@ -140,7 +141,7 @@ def evaluate_job(*, job: Job, profile: SearchProfile) -> MatchEvaluation:
     salary_explanation = _salary_explanation(job=job, profile=profile)
     if salary_explanation is not None:
         explanation["salary"] = salary_explanation
-    if score < profile.minimum_score and location_explanation["status"] != "unknown":
+    if raw_score < profile.minimum_score and location_explanation["status"] != "unknown":
         return MatchEvaluation(
             is_match=False,
             score=score,

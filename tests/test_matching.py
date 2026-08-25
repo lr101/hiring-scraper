@@ -66,6 +66,21 @@ def test_invalid_weight_entries_fall_back_to_defaults() -> None:
     assert evaluation.score == DEFAULT_WEIGHTS["title"] + DEFAULT_WEIGHTS["location"]
 
 
+def test_minimum_score_uses_raw_score_before_storage_clamping() -> None:
+    evaluation = evaluate_job(
+        job=make_job(title="Software Engineer", remote_type=Job.RemoteType.REMOTE),
+        profile=make_profile(
+            included_titles=["software engineer"],
+            weights={"title": MIN_JOB_MATCH_SCORE, "location": MIN_JOB_MATCH_SCORE},
+            minimum_score=MIN_JOB_MATCH_SCORE,
+        ),
+    )
+
+    assert evaluation.is_match is False
+    assert evaluation.score == MIN_JOB_MATCH_SCORE
+    assert evaluation.reason == "score is below profile minimum"
+
+
 @pytest.mark.django_db
 def test_scores_at_storage_boundary_are_clamped_before_persistence() -> None:
     profile = make_saved_profile(
