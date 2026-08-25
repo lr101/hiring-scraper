@@ -42,10 +42,13 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "jobs.context_processors.workspace_users",
             ]
         },
     }
 ]
+
+WORKSPACE_USER_COOKIE = "workspace_user"
 
 if database_url := os.getenv("DATABASE_URL"):
     from urllib.parse import urlparse

@@ -12,11 +12,25 @@
       <a class="brand" href="{% url 'jobs:home' %}">Job Monitor</a>
       <nav aria-label="Main navigation">
         <a href="{% url 'jobs:home' %}">New</a>
+        <a href="{% url 'jobs:account_list' %}">Accounts</a>
       </nav>
+      <form class="account-picker" method="post" action="{% url 'jobs:select_user' %}">
+        {% csrf_token %}
+        <label for="workspace-user">Account</label>
+        <select id="workspace-user" name="user" onchange="this.form.submit()">
+          {% for user in workspace_users %}
+            <option value="{{ user.pk }}"{% if user == active_user %} selected{% endif %}>{{ user.name }}</option>
+          {% empty %}
+            <option>No accounts</option>
+          {% endfor %}
+        </select>
+      </form>
     </header>
     <main class="page-shell">
+      {% if messages %}
+        {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
   </body>
 </html>
-

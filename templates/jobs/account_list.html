@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Accounts | Job Monitor{% endblock %}
+
+{% block content %}
+  <header class="page-heading">
+    <p class="eyebrow">Private workspace</p>
+    <h1>Accounts</h1>
+    <p>Accounts separate profiles, matches, notes, and job workflow states. There is no login.</p>
+  </header>
+  <div class="two-column">
+    <section class="card">
+      <h2>Add account</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create account</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Existing accounts</h2>
+      <ul class="plain-list">
+        {% for account in accounts %}
+          <li><span>{{ account.name }}</span><span>{% if account.is_active %}Active{% else %}Disabled{% endif %}</span></li>
+        {% empty %}
+          <li>No accounts yet.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+{% endblock %}
+
