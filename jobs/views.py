@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -15,7 +15,15 @@ def home(request: HttpRequest) -> HttpResponse:
 
 @require_POST
 def select_user(request: HttpRequest) -> HttpResponse:
-    user = get_object_or_404(WorkspaceUser, pk=request.POST.get("user"), is_active=True)
+    selected_user = request.POST.get("user")
+    try:
+        user_id = int(selected_user) if selected_user is not None else 0
+    except ValueError:
+        raise Http404("Unknown account") from None
+    if user_id <= 0:
+        raise Http404("Unknown account")
+
+    user = get_object_or_404(WorkspaceUser, pk=user_id, is_active=True)
     user.last_selected_at = timezone.now()
     user.save(update_fields=["last_selected_at"])
     response = redirect("jobs:home")

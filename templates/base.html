@@ -21,7 +21,7 @@
           {% for user in workspace_users %}
             <option value="{{ user.pk }}"{% if user == active_user %} selected{% endif %}>{{ user.name }}</option>
           {% empty %}
-            <option>No accounts</option>
+            <option disabled>No accounts</option>
           {% endfor %}
         </select>
       </form>
