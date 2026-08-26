@@ -34,6 +34,9 @@ snapshot date on each imported place. Contains information from GeoNames.org, li
 
 ## Self-hosted deployment
 
+See the [deployment guide](docs/deployment.md) for first startup, place import, source seeding,
+updates, backups, restore, and troubleshooting.
+
 Install Docker Engine with the Compose plugin on the deployment machine. Then:
 
 ```bash
