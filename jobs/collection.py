@@ -119,6 +119,16 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             locked_source = (
                 CareerSource.objects.select_for_update().select_related("company").get(pk=source.pk)
             )
+            owned_run = (
+                CrawlRun.objects.select_for_update()
+                .filter(
+                    pk=run.pk,
+                    status=CrawlRun.Status.RUNNING,
+                )
+                .first()
+            )
+            if owned_run is None:
+                return CrawlRun.objects.get(pk=run.pk)
             created, updated, closed = _apply_successful_collection(
                 source=locked_source,
                 raw_jobs=result.raw_jobs,
@@ -130,14 +140,14 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             locked_source.save(
                 update_fields=["last_success_at", "consecutive_failures", "last_job_count"]
             )
-            run.status = CrawlRun.Status.SUCCESS
-            run.finished_at = now
-            run.jobs_seen = len(result.raw_jobs)
-            run.jobs_created = created
-            run.jobs_updated = updated
-            run.jobs_closed = closed
-            run.requests_made = result.requests_made
-            run.save(
+            owned_run.status = CrawlRun.Status.SUCCESS
+            owned_run.finished_at = now
+            owned_run.jobs_seen = len(result.raw_jobs)
+            owned_run.jobs_created = created
+            owned_run.jobs_updated = updated
+            owned_run.jobs_closed = closed
+            owned_run.requests_made = result.requests_made
+            owned_run.save(
                 update_fields=[
                     "status",
                     "finished_at",
@@ -155,7 +165,7 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             error=error,
             requests_made=result.requests_made,
         )
-    return run
+    return owned_run
 
 
 def _start_run(*, source: CareerSource) -> tuple[CrawlRun, bool]:
@@ -166,16 +176,16 @@ def _start_run(*, source: CareerSource) -> tuple[CrawlRun, bool]:
         except IntegrityError:
             recovered = False
             with transaction.atomic():
+                locked_source = CareerSource.objects.select_for_update().get(pk=source.pk)
                 running = (
                     CrawlRun.objects.select_for_update()
-                    .filter(source=source, status=CrawlRun.Status.RUNNING)
+                    .filter(source=locked_source, status=CrawlRun.Status.RUNNING)
                     .first()
                 )
                 if running is not None:
                     now = timezone.now()
                     threshold = timedelta(seconds=settings.COLLECTION_STALE_RUN_SECONDS)
                     if running.started_at <= now - threshold:
-                        locked_source = CareerSource.objects.select_for_update().get(pk=source.pk)
                         locked_source.last_failure_at = now
                         locked_source.consecutive_failures += 1
                         locked_source.save(
@@ -244,14 +254,24 @@ def _finish_blocked_run(
     now = timezone.now()
     with transaction.atomic():
         source = CareerSource.objects.select_for_update().get(pk=source_id)
+        owned_run = (
+            CrawlRun.objects.select_for_update()
+            .filter(
+                pk=run.pk,
+                status=CrawlRun.Status.RUNNING,
+            )
+            .first()
+        )
+        if owned_run is None:
+            return CrawlRun.objects.get(pk=run.pk)
         source.blocked_at = now
         source.save(update_fields=["blocked_at"])
-        run.status = CrawlRun.Status.BLOCKED
-        run.finished_at = now
-        run.requests_made = requests_made
-        run.error = str(error)
-        run.save(update_fields=["status", "finished_at", "requests_made", "error"])
-    return run
+        owned_run.status = CrawlRun.Status.BLOCKED
+        owned_run.finished_at = now
+        owned_run.requests_made = requests_made
+        owned_run.error = str(error)
+        owned_run.save(update_fields=["status", "finished_at", "requests_made", "error"])
+    return owned_run
 
 
 def _finish_failed_run(
@@ -260,15 +280,25 @@ def _finish_failed_run(
     now = timezone.now()
     with transaction.atomic():
         source = CareerSource.objects.select_for_update().get(pk=source_id)
+        owned_run = (
+            CrawlRun.objects.select_for_update()
+            .filter(
+                pk=run.pk,
+                status=CrawlRun.Status.RUNNING,
+            )
+            .first()
+        )
+        if owned_run is None:
+            return CrawlRun.objects.get(pk=run.pk)
         source.last_failure_at = now
         source.consecutive_failures += 1
         source.save(update_fields=["last_failure_at", "consecutive_failures"])
-        run.status = CrawlRun.Status.FAILED
-        run.finished_at = now
-        run.requests_made = requests_made
-        run.error = str(error)
-        run.save(update_fields=["status", "finished_at", "requests_made", "error"])
-    return run
+        owned_run.status = CrawlRun.Status.FAILED
+        owned_run.finished_at = now
+        owned_run.requests_made = requests_made
+        owned_run.error = str(error)
+        owned_run.save(update_fields=["status", "finished_at", "requests_made", "error"])
+    return owned_run
 
 
 def _record_successful_misses(

@@ -503,6 +503,58 @@ def test_stale_running_run_is_failed_and_replaced_before_collection() -> None:
 
 @pytest.mark.django_db
 @override_settings(COLLECTION_STALE_RUN_SECONDS=60)
+def test_recovered_worker_cannot_write_after_a_replacement_run_completes() -> None:
+    source = make_source()
+    replacement_result = CollectionResult(
+        raw_jobs=[
+            RawJob(
+                external_id="replacement-role",
+                canonical_url="https://careers.example.test/jobs/replacement-role",
+                title="Replacement Engineer",
+            )
+        ],
+        requests_made=2,
+    )
+    replacement_registry = registry_for(replacement_result)
+    replacement_runs: list[CrawlRun] = []
+
+    class SuspendedCollector:
+        requests_made = 1
+
+        def collect(self) -> CollectionResult:
+            suspended_run = CrawlRun.objects.get(
+                source=source,
+                status=CrawlRun.Status.RUNNING,
+            )
+            CrawlRun.objects.filter(pk=suspended_run.pk).update(
+                started_at=timezone.now() - timedelta(seconds=61)
+            )
+            replacement_runs.append(collect_source(source=source, registry=replacement_registry))
+            return CollectionResult(
+                raw_jobs=[
+                    RawJob(
+                        external_id="resumed-role",
+                        canonical_url="https://careers.example.test/jobs/resumed-role",
+                        title="Resumed Engineer",
+                    )
+                ],
+                requests_made=1,
+            )
+
+    suspended_registry = CollectorRegistry()
+    suspended_registry.register("custom", lambda source: SuspendedCollector())
+
+    recovered_run = collect_source(source=source, registry=suspended_registry)
+
+    assert recovered_run.status == CrawlRun.Status.FAILED
+    assert recovered_run.error == "Recovered stale run after 60 seconds."
+    assert replacement_runs[0].status == CrawlRun.Status.SUCCESS
+    assert Job.objects.filter(source=source, external_id="replacement-role").exists()
+    assert not Job.objects.filter(source=source, external_id="resumed-role").exists()
+
+
+@pytest.mark.django_db
+@override_settings(COLLECTION_STALE_RUN_SECONDS=60)
 def test_existing_non_stale_run_serializes_a_second_collection_for_the_source() -> None:
     source = make_source()
     running = CrawlRun.objects.create(source=source)
