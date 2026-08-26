@@ -1,11 +1,13 @@
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Q, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .collection import collect_source, collector_registry
 from .forms import (
     BaseProfileLocationFormSet,
     ExclusionRuleForm,
@@ -14,13 +16,134 @@ from .forms import (
     WorkspaceUserForm,
 )
 from .matching import refresh_profile_matches, refresh_user_profile_matches
-from .models import ExclusionRule, GermanPlace, SearchProfile, WorkspaceUser
+from .models import (
+    CareerSource,
+    Company,
+    CrawlRun,
+    ExclusionRule,
+    GermanPlace,
+    Job,
+    JobMatch,
+    SearchProfile,
+    UserJobState,
+    WorkspaceUser,
+)
 from .places import format_place_label, normalize_place_text
 from .private import selected_workspace_user
 
 
 def home(request: HttpRequest) -> HttpResponse:
-    return render(request, "jobs/home.html")
+    user = selected_workspace_user(request)
+    matches = (
+        _user_matches(user)
+        .filter(is_new=True, job__closed_at__isnull=True)
+        .exclude(job__user_states__user=user, job__user_states__status=UserJobState.Status.IGNORED)
+        if user
+        else JobMatch.objects.none()
+    )
+    return render(
+        request, "jobs/home.html", {"matches": _unique_matches(matches)[:100], "active_user": user}
+    )
+
+
+def job_list(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    matches = _user_matches(user).filter(job__closed_at__isnull=True)
+    if query := request.GET.get("q", "").strip():
+        matches = matches.filter(job__title__icontains=query)
+    if status := request.GET.get("status", "").strip():
+        if status == UserJobState.Status.NONE:
+            matches = matches.filter(
+                Q(job__user_states__isnull=True)
+                | Q(job__user_states__user=user, job__user_states__status=status)
+            )
+        else:
+            matches = matches.filter(job__user_states__user=user, job__user_states__status=status)
+    return render(
+        request,
+        "jobs/job_list.html",
+        {
+            "matches": _unique_matches(matches)[:100],
+            "active_user": user,
+            "status_choices": UserJobState.Status.choices,
+        },
+    )
+
+
+def job_detail(request: HttpRequest, job_id: int) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
+    if state.seen_at is None:
+        state.seen_at = timezone.now()
+        state.save(update_fields=["seen_at", "updated_at"])
+    matches = job.matches.filter(profile__user=user).select_related("profile")
+    return render(request, "jobs/job_detail.html", {"job": job, "state": state, "matches": matches})
+
+
+@require_POST
+def job_state(request: HttpRequest, job_id: int) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
+    status = request.POST.get("status", UserJobState.Status.NONE)
+    valid_statuses = {value for value, _ in UserJobState.Status.choices}
+    state.status = status if status in valid_statuses else UserJobState.Status.NONE
+    state.notes = request.POST.get("notes", "")
+    state.save(update_fields=["status", "notes", "updated_at"])
+    return redirect("jobs:job_detail", job_id=job.pk)
+
+
+def company_list(request: HttpRequest) -> HttpResponse:
+    companies = Company.objects.prefetch_related("sources").all()
+    return render(request, "jobs/company_list.html", {"companies": companies})
+
+
+def company_detail(request: HttpRequest, company_id: int) -> HttpResponse:
+    company = get_object_or_404(Company.objects.prefetch_related("sources__runs"), pk=company_id)
+    return render(request, "jobs/company_detail.html", {"company": company})
+
+
+def source_list(request: HttpRequest) -> HttpResponse:
+    sources = CareerSource.objects.select_related("company").all()
+    return render(request, "jobs/source_list.html", {"sources": sources})
+
+
+@require_POST
+def source_toggle(request: HttpRequest, source_id: int) -> HttpResponse:
+    source = get_object_or_404(CareerSource, pk=source_id)
+    source.is_enabled = not source.is_enabled
+    source.save(update_fields=["is_enabled"])
+    return redirect("jobs:source_list")
+
+
+@require_POST
+def source_unblock(request: HttpRequest, source_id: int) -> HttpResponse:
+    source = get_object_or_404(CareerSource, pk=source_id)
+    source.blocked_at = None
+    source.save(update_fields=["blocked_at"])
+    return redirect("jobs:source_list")
+
+
+@require_POST
+def source_run(request: HttpRequest, source_id: int) -> HttpResponse:
+    source = get_object_or_404(CareerSource, pk=source_id)
+    if source.blocked_at is not None:
+        messages.warning(request, "Unblock this source before running it.")
+        return redirect("jobs:source_list")
+    collect_source(source=source, registry=collector_registry)
+    return redirect("jobs:run_list")
+
+
+def run_list(request: HttpRequest) -> HttpResponse:
+    runs = CrawlRun.objects.select_related("source__company").all()[:100]
+    return render(request, "jobs/run_list.html", {"runs": runs})
 
 
 @require_POST
@@ -206,6 +329,24 @@ def _private_user_or_redirect(request: HttpRequest) -> WorkspaceUser | HttpRespo
         messages.info(request, "Select an account to manage profiles and exclusions.")
         return redirect("jobs:account_list")
     return user
+
+
+def _user_matches(user: WorkspaceUser | None) -> QuerySet[JobMatch]:
+    if user is None:
+        return JobMatch.objects.none()
+    return (
+        JobMatch.objects.filter(profile__user=user)
+        .select_related("job__source__company", "profile")
+        .order_by("-score", "-first_matched_at")
+        .distinct()
+    )
+
+
+def _unique_matches(matches: QuerySet[JobMatch]) -> list[JobMatch]:
+    unique: dict[int, JobMatch] = {}
+    for match in matches:
+        unique.setdefault(match.job_id, match)
+    return list(unique.values())
 
 
 def _normalize_place_query(value: str) -> str:

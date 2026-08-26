@@ -8,9 +8,9 @@
     <h1>New jobs</h1>
     <p>Fresh matches from the company career sites you monitor.</p>
   </header>
-  <section class="empty-state">
-    <h2>No matches yet</h2>
-    <p>Add a search profile, then run the collectors.</p>
-  </section>
+  {% if active_user and matches %}
+    <section class="card list-card"><ul class="plain-list">
+      {% for match in matches %}<li><div><a href="{% url 'jobs:job_detail' match.job.pk %}"><strong>{{ match.job.title }}</strong></a><span class="muted">{{ match.job.source.company.name }} · {{ match.score }} points</span></div></li>{% endfor %}
+    </ul></section>
+  {% else %}<section class="empty-state"><h2>No matches yet</h2><p>Add a search profile, then run the collectors.</p></section>{% endif %}
 {% endblock %}
-
