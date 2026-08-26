@@ -2,6 +2,7 @@ from collections.abc import Iterable
 
 from jobs.matching import haversine_distance_km
 from jobs.models import GermanPlace, Job, MonitoringTarget, WorkspaceUser
+from jobs.places import normalize_place_text
 
 
 def filter_jobs_for_user(*, user: WorkspaceUser, jobs: Iterable[Job]) -> list[Job]:
@@ -31,7 +32,8 @@ def _job_matches_target(
         return True
 
     if job.latitude is None or job.longitude is None:
-        return any(job.city == place.name for place, _radius_km in city_targets)
+        normalized_city = normalize_place_text(job.city)
+        return any(normalized_city == place.normalized_name for place, _radius_km in city_targets)
 
     return any(
         haversine_distance_km(job.latitude, job.longitude, place.latitude, place.longitude)

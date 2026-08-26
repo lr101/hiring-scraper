@@ -116,3 +116,110 @@ affect the test results.
 - `jobs/migrations/0006_monitoring_targets.py`
 - `jobs/monitoring.py`
 - `tests/test_monitoring.py`
+
+## Fix round 1: normalized city fallback
+
+The city fallback now compares `normalize_place_text(job.city)` to the target's stored
+`place.normalized_name`. This matches source display text that differs only by case, accents, or
+punctuation. The focused regression uses `Munchen` for a `München` target whose normalized name is
+`munchen`.
+
+### RED
+
+Command:
+
+```text
+mise run test -- tests/test_monitoring.py -k normalizes_city
+```
+
+Output:
+
+```text
+[test] $ uv run pytest tests/test_monitoring.py -k normalizes_city
+============================= test session starts ==============================
+platform linux -- Python 3.13.15, pytest-8.4.2, pluggy-1.6.0
+django: version: 5.2.17, settings: config.settings (from ini)
+rootdir: /workspace/hiring-scraper/.worktrees/usability-navigation
+configfile: pyproject.toml
+plugins: django-4.14.0, respx-0.22.0, anyio-4.14.2
+collected 6 items / 5 deselected / 1 selected
+
+tests/test_monitoring.py F                                               [100%]
+
+=================================== FAILURES ===================================
+____ test_filter_jobs_for_user_normalizes_city_when_job_has_no_coordinates _____
+
+    @pytest.mark.django_db
+    def test_filter_jobs_for_user_normalizes_city_when_job_has_no_coordinates() -> None:
+        user = WorkspaceUser.objects.create(name="Ada")
+        munich = make_place(
+            name="München",
+            normalized_name="munchen",
+            latitude=48.1372,
+            longitude=11.5756,
+        )
+        MonitoringTarget.objects.create(
+            user=user,
+            kind=MonitoringTarget.Kind.CITY,
+            place=munich,
+            radius_km=25,
+        )
+        company = make_company("Example")
+        normalized_city_job = make_job(company=company, external_id="normalized", city="Munchen")
+        different_city_job = make_job(company=company, external_id="different", city="Berlin")
+
+        result = filter_jobs_for_user(user=user, jobs=[different_city_job, normalized_city_job])
+
+>       assert result == [normalized_city_job]
+E       assert [] == [<Job: Engineer at Example>]
+E
+E         Right contains one more item: <Job: Engineer at Example>
+E         Use -v to get more diff
+
+tests/test_monitoring.py:128: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_monitoring.py::test_filter_jobs_for_user_normalizes_city_when_job_has_no_coordinates
+======================= 1 failed, 5 deselected in 0.48s ========================
+[test] ERROR task failed
+```
+
+### GREEN
+
+Command:
+
+```text
+mise run test -- tests/test_monitoring.py -k normalizes_city
+```
+
+Output:
+
+```text
+[test] $ uv run pytest tests/test_monitoring.py -k normalizes_city
+============================= test session starts ==============================
+platform linux -- Python 3.13.15, pytest-8.4.2, pluggy-1.6.0
+django: version: 5.2.17, settings: config.settings (from ini)
+rootdir: /workspace/hiring-scraper/.worktrees/usability-navigation
+configfile: pyproject.toml
+plugins: django-4.14.0, respx-0.22.0, anyio-4.14.2
+collected 6 items / 5 deselected / 1 selected
+
+tests/test_monitoring.py .                                               [100%]
+
+======================= 1 passed, 5 deselected in 0.41s ========================
+```
+
+### Final verification
+
+```text
+mise run test -- tests/test_monitoring.py
+6 passed in 0.43s
+
+mise run check
+44 files already formatted
+All checks passed!
+Success: no issues found in 37 source files
+123 passed, 32 warnings in 2.48s
+
+mise exec -- uv run python manage.py makemigrations --check --dry-run
+No changes detected
+```

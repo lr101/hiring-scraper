@@ -32,11 +32,13 @@ def make_job(*, company: Company, external_id: str, **overrides: object) -> Job:
     return Job.objects.create(**defaults)
 
 
-def make_place(*, name: str, latitude: float, longitude: float) -> GermanPlace:
+def make_place(
+    *, name: str, latitude: float, longitude: float, normalized_name: str | None = None
+) -> GermanPlace:
     return GermanPlace.objects.create(
         source_id=f"geonames:{name.lower().replace(' ', '-')}",
         name=name,
-        normalized_name=name.lower(),
+        normalized_name=normalized_name or name.lower(),
         latitude=latitude,
         longitude=longitude,
         source_kind=GermanPlace.SourceKind.CITY,
@@ -103,22 +105,27 @@ def test_filter_jobs_for_user_matches_jobs_within_a_city_radius() -> None:
 
 
 @pytest.mark.django_db
-def test_filter_jobs_for_user_uses_exact_city_when_job_has_no_coordinates() -> None:
+def test_filter_jobs_for_user_normalizes_city_when_job_has_no_coordinates() -> None:
     user = WorkspaceUser.objects.create(name="Ada")
-    berlin = make_place(name="Berlin", latitude=52.52, longitude=13.405)
+    munich = make_place(
+        name="München",
+        normalized_name="munchen",
+        latitude=48.1372,
+        longitude=11.5756,
+    )
     MonitoringTarget.objects.create(
         user=user,
         kind=MonitoringTarget.Kind.CITY,
-        place=berlin,
+        place=munich,
         radius_km=25,
     )
     company = make_company("Example")
-    exact_city_job = make_job(company=company, external_id="exact", city="Berlin")
-    different_city_job = make_job(company=company, external_id="different", city="berlin")
+    normalized_city_job = make_job(company=company, external_id="normalized", city="Munchen")
+    different_city_job = make_job(company=company, external_id="different", city="Berlin")
 
-    result = filter_jobs_for_user(user=user, jobs=[different_city_job, exact_city_job])
+    result = filter_jobs_for_user(user=user, jobs=[different_city_job, normalized_city_job])
 
-    assert result == [exact_city_job]
+    assert result == [normalized_city_job]
 
 
 @pytest.mark.django_db
