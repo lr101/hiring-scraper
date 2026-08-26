@@ -75,6 +75,23 @@ def test_filter_jobs_for_user_matches_jobs_from_selected_companies() -> None:
     assert result == [selected_job]
 
 
+@pytest.mark.django_db(transaction=True)
+def test_filter_jobs_for_user_preserves_input_order_for_multiple_matching_jobs() -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    company = make_company("Selected")
+    MonitoringTarget.objects.create(
+        user=user,
+        kind=MonitoringTarget.Kind.COMPANY,
+        company=company,
+    )
+    first_job = make_job(company=company, external_id="first")
+    second_job = make_job(company=company, external_id="second")
+
+    result = filter_jobs_for_user(user=user, jobs=[second_job, first_job])
+
+    assert result == [second_job, first_job]
+
+
 @pytest.mark.django_db
 def test_filter_jobs_for_user_matches_jobs_within_a_city_radius() -> None:
     user = WorkspaceUser.objects.create(name="Ada")

@@ -151,3 +151,71 @@ collected 137 items
 ```
 
 The warnings are the existing Django notice that the local `staticfiles/` directory is absent during tests. No employer website was contacted.
+
+## Final review fix wave
+
+### Scope delivered
+
+- Added `restore_current_migration_leaf`, a yielded fixture used by both migration tests. Its teardown always migrates the shared test connection back to `jobs.0006_monitoring_targets`, including when a migration assertion fails. The migration assertions themselves still exercise the historical `0005` state.
+- Added a real `filter_jobs_for_user` test with two matching jobs supplied in deliberate reverse order. It confirms the helper returns matching jobs in input order.
+
+### TDD evidence
+
+The first invocation did not reproduce the order failure because pytest-django moved the non-transactional monitoring test ahead of the transactional migration test:
+
+```text
+mise run test -- tests/test_profiles.py::test_profile_location_migration_reverse_merges_same_city_places_per_profile tests/test_monitoring.py::test_filter_jobs_for_user_preserves_input_order_for_multiple_matching_jobs
+```
+
+```text
+collected 2 items
+tests/test_monitoring.py .
+tests/test_profiles.py .
+2 passed
+```
+
+The new order test was then marked transactional so the requested migration-before-monitoring order could run. Before the cleanup fixture, the same command produced the expected RED failure:
+
+```text
+collected 2 items
+tests/test_profiles.py .
+tests/test_monitoring.py F
+1 failed, 1 passed
+django.db.utils.OperationalError: no such table: jobs_monitoringtarget
+```
+
+After adding the cleanup fixture, the same reordered command was GREEN:
+
+```text
+collected 2 items
+tests/test_profiles.py .
+tests/test_monitoring.py .
+2 passed
+```
+
+### Final verification
+
+Commands:
+
+```text
+mise run test -- tests/test_profiles.py tests/test_monitoring.py
+mise exec -- uv run python manage.py makemigrations --check --dry-run
+mise run check
+```
+
+Output summaries:
+
+```text
+collected 32 items
+32 passed, 15 warnings
+
+No changes detected
+
+45 files already formatted
+All checks passed!
+Success: no issues found in 38 source files
+collected 138 items
+138 passed, 46 warnings
+```
+
+The warnings are the existing Django notice that the local `staticfiles/` directory is absent during tests. No employer website was contacted.
