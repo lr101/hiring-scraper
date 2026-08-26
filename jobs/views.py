@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Q, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -44,6 +44,16 @@ def home(request: HttpRequest) -> HttpResponse:
     return render(
         request, "jobs/home.html", {"matches": _unique_matches(matches)[:100], "active_user": user}
     )
+
+
+def health(request: HttpRequest) -> JsonResponse:
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except Exception:
+        return JsonResponse({"status": "error"}, status=503)
+    return JsonResponse({"status": "ok"})
 
 
 def job_list(request: HttpRequest) -> HttpResponse:

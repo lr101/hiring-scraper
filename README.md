@@ -38,9 +38,12 @@ Install Docker Engine with the Compose plugin on the deployment machine. Then:
 
 ```bash
 cp .env.example .env
-# Edit .env and replace both secrets.
+# Edit .env and replace the secret values.
 docker compose up --build -d
 ```
+
+The web container exposes `/health/` for Docker health checks. It returns OK only when the
+application can query the database.
 
 Open `http://server:8000`. Set `APP_PORT` and `DJANGO_ALLOWED_HOSTS` in `.env` when the service
 uses a different port or hostname.
