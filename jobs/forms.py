@@ -15,7 +15,14 @@ from .matching import (
     MIN_JOB_MATCH_SCORE,
     normalize_text,
 )
-from .models import ExclusionRule, GermanPlace, ProfileLocation, SearchProfile, WorkspaceUser
+from .models import (
+    Company,
+    ExclusionRule,
+    GermanPlace,
+    ProfileLocation,
+    SearchProfile,
+    WorkspaceUser,
+)
 from .places import format_place_label
 
 
@@ -23,6 +30,15 @@ class WorkspaceUserForm(forms.ModelForm):  # type: ignore[type-arg]
     class Meta:
         model = WorkspaceUser
         fields = ["name"]
+
+
+class CompanyMonitoringTargetForm(forms.Form):
+    company = forms.ModelChoiceField(queryset=Company.objects.filter(is_active=True))
+
+
+class CityMonitoringTargetForm(forms.Form):
+    place = forms.ModelChoiceField(queryset=GermanPlace.objects.all(), widget=forms.HiddenInput)
+    radius_km = forms.IntegerField(min_value=1, max_value=500, initial=25)
 
 
 def _normalized_terms(value: str) -> list[str]:

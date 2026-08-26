@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Job Monitor{% endblock %}
+
+{% block content %}
+  <header class="page-heading inline-heading">
+    <div>
+      <p class="eyebrow">{{ active_user.name }}</p>
+      <h1>Profile</h1>
+      <p>Manage matching preferences and keep the application workflow moving.</p>
+    </div>
+  </header>
+  <div class="two-column profile-links">
+    <section class="card"><h2>Search profiles</h2><p>Set roles, skills, locations, and matching weights.</p><a class="button-link" href="{% url 'jobs:profile_list' %}">Manage profiles</a></section>
+    <section class="card"><h2>Exclusions</h2><p>Hide companies, websites, titles, or skills for this account.</p><a class="button-link" href="{% url 'jobs:exclusion_list' %}">Manage exclusions</a></section>
+  </div>
+  <section class="card list-card">
+    <div class="inline-heading"><div><h2>Saved and workflow jobs</h2><p class="muted">Filter the jobs you have saved, applied to, or otherwise tracked.</p></div></div>
+    <form class="search-form workflow-filters" method="get">
+      <p><label for="workflow-status">Status</label><select id="workflow-status" name="status"><option value="">All workflow statuses</option>{% for value, label in status_choices %}<option value="{{ value }}"{% if selected_status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></p>
+      <p><label for="workflow-sort">Sort</label><select id="workflow-sort" name="sort"><option value="recent"{% if selected_sort == "recent" %} selected{% endif %}>Recent activity</option><option value="company"{% if selected_sort == "company" %} selected{% endif %}>Company</option></select></p>
+      <button type="submit">Apply</button>
+    </form>
+    <ul class="plain-list">
+      {% for state in workflow_jobs %}
+        <li><div><a href="{% url 'jobs:job_detail' state.job.pk %}"><strong>{{ state.job.title }}</strong></a><span class="muted">{{ state.job.source.company.name }} · {{ state.get_status_display }}</span></div></li>
+      {% empty %}<li>No saved or workflow jobs yet.</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="card list-card operational-links">
+    <h2>Operations</h2>
+    <p><a href="{% url 'jobs:company_list' %}">Companies</a> · <a href="{% url 'jobs:source_list' %}">Sources</a> · <a href="{% url 'jobs:run_list' %}">Runs</a> · <a href="{% url 'jobs:account_list' %}">Accounts</a> · <a href="{% url 'jobs:place_search' %}">Place dictionary</a></p>
+  </section>
+{% endblock %}
