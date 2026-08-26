@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Search | Job Monitor{% endblock %}
+
+{% block content %}
+  <header class="page-heading">
+    <p class="eyebrow">{{ active_user.name }}</p>
+    <h1>Search</h1>
+    <p>Choose the companies and German city areas that should appear in this account's feed.</p>
+  </header>
+  <div class="two-column target-layout">
+    <section class="card">
+      <h2>Add company</h2>
+      <form method="post" action="{% url 'jobs:company_target_create' %}">
+        {% csrf_token %}
+        {{ company_form.as_p }}
+        <button type="submit">Add company</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Add city area</h2>
+      <form method="post" action="{% url 'jobs:city_target_create' %}">
+        {% csrf_token %}
+        {{ city_form.place }}{{ city_form.place.errors }}
+        <p>{{ city_form.place_query.label_tag }}{{ city_form.place_query }}{{ city_form.place_query.errors }}<datalist id="city-place-results"></datalist></p>
+        {{ city_form.radius_km.as_field_group }}
+        <button type="submit">Add city area</button>
+      </form>
+      <p class="muted">Searches the imported local German place data.</p>
+    </section>
+  </div>
+  <section class="card list-card">
+    <h2>Companies</h2>
+    <ul class="plain-list">
+      {% for target in company_targets %}
+        <li><strong>{{ target.company.name }}</strong><form class="inline-form" method="post" action="{% url 'jobs:monitoring_target_delete' target.pk %}">{% csrf_token %}<button type="submit">Remove</button></form></li>
+      {% empty %}<li>No company targets yet.</li>{% endfor %}
+    </ul>
+  </section>
+  <section class="card list-card">
+    <h2>City areas</h2>
+    <ul class="plain-list">
+      {% for target in city_targets %}
+        <li><span><strong>{{ target.place.name }}</strong><span class="muted">{{ target.radius_km }} km radius</span></span><form class="inline-form" method="post" action="{% url 'jobs:monitoring_target_delete' target.pk %}">{% csrf_token %}<button type="submit">Remove</button></form></li>
+      {% empty %}<li>No city targets yet.</li>{% endfor %}
+    </ul>
+  </section>
+  <script>
+    const input = document.querySelector("#{{ city_form.place_query.id_for_label }}");
+    const hiddenPlace = document.querySelector("#{{ city_form.place.id_for_label }}");
+    const resultList = document.querySelector("#city-place-results");
+    let places = [];
+    input.addEventListener("input", async () => {
+      hiddenPlace.value = "";
+      if (input.value.trim().length < 2) { resultList.replaceChildren(); return; }
+      const response = await fetch("{% url 'jobs:place_search_json' %}?q=" + encodeURIComponent(input.value));
+      places = (await response.json()).results;
+      resultList.replaceChildren(...places.map((place) => {
+        const option = document.createElement("option");
+        option.value = place.label;
+        return option;
+      }));
+    });
+    input.addEventListener("change", () => {
+      const place = places.find((candidate) => candidate.label === input.value);
+      hiddenPlace.value = place ? place.id : "";
+    });
+  </script>
+{% endblock %}

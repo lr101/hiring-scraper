@@ -6,6 +6,16 @@ app_name = "jobs"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("feed/", views.feed, name="feed"),
+    path("search/", views.search, name="search"),
+    path("search/targets/company/", views.company_target_create, name="company_target_create"),
+    path("search/targets/city/", views.city_target_create, name="city_target_create"),
+    path(
+        "search/targets/<int:target_id>/delete/",
+        views.monitoring_target_delete,
+        name="monitoring_target_delete",
+    ),
+    path("profile/", views.profile, name="profile"),
     path("health/", views.health, name="health"),
     path("jobs/", views.job_list, name="job_list"),
     path("jobs/<int:job_id>/", views.job_detail, name="job_detail"),

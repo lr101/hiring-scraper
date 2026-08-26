@@ -9,4 +9,4 @@ htmlcov/
 .env
 *.sqlite3
 staticfiles/
-
+.superpowers/

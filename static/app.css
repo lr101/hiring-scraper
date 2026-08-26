@@ -56,3 +56,24 @@ button { padding: 10px 16px; border: 0; border-radius: 8px; color: white; backgr
 .search-form { display: flex; align-items: end; gap: 12px; max-width: 720px; margin-top: 28px; }
 .search-form input { flex: 1; }
 .attribution { margin-top: 24px; color: #53615b; font-size: 13px; }
+.job-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 32px; }
+.job-card { display: flex; flex-direction: column; align-items: flex-start; min-height: 230px; padding: 24px; border: 1px solid #dce3de; border-radius: 14px; background: white; }
+.job-card h2 { margin: 6px 0 0; font-size: 21px; }
+.job-card .button-link { margin-top: auto; }
+.score { margin: 18px 0; color: #1d6b52; font-weight: 750; }
+.target-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.profile-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.workflow-filters { margin: 12px 0 20px; }
+.operational-links a { color: #1d6b52; }
+@media (max-width: 720px) {
+  .site-header { align-items: flex-start; flex-wrap: wrap; gap: 16px; padding: 16px 20px; }
+  .site-header nav { width: 100%; gap: 16px; order: 3; }
+  .account-picker { margin-left: 0; }
+  .page-shell { width: min(100% - 32px, 1180px); margin: 28px auto; }
+  .page-heading h1 { font-size: 34px; }
+  .two-column, .target-layout, .profile-links { grid-template-columns: 1fr; }
+  .search-form { align-items: stretch; flex-direction: column; }
+  .search-form p { width: 100%; margin: 0; }
+  .inline-heading { align-items: flex-start; flex-direction: column; }
+  .plain-list li { align-items: flex-start; gap: 12px; flex-direction: column; }
+}

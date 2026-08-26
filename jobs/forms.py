@@ -15,7 +15,15 @@ from .matching import (
     MIN_JOB_MATCH_SCORE,
     normalize_text,
 )
-from .models import ExclusionRule, GermanPlace, ProfileLocation, SearchProfile, WorkspaceUser
+from .models import (
+    Company,
+    ExclusionRule,
+    GermanPlace,
+    MonitoringTarget,
+    ProfileLocation,
+    SearchProfile,
+    WorkspaceUser,
+)
 from .places import format_place_label
 
 
@@ -23,6 +31,36 @@ class WorkspaceUserForm(forms.ModelForm):  # type: ignore[type-arg]
     class Meta:
         model = WorkspaceUser
         fields = ["name"]
+
+
+class CompanyMonitoringTargetForm(forms.Form):
+    company = forms.ModelChoiceField(queryset=Company.objects.filter(is_active=True))
+
+    def __init__(self, *args: Any, user: WorkspaceUser, **kwargs: Any) -> None:
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_company(self) -> Company:
+        company = cast(Company, self.cleaned_data["company"])
+        if MonitoringTarget.objects.filter(
+            user=self.user,
+            kind=MonitoringTarget.Kind.COMPANY,
+            company=company,
+        ).exists():
+            raise ValidationError("This company is already monitored.")
+        return company
+
+
+class CityMonitoringTargetForm(forms.Form):
+    place_query = forms.CharField(
+        required=False,
+        label="City or postal code",
+        widget=forms.TextInput(
+            attrs={"type": "search", "list": "city-place-results", "autocomplete": "off"}
+        ),
+    )
+    place = forms.ModelChoiceField(queryset=GermanPlace.objects.all(), widget=forms.HiddenInput)
+    radius_km = forms.IntegerField(min_value=1, max_value=500, initial=25)
 
 
 def _normalized_terms(value: str) -> list[str]:

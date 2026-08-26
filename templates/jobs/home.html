@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}New jobs | Job Monitor{% endblock %}
+{% block title %}Feed | Job Monitor{% endblock %}
 
 {% block content %}
   <header class="page-heading">
-    <p class="eyebrow">Daily matches</p>
-    <h1>New jobs</h1>
-    <p>Fresh matches from the company career sites you monitor.</p>
+    <p class="eyebrow">{{ active_user.name|default:"Choose an account" }}</p>
+    <h1>Feed</h1>
+    <p>New jobs that match the companies and cities you monitor.</p>
   </header>
   {% if active_user and matches %}
-    <section class="card list-card"><ul class="plain-list">
-      {% for match in matches %}<li><div><a href="{% url 'jobs:job_detail' match.job.pk %}"><strong>{{ match.job.title }}</strong></a><span class="muted">{{ match.job.source.company.name }} · {{ match.score }} points</span></div></li>{% endfor %}
-    </ul></section>
-  {% else %}<section class="empty-state"><h2>No matches yet</h2><p>Add a search profile, then run the collectors.</p></section>{% endif %}
+    <section class="job-card-grid">
+      {% for match in matches %}
+        <article class="job-card">
+          <p class="eyebrow">{{ match.job.source.company.name }}</p>
+          <h2>{{ match.job.title }}</h2>
+          <p class="muted">{% if match.job.city %}{{ match.job.city }} · {% endif %}{{ match.job.get_remote_type_display }}</p>
+          <p class="score">{{ match.score }} points</p>
+          <a class="button-link" href="{% url 'jobs:job_detail' match.job.pk %}">View job</a>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}<section class="empty-state"><h2>No matches yet</h2><p>Add a search profile, choose targets, then run the collectors.</p></section>{% endif %}
 {% endblock %}

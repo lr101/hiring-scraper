@@ -10,6 +10,8 @@ from django.views.decorators.http import require_POST
 from .collection import collect_source, collector_registry
 from .forms import (
     BaseProfileLocationFormSet,
+    CityMonitoringTargetForm,
+    CompanyMonitoringTargetForm,
     ExclusionRuleForm,
     ProfileLocationFormSet,
     SearchProfileForm,
@@ -24,25 +26,47 @@ from .models import (
     GermanPlace,
     Job,
     JobMatch,
+    MonitoringTarget,
     SearchProfile,
     UserJobState,
     WorkspaceUser,
 )
+from .monitoring import filter_jobs_for_user
 from .places import format_place_label, normalize_place_text
 from .private import selected_workspace_user
 
 
 def home(request: HttpRequest) -> HttpResponse:
+    return feed(request)
+
+
+def feed(request: HttpRequest) -> HttpResponse:
     user = selected_workspace_user(request)
+    ignored_job_ids = (
+        UserJobState.objects.filter(user=user, status=UserJobState.Status.IGNORED).values("job_id")
+        if user
+        else UserJobState.objects.none().values("job_id")
+    )
     matches = (
         _user_matches(user)
         .filter(is_new=True, job__closed_at__isnull=True)
-        .exclude(job__user_states__user=user, job__user_states__status=UserJobState.Status.IGNORED)
+        .exclude(job_id__in=ignored_job_ids)
         if user
         else JobMatch.objects.none()
     )
+    visible_matches = _unique_matches(matches)
+    if user:
+        visible_job_ids = {
+            job.pk
+            for job in filter_jobs_for_user(
+                user=user, jobs=[match.job for match in visible_matches]
+            )
+        }
+        visible_matches = [match for match in visible_matches if match.job_id in visible_job_ids]
     return render(
-        request, "jobs/home.html", {"matches": _unique_matches(matches)[:100], "active_user": user}
+        request,
+        "jobs/home.html",
+        {"matches": visible_matches[:100], "active_user": user},
     )
 
 
@@ -86,7 +110,10 @@ def job_detail(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    job = get_object_or_404(
+        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
+        pk=job_id,
+    )
     state, _ = UserJobState.objects.get_or_create(user=user, job=job)
     if state.seen_at is None:
         state.seen_at = timezone.now()
@@ -100,7 +127,10 @@ def job_state(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    job = get_object_or_404(
+        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
+        pk=job_id,
+    )
     state, _ = UserJobState.objects.get_or_create(user=user, job=job)
     status = request.POST.get("status", UserJobState.Status.NONE)
     valid_statuses = {value for value, _ in UserJobState.Status.choices}
@@ -190,6 +220,116 @@ def account_list(request: HttpRequest) -> HttpResponse:
         request,
         "jobs/account_list.html",
         {"form": form, "accounts": WorkspaceUser.objects.order_by("name")},
+    )
+
+
+def search(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    return _search_response(request=request, user=user)
+
+
+def _search_response(
+    *,
+    request: HttpRequest,
+    user: WorkspaceUser,
+    company_form: CompanyMonitoringTargetForm | None = None,
+    city_form: CityMonitoringTargetForm | None = None,
+) -> HttpResponse:
+    return render(
+        request,
+        "jobs/search.html",
+        {
+            "company_form": company_form or CompanyMonitoringTargetForm(user=user),
+            "city_form": city_form or CityMonitoringTargetForm(),
+            "company_targets": MonitoringTarget.objects.filter(
+                user=user, kind=MonitoringTarget.Kind.COMPANY
+            ).select_related("company"),
+            "city_targets": MonitoringTarget.objects.filter(
+                user=user, kind=MonitoringTarget.Kind.CITY
+            ).select_related("place"),
+        },
+    )
+
+
+@require_POST
+def company_target_create(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    form = CompanyMonitoringTargetForm(request.POST, user=user)
+    if form.is_valid():
+        MonitoringTarget.objects.get_or_create(
+            user=user,
+            kind=MonitoringTarget.Kind.COMPANY,
+            company=form.cleaned_data["company"],
+        )
+        return redirect("jobs:search")
+    return _search_response(request=request, user=user, company_form=form)
+
+
+@require_POST
+def city_target_create(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    form = CityMonitoringTargetForm(request.POST)
+    if form.is_valid():
+        target, created = MonitoringTarget.objects.get_or_create(
+            user=user,
+            kind=MonitoringTarget.Kind.CITY,
+            place=form.cleaned_data["place"],
+            defaults={"radius_km": form.cleaned_data["radius_km"]},
+        )
+        if not created and target.radius_km != form.cleaned_data["radius_km"]:
+            target.radius_km = form.cleaned_data["radius_km"]
+            target.save(update_fields=["radius_km"])
+        return redirect("jobs:search")
+    return _search_response(request=request, user=user, city_form=form)
+
+
+@require_POST
+def monitoring_target_delete(request: HttpRequest, target_id: int) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    target = get_object_or_404(MonitoringTarget, pk=target_id, user=user)
+    target.delete()
+    return redirect("jobs:search")
+
+
+def profile(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    workflow_jobs = UserJobState.objects.filter(user=user).exclude(status=UserJobState.Status.NONE)
+    status = request.GET.get("status", "")
+    valid_statuses = {value for value, _label in UserJobState.Status.choices}
+    if status in valid_statuses and status != UserJobState.Status.NONE:
+        workflow_jobs = workflow_jobs.filter(status=status)
+    sort = request.GET.get("sort", "recent")
+    if sort == "company":
+        workflow_jobs = workflow_jobs.order_by("job__source__company__name", "job__title", "pk")
+    else:
+        sort = "recent"
+        workflow_jobs = workflow_jobs.order_by("-updated_at", "-pk")
+    return render(
+        request,
+        "jobs/profile_page.html",
+        {
+            "profiles": SearchProfile.objects.filter(user=user).prefetch_related(
+                "profile_locations__place"
+            ),
+            "workflow_jobs": workflow_jobs.select_related("job__source__company")[:100],
+            "status_choices": [
+                choice
+                for choice in UserJobState.Status.choices
+                if choice[0] != UserJobState.Status.NONE
+            ],
+            "selected_status": status,
+            "selected_sort": sort,
+        },
     )
 
 

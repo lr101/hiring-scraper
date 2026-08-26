@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -111,6 +112,12 @@ def make_job(**overrides: object) -> Job:
     }
     defaults.update(overrides)
     return Job.objects.create(**defaults)
+
+
+@pytest.fixture
+def restore_current_migration_leaf() -> Iterator[None]:
+    yield
+    MigrationExecutor(connection).migrate([("jobs", "0006_monitoring_targets")])
 
 
 @pytest.mark.django_db
@@ -649,7 +656,9 @@ def test_profile_form_add_row_contract_saves_three_city_radii(client: Client) ->
 
 
 @pytest.mark.django_db(transaction=True)
-def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinates() -> None:
+def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinates(
+    restore_current_migration_leaf: None,
+) -> None:
     previous_target = ("jobs", "0004_add_initial_employer_source_kinds")
     current_target = ("jobs", "0005_german_place_and_profile_locations")
     executor = MigrationExecutor(connection)
@@ -689,7 +698,9 @@ def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinat
 
 
 @pytest.mark.django_db(transaction=True)
-def test_profile_location_migration_reverse_merges_same_city_places_per_profile() -> None:
+def test_profile_location_migration_reverse_merges_same_city_places_per_profile(
+    restore_current_migration_leaf: None,
+) -> None:
     previous_target = ("jobs", "0004_add_initial_employer_source_kinds")
     current_target = ("jobs", "0005_german_place_and_profile_locations")
     executor = MigrationExecutor(connection)
