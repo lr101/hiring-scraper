@@ -21,9 +21,10 @@ ${EDITOR:-vi} .env
 ```
 
 Set `DJANGO_ALLOWED_HOSTS` to the hostnames used in the browser. Use comma-separated values with no
-URL scheme, for example `jobs.example.net,localhost`. Keep `DJANGO_DEBUG=false` on a shared or
-internet-facing host. `APP_PORT` controls the host port, while the application always listens on
-container port 8000.
+URL scheme, for example `jobs.example.net,localhost`. Set `DJANGO_CSRF_TRUSTED_ORIGINS` to the
+HTTPS origins used through the reverse proxy, including the scheme, for example
+`https://jobs.example.net`. Keep `DJANGO_DEBUG=false` on a shared or internet-facing host.
+`APP_PORT` controls the host port, while the application always listens on container port 8000.
 
 Build and start the services:
 
