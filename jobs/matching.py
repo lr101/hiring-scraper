@@ -3,11 +3,12 @@ from __future__ import annotations
 import math
 import re
 import unicodedata
+from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-from jobs.models import Job, JobMatch, ProfileLocation, SearchProfile
+from jobs.models import ExclusionRule, Job, JobMatch, ProfileLocation, SearchProfile, WorkspaceUser
 
 EARTH_RADIUS_KM = 6371.0088
 MIN_JOB_MATCH_SCORE = -32_768
@@ -151,8 +152,21 @@ def evaluate_job(*, job: Job, profile: SearchProfile) -> MatchEvaluation:
     return MatchEvaluation(is_match=True, score=score, explanation=explanation)
 
 
-def update_job_match(*, job: Job, profile: SearchProfile) -> JobMatch | None:
+def update_job_match(
+    *,
+    job: Job,
+    profile: SearchProfile,
+    exclusions: Iterable[ExclusionRule] | None = None,
+) -> JobMatch | None:
     """Create or refresh the single current match for a job and profile."""
+    active_exclusions = (
+        list(exclusions)
+        if exclusions is not None
+        else list(profile.user.exclusions.filter(is_enabled=True))
+    )
+    if _job_is_excluded(job=job, exclusions=active_exclusions):
+        JobMatch.objects.filter(job=job, profile=profile).delete()
+        return None
     evaluation = evaluate_job(job=job, profile=profile)
     if not evaluation.is_match:
         JobMatch.objects.filter(job=job, profile=profile).delete()
@@ -163,6 +177,49 @@ def update_job_match(*, job: Job, profile: SearchProfile) -> JobMatch | None:
         defaults={"score": evaluation.score, "explanation": evaluation.explanation},
     )
     return match
+
+
+def refresh_profile_matches(*, profile: SearchProfile) -> None:
+    """Re-evaluate every open job for one profile with its enabled exclusions."""
+    exclusions = list(profile.user.exclusions.filter(is_enabled=True))
+    jobs = Job.objects.filter(closed_at__isnull=True).select_related("source__company")
+    for job in jobs.iterator():
+        update_job_match(job=job, profile=profile, exclusions=exclusions)
+
+
+def refresh_user_profile_matches(*, user: WorkspaceUser) -> None:
+    """Re-evaluate one account without reading or changing another account's matches."""
+    profiles = SearchProfile.objects.filter(user=user).prefetch_related("profile_locations__place")
+    for profile in profiles:
+        refresh_profile_matches(profile=profile)
+
+
+def _job_is_excluded(*, job: Job, exclusions: Iterable[ExclusionRule]) -> bool:
+    job_title = normalize_text(job.title)
+    job_skills = {normalize_text(skill) for skill in job.skills if isinstance(skill, str)}
+    company_name = normalize_text(job.source.company.name)
+    website_values = [
+        normalize_text(job.source.company.domain),
+        normalize_text(job.source.source_url),
+        normalize_text(job.canonical_url),
+    ]
+    for rule in exclusions:
+        if not rule.is_enabled or not rule.normalized_pattern:
+            continue
+        pattern = rule.normalized_pattern
+        if rule.kind == ExclusionRule.Kind.COMPANY and _contains_phrase(company_name, pattern):
+            return True
+        if rule.kind == ExclusionRule.Kind.WEBSITE and any(
+            _contains_phrase(value, pattern) for value in website_values
+        ):
+            return True
+        if rule.kind == ExclusionRule.Kind.TITLE and _contains_phrase(job_title, pattern):
+            return True
+        if rule.kind == ExclusionRule.Kind.SKILL and any(
+            _contains_phrase(skill, pattern) for skill in job_skills
+        ):
+            return True
+    return False
 
 
 def _hard_filter_result(*, job: Job, profile: SearchProfile) -> MatchEvaluation | None:

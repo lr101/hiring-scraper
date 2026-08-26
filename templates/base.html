@@ -12,6 +12,8 @@
       <a class="brand" href="{% url 'jobs:home' %}">Job Monitor</a>
       <nav aria-label="Main navigation">
         <a href="{% url 'jobs:home' %}">New</a>
+        <a href="{% url 'jobs:profile_list' %}">Profiles</a>
+        <a href="{% url 'jobs:exclusion_list' %}">Exclusions</a>
         <a href="{% url 'jobs:account_list' %}">Accounts</a>
       </nav>
       <form class="account-picker" method="post" action="{% url 'jobs:select_user' %}">

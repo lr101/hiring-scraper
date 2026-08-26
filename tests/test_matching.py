@@ -14,6 +14,7 @@ from jobs.matching import (
 from jobs.models import (
     CareerSource,
     Company,
+    GermanPlace,
     Job,
     JobMatch,
     ProfileLocation,
@@ -132,7 +133,7 @@ def test_non_eur_salary_does_not_fail_eur_minimum_and_explains_the_gap(currency:
 @pytest.mark.django_db
 def test_remote_jobs_require_remote_enabled_profile_but_ignore_city_radius() -> None:
     profile = make_saved_profile(include_remote=True)
-    ProfileLocation.objects.create(
+    make_saved_location(
         profile=profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=10
     )
 
@@ -155,7 +156,7 @@ def test_remote_jobs_require_remote_enabled_profile_but_ignore_city_radius() -> 
 @pytest.mark.django_db
 def test_hybrid_and_onsite_jobs_need_nearby_location_but_keep_unknown_locations_visible() -> None:
     profile = make_saved_profile()
-    ProfileLocation.objects.create(
+    make_saved_location(
         profile=profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=20
     )
 
@@ -184,10 +185,10 @@ def test_hybrid_and_onsite_jobs_need_nearby_location_but_keep_unknown_locations_
 @pytest.mark.django_db
 def test_onsite_job_matches_when_any_configured_city_radius_contains_it() -> None:
     profile = make_saved_profile()
-    ProfileLocation.objects.create(
+    make_saved_location(
         profile=profile, city="Near but too small", latitude=52.55, longitude=13.405, radius_km=2
     )
-    ProfileLocation.objects.create(
+    make_saved_location(
         profile=profile, city="Within radius", latitude=52.7, longitude=13.405, radius_km=30
     )
 
@@ -454,3 +455,17 @@ def make_saved_job(**overrides: object) -> Job:
     }
     defaults.update(overrides)
     return Job.objects.create(**defaults)
+
+
+def make_saved_location(
+    *, profile: SearchProfile, city: str, latitude: float, longitude: float, radius_km: int
+) -> ProfileLocation:
+    place = GermanPlace.objects.create(
+        source_id=f"test:{profile.pk}:{city}:{latitude}:{longitude}",
+        name=city,
+        normalized_name=normalize_text(city),
+        latitude=latitude,
+        longitude=longitude,
+        source_kind=GermanPlace.SourceKind.CITY,
+    )
+    return ProfileLocation.objects.create(profile=profile, place=place, radius_km=radius_km)

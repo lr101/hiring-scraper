@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}{% if creating %}Add{% else %}Edit{% endif %} search profile | Job Monitor{% endblock %}
+
+{% block content %}
+  <header class="page-heading">
+    <p class="eyebrow">{{ active_user.name }}</p>
+    <h1>{% if creating %}Add search profile{% else %}Edit {{ profile.name }}{% endif %}</h1>
+    <p>All text lists use commas. Required skill alternatives use one line per group.</p>
+  </header>
+  <form method="post" class="card form-card">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {{ form.as_p }}
+    <section class="location-section">
+      <h2>City radii</h2>
+      <p>Pick exact imported places. <a href="{% url 'jobs:place_search' %}">Search the German place dictionary</a> when a city name is ambiguous.</p>
+      {{ formset.management_form }}
+      {% for location_form in formset %}
+        <div class="location-row">
+          {{ location_form.id }}
+          {{ location_form.non_field_errors }}
+          <p>{{ location_form.place.label_tag }} {{ location_form.place }} {{ location_form.place.errors }}</p>
+          <p>{{ location_form.radius_km.label_tag }} {{ location_form.radius_km }} {{ location_form.radius_km.errors }}</p>
+          {% if location_form.DELETE %}<p>{{ location_form.DELETE }} {{ location_form.DELETE.label_tag }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    <button type="submit">Save profile</button>
+    <a class="text-link" href="{% url 'jobs:profile_list' %}">Cancel</a>
+  </form>
+{% endblock %}

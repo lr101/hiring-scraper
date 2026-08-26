@@ -37,3 +37,22 @@ input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ba
 button { padding: 10px 16px; border: 0; border-radius: 8px; color: white; background: #1d6b52; font-weight: 700; cursor: pointer; }
 .plain-list { padding: 0; list-style: none; }
 .plain-list li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e6ebe7; }
+.inline-heading { display: flex; justify-content: space-between; align-items: end; gap: 24px; }
+.button-link { display: inline-block; padding: 10px 16px; border-radius: 8px; color: white; background: #1d6b52; text-decoration: none; font-weight: 700; }
+.form-card { max-width: 760px; margin-top: 32px; }
+.form-card p { display: grid; gap: 6px; }
+.form-card label { font-weight: 650; }
+.form-card textarea { min-height: 68px; }
+.location-section { margin: 28px 0; padding-top: 20px; border-top: 1px solid #dce3de; }
+.location-section h2 { margin: 0; }
+.location-row { display: grid; grid-template-columns: minmax(260px, 1fr) 150px 100px; gap: 14px; align-items: end; padding: 14px 0; border-bottom: 1px solid #e6ebe7; }
+.location-row p { margin: 0; }
+.muted { display: block; margin-top: 4px; color: #53615b; font-size: 14px; }
+.list-card { margin-top: 32px; }
+.inline-form { display: inline; }
+.inline-form button { padding: 6px 10px; font-size: 12px; }
+.text-link { margin-left: 12px; color: #1d6b52; }
+.confirm-card { max-width: 600px; }
+.search-form { display: flex; align-items: end; gap: 12px; max-width: 720px; margin-top: 28px; }
+.search-form input { flex: 1; }
+.attribution { margin-top: 24px; color: #53615b; font-size: 13px; }

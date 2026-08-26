@@ -1,4 +1,8 @@
+from typing import Any
+
 from django.db import models
+
+from .places import normalize_place_text
 
 
 class WorkspaceUser(models.Model):
@@ -149,9 +153,45 @@ class SearchProfile(models.Model):
         return self.name
 
 
+class GermanPlace(models.Model):
+    """A locally imported GeoNames place that can anchor a profile radius."""
+
+    class SourceKind(models.TextChoices):
+        CITY = "city", "City"
+        POSTAL_CODE = "postal_code", "Postal code"
+
+    source_id = models.CharField(max_length=300, unique=True)
+    name = models.CharField(max_length=200)
+    normalized_name = models.CharField(max_length=200, db_index=True)
+    postal_code = models.CharField(max_length=12, blank=True, db_index=True)
+    admin_area = models.CharField(max_length=200, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    population = models.PositiveIntegerField(null=True, blank=True)
+    source_kind = models.CharField(max_length=16, choices=SourceKind.choices)
+    source_snapshot = models.CharField(max_length=32, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source_kind", "postal_code", "normalized_name", "latitude", "longitude"],
+                name="unique_imported_german_place",
+            )
+        ]
+        ordering = ["name", "admin_area", "postal_code"]
+
+    def __str__(self) -> str:
+        details = ", ".join(part for part in [self.postal_code, self.admin_area] if part)
+        return f"{self.name} ({details})" if details else self.name
+
+
 class ProfileLocation(models.Model):
     profile = models.ForeignKey(
         SearchProfile, on_delete=models.CASCADE, related_name="profile_locations"
+    )
+    place = models.ForeignKey(
+        GermanPlace, on_delete=models.PROTECT, related_name="profile_locations"
     )
     city = models.CharField(max_length=200)
     latitude = models.FloatField()
@@ -160,11 +200,17 @@ class ProfileLocation(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["profile", "city"], name="unique_city_per_profile")
+            models.UniqueConstraint(fields=["profile", "place"], name="unique_place_per_profile")
         ]
 
     def __str__(self) -> str:
         return f"{self.city} ({self.radius_km} km)"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.city = self.place.name
+        self.latitude = self.place.latitude
+        self.longitude = self.place.longitude
+        super().save(*args, **kwargs)
 
 
 class JobMatch(models.Model):
@@ -223,18 +269,24 @@ class ExclusionRule(models.Model):
     user = models.ForeignKey(WorkspaceUser, on_delete=models.CASCADE, related_name="exclusions")
     kind = models.CharField(max_length=16, choices=Kind.choices)
     pattern = models.CharField(max_length=500)
+    normalized_pattern = models.CharField(max_length=500)
     is_enabled = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["user", "kind", "pattern"], name="unique_exclusion_per_user"
+                fields=["user", "kind", "normalized_pattern"], name="unique_exclusion_per_user"
             )
         ]
 
     def __str__(self) -> str:
         return f"{self.user}: {self.get_kind_display()} {self.pattern}"
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.pattern = " ".join(self.pattern.split())
+        self.normalized_pattern = normalize_place_text(self.pattern)
+        super().save(*args, **kwargs)
 
 
 class CrawlRun(models.Model):
