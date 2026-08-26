@@ -2,7 +2,7 @@ from typing import Any
 
 from django.db import models
 
-from .places import normalize_place_text
+from .exclusions import normalize_exclusion_pattern
 
 
 class WorkspaceUser(models.Model):
@@ -285,7 +285,7 @@ class ExclusionRule(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         self.pattern = " ".join(self.pattern.split())
-        self.normalized_pattern = normalize_place_text(self.pattern)
+        self.normalized_pattern = normalize_exclusion_pattern(self.pattern)
         super().save(*args, **kwargs)
 
 

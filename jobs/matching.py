@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import math
-import re
-import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from jobs.exclusions import normalize_exclusion_pattern
 from jobs.models import ExclusionRule, Job, JobMatch, ProfileLocation, SearchProfile, WorkspaceUser
 
 EARTH_RADIUS_KM = 6371.0088
@@ -68,11 +67,7 @@ class MatchEvaluation:
 
 def normalize_text(value: str) -> str:
     """Return a comparison-safe form for titles, skills, and metadata."""
-    value = value.casefold().replace("c#", "c sharp").replace("c++", "cplusplus")
-    value = unicodedata.normalize("NFKD", value)
-    value = "".join(character for character in value if not unicodedata.combining(character))
-    value = re.sub(r"[^a-z0-9]+", " ", value)
-    return " ".join(value.split())
+    return normalize_exclusion_pattern(value)
 
 
 def haversine_distance_km(

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 from django.core.management import call_command
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
 from django.test import Client
 from django.urls import reverse
 
@@ -350,3 +352,158 @@ def test_remote_enabled_profile_can_save_without_a_city_radius(client: Client) -
     assert response.status_code == 302
     profile = SearchProfile.objects.get(user=user)
     assert profile.profile_locations.count() == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("title_weight", [None, "40000"])
+def test_profile_form_reports_an_invalid_weight_without_raising_key_error(
+    client: Client, title_weight: str | None
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    client.cookies["workspace_user"] = str(user.pk)
+
+    form_data = {
+        "name": "Invalid title weight",
+        "include_remote": "on",
+        "weight_required_skills": "30",
+        "weight_preferred_skills": "10",
+        "weight_location": "10",
+        "weight_unknown_location": "-10",
+        "minimum_score": "0",
+        "profile_locations-TOTAL_FORMS": "1",
+        "profile_locations-INITIAL_FORMS": "0",
+        "profile_locations-MIN_NUM_FORMS": "0",
+        "profile_locations-MAX_NUM_FORMS": "1000",
+        "profile_locations-0-radius_km": "25",
+    }
+    if title_weight is not None:
+        form_data["weight_title"] = title_weight
+
+    response = client.post(reverse("jobs:profile_create"), form_data)
+
+    assert response.status_code == 200
+    assert "weight_title" in response.context["form"].errors
+    assert SearchProfile.objects.filter(user=user).exists() is False
+
+
+@pytest.mark.django_db
+def test_c_sharp_exclusion_rules_normalize_consistently_deduplicate_and_remove_matches(
+    client: Client,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    profile = SearchProfile.objects.create(user=user, name="Profile")
+    job = make_job(skills=["C#"])
+    client.cookies["workspace_user"] = str(user.pk)
+
+    created = client.post(
+        reverse("jobs:exclusion_create"),
+        {"kind": ExclusionRule.Kind.SKILL, "pattern": " C# ", "is_enabled": "on"},
+    )
+    duplicate = client.post(
+        reverse("jobs:exclusion_create"),
+        {"kind": ExclusionRule.Kind.SKILL, "pattern": "c sharp", "is_enabled": "on"},
+    )
+
+    assert created.status_code == 302
+    assert ExclusionRule.objects.get(user=user).normalized_pattern == "c sharp"
+    assert JobMatch.objects.filter(profile=profile, job=job).exists() is False
+    assert duplicate.status_code == 200
+    assert ExclusionRule.objects.filter(user=user).count() == 1
+
+
+@pytest.mark.django_db
+def test_profile_form_has_a_control_to_add_another_city_radius(client: Client) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    client.cookies["workspace_user"] = str(user.pk)
+
+    response = client.get(reverse("jobs:profile_create"))
+
+    assert response.status_code == 200
+    assert b'id="add-location"' in response.content
+    assert b'id="empty-location-form"' in response.content
+    assert b"__prefix__" in response.content
+
+
+@pytest.mark.django_db
+def test_profile_form_add_row_contract_saves_three_city_radii(client: Client) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    places = [
+        GermanPlace.objects.create(
+            source_id=f"geonames:{number}",
+            name=name,
+            normalized_name=name.casefold(),
+            admin_area=admin_area,
+            latitude=latitude,
+            longitude=longitude,
+            source_kind=GermanPlace.SourceKind.CITY,
+        )
+        for number, name, admin_area, latitude, longitude in (
+            (1, "Berlin", "Berlin", 52.52, 13.405),
+            (2, "Hamburg", "Hamburg", 53.5511, 9.9937),
+            (3, "München", "Bayern", 48.1351, 11.582),
+        )
+    ]
+    client.cookies["workspace_user"] = str(user.pk)
+    form_data = {
+        "name": "Three cities",
+        "is_enabled": "on",
+        "weight_title": "50",
+        "weight_required_skills": "30",
+        "weight_preferred_skills": "10",
+        "weight_location": "10",
+        "weight_unknown_location": "-10",
+        "minimum_score": "0",
+        "profile_locations-TOTAL_FORMS": "3",
+        "profile_locations-INITIAL_FORMS": "0",
+        "profile_locations-MIN_NUM_FORMS": "0",
+        "profile_locations-MAX_NUM_FORMS": "1000",
+    }
+    for index, place in enumerate(places):
+        form_data[f"profile_locations-{index}-place"] = str(place.pk)
+        form_data[f"profile_locations-{index}-radius_km"] = str(20 + index * 10)
+
+    response = client.post(reverse("jobs:profile_create"), form_data)
+
+    assert response.status_code == 302
+    profile = SearchProfile.objects.get(user=user)
+    assert list(
+        profile.profile_locations.order_by("radius_km").values_list("place_id", "radius_km")
+    ) == [(places[0].pk, 20), (places[1].pk, 30), (places[2].pk, 40)]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinates() -> None:
+    previous_target = ("jobs", "0004_add_initial_employer_source_kinds")
+    current_target = ("jobs", "0005_german_place_and_profile_locations")
+    executor = MigrationExecutor(connection)
+    executor.migrate([previous_target])
+    old_apps = executor.loader.project_state([previous_target]).apps
+    WorkspaceUserOld = old_apps.get_model("jobs", "WorkspaceUser")
+    SearchProfileOld = old_apps.get_model("jobs", "SearchProfile")
+    ProfileLocationOld = old_apps.get_model("jobs", "ProfileLocation")
+    ExclusionRuleOld = old_apps.get_model("jobs", "ExclusionRule")
+
+    user = WorkspaceUserOld.objects.create(name="Ada")
+    first_profile = SearchProfileOld.objects.create(user=user, name="First")
+    second_profile = SearchProfileOld.objects.create(user=user, name="Second")
+    ProfileLocationOld.objects.create(
+        profile=first_profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=25
+    )
+    ProfileLocationOld.objects.create(
+        profile=second_profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=25
+    )
+    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="C#")
+    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="c sharp")
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([current_target])
+    new_apps = executor.loader.project_state([current_target]).apps
+    GermanPlaceNew = new_apps.get_model("jobs", "GermanPlace")
+    ProfileLocationNew = new_apps.get_model("jobs", "ProfileLocation")
+    ExclusionRuleNew = new_apps.get_model("jobs", "ExclusionRule")
+
+    places = GermanPlaceNew.objects.filter(source_snapshot="legacy")
+    locations = ProfileLocationNew.objects.order_by("profile_id")
+    assert places.count() == 1
+    assert [location.place_id for location in locations] == [places.get().pk, places.get().pk]
+    assert ExclusionRuleNew.objects.filter(user_id=user.pk, kind="skill").count() == 1

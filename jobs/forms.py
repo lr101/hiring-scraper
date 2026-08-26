@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
 
+from .exclusions import normalize_exclusion_pattern
 from .matching import (
     DEFAULT_WEIGHTS,
     MAX_JOB_MATCH_SCORE,
@@ -129,9 +130,11 @@ class SearchProfileForm(forms.ModelForm):  # type: ignore[type-arg]
                 cleaned_data[field_name] = groups
             elif isinstance(raw_value, str):
                 cleaned_data[field_name] = _normalized_terms(raw_value)
-        cleaned_data["weights"] = {
-            weight_name: cleaned_data[f"weight_{weight_name}"] for weight_name in DEFAULT_WEIGHTS
-        }
+        if all(f"weight_{weight_name}" in cleaned_data for weight_name in DEFAULT_WEIGHTS):
+            cleaned_data["weights"] = {
+                weight_name: cleaned_data[f"weight_{weight_name}"]
+                for weight_name in DEFAULT_WEIGHTS
+            }
         return cleaned_data
 
     def save(self, commit: bool = True) -> SearchProfile:
@@ -214,7 +217,7 @@ class ExclusionRuleForm(forms.ModelForm):  # type: ignore[type-arg]
 
     def clean_pattern(self) -> str:
         pattern = " ".join(self.cleaned_data["pattern"].split())
-        if not normalize_text(pattern):
+        if not normalize_exclusion_pattern(pattern):
             raise ValidationError("Enter a pattern with letters or numbers.")
         return pattern
 
@@ -223,7 +226,7 @@ class ExclusionRuleForm(forms.ModelForm):  # type: ignore[type-arg]
         pattern = cleaned_data.get("pattern")
         kind = cleaned_data.get("kind")
         if isinstance(pattern, str) and isinstance(kind, str):
-            normalized_pattern = normalize_text(pattern)
+            normalized_pattern = normalize_exclusion_pattern(pattern)
             self.instance.normalized_pattern = normalized_pattern
             if (
                 self.instance.user_id
@@ -240,7 +243,7 @@ class ExclusionRuleForm(forms.ModelForm):  # type: ignore[type-arg]
 
     def save(self, commit: bool = True) -> ExclusionRule:
         rule = super().save(commit=False)
-        rule.normalized_pattern = normalize_text(rule.pattern)
+        rule.normalized_pattern = normalize_exclusion_pattern(rule.pattern)
         if commit:
             rule.save()
         return cast(ExclusionRule, rule)

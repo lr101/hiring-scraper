@@ -112,14 +112,14 @@ def _import_postal_codes(archive_path: Path, snapshot: str) -> int:
     with _open_first_text_file(archive_path) as rows:
         for line in rows:
             columns = line.rstrip("\n").split("\t")
-            if len(columns) < 10 or columns[0] != "DE":
+            if len(columns) < 12 or columns[0] != "DE":
                 continue
             postal_code, name, admin_area, latitude, longitude = (
                 columns[1],
                 columns[2],
                 columns[3],
-                columns[7],
-                columns[8],
+                columns[9],
+                columns[10],
             )
             if not postal_code or not name or not latitude or not longitude:
                 continue

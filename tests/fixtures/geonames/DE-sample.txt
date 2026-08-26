@@ -1,2 +1,2 @@
-DE	10115	Berlin	Berlin	16			52.5323	13.3846	4
-DE	48143	Münster	Nordrhein-Westfalen	07			51.9624	7.6257	4
+DE	10115	Berlin	Berlin	16					52.5323	13.3846	4
+DE	48143	Münster	Nordrhein-Westfalen	07					51.9624	7.6257	4

@@ -16,17 +16,67 @@
       <h2>City radii</h2>
       <p>Pick exact imported places. <a href="{% url 'jobs:place_search' %}">Search the German place dictionary</a> when a city name is ambiguous.</p>
       {{ formset.management_form }}
-      {% for location_form in formset %}
-        <div class="location-row">
+      <div id="location-rows">
+        {% for location_form in formset %}
+        <div class="location-row" data-location-row>
           {{ location_form.id }}
           {{ location_form.non_field_errors }}
           <p>{{ location_form.place.label_tag }} {{ location_form.place }} {{ location_form.place.errors }}</p>
           <p>{{ location_form.radius_km.label_tag }} {{ location_form.radius_km }} {{ location_form.radius_km.errors }}</p>
-          {% if location_form.DELETE %}<p>{{ location_form.DELETE }} {{ location_form.DELETE.label_tag }}</p>{% endif %}
+          {% if location_form.DELETE %}
+            <p class="location-delete">{{ location_form.DELETE }} {{ location_form.DELETE.label_tag }}</p>
+            <button type="button" class="remove-location">Remove location</button>
+          {% endif %}
         </div>
-      {% endfor %}
+        {% endfor %}
+      </div>
+      <template id="empty-location-form">
+        <div class="location-row" data-location-row>
+          {{ formset.empty_form.id }}
+          {{ formset.empty_form.non_field_errors }}
+          <p>{{ formset.empty_form.place.label_tag }} {{ formset.empty_form.place }} {{ formset.empty_form.place.errors }}</p>
+          <p>{{ formset.empty_form.radius_km.label_tag }} {{ formset.empty_form.radius_km }} {{ formset.empty_form.radius_km.errors }}</p>
+          {% if formset.empty_form.DELETE %}
+            <p class="location-delete">{{ formset.empty_form.DELETE }} {{ formset.empty_form.DELETE.label_tag }}</p>
+            <button type="button" class="remove-location">Remove location</button>
+          {% endif %}
+        </div>
+      </template>
+      <button type="button" id="add-location">Add another city radius</button>
     </section>
     <button type="submit">Save profile</button>
     <a class="text-link" href="{% url 'jobs:profile_list' %}">Cancel</a>
   </form>
+  <script>
+    (() => {
+      const rows = document.getElementById("location-rows");
+      const totalForms = document.getElementById("id_profile_locations-TOTAL_FORMS");
+      const emptyForm = document.getElementById("empty-location-form");
+      const addButton = document.getElementById("add-location");
+
+      function removeLocation(event) {
+        const row = event.currentTarget.closest("[data-location-row]");
+        const deleteInput = row.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) {
+          deleteInput.checked = true;
+        }
+        row.hidden = true;
+      }
+
+      rows.querySelectorAll(".remove-location").forEach((button) => {
+        button.addEventListener("click", removeLocation);
+      });
+      addButton.addEventListener("click", () => {
+        const index = Number(totalForms.value);
+        const fragment = emptyForm.content.cloneNode(true);
+        const wrapper = document.createElement("div");
+        wrapper.appendChild(fragment);
+        wrapper.innerHTML = wrapper.innerHTML.replace(/__prefix__/g, index);
+        const row = wrapper.firstElementChild;
+        row.querySelector(".remove-location").addEventListener("click", removeLocation);
+        rows.appendChild(row);
+        totalForms.value = String(index + 1);
+      });
+    })();
+  </script>
 {% endblock %}
