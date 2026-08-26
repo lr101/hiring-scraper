@@ -213,6 +213,62 @@ class ProfileLocation(models.Model):
         super().save(*args, **kwargs)
 
 
+class MonitoringTarget(models.Model):
+    class Kind(models.TextChoices):
+        COMPANY = "company", "Company"
+        CITY = "city", "City"
+
+    user = models.ForeignKey(
+        WorkspaceUser, on_delete=models.CASCADE, related_name="monitoring_targets"
+    )
+    kind = models.CharField(max_length=16, choices=Kind.choices)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="monitoring_targets",
+        null=True,
+        blank=True,
+    )
+    place = models.ForeignKey(
+        GermanPlace,
+        on_delete=models.PROTECT,
+        related_name="monitoring_targets",
+        null=True,
+        blank=True,
+    )
+    radius_km = models.PositiveSmallIntegerField(default=25)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(kind="company", company__isnull=False, place__isnull=True)
+                    | models.Q(kind="city", company__isnull=True, place__isnull=False)
+                ),
+                name="monitoring_target_has_selection",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(kind="company") | models.Q(kind="city", radius_km__gt=0),
+                name="city_monitoring_target_has_radius",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "company"],
+                condition=models.Q(kind="company"),
+                name="unique_company_monitoring_target",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "place"],
+                condition=models.Q(kind="city"),
+                name="unique_city_monitoring_target",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        if self.kind == self.Kind.COMPANY:
+            return str(self.company)
+        return f"{self.place} ({self.radius_km} km)"
+
+
 class JobMatch(models.Model):
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="matches")
     profile = models.ForeignKey(SearchProfile, on_delete=models.CASCADE, related_name="matches")
