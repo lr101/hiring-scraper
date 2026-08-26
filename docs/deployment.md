@@ -46,30 +46,18 @@ Open `http://HOSTNAME:${APP_PORT:-8000}/` in a browser. The application has no l
 uses the selected account cookie to keep profiles, exclusions, matches, notes, and workflow state
 separate. Create the first account from the Accounts page, select it, and then create a profile.
 
-## Load places and seed sources
+## Add companies and locations dynamically
 
-Download GeoNames archives on the deployment machine. The application does not download them for
-you. Import at least `cities500.zip`; add the Germany postal-code archive if postal-code choices
-are useful in profiles.
+There is no place archive or source-seeding command. After selecting an account, open Search and
+enter a company domain. The application fetches the public HTTPS homepage, discovers the company
+name and likely career page, and creates a generic JSON-LD source for that site. Existing domain
+records are reused without fetching the site again.
 
-```bash
-docker compose cp /data/cities500.zip web:/tmp/cities500.zip
-docker compose cp /data/DE.zip web:/tmp/DE.zip
-docker compose exec web python manage.py import_german_places \
-  --cities /tmp/cities500.zip \
-  --postal-codes /tmp/DE.zip \
-  --snapshot 2026-08-26
-```
-
-Use the date represented by the downloaded source snapshot. Repeating the import is safe. The
-import command updates existing places and profile location coordinates.
-
-Create the five initial company sources. This command is idempotent and does not change existing
-source settings:
-
-```bash
-docker compose exec web python manage.py seed_initial_sources
-```
+For a city or postal code, press Search locations in Search or in a profile location row. The
+default provider is the public Nominatim endpoint. Set `LOCATION_API_URL` to a compatible hosted
+or self-managed endpoint if the deployment needs different capacity or policy controls. Keep the
+identifying `LOCATION_USER_AGENT`, request interval, and visible OpenStreetMap attribution. The
+application caches successful results in PostgreSQL and does not run autocomplete or bulk imports.
 
 Review the Sources page before the first run. A source is disabled after bot protection is
 detected. Do not bypass that state with proxy rotation or CAPTCHA solving. Unblock it manually
@@ -139,7 +127,8 @@ Common causes:
 - A hostname is rejected: add the exact hostname, without `https://`, to `DJANGO_ALLOWED_HOSTS`.
 - A source is blocked: inspect the latest run, then use the Sources page to unblock only after
   reviewing the cause.
-- Profiles have no city choices: import the GeoNames places into the running web container.
+- Location search is unavailable: check outbound HTTPS access, `LOCATION_API_URL`, the provider's
+  policy, and the identifying `LOCATION_USER_AGENT`. Previously cached places remain usable.
 
 Never publish PostgreSQL or Redis ports directly to the internet. Put HTTPS and authentication in
 front of the application if it will be reachable beyond a trusted private network.

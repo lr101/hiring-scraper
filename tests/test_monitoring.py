@@ -36,7 +36,7 @@ def make_place(
     *, name: str, latitude: float, longitude: float, normalized_name: str | None = None
 ) -> GermanPlace:
     return GermanPlace.objects.create(
-        source_id=f"geonames:{name.lower().replace(' ', '-')}",
+        source_id=f"test:{name.lower().replace(' ', '-')}",
         name=name,
         normalized_name=normalized_name or name.lower(),
         latitude=latitude,

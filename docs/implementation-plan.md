@@ -17,7 +17,9 @@
   fingerprint.
 - Fetch each source daily with a configurable low request rate. Stop and mark a source blocked when
   bot protection appears. Do not implement proxy rotation or CAPTCHA solving.
-- The initial companies are Siemens, Bosch, SAP, Deutsche Telekom, and DHL.
+- Users add companies by domain. The submitted website is the source of truth for company identity
+  and career discovery; existing specialized adapters remain available for already configured
+  sources.
 - Docker deployment files target an external Docker-capable host. Never install or start Docker in
   this development container.
 - Use test-first development and make a separate Git commit for each completed task.
@@ -34,12 +36,13 @@ Implement the common collector contract, raw job record, adapter registry, HTTP 
 upsert lifecycle, two-miss closure, ignored repost propagation, CrawlRun accounting, daily Celery
 task, and management command. Add fixture-based tests without external HTTP calls.
 
-## Task 3: Five seed company collectors
+## Task 3: Dynamic company discovery and career collection
 
-Inspect Siemens, Bosch, SAP, Deutsche Telekom, and DHL career sites. Implement the smallest set of
-reusable or custom adapters required to collect German jobs from all five. Add representative saved
-response fixtures and parser tests. Add a data migration or command that seeds each career website
-as its own Company and CareerSource record.
+Inspect the submitted company website for Organization metadata and career links. Register a
+generic JSON-LD collector that follows a bounded, same-host HTTPS career-page graph and parses
+`JobPosting` records. Keep the existing specialized adapters for sources that need them. Add
+fixture-based discovery and collector tests; do not seed a fixed company list or import a company
+archive.
 
 ## Task 4: Profile and exclusion interface
 
@@ -58,4 +61,3 @@ action. Keep account selection on every page.
 Complete Docker deployment configuration, health checks, initial account setup, static assets,
 backup and restore instructions, request-rate settings, and production settings. Run all local
 checks, inspect migrations, verify command-line collection with fixtures, and obtain final review.
-

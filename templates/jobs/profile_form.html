@@ -14,14 +14,15 @@
     {{ form.as_p }}
     <section class="location-section">
       <h2>City radii</h2>
-      <p>Pick exact imported places. <a href="{% url 'jobs:place_search' %}">Search the German place dictionary</a> when a city name is ambiguous.</p>
+      <p>Search a German city or postal code live, then choose the exact result.</p>
+      <p class="attribution">Location data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, from Nominatim.</p>
       {{ formset.management_form }}
       <div id="location-rows">
         {% for location_form in formset %}
         <div class="location-row" data-location-row>
           {{ location_form.id }}
           {{ location_form.non_field_errors }}
-          <p><label>Search imported places <input type="search" data-place-search data-place-search-url="{% url 'jobs:place_search_json' %}" autocomplete="off"></label></p>
+          <p><label>Search locations <input type="search" data-place-search autocomplete="off"></label> <button type="button" data-place-search-button>Search</button> <span class="muted" data-place-search-status aria-live="polite"></span></p>
           <p>{{ location_form.place.label_tag }} {{ location_form.place }} {{ location_form.place.errors }}</p>
           <p>{{ location_form.radius_km.label_tag }} {{ location_form.radius_km }} {{ location_form.radius_km.errors }}</p>
           {% if location_form.DELETE %}
@@ -35,7 +36,7 @@
         <div class="location-row" data-location-row>
           {{ formset.empty_form.id }}
           {{ formset.empty_form.non_field_errors }}
-          <p><label>Search imported places <input type="search" data-place-search data-place-search-url="{% url 'jobs:place_search_json' %}" autocomplete="off"></label></p>
+          <p><label>Search locations <input type="search" data-place-search autocomplete="off"></label> <button type="button" data-place-search-button>Search</button> <span class="muted" data-place-search-status aria-live="polite"></span></p>
           <p>{{ formset.empty_form.place.label_tag }} {{ formset.empty_form.place }} {{ formset.empty_form.place.errors }}</p>
           <p>{{ formset.empty_form.radius_km.label_tag }} {{ formset.empty_form.radius_km }} {{ formset.empty_form.radius_km.errors }}</p>
           {% if formset.empty_form.DELETE %}
@@ -68,17 +69,26 @@
       function bindPlaceSearch(row) {
         const search = row.querySelector("[data-place-search]");
         const select = row.querySelector('select[name$="-place"]');
-        search.addEventListener("input", async () => {
-          if (!search.value.trim()) {
+        const button = row.querySelector("[data-place-search-button]");
+        const status = row.querySelector("[data-place-search-status]");
+        button.addEventListener("click", async () => {
+          status.textContent = "";
+          if (search.value.trim().length < 2) {
+            status.textContent = "Enter at least two characters.";
             return;
           }
-          const response = await fetch(`${search.dataset.placeSearchUrl}?q=${encodeURIComponent(search.value)}`);
-          if (!response.ok) {
-            return;
+          button.disabled = true;
+          try {
+            const response = await fetch("{% url 'jobs:location_search' %}?q=" + encodeURIComponent(search.value));
+            const payload = await response.json();
+            select.replaceChildren(new Option("Choose a location", ""));
+            payload.results.forEach(({ id, label }) => select.add(new Option(label, String(id))));
+            status.textContent = payload.error || (payload.results.length ? "Choose a result." : "No locations found.");
+          } catch (error) {
+            status.textContent = "Location search is unavailable.";
+          } finally {
+            button.disabled = false;
           }
-          const { results } = await response.json();
-          select.replaceChildren(new Option("Choose a place", ""));
-          results.forEach(({ id, label }) => select.add(new Option(label, String(id))));
         });
       }
 

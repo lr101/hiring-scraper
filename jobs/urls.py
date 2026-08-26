@@ -37,6 +37,5 @@ urlpatterns = [
     path("exclusions/new/", views.exclusion_create, name="exclusion_create"),
     path("exclusions/<int:rule_id>/toggle/", views.exclusion_toggle, name="exclusion_toggle"),
     path("exclusions/<int:rule_id>/delete/", views.exclusion_delete, name="exclusion_delete"),
-    path("places/search/", views.place_search, name="place_search"),
-    path("places/search.json", views.place_search_json, name="place_search_json"),
+    path("locations/search/", views.location_search, name="location_search"),
 ]

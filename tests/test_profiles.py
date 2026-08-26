@@ -1,8 +1,6 @@
 from collections.abc import Iterator
-from pathlib import Path
 
 import pytest
-from django.core.management import call_command
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import Client
@@ -27,7 +25,7 @@ def test_profile_location_uses_the_selected_canonical_german_place() -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     profile = SearchProfile.objects.create(user=user, name="Berlin jobs")
     berlin = GermanPlace.objects.create(
-        source_id="geonames:2950159",
+        source_id="test:2950159",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -51,7 +49,7 @@ def test_profile_save_parses_filters_uses_place_coordinates_and_creates_open_job
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     berlin = GermanPlace.objects.create(
-        source_id="geonames:2950159",
+        source_id="test:2950159",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -117,7 +115,7 @@ def make_job(**overrides: object) -> Job:
 @pytest.fixture
 def restore_current_migration_leaf() -> Iterator[None]:
     yield
-    MigrationExecutor(connection).migrate([("jobs", "0006_monitoring_targets")])
+    MigrationExecutor(connection).migrate([("jobs", "0007_dynamic_company_domains")])
 
 
 @pytest.mark.django_db
@@ -189,87 +187,6 @@ def test_exclusion_form_normalizes_patterns_rejects_equivalent_duplicates_and_re
 
 
 @pytest.mark.django_db
-def test_import_german_places_reads_local_geonames_archives_and_is_idempotent(
-    tmp_path: Path,
-) -> None:
-    import zipfile
-
-    fixture_root = Path(__file__).parent / "fixtures" / "geonames"
-    cities_archive = tmp_path / "cities500.zip"
-    postal_archive = tmp_path / "DE.zip"
-    with zipfile.ZipFile(cities_archive, "w") as archive:
-        archive.write(fixture_root / "cities500-sample.txt", "cities500.txt")
-    with zipfile.ZipFile(postal_archive, "w") as archive:
-        archive.write(fixture_root / "DE-sample.txt", "DE.txt")
-
-    call_command(
-        "import_german_places",
-        cities=str(cities_archive),
-        postal_codes=str(postal_archive),
-        snapshot="2026-08-26",
-    )
-    call_command(
-        "import_german_places",
-        cities=str(cities_archive),
-        postal_codes=str(postal_archive),
-        snapshot="2026-08-26",
-    )
-
-    assert GermanPlace.objects.count() == 4
-    assert GermanPlace.objects.get(source_id="geonames:2950159").normalized_name == "berlin"
-    assert GermanPlace.objects.get(postal_code="48143").name == "Münster"
-
-
-@pytest.mark.django_db
-def test_postal_place_reimport_keeps_its_identity_and_refreshes_profile_location(
-    tmp_path: Path,
-) -> None:
-    import zipfile
-
-    cities_archive = tmp_path / "cities500.zip"
-    postal_archive = tmp_path / "DE.zip"
-    with zipfile.ZipFile(cities_archive, "w") as archive:
-        archive.writestr("cities500.txt", "")
-    with zipfile.ZipFile(postal_archive, "w") as archive:
-        archive.writestr(
-            "DE.txt",
-            "DE\t48143\tMunster\tNordrhein-Westfalen\tNW\t\t\t\t\t51.9600\t7.6300\t4\n",
-        )
-    call_command(
-        "import_german_places",
-        cities=str(cities_archive),
-        postal_codes=str(postal_archive),
-        snapshot="2026-08-26",
-    )
-    place = GermanPlace.objects.get(postal_code="48143")
-    profile = SearchProfile.objects.create(
-        user=WorkspaceUser.objects.create(name="Ada"), name="Local"
-    )
-    location = ProfileLocation.objects.create(profile=profile, place=place, radius_km=25)
-
-    with zipfile.ZipFile(postal_archive, "w") as archive:
-        archive.writestr(
-            "DE.txt",
-            "DE\t48143\tMünster\tNordrhein-Westfalen\tNW\t\t\t\t\t51.9620\t7.6280\t4\n",
-        )
-    call_command(
-        "import_german_places",
-        cities=str(cities_archive),
-        postal_codes=str(postal_archive),
-        snapshot="2026-08-27",
-    )
-
-    place.refresh_from_db()
-    location.refresh_from_db()
-    assert GermanPlace.objects.filter(postal_code="48143").count() == 1
-    assert place.name == "Münster"
-    assert place.latitude == 51.962
-    assert location.city == "Münster"
-    assert location.latitude == 51.962
-    assert location.longitude == 7.628
-
-
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     ("kind", "pattern"),
     [
@@ -330,64 +247,12 @@ def test_profile_without_a_city_requires_remote_jobs_to_be_enabled(client: Clien
 
 
 @pytest.mark.django_db
-def test_place_search_keeps_ambiguous_city_results_separate_and_profile_requires_place_id(
-    client: Client,
-) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    GermanPlace.objects.create(
-        source_id="geonames:berlin-city",
-        name="Berlin",
-        normalized_name="berlin",
-        admin_area="Berlin",
-        latitude=52.52,
-        longitude=13.405,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    GermanPlace.objects.create(
-        source_id="geonames:berlin-river",
-        name="Berlin",
-        normalized_name="berlin",
-        admin_area="Schleswig-Holstein",
-        latitude=54.0,
-        longitude=10.3,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    client.cookies["workspace_user"] = str(user.pk)
-
-    search = client.get(reverse("jobs:place_search"), {"q": "Bérlin"})
-    invalid_place = client.post(
-        reverse("jobs:profile_create"),
-        {
-            "name": "Ambiguous",
-            "include_remote": "on",
-            "weight_title": "50",
-            "weight_required_skills": "30",
-            "weight_preferred_skills": "10",
-            "weight_location": "10",
-            "weight_unknown_location": "-10",
-            "minimum_score": "0",
-            "profile_locations-TOTAL_FORMS": "1",
-            "profile_locations-INITIAL_FORMS": "0",
-            "profile_locations-MIN_NUM_FORMS": "0",
-            "profile_locations-MAX_NUM_FORMS": "1000",
-            "profile_locations-0-place": "Berlin",
-            "profile_locations-0-radius_km": "25",
-        },
-    )
-
-    assert search.status_code == 200
-    assert search.context["places"].count() == 2
-    assert invalid_place.status_code == 200
-    assert SearchProfile.objects.filter(user=user).exists() is False
-
-
-@pytest.mark.django_db
 def test_profile_location_selector_is_bounded_and_selected_place_survives_post(
     client: Client,
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     selected = GermanPlace.objects.create(
-        source_id="geonames:selected",
+        source_id="test:selected",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -398,7 +263,7 @@ def test_profile_location_selector_is_bounded_and_selected_place_survives_post(
     GermanPlace.objects.bulk_create(
         [
             GermanPlace(
-                source_id=f"geonames:other-{number}",
+                source_id=f"test:other-{number}",
                 name=f"Unselected locality {number}",
                 normalized_name=f"unselected locality {number}",
                 latitude=50.0,
@@ -443,36 +308,6 @@ def test_profile_location_selector_is_bounded_and_selected_place_survives_post(
     assert response.status_code == 302
     assert profile.profile_locations.get().place_id == selected.pk
     assert profile.profile_locations.get().radius_km == 30
-
-
-@pytest.mark.django_db
-def test_place_search_json_returns_exact_place_ids_and_distinguishing_labels(
-    client: Client,
-) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    place = GermanPlace.objects.create(
-        source_id="geonames:berlin",
-        name="Berlin",
-        normalized_name="berlin",
-        postal_code="10115",
-        admin_area="Berlin",
-        latitude=52.52,
-        longitude=13.405,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    client.cookies["workspace_user"] = str(user.pk)
-
-    response = client.get(reverse("jobs:place_search_json"), {"q": "Berlin"})
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "results": [
-            {
-                "id": place.pk,
-                "label": "Berlin (10115, Berlin; 52.5200, 13.4050)",
-            }
-        ]
-    }
 
 
 @pytest.mark.django_db
@@ -613,7 +448,7 @@ def test_profile_form_add_row_contract_saves_three_city_radii(client: Client) ->
     user = WorkspaceUser.objects.create(name="Ada")
     places = [
         GermanPlace.objects.create(
-            source_id=f"geonames:{number}",
+            source_id=f"test:{number}",
             name=name,
             normalized_name=name.casefold(),
             admin_area=admin_area,

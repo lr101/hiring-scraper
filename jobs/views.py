@@ -5,9 +5,10 @@ from django.db.models import Q, QuerySet
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from .collection import collect_source, collector_registry
+from .company_discovery import CompanyDiscoveryError, discover_company
 from .forms import (
     BaseProfileLocationFormSet,
     CityMonitoringTargetForm,
@@ -17,13 +18,13 @@ from .forms import (
     SearchProfileForm,
     WorkspaceUserForm,
 )
+from .locations import LocationLookupError, location_result, search_locations
 from .matching import refresh_profile_matches, refresh_user_profile_matches
 from .models import (
     CareerSource,
     Company,
     CrawlRun,
     ExclusionRule,
-    GermanPlace,
     Job,
     JobMatch,
     MonitoringTarget,
@@ -32,7 +33,6 @@ from .models import (
     WorkspaceUser,
 )
 from .monitoring import filter_jobs_for_user
-from .places import format_place_label, normalize_place_text
 from .private import selected_workspace_user
 
 
@@ -260,12 +260,51 @@ def company_target_create(request: HttpRequest) -> HttpResponse:
         return user
     form = CompanyMonitoringTargetForm(request.POST, user=user)
     if form.is_valid():
-        MonitoringTarget.objects.get_or_create(
-            user=user,
-            kind=MonitoringTarget.Kind.COMPANY,
-            company=form.cleaned_data["company"],
-        )
-        return redirect("jobs:search")
+        domain = form.cleaned_data["domain"]
+        company = Company.objects.filter(domain=domain).order_by("pk").first()
+        discovery = None
+        if company is None:
+            try:
+                discovery = discover_company(domain)
+            except CompanyDiscoveryError as error:
+                form.add_error("domain", str(error))
+        if (company is not None or discovery is not None) and not form.errors:
+            with transaction.atomic():
+                if discovery is not None:
+                    company, _ = Company.objects.get_or_create(
+                        domain=discovery.domain,
+                        defaults={
+                            "name": discovery.name,
+                            "career_url": discovery.career_url,
+                        },
+                    )
+                    source_url = discovery.career_url
+                    source_config = {"allowed_hosts": list(discovery.allowed_hosts)}
+                else:
+                    assert company is not None
+                    source_url = company.career_url
+                    source_config = {}
+                source_kind = (
+                    discovery.source_kind if discovery is not None else CareerSource.Kind.JSON_LD
+                )
+                CareerSource.objects.get_or_create(
+                    source_url=source_url,
+                    defaults={
+                        "company": company,
+                        "kind": source_kind,
+                        "config": source_config,
+                    },
+                )
+                MonitoringTarget.objects.get_or_create(
+                    user=user,
+                    kind=MonitoringTarget.Kind.COMPANY,
+                    company=company,
+                )
+            assert company is not None
+            messages.success(request, f"Added {company.name} to the monitored companies.")
+            return redirect("jobs:search")
+    if form.errors:
+        return _search_response(request=request, user=user, company_form=form)
     return _search_response(request=request, user=user, company_form=form)
 
 
@@ -420,25 +459,17 @@ def exclusion_delete(request: HttpRequest, rule_id: int) -> HttpResponse:
     return render(request, "jobs/exclusion_confirm_delete.html", {"rule": rule})
 
 
-def place_search(request: HttpRequest) -> HttpResponse:
+@require_GET
+def location_search(request: HttpRequest) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    query = request.GET.get("q", "")
-    normalized = _normalize_place_query(query)
-    places = _matching_places(query, normalized)
-    return render(request, "jobs/place_search.html", {"query": query, "places": places})
-
-
-def place_search_json(request: HttpRequest) -> HttpResponse:
-    user = _private_user_or_redirect(request)
-    if isinstance(user, HttpResponse):
-        return user
-    query = request.GET.get("q", "")
-    places = _matching_places(query, _normalize_place_query(query))
-    return JsonResponse(
-        {"results": [{"id": place.pk, "label": format_place_label(place)} for place in places]}
-    )
+    query = request.GET.get("q", "").strip()
+    try:
+        places = search_locations(query)
+    except LocationLookupError as error:
+        return JsonResponse({"results": [], "error": str(error)}, status=502)
+    return JsonResponse({"results": [location_result(place) for place in places]})
 
 
 def _profile_form_response(
@@ -497,19 +528,6 @@ def _unique_matches(matches: QuerySet[JobMatch]) -> list[JobMatch]:
     for match in matches:
         unique.setdefault(match.job_id, match)
     return list(unique.values())
-
-
-def _normalize_place_query(value: str) -> str:
-    return normalize_place_text(value)
-
-
-def _matching_places(query: str, normalized: str):  # type: ignore[no-untyped-def]
-    if not normalized:
-        return GermanPlace.objects.none()
-    places = GermanPlace.objects.filter(
-        normalized_name__contains=normalized
-    ) | GermanPlace.objects.filter(postal_code__startswith=query.strip())
-    return places.order_by("name", "admin_area", "postal_code")[:50]
 
 
 def _allowed_place_ids(request: HttpRequest, profile: SearchProfile) -> set[int]:

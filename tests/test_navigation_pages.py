@@ -119,7 +119,7 @@ def test_search_creates_and_removes_company_and_city_targets_for_active_account(
     grace = WorkspaceUser.objects.create(name="Grace")
     company = make_company("Target company")
     place = GermanPlace.objects.create(
-        source_id="geonames:berlin",
+        source_id="test:berlin",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -134,7 +134,9 @@ def test_search_creates_and_removes_company_and_city_targets_for_active_account(
     )
     select_account(client, ada)
 
-    company_response = client.post(reverse("jobs:company_target_create"), {"company": company.pk})
+    company_response = client.post(
+        reverse("jobs:company_target_create"), {"domain": company.domain}
+    )
     city_response = client.post(
         reverse("jobs:city_target_create"), {"place": place.pk, "radius_km": 35}
     )
@@ -168,18 +170,18 @@ def test_search_renders_a_bound_company_form_when_a_duplicate_target_is_submitte
     )
     select_account(client, user)
 
-    response = client.post(reverse("jobs:company_target_create"), {"company": company.pk})
+    response = client.post(reverse("jobs:company_target_create"), {"domain": company.domain})
 
     assert response.status_code == 200
     assert b"already monitored" in response.content
-    assert f'value="{company.pk}" selected'.encode() in response.content
+    assert f'value="{company.domain}"'.encode() in response.content
 
 
 @pytest.mark.django_db
 def test_search_renders_a_bound_city_form_when_the_radius_is_invalid(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     place = GermanPlace.objects.create(
-        source_id="geonames:berlin",
+        source_id="test:berlin",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -267,7 +269,7 @@ def test_feed_keeps_a_job_when_only_another_account_ignored_it(client: Client) -
 def test_feed_applies_city_radius_targets(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     berlin = GermanPlace.objects.create(
-        source_id="geonames:berlin",
+        source_id="test:berlin",
         name="Berlin",
         normalized_name="berlin",
         admin_area="Berlin",
@@ -311,7 +313,7 @@ def test_feed_applies_city_radius_targets(client: Client) -> None:
 def test_feed_normalizes_city_names_without_coordinates(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     munich = GermanPlace.objects.create(
-        source_id="geonames:munich",
+        source_id="test:munich",
         name="München",
         normalized_name="munchen",
         admin_area="Bavaria",

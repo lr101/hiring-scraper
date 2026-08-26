@@ -11,7 +11,7 @@
 - Profile is the account home for job profiles and exclusions. It also lists the account's jobs with a saved or workflow status, with status filtering and sorting.
 - “Starred” and “saved” use the existing `UserJobState.Status.SAVED` state. Existing workflow states remain available in the profile list.
 - Preserve existing CRUD routes and operational pages for compatibility. New pages may link to them as secondary actions.
-- Use migrations for schema changes. Do not add external services or a JavaScript framework. Keep place search based on the existing local GeoNames data and JSON endpoint.
+- Use migrations for schema changes. Do not add a JavaScript framework. Discover companies from a submitted domain and use a configurable location API only for explicit user searches. Cache successful places locally, show provider attribution, and keep the location endpoint private rather than exposing autocomplete.
 - Add tests before production behavior and record the red and green runs for each task. Use fixture data only; tests must not call employer websites.
 
 ## Task 1: Account monitoring targets and filtering
@@ -34,4 +34,4 @@ Files: `jobs/forms.py`, `jobs/views.py`, `jobs/urls.py`, `templates/base.html`, 
 - The branch contains the new model migration and focused tests.
 - A selected account can reach Feed, Search, and Profile without exposing another account's data.
 - The primary nav has no legacy page links.
-- The existing profile, exclusion, job detail, source, company, run, account, and place-search tests remain green.
+- The existing profile, exclusion, job detail, source, company, run, and dynamic-location tests remain green.

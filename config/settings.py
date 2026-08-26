@@ -91,6 +91,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 COLLECTION_STALE_RUN_SECONDS = int(os.getenv("COLLECTION_STALE_RUN_SECONDS", "43200"))
+COMPANY_DISCOVERY_TIMEOUT_SECONDS = float(os.getenv("COMPANY_DISCOVERY_TIMEOUT_SECONDS", "15"))
+COMPANY_DISCOVERY_USER_AGENT = os.getenv(
+    "COMPANY_DISCOVERY_USER_AGENT", "hiring-scraper/0.1 (self-hosted company discovery)"
+)
+LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
+LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
+LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
+    os.getenv("LOCATION_MIN_REQUEST_INTERVAL_SECONDS", "1")
+)
+LOCATION_USER_AGENT = os.getenv(
+    "LOCATION_USER_AGENT", "hiring-scraper/0.1 (self-hosted location lookup)"
+)
 CELERY_BEAT_SCHEDULE = {
     "collect-jobs-daily": {
         "task": "jobs.tasks.collect_all_sources",
