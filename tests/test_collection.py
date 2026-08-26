@@ -8,7 +8,9 @@ from typing import cast
 import httpx
 import pytest
 from django.core.management import call_command
+from django.db import connection
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from jobs.collection import collect_enabled_sources, collect_source, normalize_raw_job
@@ -268,6 +270,50 @@ def test_collection_evaluates_saved_profiles_for_new_jobs() -> None:
     )
 
     assert JobMatch.objects.filter(profile=profile, job__source=source).exists()
+
+
+@pytest.mark.django_db
+def test_collection_reads_enabled_exclusions_once_for_many_profiles_and_jobs() -> None:
+    source = make_source()
+    user = WorkspaceUser.objects.create(name="Grace")
+    SearchProfile.objects.create(user=user, name="Engineering")
+    SearchProfile.objects.create(user=user, name="Product")
+    from jobs.models import ExclusionRule
+
+    ExclusionRule.objects.create(
+        user=user,
+        kind=ExclusionRule.Kind.TITLE,
+        pattern="Accountant",
+        normalized_pattern="accountant",
+    )
+
+    with CaptureQueriesContext(connection) as queries:
+        collect_source(
+            source=source,
+            registry=registry_for(
+                CollectionResult(
+                    raw_jobs=[
+                        RawJob(
+                            external_id="role-1",
+                            canonical_url="https://careers.example.test/jobs/role-1",
+                            title="Software Engineer",
+                            remote_type="remote",
+                        ),
+                        RawJob(
+                            external_id="role-2",
+                            canonical_url="https://careers.example.test/jobs/role-2",
+                            title="Product Manager",
+                            remote_type="remote",
+                        ),
+                    ]
+                )
+            ),
+        )
+
+    exclusion_queries = [
+        query["sql"] for query in queries.captured_queries if "jobs_exclusionrule" in query["sql"]
+    ]
+    assert len(exclusion_queries) == 1
 
 
 @pytest.mark.django_db

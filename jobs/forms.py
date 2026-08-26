@@ -10,11 +10,13 @@ from django.forms import BaseInlineFormSet
 from .exclusions import normalize_exclusion_pattern
 from .matching import (
     DEFAULT_WEIGHTS,
+    GERMAN_LEVEL_CHOICES,
     MAX_JOB_MATCH_SCORE,
     MIN_JOB_MATCH_SCORE,
     normalize_text,
 )
 from .models import ExclusionRule, GermanPlace, ProfileLocation, SearchProfile, WorkspaceUser
+from .places import format_place_label
 
 
 class WorkspaceUserForm(forms.ModelForm):  # type: ignore[type-arg]
@@ -47,6 +49,11 @@ class SearchProfileForm(forms.ModelForm):  # type: ignore[type-arg]
     departments = forms.CharField(required=False)
     industries = forms.CharField(required=False)
     seniority_levels = forms.CharField(required=False)
+    maximum_german_level = forms.ChoiceField(required=False, choices=GERMAN_LEVEL_CHOICES)
+    minimum_score = forms.IntegerField(
+        min_value=MIN_JOB_MATCH_SCORE,
+        max_value=MAX_JOB_MATCH_SCORE,
+    )
 
     for _weight_name, _weight_default in DEFAULT_WEIGHTS.items():
         locals()[f"weight_{_weight_name}"] = forms.IntegerField(
@@ -76,19 +83,6 @@ class SearchProfileForm(forms.ModelForm):  # type: ignore[type-arg]
             "maximum_german_level",
             "minimum_score",
         ]
-        widgets = {
-            "maximum_german_level": forms.Select(
-                choices=[
-                    ("", "No maximum"),
-                    ("A1", "A1"),
-                    ("A2", "A2"),
-                    ("B1", "B1"),
-                    ("B2", "B2"),
-                    ("C1", "C1"),
-                    ("C2", "C2"),
-                ]
-            )
-        }
         help_texts = {
             "required_skill_groups": (
                 "One alternative group per line. Separate terms in a group with commas."
@@ -161,15 +155,24 @@ def _json_list_fields() -> tuple[str, ...]:
     )
 
 
+class GermanPlaceChoiceField(forms.ModelChoiceField):  # type: ignore[type-arg]
+    def label_from_instance(self, place: GermanPlace) -> str:
+        return format_place_label(place)
+
+
 class ProfileLocationForm(forms.ModelForm):  # type: ignore[type-arg]
-    place = forms.ModelChoiceField(
-        queryset=GermanPlace.objects.all(), empty_label="Choose a place", required=False
-    )
+    place = GermanPlaceChoiceField(queryset=GermanPlace.objects.none(), required=False)
     radius_km = forms.IntegerField(min_value=1, max_value=500)
 
     class Meta:
         model = ProfileLocation
         fields = ["place", "radius_km"]
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        allowed_place_ids = kwargs.pop("allowed_place_ids", ())
+        super().__init__(*args, **kwargs)
+        place_field = cast(GermanPlaceChoiceField, self.fields["place"])
+        place_field.queryset = GermanPlace.objects.filter(pk__in=allowed_place_ids)
 
 
 class BaseProfileLocationFormSet(BaseInlineFormSet):  # type: ignore[type-arg]

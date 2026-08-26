@@ -214,6 +214,55 @@ def test_import_german_places_reads_local_geonames_archives_and_is_idempotent(
 
 
 @pytest.mark.django_db
+def test_postal_place_reimport_keeps_its_identity_and_refreshes_profile_location(
+    tmp_path: Path,
+) -> None:
+    import zipfile
+
+    cities_archive = tmp_path / "cities500.zip"
+    postal_archive = tmp_path / "DE.zip"
+    with zipfile.ZipFile(cities_archive, "w") as archive:
+        archive.writestr("cities500.txt", "")
+    with zipfile.ZipFile(postal_archive, "w") as archive:
+        archive.writestr(
+            "DE.txt",
+            "DE\t48143\tMunster\tNordrhein-Westfalen\tNW\t\t\t\t\t51.9600\t7.6300\t4\n",
+        )
+    call_command(
+        "import_german_places",
+        cities=str(cities_archive),
+        postal_codes=str(postal_archive),
+        snapshot="2026-08-26",
+    )
+    place = GermanPlace.objects.get(postal_code="48143")
+    profile = SearchProfile.objects.create(
+        user=WorkspaceUser.objects.create(name="Ada"), name="Local"
+    )
+    location = ProfileLocation.objects.create(profile=profile, place=place, radius_km=25)
+
+    with zipfile.ZipFile(postal_archive, "w") as archive:
+        archive.writestr(
+            "DE.txt",
+            "DE\t48143\tMünster\tNordrhein-Westfalen\tNW\t\t\t\t\t51.9620\t7.6280\t4\n",
+        )
+    call_command(
+        "import_german_places",
+        cities=str(cities_archive),
+        postal_codes=str(postal_archive),
+        snapshot="2026-08-27",
+    )
+
+    place.refresh_from_db()
+    location.refresh_from_db()
+    assert GermanPlace.objects.filter(postal_code="48143").count() == 1
+    assert place.name == "Münster"
+    assert place.latitude == 51.962
+    assert location.city == "Münster"
+    assert location.latitude == 51.962
+    assert location.longitude == 7.628
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     ("kind", "pattern"),
     [
@@ -326,6 +375,100 @@ def test_place_search_keeps_ambiguous_city_results_separate_and_profile_requires
 
 
 @pytest.mark.django_db
+def test_profile_location_selector_is_bounded_and_selected_place_survives_post(
+    client: Client,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    selected = GermanPlace.objects.create(
+        source_id="geonames:selected",
+        name="Berlin",
+        normalized_name="berlin",
+        admin_area="Berlin",
+        latitude=52.52,
+        longitude=13.405,
+        source_kind=GermanPlace.SourceKind.CITY,
+    )
+    GermanPlace.objects.bulk_create(
+        [
+            GermanPlace(
+                source_id=f"geonames:other-{number}",
+                name=f"Unselected locality {number}",
+                normalized_name=f"unselected locality {number}",
+                latitude=50.0,
+                longitude=8.0,
+                source_kind=GermanPlace.SourceKind.CITY,
+            )
+            for number in range(500)
+        ]
+    )
+    profile = SearchProfile.objects.create(user=user, name="Existing")
+    ProfileLocation.objects.create(profile=profile, place=selected, radius_km=25)
+    client.cookies["workspace_user"] = str(user.pk)
+
+    response = client.get(reverse("jobs:profile_edit", args=[profile.pk]))
+
+    assert response.status_code == 200
+    assert b"Berlin (Berlin; 52.5200, 13.4050)" in response.content
+    assert b"Unselected locality 499" not in response.content
+    assert len(response.content) < 100_000
+
+    response = client.post(
+        reverse("jobs:profile_edit", args=[profile.pk]),
+        {
+            "name": "Existing",
+            "include_remote": "on",
+            "weight_title": "50",
+            "weight_required_skills": "30",
+            "weight_preferred_skills": "10",
+            "weight_location": "10",
+            "weight_unknown_location": "-10",
+            "minimum_score": "0",
+            "profile_locations-TOTAL_FORMS": "1",
+            "profile_locations-INITIAL_FORMS": "1",
+            "profile_locations-MIN_NUM_FORMS": "0",
+            "profile_locations-MAX_NUM_FORMS": "1000",
+            "profile_locations-0-id": str(profile.profile_locations.get().pk),
+            "profile_locations-0-place": str(selected.pk),
+            "profile_locations-0-radius_km": "30",
+        },
+    )
+
+    assert response.status_code == 302
+    assert profile.profile_locations.get().place_id == selected.pk
+    assert profile.profile_locations.get().radius_km == 30
+
+
+@pytest.mark.django_db
+def test_place_search_json_returns_exact_place_ids_and_distinguishing_labels(
+    client: Client,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    place = GermanPlace.objects.create(
+        source_id="geonames:berlin",
+        name="Berlin",
+        normalized_name="berlin",
+        postal_code="10115",
+        admin_area="Berlin",
+        latitude=52.52,
+        longitude=13.405,
+        source_kind=GermanPlace.SourceKind.CITY,
+    )
+    client.cookies["workspace_user"] = str(user.pk)
+
+    response = client.get(reverse("jobs:place_search_json"), {"q": "Berlin"})
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "results": [
+            {
+                "id": place.pk,
+                "label": "Berlin (10115, Berlin; 52.5200, 13.4050)",
+            }
+        ]
+    }
+
+
+@pytest.mark.django_db
 def test_remote_enabled_profile_can_save_without_a_city_radius(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     client.cookies["workspace_user"] = str(user.pk)
@@ -383,6 +526,40 @@ def test_profile_form_reports_an_invalid_weight_without_raising_key_error(
 
     assert response.status_code == 200
     assert "weight_title" in response.context["form"].errors
+    assert SearchProfile.objects.filter(user=user).exists() is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("maximum_german_level", "Z9"), ("minimum_score", "32768")],
+)
+def test_profile_form_rejects_values_outside_matching_bounds(
+    client: Client, field: str, value: str
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    client.cookies["workspace_user"] = str(user.pk)
+    form_data = {
+        "name": "Validated",
+        "include_remote": "on",
+        "weight_title": "50",
+        "weight_required_skills": "30",
+        "weight_preferred_skills": "10",
+        "weight_location": "10",
+        "weight_unknown_location": "-10",
+        "minimum_score": "0",
+        "profile_locations-TOTAL_FORMS": "1",
+        "profile_locations-INITIAL_FORMS": "0",
+        "profile_locations-MIN_NUM_FORMS": "0",
+        "profile_locations-MAX_NUM_FORMS": "1000",
+        "profile_locations-0-radius_km": "25",
+    }
+    form_data[field] = value
+
+    response = client.post(reverse("jobs:profile_create"), form_data)
+
+    assert response.status_code == 200
+    assert field in response.context["form"].errors
     assert SearchProfile.objects.filter(user=user).exists() is False
 
 
@@ -492,8 +669,8 @@ def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinat
     ProfileLocationOld.objects.create(
         profile=second_profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=25
     )
-    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="C#")
-    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="c sharp")
+    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="C#", is_enabled=False)
+    ExclusionRuleOld.objects.create(user=user, kind="skill", pattern="c sharp", is_enabled=True)
 
     executor = MigrationExecutor(connection)
     executor.migrate([current_target])
@@ -506,4 +683,62 @@ def test_profile_location_migration_reuses_one_legacy_place_for_shared_coordinat
     locations = ProfileLocationNew.objects.order_by("profile_id")
     assert places.count() == 1
     assert [location.place_id for location in locations] == [places.get().pk, places.get().pk]
-    assert ExclusionRuleNew.objects.filter(user_id=user.pk, kind="skill").count() == 1
+    rules = ExclusionRuleNew.objects.filter(user_id=user.pk, kind="skill")
+    assert rules.count() == 1
+    assert rules.get().is_enabled is True
+
+
+@pytest.mark.django_db(transaction=True)
+def test_profile_location_migration_reverse_merges_same_city_places_per_profile() -> None:
+    previous_target = ("jobs", "0004_add_initial_employer_source_kinds")
+    current_target = ("jobs", "0005_german_place_and_profile_locations")
+    executor = MigrationExecutor(connection)
+    executor.migrate([previous_target])
+    old_apps = executor.loader.project_state([previous_target]).apps
+    WorkspaceUserOld = old_apps.get_model("jobs", "WorkspaceUser")
+    SearchProfileOld = old_apps.get_model("jobs", "SearchProfile")
+    ProfileLocationOld = old_apps.get_model("jobs", "ProfileLocation")
+
+    user = WorkspaceUserOld.objects.create(name="Ada")
+    profile = SearchProfileOld.objects.create(user=user, name="Local")
+    ProfileLocationOld.objects.create(
+        profile=profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=25
+    )
+    ProfileLocationOld.objects.create(
+        profile=profile, city="Hamburg", latitude=53.5511, longitude=9.9937, radius_km=25
+    )
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([current_target])
+    new_apps = executor.loader.project_state([current_target]).apps
+    GermanPlaceNew = new_apps.get_model("jobs", "GermanPlace")
+    ProfileLocationNew = new_apps.get_model("jobs", "ProfileLocation")
+    berlin_copy = GermanPlaceNew.objects.create(
+        source_id="test:berlin-copy",
+        name="Berlin",
+        normalized_name="berlin",
+        latitude=52.61,
+        longitude=13.51,
+        source_kind="city",
+    )
+    ProfileLocationNew.objects.create(
+        profile_id=profile.pk,
+        place=berlin_copy,
+        city="Berlin",
+        latitude=52.61,
+        longitude=13.51,
+        radius_km=60,
+    )
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([previous_target])
+    reversed_apps = executor.loader.project_state([previous_target]).apps
+    ProfileLocationReversed = reversed_apps.get_model("jobs", "ProfileLocation")
+
+    assert ProfileLocationReversed.objects.filter(profile_id=profile.pk, city="Berlin").count() == 1
+    assert (
+        ProfileLocationReversed.objects.filter(profile_id=profile.pk, city="Hamburg").count() == 1
+    )
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([current_target])

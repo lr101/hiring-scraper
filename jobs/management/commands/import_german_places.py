@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from django.core.management.base import BaseCommand, CommandError, CommandParser
+from django.db.models import CharField, FloatField, OuterRef, Subquery
 
-from jobs.models import GermanPlace
+from jobs.models import GermanPlace, ProfileLocation
 from jobs.places import normalize_place_text
 
 
@@ -32,8 +33,11 @@ class Command(BaseCommand):
         cities_path = _path_option(options, "cities")
         postal_codes_path = _optional_path_option(options, "postal_codes")
         snapshot = _string_option(options, "snapshot")
-        city_count = _import_cities(cities_path, snapshot)
-        postal_count = _import_postal_codes(postal_codes_path, snapshot) if postal_codes_path else 0
+        city_count, city_place_ids = _import_cities(cities_path, snapshot)
+        postal_count, postal_place_ids = (
+            _import_postal_codes(postal_codes_path, snapshot) if postal_codes_path else (0, set())
+        )
+        _sync_profile_locations(city_place_ids | postal_place_ids)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Imported {city_count} city records and {postal_count} postal-code records."
@@ -72,8 +76,9 @@ def _string_option(options: dict[str, object], key: str) -> str:
     return value.strip()
 
 
-def _import_cities(archive_path: Path, snapshot: str) -> int:
+def _import_cities(archive_path: Path, snapshot: str) -> tuple[int, set[int]]:
     count = 0
+    place_ids: set[int] = set()
     with _open_first_text_file(archive_path) as rows:
         for line in rows:
             columns = line.rstrip("\n").split("\t")
@@ -89,7 +94,7 @@ def _import_cities(archive_path: Path, snapshot: str) -> int:
             )
             if not source_id or not name or not latitude or not longitude:
                 continue
-            GermanPlace.objects.update_or_create(
+            place, _ = GermanPlace.objects.update_or_create(
                 source_id=f"geonames:{source_id}",
                 defaults={
                     "name": name,
@@ -103,12 +108,14 @@ def _import_cities(archive_path: Path, snapshot: str) -> int:
                     "source_snapshot": snapshot,
                 },
             )
+            place_ids.add(place.pk)
             count += 1
-    return count
+    return count, place_ids
 
 
-def _import_postal_codes(archive_path: Path, snapshot: str) -> int:
+def _import_postal_codes(archive_path: Path, snapshot: str) -> tuple[int, set[int]]:
     count = 0
+    place_ids: set[int] = set()
     with _open_first_text_file(archive_path) as rows:
         for line in rows:
             columns = line.rstrip("\n").split("\t")
@@ -123,13 +130,12 @@ def _import_postal_codes(archive_path: Path, snapshot: str) -> int:
             )
             if not postal_code or not name or not latitude or not longitude:
                 continue
+            admin_codes = [columns[4], columns[6], columns[8]]
             source_id = (
                 "geonames-postal:"
-                + hashlib.sha256(
-                    "\x1f".join([postal_code, name, admin_area, latitude, longitude]).encode()
-                ).hexdigest()
+                + hashlib.sha256("\x1f".join([postal_code, *admin_codes]).encode()).hexdigest()
             )
-            GermanPlace.objects.update_or_create(
+            place, _ = GermanPlace.objects.update_or_create(
                 source_id=source_id,
                 defaults={
                     "name": name,
@@ -143,8 +149,20 @@ def _import_postal_codes(archive_path: Path, snapshot: str) -> int:
                     "source_snapshot": snapshot,
                 },
             )
+            place_ids.add(place.pk)
             count += 1
-    return count
+    return count, place_ids
+
+
+def _sync_profile_locations(place_ids: set[int]) -> None:
+    if not place_ids:
+        return
+    places = GermanPlace.objects.filter(pk=OuterRef("place_id"))
+    ProfileLocation.objects.filter(place_id__in=place_ids).update(
+        city=Subquery(places.values("name")[:1], output_field=CharField()),
+        latitude=Subquery(places.values("latitude")[:1], output_field=FloatField()),
+        longitude=Subquery(places.values("longitude")[:1], output_field=FloatField()),
+    )
 
 
 def _open_first_text_file(archive_path: Path) -> TextIO:

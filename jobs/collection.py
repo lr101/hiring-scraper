@@ -13,8 +13,8 @@ from django.utils import timezone
 
 from jobs.collectors import BotProtectionDetected, Collector, CollectorRegistry, RawJob
 from jobs.collectors.employers import register_employer_collectors
-from jobs.matching import normalize_text, update_job_match
-from jobs.models import CareerSource, CrawlRun, Job, JobMatch, SearchProfile, UserJobState
+from jobs.matching import enabled_profile_match_context, normalize_text, refresh_job_matches
+from jobs.models import CareerSource, CrawlRun, Job, JobMatch, UserJobState
 
 collector_registry = CollectorRegistry()
 register_employer_collectors(collector_registry)
@@ -218,6 +218,7 @@ def _apply_successful_collection(
     created = 0
     updated = 0
     seen_external_ids: set[str] = set()
+    matching_profiles, exclusions_by_user = enabled_profile_match_context()
     for raw_job in raw_jobs:
         seen_external_ids.add(raw_job.external_id)
         normalized = normalize_raw_job(raw_job=raw_job, company_domain=source.company.domain)
@@ -235,7 +236,11 @@ def _apply_successful_collection(
         updated += int(existing_hash is not None and existing_hash != normalized.content_hash)
         if was_created:
             _propagate_ignored_state(job=job)
-        _refresh_matches(job=job)
+        refresh_job_matches(
+            job=job,
+            profiles=matching_profiles,
+            exclusions_by_user=exclusions_by_user,
+        )
 
     closed = 0
     if is_complete:
@@ -336,11 +341,6 @@ def _propagate_ignored_state(*, job: Job) -> None:
         ],
         ignore_conflicts=True,
     )
-
-
-def _refresh_matches(*, job: Job) -> None:
-    for profile in SearchProfile.objects.filter(is_enabled=True):
-        update_job_match(job=job, profile=profile)
 
 
 def _job_defaults(normalized: NormalizedJob) -> dict[str, Any]:

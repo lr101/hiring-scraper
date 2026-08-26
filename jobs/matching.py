@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
+from django.db.models import QuerySet
+
 from jobs.exclusions import normalize_exclusion_pattern
 from jobs.models import ExclusionRule, Job, JobMatch, ProfileLocation, SearchProfile, WorkspaceUser
 
@@ -55,6 +57,7 @@ SKILL_SYNONYMS = {
 }
 
 GERMAN_LEVELS = {"A1": 1, "A2": 2, "B1": 3, "B2": 4, "C1": 5, "C2": 6}
+GERMAN_LEVEL_CHOICES = [("", "No maximum"), *[(level, level) for level in GERMAN_LEVELS]]
 
 
 @dataclass(frozen=True)
@@ -176,17 +179,58 @@ def update_job_match(
 
 def refresh_profile_matches(*, profile: SearchProfile) -> None:
     """Re-evaluate every open job for one profile with its enabled exclusions."""
-    exclusions = list(profile.user.exclusions.filter(is_enabled=True))
-    jobs = Job.objects.filter(closed_at__isnull=True).select_related("source__company")
-    for job in jobs.iterator():
-        update_job_match(job=job, profile=profile, exclusions=exclusions)
+    profiles = _profiles_with_matching_data(SearchProfile.objects.filter(pk=profile.pk))
+    exclusions_by_user = _enabled_exclusions_by_user(profiles)
+    _refresh_open_jobs_for_profiles(profiles=profiles, exclusions_by_user=exclusions_by_user)
 
 
 def refresh_user_profile_matches(*, user: WorkspaceUser) -> None:
     """Re-evaluate one account without reading or changing another account's matches."""
-    profiles = SearchProfile.objects.filter(user=user).prefetch_related("profile_locations__place")
+    profiles = _profiles_with_matching_data(SearchProfile.objects.filter(user=user))
+    exclusions_by_user = _enabled_exclusions_by_user(profiles)
+    _refresh_open_jobs_for_profiles(profiles=profiles, exclusions_by_user=exclusions_by_user)
+
+
+def enabled_profile_match_context() -> tuple[list[SearchProfile], dict[int, list[ExclusionRule]]]:
+    """Load enabled profiles and their account exclusions for a collection batch."""
+    profiles = _profiles_with_matching_data(SearchProfile.objects.filter(is_enabled=True))
+    return profiles, _enabled_exclusions_by_user(profiles)
+
+
+def refresh_job_matches(
+    *,
+    job: Job,
+    profiles: Iterable[SearchProfile],
+    exclusions_by_user: dict[int, list[ExclusionRule]],
+) -> None:
     for profile in profiles:
-        refresh_profile_matches(profile=profile)
+        update_job_match(
+            job=job,
+            profile=profile,
+            exclusions=exclusions_by_user.get(profile.user_id, []),
+        )
+
+
+def _profiles_with_matching_data(profiles: QuerySet[SearchProfile]) -> list[SearchProfile]:
+    return list(profiles.select_related("user").prefetch_related("profile_locations__place"))
+
+
+def _enabled_exclusions_by_user(
+    profiles: Iterable[SearchProfile],
+) -> dict[int, list[ExclusionRule]]:
+    exclusions_by_user: dict[int, list[ExclusionRule]] = {}
+    user_ids = {profile.user_id for profile in profiles}
+    for exclusion in ExclusionRule.objects.filter(user_id__in=user_ids, is_enabled=True):
+        exclusions_by_user.setdefault(exclusion.user_id, []).append(exclusion)
+    return exclusions_by_user
+
+
+def _refresh_open_jobs_for_profiles(
+    *, profiles: Iterable[SearchProfile], exclusions_by_user: dict[int, list[ExclusionRule]]
+) -> None:
+    jobs = Job.objects.filter(closed_at__isnull=True).select_related("source__company")
+    for job in jobs.iterator():
+        refresh_job_matches(job=job, profiles=profiles, exclusions_by_user=exclusions_by_user)
 
 
 def _job_is_excluded(*, job: Job, exclusions: Iterable[ExclusionRule]) -> bool:

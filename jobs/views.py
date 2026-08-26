@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.db import transaction
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -15,7 +15,7 @@ from .forms import (
 )
 from .matching import refresh_profile_matches, refresh_user_profile_matches
 from .models import ExclusionRule, GermanPlace, SearchProfile, WorkspaceUser
-from .places import normalize_place_text
+from .places import format_place_label, normalize_place_text
 from .private import selected_workspace_user
 
 
@@ -153,13 +153,19 @@ def place_search(request: HttpRequest) -> HttpResponse:
         return user
     query = request.GET.get("q", "")
     normalized = _normalize_place_query(query)
-    places = GermanPlace.objects.none()
-    if normalized:
-        places = GermanPlace.objects.filter(
-            normalized_name__contains=normalized
-        ) | GermanPlace.objects.filter(postal_code__startswith=query.strip())
-        places = places.order_by("name", "admin_area", "postal_code")[:50]
+    places = _matching_places(query, normalized)
     return render(request, "jobs/place_search.html", {"query": query, "places": places})
+
+
+def place_search_json(request: HttpRequest) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    query = request.GET.get("q", "")
+    places = _matching_places(query, _normalize_place_query(query))
+    return JsonResponse(
+        {"results": [{"id": place.pk, "label": format_place_label(place)} for place in places]}
+    )
 
 
 def _profile_form_response(
@@ -168,7 +174,10 @@ def _profile_form_response(
     form = SearchProfileForm(request.POST or None, instance=profile)
     form.instance.user = user
     formset = ProfileLocationFormSet(
-        request.POST or None, instance=profile, prefix="profile_locations"
+        request.POST or None,
+        instance=profile,
+        prefix="profile_locations",
+        form_kwargs={"allowed_place_ids": _allowed_place_ids(request, profile)},
     )
     assert isinstance(formset, BaseProfileLocationFormSet)
     if request.method == "POST" and form.is_valid() and formset.is_valid():
@@ -201,3 +210,31 @@ def _private_user_or_redirect(request: HttpRequest) -> WorkspaceUser | HttpRespo
 
 def _normalize_place_query(value: str) -> str:
     return normalize_place_text(value)
+
+
+def _matching_places(query: str, normalized: str):  # type: ignore[no-untyped-def]
+    if not normalized:
+        return GermanPlace.objects.none()
+    places = GermanPlace.objects.filter(
+        normalized_name__contains=normalized
+    ) | GermanPlace.objects.filter(postal_code__startswith=query.strip())
+    return places.order_by("name", "admin_area", "postal_code")[:50]
+
+
+def _allowed_place_ids(request: HttpRequest, profile: SearchProfile) -> set[int]:
+    if request.method != "POST":
+        if profile.pk is None:
+            return set()
+        return set(profile.profile_locations.values_list("place_id", flat=True))
+    place_ids: set[int] = set()
+    for key, value in request.POST.items():
+        if (
+            key.startswith("profile_locations-")
+            and key.endswith("-place")
+            and isinstance(value, str)
+        ):
+            try:
+                place_ids.add(int(value))
+            except ValueError:
+                continue
+    return place_ids

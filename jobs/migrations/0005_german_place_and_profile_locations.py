@@ -41,16 +41,37 @@ def preserve_existing_records(apps, schema_editor) -> None:  # type: ignore[no-u
         location.place_id = place.pk
         location.save(update_fields=["place"])
 
-    seen: set[tuple[int, str, str]] = set()
+    seen: dict[tuple[int, str, str], object] = {}
     for rule in ExclusionRule.objects.order_by("pk").iterator():
         normalized_pattern = normalize(rule.pattern)
         key = (rule.user_id, rule.kind, normalized_pattern)
-        if key in seen:
+        previous_rule = seen.get(key)
+        if previous_rule is not None:
+            if rule.is_enabled and not previous_rule.is_enabled:
+                previous_rule.is_enabled = True
+                previous_rule.save(update_fields=["is_enabled"])
             rule.delete()
             continue
-        seen.add(key)
+        seen[key] = rule
         rule.normalized_pattern = normalized_pattern
         rule.save(update_fields=["normalized_pattern"])
+
+
+def restore_legacy_records(apps, schema_editor) -> None:  # type: ignore[no-untyped-def]
+    """Merge only rows that cannot coexist under the old city constraint."""
+    ProfileLocation = apps.get_model("jobs", "ProfileLocation")
+
+    survivors: dict[tuple[int, str], object] = {}
+    for location in ProfileLocation.objects.order_by("profile_id", "city", "pk").iterator():
+        key = (location.profile_id, location.city)
+        survivor = survivors.get(key)
+        if survivor is None:
+            survivors[key] = location
+            continue
+        if location.radius_km > survivor.radius_km:
+            survivor.radius_km = location.radius_km
+            survivor.save(update_fields=["radius_km"])
+        location.delete()
 
 
 class Migration(migrations.Migration):
@@ -102,7 +123,7 @@ class Migration(migrations.Migration):
                 to="jobs.germanplace",
             ),
         ),
-        migrations.RunPython(preserve_existing_records, migrations.RunPython.noop),
+        migrations.RunPython(preserve_existing_records, restore_legacy_records),
         migrations.AlterField(
             model_name="exclusionrule",
             name="normalized_pattern",
