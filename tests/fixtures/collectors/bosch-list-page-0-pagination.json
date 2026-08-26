@@ -1,0 +1,7 @@
+{
+  "totalHits": 3,
+  "nextPage": true,
+  "jobs": [
+    {"data": {"idFS": "bosch-987", "title": "First German role", "location": "Stuttgart, Germany"}}
+  ]
+}

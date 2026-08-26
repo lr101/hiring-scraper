@@ -94,6 +94,47 @@ def test_bosch_collector_uses_detail_data_and_ignores_explicit_non_german_jobs()
     assert result.requests_made == 2
 
 
+def test_bosch_collector_rejects_a_job_without_positive_germany_evidence() -> None:
+    collector = BoschSmartRecruitersCollector(
+        source("bosch_smartrecruiters"),
+        client=fixture_client(
+            {
+                "/api/filter/query": "bosch-list-unknown-country.json",
+                "/postings/bosch-unknown": "bosch-detail-unknown-country.json",
+            }
+        ),
+    )
+
+    result = collector.collect()
+
+    assert result.raw_jobs == []
+    assert result.requests_made == 2
+
+
+def test_bosch_collector_follows_boolean_next_pages_without_looping() -> None:
+    list_fixtures = {
+        "page=0": "bosch-list-page-0-pagination.json",
+        "page=1": "bosch-list-page-1.json",
+        "page=2": "bosch-list-page-2.json",
+    }
+    collector = BoschSmartRecruitersCollector(
+        source("bosch_smartrecruiters"),
+        client=fixture_client(
+            {
+                **list_fixtures,
+                "/postings/bosch-987": "bosch-detail.json",
+                "/postings/bosch-2": "bosch-detail.json",
+                "/postings/bosch-3": "bosch-detail.json",
+            }
+        ),
+    )
+
+    result = collector.collect()
+
+    assert [job.external_id for job in result.raw_jobs] == ["bosch-987", "bosch-2", "bosch-3"]
+    assert result.requests_made == 6
+
+
 def test_sap_collector_uses_jobposting_detail_data() -> None:
     collector = SapSuccessFactorsCollector(
         source("sap_successfactors"),
@@ -113,6 +154,9 @@ def test_sap_collector_uses_jobposting_detail_data() -> None:
     assert job.city == "Walldorf"
     assert job.employment_type == "FULL_TIME"
     assert job.country_code == "DE"
+    assert job.description_html == "Develop cloud services with Java."
+    assert job.posted_at is not None
+    assert job.posted_at.date().isoformat() == "2026-08-25"
 
 
 def test_telekom_collector_uses_paging_and_discards_non_german_results() -> None:

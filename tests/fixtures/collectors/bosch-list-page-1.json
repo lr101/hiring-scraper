@@ -1,0 +1,7 @@
+{
+  "totalHits": 3,
+  "nextPage": true,
+  "jobs": [
+    {"data": {"idFS": "bosch-2", "title": "Second German role", "location": "Berlin, Germany"}}
+  ]
+}

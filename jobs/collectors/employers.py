@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Iterable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
@@ -118,9 +119,13 @@ class BoschSmartRecruitersCollector(HTTPCollector):
                 next_page = payload.get("nextPage")
                 if next_page in (None, False, "", 0):
                     break
-                try:
-                    page = int(next_page) if isinstance(next_page, int) else page + 1
-                except (TypeError, ValueError):
+                if next_page is True:
+                    page += 1
+                elif isinstance(next_page, int):
+                    page = next_page
+                elif isinstance(next_page, str) and next_page.isdecimal():
+                    page = int(next_page)
+                else:
                     break
         finally:
             self.close()
@@ -131,7 +136,13 @@ class BoschSmartRecruitersCollector(HTTPCollector):
     ) -> RawJob | None:
         location = detail.get("location")
         location_data = location if isinstance(location, dict) else {}
-        if _explicitly_non_german(location_data.get("country")):
+        if not _has_germany_evidence(
+            list_data.get("country"),
+            list_data.get("locations"),
+            list_data.get("location"),
+            location_data.get("country"),
+            location_data.get("countryCode"),
+        ):
             return None
         city = _string(location_data.get("city")) or _city_from_location(
             _string(list_data.get("location"))
@@ -389,6 +400,62 @@ class _SapListParser(HTMLParser):
             self._in_location = False
 
 
+@dataclass(slots=True)
+class _HtmlNode:
+    tag: str
+    attributes: dict[str, str]
+    children: list[_HtmlNode] = field(default_factory=list)
+    text: list[str] = field(default_factory=list)
+
+
+class _MicrodataParser(HTMLParser):
+    void_tags = {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    }
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.root = _HtmlNode(tag="document", attributes={})
+        self._stack = [self.root]
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        node = _HtmlNode(
+            tag=tag.casefold(),
+            attributes={key.casefold(): value or "" for key, value in attrs},
+        )
+        self._stack[-1].children.append(node)
+        if node.tag not in self.void_tags:
+            self._stack.append(node)
+
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.handle_starttag(tag, attrs)
+        if tag.casefold() not in self.void_tags:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag: str) -> None:
+        normalized_tag = tag.casefold()
+        for index in range(len(self._stack) - 1, 0, -1):
+            if self._stack[index].tag == normalized_tag:
+                del self._stack[index:]
+                return
+
+    def handle_data(self, data: str) -> None:
+        self._stack[-1].text.append(data)
+
+
 def _sap_list_records(html: str) -> list[tuple[str, str, str]]:
     """Read simple SuccessFactors rows without a third-party HTML parser."""
     parser = _SapListParser()
@@ -425,6 +492,12 @@ def _job_posting(html: str) -> dict[str, Any]:
             types = job_type if isinstance(job_type, list) else [job_type]
             if "JobPosting" in types:
                 return value
+    microdata_parser = _MicrodataParser()
+    microdata_parser.feed(html)
+    for item in _microdata_items(microdata_parser.root):
+        item_type = item.attributes.get("itemtype", "").casefold()
+        if "schema.org/jobposting" in item_type:
+            return _microdata_job_posting(item)
     return {}
 
 
@@ -438,6 +511,89 @@ def _walk_json_ld(value: Any) -> Iterable[dict[str, Any]]:
     elif isinstance(value, list):
         for item in value:
             yield from _walk_json_ld(item)
+
+
+def _microdata_items(node: _HtmlNode) -> Iterable[_HtmlNode]:
+    for child in node.children:
+        if "itemscope" in child.attributes:
+            yield child
+        yield from _microdata_items(child)
+
+
+def _microdata_job_posting(item: _HtmlNode) -> dict[str, Any]:
+    properties = _microdata_properties(item)
+    posting: dict[str, Any] = {}
+    for source_name, target_name in (
+        ("title", "title"),
+        ("description", "description"),
+        ("datePosted", "datePosted"),
+        ("employmentType", "employmentType"),
+        ("url", "url"),
+        ("skills", "skills"),
+    ):
+        value = _microdata_first(properties.get(source_name))
+        if isinstance(value, str):
+            posting[target_name] = value
+    location = _microdata_first(properties.get("jobLocation"))
+    if isinstance(location, dict):
+        address = _microdata_first(location.get("address"))
+        if isinstance(address, dict):
+            posting["jobLocation"] = {"address": _collapse_microdata(address)}
+    location_type = _microdata_first(properties.get("jobLocationType"))
+    if isinstance(location_type, str):
+        posting["jobLocationType"] = location_type
+    return posting
+
+
+def _microdata_properties(item: _HtmlNode) -> dict[str, list[str | dict[str, Any]]]:
+    properties: dict[str, list[str | dict[str, Any]]] = {}
+
+    def visit(node: _HtmlNode) -> None:
+        for child in node.children:
+            names = child.attributes.get("itemprop", "").split()
+            is_item = "itemscope" in child.attributes
+            if names:
+                value: str | dict[str, Any]
+                if is_item:
+                    value = _microdata_properties(child)
+                else:
+                    value = _microdata_value(child)
+                for name in names:
+                    properties.setdefault(name, []).append(value)
+            if not is_item:
+                visit(child)
+
+    visit(item)
+    return properties
+
+
+def _microdata_value(node: _HtmlNode) -> str:
+    for attribute in ("content", "datetime", "href", "src"):
+        if value := node.attributes.get(attribute):
+            return value.strip()
+    return _node_text(node)
+
+
+def _node_text(node: _HtmlNode) -> str:
+    text = [*node.text]
+    for child in node.children:
+        text.append(_node_text(child))
+    return " ".join(" ".join(text).split())
+
+
+def _microdata_first(value: list[str | dict[str, Any]] | None) -> str | dict[str, Any] | None:
+    return value[0] if value else None
+
+
+def _collapse_microdata(value: dict[str, list[str | dict[str, Any]]]) -> dict[str, Any]:
+    collapsed: dict[str, Any] = {}
+    for key, values in value.items():
+        first = _microdata_first(values)
+        if isinstance(first, dict):
+            collapsed[key] = _collapse_microdata(first)
+        elif isinstance(first, str):
+            collapsed[key] = first
+    return collapsed
 
 
 def _raw_from_job_posting(
@@ -632,6 +788,25 @@ def _float_or_none(value: Any) -> float | None:
 def _is_german(value: Any) -> bool:
     normalized = _string(value).casefold()
     return normalized in {"de", "deu", "germany", "deutschland"}
+
+
+def _has_germany_evidence(*values: Any) -> bool:
+    for value in values:
+        if isinstance(value, dict):
+            if _has_germany_evidence(
+                value.get("country"), value.get("countryCode"), value.get("addressCountry")
+            ):
+                return True
+        elif isinstance(value, list):
+            if _has_germany_evidence(*value):
+                return True
+        elif isinstance(value, str):
+            normalized = value.casefold()
+            if normalized in {"de", "deu", "germany", "deutschland"}:
+                return True
+            if any(term in normalized for term in ("germany", "deutschland", ", de", " de-")):
+                return True
+    return False
 
 
 def _explicitly_non_german(value: Any) -> bool:
