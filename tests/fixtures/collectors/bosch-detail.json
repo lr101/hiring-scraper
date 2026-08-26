@@ -1,0 +1,21 @@
+{
+  "id": "bosch-987",
+  "name": "Platform Engineer",
+  "ref": "BOSCH-987",
+  "location": {
+    "city": "Stuttgart",
+    "region": "Baden-Wurttemberg",
+    "country": "Germany",
+    "latitude": 48.7758,
+    "longitude": 9.1829
+  },
+  "releasedDate": "2026-08-25T09:00:00Z",
+  "typeOfEmployment": {"label": "Full-time"},
+  "department": {"label": "Digital"},
+  "jobAd": {
+    "sections": {
+      "companyDescription": {"text": "<p>Build platforms.</p>"},
+      "qualifications": {"text": "<p>Python and Kubernetes.</p>"}
+    }
+  }
+}

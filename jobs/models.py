@@ -37,6 +37,11 @@ class CareerSource(models.Model):
         WORKDAY = "workday", "Workday"
         SUCCESSFACTORS = "successfactors", "SAP SuccessFactors"
         JSON_LD = "json_ld", "JSON-LD"
+        SIEMENS_AVATURE = "siemens_avature", "Siemens Avature"
+        BOSCH_SMARTRECRUITERS = "bosch_smartrecruiters", "Bosch SmartRecruiters"
+        SAP_SUCCESSFACTORS = "sap_successfactors", "SAP SuccessFactors Jobs2Web"
+        TELEKOM_JSON = "telekom_json", "Deutsche Telekom JSON"
+        DHL_PHENOM = "dhl_phenom", "DHL Phenom"
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="sources")
     kind = models.CharField(max_length=32, choices=Kind.choices, default=Kind.CUSTOM)

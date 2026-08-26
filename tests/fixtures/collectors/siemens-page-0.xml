@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Siemens jobs</title>
+    <item>
+      <title>Software Engineer</title>
+      <link>https://jobs.siemens.com/en_US/externaljobs/JobDetail/12345</link>
+      <guid>https://jobs.siemens.com/en_US/externaljobs/JobDetail/12345</guid>
+      <description><![CDATA[<p>Build industrial software with Python.</p>]]></description>
+      <pubDate>Tue, 25 Aug 2026 09:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,25 @@
+{
+  "results": {
+    "jobs": [
+      {
+        "id": "telekom-42",
+        "title": "Cloud Engineer",
+        "url": "/en/jobs/cloud-engineer-telekom-42",
+        "locations": ["Bonn, Germany"],
+        "datetime": "2026-08-25T12:00:00Z",
+        "latitude": 50.7374,
+        "longitude": 7.0982,
+        "division": "T-Systems",
+        "country": "Germany"
+      },
+      {
+        "id": "telekom-us",
+        "title": "US role",
+        "url": "/en/jobs/us-role",
+        "locations": ["Seattle, United States"],
+        "country": "United States"
+      }
+    ]
+  },
+  "paging": {"page_count": 1}
+}
