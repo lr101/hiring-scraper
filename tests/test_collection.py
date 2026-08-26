@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from io import StringIO
 from types import SimpleNamespace
+from typing import cast
 
 import httpx
 import pytest
@@ -67,6 +68,8 @@ def test_adapter_registry_resolves_a_source_kind_to_its_collector() -> None:
     )
 
     class ExampleCollector:
+        requests_made = 1
+
         def __init__(self, source: object) -> None:
             self.source = source
 
@@ -119,6 +122,35 @@ def test_http_collector_counts_a_transport_failure_as_an_attempt() -> None:
         collector.fetch("https://careers.example.test/jobs")
 
     assert collector.requests_made == 1
+
+
+def test_http_collector_uses_the_configured_delay_between_requests_without_sleeping() -> None:
+    requests: list[httpx.Request] = []
+    delays: list[float] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request)
+
+    source = SimpleNamespace(
+        kind="custom",
+        source_url="https://careers.example.test/jobs",
+        tenant="example",
+        config={"locale": "de-DE"},
+        request_delay_seconds=3,
+        max_pages=10,
+    )
+    collector = HTTPCollector(
+        source,
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+        sleeper=delays.append,
+    )
+
+    collector.fetch("https://careers.example.test/jobs?page=1")
+    collector.fetch("https://careers.example.test/jobs?page=2")
+
+    assert len(requests) == 2
+    assert delays == [3]
 
 
 @pytest.mark.django_db
@@ -238,6 +270,12 @@ def test_job_closes_only_after_two_successful_source_runs_miss_it() -> None:
         name="Engineering",
         included_titles=["engineer"],
     )
+    disabled_profile = SearchProfile.objects.create(
+        user=user,
+        name="Paused engineering",
+        included_titles=["engineer"],
+        is_enabled=False,
+    )
     collect_source(
         source=source,
         registry=registry_for(
@@ -254,6 +292,7 @@ def test_job_closes_only_after_two_successful_source_runs_miss_it() -> None:
     )
     job = Job.objects.get(source=source, external_id="role-1")
     assert JobMatch.objects.filter(job=job, profile=profile).exists()
+    JobMatch.objects.create(job=job, profile=disabled_profile, score=0, explanation={})
 
     first_miss = collect_source(source=source, registry=registry_for(CollectionResult(raw_jobs=[])))
 
@@ -272,6 +311,7 @@ def test_job_closes_only_after_two_successful_source_runs_miss_it() -> None:
     assert job.missed_runs == 2
     assert job.closed_at is not None
     assert not JobMatch.objects.filter(job=job, profile=profile).exists()
+    assert not JobMatch.objects.filter(job=job, profile=disabled_profile).exists()
 
 
 @pytest.mark.django_db
@@ -325,6 +365,8 @@ def test_bot_block_marks_the_source_and_records_a_blocked_run() -> None:
     source = make_source()
 
     class BlockingCollector:
+        requests_made = 3
+
         def collect(self) -> CollectionResult:
             raise BotProtectionDetected("challenge page")
 
@@ -337,6 +379,7 @@ def test_bot_block_marks_the_source_and_records_a_blocked_run() -> None:
     assert run.status == CrawlRun.Status.BLOCKED
     assert run.finished_at is not None
     assert run.error == "challenge page"
+    assert run.requests_made == 3
     assert source.blocked_at is not None
     assert source.consecutive_failures == 0
 
@@ -344,8 +387,19 @@ def test_bot_block_marks_the_source_and_records_a_blocked_run() -> None:
 @pytest.mark.django_db
 def test_collector_failure_records_source_health_without_closing_jobs() -> None:
     source = make_source()
+    existing = Job.objects.create(
+        source=source,
+        external_id="existing-role",
+        canonical_url="https://careers.example.test/jobs/existing-role",
+        title="Engineer",
+        normalized_title="engineer",
+        content_hash="a" * 64,
+        fingerprint="b" * 64,
+    )
 
     class FailingCollector:
+        requests_made = 2
+
         def collect(self) -> CollectionResult:
             raise RuntimeError("temporary outage")
 
@@ -357,8 +411,86 @@ def test_collector_failure_records_source_health_without_closing_jobs() -> None:
     source.refresh_from_db()
     assert run.status == CrawlRun.Status.FAILED
     assert run.error == "temporary outage"
+    assert run.requests_made == 2
     assert source.last_failure_at is not None
     assert source.consecutive_failures == 1
+    existing.refresh_from_db()
+    assert existing.missed_runs == 0
+    assert existing.closed_at is None
+
+
+@pytest.mark.django_db
+def test_processing_failure_rolls_back_earlier_jobs_and_allows_later_sources() -> None:
+    failing_source = make_source("failing")
+    later_source = make_source("later")
+    failing_result = CollectionResult(
+        raw_jobs=[
+            RawJob(
+                external_id="valid-first",
+                canonical_url="https://careers.failing.test/jobs/valid-first",
+                title="Engineer",
+            ),
+            RawJob(
+                external_id=cast(str, None),
+                canonical_url="https://careers.failing.test/jobs/malformed",
+                title="Malformed",
+            ),
+        ],
+        requests_made=2,
+    )
+    later_result = CollectionResult(
+        raw_jobs=[
+            RawJob(
+                external_id="later-role",
+                canonical_url="https://careers.later.test/jobs/later-role",
+                title="Engineer",
+            )
+        ],
+        requests_made=1,
+    )
+    registry = CollectorRegistry()
+    registry.register(
+        "custom",
+        lambda source: FixtureCollector(
+            source,
+            failing_result if source.source_url == failing_source.source_url else later_result,
+        ),
+    )
+
+    runs = collect_enabled_sources(registry=registry)
+
+    failing_run = next(run for run in runs if run.source_id == failing_source.id)
+    failing_source.refresh_from_db()
+    assert failing_run.status == CrawlRun.Status.FAILED
+    assert failing_run.finished_at is not None
+    assert failing_run.requests_made == 2
+    assert failing_run.error
+    assert failing_source.consecutive_failures == 1
+    assert not Job.objects.filter(source=failing_source).exists()
+    assert Job.objects.filter(source=later_source, external_id="later-role").exists()
+
+
+@pytest.mark.django_db
+def test_existing_running_run_serializes_a_second_collection_for_the_source() -> None:
+    source = make_source()
+    running = CrawlRun.objects.create(source=source)
+    calls: list[str] = []
+
+    class CountingCollector:
+        requests_made = 0
+
+        def collect(self) -> CollectionResult:
+            calls.append("called")
+            return CollectionResult(raw_jobs=[])
+
+    registry = CollectorRegistry()
+    registry.register("custom", lambda source: CountingCollector())
+
+    returned = collect_source(source=source, registry=registry)
+
+    assert returned.pk == running.pk
+    assert returned.status == CrawlRun.Status.RUNNING
+    assert calls == []
 
 
 @pytest.mark.django_db
@@ -416,6 +548,7 @@ class FixtureCollector:
     def __init__(self, source: object, result: CollectionResult) -> None:
         self.source = source
         self.result = result
+        self.requests_made = result.requests_made
 
     def collect(self) -> CollectionResult:
         return self.result

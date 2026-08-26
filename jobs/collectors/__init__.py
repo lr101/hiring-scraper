@@ -48,11 +48,19 @@ class CollectionResult:
 
 
 class Collector(Protocol):
+    @property
+    def requests_made(self) -> int: ...
+
     def collect(self) -> CollectionResult: ...
 
 
 class SourceLike(Protocol):
     kind: str
+    source_url: str
+    tenant: str
+    config: dict[str, Any]
+    request_delay_seconds: int
+    max_pages: int
 
 
 CollectorFactory = Callable[[SourceLike], Collector]
@@ -83,17 +91,22 @@ class BotProtectionDetected(RuntimeError):
 class HTTPCollector:
     """Small HTTP boundary for adapters that fetch career-site responses."""
 
-    def __init__(self, source: SourceLike, *, client: httpx.Client | None = None) -> None:
+    def __init__(
+        self,
+        source: SourceLike,
+        *,
+        client: httpx.Client | None = None,
+        sleeper: Callable[[float], None] = time.sleep,
+    ) -> None:
         self.source = source
         self._client = client or httpx.Client(follow_redirects=True, timeout=30.0)
         self._owns_client = client is None
+        self._sleeper = sleeper
         self.requests_made = 0
 
     def fetch(self, url: str) -> httpx.Response:
         if self.requests_made:
-            delay = getattr(self.source, "request_delay_seconds", 0)
-            if delay:
-                time.sleep(delay)
+            self._sleeper(self.source.request_delay_seconds)
         self.requests_made += 1
         response = self._client.get(url)
         if is_bot_protection_response(response):

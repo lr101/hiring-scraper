@@ -7,12 +7,12 @@ from datetime import datetime
 from html.parser import HTMLParser
 from typing import Any
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
-from jobs.collectors import BotProtectionDetected, CollectorRegistry, RawJob
+from jobs.collectors import BotProtectionDetected, Collector, CollectorRegistry, RawJob
 from jobs.matching import normalize_text, update_job_match
-from jobs.models import CareerSource, CrawlRun, Job, SearchProfile, UserJobState
+from jobs.models import CareerSource, CrawlRun, Job, JobMatch, SearchProfile, UserJobState
 
 collector_registry = CollectorRegistry()
 
@@ -89,18 +89,96 @@ def normalize_raw_job(*, raw_job: RawJob, company_domain: str) -> NormalizedJob:
 
 
 def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> CrawlRun:
-    """Collect one source and record an auditable successful crawl run."""
-    run = CrawlRun.objects.create(source=source)
+    """Collect one source while a database-backed run lock is held."""
+    run, acquired = _start_run(source=source)
+    if not acquired:
+        return run
+
+    collector: Collector | None = None
     try:
-        result = registry.create(source).collect()
+        collector = registry.create(source)
+        result = collector.collect()
     except BotProtectionDetected as error:
-        return _finish_blocked_run(run=run, source=source, error=error)
+        return _finish_blocked_run(
+            run=run,
+            source_id=source.id,
+            error=error,
+            requests_made=_collector_requests(collector),
+        )
     except Exception as error:
-        return _finish_failed_run(run=run, source=source, error=error)
+        return _finish_failed_run(
+            run=run,
+            source_id=source.id,
+            error=error,
+            requests_made=_collector_requests(collector),
+        )
+
+    try:
+        with transaction.atomic():
+            locked_source = (
+                CareerSource.objects.select_for_update().select_related("company").get(pk=source.pk)
+            )
+            created, updated, closed = _apply_successful_collection(
+                source=locked_source,
+                raw_jobs=result.raw_jobs,
+            )
+            now = timezone.now()
+            locked_source.last_success_at = now
+            locked_source.consecutive_failures = 0
+            locked_source.last_job_count = len(result.raw_jobs)
+            locked_source.save(
+                update_fields=["last_success_at", "consecutive_failures", "last_job_count"]
+            )
+            run.status = CrawlRun.Status.SUCCESS
+            run.finished_at = now
+            run.jobs_seen = len(result.raw_jobs)
+            run.jobs_created = created
+            run.jobs_updated = updated
+            run.jobs_closed = closed
+            run.requests_made = result.requests_made
+            run.save(
+                update_fields=[
+                    "status",
+                    "finished_at",
+                    "jobs_seen",
+                    "jobs_created",
+                    "jobs_updated",
+                    "jobs_closed",
+                    "requests_made",
+                ]
+            )
+    except Exception as error:
+        return _finish_failed_run(
+            run=run,
+            source_id=source.id,
+            error=error,
+            requests_made=result.requests_made,
+        )
+    return run
+
+
+def _start_run(*, source: CareerSource) -> tuple[CrawlRun, bool]:
+    while True:
+        try:
+            with transaction.atomic():
+                return CrawlRun.objects.create(source=source), True
+        except IntegrityError:
+            running = CrawlRun.objects.filter(source=source, status=CrawlRun.Status.RUNNING).first()
+            if running is not None:
+                return running, False
+
+
+def _collector_requests(collector: Collector | None) -> int:
+    return collector.requests_made if collector is not None else 0
+
+
+def _apply_successful_collection(
+    *, source: CareerSource, raw_jobs: list[RawJob]
+) -> tuple[int, int, int]:
     created = 0
     updated = 0
     seen_external_ids: set[str] = set()
-    for raw_job in result.raw_jobs:
+    for raw_job in raw_jobs:
         seen_external_ids.add(raw_job.external_id)
         normalized = normalize_raw_job(raw_job=raw_job, company_domain=source.company.domain)
         existing_hash = (
@@ -119,34 +197,12 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             _propagate_ignored_state(job=job)
         _refresh_matches(job=job)
 
-    now = timezone.now()
-    with transaction.atomic():
-        closed = _record_successful_misses(
-            source=source, seen_external_ids=seen_external_ids, closed_at=now
-        )
-        source.last_success_at = now
-        source.consecutive_failures = 0
-        source.last_job_count = len(result.raw_jobs)
-        source.save(update_fields=["last_success_at", "consecutive_failures", "last_job_count"])
-        run.status = CrawlRun.Status.SUCCESS
-        run.finished_at = now
-        run.jobs_seen = len(result.raw_jobs)
-        run.jobs_created = created
-        run.jobs_updated = updated
-        run.jobs_closed = closed
-        run.requests_made = result.requests_made
-        run.save(
-            update_fields=[
-                "status",
-                "finished_at",
-                "jobs_seen",
-                "jobs_created",
-                "jobs_updated",
-                "jobs_closed",
-                "requests_made",
-            ]
-        )
-    return run
+    closed = _record_successful_misses(
+        source=source,
+        seen_external_ids=seen_external_ids,
+        closed_at=timezone.now(),
+    )
+    return created, updated, closed
 
 
 def collect_enabled_sources(*, registry: CollectorRegistry = collector_registry) -> list[CrawlRun]:
@@ -156,27 +212,35 @@ def collect_enabled_sources(*, registry: CollectorRegistry = collector_registry)
 
 
 def _finish_blocked_run(
-    *, run: CrawlRun, source: CareerSource, error: BotProtectionDetected
+    *, run: CrawlRun, source_id: int, error: BotProtectionDetected, requests_made: int
 ) -> CrawlRun:
     now = timezone.now()
-    source.blocked_at = now
-    source.save(update_fields=["blocked_at"])
-    run.status = CrawlRun.Status.BLOCKED
-    run.finished_at = now
-    run.error = str(error)
-    run.save(update_fields=["status", "finished_at", "error"])
+    with transaction.atomic():
+        source = CareerSource.objects.select_for_update().get(pk=source_id)
+        source.blocked_at = now
+        source.save(update_fields=["blocked_at"])
+        run.status = CrawlRun.Status.BLOCKED
+        run.finished_at = now
+        run.requests_made = requests_made
+        run.error = str(error)
+        run.save(update_fields=["status", "finished_at", "requests_made", "error"])
     return run
 
 
-def _finish_failed_run(*, run: CrawlRun, source: CareerSource, error: Exception) -> CrawlRun:
+def _finish_failed_run(
+    *, run: CrawlRun, source_id: int, error: Exception, requests_made: int
+) -> CrawlRun:
     now = timezone.now()
-    source.last_failure_at = now
-    source.consecutive_failures += 1
-    source.save(update_fields=["last_failure_at", "consecutive_failures"])
-    run.status = CrawlRun.Status.FAILED
-    run.finished_at = now
-    run.error = str(error)
-    run.save(update_fields=["status", "finished_at", "error"])
+    with transaction.atomic():
+        source = CareerSource.objects.select_for_update().get(pk=source_id)
+        source.last_failure_at = now
+        source.consecutive_failures += 1
+        source.save(update_fields=["last_failure_at", "consecutive_failures"])
+        run.status = CrawlRun.Status.FAILED
+        run.finished_at = now
+        run.requests_made = requests_made
+        run.error = str(error)
+        run.save(update_fields=["status", "finished_at", "requests_made", "error"])
     return run
 
 
@@ -194,7 +258,7 @@ def _record_successful_misses(
             closed += 1
         job.save(update_fields=update_fields)
         if job.closed_at is not None:
-            _refresh_matches(job=job)
+            JobMatch.objects.filter(job=job).delete()
     return closed
 
 

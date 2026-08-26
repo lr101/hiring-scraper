@@ -251,6 +251,13 @@ class CrawlRun(models.Model):
     error = models.TextField(blank=True)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source"],
+                condition=models.Q(status="running"),
+                name="one_running_crawl_per_source",
+            )
+        ]
         ordering = ["-started_at"]
 
     def __str__(self) -> str:
