@@ -20,7 +20,15 @@ from xml.etree import ElementTree
 import httpx
 from django.utils.dateparse import parse_date, parse_datetime
 
-from jobs.collectors import CollectionResult, CollectorRegistry, HTTPCollector, RawJob, SourceLike
+from jobs.collectors import (
+    BotProtectionDetected,
+    CollectionResult,
+    CollectorRegistry,
+    HTTPCollector,
+    RawJob,
+    SourceLike,
+    UnsafeDetailUrl,
+)
 
 SIEMENS_FEED_URL = "https://jobs.siemens.com/en_US/externaljobs/SearchJobs/feed/"
 BOSCH_LIST_URL = "https://jobs.bosch.de/api/filter/query"
@@ -31,6 +39,11 @@ TELEKOM_SITE_URL = "https://www.telekom.com"
 DHL_SEARCH_URL = "https://careers.dhl.com/global/en/search-results"
 DHL_SITE_URL = "https://careers.dhl.com"
 
+BOSCH_DETAIL_HOSTS = frozenset({"api.smartrecruiters.com"})
+SAP_DETAIL_HOSTS = frozenset({"jobs.sap.com"})
+TELEKOM_DETAIL_HOSTS = frozenset({"www.telekom.com"})
+DHL_DETAIL_HOSTS = frozenset({"careers.dhl.com"})
+
 
 class SiemensAvatureCollector(HTTPCollector):
     """Collect Germany-filtered Siemens Avature RSS results."""
@@ -39,6 +52,7 @@ class SiemensAvatureCollector(HTTPCollector):
 
     def collect(self) -> CollectionResult:
         jobs: list[RawJob] = []
+        is_complete = False
         try:
             for page in range(_max_pages(self.source)):
                 offset = page * self.page_size
@@ -53,12 +67,22 @@ class SiemensAvatureCollector(HTTPCollector):
                 except ElementTree.ParseError as error:
                     raise ValueError("Siemens returned invalid RSS XML.") from error
                 items = root.findall(".//item")
+                channel = root.find("./channel")
+                if (
+                    root.tag.casefold().split("}")[-1] != "rss"
+                    or channel is None
+                    or channel.find("link") is None
+                ):
+                    raise ValueError("Siemens RSS did not contain a channel.")
                 jobs.extend(raw for item in items if (raw := self._parse_item(item)) is not None)
                 if len(items) < self.page_size:
+                    is_complete = True
                     break
         finally:
             self.close()
-        return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
+        )
 
     def _parse_item(self, item: ElementTree.Element) -> RawJob | None:
         title = _element_text(item, "title")
@@ -82,6 +106,7 @@ class BoschSmartRecruitersCollector(HTTPCollector):
 
     def collect(self) -> CollectionResult:
         jobs: list[RawJob] = []
+        is_complete = False
         page = 0
         visited_pages: set[int] = set()
         try:
@@ -110,14 +135,13 @@ class BoschSmartRecruitersCollector(HTTPCollector):
                     external_id = _string(data.get("idFS"))
                     if not external_id or _explicitly_non_german(data.get("location")):
                         continue
-                    detail = _response_json(
-                        self.fetch(BOSCH_DETAIL_URL.format(external_id=external_id)), "Bosch detail"
-                    )
+                    detail = self._detail_or_empty(external_id)
                     raw = self._raw_from_detail(data, detail, external_id)
                     if raw is not None:
                         jobs.append(raw)
                 next_page = payload.get("nextPage")
                 if next_page in (None, False, "", 0):
+                    is_complete = True
                     break
                 if next_page is True:
                     page += 1
@@ -129,7 +153,21 @@ class BoschSmartRecruitersCollector(HTTPCollector):
                     break
         finally:
             self.close()
-        return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
+        )
+
+    def _detail_or_empty(self, external_id: str) -> dict[str, Any]:
+        try:
+            response = self.fetch_trusted(
+                BOSCH_DETAIL_URL.format(external_id=external_id),
+                allowed_hosts=BOSCH_DETAIL_HOSTS,
+            )
+            return _response_json(response, "Bosch detail")
+        except BotProtectionDetected:
+            raise
+        except (httpx.HTTPError, UnsafeDetailUrl, ValueError):
+            return {}
 
     def _raw_from_detail(
         self, list_data: dict[str, Any], detail: dict[str, Any], external_id: str
@@ -185,6 +223,8 @@ class SapSuccessFactorsCollector(HTTPCollector):
 
     def collect(self) -> CollectionResult:
         jobs: list[RawJob] = []
+        reached_end = False
+        detail_urls_complete = True
         try:
             for page in range(_max_pages(self.source)):
                 offset = page * self.page_size
@@ -195,12 +235,24 @@ class SapSuccessFactorsCollector(HTTPCollector):
                 }
                 response = self.fetch(f"{SAP_SEARCH_URL}?{urlencode(parameters)}")
                 records = _sap_list_records(response.text)
+                if not _has_sap_result_shape(response.text):
+                    raise ValueError("SAP search did not contain a result table.")
                 for title, href, listed_location in records:
                     external_id = _path_id(href)
                     if not external_id:
                         continue
                     detail_url = _absolute_url(href, SAP_SEARCH_URL)
-                    detail = _job_posting(self.fetch(detail_url).text)
+                    try:
+                        detail = _job_posting(
+                            self.fetch_trusted(detail_url, allowed_hosts=SAP_DETAIL_HOSTS).text
+                        )
+                    except BotProtectionDetected:
+                        raise
+                    except UnsafeDetailUrl:
+                        detail_urls_complete = False
+                        continue
+                    except (httpx.HTTPError, ValueError):
+                        detail = {}
                     raw = _raw_from_job_posting(
                         external_id=external_id,
                         canonical_url=detail_url,
@@ -211,10 +263,15 @@ class SapSuccessFactorsCollector(HTTPCollector):
                     if raw is not None:
                         jobs.append(raw)
                 if len(records) < self.page_size:
+                    reached_end = True
                     break
         finally:
             self.close()
-        return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
+        return CollectionResult(
+            raw_jobs=jobs,
+            requests_made=self.requests_made,
+            is_complete=reached_end and detail_urls_complete,
+        )
 
 
 class TelekomJsonCollector(HTTPCollector):
@@ -222,6 +279,7 @@ class TelekomJsonCollector(HTTPCollector):
 
     def collect(self) -> CollectionResult:
         jobs: list[RawJob] = []
+        self._detail_urls_complete = True
         try:
             first_page = self._fetch_page(0)
             jobs.extend(self._jobs_from_page(first_page))
@@ -230,9 +288,12 @@ class TelekomJsonCollector(HTTPCollector):
                 raise ValueError("Telekom list did not provide a page count.")
             for page in range(1, min(page_count, _max_pages(self.source))):
                 jobs.extend(self._jobs_from_page(self._fetch_page(page)))
+            is_complete = page_count <= _max_pages(self.source) and self._detail_urls_complete
         finally:
             self.close()
-        return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
+        )
 
     def _fetch_page(self, page: int) -> dict[str, Any]:
         parameters = {"countries": "393776", "hits_per_page": 250, "pageNum": page}
@@ -252,7 +313,17 @@ class TelekomJsonCollector(HTTPCollector):
             url = _absolute_url(_string(record.get("url")), TELEKOM_SITE_URL)
             if not (external_id and title and url):
                 continue
-            posting = _job_posting(self.fetch(url).text)
+            try:
+                posting = _job_posting(
+                    self.fetch_trusted(url, allowed_hosts=TELEKOM_DETAIL_HOSTS).text
+                )
+            except BotProtectionDetected:
+                raise
+            except UnsafeDetailUrl:
+                self._detail_urls_complete = False
+                continue
+            except (httpx.HTTPError, ValueError):
+                posting = {}
             raw = _raw_from_job_posting(
                 external_id=external_id,
                 canonical_url=url,
@@ -279,6 +350,8 @@ class DhlPhenomCollector(HTTPCollector):
 
     def collect(self) -> CollectionResult:
         jobs: list[RawJob] = []
+        is_complete = False
+        self._detail_urls_complete = True
         try:
             offset = 0
             total_hits: int | None = None
@@ -302,7 +375,17 @@ class DhlPhenomCollector(HTTPCollector):
                     url = _absolute_url(_string(record.get("jobUrl")), DHL_SITE_URL)
                     if not url:
                         url = f"{DHL_SITE_URL}/global/en/job/{external_id}/{_slug(title)}"
-                    posting = _job_posting(self.fetch(url).text)
+                    try:
+                        posting = _job_posting(
+                            self.fetch_trusted(url, allowed_hosts=DHL_DETAIL_HOSTS).text
+                        )
+                    except BotProtectionDetected:
+                        raise
+                    except UnsafeDetailUrl:
+                        self._detail_urls_complete = False
+                        continue
+                    except (httpx.HTTPError, ValueError):
+                        posting = {}
                     raw = _raw_from_job_posting(
                         external_id=external_id,
                         canonical_url=url,
@@ -318,11 +401,16 @@ class DhlPhenomCollector(HTTPCollector):
                     if raw is not None:
                         jobs.append(raw)
                 offset += self.page_size
-                if offset >= total_hits or len(records) < self.page_size:
+                if offset >= total_hits:
+                    is_complete = self._detail_urls_complete
+                    break
+                if len(records) < self.page_size:
                     break
         finally:
             self.close()
-        return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
+        )
 
 
 def register_employer_collectors(registry: CollectorRegistry) -> None:
@@ -458,6 +546,38 @@ class _MicrodataParser(HTMLParser):
 
 def _sap_list_records(html: str) -> list[tuple[str, str, str]]:
     """Read simple SuccessFactors rows without a third-party HTML parser."""
+    rows = re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.IGNORECASE | re.DOTALL)
+    row_records: list[tuple[str, str, str]] = []
+    title_pattern = re.compile(
+        r"<a\b(?P<attributes>[^>]*)>(?P<title>.*?)</a>", re.IGNORECASE | re.DOTALL
+    )
+    location_pattern = re.compile(
+        r'<(?:td|span)[^>]*class=["\'][^"\']*jobLocation[^"\']*["\'][^>]*>(.*?)</(?:td|span)>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    for row in rows:
+        anchor = title_pattern.search(row)
+        if anchor is None:
+            continue
+        attributes = anchor.group("attributes")
+        class_match = re.search(r"\bclass=[\"']([^\"']*)[\"']", attributes, re.IGNORECASE)
+        href_match = re.search(r"\bhref=[\"']([^\"']+)[\"']", attributes, re.IGNORECASE)
+        if (
+            class_match is None
+            or "jobtitle" not in class_match.group(1).casefold()
+            or href_match is None
+        ):
+            continue
+        location_match = location_pattern.search(row)
+        row_records.append(
+            (
+                _strip_html(anchor.group("title")),
+                href_match.group(1),
+                _strip_html(location_match.group(1)) if location_match else "",
+            )
+        )
+    if row_records:
+        return row_records
     parser = _SapListParser()
     parser.feed(html)
     records = [record for record in parser.records if all(record[:2])]
@@ -467,6 +587,10 @@ def _sap_list_records(html: str) -> list[tuple[str, str, str]]:
         r'<a[^>]*class="[^"]*jobTitle[^"]*"[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.I | re.S
     )
     return [(_strip_html(title), href, "") for href, title in pattern.findall(html)]
+
+
+def _has_sap_result_shape(html: str) -> bool:
+    return bool(re.search(r"\bid=[\"']searchresults[\"']", html, re.IGNORECASE))
 
 
 def _response_json(response: httpx.Response, source_name: str) -> dict[str, Any]:
@@ -534,11 +658,15 @@ def _microdata_job_posting(item: _HtmlNode) -> dict[str, Any]:
         value = _microdata_first(properties.get(source_name))
         if isinstance(value, str):
             posting[target_name] = value
-    location = _microdata_first(properties.get("jobLocation"))
-    if isinstance(location, dict):
+    locations: list[dict[str, Any]] = []
+    for location in properties.get("jobLocation", []):
+        if not isinstance(location, dict):
+            continue
         address = _microdata_first(location.get("address"))
         if isinstance(address, dict):
-            posting["jobLocation"] = {"address": _collapse_microdata(address)}
+            locations.append({"address": _collapse_microdata(address)})
+    if locations:
+        posting["jobLocation"] = locations
     location_type = _microdata_first(properties.get("jobLocationType"))
     if isinstance(location_type, str):
         posting["jobLocationType"] = location_type
@@ -605,11 +733,24 @@ def _raw_from_job_posting(
     default_location: str,
     defaults: dict[str, Any] | None = None,
 ) -> RawJob | None:
-    city, state, country, latitude, longitude = _posting_location(posting)
-    country_value = country or default_location
-    if _explicitly_non_german(country_value):
-        return None
     values = defaults or {}
+    detail_locations = _posting_locations(posting)
+    german_locations = [location for location in detail_locations if _is_german(location[2])]
+    default_locations = _string_list(values.get("locations")) or _as_locations(
+        default_location, _city_from_location(default_location)
+    )
+    default_is_german = _has_germany_evidence(default_location, default_locations)
+    if german_locations:
+        city, state, _, latitude, longitude = german_locations[0]
+        locations = [_format_location(location) for location in german_locations]
+    elif any(country for _, _, country, _, _ in detail_locations) and not default_is_german:
+        return None
+    else:
+        city = _city_from_location(default_location)
+        state = ""
+        latitude = None
+        longitude = None
+        locations = default_locations
     resolved_title = _string(posting.get("title")) or title
     if not resolved_title:
         return None
@@ -623,10 +764,9 @@ def _raw_from_job_posting(
         city=location,
         state=state,
         country_code="DE",
-        locations=_string_list(values.get("locations"))
-        or _as_locations(default_location, location),
-        latitude=values.get("latitude") or latitude,
-        longitude=values.get("longitude") or longitude,
+        locations=locations or _as_locations(default_location, location),
+        latitude=values.get("latitude") if values.get("latitude") is not None else latitude,
+        longitude=values.get("longitude") if values.get("longitude") is not None else longitude,
         remote_type=_remote_type(values.get("remote_type") or posting.get("jobLocationType")),
         employment_type=_string(posting.get("employmentType")),
         department=_string(values.get("department")),
@@ -636,22 +776,33 @@ def _raw_from_job_posting(
     )
 
 
-def _posting_location(posting: dict[str, Any]) -> tuple[str, str, str, float | None, float | None]:
-    location = posting.get("jobLocation")
-    if isinstance(location, list):
-        location = location[0] if location else {}
-    location_data = location if isinstance(location, dict) else {}
-    address = location_data.get("address")
-    address_data = address if isinstance(address, dict) else {}
-    geo = location_data.get("geo")
-    geo_data = geo if isinstance(geo, dict) else {}
-    return (
-        _string(address_data.get("addressLocality")),
-        _string(address_data.get("addressRegion")),
-        _string(address_data.get("addressCountry")),
-        _float_or_none(geo_data.get("latitude")),
-        _float_or_none(geo_data.get("longitude")),
-    )
+def _posting_locations(
+    posting: dict[str, Any],
+) -> list[tuple[str, str, str, float | None, float | None]]:
+    value = posting.get("jobLocation")
+    candidates = value if isinstance(value, list) else [value]
+    locations: list[tuple[str, str, str, float | None, float | None]] = []
+    for candidate in candidates:
+        location_data = candidate if isinstance(candidate, dict) else {}
+        address = location_data.get("address")
+        address_data = address if isinstance(address, dict) else {}
+        geo = location_data.get("geo")
+        geo_data = geo if isinstance(geo, dict) else {}
+        locations.append(
+            (
+                _string(address_data.get("addressLocality")),
+                _string(address_data.get("addressRegion")),
+                _string(address_data.get("addressCountry")),
+                _float_or_none(geo_data.get("latitude")),
+                _float_or_none(geo_data.get("longitude")),
+            )
+        )
+    return locations
+
+
+def _format_location(location: tuple[str, str, str, float | None, float | None]) -> str:
+    city, _, country, _, _ = location
+    return ", ".join(value for value in (city, country) if value)
 
 
 def _dhl_state(html: str) -> dict[str, Any]:

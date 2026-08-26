@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import ipaddress
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Protocol
+from urllib.parse import urljoin, urlsplit
 
 import httpx
 
@@ -45,6 +47,7 @@ class RawJob:
 class CollectionResult:
     raw_jobs: list[RawJob]
     requests_made: int = 0
+    is_complete: bool = True
 
 
 class Collector(Protocol):
@@ -88,6 +91,10 @@ class BotProtectionDetected(RuntimeError):
     """A source returned a bot challenge instead of a jobs response."""
 
 
+class UnsafeDetailUrl(ValueError):
+    """A payload-provided detail URL is not safe for a server-side request."""
+
+
 class HTTPCollector:
     """Small HTTP boundary for adapters that fetch career-site responses."""
 
@@ -99,20 +106,42 @@ class HTTPCollector:
         sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
         self.source = source
-        self._client = client or httpx.Client(follow_redirects=True, timeout=30.0)
+        self._client = client or httpx.Client(follow_redirects=False, timeout=30.0)
         self._owns_client = client is None
         self._sleeper = sleeper
         self.requests_made = 0
 
-    def fetch(self, url: str) -> httpx.Response:
+    def fetch(self, url: str, *, follow_redirects: bool = True) -> httpx.Response:
         if self.requests_made:
             self._sleeper(self.source.request_delay_seconds)
         self.requests_made += 1
-        response = self._client.get(url)
+        response = self._client.get(url, follow_redirects=follow_redirects)
         if is_bot_protection_response(response):
             raise BotProtectionDetected(f"Bot protection detected for {url}.")
-        response.raise_for_status()
+        if not response.is_redirect:
+            response.raise_for_status()
         return response
+
+    def fetch_trusted(
+        self, url: str, *, allowed_hosts: frozenset[str], max_redirects: int = 5
+    ) -> httpx.Response:
+        """Fetch a payload URL only after validating its host and every redirect."""
+        current_url = _validate_detail_url(url, allowed_hosts=allowed_hosts)
+        for _ in range(max_redirects + 1):
+            response = self.fetch(current_url, follow_redirects=False)
+            if not response.is_redirect:
+                return response
+            location = response.headers.get("location")
+            if not location:
+                raise httpx.HTTPStatusError(
+                    "Redirect response did not include a Location header.",
+                    request=response.request,
+                    response=response,
+                )
+            current_url = _validate_detail_url(
+                urljoin(current_url, location), allowed_hosts=allowed_hosts
+            )
+        raise httpx.TooManyRedirects("Too many trusted detail redirects.")
 
     def close(self) -> None:
         if self._owns_client:
@@ -137,3 +166,17 @@ def is_bot_protection_response(response: httpx.Response) -> bool:
             "access denied",
         )
     )
+
+
+def _validate_detail_url(url: str, *, allowed_hosts: frozenset[str]) -> str:
+    parsed = urlsplit(url)
+    host = parsed.hostname.casefold() if parsed.hostname else ""
+    if parsed.scheme != "https" or not host or host not in allowed_hosts:
+        raise UnsafeDetailUrl("Detail URL must use HTTPS on an allowed host.")
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return url
+    if address.is_private or address.is_loopback or address.is_link_local or address.is_reserved:
+        raise UnsafeDetailUrl("Detail URL host must not be a private address.")
+    raise UnsafeDetailUrl("Detail URL host must be a named allowed host.")

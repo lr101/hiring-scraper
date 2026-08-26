@@ -18,8 +18,10 @@ from jobs.collectors import (
     CollectorRegistry,
     HTTPCollector,
     RawJob,
+    UnsafeDetailUrl,
     is_bot_protection_response,
 )
+from jobs.collectors.employers import SapSuccessFactorsCollector, SiemensAvatureCollector
 from jobs.models import (
     CareerSource,
     Company,
@@ -84,6 +86,10 @@ def test_adapter_registry_resolves_a_source_kind_to_its_collector() -> None:
     collector = registry.create(SimpleNamespace(kind="custom"))
 
     assert collector.collect().raw_jobs == [raw_job]
+
+
+def test_collection_result_is_complete_by_default() -> None:
+    assert CollectionResult(raw_jobs=[]).is_complete is True
 
 
 def test_bot_protection_detection_handles_statuses_and_challenge_markers() -> None:
@@ -153,6 +159,54 @@ def test_http_collector_uses_the_configured_delay_between_requests_without_sleep
 
     assert len(requests) == 2
     assert delays == [3]
+
+
+def test_http_collector_rejects_an_untrusted_redirect_before_requesting_it() -> None:
+    requested: list[str] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requested.append(str(request.url))
+        return httpx.Response(
+            302,
+            headers={"location": "https://127.0.0.1/private"},
+            request=request,
+        )
+
+    collector = HTTPCollector(
+        SimpleNamespace(kind="custom", request_delay_seconds=0),
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+    )
+
+    with pytest.raises(UnsafeDetailUrl):
+        collector.fetch_trusted(
+            "https://jobs.sap.com/job/42", allowed_hosts=frozenset({"jobs.sap.com"})
+        )
+
+    assert requested == ["https://jobs.sap.com/job/42"]
+    assert collector.requests_made == 1
+
+
+def test_http_collector_keeps_following_redirects_for_fixed_source_urls() -> None:
+    requested: list[str] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requested.append(str(request.url))
+        if request.url.path == "/jobs":
+            return httpx.Response(302, headers={"location": "/jobs/"}, request=request)
+        return httpx.Response(200, text="jobs", request=request)
+
+    collector = HTTPCollector(
+        SimpleNamespace(kind="custom", request_delay_seconds=0),
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+    )
+
+    response = collector.fetch("https://careers.example.test/jobs")
+
+    assert response.text == "jobs"
+    assert requested == [
+        "https://careers.example.test/jobs",
+        "https://careers.example.test/jobs/",
+    ]
 
 
 @pytest.mark.django_db
@@ -418,6 +472,82 @@ def test_collector_failure_records_source_health_without_closing_jobs() -> None:
     assert source.consecutive_failures == 1
     existing.refresh_from_db()
     assert existing.missed_runs == 0
+    assert existing.closed_at is None
+
+
+@pytest.mark.django_db
+def test_incomplete_collection_upserts_seen_jobs_without_recording_misses() -> None:
+    source = make_source()
+    existing = Job.objects.create(
+        source=source,
+        external_id="previous-role",
+        canonical_url="https://careers.example.test/jobs/previous-role",
+        title="Previous Engineer",
+        normalized_title="previous engineer",
+        content_hash="a" * 64,
+        fingerprint="b" * 64,
+        missed_runs=1,
+    )
+    result = CollectionResult(
+        raw_jobs=[
+            RawJob(
+                external_id="new-role",
+                canonical_url="https://careers.example.test/jobs/new-role",
+                title="New Engineer",
+            )
+        ],
+        is_complete=False,
+    )
+
+    run = collect_source(source=source, registry=registry_for(result))
+
+    existing.refresh_from_db()
+    assert run.status == CrawlRun.Status.SUCCESS
+    assert run.jobs_created == 1
+    assert run.jobs_closed == 0
+    assert existing.missed_runs == 1
+    assert existing.closed_at is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("collector_type", "body"),
+    [
+        (SiemensAvatureCollector, "<rss><channel><title>Unexpected</title></channel></rss>"),
+        (SapSuccessFactorsCollector, "<html><body>Maintenance</body></html>"),
+    ],
+)
+def test_wrong_shaped_pages_fail_without_incrementing_misses(
+    collector_type: type[SiemensAvatureCollector] | type[SapSuccessFactorsCollector], body: str
+) -> None:
+    source = make_source()
+    existing = Job.objects.create(
+        source=source,
+        external_id="previous-role",
+        canonical_url="https://careers.example.test/jobs/previous-role",
+        title="Previous Engineer",
+        normalized_title="previous engineer",
+        content_hash="a" * 64,
+        fingerprint="b" * 64,
+        missed_runs=1,
+    )
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                text=body,
+                request=request,
+            )
+        )
+    )
+    registry = CollectorRegistry()
+    registry.register("custom", lambda career_source: collector_type(career_source, client=client))
+
+    run = collect_source(source=source, registry=registry)
+
+    existing.refresh_from_db()
+    assert run.status == CrawlRun.Status.FAILED
+    assert existing.missed_runs == 1
     assert existing.closed_at is None
 
 

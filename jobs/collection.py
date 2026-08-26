@@ -134,6 +134,7 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             created, updated, closed = _apply_successful_collection(
                 source=locked_source,
                 raw_jobs=result.raw_jobs,
+                is_complete=result.is_complete,
             )
             now = timezone.now()
             locked_source.last_success_at = now
@@ -212,7 +213,7 @@ def _collector_requests(collector: Collector | None) -> int:
 
 
 def _apply_successful_collection(
-    *, source: CareerSource, raw_jobs: list[RawJob]
+    *, source: CareerSource, raw_jobs: list[RawJob], is_complete: bool
 ) -> tuple[int, int, int]:
     created = 0
     updated = 0
@@ -236,11 +237,13 @@ def _apply_successful_collection(
             _propagate_ignored_state(job=job)
         _refresh_matches(job=job)
 
-    closed = _record_successful_misses(
-        source=source,
-        seen_external_ids=seen_external_ids,
-        closed_at=timezone.now(),
-    )
+    closed = 0
+    if is_complete:
+        closed = _record_successful_misses(
+            source=source,
+            seen_external_ids=seen_external_ids,
+            closed_at=timezone.now(),
+        )
     return created, updated, closed
 
 

@@ -2,6 +2,7 @@
 <rss version="2.0">
   <channel>
     <title>Siemens jobs</title>
+    <link>https://jobs.siemens.com/</link>
     <item>
       <title>Software Engineer</title>
       <link>https://jobs.siemens.com/en_US/externaljobs/JobDetail/12345</link>
