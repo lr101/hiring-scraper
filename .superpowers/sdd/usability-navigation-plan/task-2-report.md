@@ -78,3 +78,76 @@ collected 128 items
 ```
 
 I also ran `git diff --check` and reviewed the complete task diff before committing.
+
+## Fix round 1
+
+### Scope delivered
+
+- Feed now excludes only jobs ignored by the active account. Another account's ignored state no longer removes a shared job.
+- Job detail and workflow state updates now allow either a current match or an existing state for the active account. A saved job remains available after its match is removed.
+- Invalid company and city target submissions now render the bound Search page. Duplicate company targets, invalid city selections, and invalid radii show errors and retain submitted values.
+- Profile's operational links now include the legacy Jobs tool.
+- Navigation integration tests now cover mixed workflow statuses, status filtering and company sorting, city-radius filtering, normalized no-coordinate city filtering, no-target fallback, and the account-isolation regressions.
+
+### TDD evidence
+
+Initial RED command:
+
+```text
+mise run test -- tests/test_navigation_pages.py
+```
+
+Output summary:
+
+```text
+collected 13 items
+5 failed, 8 passed, 13 warnings
+```
+
+The expected failures showed redirects instead of bound invalid forms, an active account losing a job because another account ignored it, a saved job detail returning 404, and the missing Jobs operational link.
+
+An additional city-selection error test was added during final review.
+
+```text
+mise run test -- tests/test_navigation_pages.py
+collected 14 items
+1 failed, 13 passed, 14 warnings
+```
+
+It failed because the hidden city field's validation error was not rendered.
+
+GREEN command:
+
+```text
+mise run test -- tests/test_navigation_pages.py
+```
+
+Output summary:
+
+```text
+collected 14 items
+14 passed, 14 warnings
+```
+
+### Final verification
+
+Commands:
+
+```text
+mise exec -- uv run python manage.py makemigrations --check --dry-run
+mise run check
+```
+
+Output summaries:
+
+```text
+No changes detected
+
+45 files already formatted
+All checks passed!
+Success: no issues found in 38 source files
+collected 137 items
+137 passed, 46 warnings
+```
+
+The warnings are the existing Django notice that the local `staticfiles/` directory is absent during tests. No employer website was contacted.

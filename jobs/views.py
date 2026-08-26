@@ -42,10 +42,15 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def feed(request: HttpRequest) -> HttpResponse:
     user = selected_workspace_user(request)
+    ignored_job_ids = (
+        UserJobState.objects.filter(user=user, status=UserJobState.Status.IGNORED).values("job_id")
+        if user
+        else UserJobState.objects.none().values("job_id")
+    )
     matches = (
         _user_matches(user)
         .filter(is_new=True, job__closed_at__isnull=True)
-        .exclude(job__user_states__user=user, job__user_states__status=UserJobState.Status.IGNORED)
+        .exclude(job_id__in=ignored_job_ids)
         if user
         else JobMatch.objects.none()
     )
@@ -105,7 +110,10 @@ def job_detail(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    job = get_object_or_404(
+        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
+        pk=job_id,
+    )
     state, _ = UserJobState.objects.get_or_create(user=user, job=job)
     if state.seen_at is None:
         state.seen_at = timezone.now()
@@ -119,7 +127,10 @@ def job_state(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(Job.objects.filter(matches__profile__user=user).distinct(), pk=job_id)
+    job = get_object_or_404(
+        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
+        pk=job_id,
+    )
     state, _ = UserJobState.objects.get_or_create(user=user, job=job)
     status = request.POST.get("status", UserJobState.Status.NONE)
     valid_statuses = {value for value, _ in UserJobState.Status.choices}
@@ -216,12 +227,22 @@ def search(request: HttpRequest) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
+    return _search_response(request=request, user=user)
+
+
+def _search_response(
+    *,
+    request: HttpRequest,
+    user: WorkspaceUser,
+    company_form: CompanyMonitoringTargetForm | None = None,
+    city_form: CityMonitoringTargetForm | None = None,
+) -> HttpResponse:
     return render(
         request,
         "jobs/search.html",
         {
-            "company_form": CompanyMonitoringTargetForm(),
-            "city_form": CityMonitoringTargetForm(),
+            "company_form": company_form or CompanyMonitoringTargetForm(user=user),
+            "city_form": city_form or CityMonitoringTargetForm(),
             "company_targets": MonitoringTarget.objects.filter(
                 user=user, kind=MonitoringTarget.Kind.COMPANY
             ).select_related("company"),
@@ -237,14 +258,15 @@ def company_target_create(request: HttpRequest) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    form = CompanyMonitoringTargetForm(request.POST)
+    form = CompanyMonitoringTargetForm(request.POST, user=user)
     if form.is_valid():
         MonitoringTarget.objects.get_or_create(
             user=user,
             kind=MonitoringTarget.Kind.COMPANY,
             company=form.cleaned_data["company"],
         )
-    return redirect("jobs:search")
+        return redirect("jobs:search")
+    return _search_response(request=request, user=user, company_form=form)
 
 
 @require_POST
@@ -263,7 +285,8 @@ def city_target_create(request: HttpRequest) -> HttpResponse:
         if not created and target.radius_km != form.cleaned_data["radius_km"]:
             target.radius_km = form.cleaned_data["radius_km"]
             target.save(update_fields=["radius_km"])
-    return redirect("jobs:search")
+        return redirect("jobs:search")
+    return _search_response(request=request, user=user, city_form=form)
 
 
 @require_POST
