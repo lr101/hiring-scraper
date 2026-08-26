@@ -24,9 +24,10 @@ archive or ZIP import is required.
 
 City and postal-code searches use the configured Nominatim-compatible location API only after the
 user presses Search. Results are cached in PostgreSQL, so profiles can use the selected place on
-future requests. Set `LOCATION_API_URL`, `LOCATION_USER_AGENT`, and
-`LOCATION_MIN_REQUEST_INTERVAL_SECONDS` when using a hosted or self-managed provider. The default
-public provider requires visible OpenStreetMap attribution and an identifying User-Agent.
+future requests. Set `LOCATION_API_URL`, `LOCATION_USER_AGENT`,
+`LOCATION_MIN_REQUEST_INTERVAL_SECONDS`, and `LOCATION_RATE_LIMIT_STATE_PATH` when using a hosted
+or self-managed provider. The default public provider requires visible OpenStreetMap attribution
+and an identifying User-Agent.
 
 The location lookup endpoint is private to the selected workspace account and is intentionally not
 an autocomplete API.

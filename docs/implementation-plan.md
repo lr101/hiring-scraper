@@ -9,7 +9,8 @@
 - Fully remote Germany jobs match any remote-enabled profile. Hybrid and onsite jobs must have a
   location within a configured city radius. Unknown locations remain visible with a score penalty.
 - Matching is deterministic. Use hard filters and weighted title and skill ranking. Do not use an
-  LLM, CV upload, notifications, exports, or a public API.
+  LLM, CV upload, notifications, exports, or expose a product public API. Server-side provider
+  calls are allowed for dynamic company and location discovery.
 - Do not block or penalize recruiters by default. Users may create explicit exclusion rules.
 - Retain closed jobs. Mark a job closed only after two successful source runs miss it.
 - A job may match several profiles. A new job or newly matching existing job appears as New.

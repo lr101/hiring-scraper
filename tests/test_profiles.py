@@ -118,6 +118,45 @@ def restore_current_migration_leaf() -> Iterator[None]:
     MigrationExecutor(connection).migrate([("jobs", "0007_dynamic_company_domains")])
 
 
+@pytest.mark.django_db(transaction=True)
+def test_company_domain_migration_merges_duplicate_domains(
+    restore_current_migration_leaf: None,
+) -> None:
+    previous_target = ("jobs", "0006_monitoring_targets")
+    current_target = ("jobs", "0007_dynamic_company_domains")
+    executor = MigrationExecutor(connection)
+    executor.migrate([previous_target])
+    old_apps = executor.loader.project_state([previous_target]).apps
+    CompanyOld = old_apps.get_model("jobs", "Company")
+    CareerSourceOld = old_apps.get_model("jobs", "CareerSource")
+    MonitoringTargetOld = old_apps.get_model("jobs", "MonitoringTarget")
+    WorkspaceUserOld = old_apps.get_model("jobs", "WorkspaceUser")
+
+    user = WorkspaceUserOld.objects.create(name="Ada")
+    survivor = CompanyOld.objects.create(
+        name="Older Acme", domain="Example.com", career_url="https://example.com/careers"
+    )
+    duplicate = CompanyOld.objects.create(
+        name="Duplicate Acme", domain="example.com", career_url="https://example.com/jobs"
+    )
+    CareerSourceOld.objects.create(company=duplicate, source_url="https://example.com/jobs")
+    MonitoringTargetOld.objects.create(user=user, kind="company", company=duplicate)
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([current_target])
+    new_apps = executor.loader.project_state([current_target]).apps
+    CompanyNew = new_apps.get_model("jobs", "Company")
+    CareerSourceNew = new_apps.get_model("jobs", "CareerSource")
+    MonitoringTargetNew = new_apps.get_model("jobs", "MonitoringTarget")
+
+    assert CompanyNew.objects.count() == 1
+    company = CompanyNew.objects.get()
+    assert company.pk == survivor.pk
+    assert company.domain == "example.com"
+    assert CareerSourceNew.objects.get().company_id == survivor.pk
+    assert MonitoringTargetNew.objects.get().company_id == survivor.pk
+
+
 @pytest.mark.django_db
 def test_enabled_company_exclusion_removes_only_that_accounts_matches() -> None:
     from jobs.matching import refresh_user_profile_matches

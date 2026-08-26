@@ -100,6 +100,9 @@ LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECON
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
     os.getenv("LOCATION_MIN_REQUEST_INTERVAL_SECONDS", "1")
 )
+LOCATION_RATE_LIMIT_STATE_PATH = os.getenv(
+    "LOCATION_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-location-rate-limit"
+)
 LOCATION_USER_AGENT = os.getenv(
     "LOCATION_USER_AGENT", "hiring-scraper/0.1 (self-hosted location lookup)"
 )

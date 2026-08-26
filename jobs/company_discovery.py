@@ -10,6 +10,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import httpx
 from django.conf import settings
 
+from .network import UnsafeNetworkAddress, validate_public_hostname
 from .structured_data import iter_json_ld_objects
 
 
@@ -154,6 +155,10 @@ def _fetch_website(domain: str, *, client: httpx.Client | None) -> tuple[str, st
     current_url = f"https://{domain}/"
     try:
         for _ in range(6):
+            host = urlsplit(current_url).hostname
+            if host is None:
+                raise CompanyDiscoveryError("The company website URL is invalid.")
+            validate_public_hostname(host)
             response = http_client.get(current_url, follow_redirects=False)
             if response.is_redirect:
                 location = response.headers.get("location", "")
@@ -169,6 +174,10 @@ def _fetch_website(domain: str, *, client: httpx.Client | None) -> tuple[str, st
         raise CompanyDiscoveryError("The company website redirected too many times.")
     except CompanyDiscoveryError:
         raise
+    except UnsafeNetworkAddress as error:
+        raise CompanyDiscoveryError(
+            "That company domain does not resolve to a public address."
+        ) from error
     except (httpx.HTTPError, UnicodeError) as error:
         raise CompanyDiscoveryError(
             "Could not reach that company website. Check the domain and try again."

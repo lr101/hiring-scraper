@@ -57,7 +57,9 @@ For a city or postal code, press Search locations in Search or in a profile loca
 default provider is the public Nominatim endpoint. Set `LOCATION_API_URL` to a compatible hosted
 or self-managed endpoint if the deployment needs different capacity or policy controls. Keep the
 identifying `LOCATION_USER_AGENT`, request interval, and visible OpenStreetMap attribution. The
-application caches successful results in PostgreSQL and does not run autocomplete or bulk imports.
+application caches successful results in PostgreSQL, serializes the default rate limit through
+`LOCATION_RATE_LIMIT_STATE_PATH` across web workers in the same container, and does not run
+autocomplete or bulk imports.
 
 Review the Sources page before the first run. A source is disabled after bot protection is
 detected. Do not bypass that state with proxy rotation or CAPTCHA solving. Unblock it manually

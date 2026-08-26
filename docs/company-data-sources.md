@@ -7,9 +7,10 @@ Research date: 2026-08-26.
 The alpha accepts a company domain directly. The company's own HTTPS website is the authoritative
 source for the display name, website, career link, and job postings. On first submission the app
 fetches the homepage, checks Organization JSON-LD and standard metadata, scores career links, and
-creates a generic JSON-LD career source. The collector follows only a bounded set of same-site,
-HTTPS career/job links and parses `JobPosting` JSON-LD. This gives the user dynamic discovery
-without a bulk company import or a credential requirement.
+creates a generic JSON-LD career source. The collector follows only a bounded set of HTTPS
+career/job links on the submitted site or the explicitly discovered career host and parses
+`JobPosting` JSON-LD. This gives the user dynamic discovery without a bulk company import or a
+credential requirement.
 
 ## Company databases and directories considered
 
@@ -52,3 +53,8 @@ website as the operational job source, and no API credentials are needed for the
 The old GeoNames ZIP importer and unauthenticated place-search endpoints are removed. Places are
 now created on demand from a user search and retained as cached database records for profiles and
 monitoring targets.
+
+Migration `0007` normalizes existing domains, keeps the oldest company row for duplicate domains,
+repoints monitoring targets and non-conflicting sources, and merges duplicate source jobs while
+preserving the older job record and its user state where possible. This deterministic policy lets
+existing databases adopt the unique canonical domain field without an operator-run import.

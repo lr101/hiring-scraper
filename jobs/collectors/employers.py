@@ -425,6 +425,7 @@ class JsonLdCareerCollector(HTTPCollector):
         visited_urls: set[str] = set()
         seen_external_ids: set[str] = set()
         is_complete = True
+        saw_job_posting = False
         allowed_hosts = _json_ld_allowed_hosts(self.source)
         try:
             while pending_urls and len(visited_urls) < _max_pages(self.source):
@@ -439,7 +440,16 @@ class JsonLdCareerCollector(HTTPCollector):
                 except (httpx.HTTPError, UnsafeDetailUrl, ValueError):
                     is_complete = False
                     continue
-                for raw_job in _json_ld_jobs(response.text, page_url=page_url):
+                postings = _json_ld_postings(response.text)
+                page_jobs = _raw_jobs_from_postings(
+                    postings, page_url=page_url, allowed_hosts=allowed_hosts
+                )
+                saw_job_posting = (
+                    saw_job_posting
+                    or bool(page_jobs)
+                    or any(_posting_has_country_evidence(posting) for posting in postings)
+                )
+                for raw_job in page_jobs:
                     if raw_job.external_id not in seen_external_ids:
                         seen_external_ids.add(raw_job.external_id)
                         jobs.append(raw_job)
@@ -448,7 +458,7 @@ class JsonLdCareerCollector(HTTPCollector):
                 ):
                     if candidate_url not in visited_urls and candidate_url not in pending_urls:
                         pending_urls.append(candidate_url)
-            if pending_urls:
+            if pending_urls or not saw_job_posting:
                 is_complete = False
         finally:
             self.close()
@@ -467,17 +477,47 @@ def register_employer_collectors(registry: CollectorRegistry) -> None:
     registry.register("dhl_phenom", DhlPhenomCollector)
 
 
-def _json_ld_jobs(html: str, *, page_url: str) -> list[RawJob]:
-    jobs: list[RawJob] = []
+def _json_ld_jobs(html: str, *, page_url: str, allowed_hosts: frozenset[str]) -> list[RawJob]:
+    return _raw_jobs_from_postings(
+        _json_ld_postings(html), page_url=page_url, allowed_hosts=allowed_hosts
+    )
+
+
+def _json_ld_postings(html: str) -> list[dict[str, Any]]:
+    postings: list[dict[str, Any]] = []
     for posting in iter_json_ld_objects(html):
         posting_type = posting.get("@type")
         types = posting_type if isinstance(posting_type, list) else [posting_type]
-        if not any(isinstance(value, str) and value.casefold() == "jobposting" for value in types):
-            continue
+        if any(isinstance(value, str) and value.casefold() == "jobposting" for value in types):
+            if _string(posting.get("title")):
+                postings.append(posting)
+    return postings
+
+
+def _posting_has_country_evidence(posting: dict[str, Any]) -> bool:
+    return any(country for _, _, country, _, _ in _posting_locations(posting))
+
+
+def _raw_jobs_from_postings(
+    postings: Iterable[dict[str, Any]],
+    *,
+    page_url: str,
+    allowed_hosts: frozenset[str],
+) -> list[RawJob]:
+    jobs: list[RawJob] = []
+    for posting in postings:
         title = _string(posting.get("title"))
         if not title:
             continue
-        canonical_url = _absolute_url(_string(posting.get("url")), page_url) or page_url
+        canonical_url = (
+            _safe_job_url(
+                _string(posting.get("url")),
+                base_url=page_url,
+                allowed_hosts=allowed_hosts,
+                require_https=True,
+            )
+            or page_url
+        )
         posting = {**posting, "url": canonical_url}
         external_id = _posting_external_id(posting, canonical_url=canonical_url, title=title)
         raw_job = _raw_from_job_posting(
@@ -486,6 +526,7 @@ def _json_ld_jobs(html: str, *, page_url: str) -> list[RawJob]:
             title=title,
             posting=posting,
             default_location="",
+            require_country_evidence=True,
         )
         if raw_job is not None:
             jobs.append(raw_job)
@@ -802,7 +843,11 @@ def _raw_from_job_posting(
     posting: dict[str, Any],
     default_location: str,
     defaults: dict[str, Any] | None = None,
+    require_country_evidence: bool = False,
 ) -> RawJob | None:
+    canonical_url = _safe_job_url(canonical_url, base_url=canonical_url)
+    if not canonical_url:
+        return None
     values = defaults or {}
     detail_locations = _posting_locations(posting)
     german_locations = [location for location in detail_locations if _is_german(location[2])]
@@ -813,7 +858,9 @@ def _raw_from_job_posting(
     if german_locations:
         city, state, _, latitude, longitude = german_locations[0]
         locations = [_format_location(location) for location in german_locations]
-    elif any(country for _, _, country, _, _ in detail_locations) and not default_is_german:
+    elif require_country_evidence or (
+        any(country for _, _, country, _, _ in detail_locations) and not default_is_german
+    ):
         return None
     else:
         city = _city_from_location(default_location)
@@ -828,7 +875,9 @@ def _raw_from_job_posting(
     return RawJob(
         external_id=external_id,
         canonical_url=canonical_url,
-        application_url=_string(posting.get("url")),
+        application_url=(
+            _safe_job_url(_string(posting.get("url")), base_url=canonical_url) or canonical_url
+        ),
         title=resolved_title,
         description_html=_string(posting.get("description")),
         city=location,
@@ -978,6 +1027,35 @@ def _as_locations(value: Any, city: str) -> list[str]:
 
 def _absolute_url(value: str, base: str) -> str:
     return urljoin(base, value) if value else ""
+
+
+def _safe_job_url(
+    value: str,
+    *,
+    base_url: str,
+    allowed_hosts: frozenset[str] | None = None,
+    require_https: bool = False,
+) -> str:
+    if not value:
+        return ""
+    try:
+        parsed = urlsplit(urljoin(base_url, value))
+        port = parsed.port
+    except ValueError:
+        return ""
+    scheme = parsed.scheme.casefold()
+    host = parsed.hostname.casefold() if parsed.hostname else ""
+    if (
+        scheme not in {"http", "https"}
+        or (require_https and scheme != "https")
+        or not host
+        or parsed.username
+        or parsed.password
+        or port is not None
+        or (allowed_hosts is not None and host not in allowed_hosts)
+    ):
+        return ""
+    return urlunsplit((scheme, parsed.netloc, parsed.path or "/", parsed.query, ""))
 
 
 def _path_id(url: str) -> str:

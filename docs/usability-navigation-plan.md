@@ -10,7 +10,7 @@
 - A city monitoring target stores a configurable radius in kilometres. Company targets match all jobs from that company. City targets match jobs by coordinates within the radius and fall back to an exact normalized city name when a job has no coordinates.
 - Profile is the account home for job profiles and exclusions. It also lists the account's jobs with a saved or workflow status, with status filtering and sorting.
 - “Starred” and “saved” use the existing `UserJobState.Status.SAVED` state. Existing workflow states remain available in the profile list.
-- Preserve existing CRUD routes and operational pages for compatibility. New pages may link to them as secondary actions.
+- Preserve current CRUD routes and operational pages for compatibility, except for the retired place-dictionary page and JSON endpoint. New pages may link to remaining operational tools as secondary actions.
 - Use migrations for schema changes. Do not add a JavaScript framework. Discover companies from a submitted domain and use a configurable location API only for explicit user searches. Cache successful places locally, show provider attribution, and keep the location endpoint private rather than exposing autocomplete.
 - Add tests before production behavior and record the red and green runs for each task. Use fixture data only; tests must not call employer websites.
 

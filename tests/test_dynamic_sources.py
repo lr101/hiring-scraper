@@ -1,6 +1,8 @@
 import json
+import socket
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 import httpx
 import pytest
@@ -8,9 +10,11 @@ import respx
 from django.test import Client, override_settings
 from django.urls import reverse
 
+from jobs import network
+from jobs.collection import collect_source, collector_registry
 from jobs.collectors import CollectorRegistry
 from jobs.forms import CompanyMonitoringTargetForm
-from jobs.models import CareerSource, Company, GermanPlace, MonitoringTarget, WorkspaceUser
+from jobs.models import CareerSource, Company, GermanPlace, Job, MonitoringTarget, WorkspaceUser
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -34,6 +38,30 @@ def test_normalize_domain_rejects_unsafe_or_malformed_values(value: str) -> None
 
     with pytest.raises(ValueError):
         normalize_domain(value)
+
+
+@override_settings(DEBUG=False)
+def test_public_hostname_validation_rejects_private_dns_results() -> None:
+    with patch(
+        "jobs.network.socket.getaddrinfo",
+        return_value=[(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.4", 0))],
+    ):
+        with pytest.raises(network.UnsafeNetworkAddress):
+            network.validate_public_hostname("company.example")
+
+
+def test_location_rate_limiter_writes_a_shared_timestamp(tmp_path: Path) -> None:
+    from jobs import locations
+
+    state_path = tmp_path / "provider-rate-limit"
+
+    with (
+        patch("jobs.locations.time.monotonic", return_value=100.0),
+        override_settings(LOCATION_RATE_LIMIT_STATE_PATH=str(state_path)),
+    ):
+        locations._wait_for_provider_rate_limit(1)
+
+    assert float(state_path.read_text()) == 100.0
 
 
 @pytest.mark.django_db
@@ -221,6 +249,96 @@ def test_generic_json_ld_source_is_registered_and_collects_a_job_posting() -> No
     assert result.raw_jobs[0].city == "Berlin"
     assert result.raw_jobs[0].latitude == pytest.approx(52.52)
     assert result.raw_jobs[0].longitude == pytest.approx(13.405)
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_generic_json_ld_collector_rejects_unsafe_job_urls() -> None:
+    from jobs.collectors.employers import JsonLdCareerCollector
+
+    source = SimpleNamespace(
+        kind=CareerSource.Kind.JSON_LD,
+        source_url="https://acme.test/careers",
+        tenant="",
+        config={},
+        request_delay_seconds=0,
+        max_pages=1,
+    )
+    respx.get(source.source_url).mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "unsafe-career-page.html").read_text(),
+        )
+    )
+
+    result = JsonLdCareerCollector(source).collect()
+
+    assert len(result.raw_jobs) == 1
+    assert result.raw_jobs[0].canonical_url == source.source_url
+    assert result.raw_jobs[0].application_url == source.source_url
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_empty_generic_career_page_is_incomplete_and_does_not_close_jobs() -> None:
+    company = Company.objects.create(
+        name="Acme GmbH", domain="acme.test", career_url="https://acme.test/careers"
+    )
+    source = CareerSource.objects.create(
+        company=company,
+        kind=CareerSource.Kind.JSON_LD,
+        source_url=company.career_url,
+        request_delay_seconds=0,
+        max_pages=1,
+    )
+    job = Job.objects.create(
+        source=source,
+        external_id="existing",
+        canonical_url="https://acme.test/careers/existing",
+        title="Existing job",
+        normalized_title="existing job",
+        content_hash="a" * 64,
+        fingerprint="b" * 64,
+    )
+    respx.get(source.source_url).mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "empty-career-page.html").read_text(),
+        )
+    )
+
+    run = collect_source(source=source, registry=collector_registry)
+
+    assert run.status == "success"
+    job.refresh_from_db()
+    assert job.missed_runs == 0
+    assert job.closed_at is None
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_ambiguous_generic_job_location_is_not_treated_as_a_complete_german_crawl() -> None:
+    source = SimpleNamespace(
+        kind=CareerSource.Kind.JSON_LD,
+        source_url="https://acme.test/careers",
+        tenant="",
+        config={},
+        request_delay_seconds=0,
+        max_pages=1,
+    )
+    respx.get(source.source_url).mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "ambiguous-career-page.html").read_text(),
+        )
+    )
+
+    from jobs.collectors.employers import JsonLdCareerCollector
+
+    result = JsonLdCareerCollector(source).collect()
+
+    assert result.raw_jobs == []
+    assert result.is_complete is False
 
 
 @pytest.mark.django_db

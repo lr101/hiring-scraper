@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import math
 import threading
 import time
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -173,11 +175,42 @@ def _cached_places(query: str, normalized_query: str):  # type: ignore[no-untype
 def _wait_for_provider_rate_limit(min_interval_seconds: float) -> None:
     global _last_request_at
     interval = max(0.0, min_interval_seconds)
+    if interval == 0:
+        return
     with _rate_lock:
-        delay = interval - (time.monotonic() - _last_request_at)
-        if delay > 0:
-            time.sleep(delay)
-        _last_request_at = time.monotonic()
+        try:
+            state_path = Path(
+                str(
+                    getattr(
+                        settings,
+                        "LOCATION_RATE_LIMIT_STATE_PATH",
+                        "/tmp/hiring-scraper-location-rate-limit",
+                    )
+                )
+            )
+            state_path.parent.mkdir(parents=True, exist_ok=True)
+            with state_path.open("a+", encoding="ascii") as state_file:
+                fcntl.flock(state_file.fileno(), fcntl.LOCK_EX)
+                try:
+                    state_file.seek(0)
+                    try:
+                        last_request_at = float(state_file.read().strip() or "0")
+                    except ValueError:
+                        last_request_at = 0.0
+                    delay = interval - (time.monotonic() - last_request_at)
+                    if delay > 0:
+                        time.sleep(delay)
+                    state_file.seek(0)
+                    state_file.truncate()
+                    state_file.write(str(time.monotonic()))
+                    state_file.flush()
+                finally:
+                    fcntl.flock(state_file.fileno(), fcntl.LOCK_UN)
+        except OSError:
+            delay = interval - (time.monotonic() - _last_request_at)
+            if delay > 0:
+                time.sleep(delay)
+            _last_request_at = time.monotonic()
 
 
 def _source_id(raw_result: dict[str, Any], *, name: str, latitude: float, longitude: float) -> str:
