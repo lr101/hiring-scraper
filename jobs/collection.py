@@ -3,10 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from typing import Any
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -163,9 +164,35 @@ def _start_run(*, source: CareerSource) -> tuple[CrawlRun, bool]:
             with transaction.atomic():
                 return CrawlRun.objects.create(source=source), True
         except IntegrityError:
-            running = CrawlRun.objects.filter(source=source, status=CrawlRun.Status.RUNNING).first()
-            if running is not None:
-                return running, False
+            recovered = False
+            with transaction.atomic():
+                running = (
+                    CrawlRun.objects.select_for_update()
+                    .filter(source=source, status=CrawlRun.Status.RUNNING)
+                    .first()
+                )
+                if running is not None:
+                    now = timezone.now()
+                    threshold = timedelta(seconds=settings.COLLECTION_STALE_RUN_SECONDS)
+                    if running.started_at <= now - threshold:
+                        locked_source = CareerSource.objects.select_for_update().get(pk=source.pk)
+                        locked_source.last_failure_at = now
+                        locked_source.consecutive_failures += 1
+                        locked_source.save(
+                            update_fields=["last_failure_at", "consecutive_failures"]
+                        )
+                        running.status = CrawlRun.Status.FAILED
+                        running.finished_at = now
+                        running.error = (
+                            "Recovered stale run after "
+                            f"{settings.COLLECTION_STALE_RUN_SECONDS} seconds."
+                        )
+                        running.save(update_fields=["status", "finished_at", "error"])
+                        recovered = True
+                    else:
+                        return running, False
+            if recovered:
+                continue
 
 
 def _collector_requests(collector: Collector | None) -> int:

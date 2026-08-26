@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from io import StringIO
 from types import SimpleNamespace
@@ -8,6 +8,8 @@ from typing import cast
 import httpx
 import pytest
 from django.core.management import call_command
+from django.test import override_settings
+from django.utils import timezone
 
 from jobs.collection import collect_enabled_sources, collect_source, normalize_raw_job
 from jobs.collectors import (
@@ -471,7 +473,37 @@ def test_processing_failure_rolls_back_earlier_jobs_and_allows_later_sources() -
 
 
 @pytest.mark.django_db
-def test_existing_running_run_serializes_a_second_collection_for_the_source() -> None:
+@override_settings(COLLECTION_STALE_RUN_SECONDS=60)
+def test_stale_running_run_is_failed_and_replaced_before_collection() -> None:
+    source = make_source()
+    stale = CrawlRun.objects.create(source=source)
+    CrawlRun.objects.filter(pk=stale.pk).update(started_at=timezone.now() - timedelta(seconds=61))
+    calls: list[str] = []
+
+    class CountingCollector:
+        requests_made = 0
+
+        def collect(self) -> CollectionResult:
+            calls.append("called")
+            return CollectionResult(raw_jobs=[])
+
+    registry = CollectorRegistry()
+    registry.register("custom", lambda source: CountingCollector())
+
+    replacement = collect_source(source=source, registry=registry)
+
+    stale.refresh_from_db()
+    assert stale.status == CrawlRun.Status.FAILED
+    assert stale.finished_at is not None
+    assert stale.error == "Recovered stale run after 60 seconds."
+    assert replacement.pk != stale.pk
+    assert replacement.status == CrawlRun.Status.SUCCESS
+    assert calls == ["called"]
+
+
+@pytest.mark.django_db
+@override_settings(COLLECTION_STALE_RUN_SECONDS=60)
+def test_existing_non_stale_run_serializes_a_second_collection_for_the_source() -> None:
     source = make_source()
     running = CrawlRun.objects.create(source=source)
     calls: list[str] = []

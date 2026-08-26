@@ -83,6 +83,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+COLLECTION_STALE_RUN_SECONDS = int(os.getenv("COLLECTION_STALE_RUN_SECONDS", "43200"))
 CELERY_BEAT_SCHEDULE = {
     "collect-jobs-daily": {
         "task": "jobs.tasks.collect_all_sources",
