@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -36,6 +37,22 @@ def fixture_client(
         if requests is not None:
             requests.append(request)
         return httpx.Response(200, text=(FIXTURES / fixture_name).read_text(), request=request)
+
+    return httpx.Client(transport=httpx.MockTransport(respond))
+
+
+def fixture_sequence_client(
+    fixture_names: list[str], *, requests: list[httpx.Request]
+) -> httpx.Client:
+    fixture_iterator = iter(fixture_names)
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            200,
+            text=(FIXTURES / next(fixture_iterator)).read_text(),
+            request=request,
+        )
 
     return httpx.Client(transport=httpx.MockTransport(respond))
 
@@ -128,14 +145,14 @@ ADAPTER_REQUEST_CONTRACTS: list[tuple[str, type[Any], str, str, dict[str, str]]]
         "workday",
         WorkdayCollector,
         "workday.json",
-        "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme",
+        "https://acme.wd5.myworkdayjobs.com/en-US/Acme",
         {},
     ),
     (
         "successfactors",
         SuccessFactorsXmlCollector,
         "successfactors.xml",
-        "https://acme.example.test/successfactors/jobs.xml",
+        "https://acme.successfactors.com/jobs.xml",
         {},
     ),
 ]
@@ -180,13 +197,13 @@ def test_ats_fingerprint_rejects_non_feed_workable_and_onlyfy_paths(url: str) ->
 
 def test_workday_fingerprint_strips_query_data_from_a_recognized_board_url() -> None:
     recognized = collectors.fingerprint_ats_url(
-        "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme?returnTo=https://evil.test"
+        "https://acme.wd5.myworkdayjobs.com/en-US/Acme?returnTo=https://evil.test"
     )
 
     assert recognized is not None
     assert recognized.kind == "workday"
     assert recognized.tenant == "acme"
-    assert recognized.source_url == "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme"
+    assert recognized.source_url == "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Acme/jobs"
 
 
 @pytest.mark.parametrize(
@@ -221,10 +238,152 @@ def test_ats_collectors_request_the_configured_feed_contract(
     assert len(requests) == 1
     request = requests[0]
     expected = httpx.URL(source_url)
-    assert request.method == "GET"
+    expected_method = "POST" if kind == "workday" else "GET"
+    expected_path = "/wday/cxs/acme/Acme/jobs" if kind == "workday" else expected.path
+    assert request.method == expected_method
     assert request.url.host == expected.host
-    assert request.url.path == expected.path
+    assert request.url.path == expected_path
     assert dict(request.url.params) == expected_query
+    if kind == "workday":
+        assert json.loads(request.content) == {
+            "appliedFacets": {},
+            "limit": 20,
+            "offset": 0,
+            "searchText": "",
+        }
+
+
+def test_workday_feed_url_builds_a_cxs_endpoint_from_a_recognized_board() -> None:
+    import jobs.collectors.ats as ats
+
+    builder = getattr(ats, "workday_feed_url", None)
+
+    assert builder is not None
+    assert builder("https://acme.wd5.myworkdayjobs.com/en-US/Acme") == (
+        "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Acme/jobs"
+    )
+
+
+@pytest.mark.parametrize(
+    "source_url",
+    [
+        "http://api.lever.co/v0/postings/acme-gmbh",
+        "https://user@api.lever.co/v0/postings/acme-gmbh",
+        "https://api.lever.co:8443/v0/postings/acme-gmbh",
+        "https://127.0.0.1/v0/postings/acme-gmbh",
+        "https://example.com/v0/postings/acme-gmbh",
+    ],
+)
+def test_ats_collectors_reject_invalid_source_urls_before_request(
+    source_url: str,
+) -> None:
+    requests: list[httpx.Request] = []
+
+    collector = LeverCollector(
+        source("lever", source_url),
+        client=fixture_client("lever.json", requests=requests),
+    )
+
+    with pytest.raises(ValueError):
+        collector.collect()
+
+    assert requests == []
+
+
+@pytest.mark.parametrize(
+    ("kind", "collector_type", "fixture_name", "source_url"),
+    [
+        (
+            "personio",
+            PersonioXmlCollector,
+            "personio.xml",
+            "https://evil.acme-gmbh.jobs.personio.de/xml",
+        ),
+        (
+            "recruitee",
+            RecruiteeXmlCollector,
+            "recruitee.xml",
+            "https://evil.acme-gmbh.recruitee.com/api/offers.xml",
+        ),
+        (
+            "workday",
+            WorkdayCollector,
+            "workday.json",
+            "https://evil.acme.wd5.myworkdayjobs.com/en-US/Acme",
+        ),
+        (
+            "successfactors",
+            SuccessFactorsXmlCollector,
+            "successfactors.xml",
+            "https://evil.acme.successfactors.com/jobs.xml",
+        ),
+    ],
+)
+def test_ats_collectors_reject_nested_ats_subdomains_before_request(
+    kind: str,
+    collector_type: type[Any],
+    fixture_name: str,
+    source_url: str,
+) -> None:
+    requests: list[httpx.Request] = []
+
+    collector = collector_type(
+        source(kind, source_url),
+        client=fixture_client(fixture_name, requests=requests),
+    )
+
+    with pytest.raises(ValueError):
+        collector.collect()
+
+    assert requests == []
+
+
+def test_ats_collectors_reject_an_evil_redirect_before_requesting_it() -> None:
+    requests: list[httpx.Request] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            302,
+            headers={"location": "https://evil.test/jobs"},
+            request=request,
+        )
+
+    collector = LeverCollector(
+        source("lever", "https://api.lever.co/v0/postings/acme-gmbh"),
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+    )
+
+    with pytest.raises(ValueError):
+        collector.collect()
+
+    assert [str(request.url) for request in requests] == [
+        "https://api.lever.co/v0/postings/acme-gmbh"
+    ]
+
+
+def test_workday_rejects_an_evil_redirect_before_requesting_it() -> None:
+    requests: list[httpx.Request] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            302,
+            headers={"location": "https://evil.test/jobs"},
+            request=request,
+        )
+
+    collector = WorkdayCollector(
+        source("workday", "https://acme.wd5.myworkdayjobs.com/en-US/Acme"),
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+    )
+
+    with pytest.raises(ValueError):
+        collector.collect()
+
+    assert [(request.method, str(request.url)) for request in requests] == [
+        ("POST", "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Acme/jobs")
+    ]
 
 
 @pytest.mark.parametrize(
@@ -242,7 +401,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "SoftgardenJsonCollector",
             "softgarden",
             "softgarden.json",
-            "https://api.softgarden.test/jobs",
+            "https://api.softgarden.io/v1/companies/acme-gmbh/jobs",
             "softgarden-de",
             "Berlin",
         ),
@@ -250,7 +409,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "DVinciCollector",
             "dvinci",
             "dvinci.json",
-            "https://jobs.dvinci.test/jobs.json",
+            "https://jobs.dvinci.com/acme-gmbh/jobs.json",
             "dvinci-json-de",
             "Munich",
         ),
@@ -258,7 +417,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "DVinciCollector",
             "dvinci",
             "dvinci.xml",
-            "https://jobs.dvinci.test/jobs.xml",
+            "https://jobs.dvinci.com/acme-gmbh/jobs.xml",
             "dvinci-xml-de",
             "Cologne",
         ),
@@ -266,7 +425,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "OnlyfyPrescreenCollector",
             "onlyfy",
             "onlyfy.json",
-            "https://api.prescreen.test/jobs",
+            "https://api.prescreen.io/api/v1/companies/acme-gmbh/jobs",
             "onlyfy-de",
             "Hamburg",
         ),
@@ -274,7 +433,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "GreenhouseCollector",
             "greenhouse",
             "greenhouse.json",
-            "https://boards-api.greenhouse.test/jobs",
+            "https://boards-api.greenhouse.io/v1/boards/acme-gmbh/jobs?content=true",
             "101",
             "Cologne",
         ),
@@ -282,7 +441,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "LeverCollector",
             "lever",
             "lever.json",
-            "https://api.lever.test/jobs",
+            "https://api.lever.co/v0/postings/acme-gmbh?mode=json",
             "lever-de",
             "Berlin",
         ),
@@ -290,7 +449,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "AshbyCollector",
             "ashby",
             "ashby.json",
-            "https://api.ashbyhq.test/jobs",
+            "https://api.ashbyhq.com/posting-api/job-board/acme-gmbh",
             "ashby-de",
             "Munich",
         ),
@@ -298,7 +457,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "SmartRecruitersCollector",
             "smartrecruiters",
             "smartrecruiters.json",
-            "https://api.smartrecruiters.test/jobs",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
             "smart-de",
             "Berlin",
         ),
@@ -306,7 +465,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "WorkableCollector",
             "workable",
             "workable.json",
-            "https://apply.workable.test/jobs",
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
             "workable-de",
             "Berlin",
         ),
@@ -314,7 +473,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "RecruiteeXmlCollector",
             "recruitee",
             "recruitee.xml",
-            "https://acme.recruitee.test/offers.xml",
+            "https://acme-gmbh.recruitee.com/api/offers.xml",
             "recruitee-de",
             "Hamburg",
         ),
@@ -322,7 +481,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "WorkdayCollector",
             "workday",
             "workday.json",
-            "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme",
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme",
             "/job/Berlin/workday-de",
             "Munich",
         ),
@@ -330,7 +489,7 @@ def test_ats_collectors_request_the_configured_feed_contract(
             "SuccessFactorsXmlCollector",
             "successfactors",
             "successfactors.xml",
-            "https://sf.test/jobs.xml",
+            "https://acme.successfactors.com/jobs.xml",
             "successfactors-de",
             "Walldorf",
         ),
@@ -361,6 +520,67 @@ def test_public_ats_collectors_keep_only_jobs_with_germany_evidence(
     assert result.is_complete is True
 
 
+def test_smartrecruiters_keeps_its_public_ref_url() -> None:
+    result = SmartRecruitersCollector(
+        source(
+            "smartrecruiters",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+        ),
+        client=fixture_client("smartrecruiters.json"),
+    ).collect()
+
+    assert (
+        result.raw_jobs[0].canonical_url
+        == "https://jobs.smartrecruiters.com/acme-gmbh/job/smart-de"
+    )
+    assert (
+        result.raw_jobs[0].application_url
+        == "https://jobs.smartrecruiters.com/acme-gmbh/job/smart-de"
+    )
+
+
+@pytest.mark.parametrize(
+    ("collector_type", "fixture_names", "source_url", "expected_ids"),
+    [
+        (
+            SmartRecruitersCollector,
+            ["smartrecruiters-cursor-page-1.json", "smartrecruiters-cursor-page-2.json"],
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+            ["smart-de", "smart-next-de"],
+        ),
+        (
+            WorkableCollector,
+            ["workable-cursor-page-1.json", "workable-cursor-page-2.json"],
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+            ["workable-de", "workable-next-de"],
+        ),
+    ],
+)
+def test_cursor_pagination_continues_within_the_page_limit(
+    collector_type: type[Any],
+    fixture_names: list[str],
+    source_url: str,
+    expected_ids: list[str],
+) -> None:
+    requests: list[httpx.Request] = []
+
+    result = collector_type(
+        source(
+            "smartrecruiters" if collector_type is SmartRecruitersCollector else "workable",
+            source_url,
+        ),
+        client=fixture_sequence_client(fixture_names, requests=requests),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == expected_ids
+    assert result.is_complete is True
+    assert [dict(request.url.params) for request in requests] == (
+        [{"limit": "100", "offset": "0"}, {"limit": "100", "cursor": "smart-page-2"}]
+        if collector_type is SmartRecruitersCollector
+        else [{"limit": "100", "offset": "0"}, {"limit": "100", "token": "workable-page-2"}]
+    )
+
+
 def test_smartrecruiters_marks_a_capped_page_as_incomplete() -> None:
     import jobs.collectors.ats as ats
 
@@ -368,7 +588,11 @@ def test_smartrecruiters_marks_a_capped_page_as_incomplete() -> None:
 
     assert collector_type is not None
     result = collector_type(
-        source("smartrecruiters", "https://api.smartrecruiters.test/jobs", max_pages=1),
+        source(
+            "smartrecruiters",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+            max_pages=1,
+        ),
         client=fixture_client("smartrecruiters-capped.json"),
     ).collect()
 
@@ -380,7 +604,7 @@ def test_dvinci_marks_an_unfollowed_json_next_page_as_incomplete() -> None:
     import jobs.collectors.ats as ats
 
     result = ats.DVinciCollector(
-        source("dvinci", "https://jobs.dvinci.test/jobs.json"),
+        source("dvinci", "https://jobs.dvinci.com/acme-gmbh/jobs.json"),
         client=fixture_client("dvinci-incomplete.json"),
     ).collect()
 
@@ -402,7 +626,7 @@ def test_shared_json_collectors_mark_top_level_pagination_metadata_incomplete(
     import jobs.collectors.ats as ats
 
     result = ats.SoftgardenJsonCollector(
-        source("softgarden", "https://api.softgarden.test/jobs"),
+        source("softgarden", "https://api.softgarden.io/v1/companies/acme-gmbh/jobs"),
         client=fixture_client(fixture_name),
     ).collect()
 
@@ -410,9 +634,68 @@ def test_shared_json_collectors_mark_top_level_pagination_metadata_incomplete(
     assert result.is_complete is False
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("kind", "collector_type", "initial_fixture", "cursor_fixture", "source_url", "external_id"),
+    [
+        (
+            CareerSource.Kind.SMARTRECRUITERS,
+            SmartRecruitersCollector,
+            "smartrecruiters.json",
+            "smartrecruiters-cursor-page-1.json",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+            "smart-de",
+        ),
+        (
+            CareerSource.Kind.WORKABLE,
+            WorkableCollector,
+            "workable.json",
+            "workable-cursor-page-1.json",
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+            "workable-de",
+        ),
+    ],
+)
+def test_cursor_response_does_not_record_a_missing_job(
+    kind: str,
+    collector_type: type[Any],
+    initial_fixture: str,
+    cursor_fixture: str,
+    source_url: str,
+    external_id: str,
+) -> None:
+    company = Company.objects.create(
+        name="Smart GmbH",
+        domain="smart-cursor.test",
+        career_url="https://smart-cursor.test/careers",
+    )
+    career_source = CareerSource.objects.create(
+        company=company,
+        kind=kind,
+        source_url=source_url,
+        request_delay_seconds=0,
+        max_pages=1,
+    )
+    fixture_names = iter([initial_fixture, cursor_fixture])
+    registry = CollectorRegistry()
+    registry.register(
+        kind,
+        lambda configured_source: collector_type(
+            configured_source, client=fixture_client(next(fixture_names))
+        ),
+    )
+
+    collect_source(source=career_source, registry=registry)
+    cursor_run = collect_source(source=career_source, registry=registry)
+
+    job = Job.objects.get(source=career_source, external_id=external_id)
+    assert cursor_run.jobs_closed == 0
+    assert job.missed_runs == 0
+
+
 def test_workday_rejects_unsafe_external_paths() -> None:
     result = WorkdayCollector(
-        source("workday", "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme"),
+        source("workday", "https://acme.wd5.myworkdayjobs.com/en-US/Acme"),
         client=fixture_client("workday-unsafe-paths.json"),
     ).collect()
 

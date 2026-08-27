@@ -6,10 +6,17 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import Any
-from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 from xml.etree import ElementTree
 
-from jobs.collectors import CollectionResult, CollectorRegistry, HTTPCollector, RawJob
+from jobs.collectors import (
+    CollectionResult,
+    CollectorRegistry,
+    HTTPCollector,
+    RawJob,
+    SourceLike,
+)
+from jobs.network import UnsafeNetworkAddress, validate_public_hostname
 
 PERSONIO = "personio"
 SOFTGARDEN = "softgarden"
@@ -25,6 +32,11 @@ ONLYFY = "onlyfy"
 WORKDAY = "workday"
 
 _TENANT_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\Z")
+_WORKDAY_SITE_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,200}\Z")
+_PERSONIO_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.jobs\.personio\.de\Z")
+_RECRUITEE_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.recruitee\.com\Z")
+_WORKDAY_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.wd[0-9]+\.myworkdayjobs\.com\Z")
+_SUCCESSFACTORS_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.successfactors\.com\Z")
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +94,21 @@ def onlyfy_feed_url(tenant: str) -> str:
     return f"https://api.prescreen.io/api/v1/companies/{normalize_ats_tenant(tenant)}/jobs"
 
 
+def workday_feed_url(board_url: str) -> str:
+    """Build Workday's read-only CXS endpoint from a validated board or CXS URL."""
+    source_url = _safe_workday_source_url(board_url)
+    if source_url is None:
+        raise ValueError("Workday source URL must be a safe HTTPS board URL.")
+    parsed = urlsplit(source_url)
+    tenant = (parsed.hostname or "").split(".", maxsplit=1)[0]
+    path = [part for part in parsed.path.split("/") if part]
+    if len(path) == 5 and path[:2] == ["wday", "cxs"] and path[2] == tenant and path[4] == "jobs":
+        return source_url
+    if not path or not _safe_workday_site(path[-1]):
+        raise ValueError("Workday board URL must include a safe site identifier.")
+    return urlunsplit(("https", parsed.netloc, f"/wday/cxs/{tenant}/{path[-1]}/jobs", "", ""))
+
+
 def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
     """Recognize a public ATS board URL without accepting untrusted URL parts."""
     try:
@@ -133,8 +160,9 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
             normalized_tenant = normalize_ats_tenant(tenant)
         except ValueError:
             return None
-        source_url = _safe_workday_source_url(url)
-        if source_url is None:
+        try:
+            source_url = workday_feed_url(url)
+        except ValueError:
             return None
         return ATSUrlFingerprint(kind=WORKDAY, tenant=normalized_tenant, source_url=source_url)
     return None
@@ -150,7 +178,36 @@ def _fingerprint(kind: str, tenant: str, builder: Callable[[str], str]) -> ATSUr
     )
 
 
-class PersonioXmlCollector(HTTPCollector):
+class UnsafeAtsSourceUrl(ValueError):
+    """An ATS source URL cannot safely be requested by its adapter."""
+
+
+class ATSCollector(HTTPCollector):
+    """HTTP collector that restricts its source request to a known public ATS host."""
+
+    def source_feed_url(self) -> str:
+        if self.source.kind == WORKDAY:
+            try:
+                return workday_feed_url(self.source.source_url)
+            except ValueError as error:
+                raise UnsafeAtsSourceUrl(str(error)) from error
+        return self.source.source_url
+
+    def source_allowed_hosts(self) -> frozenset[str]:
+        return _ats_source_allowed_hosts(source=self.source, url=self.source_feed_url())
+
+    def fetch_source(self, url: str | None = None) -> Any:
+        return self.fetch_trusted(
+            url or self.source_feed_url(), allowed_hosts=self.source_allowed_hosts()
+        )
+
+    def post_source(self, url: str, *, json: dict[str, Any]) -> Any:
+        return self.request_trusted(
+            "POST", url, allowed_hosts=self.source_allowed_hosts(), json=json
+        )
+
+
+class PersonioXmlCollector(ATSCollector):
     """Collect Personio's public XML feed."""
 
     def collect(self) -> CollectionResult:
@@ -160,7 +217,7 @@ class PersonioXmlCollector(HTTPCollector):
         self, record_tag: str, id_names: tuple[str, ...], title_names: tuple[str, ...]
     ) -> CollectionResult:
         try:
-            root = _xml_root(self.fetch(self.source.source_url).text, self.__class__.__name__)
+            root = _xml_root(self.fetch_source().text, self.__class__.__name__)
             jobs = [
                 raw
                 for record in _xml_records(root, record_tag)
@@ -172,7 +229,7 @@ class PersonioXmlCollector(HTTPCollector):
         return CollectionResult(raw_jobs=jobs, requests_made=self.requests_made)
 
 
-class SoftgardenJsonCollector(HTTPCollector):
+class SoftgardenJsonCollector(ATSCollector):
     """Collect softgarden's public JSON listings."""
 
     def collect(self) -> CollectionResult:
@@ -182,9 +239,7 @@ class SoftgardenJsonCollector(HTTPCollector):
         self, record_key: str, *, id_names: tuple[str, ...], title_names: tuple[str, ...]
     ) -> CollectionResult:
         try:
-            payload = _json_payload(
-                self.fetch(self.source.source_url).text, self.__class__.__name__
-            )
+            payload = _json_payload(self.fetch_source().text, self.__class__.__name__)
             records = _records(payload, record_key)
             jobs = [
                 raw
@@ -206,7 +261,7 @@ class DVinciCollector(PersonioXmlCollector):
     def collect(self) -> CollectionResult:
         is_complete = True
         try:
-            body = self.fetch(self.source.source_url).text
+            body = self.fetch_source().text
             if body.lstrip().startswith("<"):
                 root = _xml_root(body, "d.vinci")
                 jobs = [
@@ -254,12 +309,12 @@ class GreenhouseCollector(SoftgardenJsonCollector):
         return self._collect_json_records("jobs", id_names=("id",), title_names=("title",))
 
 
-class LeverCollector(HTTPCollector):
+class LeverCollector(ATSCollector):
     """Collect Lever's public postings endpoint."""
 
     def collect(self) -> CollectionResult:
         try:
-            payload = _json_payload(self.fetch(self.source.source_url).text, "Lever")
+            payload = _json_payload(self.fetch_source().text, "Lever")
             records = payload if isinstance(payload, list) else _records(payload, "jobs")
             jobs = [
                 raw
@@ -281,7 +336,7 @@ class AshbyCollector(SoftgardenJsonCollector):
         return self._collect_json_records("jobs", id_names=("id", "jobId"), title_names=("title",))
 
 
-class SmartRecruitersCollector(HTTPCollector):
+class SmartRecruitersCollector(ATSCollector):
     """Collect SmartRecruiters postings with bounded offset pagination."""
 
     page_size = 100
@@ -290,33 +345,34 @@ class SmartRecruitersCollector(HTTPCollector):
         jobs: list[RawJob] = []
         offset = 0
         is_complete = False
+        base_url = self.source_feed_url()
+        continuation_base_url = _with_query(base_url, limit=self.page_size)
+        page_url = _with_query(base_url, limit=self.page_size, offset=offset)
         try:
             for _ in range(_max_pages(self.source)):
                 payload = _json_payload(
-                    self.fetch(
-                        _with_query(self.source.source_url, limit=self.page_size, offset=offset)
-                    ).text,
+                    self.fetch_source(page_url).text,
                     "SmartRecruiters",
                 )
                 records = _records(payload, "content")
                 jobs.extend(
                     raw
                     for record in records
-                    if (
-                        raw := _raw_from_record(
-                            record, id_names=("id", "uuid"), title_names=("name", "title")
-                        )
-                    )
-                    is not None
+                    if (raw := _raw_from_smartrecruiters_record(record)) is not None
                 )
-                total = _integer(payload.get("totalFound")) if isinstance(payload, dict) else None
                 offset += len(records)
-                if total is not None:
-                    is_complete = offset >= total
-                else:
-                    is_complete = len(records) < self.page_size
+                continuation_url = _pagination_continuation_url(payload, continuation_base_url)
+                has_more = (
+                    continuation_url is not None
+                    or _payload_has_more(payload, returned=offset)
+                    or (len(records) >= self.page_size and bool(records))
+                )
+                is_complete = not has_more
                 if is_complete or not records:
                     break
+                page_url = continuation_url or _with_query(
+                    base_url, limit=self.page_size, offset=offset
+                )
         finally:
             self.close()
         return CollectionResult(
@@ -324,7 +380,7 @@ class SmartRecruitersCollector(HTTPCollector):
         )
 
 
-class WorkableCollector(HTTPCollector):
+class WorkableCollector(ATSCollector):
     """Collect Workable listings with bounded offset pagination."""
 
     page_size = 100
@@ -333,12 +389,13 @@ class WorkableCollector(HTTPCollector):
         jobs: list[RawJob] = []
         offset = 0
         is_complete = False
+        base_url = self.source_feed_url()
+        continuation_base_url = _with_query(base_url, limit=self.page_size)
+        page_url = _with_query(base_url, limit=self.page_size, offset=offset)
         try:
             for _ in range(_max_pages(self.source)):
                 payload = _json_payload(
-                    self.fetch(
-                        _with_query(self.source.source_url, limit=self.page_size, offset=offset)
-                    ).text,
+                    self.fetch_source(page_url).text,
                     "Workable",
                 )
                 records = _records(payload, "results")
@@ -353,13 +410,18 @@ class WorkableCollector(HTTPCollector):
                     is not None
                 )
                 offset += len(records)
-                paging = payload.get("paging") if isinstance(payload, dict) else None
-                total = _integer(paging.get("total")) if isinstance(paging, dict) else None
-                is_complete = (
-                    offset >= total if total is not None else len(records) < self.page_size
+                continuation_url = _pagination_continuation_url(payload, continuation_base_url)
+                has_more = (
+                    continuation_url is not None
+                    or _payload_has_more(payload, returned=offset)
+                    or (len(records) >= self.page_size and bool(records))
                 )
+                is_complete = not has_more
                 if is_complete or not records:
                     break
+                page_url = continuation_url or _with_query(
+                    base_url, limit=self.page_size, offset=offset
+                )
         finally:
             self.close()
         return CollectionResult(
@@ -374,12 +436,18 @@ class RecruiteeXmlCollector(PersonioXmlCollector):
         return self._collect_xml("offer", ("id",), ("title", "name"))
 
 
-class WorkdayCollector(HTTPCollector):
+class WorkdayCollector(ATSCollector):
     """Collect a Workday job-search response stored at the configured source URL."""
 
     def collect(self) -> CollectionResult:
         try:
-            payload = _json_payload(self.fetch(self.source.source_url).text, "Workday")
+            payload = _json_payload(
+                self.post_source(
+                    self.source_feed_url(),
+                    json={"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": ""},
+                ).text,
+                "Workday",
+            )
             records = _records(payload, "jobPostings")
             jobs: list[RawJob] = []
             for record in records:
@@ -524,6 +592,12 @@ def _raw_from_record(
     )
 
 
+def _raw_from_smartrecruiters_record(record: dict[str, Any]) -> RawJob | None:
+    raw = _raw_from_record(record, id_names=("id", "uuid"), title_names=("name", "title"))
+    ref = _string(record.get("ref"))
+    return replace(raw, canonical_url=ref, application_url=ref) if raw is not None and ref else raw
+
+
 def self_url(record: dict[str, Any]) -> str:
     return _string(record.get("externalPath"))
 
@@ -633,11 +707,60 @@ def _max_pages(source: Any) -> int:
     return max(1, _integer(getattr(source, "max_pages", 1)) or 1)
 
 
-def _with_query(url: str, **parameters: int) -> str:
+def _with_query(url: str, **parameters: Any) -> str:
     parsed = urlsplit(url)
     query = dict(parse_qsl(parsed.query, keep_blank_values=True))
     query.update({key: str(value) for key, value in parameters.items()})
     return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), ""))
+
+
+def _ats_source_allowed_hosts(*, source: SourceLike, url: str) -> frozenset[str]:
+    try:
+        parsed = urlsplit(url)
+        port = parsed.port
+    except ValueError as error:
+        raise UnsafeAtsSourceUrl(
+            "ATS source URL must use HTTPS on an allowed public host."
+        ) from error
+    host = (parsed.hostname or "").casefold()
+    if (
+        parsed.scheme != "https"
+        or not host
+        or parsed.username
+        or parsed.password
+        or port is not None
+        or not _is_allowed_ats_source_host(source.kind, host)
+    ):
+        raise UnsafeAtsSourceUrl("ATS source URL must use HTTPS on an allowed public host.")
+    try:
+        validate_public_hostname(host)
+    except UnsafeNetworkAddress as error:
+        raise UnsafeAtsSourceUrl("ATS source URL host must resolve to a public address.") from error
+    return frozenset({host})
+
+
+def _is_allowed_ats_source_host(kind: str, host: str) -> bool:
+    exact_hosts = {
+        SOFTGARDEN: {"api.softgarden.io"},
+        DVINCI: {"jobs.dvinci.com"},
+        ONLYFY: {"api.prescreen.io"},
+        GREENHOUSE: {"boards-api.greenhouse.io"},
+        LEVER: {"api.lever.co"},
+        ASHBY: {"api.ashbyhq.com"},
+        SMARTRECRUITERS: {"api.smartrecruiters.com"},
+        WORKABLE: {"apply.workable.com"},
+    }
+    if kind in exact_hosts:
+        return host in exact_hosts[kind]
+    if kind == PERSONIO:
+        return bool(_PERSONIO_HOST_PATTERN.fullmatch(host))
+    if kind == RECRUITEE:
+        return bool(_RECRUITEE_HOST_PATTERN.fullmatch(host))
+    if kind == WORKDAY:
+        return bool(_WORKDAY_HOST_PATTERN.fullmatch(host))
+    if kind == SUCCESSFACTORS:
+        return bool(_SUCCESSFACTORS_HOST_PATTERN.fullmatch(host))
+    return False
 
 
 def _safe_workday_source_url(url: str) -> str | None:
@@ -649,7 +772,7 @@ def _safe_workday_source_url(url: str) -> str | None:
     host = (parsed.hostname or "").casefold()
     if (
         parsed.scheme != "https"
-        or not host.endswith(".myworkdayjobs.com")
+        or not _WORKDAY_HOST_PATTERN.fullmatch(host)
         or parsed.username
         or parsed.password
         or port is not None
@@ -657,6 +780,10 @@ def _safe_workday_source_url(url: str) -> str | None:
     ):
         return None
     return urlunsplit(("https", host, parsed.path, "", ""))
+
+
+def _safe_workday_site(value: str) -> bool:
+    return bool(_WORKDAY_SITE_PATTERN.fullmatch(value))
 
 
 def _workday_job_url(source_url: str, external_path: str) -> str | None:
@@ -691,20 +818,19 @@ def _safe_workday_path(path: str) -> bool:
     )
 
 
-def _payload_is_complete(
-    payload: dict[str, Any] | list[Any], *, returned: int, page_size: int | None
-) -> bool:
+def _pagination_metadata(payload: dict[str, Any] | list[Any]) -> list[dict[str, Any]]:
     if not isinstance(payload, dict):
-        return True
-    paging = payload.get("paging")
+        return []
     metadata = [payload]
-    if isinstance(paging, dict):
-        metadata.append(paging)
-    for values in metadata:
-        for key in ("total", "totalCount", "total_count", "totalFound"):
-            total = _integer(values.get(key))
-            if total is not None and returned < total:
-                return False
+    for key in ("paging", "pagination", "meta", "metadata", "page"):
+        value = payload.get(key)
+        if isinstance(value, dict):
+            metadata.append(value)
+    return metadata
+
+
+def _pagination_continuation(payload: dict[str, Any] | list[Any]) -> tuple[str, Any] | None:
+    for values in _pagination_metadata(payload):
         for key in (
             "next",
             "nextPage",
@@ -715,8 +841,55 @@ def _payload_is_complete(
             "next_token",
             "pageToken",
             "page_token",
+            "cursor",
             "token",
         ):
-            if values.get(key) not in (None, False, ""):
-                return False
+            value = values.get(key)
+            if value not in (None, False, ""):
+                return key, value
+    return None
+
+
+def _pagination_continuation_url(payload: dict[str, Any] | list[Any], base_url: str) -> str | None:
+    continuation = _pagination_continuation(payload)
+    if continuation is None:
+        return None
+    key, value = continuation
+    return _pagination_value_url(value, key=key, base_url=base_url)
+
+
+def _pagination_value_url(value: Any, *, key: str, base_url: str) -> str | None:
+    if isinstance(value, dict):
+        for url_key in ("href", "url", "link"):
+            candidate = _string(value.get(url_key))
+            if candidate:
+                return urljoin(base_url, candidate)
+        for nested_key in ("cursor", "token", "pageToken", "page_token"):
+            nested_value = value.get(nested_key)
+            if nested_value not in (None, False, ""):
+                return _with_query(base_url, **{nested_key: nested_value})
+        return None
+    candidate = _string(value)
+    if not candidate:
+        return None
+    if candidate.startswith(("/", "https://")):
+        return urljoin(base_url, candidate)
+    query_key = "cursor" if key.startswith("next") else key
+    return _with_query(base_url, **{query_key: candidate})
+
+
+def _payload_is_complete(
+    payload: dict[str, Any] | list[Any], *, returned: int, page_size: int | None
+) -> bool:
+    if _payload_has_more(payload, returned=returned):
+        return False
     return page_size is None or returned < page_size
+
+
+def _payload_has_more(payload: dict[str, Any] | list[Any], *, returned: int) -> bool:
+    for values in _pagination_metadata(payload):
+        for key in ("total", "totalCount", "total_count", "totalFound"):
+            total = _integer(values.get(key))
+            if total is not None and returned < total:
+                return True
+    return _pagination_continuation(payload) is not None
