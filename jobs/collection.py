@@ -13,12 +13,14 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from jobs.collectors import BotProtectionDetected, Collector, CollectorRegistry, RawJob
+from jobs.collectors.ats import register_ats_collectors
 from jobs.collectors.employers import register_employer_collectors
 from jobs.matching import enabled_profile_match_context, normalize_text, refresh_job_matches
 from jobs.models import CareerSource, CrawlRun, Job, JobMatch, UserJobState
 
 collector_registry = CollectorRegistry()
 register_employer_collectors(collector_registry)
+register_ats_collectors(collector_registry)
 
 
 class _TextExtractor(HTMLParser):

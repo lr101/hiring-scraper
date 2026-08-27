@@ -207,3 +207,12 @@ def _validate_detail_url(url: str, *, allowed_hosts: frozenset[str]) -> str:
     except UnsafeNetworkAddress as error:
         raise UnsafeDetailUrl("Detail URL host must resolve to a public address.") from error
     return url
+
+
+def __getattr__(name: str) -> Any:
+    """Expose ATS URL helpers without creating an import cycle during module setup."""
+    if name in {"ATSUrlFingerprint", "fingerprint_ats_url", "personio_feed_url"}:
+        from jobs.collectors import ats
+
+        return getattr(ats, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
