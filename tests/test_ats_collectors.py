@@ -632,6 +632,44 @@ def test_cursor_pagination_continues_within_the_page_limit(
     )
 
 
+def test_workday_collects_bounded_offset_pages_and_posts_each_offset() -> None:
+    requests: list[httpx.Request] = []
+
+    result = WorkdayCollector(
+        source(
+            "workday",
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme",
+            max_pages=2,
+        ),
+        client=fixture_sequence_client(
+            ["workday-page-1.json", "workday-page-2.json"], requests=requests
+        ),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == [
+        f"/job/Berlin/workday-page-{number}" for number in range(1, 22)
+    ]
+    assert result.is_complete is True
+    assert [json.loads(request.content) for request in requests] == [
+        {"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": ""},
+        {"appliedFacets": {}, "limit": 20, "offset": 20, "searchText": ""},
+    ]
+
+
+def test_workday_marks_a_full_page_without_completion_evidence_as_incomplete() -> None:
+    result = WorkdayCollector(
+        source(
+            "workday",
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme",
+            max_pages=1,
+        ),
+        client=fixture_client("workday-capped-full.json"),
+    ).collect()
+
+    assert len(result.raw_jobs) == 20
+    assert result.is_complete is False
+
+
 @pytest.mark.parametrize(
     ("collector_type", "fixture_name", "page_two_fixture", "source_url"),
     [
@@ -751,6 +789,15 @@ def test_shared_json_collectors_mark_top_level_pagination_metadata_incomplete(
     assert result.is_complete is False
 
 
+def test_generic_germany_evidence_rejects_ambiguous_de_suffix_and_keeps_country_code() -> None:
+    result = SoftgardenJsonCollector(
+        source("softgarden", "https://api.softgarden.io/v1/companies/acme-gmbh/jobs"),
+        client=fixture_client("softgarden-germany-evidence.json"),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == ["berlin-explicit-de"]
+
+
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     ("kind", "collector_type", "initial_fixture", "cursor_fixture", "source_url", "external_id"),
@@ -850,6 +897,38 @@ def test_workday_ats_source_collects_and_persists_fixture_jobs() -> None:
     assert run.jobs_seen == 1
     assert job.country_code == "DE"
     assert job.canonical_url == "https://acme.wd5.myworkdayjobs.com/job/Berlin/workday-de"
+
+
+@pytest.mark.django_db
+def test_incomplete_workday_result_does_not_close_a_live_job() -> None:
+    company = Company.objects.create(
+        name="Workday lifecycle GmbH",
+        domain="workday-lifecycle.test",
+        career_url="https://workday-lifecycle.test/careers",
+    )
+    career_source = CareerSource.objects.create(
+        company=company,
+        kind=CareerSource.Kind.WORKDAY,
+        source_url="https://acme.wd5.myworkdayjobs.com/en-US/Acme",
+        request_delay_seconds=0,
+        max_pages=1,
+    )
+    fixture_names = iter(["workday.json", "workday-capped-full.json"])
+    registry = CollectorRegistry()
+    registry.register(
+        CareerSource.Kind.WORKDAY,
+        lambda configured_source: WorkdayCollector(
+            configured_source, client=fixture_client(next(fixture_names))
+        ),
+    )
+
+    collect_source(source=career_source, registry=registry)
+    capped_run = collect_source(source=career_source, registry=registry)
+
+    job = Job.objects.get(source=career_source, external_id="/job/Berlin/workday-de")
+    assert capped_run.jobs_closed == 0
+    assert job.missed_runs == 0
+    assert job.closed_at is None
 
 
 @pytest.mark.django_db

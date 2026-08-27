@@ -447,33 +447,49 @@ class RecruiteeXmlCollector(PersonioXmlCollector):
 class WorkdayCollector(ATSCollector):
     """Collect a Workday job-search response stored at the configured source URL."""
 
+    page_size = 20
+
     def collect(self) -> CollectionResult:
+        jobs: list[RawJob] = []
+        offset = 0
+        is_complete = False
         try:
-            payload = _json_payload(
-                self.post_source(
-                    self.source_feed_url(),
-                    json={"appliedFacets": {}, "limit": 20, "offset": 0, "searchText": ""},
-                ).text,
-                "Workday",
-            )
-            records = _records(payload, "jobPostings")
-            jobs: list[RawJob] = []
-            for record in records:
-                canonical_url = _workday_job_url(
-                    self.source.source_url, _string(record.get("externalPath"))
+            for _ in range(_max_pages(self.source)):
+                payload = _json_payload(
+                    self.post_source(
+                        self.source_feed_url(),
+                        json={
+                            "appliedFacets": {},
+                            "limit": self.page_size,
+                            "offset": offset,
+                            "searchText": "",
+                        },
+                    ).text,
+                    "Workday",
                 )
-                if canonical_url is None:
-                    continue
-                raw = _raw_from_record(
-                    record,
-                    id_names=("externalPath", "id", "jobReqId"),
-                    title_names=("title",),
-                )
-                if raw is not None:
-                    jobs.append(
-                        replace(raw, canonical_url=canonical_url, application_url=canonical_url)
+                records = _records(payload, "jobPostings")
+                for record in records:
+                    canonical_url = _workday_job_url(
+                        self.source.source_url, _string(record.get("externalPath"))
                     )
-            is_complete = _payload_is_complete(payload, returned=len(records), page_size=None)
+                    if canonical_url is None:
+                        continue
+                    raw = _raw_from_record(
+                        record,
+                        id_names=("externalPath", "id", "jobReqId"),
+                        title_names=("title",),
+                    )
+                    if raw is not None:
+                        jobs.append(
+                            replace(raw, canonical_url=canonical_url, application_url=canonical_url)
+                        )
+                offset += len(records)
+                has_more = _payload_has_more(payload, returned=offset) or (
+                    len(records) >= self.page_size and bool(records)
+                )
+                is_complete = not has_more
+                if is_complete or not records:
+                    break
         finally:
             self.close()
         return CollectionResult(
@@ -679,8 +695,6 @@ def _has_germany_evidence(*values: Any) -> bool:
         if normalized in {"de", "deu", "germany", "deutschland"}:
             return True
         if "germany" in normalized or "deutschland" in normalized:
-            return True
-        if normalized.endswith(", de") or " de-" in normalized:
             return True
     return False
 
