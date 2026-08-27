@@ -154,7 +154,7 @@ class SearchProfile(models.Model):
 
 
 class GermanPlace(models.Model):
-    """A cached location-provider result that can anchor a profile radius."""
+    """A cached location-provider result that can anchor an account city search."""
 
     class SourceKind(models.TextChoices):
         CITY = "city", "City"
@@ -184,33 +184,6 @@ class GermanPlace(models.Model):
     def __str__(self) -> str:
         details = ", ".join(part for part in [self.postal_code, self.admin_area] if part)
         return f"{self.name} ({details})" if details else self.name
-
-
-class ProfileLocation(models.Model):
-    profile = models.ForeignKey(
-        SearchProfile, on_delete=models.CASCADE, related_name="profile_locations"
-    )
-    place = models.ForeignKey(
-        GermanPlace, on_delete=models.PROTECT, related_name="profile_locations"
-    )
-    city = models.CharField(max_length=200)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    radius_km = models.PositiveSmallIntegerField(default=25)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["profile", "place"], name="unique_place_per_profile")
-        ]
-
-    def __str__(self) -> str:
-        return f"{self.city} ({self.radius_km} km)"
-
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        self.city = self.place.name
-        self.latitude = self.place.latitude
-        self.longitude = self.place.longitude
-        super().save(*args, **kwargs)
 
 
 class MonitoringTarget(models.Model):

@@ -6,12 +6,13 @@
   <header class="page-heading inline-heading">
     <div>
       <p class="eyebrow">{{ active_user.name }}</p>
-      <h1>Profile</h1>
-      <p>Manage matching preferences and keep the application workflow moving.</p>
+      <h1>My job setup</h1>
+      <p>Describe the jobs you want, choose where to look, and review your application workflow.</p>
     </div>
   </header>
-  <div class="two-column profile-links">
-    <section class="card"><h2>Search profiles</h2><p>Set roles, skills, locations, and matching weights.</p><a class="button-link" href="{% url 'jobs:profile_list' %}">Manage profiles</a></section>
+  <div class="three-column profile-links">
+    <section class="card"><h2>Job profiles</h2><p>Set the roles, skills, and work preferences to match.</p><a class="button-link" href="{% url 'jobs:profile_list' %}">Manage job profiles</a></section>
+    <section class="card"><h2>Where to look</h2><p>Add company websites or find employers near a city. Every profile applies to every company in this account.</p><a class="button-link" href="{% url 'jobs:setup' %}">Choose companies and cities</a></section>
     <section class="card"><h2>Exclusions</h2><p>Hide companies, websites, titles, or skills for this account.</p><a class="button-link" href="{% url 'jobs:exclusion_list' %}">Manage exclusions</a></section>
   </div>
   <section class="card list-card">

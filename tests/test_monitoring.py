@@ -46,7 +46,7 @@ def make_place(
 
 
 @pytest.mark.django_db
-def test_filter_jobs_for_user_returns_all_jobs_in_input_order_without_targets() -> None:
+def test_filter_jobs_for_user_returns_no_jobs_without_selected_sources() -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     company = make_company("Example")
     first = make_job(company=company, external_id="first")
@@ -54,7 +54,7 @@ def test_filter_jobs_for_user_returns_all_jobs_in_input_order_without_targets() 
 
     result = filter_jobs_for_user(user=user, jobs=(second, first))
 
-    assert result == [second, first]
+    assert result == []
 
 
 @pytest.mark.django_db

@@ -10,10 +10,8 @@ from jobs.models import (
     CareerSource,
     Company,
     ExclusionRule,
-    GermanPlace,
     Job,
     JobMatch,
-    ProfileLocation,
     SearchProfile,
     UserJobState,
     WorkspaceUser,
@@ -21,65 +19,18 @@ from jobs.models import (
 
 
 @pytest.mark.django_db
-def test_profile_location_uses_the_selected_canonical_german_place() -> None:
+def test_profile_save_parses_multiple_entries_and_creates_open_job_matches(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
-    profile = SearchProfile.objects.create(user=user, name="Berlin jobs")
-    berlin = GermanPlace.objects.create(
-        source_id="test:2950159",
-        name="Berlin",
-        normalized_name="berlin",
-        admin_area="Berlin",
-        latitude=52.52,
-        longitude=13.405,
-        population=3_700_000,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-
-    location = ProfileLocation.objects.create(profile=profile, place=berlin, radius_km=30)
-
-    assert location.city == "Berlin"
-    assert location.latitude == 52.52
-    assert location.longitude == 13.405
-    assert location.place_id == berlin.pk
-
-
-@pytest.mark.django_db
-def test_profile_save_parses_filters_uses_place_coordinates_and_creates_open_job_matches(
-    client: Client,
-) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    berlin = GermanPlace.objects.create(
-        source_id="test:2950159",
-        name="Berlin",
-        normalized_name="berlin",
-        admin_area="Berlin",
-        latitude=52.52,
-        longitude=13.405,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    job = make_job(latitude=52.53, longitude=13.4, remote_type=Job.RemoteType.ONSITE)
+    job = make_job(remote_type=Job.RemoteType.REMOTE)
     client.cookies["workspace_user"] = str(user.pk)
 
     response = client.post(
         reverse("jobs:profile_create"),
         {
-            "name": "Python jobs",
-            "is_enabled": "on",
-            "included_titles": " Software Engineer, software engineer ",
+            **profile_form_data("Python jobs"),
+            "included_titles": " Software Engineer\nsoftware engineer ",
             "required_skill_groups": "Python, Django\nAWS, Azure",
             "preferred_skills": "Docker, Docker",
-            "weight_title": "60",
-            "weight_required_skills": "30",
-            "weight_preferred_skills": "10",
-            "weight_location": "10",
-            "weight_unknown_location": "-10",
-            "minimum_score": "0",
-            "profile_locations-TOTAL_FORMS": "1",
-            "profile_locations-INITIAL_FORMS": "0",
-            "profile_locations-MIN_NUM_FORMS": "0",
-            "profile_locations-MAX_NUM_FORMS": "1000",
-            "profile_locations-0-place": str(berlin.pk),
-            "profile_locations-0-radius_km": "25",
         },
     )
 
@@ -88,8 +39,21 @@ def test_profile_save_parses_filters_uses_place_coordinates_and_creates_open_job
     assert profile.included_titles == ["Software Engineer"]
     assert profile.required_skill_groups == [["Python", "Django"], ["AWS", "Azure"]]
     assert profile.preferred_skills == ["Docker"]
-    assert profile.profile_locations.get().place == berlin
     assert JobMatch.objects.filter(profile=profile, job=job).exists()
+
+
+def profile_form_data(name: str) -> dict[str, str]:
+    return {
+        "name": name,
+        "is_enabled": "on",
+        "include_remote": "on",
+        "weight_title": "50",
+        "weight_required_skills": "30",
+        "weight_preferred_skills": "10",
+        "weight_location": "10",
+        "weight_unknown_location": "-10",
+        "minimum_score": "0",
+    }
 
 
 def make_job(**overrides: object) -> Job:
@@ -115,7 +79,7 @@ def make_job(**overrides: object) -> Job:
 @pytest.fixture
 def restore_current_migration_leaf() -> Iterator[None]:
     yield
-    MigrationExecutor(connection).migrate([("jobs", "0007_dynamic_company_domains")])
+    MigrationExecutor(connection).migrate([("jobs", "0008_account_city_sources")])
 
 
 @pytest.mark.django_db(transaction=True)
@@ -155,6 +119,52 @@ def test_company_domain_migration_merges_duplicate_domains(
     assert company.domain == "example.com"
     assert CareerSourceNew.objects.get().company_id == survivor.pk
     assert MonitoringTargetNew.objects.get().company_id == survivor.pk
+
+
+@pytest.mark.django_db(transaction=True)
+def test_account_city_migration_moves_legacy_profile_locations_to_account_targets(
+    restore_current_migration_leaf: None,
+) -> None:
+    previous_target = ("jobs", "0007_dynamic_company_domains")
+    current_target = ("jobs", "0008_account_city_sources")
+    executor = MigrationExecutor(connection)
+    executor.migrate([previous_target])
+    old_apps = executor.loader.project_state([previous_target]).apps
+    WorkspaceUserOld = old_apps.get_model("jobs", "WorkspaceUser")
+    SearchProfileOld = old_apps.get_model("jobs", "SearchProfile")
+    GermanPlaceOld = old_apps.get_model("jobs", "GermanPlace")
+    ProfileLocationOld = old_apps.get_model("jobs", "ProfileLocation")
+    MonitoringTargetOld = old_apps.get_model("jobs", "MonitoringTarget")
+
+    user = WorkspaceUserOld.objects.create(name="Ada")
+    profile = SearchProfileOld.objects.create(user=user, name="Engineering")
+    place = GermanPlaceOld.objects.create(
+        source_id="test:berlin",
+        name="Berlin",
+        normalized_name="berlin",
+        latitude=52.52,
+        longitude=13.405,
+        source_kind="city",
+    )
+    ProfileLocationOld.objects.create(
+        profile=profile,
+        place=place,
+        city="Berlin",
+        latitude=52.52,
+        longitude=13.405,
+        radius_km=25,
+    )
+    MonitoringTargetOld.objects.create(user=user, kind="city", place=place, radius_km=10)
+
+    executor = MigrationExecutor(connection)
+    executor.migrate([current_target])
+    new_apps = executor.loader.project_state([current_target]).apps
+    MonitoringTargetNew = new_apps.get_model("jobs", "MonitoringTarget")
+
+    target = MonitoringTargetNew.objects.get(user_id=user.pk, place_id=place.pk)
+    assert target.radius_km == 25
+    with pytest.raises(LookupError):
+        new_apps.get_model("jobs", "ProfileLocation")
 
 
 @pytest.mark.django_db
@@ -198,7 +208,7 @@ def test_private_profile_routes_require_the_explicit_cookie_and_hide_other_accou
 
 
 @pytest.mark.django_db
-def test_exclusion_form_normalizes_patterns_rejects_equivalent_duplicates_and_rechecks_matches(
+def test_exclusion_form_normalizes_equivalent_duplicates_and_rechecks_matches(
     client: Client,
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
@@ -258,124 +268,14 @@ def test_each_exclusion_kind_removes_matches_without_changing_job_state(
 
 
 @pytest.mark.django_db
-def test_profile_without_a_city_requires_remote_jobs_to_be_enabled(client: Client) -> None:
+def test_profile_can_save_without_a_city_because_cities_are_account_sources(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     client.cookies["workspace_user"] = str(user.pk)
 
-    response = client.post(
-        reverse("jobs:profile_create"),
-        {
-            "name": "No radius",
-            "weight_title": "50",
-            "weight_required_skills": "30",
-            "weight_preferred_skills": "10",
-            "weight_location": "10",
-            "weight_unknown_location": "-10",
-            "minimum_score": "0",
-            "profile_locations-TOTAL_FORMS": "1",
-            "profile_locations-INITIAL_FORMS": "0",
-            "profile_locations-MIN_NUM_FORMS": "0",
-            "profile_locations-MAX_NUM_FORMS": "1000",
-            "profile_locations-0-radius_km": "25",
-        },
-    )
-
-    assert response.status_code == 200
-    assert SearchProfile.objects.filter(user=user).exists() is False
-    assert b"Add a German city radius or include remote jobs" in response.content
-
-
-@pytest.mark.django_db
-def test_profile_location_selector_is_bounded_and_selected_place_survives_post(
-    client: Client,
-) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    selected = GermanPlace.objects.create(
-        source_id="test:selected",
-        name="Berlin",
-        normalized_name="berlin",
-        admin_area="Berlin",
-        latitude=52.52,
-        longitude=13.405,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    GermanPlace.objects.bulk_create(
-        [
-            GermanPlace(
-                source_id=f"test:other-{number}",
-                name=f"Unselected locality {number}",
-                normalized_name=f"unselected locality {number}",
-                latitude=50.0,
-                longitude=8.0,
-                source_kind=GermanPlace.SourceKind.CITY,
-            )
-            for number in range(500)
-        ]
-    )
-    profile = SearchProfile.objects.create(user=user, name="Existing")
-    ProfileLocation.objects.create(profile=profile, place=selected, radius_km=25)
-    client.cookies["workspace_user"] = str(user.pk)
-
-    response = client.get(reverse("jobs:profile_edit", args=[profile.pk]))
-
-    assert response.status_code == 200
-    assert b"Berlin (Berlin; 52.5200, 13.4050)" in response.content
-    assert b"Unselected locality 499" not in response.content
-    assert len(response.content) < 100_000
-
-    response = client.post(
-        reverse("jobs:profile_edit", args=[profile.pk]),
-        {
-            "name": "Existing",
-            "include_remote": "on",
-            "weight_title": "50",
-            "weight_required_skills": "30",
-            "weight_preferred_skills": "10",
-            "weight_location": "10",
-            "weight_unknown_location": "-10",
-            "minimum_score": "0",
-            "profile_locations-TOTAL_FORMS": "1",
-            "profile_locations-INITIAL_FORMS": "1",
-            "profile_locations-MIN_NUM_FORMS": "0",
-            "profile_locations-MAX_NUM_FORMS": "1000",
-            "profile_locations-0-id": str(profile.profile_locations.get().pk),
-            "profile_locations-0-place": str(selected.pk),
-            "profile_locations-0-radius_km": "30",
-        },
-    )
+    response = client.post(reverse("jobs:profile_create"), profile_form_data("Engineering"))
 
     assert response.status_code == 302
-    assert profile.profile_locations.get().place_id == selected.pk
-    assert profile.profile_locations.get().radius_km == 30
-
-
-@pytest.mark.django_db
-def test_remote_enabled_profile_can_save_without_a_city_radius(client: Client) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    client.cookies["workspace_user"] = str(user.pk)
-
-    response = client.post(
-        reverse("jobs:profile_create"),
-        {
-            "name": "Remote only",
-            "include_remote": "on",
-            "weight_title": "50",
-            "weight_required_skills": "30",
-            "weight_preferred_skills": "10",
-            "weight_location": "10",
-            "weight_unknown_location": "-10",
-            "minimum_score": "0",
-            "profile_locations-TOTAL_FORMS": "1",
-            "profile_locations-INITIAL_FORMS": "0",
-            "profile_locations-MIN_NUM_FORMS": "0",
-            "profile_locations-MAX_NUM_FORMS": "1000",
-            "profile_locations-0-radius_km": "25",
-        },
-    )
-
-    assert response.status_code == 302
-    profile = SearchProfile.objects.get(user=user)
-    assert profile.profile_locations.count() == 0
+    assert SearchProfile.objects.filter(user=user).exists()
 
 
 @pytest.mark.django_db
@@ -385,22 +285,10 @@ def test_profile_form_reports_an_invalid_weight_without_raising_key_error(
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     client.cookies["workspace_user"] = str(user.pk)
-
-    form_data = {
-        "name": "Invalid title weight",
-        "include_remote": "on",
-        "weight_required_skills": "30",
-        "weight_preferred_skills": "10",
-        "weight_location": "10",
-        "weight_unknown_location": "-10",
-        "minimum_score": "0",
-        "profile_locations-TOTAL_FORMS": "1",
-        "profile_locations-INITIAL_FORMS": "0",
-        "profile_locations-MIN_NUM_FORMS": "0",
-        "profile_locations-MAX_NUM_FORMS": "1000",
-        "profile_locations-0-radius_km": "25",
-    }
-    if title_weight is not None:
+    form_data = profile_form_data("Invalid title weight")
+    if title_weight is None:
+        del form_data["weight_title"]
+    else:
         form_data["weight_title"] = title_weight
 
     response = client.post(reverse("jobs:profile_create"), form_data)
@@ -420,21 +308,7 @@ def test_profile_form_rejects_values_outside_matching_bounds(
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     client.cookies["workspace_user"] = str(user.pk)
-    form_data = {
-        "name": "Validated",
-        "include_remote": "on",
-        "weight_title": "50",
-        "weight_required_skills": "30",
-        "weight_preferred_skills": "10",
-        "weight_location": "10",
-        "weight_unknown_location": "-10",
-        "minimum_score": "0",
-        "profile_locations-TOTAL_FORMS": "1",
-        "profile_locations-INITIAL_FORMS": "0",
-        "profile_locations-MIN_NUM_FORMS": "0",
-        "profile_locations-MAX_NUM_FORMS": "1000",
-        "profile_locations-0-radius_km": "25",
-    }
+    form_data = profile_form_data("Validated")
     form_data[field] = value
 
     response = client.post(reverse("jobs:profile_create"), form_data)
@@ -445,9 +319,7 @@ def test_profile_form_rejects_values_outside_matching_bounds(
 
 
 @pytest.mark.django_db
-def test_c_sharp_exclusion_rules_normalize_consistently_deduplicate_and_remove_matches(
-    client: Client,
-) -> None:
+def test_c_sharp_exclusion_rules_normalize_consistently_and_deduplicate(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     profile = SearchProfile.objects.create(user=user, name="Profile")
     job = make_job(skills=["C#"])
@@ -467,66 +339,6 @@ def test_c_sharp_exclusion_rules_normalize_consistently_deduplicate_and_remove_m
     assert JobMatch.objects.filter(profile=profile, job=job).exists() is False
     assert duplicate.status_code == 200
     assert ExclusionRule.objects.filter(user=user).count() == 1
-
-
-@pytest.mark.django_db
-def test_profile_form_has_a_control_to_add_another_city_radius(client: Client) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    client.cookies["workspace_user"] = str(user.pk)
-
-    response = client.get(reverse("jobs:profile_create"))
-
-    assert response.status_code == 200
-    assert b'id="add-location"' in response.content
-    assert b'id="empty-location-form"' in response.content
-    assert b"__prefix__" in response.content
-
-
-@pytest.mark.django_db
-def test_profile_form_add_row_contract_saves_three_city_radii(client: Client) -> None:
-    user = WorkspaceUser.objects.create(name="Ada")
-    places = [
-        GermanPlace.objects.create(
-            source_id=f"test:{number}",
-            name=name,
-            normalized_name=name.casefold(),
-            admin_area=admin_area,
-            latitude=latitude,
-            longitude=longitude,
-            source_kind=GermanPlace.SourceKind.CITY,
-        )
-        for number, name, admin_area, latitude, longitude in (
-            (1, "Berlin", "Berlin", 52.52, 13.405),
-            (2, "Hamburg", "Hamburg", 53.5511, 9.9937),
-            (3, "München", "Bayern", 48.1351, 11.582),
-        )
-    ]
-    client.cookies["workspace_user"] = str(user.pk)
-    form_data = {
-        "name": "Three cities",
-        "is_enabled": "on",
-        "weight_title": "50",
-        "weight_required_skills": "30",
-        "weight_preferred_skills": "10",
-        "weight_location": "10",
-        "weight_unknown_location": "-10",
-        "minimum_score": "0",
-        "profile_locations-TOTAL_FORMS": "3",
-        "profile_locations-INITIAL_FORMS": "0",
-        "profile_locations-MIN_NUM_FORMS": "0",
-        "profile_locations-MAX_NUM_FORMS": "1000",
-    }
-    for index, place in enumerate(places):
-        form_data[f"profile_locations-{index}-place"] = str(place.pk)
-        form_data[f"profile_locations-{index}-radius_km"] = str(20 + index * 10)
-
-    response = client.post(reverse("jobs:profile_create"), form_data)
-
-    assert response.status_code == 302
-    profile = SearchProfile.objects.get(user=user)
-    assert list(
-        profile.profile_locations.order_by("radius_km").values_list("place_id", "radius_km")
-    ) == [(places[0].pk, 20), (places[1].pk, 30), (places[2].pk, 40)]
 
 
 @pytest.mark.django_db(transaction=True)

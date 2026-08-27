@@ -15,7 +15,6 @@ def test_core_domain_models_are_registered() -> None:
         "CareerSource",
         "Job",
         "SearchProfile",
-        "ProfileLocation",
         "JobMatch",
         "UserJobState",
         "ExclusionRule",

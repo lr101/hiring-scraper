@@ -10,7 +10,9 @@ fetches the homepage, checks Organization JSON-LD and standard metadata, scores 
 creates a generic JSON-LD career source. The collector follows only a bounded set of HTTPS
 career/job links on the submitted site or the explicitly discovered career host and parses
 `JobPosting` JSON-LD. This gives the user dynamic discovery without a bulk company import or a
-credential requirement.
+credential requirement. For city discovery, the alpha uses OpenStreetMap's Overpass API to find
+nearby mapped business objects with public website tags, then sends those websites through the same
+discovery pipeline. It is bounded and best-effort rather than a complete business registry.
 
 ## Company databases and directories considered
 
@@ -47,14 +49,21 @@ website as the operational job source, and no API credentials are needed for the
   Nominatim-compatible service can be substituted.
 - [Google Places Text Search](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places/searchText)
   is a future paid alternative when richer place coverage or guaranteed quota is required.
-- [Overpass](https://dev.overpass-api.de/overpass-doc/en/) is useful for spatial OpenStreetMap tag
-  queries, but it is not the right default geocoder for a user's city or postal-code lookup.
+- [Overpass](https://dev.overpass-api.de/overpass-doc/en/full_data/area.html) is the selected
+  company-location source. Its spatial queries can return nearby nodes, ways, and relations, and
+  OpenStreetMap's [company-office tagging](https://wiki.openstreetmap.org/wiki/Tag%3Aoffice%3Dcompany)
+  and [website key](https://wiki.openstreetmap.org/wiki/Key%3Awebsite%3A*) make it possible to find
+  public employer websites without an API key. Coverage depends on local mapping quality, so the
+  UI keeps direct domain entry available. The request is bounded and rate-limited; a hosted or
+  self-managed Overpass-compatible endpoint can be configured.
 
 The old GeoNames ZIP importer and unauthenticated place-search endpoints are removed. Places are
-now created on demand from a user search and retained as cached database records for profiles and
-monitoring targets.
+now created on demand from a user's explicit location search and retained as cached database
+records for account city searches and monitoring targets.
 
 Migration `0007` normalizes existing domains, keeps the oldest company row for duplicate domains,
 repoints monitoring targets and non-conflicting sources, and merges duplicate source jobs while
-preserving the older job record and its user state where possible. This deterministic policy lets
-existing databases adopt the unique canonical domain field without an operator-run import.
+preserving the older job record and its user state where possible. Migration `0008` moves legacy
+profile city-radius rows to account-level city monitoring targets and removes the duplicate
+profile-location model. This deterministic policy lets the alpha change its setup model without an
+operator-run import.

@@ -20,5 +20,15 @@
         </article>
       {% endfor %}
     </section>
-  {% else %}<section class="empty-state"><h2>No matches yet</h2><p>Add a search profile, choose targets, then run the collectors.</p></section>{% endif %}
+  {% elif not active_user %}
+    <section class="empty-state"><h2>Choose an account</h2><p>Select an account above to start setting up your job search.</p><a class="button-link" href="{% url 'jobs:account_list' %}">Manage accounts</a></section>
+  {% elif not has_profiles %}
+    <section class="empty-state"><h2>Start with a job profile</h2><p>Describe the roles and skills you want to match. Then choose the employers and cities to scan.</p><a class="button-link" href="{% url 'jobs:profile_create' %}">Create a job profile</a></section>
+  {% elif not has_targets %}
+    <section class="empty-state"><h2>Choose where to look</h2><p>Your profile is ready. Add a company website or find employers near a city to start the first scan.</p><a class="button-link" href="{% url 'jobs:setup' %}">Choose companies and cities</a></section>
+  {% elif not has_company_targets %}
+    <section class="empty-state"><h2>No company sources yet</h2><p>Your city search is saved, but no readable employer websites were found. Try <strong>Find companies again</strong> or add a company domain directly.</p><a class="button-link" href="{% url 'jobs:setup' %}">Open Where to look</a></section>
+  {% else %}
+    <section class="empty-state"><h2>No matching jobs yet</h2><p>Your selected employers have been scanned. New matching jobs will appear here after the next scan.</p><a class="button-link" href="{% url 'jobs:setup' %}">Review sources</a></section>
+  {% endif %}
 {% endblock %}

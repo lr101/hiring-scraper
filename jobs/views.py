@@ -8,13 +8,15 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from .collection import collect_source, collector_registry
-from .company_discovery import CompanyDiscoveryError, discover_company
+from .company_discovery import CompanyDiscoveryError, DiscoveredCompany, discover_company
+from .company_locations import (
+    CompanyLocationLookupError,
+    discover_companies_in_place,
+)
 from .forms import (
-    BaseProfileLocationFormSet,
     CityMonitoringTargetForm,
     CompanyMonitoringTargetForm,
     ExclusionRuleForm,
-    ProfileLocationFormSet,
     SearchProfileForm,
     WorkspaceUserForm,
 )
@@ -25,6 +27,7 @@ from .models import (
     Company,
     CrawlRun,
     ExclusionRule,
+    GermanPlace,
     Job,
     JobMatch,
     MonitoringTarget,
@@ -34,6 +37,7 @@ from .models import (
 )
 from .monitoring import filter_jobs_for_user
 from .private import selected_workspace_user
+from .source_setup import MonitoredCompany, monitor_company
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -42,6 +46,12 @@ def home(request: HttpRequest) -> HttpResponse:
 
 def feed(request: HttpRequest) -> HttpResponse:
     user = selected_workspace_user(request)
+    has_profiles = bool(user and SearchProfile.objects.filter(user=user).exists())
+    has_targets = bool(user and MonitoringTarget.objects.filter(user=user).exists())
+    has_company_targets = bool(
+        user
+        and MonitoringTarget.objects.filter(user=user, kind=MonitoringTarget.Kind.COMPANY).exists()
+    )
     ignored_job_ids = (
         UserJobState.objects.filter(user=user, status=UserJobState.Status.IGNORED).values("job_id")
         if user
@@ -66,7 +76,13 @@ def feed(request: HttpRequest) -> HttpResponse:
     return render(
         request,
         "jobs/home.html",
-        {"matches": visible_matches[:100], "active_user": user},
+        {
+            "matches": visible_matches[:100],
+            "active_user": user,
+            "has_profiles": has_profiles,
+            "has_targets": has_targets,
+            "has_company_targets": has_company_targets,
+        },
     )
 
 
@@ -223,14 +239,14 @@ def account_list(request: HttpRequest) -> HttpResponse:
     )
 
 
-def search(request: HttpRequest) -> HttpResponse:
+def setup(request: HttpRequest) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    return _search_response(request=request, user=user)
+    return _setup_response(request=request, user=user)
 
 
-def _search_response(
+def _setup_response(
     *,
     request: HttpRequest,
     user: WorkspaceUser,
@@ -239,10 +255,11 @@ def _search_response(
 ) -> HttpResponse:
     return render(
         request,
-        "jobs/search.html",
+        "jobs/setup.html",
         {
             "company_form": company_form or CompanyMonitoringTargetForm(user=user),
             "city_form": city_form or CityMonitoringTargetForm(),
+            "profiles": SearchProfile.objects.filter(user=user),
             "company_targets": MonitoringTarget.objects.filter(
                 user=user, kind=MonitoringTarget.Kind.COMPANY
             ).select_related("company"),
@@ -269,43 +286,17 @@ def company_target_create(request: HttpRequest) -> HttpResponse:
             except CompanyDiscoveryError as error:
                 form.add_error("domain", str(error))
         if (company is not None or discovery is not None) and not form.errors:
-            with transaction.atomic():
-                if discovery is not None:
-                    company, _ = Company.objects.get_or_create(
-                        domain=discovery.domain,
-                        defaults={
-                            "name": discovery.name,
-                            "career_url": discovery.career_url,
-                        },
-                    )
-                    source_url = discovery.career_url
-                    source_config = {"allowed_hosts": list(discovery.allowed_hosts)}
-                else:
-                    assert company is not None
-                    source_url = company.career_url
-                    source_config = {}
-                source_kind = (
-                    discovery.source_kind if discovery is not None else CareerSource.Kind.JSON_LD
-                )
-                CareerSource.objects.get_or_create(
-                    source_url=source_url,
-                    defaults={
-                        "company": company,
-                        "kind": source_kind,
-                        "config": source_config,
-                    },
-                )
-                MonitoringTarget.objects.get_or_create(
-                    user=user,
-                    kind=MonitoringTarget.Kind.COMPANY,
-                    company=company,
-                )
-            assert company is not None
-            messages.success(request, f"Added {company.name} to the monitored companies.")
-            return redirect("jobs:search")
+            monitored_company = _monitor_company(user=user, company=company, discovery=discovery)
+            run = _run_initial_scan(monitored_company.source)
+            assert monitored_company.company is not None
+            messages.success(
+                request,
+                _company_added_message(monitored_company.company, run),
+            )
+            return redirect("jobs:setup")
     if form.errors:
-        return _search_response(request=request, user=user, company_form=form)
-    return _search_response(request=request, user=user, company_form=form)
+        return _setup_response(request=request, user=user, company_form=form)
+    return _setup_response(request=request, user=user, company_form=form)
 
 
 @require_POST
@@ -315,17 +306,66 @@ def city_target_create(request: HttpRequest) -> HttpResponse:
         return user
     form = CityMonitoringTargetForm(request.POST)
     if form.is_valid():
+        place = form.cleaned_data["place"]
+        radius_km = form.cleaned_data["radius_km"]
         target, created = MonitoringTarget.objects.get_or_create(
             user=user,
             kind=MonitoringTarget.Kind.CITY,
-            place=form.cleaned_data["place"],
-            defaults={"radius_km": form.cleaned_data["radius_km"]},
+            place=place,
+            defaults={"radius_km": radius_km},
         )
         if not created and target.radius_km != form.cleaned_data["radius_km"]:
-            target.radius_km = form.cleaned_data["radius_km"]
+            target.radius_km = radius_km
             target.save(update_fields=["radius_km"])
-        return redirect("jobs:search")
-    return _search_response(request=request, user=user, city_form=form)
+        try:
+            added_companies, scans, unreadable_websites = _discover_and_scan_city(
+                user=user, place=place, radius_km=radius_km
+            )
+        except CompanyLocationLookupError as error:
+            messages.warning(request, f"{place.name} was saved, but company search failed: {error}")
+            return redirect("jobs:setup")
+        messages.success(
+            request,
+            _city_added_message(
+                place_name=place.name,
+                added_companies=added_companies,
+                scans=scans,
+                unreadable_websites=unreadable_websites,
+            ),
+        )
+        return redirect("jobs:setup")
+    return _setup_response(request=request, user=user, city_form=form)
+
+
+@require_POST
+def city_target_refresh(request: HttpRequest, target_id: int) -> HttpResponse:
+    user = _private_user_or_redirect(request)
+    if isinstance(user, HttpResponse):
+        return user
+    target = get_object_or_404(
+        MonitoringTarget.objects.select_related("place"),
+        pk=target_id,
+        user=user,
+        kind=MonitoringTarget.Kind.CITY,
+    )
+    assert target.place is not None
+    try:
+        added_companies, scans, unreadable_websites = _discover_and_scan_city(
+            user=user, place=target.place, radius_km=target.radius_km
+        )
+    except CompanyLocationLookupError as error:
+        messages.warning(request, f"{target.place.name} search failed: {error}")
+        return redirect("jobs:setup")
+    messages.success(
+        request,
+        _city_added_message(
+            place_name=target.place.name,
+            added_companies=added_companies,
+            scans=scans,
+            unreadable_websites=unreadable_websites,
+        ),
+    )
+    return redirect("jobs:setup")
 
 
 @require_POST
@@ -335,7 +375,68 @@ def monitoring_target_delete(request: HttpRequest, target_id: int) -> HttpRespon
         return user
     target = get_object_or_404(MonitoringTarget, pk=target_id, user=user)
     target.delete()
-    return redirect("jobs:search")
+    return redirect("jobs:setup")
+
+
+def _monitor_company(
+    *,
+    user: WorkspaceUser,
+    company: Company | None = None,
+    discovery: DiscoveredCompany | None = None,
+) -> MonitoredCompany:
+    return monitor_company(user=user, company=company, discovery=discovery)
+
+
+def _run_initial_scan(source: CareerSource) -> CrawlRun | None:
+    if not source.is_enabled or source.blocked_at is not None:
+        return None
+    return collect_source(source=source, registry=collector_registry)
+
+
+def _discover_and_scan_city(
+    *, user: WorkspaceUser, place: GermanPlace, radius_km: int
+) -> tuple[int, list[CrawlRun], int]:
+    discovery = discover_companies_in_place(place, radius_km=radius_km)
+    added_companies = 0
+    scans: list[CrawlRun] = []
+    for company_discovery in discovery.companies:
+        monitored_company = _monitor_company(user=user, discovery=company_discovery)
+        if monitored_company.target_created:
+            added_companies += 1
+        if monitored_company.target_created or monitored_company.source_created:
+            run = _run_initial_scan(monitored_company.source)
+            if run is not None:
+                scans.append(run)
+    return added_companies, scans, discovery.unreadable_websites
+
+
+def _company_added_message(company: Company, run: CrawlRun | None) -> str:
+    if run is None:
+        return f"Added {company.name}. Its source is disabled or blocked, so no scan was started."
+    if run.status == CrawlRun.Status.SUCCESS:
+        return f"Added {company.name}. Initial scan found {run.jobs_created} new jobs."
+    return f"Added {company.name}. Initial scan did not finish: {run.get_status_display()}."
+
+
+def _city_added_message(
+    *,
+    place_name: str,
+    added_companies: int,
+    scans: list[CrawlRun],
+    unreadable_websites: int,
+) -> str:
+    if added_companies == 0 and not scans:
+        message = f"Saved {place_name}. No new companies with readable public websites were found."
+    else:
+        new_jobs = sum(run.jobs_created for run in scans if run.status == CrawlRun.Status.SUCCESS)
+        if added_companies:
+            message = f"Saved {place_name}. Added {added_companies} companies and "
+        else:
+            message = f"Saved {place_name}. Rechecked company sources and "
+        message += f"found {new_jobs} new jobs."
+    if unreadable_websites:
+        message += f" {unreadable_websites} website could not be read."
+    return message
 
 
 def profile(request: HttpRequest) -> HttpResponse:
@@ -357,9 +458,7 @@ def profile(request: HttpRequest) -> HttpResponse:
         request,
         "jobs/profile_page.html",
         {
-            "profiles": SearchProfile.objects.filter(user=user).prefetch_related(
-                "profile_locations__place"
-            ),
+            "profiles": SearchProfile.objects.filter(user=user),
             "workflow_jobs": workflow_jobs.select_related("job__source__company")[:100],
             "status_choices": [
                 choice
@@ -376,7 +475,7 @@ def profile_list(request: HttpRequest) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    profiles = SearchProfile.objects.filter(user=user).prefetch_related("profile_locations__place")
+    profiles = SearchProfile.objects.filter(user=user)
     return render(request, "jobs/profile_list.html", {"profiles": profiles})
 
 
@@ -477,30 +576,18 @@ def _profile_form_response(
 ) -> HttpResponse:
     form = SearchProfileForm(request.POST or None, instance=profile)
     form.instance.user = user
-    formset = ProfileLocationFormSet(
-        request.POST or None,
-        instance=profile,
-        prefix="profile_locations",
-        form_kwargs={"allowed_place_ids": _allowed_place_ids(request, profile)},
-    )
-    assert isinstance(formset, BaseProfileLocationFormSet)
-    if request.method == "POST" and form.is_valid() and formset.is_valid():
-        if not any(formset.selected_places()) and not form.cleaned_data["include_remote"]:
-            form.add_error("include_remote", "Add a German city radius or include remote jobs.")
-        else:
-            with transaction.atomic():
-                saved_profile = form.save()
-                formset.instance = saved_profile
-                formset.save()
-            refresh_profile_matches(profile=saved_profile)
-            messages.success(
-                request, "Created search profile." if creating else "Updated search profile."
-            )
-            return redirect("jobs:profile_list")
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            saved_profile = form.save()
+        refresh_profile_matches(profile=saved_profile)
+        messages.success(
+            request, "Created search profile." if creating else "Updated search profile."
+        )
+        return redirect("jobs:profile_list")
     return render(
         request,
         "jobs/profile_form.html",
-        {"form": form, "formset": formset, "creating": creating, "profile": profile},
+        {"form": form, "creating": creating, "profile": profile},
     )
 
 
@@ -528,22 +615,3 @@ def _unique_matches(matches: QuerySet[JobMatch]) -> list[JobMatch]:
     for match in matches:
         unique.setdefault(match.job_id, match)
     return list(unique.values())
-
-
-def _allowed_place_ids(request: HttpRequest, profile: SearchProfile) -> set[int]:
-    if request.method != "POST":
-        if profile.pk is None:
-            return set()
-        return set(profile.profile_locations.values_list("place_id", flat=True))
-    place_ids: set[int] = set()
-    for key, value in request.POST.items():
-        if (
-            key.startswith("profile_locations-")
-            and key.endswith("-place")
-            and isinstance(value, str)
-        ):
-            try:
-                place_ids.add(int(value))
-            except ValueError:
-                continue
-    return place_ids

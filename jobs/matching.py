@@ -9,7 +9,7 @@ from typing import Any
 from django.db.models import QuerySet
 
 from jobs.exclusions import normalize_exclusion_pattern
-from jobs.models import ExclusionRule, Job, JobMatch, ProfileLocation, SearchProfile, WorkspaceUser
+from jobs.models import ExclusionRule, Job, JobMatch, SearchProfile, WorkspaceUser
 
 EARTH_RADIUS_KM = 6371.0088
 MIN_JOB_MATCH_SCORE = -32_768
@@ -212,7 +212,7 @@ def refresh_job_matches(
 
 
 def _profiles_with_matching_data(profiles: QuerySet[SearchProfile]) -> list[SearchProfile]:
-    return list(profiles.select_related("user").prefetch_related("profile_locations__place"))
+    return list(profiles.select_related("user"))
 
 
 def _enabled_exclusions_by_user(
@@ -301,9 +301,6 @@ def _hard_filter_result(*, job: Job, profile: SearchProfile) -> MatchEvaluation 
 
     if job.remote_type == Job.RemoteType.REMOTE and not profile.include_remote:
         return _rejected("remote work is disabled")
-    if job.remote_type != Job.RemoteType.REMOTE and _has_known_location(job):
-        if not _within_any_profile_radius(job=job, profile=profile):
-            return _rejected("outside every configured city radius")
     return None
 
 
@@ -317,16 +314,7 @@ def _location_score(
             "status": "unknown",
             "score": weights["unknown_location"],
         }
-    matching_location = _matching_profile_location(job=job, profile=profile)
-    if matching_location is None:
-        raise ValueError("A known job location within a profile radius is required")
-    nearest_location, distance_km = matching_location
-    return weights["location"], {
-        "city": nearest_location.city,
-        "distance_km": round(distance_km, 1),
-        "status": "within_radius",
-        "score": weights["location"],
-    }
+    return weights["location"], {"status": "known", "score": weights["location"]}
 
 
 def _weights_for(profile: SearchProfile) -> dict[str, int]:
@@ -454,35 +442,6 @@ def _german_requirement_exceeds(requirement: str, maximum: str) -> bool:
 
 def _has_known_location(job: Job) -> bool:
     return job.latitude is not None and job.longitude is not None
-
-
-def _within_any_profile_radius(*, job: Job, profile: SearchProfile) -> bool:
-    return _matching_profile_location(job=job, profile=profile) is not None
-
-
-def _matching_profile_location(
-    *, job: Job, profile: SearchProfile
-) -> tuple[ProfileLocation, float] | None:
-    locations = list(profile.profile_locations.all()) if profile.pk is not None else []
-    if not locations or job.latitude is None or job.longitude is None:
-        return None
-    return min(
-        (
-            (
-                location,
-                haversine_distance_km(
-                    job.latitude, job.longitude, location.latitude, location.longitude
-                ),
-            )
-            for location in locations
-            if haversine_distance_km(
-                job.latitude, job.longitude, location.latitude, location.longitude
-            )
-            <= location.radius_km
-        ),
-        key=lambda candidate: candidate[1],
-        default=None,
-    )
 
 
 def _rejected(reason: str) -> MatchEvaluation:

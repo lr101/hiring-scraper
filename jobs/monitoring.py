@@ -9,7 +9,7 @@ def filter_jobs_for_user(*, user: WorkspaceUser, jobs: Iterable[Job]) -> list[Jo
     """Return jobs selected by a user's monitoring targets in input order."""
     targets = list(MonitoringTarget.objects.filter(user=user).select_related("company", "place"))
     if not targets:
-        return list(jobs)
+        return []
 
     company_ids = {
         target.company_id

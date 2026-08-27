@@ -2,6 +2,7 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
+from jobs.company_locations import CompanyLocationDiscovery
 from jobs.models import (
     CareerSource,
     Company,
@@ -51,13 +52,13 @@ def select_account(client: Client, user: WorkspaceUser) -> None:
 
 
 @pytest.mark.django_db
-def test_feed_search_and_profile_routes_use_the_three_item_primary_navigation(
+def test_product_routes_use_the_three_item_primary_navigation(
     client: Client,
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     select_account(client, user)
 
-    for route_name in ("home", "feed", "search", "profile"):
+    for route_name in ("home", "feed", "setup", "profile"):
         response = client.get(reverse(f"jobs:{route_name}"))
 
         assert response.status_code == 200
@@ -67,8 +68,8 @@ def test_feed_search_and_profile_routes_use_the_three_item_primary_navigation(
         b"</nav>", 1
     )[0]
     assert b">Feed<" in navigation
-    assert b">Search<" in navigation
-    assert b">Profile<" in navigation
+    assert b">Job profiles<" in navigation
+    assert b">Where to look<" in navigation
     for legacy_label in (b">New<", b">Jobs<", b">Companies<", b">Sources<", b">Runs<"):
         assert legacy_label not in navigation
 
@@ -99,21 +100,21 @@ def test_pages_show_only_the_selected_accounts_data(client: Client) -> None:
     )
     select_account(client, ada)
 
-    for route_name in ("feed", "search", "profile"):
+    for route_name in ("feed", "setup", "profile"):
         response = client.get(reverse(f"jobs:{route_name}"))
         content = response.content.decode()
 
         assert "Grace profile" not in content
         assert "Grace company engineer" not in content
-        if route_name == "search":
+        if route_name == "setup":
             assert [target.user_id for target in response.context["company_targets"]] == [ada.pk]
         else:
             assert "Ada company" in content
 
 
 @pytest.mark.django_db
-def test_search_creates_and_removes_company_and_city_targets_for_active_account(
-    client: Client,
+def test_setup_creates_and_removes_company_and_city_targets_for_active_account(
+    client: Client, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     ada = WorkspaceUser.objects.create(name="Ada")
     grace = WorkspaceUser.objects.create(name="Grace")
@@ -133,6 +134,11 @@ def test_search_creates_and_removes_company_and_city_targets_for_active_account(
         company=company,
     )
     select_account(client, ada)
+    monkeypatch.setattr("jobs.views._run_initial_scan", lambda _source: None)
+    monkeypatch.setattr(
+        "jobs.views.discover_companies_in_place",
+        lambda _place, radius_km: CompanyLocationDiscovery(companies=()),
+    )
 
     company_response = client.post(
         reverse("jobs:company_target_create"), {"domain": company.domain}
@@ -146,6 +152,7 @@ def test_search_creates_and_removes_company_and_city_targets_for_active_account(
     company_target = MonitoringTarget.objects.get(user=ada, company=company)
     city_target = MonitoringTarget.objects.get(user=ada, place=place)
     assert city_target.radius_km == 35
+    assert b"Find companies again" in client.get(reverse("jobs:setup")).content
     assert (
         client.post(reverse("jobs:monitoring_target_delete", args=[grace_target.pk])).status_code
         == 404
@@ -158,7 +165,7 @@ def test_search_creates_and_removes_company_and_city_targets_for_active_account(
 
 
 @pytest.mark.django_db
-def test_search_renders_a_bound_company_form_when_a_duplicate_target_is_submitted(
+def test_setup_renders_a_bound_company_form_when_a_duplicate_target_is_submitted(
     client: Client,
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
@@ -178,7 +185,7 @@ def test_search_renders_a_bound_company_form_when_a_duplicate_target_is_submitte
 
 
 @pytest.mark.django_db
-def test_search_renders_a_bound_city_form_when_the_radius_is_invalid(client: Client) -> None:
+def test_setup_renders_a_bound_city_form_when_the_radius_is_invalid(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     place = GermanPlace.objects.create(
         source_id="test:berlin",
@@ -204,7 +211,7 @@ def test_search_renders_a_bound_city_form_when_the_radius_is_invalid(client: Cli
 
 
 @pytest.mark.django_db
-def test_search_shows_an_invalid_city_selection_error_and_retains_the_query(client: Client) -> None:
+def test_setup_shows_an_invalid_city_selection_error_and_retains_the_query(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     select_account(client, user)
 
@@ -256,6 +263,11 @@ def test_feed_keeps_a_job_when_only_another_account_ignored_it(client: Client) -
     job = make_job(company=make_company("Shared company"), external_id="1")
     profile = SearchProfile.objects.create(user=ada, name="Engineering")
     JobMatch.objects.create(job=job, profile=profile, score=81, explanation={})
+    MonitoringTarget.objects.create(
+        user=ada,
+        kind=MonitoringTarget.Kind.COMPANY,
+        company=job.source.company,
+    )
     UserJobState.objects.create(user=ada, job=job, status=UserJobState.Status.SAVED)
     UserJobState.objects.create(user=grace, job=job, status=UserJobState.Status.IGNORED)
     select_account(client, ada)
@@ -352,7 +364,7 @@ def test_feed_normalizes_city_names_without_coordinates(client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_feed_shows_all_account_matches_without_targets(client: Client) -> None:
+def test_feed_shows_setup_prompt_without_selected_sources(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     first_job = make_job(
         company=make_company("First company"), external_id="1", title="First fallback job"
@@ -367,8 +379,37 @@ def test_feed_shows_all_account_matches_without_targets(client: Client) -> None:
 
     response = client.get(reverse("jobs:feed"))
 
-    assert "First fallback job" in response.content.decode()
-    assert "Second fallback job" in response.content.decode()
+    content = response.content.decode()
+    assert "First fallback job" not in content
+    assert "Second fallback job" not in content
+    assert "Choose where to look" in content
+
+
+@pytest.mark.django_db
+def test_feed_explains_when_a_city_has_no_company_sources(client: Client) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    place = GermanPlace.objects.create(
+        source_id="test:berlin",
+        name="Berlin",
+        normalized_name="berlin",
+        latitude=52.52,
+        longitude=13.405,
+        source_kind=GermanPlace.SourceKind.CITY,
+    )
+    SearchProfile.objects.create(user=user, name="Engineering")
+    MonitoringTarget.objects.create(
+        user=user,
+        kind=MonitoringTarget.Kind.CITY,
+        place=place,
+        radius_km=25,
+    )
+    select_account(client, user)
+
+    response = client.get(reverse("jobs:feed"))
+
+    content = response.content.decode()
+    assert "No company sources yet" in content
+    assert "Find companies again" in content
 
 
 @pytest.mark.django_db
