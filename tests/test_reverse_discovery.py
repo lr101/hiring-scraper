@@ -253,8 +253,133 @@ def test_ats_canonicalization_inherits_direct_source_controls(
     assert canonical.blocked_at == blocked_at
     assert canonical.request_delay_seconds == direct_source.request_delay_seconds
     assert canonical.max_pages == direct_source.max_pages
+    direct_source.refresh_from_db()
+    assert direct_source.is_enabled is False
     assert MonitoringTarget.objects.filter(user=user, company=direct_company).exists()
     assert result.errors == ()
+
+
+@pytest.mark.django_db
+def test_global_ats_placeholder_promotes_to_ba_company_without_unique_url_conflict(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    tenant = ATSTenantDescriptor(
+        kind="greenhouse",
+        tenant="acme",
+        source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true",
+        evidence_urls=("https://boards.greenhouse.io/acme/jobs/123",),
+        snapshot="CC-MAIN-2026-30",
+    )
+
+    class CommonCrawl:
+        def discover_validated(self) -> tuple[ATSTenantDescriptor, ...]:
+            return (tenant,)
+
+    class BAService:
+        def discover_and_persist(self, **kwargs: object) -> EmployerDiscoveryResult:
+            del kwargs
+            return EmployerDiscoveryResult(
+                employers=(hiring_signal(),), is_complete=True, requests_made=1
+            )
+
+    class Resolver:
+        def resolve(self, employer: EmployerHiringSignal) -> ResolvedEmployer:
+            del employer
+            return ResolvedEmployer(
+                employer_name="Acme GmbH",
+                normalized_name="acme gmbh",
+                domain="acme.test",
+                website_url="https://acme.test/",
+                resolver="osm",
+            )
+
+    def discover_company(_website_url: str) -> DiscoveredCompany:
+        return DiscoveredCompany(
+            domain="acme.test",
+            name="Acme GmbH",
+            website_url="https://acme.test/",
+            career_url=tenant.source_url,
+        )
+
+    service = ReverseDiscoveryService(
+        common_crawl_client=CommonCrawl(),
+        ba_service=BAService(),
+        resolver=Resolver(),
+        company_discoverer=discover_company,
+    )
+    initial = service.discover(city=None, collect=False)
+    result = service.discover(
+        city="Berlin",
+        user=user,
+        collect=False,
+        include_common_crawl=False,
+    )
+
+    source = CareerSource.objects.get(source_url=tenant.source_url)
+    assert initial.errors == ()
+    assert result.errors == ()
+    assert source.company.domain == "acme.test"
+    assert MonitoringTarget.objects.filter(user=user, company=source.company).exists()
+    assert Company.objects.filter(domain="acme.greenhouse.ats.invalid").exists() is False
+
+
+@pytest.mark.django_db
+def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    direct_company = Company.objects.create(
+        name="Acme GmbH",
+        domain="acme.test",
+        career_url="https://acme.test/careers",
+    )
+    direct_source = CareerSource.objects.create(
+        company=direct_company,
+        kind=CareerSource.Kind.JSON_LD,
+        source_url="https://boards.greenhouse.io/acme/jobs",
+        request_delay_seconds=7,
+        max_pages=8,
+    )
+
+    class BAService:
+        def discover_and_persist(self, **kwargs: object) -> EmployerDiscoveryResult:
+            del kwargs
+            return EmployerDiscoveryResult(
+                employers=(hiring_signal(),), is_complete=True, requests_made=1
+            )
+
+    class Resolver:
+        def resolve(self, employer: EmployerHiringSignal) -> ResolvedEmployer:
+            del employer
+            return ResolvedEmployer(
+                employer_name="Acme GmbH",
+                normalized_name="acme gmbh",
+                domain="acme.test",
+                website_url="https://acme.test/",
+                resolver="osm",
+            )
+
+    def discover_company(_website_url: str) -> DiscoveredCompany:
+        return DiscoveredCompany(
+            domain="acme.test",
+            name="Acme GmbH",
+            website_url="https://acme.test/",
+            career_url=direct_source.source_url,
+        )
+
+    result = ReverseDiscoveryService(
+        ba_service=BAService(),
+        resolver=Resolver(),
+        company_discoverer=discover_company,
+    ).discover(city="Berlin", user=user, collect=False, include_common_crawl=False)
+
+    canonical = CareerSource.objects.get(
+        source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true"
+    )
+    direct_source.refresh_from_db()
+    assert result.errors == ()
+    assert canonical.is_enabled is True
+    assert direct_source.is_enabled is False
+    assert direct_source.config["canonical_source_url"] == canonical.source_url
 
 
 @pytest.mark.django_db

@@ -389,46 +389,12 @@ def _register_source(
         equivalent_sources = _equivalent_ats_sources(source_url)
         company_created = False
         source_created = False
-        if source is not None:
-            company = source.company
-            equivalent_company = next(
-                (
-                    equivalent.company
-                    for equivalent in equivalent_sources
-                    if not _is_placeholder_company(equivalent.company)
-                ),
-                None,
-            )
-            if _is_placeholder_company(company) and equivalent_company is not None:
-                company = equivalent_company
-                source.company = company
-                source.save(update_fields=["company"])
-            elif _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
-                company, company_created = _get_discovered_company(discovered)
-                source.company = company
-                source.save(update_fields=["company"])
-        elif equivalent_sources:
-            company = next(
-                (
-                    equivalent.company
-                    for equivalent in equivalent_sources
-                    if not _is_placeholder_company(equivalent.company)
-                ),
-                equivalent_sources[0].company,
-            )
-            if _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
-                company, company_created = _get_discovered_company(discovered)
-            source, source_created = CareerSource.objects.get_or_create(
+        if source is None:
+            company, company_created = _registration_company(
+                discovered=discovered,
                 source_url=source_url,
-                defaults={
-                    "company": company,
-                    "kind": source_kind,
-                    "tenant": tenant,
-                    "config": _source_config(allowed_hosts=allowed_hosts, metadata=metadata),
-                },
+                equivalent_sources=equivalent_sources,
             )
-        else:
-            company, company_created = _get_discovered_company(discovered)
             source, source_created = CareerSource.objects.get_or_create(
                 source_url=source_url,
                 defaults={
@@ -439,6 +405,17 @@ def _register_source(
                 },
             )
         assert source is not None
+        source = (
+            CareerSource.objects.select_for_update().select_related("company").get(pk=source.pk)
+        )
+        equivalent_sources = _equivalent_ats_sources(source_url)
+        company, promoted_company_created = _reconcile_source_company(
+            source=source,
+            discovered=discovered,
+            source_url=source_url,
+            equivalent_sources=equivalent_sources,
+        )
+        company_created = company_created or promoted_company_created
         updates: list[str] = []
         if source.kind != source_kind:
             source.kind = source_kind
@@ -449,6 +426,7 @@ def _register_source(
         if updates:
             source.save(update_fields=updates)
         _merge_source_controls(source, equivalent_sources)
+        _retire_equivalent_sources(source, equivalent_sources)
         target_created = False
         if user is not None:
             _target, target_created = MonitoringTarget.objects.get_or_create(
@@ -481,7 +459,90 @@ def _discovered_company_from_tenant(tenant: ATSTenantDescriptor) -> DiscoveredCo
     )
 
 
-def _get_discovered_company(discovered: DiscoveredCompany) -> tuple[Company, bool]:
+def _registration_company(
+    *,
+    discovered: DiscoveredCompany,
+    source_url: str,
+    equivalent_sources: Iterable[CareerSource],
+) -> tuple[Company, bool]:
+    equivalent_company = next(
+        (
+            source.company
+            for source in equivalent_sources
+            if not _is_placeholder_company(source.company)
+        ),
+        None,
+    )
+    if equivalent_company is not None:
+        return equivalent_company, False
+    return _get_discovered_company(discovered, source_url=source_url)
+
+
+def _reconcile_source_company(
+    *,
+    source: CareerSource,
+    discovered: DiscoveredCompany,
+    source_url: str,
+    equivalent_sources: Iterable[CareerSource],
+) -> tuple[Company, bool]:
+    company = source.company
+    if not _is_placeholder_company(company):
+        return company, False
+
+    equivalent_company = next(
+        (
+            equivalent.company
+            for equivalent in equivalent_sources
+            if not _is_placeholder_company(equivalent.company)
+        ),
+        None,
+    )
+    company_created = False
+    if equivalent_company is not None:
+        company = equivalent_company
+    elif not _is_placeholder_domain(discovered.domain):
+        company, company_created = _get_discovered_company(
+            discovered,
+            source_url=source_url,
+        )
+    _assign_source_company(source, company)
+    return company, company_created
+
+
+def _assign_source_company(source: CareerSource, company: Company) -> None:
+    previous_company = source.company
+    if source.company_id == company.pk:
+        source.company = company
+        return
+    source.company = company
+    source.save(update_fields=["company"])
+    if _is_placeholder_company(previous_company):
+        _delete_unused_placeholder(previous_company)
+
+
+def _delete_unused_placeholder(company: Company) -> None:
+    if _is_placeholder_company(company) and not company.sources.exists():
+        if not company.monitoring_targets.exists():
+            company.delete()
+
+
+def _get_discovered_company(
+    discovered: DiscoveredCompany,
+    *,
+    source_url: str | None = None,
+) -> tuple[Company, bool]:
+    company = Company.objects.filter(domain=discovered.domain).first()
+    if company is None:
+        career_urls = {discovered.career_url}
+        if source_url:
+            career_urls.add(source_url)
+        company = Company.objects.filter(career_url__in=career_urls).order_by("pk").first()
+    if company is not None:
+        if _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
+            company.domain = discovered.domain
+            company.name = discovered.name
+            company.save(update_fields=["domain", "name"])
+        return company, False
     return Company.objects.get_or_create(
         domain=discovered.domain,
         defaults={"name": discovered.name, "career_url": discovered.career_url},
@@ -544,6 +605,24 @@ def _merge_source_controls(
         updates.append("max_pages")
     if updates:
         source.save(update_fields=updates)
+
+
+def _retire_equivalent_sources(
+    source: CareerSource,
+    equivalent_sources: Iterable[CareerSource],
+) -> None:
+    for equivalent in equivalent_sources:
+        config = dict(equivalent.config) if isinstance(equivalent.config, dict) else {}
+        config["canonical_source_url"] = source.source_url
+        updates: list[str] = []
+        if equivalent.is_enabled:
+            equivalent.is_enabled = False
+            updates.append("is_enabled")
+        if equivalent.config != config:
+            equivalent.config = config
+            updates.append("config")
+        if updates:
+            equivalent.save(update_fields=updates)
 
 
 def _collect_registered_source(
