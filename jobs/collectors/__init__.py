@@ -9,6 +9,7 @@ from typing import Any, Protocol
 from urllib.parse import urljoin, urlsplit
 
 import httpx
+from django.conf import settings
 
 from jobs.network import UnsafeNetworkAddress, validate_public_hostname
 
@@ -107,7 +108,19 @@ class HTTPCollector:
         sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
         self.source = source
-        self._client = client or httpx.Client(follow_redirects=False, timeout=30.0)
+        self._client = client or httpx.Client(
+            follow_redirects=False,
+            timeout=30.0,
+            headers={
+                "User-Agent": str(
+                    getattr(
+                        settings,
+                        "COLLECTION_USER_AGENT",
+                        "hiring-scraper/0.1 (self-hosted job collection)",
+                    )
+                )
+            },
+        )
         self._owns_client = client is None
         self._sleeper = sleeper
         self.requests_made = 0

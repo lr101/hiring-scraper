@@ -54,8 +54,9 @@ website as the operational job source, and no API credentials are needed for the
   OpenStreetMap's [company-office tagging](https://wiki.openstreetmap.org/wiki/Tag%3Aoffice%3Dcompany)
   and [website key](https://wiki.openstreetmap.org/wiki/Key%3Awebsite%3A*) make it possible to find
   public employer websites without an API key. Coverage depends on local mapping quality, so the
-  UI keeps direct domain entry available. The request is bounded and rate-limited; a hosted or
-  self-managed Overpass-compatible endpoint can be configured.
+  UI keeps direct domain entry available. The request is bounded and rate-limited. The default
+  primary endpoint is followed by a configurable fallback when the public service is overloaded;
+  a hosted or self-managed Overpass-compatible endpoint can be configured for either slot.
 
 The old GeoNames ZIP importer and unauthenticated place-search endpoints are removed. Places are
 now created on demand from a user's explicit location search and retained as cached database

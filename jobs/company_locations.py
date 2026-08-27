@@ -17,6 +17,8 @@ from .locations import _wait_for_provider_rate_limit
 from .models import GermanPlace
 from .network import UnsafeNetworkAddress, validate_public_hostname
 
+_OVERPASS_CLIENT_TIMEOUT_FLOOR_SECONDS = 45.0
+
 
 class CompanyLocationLookupError(RuntimeError):
     """The company-location provider could not answer a city search."""
@@ -58,13 +60,21 @@ class OverpassCompanyProvider:
                 "hiring-scraper/0.1 (self-hosted company lookup)",
             )
         )
+        configured_timeout = float(getattr(settings, "COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS", 45))
         self._client = client or httpx.Client(
-            timeout=float(getattr(settings, "COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS", 20)),
+            timeout=max(configured_timeout, _OVERPASS_CLIENT_TIMEOUT_FLOOR_SECONDS),
             headers={"User-Agent": request_user_agent},
         )
         self._owns_client = client is None
         self.endpoint = endpoint or str(
             getattr(settings, "COMPANY_LOCATION_API_URL", "https://overpass-api.de/api/interpreter")
+        )
+        self.fallback_endpoint = str(
+            getattr(
+                settings,
+                "COMPANY_LOCATION_FALLBACK_API_URL",
+                "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+            )
         )
         self.min_interval_seconds = (
             min_interval_seconds
@@ -79,36 +89,54 @@ class OverpassCompanyProvider:
         )
 
     def search(self, place: GermanPlace, *, radius_km: int) -> list[CompanyCandidate]:
-        _wait_for_provider_rate_limit(
-            self.min_interval_seconds,
-            state_path=getattr(
-                settings,
-                "COMPANY_LOCATION_RATE_LIMIT_STATE_PATH",
-                "/tmp/hiring-scraper-company-location-rate-limit",
-            ),
-        )
         query = _overpass_query(place=place, radius_km=radius_km)
-        try:
-            endpoint_host = urlsplit(self.endpoint).hostname
-            if urlsplit(self.endpoint).scheme.casefold() != "https" or endpoint_host is None:
-                raise CompanyLocationLookupError(
-                    "The company-location provider URL must use HTTPS."
+        endpoints = tuple(
+            dict.fromkeys(
+                endpoint for endpoint in (self.endpoint, self.fallback_endpoint) if endpoint
+            )
+        )
+        last_error: CompanyLocationLookupError | None = None
+        for endpoint_index, endpoint in enumerate(endpoints):
+            try:
+                _validate_provider_endpoint(endpoint)
+            except UnsafeNetworkAddress as error:
+                if endpoint_index == 0:
+                    raise CompanyLocationLookupError(
+                        "The company-location provider does not resolve to a public address."
+                    ) from error
+                last_error = CompanyLocationLookupError(
+                    "The fallback company-location provider does not resolve to a public address."
                 )
-            validate_public_hostname(endpoint_host)
-            response = self._client.get(self.endpoint, params={"data": query})
-            response.raise_for_status()
-            payload = response.json()
-        except CompanyLocationLookupError:
-            raise
-        except UnsafeNetworkAddress as error:
-            raise CompanyLocationLookupError(
-                "The company-location provider does not resolve to a public address."
-            ) from error
-        except (httpx.HTTPError, TypeError, ValueError) as error:
+                continue
+            except CompanyLocationLookupError as error:
+                if endpoint_index == 0:
+                    raise
+                last_error = error
+                continue
+            try:
+                _wait_for_provider_rate_limit(
+                    self.min_interval_seconds,
+                    state_path=getattr(
+                        settings,
+                        "COMPANY_LOCATION_RATE_LIMIT_STATE_PATH",
+                        "/tmp/hiring-scraper-company-location-rate-limit",
+                    ),
+                )
+                response = self._client.get(endpoint, params={"data": query})
+                response.raise_for_status()
+                payload = response.json()
+                return _candidates_from_payload(payload, max_results=self.max_results)
+            except CompanyLocationLookupError as error:
+                last_error = error
+            except (httpx.HTTPError, TypeError, ValueError):
+                last_error = CompanyLocationLookupError(
+                    "The company-location provider is unavailable. Try again in a moment."
+                )
+        if last_error is not None:
             raise CompanyLocationLookupError(
                 "The company-location provider is unavailable. Try again in a moment."
-            ) from error
-        return _candidates_from_payload(payload, max_results=self.max_results)
+            ) from last_error
+        raise CompanyLocationLookupError("No company-location provider is configured.")
 
     def close(self) -> None:
         if self._owns_client:
@@ -159,9 +187,20 @@ def _overpass_query(*, place: GermanPlace, radius_km: int) -> str:
 out center tags;"""
 
 
+def _validate_provider_endpoint(endpoint: str) -> None:
+    parsed = urlsplit(endpoint)
+    if parsed.scheme.casefold() != "https" or parsed.hostname is None:
+        raise CompanyLocationLookupError("The company-location provider URL must use HTTPS.")
+    validate_public_hostname(parsed.hostname)
+
+
 def _candidates_from_payload(payload: Any, *, max_results: int) -> list[CompanyCandidate]:
     if not isinstance(payload, dict) or not isinstance(payload.get("elements"), list):
         raise CompanyLocationLookupError("The company-location provider returned invalid data.")
+    if isinstance(payload.get("remark"), str) and payload["remark"].strip():
+        raise CompanyLocationLookupError(
+            "The company-location provider could not complete the search."
+        )
     candidates: list[CompanyCandidate] = []
     seen_domains: set[str] = set()
     for element in payload["elements"]:

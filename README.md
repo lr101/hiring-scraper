@@ -34,16 +34,21 @@ archive or ZIP import is required.
 For a city, first use the explicit location search to select a German city or postal code. The
 default Nominatim-compatible service resolves it to coordinates. The app then queries the
 OpenStreetMap Overpass API for nearby mapped offices, industrial businesses, and company objects
-with public websites. Each website is inspected with the same dynamic career discovery, and new
-sources are scanned immediately. City searches can be run again later to pick up newly mapped
-employers; daily collection continues for all enabled sources.
+with public websites. Each website is inspected with the same dynamic career discovery, and direct
+website sources are scanned immediately. City searches run in the background so a slow map
+provider cannot time out the web request; newly discovered companies and matching jobs appear in
+the feed as the worker processes them. City searches can be run again later to pick up newly
+mapped employers; daily collection continues for all enabled sources.
 
-Set `COMPANY_LOCATION_API_URL`, `COMPANY_LOCATION_USER_AGENT`,
+Set `COMPANY_LOCATION_API_URL`, `COMPANY_LOCATION_FALLBACK_API_URL`, `COMPANY_LOCATION_USER_AGENT`,
 `COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS`, `COMPANY_LOCATION_MAX_RESULTS`,
 `COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS`, and
 `COMPANY_LOCATION_RATE_LIMIT_STATE_PATH` to use a hosted Overpass-compatible service or tune a
 self-hosted deployment. Set `LOCATION_API_URL`, `LOCATION_USER_AGENT`,
 `LOCATION_MIN_REQUEST_INTERVAL_SECONDS`, and `LOCATION_RATE_LIMIT_STATE_PATH` for place lookup.
+Set `COLLECTION_USER_AGENT` to the identifying User-Agent used for career-site scans. The default
+company-location client allows enough time for the bounded Overpass query and its public queue;
+keep that timeout at 45 seconds or higher unless using a faster private provider.
 The public OpenStreetMap services require an identifying User-Agent, visible attribution, and
 careful request rates. Map coverage is not a complete business registry, so a direct website can
 always be added when a city search misses an employer.

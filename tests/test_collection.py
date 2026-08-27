@@ -119,6 +119,33 @@ def test_http_collector_stops_when_its_controlled_response_is_blocked() -> None:
     assert collector.requests_made == 1
 
 
+@override_settings(COLLECTION_USER_AGENT="hiring-scraper-test/1.0")
+def test_http_collector_identifies_itself_to_a_career_site(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requests: list[httpx.Request] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, text="<h1>Jobs</h1>", request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(respond))
+    client_options: dict[str, object] = {}
+
+    def make_client(**kwargs: object) -> httpx.Client:
+        client_options.update(kwargs)
+        client.headers.update(cast(dict[str, str], kwargs["headers"]))
+        return client
+
+    monkeypatch.setattr("jobs.collectors.httpx.Client", make_client)
+    collector = HTTPCollector(SimpleNamespace(kind="custom", request_delay_seconds=0))
+    collector.fetch("https://careers.example.test/jobs")
+    collector.close()
+
+    assert client_options["headers"] == {"User-Agent": "hiring-scraper-test/1.0"}
+    assert requests[0].headers["user-agent"] == "hiring-scraper-test/1.0"
+
+
 def test_http_collector_counts_a_transport_failure_as_an_attempt() -> None:
     def fail_request(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("connection failed", request=request)
