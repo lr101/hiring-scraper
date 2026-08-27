@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import socket
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -31,9 +32,13 @@ FIXTURES = Path(__file__).parent / "fixtures" / "ats"
 
 
 @pytest.fixture(autouse=True)
-def stub_public_hostname_validation(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("jobs.collectors.ats.validate_public_hostname", lambda hostname: None)
-    monkeypatch.setattr("jobs.collectors.validate_public_hostname", lambda hostname: None)
+def stub_public_hostname_resolution(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "jobs.network.socket.getaddrinfo",
+        lambda *args, **kwargs: [
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("93.184.216.34", 0))
+        ],
+    )
 
 
 def fixture_client(
@@ -314,18 +319,26 @@ def test_ats_collectors_reject_invalid_source_urls_before_request(
     assert requests == []
 
 
-def test_ats_fixture_collection_does_not_use_live_dns(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fail_live_dns(*args: Any, **kwargs: Any) -> Any:
-        raise AssertionError("ATS fixture tests must not use live DNS")
+def test_ats_collectors_reject_private_hostname_before_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requests: list[httpx.Request] = []
 
-    monkeypatch.setattr("jobs.network.socket.getaddrinfo", fail_live_dns)
-
-    result = LeverCollector(
+    monkeypatch.setattr(
+        "jobs.network.socket.getaddrinfo",
+        lambda *args, **kwargs: [
+            (socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", ("127.0.0.1", 0))
+        ],
+    )
+    collector = LeverCollector(
         source("lever", "https://api.lever.co/v0/postings/acme-gmbh"),
-        client=fixture_client("lever.json"),
-    ).collect()
+        client=fixture_client("lever.json", requests=requests),
+    )
 
-    assert [job.external_id for job in result.raw_jobs] == ["lever-de"]
+    with pytest.raises(ValueError, match="must resolve to a public address"):
+        collector.collect()
+
+    assert requests == []
 
 
 @pytest.mark.parametrize(
