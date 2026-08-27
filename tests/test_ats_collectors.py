@@ -632,6 +632,72 @@ def test_cursor_pagination_continues_within_the_page_limit(
     )
 
 
+@pytest.mark.parametrize(
+    ("collector_type", "fixture_name", "page_two_fixture", "source_url"),
+    [
+        (
+            SmartRecruitersCollector,
+            "smartrecruiters-unsafe-cross-tenant-page-1.json",
+            "smartrecruiters-unsafe-page-2.json",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+        ),
+        (
+            SmartRecruitersCollector,
+            "smartrecruiters-unsafe-path-page-1.json",
+            "smartrecruiters-unsafe-page-2.json",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+        ),
+        (
+            SmartRecruitersCollector,
+            "smartrecruiters-unsafe-host-page-1.json",
+            "smartrecruiters-unsafe-page-2.json",
+            "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+        ),
+        (
+            WorkableCollector,
+            "workable-unsafe-cross-tenant-page-1.json",
+            "workable-unsafe-page-2.json",
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+        ),
+        (
+            WorkableCollector,
+            "workable-unsafe-path-page-1.json",
+            "workable-unsafe-page-2.json",
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+        ),
+        (
+            WorkableCollector,
+            "workable-unsafe-host-page-1.json",
+            "workable-unsafe-page-2.json",
+            "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+        ),
+    ],
+)
+def test_pagination_ignores_next_urls_outside_the_configured_endpoint(
+    collector_type: type[Any],
+    fixture_name: str,
+    page_two_fixture: str,
+    source_url: str,
+) -> None:
+    requests: list[httpx.Request] = []
+
+    result = collector_type(
+        source(
+            "smartrecruiters" if collector_type is SmartRecruitersCollector else "workable",
+            source_url,
+            max_pages=2,
+        ),
+        client=fixture_sequence_client([fixture_name, page_two_fixture], requests=requests),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == ["unsafe-page-one", "unsafe-page-two"]
+    assert result.is_complete is False
+    assert [str(request.url) for request in requests] == [
+        f"{source_url}?limit=100&offset=0",
+        f"{source_url}?limit=100&offset=1",
+    ]
+
+
 def test_smartrecruiters_marks_a_capped_page_as_incomplete() -> None:
     import jobs.collectors.ats as ats
 

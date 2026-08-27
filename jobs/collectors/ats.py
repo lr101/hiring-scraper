@@ -887,7 +887,9 @@ def _pagination_value_url(value: Any, *, key: str, base_url: str) -> str | None:
         for url_key in ("href", "url", "link"):
             candidate = _string(value.get(url_key))
             if candidate:
-                return urljoin(base_url, candidate)
+                continuation_url = _pagination_url(candidate, base_url=base_url)
+                if continuation_url is not None:
+                    return continuation_url
         for nested_key in ("cursor", "token", "pageToken", "page_token"):
             nested_value = value.get(nested_key)
             if nested_value not in (None, False, ""):
@@ -897,9 +899,25 @@ def _pagination_value_url(value: Any, *, key: str, base_url: str) -> str | None:
     if not candidate:
         return None
     if candidate.startswith(("/", "https://")):
-        return urljoin(base_url, candidate)
+        return _pagination_url(candidate, base_url=base_url)
     query_key = "cursor" if key.startswith("next") else key
     return _with_query(base_url, **{query_key: candidate})
+
+
+def _pagination_url(candidate: str, *, base_url: str) -> str | None:
+    continuation_url = urljoin(base_url, candidate)
+    try:
+        configured = urlsplit(base_url)
+        continuation = urlsplit(continuation_url)
+    except ValueError:
+        return None
+    if (
+        continuation.scheme != configured.scheme
+        or continuation.netloc != configured.netloc
+        or continuation.path != configured.path
+    ):
+        return None
+    return continuation_url
 
 
 def _payload_is_complete(
