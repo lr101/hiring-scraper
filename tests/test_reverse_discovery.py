@@ -5,7 +5,7 @@ from io import StringIO
 from types import SimpleNamespace
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.utils import timezone
 
 from jobs.ba_discovery import BAJobSignal, EmployerDiscoveryResult, EmployerHiringSignal
@@ -18,6 +18,7 @@ from jobs.models import (
     Company,
     CrawlRun,
     GermanPlace,
+    Job,
     MonitoringTarget,
     WorkspaceUser,
 )
@@ -339,6 +340,15 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
         request_delay_seconds=7,
         max_pages=8,
     )
+    direct_job = Job.objects.create(
+        source=direct_source,
+        external_id="acme-1",
+        canonical_url="https://boards.greenhouse.io/acme/jobs/acme-1",
+        title="Backend Engineer",
+        normalized_title="backend engineer",
+        content_hash="a" * 64,
+        fingerprint="b" * 64,
+    )
 
     class BAService:
         def discover_and_persist(self, **kwargs: object) -> EmployerDiscoveryResult:
@@ -366,11 +376,12 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
             career_url=direct_source.source_url,
         )
 
-    result = ReverseDiscoveryService(
+    service = ReverseDiscoveryService(
         ba_service=BAService(),
         resolver=Resolver(),
         company_discoverer=discover_company,
-    ).discover(city="Berlin", user=user, collect=False, include_common_crawl=False)
+    )
+    result = service.discover(city="Berlin", user=user, collect=False, include_common_crawl=False)
 
     canonical = CareerSource.objects.get(
         source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true"
@@ -380,6 +391,19 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
     assert canonical.is_enabled is True
     assert direct_source.is_enabled is False
     assert direct_source.config["canonical_source_url"] == canonical.source_url
+    direct_job.refresh_from_db()
+    assert direct_job.source_id == canonical.pk
+    assert canonical.jobs.count() == 1
+
+    second_result = service.discover(
+        city="Berlin",
+        user=user,
+        collect=False,
+        include_common_crawl=False,
+    )
+    canonical.refresh_from_db()
+    assert second_result.errors == ()
+    assert canonical.is_enabled is True
 
 
 @pytest.mark.django_db
@@ -512,10 +536,12 @@ def test_reverse_discover_command_passes_bounded_options_to_the_orchestrator(
                 ats_tenants=(tenant,),
                 resolved_employers=(SimpleNamespace(),),
                 discovered_companies=(SimpleNamespace(),),
+                runs=(),
                 new_jobs=2,
                 companies_added=1,
                 blocked_sources=0,
                 errors=(),
+                error_count=0,
                 is_complete=True,
             )
 
@@ -561,6 +587,35 @@ def test_reverse_discover_command_passes_bounded_options_to_the_orchestrator(
     assert "2 new jobs" in output.getvalue()
 
 
+def test_reverse_discover_command_fails_on_a_failed_collection_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    failed_run = SimpleNamespace(
+        pk=1,
+        status=CrawlRun.Status.FAILED,
+        jobs_created=0,
+        error="ATS feed unavailable",
+    )
+
+    class Service:
+        def discover(self, **kwargs: object) -> ReverseDiscoveryResult:
+            del kwargs
+            return ReverseDiscoveryResult(runs=(failed_run,))  # type: ignore[arg-type]
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(
+        "jobs.management.commands.reverse_discover.ReverseDiscoveryService", Service
+    )
+    error_output = StringIO()
+
+    with pytest.raises(CommandError):
+        call_command("reverse_discover", stderr=error_output)
+
+    assert "ATS feed unavailable" in error_output.getvalue()
+
+
 @pytest.mark.django_db
 def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe(
     monkeypatch: pytest.MonkeyPatch,
@@ -592,6 +647,7 @@ def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe
                 runs=(SimpleNamespace(status="success", jobs_created=2),),
                 new_jobs=2,
                 blocked_sources=0,
+                error_count=0,
             )
 
         def close(self) -> None:
@@ -709,3 +765,34 @@ def test_scheduled_reverse_discovery_counts_all_city_errors(
 
     assert result["status"] == "partial"
     assert result["errors"] == 2
+
+
+@pytest.mark.django_db
+def test_scheduled_reverse_discovery_counts_failed_global_runs(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    failed_run = SimpleNamespace(
+        pk=1,
+        status=CrawlRun.Status.FAILED,
+        jobs_created=0,
+        error="ATS feed unavailable",
+    )
+
+    class Service:
+        def discover(self, **kwargs: object) -> ReverseDiscoveryResult:
+            del kwargs
+            return ReverseDiscoveryResult(runs=(failed_run,))  # type: ignore[arg-type]
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr("jobs.reverse_discovery.ReverseDiscoveryService", Service)
+
+    from jobs.tasks import reverse_discover_sources
+
+    result = reverse_discover_sources.run()
+
+    assert result["status"] == "partial"
+    assert result["errors"] == 1
+    assert "ATS feed unavailable" in caplog.text

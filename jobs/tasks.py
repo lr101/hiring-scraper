@@ -3,7 +3,7 @@ import logging
 from celery import shared_task  # type: ignore[import-untyped]
 
 from jobs.collection import collect_enabled_sources
-from jobs.models import MonitoringTarget
+from jobs.models import CrawlRun, MonitoringTarget
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def discover_city_sources(target_id: int) -> dict[str, int | str]:
         "new_jobs": result.new_jobs,
         "blocked_sources": result.blocked_sources,
         "unreadable_websites": result.unreadable_websites,
-        "errors": len(result.errors),
+        "errors": result.error_count,
     }
 
 
@@ -59,8 +59,16 @@ def reverse_discover_sources() -> dict[str, int | str]:
         "new_jobs": global_result.new_jobs,
         "blocked_sources": global_result.blocked_sources,
         "unreadable_websites": 0,
-        "errors": len(global_result.errors),
+        "errors": global_result.error_count,
     }
+    for run in global_result.runs:
+        if run.status != CrawlRun.Status.SUCCESS:
+            logger.error(
+                "Reverse discovery source run %s ended with %s: %s",
+                run.pk,
+                run.status,
+                run.error or "no error details",
+            )
     target_ids = MonitoringTarget.objects.filter(kind=MonitoringTarget.Kind.CITY).values_list(
         "pk", flat=True
     )

@@ -3,6 +3,7 @@ from typing import Any
 
 from django.core.management.base import BaseCommand, CommandError
 
+from jobs.models import CrawlRun
 from jobs.reverse_discovery import (
     DEFAULT_PUBLICATION_AGE_DAYS,
     DEFAULT_RADIUS_KM,
@@ -75,7 +76,12 @@ class Command(BaseCommand):
         )
         for discovery_error in result.errors:
             self.stderr.write(f"warning: {discovery_error}")
-        if result.errors:
+        for run in result.runs:
+            if run.status != CrawlRun.Status.SUCCESS:
+                self.stderr.write(
+                    f"warning: {run.error or f'{run.get_status_display()} collection run'}"
+                )
+        if not result.is_complete:
             raise CommandError("Reverse discovery completed partially.")
 
 

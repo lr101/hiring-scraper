@@ -8,7 +8,8 @@ from datetime import date
 from typing import Any, Protocol
 from urllib.parse import urlsplit
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.db.models import Q
 
 from .ba_discovery import (
     EmployerDiscoveryResult,
@@ -25,7 +26,16 @@ from .common_crawl import (
 from .company_discovery import CompanyDiscoveryError, DiscoveredCompany, discover_company
 from .company_locations import CompanyLocationDiscovery
 from .employer_resolution import EmployerResolver, OSMEmployerResolver, ResolvedEmployer
-from .models import CareerSource, Company, CrawlRun, MonitoringTarget, WorkspaceUser
+from .models import (
+    CareerSource,
+    Company,
+    CrawlRun,
+    Job,
+    JobMatch,
+    MonitoringTarget,
+    UserJobState,
+    WorkspaceUser,
+)
 
 DEFAULT_RADIUS_KM = 25
 DEFAULT_PUBLICATION_AGE_DAYS = 30
@@ -92,6 +102,10 @@ class ReverseDiscoveryResult:
     @property
     def blocked_sources(self) -> int:
         return sum(run.status == CrawlRun.Status.BLOCKED for run in self.runs)
+
+    @property
+    def error_count(self) -> int:
+        return len(self.errors) + sum(run.status != CrawlRun.Status.SUCCESS for run in self.runs)
 
 
 @dataclass(frozen=True, slots=True)
@@ -537,16 +551,24 @@ def _get_discovered_company(
         if source_url:
             career_urls.add(source_url)
         company = Company.objects.filter(career_url__in=career_urls).order_by("pk").first()
-    if company is not None:
-        if _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
-            company.domain = discovered.domain
-            company.name = discovered.name
-            company.save(update_fields=["domain", "name"])
-        return company, False
-    return Company.objects.get_or_create(
-        domain=discovered.domain,
-        defaults={"name": discovered.name, "career_url": discovered.career_url},
-    )
+    if company is None:
+        try:
+            company, created = Company.objects.get_or_create(
+                domain=discovered.domain,
+                defaults={"name": discovered.name, "career_url": discovered.career_url},
+            )
+        except IntegrityError:
+            company = Company.objects.filter(career_url__in=career_urls).order_by("pk").first()
+            if company is None:
+                raise
+            created = False
+    else:
+        created = False
+    if _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
+        company.domain = discovered.domain
+        company.name = discovered.name
+        company.save(update_fields=["domain", "name"])
+    return company, created
 
 
 def _source_config(
@@ -565,6 +587,9 @@ def _equivalent_ats_sources(source_url: str) -> tuple[CareerSource, ...]:
     matches: list[CareerSource] = []
     sources = CareerSource.objects.select_related("company").exclude(source_url=source_url)
     for source in sources.iterator():
+        config = source.config if isinstance(source.config, dict) else {}
+        if config.get("canonical_source_url") == source_url:
+            continue
         if fingerprint_ats_url(source.source_url) == fingerprint:
             matches.append(source)
     return tuple(matches)
@@ -611,6 +636,7 @@ def _retire_equivalent_sources(
     source: CareerSource,
     equivalent_sources: Iterable[CareerSource],
 ) -> None:
+    _migrate_jobs_to_canonical(source, equivalent_sources)
     for equivalent in equivalent_sources:
         config = dict(equivalent.config) if isinstance(equivalent.config, dict) else {}
         config["canonical_source_url"] = source.source_url
@@ -623,6 +649,59 @@ def _retire_equivalent_sources(
             updates.append("config")
         if updates:
             equivalent.save(update_fields=updates)
+
+
+def _migrate_jobs_to_canonical(
+    source: CareerSource,
+    equivalent_sources: Iterable[CareerSource],
+) -> None:
+    for equivalent in equivalent_sources:
+        for job in Job.objects.filter(source=equivalent).order_by("pk").iterator():
+            canonical_job = (
+                Job.objects.filter(
+                    source=source,
+                )
+                .filter(Q(external_id=job.external_id) | Q(canonical_url=job.canonical_url))
+                .first()
+            )
+            if canonical_job is None:
+                job.source = source
+                job.save(update_fields=["source"])
+                continue
+            _merge_job_references(job, canonical_job)
+            job.delete()
+
+
+def _merge_job_references(source_job: Job, canonical_job: Job) -> None:
+    for state in UserJobState.objects.filter(job=source_job):
+        existing_state = UserJobState.objects.filter(
+            user=state.user,
+            job=canonical_job,
+        ).first()
+        if existing_state is None:
+            state.job = canonical_job
+            state.save(update_fields=["job"])
+        elif (
+            existing_state.status == UserJobState.Status.NONE
+            and state.status != UserJobState.Status.NONE
+        ):
+            existing_state.status = state.status
+            existing_state.seen_at = state.seen_at
+            existing_state.notes = state.notes
+            existing_state.save(update_fields=["status", "seen_at", "notes", "updated_at"])
+            state.delete()
+        else:
+            state.delete()
+    for match in JobMatch.objects.filter(job=source_job):
+        existing_match = JobMatch.objects.filter(
+            profile=match.profile,
+            job=canonical_job,
+        ).first()
+        if existing_match is None:
+            match.job = canonical_job
+            match.save(update_fields=["job"])
+        else:
+            match.delete()
 
 
 def _collect_registered_source(
