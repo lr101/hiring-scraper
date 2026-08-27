@@ -6,13 +6,21 @@ from types import SimpleNamespace
 
 import pytest
 from django.core.management import call_command
+from django.utils import timezone
 
 from jobs.ba_discovery import BAJobSignal, EmployerDiscoveryResult, EmployerHiringSignal
 from jobs.common_crawl import ATSTenantDescriptor
 from jobs.company_discovery import DiscoveredCompany
 from jobs.company_locations import CompanyLocationDiscovery
 from jobs.employer_resolution import ResolvedEmployer
-from jobs.models import CareerSource, GermanPlace, MonitoringTarget, WorkspaceUser
+from jobs.models import (
+    CareerSource,
+    Company,
+    CrawlRun,
+    GermanPlace,
+    MonitoringTarget,
+    WorkspaceUser,
+)
 from jobs.reverse_discovery import ReverseDiscoveryResult, ReverseDiscoveryService
 
 
@@ -133,6 +141,120 @@ def test_reverse_discovery_keeps_global_discovery_account_independent() -> None:
 
     assert result.errors == ()
     assert MonitoringTarget.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_global_validated_ats_tenants_register_and_collect_without_an_account_target(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+    tenant = ATSTenantDescriptor(
+        kind="greenhouse",
+        tenant="acme",
+        source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true",
+        evidence_urls=("https://boards.greenhouse.io/acme/jobs/123",),
+        snapshot="CC-MAIN-2026-30",
+    )
+
+    class CommonCrawl:
+        def discover_validated(self) -> tuple[ATSTenantDescriptor, ...]:
+            events.append("ats")
+            return (tenant,)
+
+    class BAService:
+        def discover_and_persist(self, **kwargs: object) -> EmployerDiscoveryResult:
+            del kwargs
+            pytest.fail("A global ATS probe should not query BA")
+
+    def collect(source: CareerSource, *, registry: object) -> SimpleNamespace:
+        del registry
+        events.append("collect")
+        assert source.kind == CareerSource.Kind.GREENHOUSE
+        return SimpleNamespace(status=CrawlRun.Status.SUCCESS, jobs_created=3)
+
+    monkeypatch.setattr("jobs.reverse_discovery.collect_source", collect)
+    result = ReverseDiscoveryService(
+        common_crawl_client=CommonCrawl(),
+        ba_service=BAService(),
+    ).discover(city=None, collect=True)
+
+    source = CareerSource.objects.get(source_url=tenant.source_url)
+    assert events == ["ats", "collect"]
+    assert source.tenant == tenant.tenant
+    assert source.company.domain == "acme.greenhouse.ats.invalid"
+    assert MonitoringTarget.objects.count() == 0
+    assert result.companies_created == 1
+    assert result.new_jobs == 3
+
+
+@pytest.mark.django_db
+def test_ats_canonicalization_inherits_direct_source_controls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    direct_company = Company.objects.create(
+        name="Acme GmbH",
+        domain="acme.test",
+        career_url="https://acme.test/careers",
+    )
+    blocked_at = timezone.now()
+    direct_source = CareerSource.objects.create(
+        company=direct_company,
+        kind=CareerSource.Kind.JSON_LD,
+        source_url="https://boards.greenhouse.io/acme/jobs",
+        is_enabled=False,
+        blocked_at=blocked_at,
+        request_delay_seconds=9,
+        max_pages=4,
+    )
+
+    class BAService:
+        def discover_and_persist(self, **kwargs: object) -> EmployerDiscoveryResult:
+            del kwargs
+            return EmployerDiscoveryResult(
+                employers=(hiring_signal(),), is_complete=True, requests_made=1
+            )
+
+    class Resolver:
+        def resolve(self, employer: EmployerHiringSignal) -> ResolvedEmployer:
+            del employer
+            return ResolvedEmployer(
+                employer_name="Acme GmbH",
+                normalized_name="acme gmbh",
+                domain="acme.test",
+                website_url="https://acme.test/",
+                resolver="osm",
+            )
+
+    def discover_company(_website_url: str) -> DiscoveredCompany:
+        return DiscoveredCompany(
+            domain="acme.test",
+            name="Acme GmbH",
+            website_url="https://acme.test/",
+            career_url=direct_source.source_url,
+        )
+
+    def collect(**kwargs: object) -> SimpleNamespace:
+        del kwargs
+        pytest.fail("A blocked equivalent source must not be collected")
+
+    monkeypatch.setattr("jobs.reverse_discovery.collect_source", collect)
+    result = ReverseDiscoveryService(
+        ba_service=BAService(),
+        resolver=Resolver(),
+        company_discoverer=discover_company,
+    ).discover(city="Berlin", user=user, include_common_crawl=False)
+
+    canonical = CareerSource.objects.get(
+        source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true"
+    )
+    assert canonical.company_id == direct_company.pk
+    assert canonical.is_enabled is False
+    assert canonical.blocked_at == blocked_at
+    assert canonical.request_delay_seconds == direct_source.request_delay_seconds
+    assert canonical.max_pages == direct_source.max_pages
+    assert MonitoringTarget.objects.filter(user=user, company=direct_company).exists()
+    assert result.errors == ()
 
 
 @pytest.mark.django_db
@@ -341,6 +463,10 @@ def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe
                 ats_tenants=(SimpleNamespace(),),
                 errors=(),
                 is_complete=True,
+                companies_added=1,
+                runs=(SimpleNamespace(status="success", jobs_created=2),),
+                new_jobs=2,
+                blocked_sources=0,
             )
 
         def close(self) -> None:
@@ -374,9 +500,9 @@ def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe
         "status": "complete",
         "ats_tenants": 1,
         "city_targets": 1,
-        "added_companies": 2,
-        "scanned_sources": 2,
-        "new_jobs": 3,
+        "added_companies": 3,
+        "scanned_sources": 3,
+        "new_jobs": 5,
         "blocked_sources": 1,
         "unreadable_websites": 4,
         "errors": 0,
@@ -415,3 +541,46 @@ def test_city_task_preserves_partial_provider_status(
 
     assert result["status"] == "partial"
     assert result["errors"] == 1
+
+
+@pytest.mark.django_db
+def test_scheduled_reverse_discovery_counts_all_city_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    place = GermanPlace.objects.create(
+        source_id="test:error-count-berlin",
+        name="Berlin",
+        normalized_name="berlin",
+        latitude=52.52,
+        longitude=13.405,
+        source_kind=GermanPlace.SourceKind.CITY,
+    )
+    MonitoringTarget.objects.create(
+        user=user,
+        kind=MonitoringTarget.Kind.CITY,
+        place=place,
+        radius_km=25,
+    )
+
+    class Service:
+        def discover(self, **kwargs: object) -> ReverseDiscoveryResult:
+            del kwargs
+            return ReverseDiscoveryResult()
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr("jobs.reverse_discovery.ReverseDiscoveryService", Service)
+
+    def run_city(_target_id: int) -> dict[str, int | str]:
+        return {"status": "partial", "errors": 2}
+
+    monkeypatch.setattr("jobs.tasks.discover_city_sources", SimpleNamespace(run=run_city))
+
+    from jobs.tasks import reverse_discover_sources
+
+    result = reverse_discover_sources.run()
+
+    assert result["status"] == "partial"
+    assert result["errors"] == 2

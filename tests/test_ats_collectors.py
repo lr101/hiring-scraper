@@ -187,6 +187,37 @@ def test_ats_tenant_helpers_build_safe_feed_urls_and_fingerprint_known_urls() ->
     )
 
 
+@pytest.mark.parametrize(
+    ("url", "kind", "source_url"),
+    [
+        (
+            "https://api.softgarden.io/v1/companies/acme-gmbh/jobs",
+            "softgarden",
+            "https://api.softgarden.io/v1/companies/acme-gmbh/jobs",
+        ),
+        (
+            "https://jobs.dvinci.com/acme-gmbh/jobs.json",
+            "dvinci",
+            "https://jobs.dvinci.com/acme-gmbh/jobs.json",
+        ),
+        (
+            "https://acme-gmbh.successfactors.com/jobs.xml",
+            "successfactors",
+            "https://acme-gmbh.successfactors.com/jobs.xml",
+        ),
+    ],
+)
+def test_ats_fingerprint_recognizes_common_crawl_feed_families(
+    url: str, kind: str, source_url: str
+) -> None:
+    recognized = collectors.fingerprint_ats_url(url)
+
+    assert recognized is not None
+    assert recognized.kind == kind
+    assert recognized.tenant == "acme-gmbh"
+    assert recognized.source_url == source_url
+
+
 def test_ats_fingerprint_rejects_a_non_feed_smartrecruiters_path() -> None:
     fingerprint = collectors.fingerprint_ats_url
 

@@ -77,6 +77,18 @@ def personio_feed_url(tenant: str) -> str:
     return f"https://{normalize_ats_tenant(tenant)}.jobs.personio.de/xml"
 
 
+def softgarden_feed_url(tenant: str) -> str:
+    return f"https://api.softgarden.io/v1/companies/{normalize_ats_tenant(tenant)}/jobs"
+
+
+def dvinci_feed_url(tenant: str) -> str:
+    return f"https://jobs.dvinci.com/{normalize_ats_tenant(tenant)}/jobs.json"
+
+
+def successfactors_feed_url(tenant: str) -> str:
+    return f"https://{normalize_ats_tenant(tenant)}.successfactors.com/jobs.xml"
+
+
 def greenhouse_feed_url(tenant: str) -> str:
     return f"https://boards-api.greenhouse.io/v1/boards/{normalize_ats_tenant(tenant)}/jobs?content=true"
 
@@ -146,6 +158,21 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
     if host.endswith(".jobs.personio.de") and host.count(".") == 3:
         tenant = host.removesuffix(".jobs.personio.de")
         return _fingerprint(PERSONIO, tenant, personio_feed_url)
+    if (
+        host == "api.softgarden.io"
+        and len(path) == 4
+        and path[:2] == ["v1", "companies"]
+        and path[3] == "jobs"
+    ):
+        return _fingerprint(SOFTGARDEN, path[2], softgarden_feed_url)
+    if host == "jobs.dvinci.com" and len(path) == 2 and path[1] == "jobs.json":
+        return _fingerprint(DVINCI, path[0], dvinci_feed_url)
+    if host.endswith(".successfactors.com") and host.count(".") == 2 and path == ["jobs.xml"]:
+        return _fingerprint(
+            SUCCESSFACTORS,
+            host.removesuffix(".successfactors.com"),
+            successfactors_feed_url,
+        )
     if host in {"boards.greenhouse.io", "boards-api.greenhouse.io"} and path:
         tenant = path[2] if host == "boards-api.greenhouse.io" and len(path) > 2 else path[0]
         return _fingerprint(GREENHOUSE, tenant, greenhouse_feed_url)

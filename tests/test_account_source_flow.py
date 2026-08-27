@@ -1,6 +1,7 @@
 import json
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -305,7 +306,10 @@ def test_city_search_can_be_run_again_for_newly_mapped_companies(
         "jobs.views.discover_companies_in_place",
         lookup,
     )
-    monkeypatch.setattr("jobs.views._run_initial_scan", lambda _source: None)
+    monkeypatch.setattr(
+        "jobs.reverse_discovery.collect_source",
+        lambda **kwargs: SimpleNamespace(jobs_created=0, status="success"),
+    )
 
     response = client.post(reverse("jobs:city_target_refresh", args=[target.pk]))
 

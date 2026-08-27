@@ -29,6 +29,7 @@ from .models import CareerSource, Company, CrawlRun, MonitoringTarget, Workspace
 
 DEFAULT_RADIUS_KM = 25
 DEFAULT_PUBLICATION_AGE_DAYS = 30
+_ATS_PLACEHOLDER_SUFFIX = ".ats.invalid"
 
 
 class _TenantDiscovery(Protocol):
@@ -66,7 +67,11 @@ class ReverseDiscoveryResult:
 
     @property
     def is_complete(self) -> bool:
-        return not self.errors and (self.ba_result is None or self.ba_result.is_complete)
+        return (
+            not self.errors
+            and (self.ba_result is None or self.ba_result.is_complete)
+            and all(run.status == CrawlRun.Status.SUCCESS for run in self.runs)
+        )
 
     @property
     def employers(self) -> tuple[ResolvedEmployer, ...]:
@@ -133,11 +138,26 @@ class ReverseDiscoveryService:
         """Run each available discovery stage and collect newly registered sources."""
         errors: list[str] = []
         ats_tenants: tuple[ATSTenantDescriptor, ...] = ()
+        ats_companies: list[DiscoveredCompany] = []
+        ats_runs: list[CrawlRun] = []
+        ats_companies_created = 0
+        ats_targets_created = 0
         if include_common_crawl:
             try:
                 ats_tenants = self.common_crawl_client.discover_validated()
             except CommonCrawlProviderError as error:
                 errors.append(str(error))
+            if user is None:
+                (
+                    ats_companies,
+                    ats_runs,
+                    ats_companies_created,
+                    ats_targets_created,
+                ) = self._register_ats_tenants(
+                    ats_tenants,
+                    collect=collect,
+                    errors=errors,
+                )
 
         ba_result: EmployerDiscoveryResult | None = None
         resolved_employers: list[ResolvedEmployer] = []
@@ -171,11 +191,11 @@ class ReverseDiscoveryService:
             ats_tenants=ats_tenants,
             ba_result=ba_result,
             resolved_employers=tuple(resolved_employers),
-            discovered_companies=tuple(discovered_companies),
-            runs=tuple(runs),
+            discovered_companies=tuple((*ats_companies, *discovered_companies)),
+            runs=tuple((*ats_runs, *runs)),
             errors=tuple(errors),
-            companies_created=companies_created,
-            targets_created=targets_created,
+            companies_created=companies_created + ats_companies_created,
+            targets_created=targets_created + ats_targets_created,
         )
 
     def discover_city(
@@ -232,6 +252,44 @@ class ReverseDiscoveryService:
             _close_if_available(self.ba_service)
         if self._owns_resolver:
             _close_if_available(self.resolver)
+
+    def _register_ats_tenants(
+        self,
+        tenants: Iterable[ATSTenantDescriptor],
+        *,
+        collect: bool,
+        errors: list[str],
+    ) -> tuple[list[DiscoveredCompany], list[CrawlRun], int, int]:
+        discovered_companies: list[DiscoveredCompany] = []
+        runs: list[CrawlRun] = []
+        companies_created = 0
+        targets_created = 0
+        for tenant in tenants:
+            try:
+                discovered = _discovered_company_from_tenant(tenant)
+                registered = _register_source(
+                    discovered=discovered,
+                    user=None,
+                    metadata={
+                        "discovery": "common_crawl",
+                        "snapshot": tenant.snapshot,
+                        "evidence_urls": list(tenant.evidence_urls),
+                    },
+                )
+            except Exception as error:
+                errors.append(str(error))
+                continue
+            discovered_companies.append(discovered)
+            companies_created += int(registered.company_created)
+            targets_created += int(registered.target_created)
+            if not collect or not registered.source_created:
+                continue
+            if not registered.source.is_enabled or registered.source.blocked_at is not None:
+                continue
+            run = _collect_registered_source(registered.source, errors=errors)
+            if run is not None:
+                runs.append(run)
+        return discovered_companies, runs, companies_created, targets_created
 
     def _resolve_employers(
         self,
@@ -299,7 +357,9 @@ class ReverseDiscoveryService:
                 continue
             if not registered.source.is_enabled or registered.source.blocked_at is not None:
                 continue
-            runs.append(collect_source(source=registered.source, registry=collector_registry))
+            run = _collect_registered_source(registered.source, errors=errors)
+            if run is not None:
+                runs.append(run)
         return discovered_companies, runs, companies_created, targets_created
 
 
@@ -307,6 +367,7 @@ def _register_source(
     *,
     discovered: DiscoveredCompany,
     user: WorkspaceUser | None,
+    metadata: dict[str, Any] | None = None,
 ) -> _RegisteredSource:
     fingerprint = fingerprint_ats_url(discovered.career_url)
     if fingerprint is None:
@@ -322,19 +383,72 @@ def _register_source(
         allowed_hosts = (source_host,) if source_host else ()
 
     with transaction.atomic():
-        company, company_created = Company.objects.get_or_create(
-            domain=discovered.domain,
-            defaults={"name": discovered.name, "career_url": discovered.career_url},
+        source = (
+            CareerSource.objects.select_related("company").filter(source_url=source_url).first()
         )
-        source, source_created = CareerSource.objects.get_or_create(
-            source_url=source_url,
-            defaults={
-                "company": company,
-                "kind": source_kind,
-                "tenant": tenant,
-                "config": {"allowed_hosts": list(allowed_hosts)},
-            },
-        )
+        equivalent_sources = _equivalent_ats_sources(source_url)
+        company_created = False
+        source_created = False
+        if source is not None:
+            company = source.company
+            equivalent_company = next(
+                (
+                    equivalent.company
+                    for equivalent in equivalent_sources
+                    if not _is_placeholder_company(equivalent.company)
+                ),
+                None,
+            )
+            if _is_placeholder_company(company) and equivalent_company is not None:
+                company = equivalent_company
+                source.company = company
+                source.save(update_fields=["company"])
+            elif _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
+                company, company_created = _get_discovered_company(discovered)
+                source.company = company
+                source.save(update_fields=["company"])
+        elif equivalent_sources:
+            company = next(
+                (
+                    equivalent.company
+                    for equivalent in equivalent_sources
+                    if not _is_placeholder_company(equivalent.company)
+                ),
+                equivalent_sources[0].company,
+            )
+            if _is_placeholder_company(company) and not _is_placeholder_domain(discovered.domain):
+                company, company_created = _get_discovered_company(discovered)
+            source, source_created = CareerSource.objects.get_or_create(
+                source_url=source_url,
+                defaults={
+                    "company": company,
+                    "kind": source_kind,
+                    "tenant": tenant,
+                    "config": _source_config(allowed_hosts=allowed_hosts, metadata=metadata),
+                },
+            )
+        else:
+            company, company_created = _get_discovered_company(discovered)
+            source, source_created = CareerSource.objects.get_or_create(
+                source_url=source_url,
+                defaults={
+                    "company": company,
+                    "kind": source_kind,
+                    "tenant": tenant,
+                    "config": _source_config(allowed_hosts=allowed_hosts, metadata=metadata),
+                },
+            )
+        assert source is not None
+        updates: list[str] = []
+        if source.kind != source_kind:
+            source.kind = source_kind
+            updates.append("kind")
+        if source.tenant != tenant:
+            source.tenant = tenant
+            updates.append("tenant")
+        if updates:
+            source.save(update_fields=updates)
+        _merge_source_controls(source, equivalent_sources)
         target_created = False
         if user is not None:
             _target, target_created = MonitoringTarget.objects.get_or_create(
@@ -348,6 +462,100 @@ def _register_source(
         target_created=target_created,
         company_created=company_created,
     )
+
+
+def _discovered_company_from_tenant(tenant: ATSTenantDescriptor) -> DiscoveredCompany:
+    fingerprint = fingerprint_ats_url(tenant.source_url)
+    if fingerprint is None:
+        raise ValueError("Common Crawl returned an unrecognized ATS source URL.")
+    source_host = urlsplit(fingerprint.source_url).hostname
+    if source_host is None:
+        raise ValueError("Common Crawl returned an invalid ATS source URL.")
+    return DiscoveredCompany(
+        domain=f"{fingerprint.tenant}.{fingerprint.kind}{_ATS_PLACEHOLDER_SUFFIX}",
+        name=f"{fingerprint.tenant} ({fingerprint.kind})"[:200],
+        website_url=tenant.evidence_url or fingerprint.source_url,
+        career_url=fingerprint.source_url,
+        source_kind=fingerprint.kind,
+        allowed_hosts=(source_host,),
+    )
+
+
+def _get_discovered_company(discovered: DiscoveredCompany) -> tuple[Company, bool]:
+    return Company.objects.get_or_create(
+        domain=discovered.domain,
+        defaults={"name": discovered.name, "career_url": discovered.career_url},
+    )
+
+
+def _source_config(
+    *, allowed_hosts: tuple[str, ...], metadata: dict[str, Any] | None
+) -> dict[str, Any]:
+    config: dict[str, Any] = {"allowed_hosts": list(allowed_hosts)}
+    if metadata:
+        config.update(metadata)
+    return config
+
+
+def _equivalent_ats_sources(source_url: str) -> tuple[CareerSource, ...]:
+    fingerprint = fingerprint_ats_url(source_url)
+    if fingerprint is None:
+        return ()
+    matches: list[CareerSource] = []
+    sources = CareerSource.objects.select_related("company").exclude(source_url=source_url)
+    for source in sources.iterator():
+        if fingerprint_ats_url(source.source_url) == fingerprint:
+            matches.append(source)
+    return tuple(matches)
+
+
+def _is_placeholder_domain(domain: str) -> bool:
+    return domain.endswith(_ATS_PLACEHOLDER_SUFFIX)
+
+
+def _is_placeholder_company(company: Company) -> bool:
+    return _is_placeholder_domain(company.domain)
+
+
+def _merge_source_controls(
+    source: CareerSource,
+    equivalent_sources: Iterable[CareerSource],
+) -> None:
+    controls = (source, *equivalent_sources)
+    enabled = all(item.is_enabled for item in controls)
+    blocked_at = max(
+        (item.blocked_at for item in controls if item.blocked_at is not None),
+        default=None,
+    )
+    request_delay_seconds = max(item.request_delay_seconds for item in controls)
+    max_pages = min(item.max_pages for item in controls)
+    updates: list[str] = []
+    if source.is_enabled != enabled:
+        source.is_enabled = enabled
+        updates.append("is_enabled")
+    if source.blocked_at != blocked_at:
+        source.blocked_at = blocked_at
+        updates.append("blocked_at")
+    if source.request_delay_seconds != request_delay_seconds:
+        source.request_delay_seconds = request_delay_seconds
+        updates.append("request_delay_seconds")
+    if source.max_pages != max_pages:
+        source.max_pages = max_pages
+        updates.append("max_pages")
+    if updates:
+        source.save(update_fields=updates)
+
+
+def _collect_registered_source(
+    source: CareerSource,
+    *,
+    errors: list[str],
+) -> CrawlRun | None:
+    try:
+        return collect_source(source=source, registry=collector_registry)
+    except Exception as error:
+        errors.append(str(error))
+        return None
 
 
 def _close_if_available(value: object) -> None:

@@ -1,7 +1,11 @@
+import logging
+
 from celery import shared_task  # type: ignore[import-untyped]
 
 from jobs.collection import collect_enabled_sources
 from jobs.models import MonitoringTarget
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task  # type: ignore[misc]
@@ -50,10 +54,10 @@ def reverse_discover_sources() -> dict[str, int | str]:
         "status": "complete" if global_result.is_complete else "partial",
         "ats_tenants": len(global_result.ats_tenants),
         "city_targets": 0,
-        "added_companies": 0,
-        "scanned_sources": 0,
-        "new_jobs": 0,
-        "blocked_sources": 0,
+        "added_companies": global_result.companies_added,
+        "scanned_sources": len(global_result.runs),
+        "new_jobs": global_result.new_jobs,
+        "blocked_sources": global_result.blocked_sources,
         "unreadable_websites": 0,
         "errors": len(global_result.errors),
     }
@@ -65,13 +69,19 @@ def reverse_discover_sources() -> dict[str, int | str]:
         try:
             city_result = discover_city_sources.run(target_id)
         except Exception:
+            logger.exception("Reverse discovery failed for city target %s", target_id)
             summary["errors"] = int(summary["errors"]) + 1
             continue
         if not isinstance(city_result, dict):
+            logger.error(
+                "Reverse discovery returned an invalid city result for target %s", target_id
+            )
             summary["errors"] = int(summary["errors"]) + 1
             continue
-        if city_result.get("status") != "complete":
-            summary["errors"] = int(summary["errors"]) + 1
+        city_errors = _result_int(city_result, "errors")
+        if city_result.get("status") != "complete" and city_errors == 0:
+            city_errors = 1
+        summary["errors"] = int(summary["errors"]) + city_errors
         for key in (
             "added_companies",
             "scanned_sources",
