@@ -48,18 +48,30 @@ separate. Create the first account from the Accounts page, select it, and then c
 
 ## Add companies and locations dynamically
 
-There is no place archive or source-seeding command. After selecting an account, open Search and
-enter a company domain. The application fetches the public HTTPS homepage, discovers the company
-name and likely career page, and creates a generic JSON-LD source for that site. Existing domain
-records are reused without fetching the site again.
+There is no place archive or source-seeding command. After selecting an account, create a job
+profile, then open **Where to look**. A profile describes only the jobs to match; company and city
+selection happens once at account level and every enabled profile is applied to every monitored
+company.
 
-For a city or postal code, press Search locations in Search or in a profile location row. The
-default provider is the public Nominatim endpoint. Set `LOCATION_API_URL` to a compatible hosted
-or self-managed endpoint if the deployment needs different capacity or policy controls. Keep the
-identifying `LOCATION_USER_AGENT`, request interval, and visible OpenStreetMap attribution. The
-application caches successful results in PostgreSQL, serializes the default rate limit through
-`LOCATION_RATE_LIMIT_STATE_PATH` across web workers in the same container, and does not run
-autocomplete or bulk imports.
+To add one employer, enter its domain. The application fetches the public HTTPS homepage, discovers
+the company name and likely career page, creates a generic JSON-LD source, and runs the first scan
+before returning to the setup page. Existing domain records are reused without fetching the site
+again.
+
+To find several employers, search for and select a German city or postal code. Nominatim resolves
+the place and caches it in PostgreSQL. The application then uses Overpass to find nearby mapped
+offices, industrial businesses, and company objects that have public website tags. It discovers a
+career source for each readable website and scans newly added sources immediately. Use **Find
+companies again** on a saved city search later when the map data may have changed.
+
+Set `LOCATION_API_URL` and `LOCATION_USER_AGENT` for a hosted or self-managed Nominatim-compatible
+provider. Keep the identifying User-Agent, request interval, and visible OpenStreetMap attribution.
+The location lookup is an explicit search rather than autocomplete or a bulk import. Set
+`COMPANY_LOCATION_API_URL`, `COMPANY_LOCATION_USER_AGENT`, `COMPANY_LOCATION_MAX_RESULTS`,
+`COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS`, `COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS`, and
+`COMPANY_LOCATION_RATE_LIMIT_STATE_PATH` when the default public Overpass endpoint needs different
+capacity or policy controls. The company lookup is bounded because public map data is not a
+complete business directory.
 
 Review the Sources page before the first run. A source is disabled after bot protection is
 detected. Do not bypass that state with proxy rotation or CAPTCHA solving. Unblock it manually
@@ -131,6 +143,10 @@ Common causes:
   reviewing the cause.
 - Location search is unavailable: check outbound HTTPS access, `LOCATION_API_URL`, the provider's
   policy, and the identifying `LOCATION_USER_AGENT`. Previously cached places remain usable.
+- City company discovery is unavailable or finds too few employers: check outbound HTTPS access,
+  `COMPANY_LOCATION_API_URL`, the identifying `COMPANY_LOCATION_USER_AGENT`, and the latest map
+  data. City lookup only returns mapped businesses with public website tags; add an employer's
+  domain directly when necessary.
 
 Never publish PostgreSQL or Redis ports directly to the internet. Put HTTPS and authentication in
 front of the application if it will be reachable beyond a trusted private network.

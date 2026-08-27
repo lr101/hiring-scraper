@@ -12,8 +12,8 @@
       <a class="brand" href="{% url 'jobs:feed' %}">Job Monitor</a>
       <nav aria-label="Main navigation">
         <a href="{% url 'jobs:feed' %}">Feed</a>
-        <a href="{% url 'jobs:search' %}">Search</a>
-        <a href="{% url 'jobs:profile' %}">Profile</a>
+        <a href="{% url 'jobs:profile_list' %}">Job profiles</a>
+        <a href="{% url 'jobs:setup' %}">Where to look</a>
       </nav>
       <form class="account-picker" method="post" action="{% url 'jobs:select_user' %}">
         {% csrf_token %}

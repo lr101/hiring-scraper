@@ -95,6 +95,22 @@ COMPANY_DISCOVERY_TIMEOUT_SECONDS = float(os.getenv("COMPANY_DISCOVERY_TIMEOUT_S
 COMPANY_DISCOVERY_USER_AGENT = os.getenv(
     "COMPANY_DISCOVERY_USER_AGENT", "hiring-scraper/0.1 (self-hosted company discovery)"
 )
+COMPANY_LOCATION_API_URL = os.getenv(
+    "COMPANY_LOCATION_API_URL", "https://overpass-api.de/api/interpreter"
+)
+COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS = float(
+    os.getenv("COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS", "20")
+)
+COMPANY_LOCATION_MAX_RESULTS = int(os.getenv("COMPANY_LOCATION_MAX_RESULTS", "25"))
+COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
+    os.getenv("COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS", "2")
+)
+COMPANY_LOCATION_RATE_LIMIT_STATE_PATH = os.getenv(
+    "COMPANY_LOCATION_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-company-location-rate-limit"
+)
+COMPANY_LOCATION_USER_AGENT = os.getenv(
+    "COMPANY_LOCATION_USER_AGENT", "hiring-scraper/0.1 (self-hosted company lookup)"
+)
 LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
 LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(

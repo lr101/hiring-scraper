@@ -7,11 +7,16 @@ app_name = "jobs"
 urlpatterns = [
     path("", views.home, name="home"),
     path("feed/", views.feed, name="feed"),
-    path("search/", views.search, name="search"),
-    path("search/targets/company/", views.company_target_create, name="company_target_create"),
-    path("search/targets/city/", views.city_target_create, name="city_target_create"),
+    path("setup/", views.setup, name="setup"),
+    path("setup/companies/", views.company_target_create, name="company_target_create"),
+    path("setup/cities/", views.city_target_create, name="city_target_create"),
     path(
-        "search/targets/<int:target_id>/delete/",
+        "setup/cities/<int:target_id>/refresh/",
+        views.city_target_refresh,
+        name="city_target_refresh",
+    ),
+    path(
+        "setup/targets/<int:target_id>/delete/",
         views.monitoring_target_delete,
         name="monitoring_target_delete",
     ),

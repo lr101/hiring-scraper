@@ -5,9 +5,11 @@
 - The service is private, self-hosted, English-only, and intended for a desktop browser.
 - Accounts have no authentication. Shared company and job data must not expose one account's
   profiles, matches, notes, exclusions, or workflow state to another account.
-- Germany is the only country. A profile accepts several cities and a radius for each city.
-- Fully remote Germany jobs match any remote-enabled profile. Hybrid and onsite jobs must have a
-  location within a configured city radius. Unknown locations remain visible with a score penalty.
+- Germany is the only country. Profiles describe jobs to match; account-level city searches define
+  where to find employers and their career sites.
+- Fully remote Germany jobs match any remote-enabled profile. Hybrid and onsite jobs receive the
+  normal known-location score, while unknown locations receive a score penalty. City targets select
+  which company sources are included in an account's feed.
 - Matching is deterministic. Use hard filters and weighted title and skill ranking. Do not use an
   LLM, CV upload, notifications, exports, or expose a product public API. Server-side provider
   calls are allowed for dynamic company and location discovery.
@@ -18,9 +20,9 @@
   fingerprint.
 - Fetch each source daily with a configurable low request rate. Stop and mark a source blocked when
   bot protection appears. Do not implement proxy rotation or CAPTCHA solving.
-- Users add companies by domain. The submitted website is the source of truth for company identity
-  and career discovery; existing specialized adapters remain available for already configured
-  sources.
+- Users add companies by domain or discover mapped businesses near a selected city. The submitted
+  website remains the source of truth for company identity and career discovery; existing
+  specialized adapters remain available for already configured sources.
 - Docker deployment files target an external Docker-capable host. Never install or start Docker in
   this development container.
 - Use test-first development and make a separate Git commit for each completed task.
@@ -45,11 +47,12 @@ generic JSON-LD collector that follows a bounded, same-host HTTPS career-page gr
 fixture-based discovery and collector tests; do not seed a fixed company list or import a company
 archive.
 
-## Task 4: Profile and exclusion interface
+## Task 4: Profile, source setup, and exclusion interface
 
-Build structured create, edit, list, and delete views for profiles, multiple city-radius entries,
-common metadata filters, scoring weights, and explicit exclusion rules. Scope all data to the
-selected account. Re-evaluate open jobs after a saved profile changes.
+Build structured create, edit, list, and delete views for profiles, common metadata filters,
+scoring weights, and explicit exclusion rules. Keep profiles focused on job criteria and put
+company websites and city searches in one account-level setup page. Scope all data to the selected
+account. Re-evaluate open jobs after a saved profile changes.
 
 ## Task 5: Jobs, companies, and run interface
 
@@ -60,5 +63,6 @@ action. Keep account selection on every page.
 ## Task 6: Deployment, operations, and final verification
 
 Complete Docker deployment configuration, health checks, initial account setup, static assets,
-backup and restore instructions, request-rate settings, and production settings. Run all local
-checks, inspect migrations, verify command-line collection with fixtures, and obtain final review.
+backup and restore instructions, Nominatim and Overpass request-rate settings, and production
+settings. Run all local checks, inspect migrations, verify command-line collection with fixtures,
+and obtain final review.

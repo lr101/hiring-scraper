@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import Any, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import BaseInlineFormSet
 
 from .company_discovery import normalize_domain
 from .exclusions import normalize_exclusion_pattern
@@ -21,11 +19,9 @@ from .models import (
     ExclusionRule,
     GermanPlace,
     MonitoringTarget,
-    ProfileLocation,
     SearchProfile,
     WorkspaceUser,
 )
-from .places import format_place_label
 
 
 class WorkspaceUserForm(forms.ModelForm):  # type: ignore[type-arg]
@@ -91,17 +87,64 @@ def _normalized_terms(value: str) -> list[str]:
 
 
 class SearchProfileForm(forms.ModelForm):  # type: ignore[type-arg]
-    included_titles = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
-    excluded_titles = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
-    required_skill_groups = forms.CharField(
-        required=False, widget=forms.Textarea(attrs={"rows": 3})
+    included_titles = forms.CharField(
+        required=False,
+        label="Job titles to include",
+        help_text=(
+            "Use one title per line or separate titles with commas. A job can match any title."
+        ),
+        widget=forms.Textarea(
+            attrs={"rows": 3, "placeholder": "Software Engineer\nBackend Developer"}
+        ),
     )
-    preferred_skills = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
-    excluded_skills = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
-    employment_types = forms.CharField(required=False)
-    departments = forms.CharField(required=False)
-    industries = forms.CharField(required=False)
-    seniority_levels = forms.CharField(required=False)
+    excluded_titles = forms.CharField(
+        required=False,
+        label="Job titles to exclude",
+        help_text="Use one title per line or separate titles with commas.",
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Intern\nWorking student"}),
+    )
+    required_skill_groups = forms.CharField(
+        required=False,
+        label="Required skills",
+        help_text="One alternative group per line. Separate alternatives in a group with commas.",
+        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Python, Django\nAWS, Azure"}),
+    )
+    preferred_skills = forms.CharField(
+        required=False,
+        label="Preferred skills",
+        help_text="Use one skill per line or separate skills with commas.",
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": "Docker, Kubernetes"}),
+    )
+    excluded_skills = forms.CharField(
+        required=False,
+        label="Skills to exclude",
+        help_text="Use one skill per line or separate skills with commas.",
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": "PHP, COBOL"}),
+    )
+    employment_types = forms.CharField(
+        required=False,
+        label="Employment types",
+        help_text="Optional. Separate values with commas.",
+        widget=forms.TextInput(attrs={"placeholder": "Full-time, Part-time"}),
+    )
+    departments = forms.CharField(
+        required=False,
+        label="Departments",
+        help_text="Optional. Separate values with commas.",
+        widget=forms.TextInput(attrs={"placeholder": "Engineering, Product"}),
+    )
+    industries = forms.CharField(
+        required=False,
+        label="Industries",
+        help_text="Optional. Separate values with commas.",
+        widget=forms.TextInput(attrs={"placeholder": "Software, Finance"}),
+    )
+    seniority_levels = forms.CharField(
+        required=False,
+        label="Seniority levels",
+        help_text="Optional. Separate values with commas.",
+        widget=forms.TextInput(attrs={"placeholder": "Junior, Senior"}),
+    )
     maximum_german_level = forms.ChoiceField(required=False, choices=GERMAN_LEVEL_CHOICES)
     minimum_score = forms.IntegerField(
         min_value=MIN_JOB_MATCH_SCORE,
@@ -138,10 +181,18 @@ class SearchProfileForm(forms.ModelForm):  # type: ignore[type-arg]
         ]
         help_texts = {
             "required_skill_groups": (
-                "One alternative group per line. Separate terms in a group with commas."
+                "One alternative group per line. Separate alternatives in a group with commas."
             ),
-            "included_titles": "Separate titles with commas.",
-            "preferred_skills": "Separate terms with commas.",
+            "included_titles": (
+                "Use one title per line or separate titles with commas. A job can match any title."
+            ),
+            "excluded_titles": "Use one title per line or separate titles with commas.",
+            "preferred_skills": "Use one skill per line or separate skills with commas.",
+            "excluded_skills": "Use one skill per line or separate skills with commas.",
+            "employment_types": "Optional. Separate values with commas.",
+            "departments": "Optional. Separate values with commas.",
+            "industries": "Optional. Separate values with commas.",
+            "seniority_levels": "Optional. Separate values with commas.",
         }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -206,64 +257,6 @@ def _json_list_fields() -> tuple[str, ...]:
         "industries",
         "seniority_levels",
     )
-
-
-class GermanPlaceChoiceField(forms.ModelChoiceField):  # type: ignore[type-arg]
-    def label_from_instance(self, place: GermanPlace) -> str:
-        return format_place_label(place)
-
-
-class ProfileLocationForm(forms.ModelForm):  # type: ignore[type-arg]
-    place = GermanPlaceChoiceField(queryset=GermanPlace.objects.none(), required=False)
-    radius_km = forms.IntegerField(min_value=1, max_value=500)
-
-    class Meta:
-        model = ProfileLocation
-        fields = ["place", "radius_km"]
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        allowed_place_ids = kwargs.pop("allowed_place_ids", ())
-        super().__init__(*args, **kwargs)
-        place_field = cast(GermanPlaceChoiceField, self.fields["place"])
-        place_field.queryset = GermanPlace.objects.filter(pk__in=allowed_place_ids)
-
-
-class BaseProfileLocationFormSet(BaseInlineFormSet):  # type: ignore[type-arg]
-    def clean(self) -> None:
-        super().clean()
-        if any(self.errors):
-            return
-        places: set[int] = set()
-        for form in self.forms:
-            if form.cleaned_data.get("DELETE"):
-                continue
-            place = form.cleaned_data.get("place")
-            if place is None:
-                if form.instance.pk is None:
-                    form.cleaned_data["DELETE"] = True
-                    continue
-                form.add_error("place", "Choose a German place or remove this location.")
-                continue
-            if place is not None:
-                if place.pk in places:
-                    raise ValidationError("Choose each German place only once.")
-                places.add(place.pk)
-
-    def selected_places(self) -> Iterable[GermanPlace]:
-        for form in self.forms:
-            place = form.cleaned_data.get("place")
-            if place is not None and not form.cleaned_data.get("DELETE"):
-                yield place
-
-
-ProfileLocationFormSet = forms.inlineformset_factory(
-    SearchProfile,
-    ProfileLocation,
-    form=ProfileLocationForm,
-    formset=BaseProfileLocationFormSet,
-    extra=1,
-    can_delete=True,
-)
 
 
 class ExclusionRuleForm(forms.ModelForm):  # type: ignore[type-arg]

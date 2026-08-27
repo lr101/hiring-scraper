@@ -88,6 +88,13 @@ def test_company_target_uses_the_domain_to_discover_the_company_and_career_sourc
             headers={"content-type": "text/html"},
         )
     )
+    respx.get("https://acme.test/careers").mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "career-page.html").read_text(),
+            headers={"content-type": "text/html"},
+        )
+    )
 
     response = client.post(reverse("jobs:company_target_create"), {"domain": "www.acme.test"})
 
@@ -100,6 +107,8 @@ def test_company_target_uses_the_domain_to_discover_the_company_and_career_sourc
     assert source.source_url == "https://acme.test/careers"
     assert source.config["allowed_hosts"] == ["acme.test", "www.acme.test"]
     assert MonitoringTarget.objects.get(user=user, company=company).kind == "company"
+    assert source.runs.get().status == "success"
+    assert source.jobs.get().title == "Senior Python Engineer"
 
 
 @pytest.mark.django_db
@@ -116,12 +125,19 @@ def test_company_target_reuses_an_existing_company_without_fetching_its_website(
     )
     select_account(client, user)
 
+    respx.get(company.career_url).mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "career-page.html").read_text(),
+        )
+    )
+
     response = client.post(reverse("jobs:company_target_create"), {"domain": "acme.test"})
 
     assert response.status_code == 302
     assert Company.objects.count() == 1
     assert MonitoringTarget.objects.filter(user=user, company=company).exists()
-    assert not respx.calls
+    assert [str(call.request.url) for call in respx.calls] == [company.career_url]
 
 
 @pytest.mark.django_db
@@ -141,11 +157,11 @@ def test_company_target_shows_a_discovery_error_without_creating_records(client:
 
 
 @pytest.mark.django_db
-def test_search_renders_domain_input_and_only_the_new_location_endpoint(client: Client) -> None:
+def test_setup_renders_domain_input_and_only_the_new_location_endpoint(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     select_account(client, user)
 
-    response = client.get(reverse("jobs:search"))
+    response = client.get(reverse("jobs:setup"))
 
     assert response.status_code == 200
     assert b'name="domain"' in response.content
@@ -346,5 +362,14 @@ def test_retired_geo_names_json_endpoint_is_no_longer_routable(client: Client) -
     WorkspaceUser.objects.create(name="Ada")
 
     response = client.get("/places/search.json", {"q": "Berlin"})
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_retired_search_setup_endpoint_is_no_longer_routable(client: Client) -> None:
+    WorkspaceUser.objects.create(name="Ada")
+
+    response = client.get("/search/")
 
     assert response.status_code == 404

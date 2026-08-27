@@ -172,24 +172,27 @@ def _cached_places(query: str, normalized_query: str):  # type: ignore[no-untype
     ).order_by("name", "admin_area", "postal_code")[:50]
 
 
-def _wait_for_provider_rate_limit(min_interval_seconds: float) -> None:
+def _wait_for_provider_rate_limit(
+    min_interval_seconds: float, *, state_path: str | None = None
+) -> None:
     global _last_request_at
     interval = max(0.0, min_interval_seconds)
     if interval == 0:
         return
     with _rate_lock:
         try:
-            state_path = Path(
+            rate_limit_path = Path(
                 str(
-                    getattr(
+                    state_path
+                    or getattr(
                         settings,
                         "LOCATION_RATE_LIMIT_STATE_PATH",
                         "/tmp/hiring-scraper-location-rate-limit",
                     )
                 )
             )
-            state_path.parent.mkdir(parents=True, exist_ok=True)
-            with state_path.open("a+", encoding="ascii") as state_file:
+            rate_limit_path.parent.mkdir(parents=True, exist_ok=True)
+            with rate_limit_path.open("a+", encoding="ascii") as state_file:
                 fcntl.flock(state_file.fileno(), fcntl.LOCK_EX)
                 try:
                     state_file.seek(0)

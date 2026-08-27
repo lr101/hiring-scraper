@@ -14,10 +14,8 @@ from jobs.matching import (
 from jobs.models import (
     CareerSource,
     Company,
-    GermanPlace,
     Job,
     JobMatch,
-    ProfileLocation,
     SearchProfile,
     WorkspaceUser,
 )
@@ -133,9 +131,6 @@ def test_non_eur_salary_does_not_fail_eur_minimum_and_explains_the_gap(currency:
 @pytest.mark.django_db
 def test_remote_jobs_require_remote_enabled_profile_but_ignore_city_radius() -> None:
     profile = make_saved_profile(include_remote=True)
-    make_saved_location(
-        profile=profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=10
-    )
 
     evaluation = evaluate_job(
         job=make_job(remote_type=Job.RemoteType.REMOTE, latitude=53.5511, longitude=9.9937),
@@ -154,11 +149,8 @@ def test_remote_jobs_require_remote_enabled_profile_but_ignore_city_radius() -> 
 
 
 @pytest.mark.django_db
-def test_hybrid_and_onsite_jobs_need_nearby_location_but_keep_unknown_locations_visible() -> None:
+def test_profiles_do_not_filter_by_city_because_cities_are_account_sources() -> None:
     profile = make_saved_profile()
-    make_saved_location(
-        profile=profile, city="Berlin", latitude=52.52, longitude=13.405, radius_km=20
-    )
 
     nearby = evaluate_job(
         job=make_job(remote_type=Job.RemoteType.HYBRID, latitude=52.55, longitude=13.4),
@@ -175,30 +167,11 @@ def test_hybrid_and_onsite_jobs_need_nearby_location_but_keep_unknown_locations_
     )
 
     assert nearby.is_match is True
-    assert too_far.reason == "outside every configured city radius"
-    assert no_radius.reason == "outside every configured city radius"
+    assert too_far.is_match is True
+    assert no_radius.is_match is True
     assert unknown.is_match is True
     assert unknown.score == DEFAULT_WEIGHTS["unknown_location"]
     assert unknown.explanation["location"]["status"] == "unknown"
-
-
-@pytest.mark.django_db
-def test_onsite_job_matches_when_any_configured_city_radius_contains_it() -> None:
-    profile = make_saved_profile()
-    make_saved_location(
-        profile=profile, city="Near but too small", latitude=52.55, longitude=13.405, radius_km=2
-    )
-    make_saved_location(
-        profile=profile, city="Within radius", latitude=52.7, longitude=13.405, radius_km=30
-    )
-
-    evaluation = evaluate_job(
-        job=make_job(remote_type=Job.RemoteType.ONSITE, latitude=52.52, longitude=13.405),
-        profile=profile,
-    )
-
-    assert evaluation.is_match is True
-    assert evaluation.explanation["location"]["city"] == "Within radius"
 
 
 @pytest.mark.parametrize(
@@ -455,17 +428,3 @@ def make_saved_job(**overrides: object) -> Job:
     }
     defaults.update(overrides)
     return Job.objects.create(**defaults)
-
-
-def make_saved_location(
-    *, profile: SearchProfile, city: str, latitude: float, longitude: float, radius_km: int
-) -> ProfileLocation:
-    place = GermanPlace.objects.create(
-        source_id=f"test:{profile.pk}:{city}:{latitude}:{longitude}",
-        name=city,
-        normalized_name=normalize_text(city),
-        latitude=latitude,
-        longitude=longitude,
-        source_kind=GermanPlace.SourceKind.CITY,
-    )
-    return ProfileLocation.objects.create(profile=profile, place=place, radius_km=radius_km)
