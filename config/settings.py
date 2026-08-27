@@ -134,6 +134,25 @@ BA_JOBS_RATE_LIMIT_STATE_PATH = os.getenv(
 BA_JOBS_USER_AGENT = os.getenv(
     "BA_JOBS_USER_AGENT", "hiring-scraper/0.1 (self-hosted BA job discovery)"
 )
+COMMON_CRAWL_INDEX_BASE_URL = os.getenv(
+    "COMMON_CRAWL_INDEX_BASE_URL", "https://index.commoncrawl.org"
+)
+COMMON_CRAWL_SNAPSHOT = os.getenv("COMMON_CRAWL_SNAPSHOT", "")
+COMMON_CRAWL_TIMEOUT_SECONDS = float(os.getenv("COMMON_CRAWL_TIMEOUT_SECONDS", "30"))
+COMMON_CRAWL_VALIDATION_TIMEOUT_SECONDS = float(
+    os.getenv("COMMON_CRAWL_VALIDATION_TIMEOUT_SECONDS", "30")
+)
+COMMON_CRAWL_MAX_RECORDS_PER_QUERY = int(os.getenv("COMMON_CRAWL_MAX_RECORDS_PER_QUERY", "100"))
+COMMON_CRAWL_MAX_PATTERNS = int(os.getenv("COMMON_CRAWL_MAX_PATTERNS", "8"))
+COMMON_CRAWL_MIN_REQUEST_INTERVAL_SECONDS = float(
+    os.getenv("COMMON_CRAWL_MIN_REQUEST_INTERVAL_SECONDS", "1")
+)
+COMMON_CRAWL_RATE_LIMIT_STATE_PATH = os.getenv(
+    "COMMON_CRAWL_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-common-crawl-rate-limit"
+)
+COMMON_CRAWL_USER_AGENT = os.getenv(
+    "COMMON_CRAWL_USER_AGENT", "hiring-scraper/0.1 (self-hosted ATS discovery)"
+)
 LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
 LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
