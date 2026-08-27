@@ -225,9 +225,7 @@ class ATSCollector(HTTPCollector):
             url or self.source_feed_url(), allowed_hosts=self.source_allowed_hosts()
         )
 
-    def post_source(
-        self, url: str, *, json: dict[str, Any], max_redirects: int = 5
-    ) -> Any:
+    def post_source(self, url: str, *, json: dict[str, Any], max_redirects: int = 5) -> Any:
         return self.request_trusted(
             "POST",
             url,
@@ -588,8 +586,10 @@ def _raw_from_xml(
     title = _xml_text(record, *title_names)
     location = _xml_location(record)
     country = _xml_text(record, "country", "countryCode", "country_code")
-    if not external_id or not title or not _has_germany_evidence(
-        location, explicit_countries=(country,)
+    if (
+        not external_id
+        or not title
+        or not _has_germany_evidence(location, explicit_countries=(country,))
     ):
         return None
     city = _xml_text(record, "city") or _city_from_location(location)
@@ -625,8 +625,10 @@ def _raw_from_record(
         or _nested(record, "location", "country")
         or _nested(record, "location", "countryCode")
     )
-    if not external_id or not title or not _has_germany_evidence(
-        location, locations, explicit_countries=(country,)
+    if (
+        not external_id
+        or not title
+        or not _has_germany_evidence(location, locations, explicit_countries=(country,))
     ):
         return None
     location_text = _location_text(location) or _location_text(locations)
@@ -717,9 +719,7 @@ def _location_text(value: Any) -> str:
     return _string(value)
 
 
-def _has_germany_evidence(
-    *values: Any, explicit_countries: tuple[Any, ...] = ()
-) -> bool:
+def _has_germany_evidence(*values: Any, explicit_countries: tuple[Any, ...] = ()) -> bool:
     country_values: list[Any] = list(explicit_countries)
     free_text_values: list[Any] = []
     for value in values:
@@ -728,9 +728,7 @@ def _has_germany_evidence(
             country_values=country_values,
             free_text_values=free_text_values,
         )
-    normalized_countries = [
-        _string(value).casefold() for value in country_values if _string(value)
-    ]
+    normalized_countries = [_string(value).casefold() for value in country_values if _string(value)]
     if normalized_countries:
         return all(value in _GERMAN_COUNTRY_VALUES for value in normalized_countries)
     return any(_free_text_has_germany(value) for value in free_text_values)
