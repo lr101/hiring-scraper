@@ -1,1 +1,1 @@
-{"jobs":[{"id":"dover-de","name":"Dover role","location":"Dover, DE"},{"id":"berlin-explicit-de","name":"Berlin role","location":{"city":"Berlin","countryCode":"DE"}}]}
+{"jobs":[{"id":"dover-de","name":"Dover role","location":"Dover, DE"},{"id":"berlin-explicit-de","name":"Berlin role","location":{"city":"Berlin","countryCode":"DE"}},{"id":"delaware-state","name":"Delaware role","location":{"city":"Dover","state":"DE","country":"United States"}},{"id":"new-germany-canada","name":"New Germany role","location":{"city":"New Germany","country":"Canada"}}]}

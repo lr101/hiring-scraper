@@ -38,6 +38,22 @@ _PERSONIO_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.jobs\.personio\.
 _RECRUITEE_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.recruitee\.com\Z")
 _WORKDAY_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.wd[0-9]+\.myworkdayjobs\.com\Z")
 _SUCCESSFACTORS_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.successfactors\.com\Z")
+_GERMAN_COUNTRY_VALUES = {"de", "deu", "germany", "deutschland"}
+_COUNTRY_FIELD_NAMES = {"country", "countrycode", "country_code", "land", "addresscountry"}
+_NON_GERMAN_COUNTRY_NAMES = {
+    "australia",
+    "austria",
+    "canada",
+    "france",
+    "india",
+    "italy",
+    "netherlands",
+    "poland",
+    "spain",
+    "switzerland",
+    "united kingdom",
+    "united states",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -209,9 +225,15 @@ class ATSCollector(HTTPCollector):
             url or self.source_feed_url(), allowed_hosts=self.source_allowed_hosts()
         )
 
-    def post_source(self, url: str, *, json: dict[str, Any]) -> Any:
+    def post_source(
+        self, url: str, *, json: dict[str, Any], max_redirects: int = 5
+    ) -> Any:
         return self.request_trusted(
-            "POST", url, allowed_hosts=self.source_allowed_hosts(), json=json
+            "POST",
+            url,
+            allowed_hosts=self.source_allowed_hosts(),
+            json=json,
+            max_redirects=max_redirects,
         )
 
 
@@ -453,6 +475,8 @@ class WorkdayCollector(ATSCollector):
         jobs: list[RawJob] = []
         offset = 0
         is_complete = False
+        first_total: int | None = None
+        total_initialized = False
         try:
             for _ in range(_max_pages(self.source)):
                 payload = _json_payload(
@@ -464,6 +488,7 @@ class WorkdayCollector(ATSCollector):
                             "offset": offset,
                             "searchText": "",
                         },
+                        max_redirects=0,
                     ).text,
                     "Workday",
                 )
@@ -483,6 +508,13 @@ class WorkdayCollector(ATSCollector):
                         jobs.append(
                             replace(raw, canonical_url=canonical_url, application_url=canonical_url)
                         )
+                page_total = _payload_total(payload)
+                if not total_initialized:
+                    first_total = page_total
+                    total_initialized = True
+                elif page_total != first_total:
+                    is_complete = False
+                    break
                 offset += len(records)
                 has_more = _payload_has_more(payload, returned=offset) or (
                     len(records) >= self.page_size and bool(records)
@@ -556,7 +588,9 @@ def _raw_from_xml(
     title = _xml_text(record, *title_names)
     location = _xml_location(record)
     country = _xml_text(record, "country", "countryCode", "country_code")
-    if not external_id or not title or not _has_germany_evidence(location, country):
+    if not external_id or not title or not _has_germany_evidence(
+        location, explicit_countries=(country,)
+    ):
         return None
     city = _xml_text(record, "city") or _city_from_location(location)
     url = _xml_text(record, "url", "careers_url", "jobUrl", "job_url")
@@ -591,7 +625,9 @@ def _raw_from_record(
         or _nested(record, "location", "country")
         or _nested(record, "location", "countryCode")
     )
-    if not external_id or not title or not _has_germany_evidence(location, locations, country):
+    if not external_id or not title or not _has_germany_evidence(
+        location, locations, explicit_countries=(country,)
+    ):
         return None
     location_text = _location_text(location) or _location_text(locations)
     city = _string(_nested(record, "location", "city")) or _city_from_location(location_text)
@@ -681,22 +717,57 @@ def _location_text(value: Any) -> str:
     return _string(value)
 
 
-def _has_germany_evidence(*values: Any) -> bool:
+def _has_germany_evidence(
+    *values: Any, explicit_countries: tuple[Any, ...] = ()
+) -> bool:
+    country_values: list[Any] = list(explicit_countries)
+    free_text_values: list[Any] = []
     for value in values:
-        if isinstance(value, dict):
-            if _has_germany_evidence(*value.values()):
-                return True
-            continue
-        if isinstance(value, list):
-            if _has_germany_evidence(*value):
-                return True
-            continue
-        normalized = _string(value).casefold()
-        if normalized in {"de", "deu", "germany", "deutschland"}:
-            return True
-        if "germany" in normalized or "deutschland" in normalized:
-            return True
-    return False
+        _collect_location_evidence(
+            value,
+            country_values=country_values,
+            free_text_values=free_text_values,
+        )
+    normalized_countries = [
+        _string(value).casefold() for value in country_values if _string(value)
+    ]
+    if normalized_countries:
+        return all(value in _GERMAN_COUNTRY_VALUES for value in normalized_countries)
+    return any(_free_text_has_germany(value) for value in free_text_values)
+
+
+def _collect_location_evidence(
+    value: Any, *, country_values: list[Any], free_text_values: list[Any]
+) -> None:
+    if isinstance(value, dict):
+        for key, nested_value in value.items():
+            if _string(key).casefold() in _COUNTRY_FIELD_NAMES:
+                country_values.append(nested_value)
+            else:
+                _collect_location_evidence(
+                    nested_value,
+                    country_values=country_values,
+                    free_text_values=free_text_values,
+                )
+    elif isinstance(value, list):
+        for item in value:
+            _collect_location_evidence(
+                item,
+                country_values=country_values,
+                free_text_values=free_text_values,
+            )
+    else:
+        free_text_values.append(value)
+
+
+def _free_text_has_germany(value: Any) -> bool:
+    normalized = _string(value).casefold()
+    if not normalized:
+        return False
+    parts = [part.strip() for part in re.split(r"[,;/|]", normalized)]
+    if any(part in _NON_GERMAN_COUNTRY_NAMES for part in parts):
+        return False
+    return any(part in {"germany", "deutschland"} for part in parts)
 
 
 def _city_from_location(value: str) -> str:
@@ -943,9 +1014,16 @@ def _payload_is_complete(
 
 
 def _payload_has_more(payload: dict[str, Any] | list[Any], *, returned: int) -> bool:
+    total = _payload_total(payload)
+    if total is not None and returned < total:
+        return True
+    return _pagination_continuation(payload) is not None
+
+
+def _payload_total(payload: dict[str, Any] | list[Any]) -> int | None:
     for values in _pagination_metadata(payload):
         for key in ("total", "totalCount", "total_count", "totalFound"):
             total = _integer(values.get(key))
-            if total is not None and returned < total:
-                return True
-    return _pagination_continuation(payload) is not None
+            if total is not None:
+                return total
+    return None

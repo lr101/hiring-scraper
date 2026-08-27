@@ -437,6 +437,28 @@ def test_workday_rejects_an_evil_redirect_before_requesting_it() -> None:
     ]
 
 
+def test_workday_does_not_follow_a_same_host_redirect() -> None:
+    requests: list[httpx.Request] = []
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(
+            302,
+            headers={"location": str(request.url)},
+            request=request,
+        )
+
+    collector = WorkdayCollector(
+        source("workday", "https://acme.wd5.myworkdayjobs.com/en-US/Acme"),
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+    )
+
+    with pytest.raises(httpx.TooManyRedirects):
+        collector.collect()
+
+    assert len(requests) == 1
+
+
 @pytest.mark.parametrize(
     ("class_name", "kind", "fixture_name", "source_url", "external_id", "city"),
     [
@@ -664,6 +686,22 @@ def test_workday_marks_a_full_page_without_completion_evidence_as_incomplete() -
             max_pages=1,
         ),
         client=fixture_client("workday-capped-full.json"),
+    ).collect()
+
+    assert len(result.raw_jobs) == 20
+    assert result.is_complete is False
+
+
+def test_workday_marks_changed_pagination_totals_as_incomplete() -> None:
+    result = WorkdayCollector(
+        source(
+            "workday",
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme",
+            max_pages=2,
+        ),
+        client=fixture_sequence_client(
+            ["workday-page-1.json", "workday-total-shift-page-2.json"], requests=[]
+        ),
     ).collect()
 
     assert len(result.raw_jobs) == 20
