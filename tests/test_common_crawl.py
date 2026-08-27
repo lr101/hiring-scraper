@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 
 import httpx
@@ -72,6 +73,42 @@ def test_common_crawl_discovers_deduplicated_known_ats_tenants_from_bounded_quer
     assert all(request.url.params["limit"] == "5" for request in requests[1:])
 
 
+def test_common_crawl_keeps_workday_boards_with_the_same_tenant_separate() -> None:
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            text=(FIXTURES / "workday-multi-board-index.jsonl").read_text(),
+            request=request,
+        )
+
+    client = CommonCrawlIndexClient(
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+        index_base_url="https://index.commoncrawl.test",
+        max_records_per_query=5,
+        min_interval_seconds=0,
+    )
+
+    descriptors = client.discover(
+        snapshot="CC-MAIN-2026-30",
+        patterns=("*.myworkdayjobs.com/*",),
+    )
+
+    assert [
+        (descriptor.kind, descriptor.tenant, descriptor.source_url) for descriptor in descriptors
+    ] == [
+        (
+            "workday",
+            "acme",
+            "https://acme.wd1.myworkdayjobs.com/wday/cxs/acme/External/jobs",
+        ),
+        (
+            "workday",
+            "acme",
+            "https://acme.wd1.myworkdayjobs.com/wday/cxs/acme/Students/jobs",
+        ),
+    ]
+
+
 def test_public_ats_feed_validator_accepts_only_a_live_recognized_feed() -> None:
     descriptors = (
         ATSTenantDescriptor(
@@ -137,6 +174,107 @@ def test_public_ats_feed_validator_requires_the_recognized_xml_shape() -> None:
 
     assert validator.validate(descriptors[0]) is True
     assert validator.validate(descriptors[1]) is False
+
+
+def test_public_ats_feed_validator_matches_each_json_collector_shape() -> None:
+    cases = {
+        "api.softgarden.io": ("softgarden", "softgarden.json"),
+        "jobs.dvinci.com": ("dvinci", "dvinci.json"),
+        "api.prescreen.io": ("onlyfy", "onlyfy.json"),
+        "boards-api.greenhouse.io": ("greenhouse", "greenhouse.json"),
+        "api.lever.co": ("lever", "lever.json"),
+        "api.ashbyhq.com": ("ashby", "ashby.json"),
+    }
+    descriptors = tuple(
+        ATSTenantDescriptor(
+            kind=kind,
+            tenant="acme",
+            source_url={
+                "softgarden": "https://api.softgarden.io/v1/companies/acme/jobs",
+                "dvinci": "https://jobs.dvinci.com/acme/jobs.json",
+                "onlyfy": "https://api.prescreen.io/api/v1/companies/acme/jobs",
+                "greenhouse": "https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true",
+                "lever": "https://api.lever.co/v0/postings/acme?mode=json",
+                "ashby": "https://api.ashbyhq.com/posting-api/job-board/acme",
+            }[kind],
+            evidence_urls=(),
+            snapshot="CC-MAIN-2026-30",
+        )
+        for kind, _fixture in cases.values()
+    )
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        kind, fixture_name = cases[request.url.host]
+        del kind
+        return httpx.Response(
+            200,
+            text=(Path(__file__).parent / "fixtures" / "ats" / fixture_name).read_text(),
+            request=request,
+        )
+
+    validator = PublicATSFeedValidator(
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+        min_interval_seconds=0,
+    )
+
+    assert all(validator.validate(descriptor) for descriptor in descriptors)
+
+
+def test_common_crawl_default_patterns_cover_all_public_feed_families() -> None:
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            text=(FIXTURES / "all-providers-index.jsonl").read_text(),
+            request=request,
+        )
+
+    client = CommonCrawlIndexClient(
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+        index_base_url="https://index.commoncrawl.test",
+        max_records_per_query=20,
+        max_patterns=12,
+        min_interval_seconds=0,
+    )
+
+    descriptors = client.discover(snapshot="CC-MAIN-2026-30")
+
+    assert {descriptor.kind for descriptor in descriptors} == {
+        "personio",
+        "greenhouse",
+        "lever",
+        "ashby",
+        "smartrecruiters",
+        "workable",
+        "recruitee",
+        "workday",
+        "softgarden",
+        "dvinci",
+        "onlyfy",
+        "successfactors",
+    }
+
+
+def test_common_crawl_does_not_consume_patterns_past_the_configured_bound() -> None:
+    consumed: list[str] = []
+
+    def patterns() -> Iterable[str]:
+        for value in ("one", "two", "three"):
+            consumed.append(value)
+            yield value
+
+    def respond(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="", request=request)
+
+    client = CommonCrawlIndexClient(
+        client=httpx.Client(transport=httpx.MockTransport(respond)),
+        index_base_url="https://index.commoncrawl.test",
+        max_patterns=2,
+        min_interval_seconds=0,
+    )
+
+    client.discover(snapshot="CC-MAIN-2026-30", patterns=patterns())
+
+    assert consumed == ["one", "two"]
 
 
 def test_common_crawl_validates_each_discovered_feed_before_returning_it() -> None:

@@ -6,6 +6,7 @@ import json
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
+from itertools import islice
 from types import SimpleNamespace
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -32,6 +33,7 @@ from .collectors.ats import (
     ashby_feed_url,
     fingerprint_ats_url,
     normalize_ats_tenant,
+    onlyfy_feed_url,
     smartrecruiters_feed_url,
     workable_feed_url,
 )
@@ -40,7 +42,7 @@ from .network import UnsafeNetworkAddress, validate_public_hostname
 
 DEFAULT_INDEX_BASE_URL = "https://index.commoncrawl.org"
 DEFAULT_MAX_RECORDS_PER_QUERY = 100
-DEFAULT_MAX_PATTERNS = 8
+DEFAULT_MAX_PATTERNS = 12
 DEFAULT_PATTERNS = (
     "*.jobs.personio.de/*",
     "boards.greenhouse.io/*",
@@ -50,6 +52,10 @@ DEFAULT_PATTERNS = (
     "apply.workable.com/*",
     "*.recruitee.com/*",
     "*.myworkdayjobs.com/*",
+    "api.softgarden.io/*",
+    "jobs.dvinci.com/*",
+    "api.prescreen.io/*",
+    "*.successfactors.com/*",
 )
 
 _SNAPSHOT_PATTERN = re.compile(r"CC-MAIN-[0-9]{4}-[0-9]{2}\Z")
@@ -154,8 +160,8 @@ class CommonCrawlIndexClient:
             if configured_snapshot
             else self._current_snapshot()
         )
-        selected_patterns = tuple(patterns) if patterns is not None else DEFAULT_PATTERNS
-        selected_patterns = selected_patterns[: self.max_patterns]
+        pattern_source = patterns if patterns is not None else DEFAULT_PATTERNS
+        selected_patterns = tuple(islice(pattern_source, self.max_patterns))
         descriptors: dict[tuple[str, str], ATSTenantDescriptor] = {}
         for pattern in selected_patterns:
             for record in self._query(snapshot_id, pattern):
@@ -165,7 +171,7 @@ class CommonCrawlIndexClient:
                 descriptor = _descriptor_from_url(url, snapshot=snapshot_id)
                 if descriptor is None:
                     continue
-                key = (descriptor.kind, descriptor.tenant)
+                key = (descriptor.kind, descriptor.source_url)
                 existing = descriptors.get(key)
                 if existing is None:
                     descriptors[key] = descriptor
@@ -352,9 +358,30 @@ def _descriptor_from_url(url: str, *, snapshot: str) -> ATSTenantDescriptor | No
     except ValueError:
         return None
     host = (parsed.hostname or "").casefold()
+    path = [part for part in parsed.path.split("/") if part]
     if parsed.scheme != "https" or parsed.username or parsed.password or port is not None:
         return None
 
+    if (
+        host == "api.softgarden.io"
+        and len(path) == 4
+        and path[:2] == ["v1", "companies"]
+        and path[3] == "jobs"
+    ):
+        return _descriptor(
+            SOFTGARDEN,
+            path[2],
+            lambda tenant: f"https://api.softgarden.io/v1/companies/{tenant}/jobs",
+            url,
+            snapshot,
+        )
+    if (
+        host == "api.prescreen.io"
+        and len(path) == 5
+        and path[:3] == ["api", "v1", "companies"]
+        and path[4] == "jobs"
+    ):
+        return _descriptor(ONLYFY, path[3], onlyfy_feed_url, url, snapshot)
     if host == "jobs.smartrecruiters.com":
         return _descriptor(
             SMARTRECRUITERS, _first_path_part(parsed.path), smartrecruiters_feed_url, url, snapshot
@@ -373,7 +400,17 @@ def _descriptor_from_url(url: str, *, snapshot: str) -> ATSTenantDescriptor | No
             url,
             snapshot,
         )
+    if host.endswith(".successfactors.com") and host.count(".") == 2 and path:
+        return _descriptor(
+            SUCCESSFACTORS,
+            host.removesuffix(".successfactors.com"),
+            lambda tenant: f"https://{tenant}.successfactors.com/jobs.xml",
+            url,
+            snapshot,
+        )
     fingerprint = fingerprint_ats_url(url)
+    if fingerprint is None and host.endswith(".myworkdayjobs.com"):
+        fingerprint = _fingerprint_workday_board(host=host, path=path)
     if fingerprint is None:
         return None
     return ATSTenantDescriptor(
@@ -383,6 +420,21 @@ def _descriptor_from_url(url: str, *, snapshot: str) -> ATSTenantDescriptor | No
         evidence_urls=(url,),
         snapshot=snapshot,
     )
+
+
+def _fingerprint_workday_board(
+    *,
+    host: str,
+    path: list[str],
+) -> Any | None:
+    for length in (3, 2, 1):
+        if len(path) < length:
+            continue
+        board_url = urlunsplit(("https", host, "/" + "/".join(path[:length]), "", ""))
+        fingerprint = fingerprint_ats_url(board_url)
+        if fingerprint is not None:
+            return fingerprint
+    return None
 
 
 def _descriptor(
@@ -430,7 +482,13 @@ def _parse_index_line(line: str) -> dict[str, Any] | None:
 
 
 def _valid_feed_body(kind: str, body: str) -> bool:
-    if kind in {PERSONIO, RECRUITEE, SUCCESSFACTORS, DVINCI}:
+    if kind in {PERSONIO, RECRUITEE, SUCCESSFACTORS}:
+        try:
+            root = ElementTree.fromstring(body)
+        except ElementTree.ParseError:
+            return False
+        return _xml_local_name(root.tag).casefold() in _XML_FEED_ROOTS[kind]
+    if kind == DVINCI and body.lstrip().startswith("<"):
         try:
             root = ElementTree.fromstring(body)
         except ElementTree.ParseError:
@@ -446,7 +504,9 @@ def _valid_feed_body(kind: str, body: str) -> bool:
         return isinstance(payload, dict) and isinstance(payload.get("content"), list)
     if kind == WORKABLE:
         return isinstance(payload, dict) and isinstance(payload.get("results"), list)
-    if kind in {SOFTGARDEN, ONLYFY, GREENHOUSE, ASHBY, LEVER}:
+    if kind in {SOFTGARDEN, ONLYFY, GREENHOUSE, ASHBY, DVINCI}:
+        return isinstance(payload, dict) and isinstance(payload.get("jobs"), list)
+    if kind == LEVER:
         return isinstance(payload, list) or (
             isinstance(payload, dict) and isinstance(payload.get("jobs"), list)
         )
