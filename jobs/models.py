@@ -17,7 +17,7 @@ class WorkspaceUser(models.Model):
 
 class Company(models.Model):
     name = models.CharField(max_length=200)
-    domain = models.CharField(max_length=253)
+    domain = models.CharField(max_length=253, unique=True)
     career_url = models.URLField(max_length=1000, unique=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -154,7 +154,7 @@ class SearchProfile(models.Model):
 
 
 class GermanPlace(models.Model):
-    """A locally imported GeoNames place that can anchor a profile radius."""
+    """A cached location-provider result that can anchor a profile radius."""
 
     class SourceKind(models.TextChoices):
         CITY = "city", "City"

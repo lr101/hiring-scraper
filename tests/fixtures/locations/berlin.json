@@ -1,0 +1,18 @@
+[
+  {
+    "place_id": 2950159,
+    "licence": "Data from OpenStreetMap contributors",
+    "osm_type": "node",
+    "osm_id": 2950159,
+    "lat": "52.520008",
+    "lon": "13.404954",
+    "display_name": "Berlin, Deutschland",
+    "type": "city",
+    "address": {
+      "city": "Berlin",
+      "state": "Berlin",
+      "country": "Deutschland",
+      "country_code": "de"
+    }
+  }
+]

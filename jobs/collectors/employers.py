@@ -1,11 +1,13 @@
-"""Adapters for the first five German company career sites.
+"""Adapters for discovered and built-in German company career sites.
 
-These sites do not share one ATS API. The adapters keep their site-specific parsing here and use
-the common ``HTTPCollector`` boundary for rate limiting and bot-protection handling.
+Career sites do not share one ATS API. The adapters keep site-specific parsing here, while the
+generic JSON-LD adapter handles domains added through the UI. All adapters use the common
+``HTTPCollector`` boundary for rate limiting and bot-protection handling.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from collections.abc import Iterable
@@ -14,7 +16,7 @@ from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 from xml.etree import ElementTree
 
 import httpx
@@ -29,6 +31,7 @@ from jobs.collectors import (
     SourceLike,
     UnsafeDetailUrl,
 )
+from jobs.structured_data import extract_links, iter_json_ld_objects
 
 SIEMENS_FEED_URL = "https://jobs.siemens.com/en_US/externaljobs/SearchJobs/feed/"
 BOSCH_LIST_URL = "https://jobs.bosch.de/api/filter/query"
@@ -413,8 +416,60 @@ class DhlPhenomCollector(HTTPCollector):
         )
 
 
+class JsonLdCareerCollector(HTTPCollector):
+    """Collect JobPosting records from a discovered career page and its job links."""
+
+    def collect(self) -> CollectionResult:
+        jobs: list[RawJob] = []
+        pending_urls = [self.source.source_url]
+        visited_urls: set[str] = set()
+        seen_external_ids: set[str] = set()
+        is_complete = True
+        saw_job_posting = False
+        allowed_hosts = _json_ld_allowed_hosts(self.source)
+        try:
+            while pending_urls and len(visited_urls) < _max_pages(self.source):
+                page_url = pending_urls.pop(0)
+                if page_url in visited_urls:
+                    continue
+                visited_urls.add(page_url)
+                try:
+                    response = self.fetch_trusted(page_url, allowed_hosts=allowed_hosts)
+                except BotProtectionDetected:
+                    raise
+                except (httpx.HTTPError, UnsafeDetailUrl, ValueError):
+                    is_complete = False
+                    continue
+                postings = _json_ld_postings(response.text)
+                page_jobs = _raw_jobs_from_postings(
+                    postings, page_url=page_url, allowed_hosts=allowed_hosts
+                )
+                saw_job_posting = (
+                    saw_job_posting
+                    or bool(page_jobs)
+                    or any(_posting_has_country_evidence(posting) for posting in postings)
+                )
+                for raw_job in page_jobs:
+                    if raw_job.external_id not in seen_external_ids:
+                        seen_external_ids.add(raw_job.external_id)
+                        jobs.append(raw_job)
+                for candidate_url in _json_ld_job_links(
+                    response.text, base_url=page_url, allowed_hosts=allowed_hosts
+                ):
+                    if candidate_url not in visited_urls and candidate_url not in pending_urls:
+                        pending_urls.append(candidate_url)
+            if pending_urls or not saw_job_posting:
+                is_complete = False
+        finally:
+            self.close()
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
+        )
+
+
 def register_employer_collectors(registry: CollectorRegistry) -> None:
-    """Register the initial company adapters with a collection registry."""
+    """Register the built-in and discovered career-site adapters."""
+    registry.register("json_ld", JsonLdCareerCollector)
     registry.register("siemens_avature", SiemensAvatureCollector)
     registry.register("bosch_smartrecruiters", BoschSmartRecruitersCollector)
     registry.register("sap_successfactors", SapSuccessFactorsCollector)
@@ -422,29 +477,104 @@ def register_employer_collectors(registry: CollectorRegistry) -> None:
     registry.register("dhl_phenom", DhlPhenomCollector)
 
 
-class _JsonLdParser(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__()
-        self._in_json_ld = False
-        self._parts: list[str] = []
-        self.documents: list[str] = []
+def _json_ld_jobs(html: str, *, page_url: str, allowed_hosts: frozenset[str]) -> list[RawJob]:
+    return _raw_jobs_from_postings(
+        _json_ld_postings(html), page_url=page_url, allowed_hosts=allowed_hosts
+    )
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag != "script":
-            return
-        attributes = {key.casefold(): (value or "").casefold() for key, value in attrs}
-        if attributes.get("type") == "application/ld+json":
-            self._in_json_ld = True
-            self._parts = []
 
-    def handle_data(self, data: str) -> None:
-        if self._in_json_ld:
-            self._parts.append(data)
+def _json_ld_postings(html: str) -> list[dict[str, Any]]:
+    postings: list[dict[str, Any]] = []
+    for posting in iter_json_ld_objects(html):
+        posting_type = posting.get("@type")
+        types = posting_type if isinstance(posting_type, list) else [posting_type]
+        if any(isinstance(value, str) and value.casefold() == "jobposting" for value in types):
+            if _string(posting.get("title")):
+                postings.append(posting)
+    return postings
 
-    def handle_endtag(self, tag: str) -> None:
-        if tag == "script" and self._in_json_ld:
-            self.documents.append("".join(self._parts))
-            self._in_json_ld = False
+
+def _posting_has_country_evidence(posting: dict[str, Any]) -> bool:
+    return any(country for _, _, country, _, _ in _posting_locations(posting))
+
+
+def _raw_jobs_from_postings(
+    postings: Iterable[dict[str, Any]],
+    *,
+    page_url: str,
+    allowed_hosts: frozenset[str],
+) -> list[RawJob]:
+    jobs: list[RawJob] = []
+    for posting in postings:
+        title = _string(posting.get("title"))
+        if not title:
+            continue
+        canonical_url = (
+            _safe_job_url(
+                _string(posting.get("url")),
+                base_url=page_url,
+                allowed_hosts=allowed_hosts,
+                require_https=True,
+            )
+            or page_url
+        )
+        posting = {**posting, "url": canonical_url}
+        external_id = _posting_external_id(posting, canonical_url=canonical_url, title=title)
+        raw_job = _raw_from_job_posting(
+            external_id=external_id,
+            canonical_url=canonical_url,
+            title=title,
+            posting=posting,
+            default_location="",
+            require_country_evidence=True,
+        )
+        if raw_job is not None:
+            jobs.append(raw_job)
+    return jobs
+
+
+def _json_ld_job_links(html: str, *, base_url: str, allowed_hosts: frozenset[str]) -> list[str]:
+    candidates: list[str] = []
+    terms = ("job", "career", "vacanc", "position", "opening", "stellen", "karriere")
+    for href, text in extract_links(html):
+        candidate = urljoin(base_url, href)
+        parsed = urlsplit(candidate)
+        host = parsed.hostname.casefold() if parsed.hostname else ""
+        haystack = f"{href} {text}".casefold()
+        if (
+            parsed.scheme.casefold() == "https"
+            and host in allowed_hosts
+            and not parsed.username
+            and not parsed.password
+            and any(term in haystack for term in terms)
+        ):
+            candidates.append(
+                urlunsplit(("https", parsed.netloc, parsed.path or "/", parsed.query, ""))
+            )
+    return candidates
+
+
+def _json_ld_allowed_hosts(source: SourceLike) -> frozenset[str]:
+    hosts: set[str] = set()
+    source_host = urlsplit(source.source_url).hostname
+    if source_host:
+        hosts.add(source_host.casefold())
+    configured_hosts = source.config.get("allowed_hosts")
+    if isinstance(configured_hosts, list):
+        hosts.update(value.casefold() for value in configured_hosts if isinstance(value, str))
+    if not hosts:
+        raise ValueError("JSON-LD source URL must contain a host.")
+    return frozenset(hosts)
+
+
+def _posting_external_id(posting: dict[str, Any], *, canonical_url: str, title: str) -> str:
+    identifier = posting.get("identifier")
+    if isinstance(identifier, dict):
+        identifier = identifier.get("value") or identifier.get("name")
+    if isinstance(identifier, str) and identifier.strip():
+        return identifier.strip()[:300]
+    identity = f"{canonical_url}\x1f{title}"
+    return hashlib.sha256(identity.encode()).hexdigest()
 
 
 class _SapListParser(HTMLParser):
@@ -604,18 +734,11 @@ def _response_json(response: httpx.Response, source_name: str) -> dict[str, Any]
 
 
 def _job_posting(html: str) -> dict[str, Any]:
-    parser = _JsonLdParser()
-    parser.feed(html)
-    for document in parser.documents:
-        try:
-            parsed = json.loads(document)
-        except json.JSONDecodeError:
-            continue
-        for value in _walk_json_ld(parsed):
-            job_type = value.get("@type")
-            types = job_type if isinstance(job_type, list) else [job_type]
-            if "JobPosting" in types:
-                return value
+    for value in iter_json_ld_objects(html):
+        job_type = value.get("@type")
+        types = job_type if isinstance(job_type, list) else [job_type]
+        if any(isinstance(item, str) and item.casefold() == "jobposting" for item in types):
+            return value
     microdata_parser = _MicrodataParser()
     microdata_parser.feed(html)
     for item in _microdata_items(microdata_parser.root):
@@ -623,18 +746,6 @@ def _job_posting(html: str) -> dict[str, Any]:
         if "schema.org/jobposting" in item_type:
             return _microdata_job_posting(item)
     return {}
-
-
-def _walk_json_ld(value: Any) -> Iterable[dict[str, Any]]:
-    if isinstance(value, dict):
-        yield value
-        graph = value.get("@graph")
-        if isinstance(graph, list):
-            for item in graph:
-                yield from _walk_json_ld(item)
-    elif isinstance(value, list):
-        for item in value:
-            yield from _walk_json_ld(item)
 
 
 def _microdata_items(node: _HtmlNode) -> Iterable[_HtmlNode]:
@@ -732,7 +843,11 @@ def _raw_from_job_posting(
     posting: dict[str, Any],
     default_location: str,
     defaults: dict[str, Any] | None = None,
+    require_country_evidence: bool = False,
 ) -> RawJob | None:
+    canonical_url = _safe_job_url(canonical_url, base_url=canonical_url)
+    if not canonical_url:
+        return None
     values = defaults or {}
     detail_locations = _posting_locations(posting)
     german_locations = [location for location in detail_locations if _is_german(location[2])]
@@ -743,7 +858,9 @@ def _raw_from_job_posting(
     if german_locations:
         city, state, _, latitude, longitude = german_locations[0]
         locations = [_format_location(location) for location in german_locations]
-    elif any(country for _, _, country, _, _ in detail_locations) and not default_is_german:
+    elif require_country_evidence or (
+        any(country for _, _, country, _, _ in detail_locations) and not default_is_german
+    ):
         return None
     else:
         city = _city_from_location(default_location)
@@ -758,7 +875,9 @@ def _raw_from_job_posting(
     return RawJob(
         external_id=external_id,
         canonical_url=canonical_url,
-        application_url=_string(posting.get("url")),
+        application_url=(
+            _safe_job_url(_string(posting.get("url")), base_url=canonical_url) or canonical_url
+        ),
         title=resolved_title,
         description_html=_string(posting.get("description")),
         city=location,
@@ -792,7 +911,7 @@ def _posting_locations(
             (
                 _string(address_data.get("addressLocality")),
                 _string(address_data.get("addressRegion")),
-                _string(address_data.get("addressCountry")),
+                _country_text(address_data.get("addressCountry")),
                 _float_or_none(geo_data.get("latitude")),
                 _float_or_none(geo_data.get("longitude")),
             )
@@ -910,6 +1029,35 @@ def _absolute_url(value: str, base: str) -> str:
     return urljoin(base, value) if value else ""
 
 
+def _safe_job_url(
+    value: str,
+    *,
+    base_url: str,
+    allowed_hosts: frozenset[str] | None = None,
+    require_https: bool = False,
+) -> str:
+    if not value:
+        return ""
+    try:
+        parsed = urlsplit(urljoin(base_url, value))
+        port = parsed.port
+    except ValueError:
+        return ""
+    scheme = parsed.scheme.casefold()
+    host = parsed.hostname.casefold() if parsed.hostname else ""
+    if (
+        scheme not in {"http", "https"}
+        or (require_https and scheme != "https")
+        or not host
+        or parsed.username
+        or parsed.password
+        or port is not None
+        or (allowed_hosts is not None and host not in allowed_hosts)
+    ):
+        return ""
+    return urlunsplit((scheme, parsed.netloc, parsed.path or "/", parsed.query, ""))
+
+
 def _path_id(url: str) -> str:
     parts = [part for part in url.rstrip("/").split("/") if part]
     return parts[-1] if parts else ""
@@ -931,9 +1079,18 @@ def _parse_date(value: str) -> datetime | None:
 
 
 def _float_or_none(value: Any) -> float | None:
-    if isinstance(value, int | float):
+    if isinstance(value, bool):
+        return None
+    try:
         return float(value)
-    return None
+    except (TypeError, ValueError):
+        return None
+
+
+def _country_text(value: Any) -> str:
+    if isinstance(value, dict):
+        return _string(value.get("name")) or _string(value.get("identifier"))
+    return _string(value)
 
 
 def _is_german(value: Any) -> bool:

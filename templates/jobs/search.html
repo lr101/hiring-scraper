@@ -13,7 +13,8 @@
       <h2>Add company</h2>
       <form method="post" action="{% url 'jobs:company_target_create' %}">
         {% csrf_token %}
-        {{ company_form.as_p }}
+        {{ company_form.non_field_errors }}
+        <p>{{ company_form.domain.label_tag }}{{ company_form.domain }}{{ company_form.domain.errors }}<span class="helptext">{{ company_form.domain.help_text }}</span></p>
         <button type="submit">Add company</button>
       </form>
     </section>
@@ -22,11 +23,13 @@
       <form method="post" action="{% url 'jobs:city_target_create' %}">
         {% csrf_token %}
         {{ city_form.place }}{{ city_form.place.errors }}
-        <p>{{ city_form.place_query.label_tag }}{{ city_form.place_query }}{{ city_form.place_query.errors }}<datalist id="city-place-results"></datalist></p>
+        <p>{{ city_form.place_query.label_tag }}{{ city_form.place_query }}{{ city_form.place_query.errors }} <button type="button" data-location-search-button>Search locations</button></p>
+        <p><select data-location-results disabled><option>Search for a location to choose one</option></select> <span class="muted" data-location-search-status aria-live="polite"></span></p>
         {{ city_form.radius_km.as_field_group }}
         <button type="submit">Add city area</button>
       </form>
-      <p class="muted">Searches the imported local German place data.</p>
+      <p class="muted">Searches live German location data and keeps selected results in the local cache.</p>
+      <p class="attribution">Location data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, from Nominatim.</p>
     </section>
   </div>
   <section class="card list-card">
@@ -48,22 +51,35 @@
   <script>
     const input = document.querySelector("#{{ city_form.place_query.id_for_label }}");
     const hiddenPlace = document.querySelector("#{{ city_form.place.id_for_label }}");
-    const resultList = document.querySelector("#city-place-results");
-    let places = [];
-    input.addEventListener("input", async () => {
+    const searchButton = document.querySelector("[data-location-search-button]");
+    const resultSelect = document.querySelector("[data-location-results]");
+    const status = document.querySelector("[data-location-search-status]");
+    searchButton.addEventListener("click", async () => {
       hiddenPlace.value = "";
-      if (input.value.trim().length < 2) { resultList.replaceChildren(); return; }
-      const response = await fetch("{% url 'jobs:place_search_json' %}?q=" + encodeURIComponent(input.value));
-      places = (await response.json()).results;
-      resultList.replaceChildren(...places.map((place) => {
-        const option = document.createElement("option");
-        option.value = place.label;
-        return option;
-      }));
+      status.textContent = "";
+      if (input.value.trim().length < 2) {
+        status.textContent = "Enter at least two characters.";
+        return;
+      }
+      searchButton.disabled = true;
+      try {
+        const response = await fetch("{% url 'jobs:location_search' %}?q=" + encodeURIComponent(input.value));
+        const payload = await response.json();
+        resultSelect.replaceChildren(new Option("Choose a location", ""));
+        payload.results.forEach(({ id, label }) => resultSelect.add(new Option(label, String(id))));
+        resultSelect.disabled = payload.results.length === 0;
+        status.textContent = payload.error || (payload.results.length ? "Choose a result." : "No locations found.");
+      } catch (error) {
+        status.textContent = "Location search is unavailable.";
+      } finally {
+        searchButton.disabled = false;
+      }
     });
-    input.addEventListener("change", () => {
-      const place = places.find((candidate) => candidate.label === input.value);
-      hiddenPlace.value = place ? place.id : "";
+    resultSelect.addEventListener("change", () => {
+      hiddenPlace.value = resultSelect.value;
+      if (resultSelect.selectedIndex > 0) {
+        input.value = resultSelect.options[resultSelect.selectedIndex].text;
+      }
     });
   </script>
 {% endblock %}

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -346,8 +347,8 @@ def _propagate_ignored_state(*, job: Job) -> None:
 def _job_defaults(normalized: NormalizedJob) -> dict[str, Any]:
     raw_job = normalized.raw_job
     return {
-        "canonical_url": raw_job.canonical_url,
-        "application_url": raw_job.application_url,
+        "canonical_url": _safe_stored_url(raw_job.canonical_url),
+        "application_url": _safe_stored_url(raw_job.application_url),
         "title": raw_job.title,
         "normalized_title": normalized.normalized_title,
         "description_html": raw_job.description_html,
@@ -376,6 +377,28 @@ def _job_defaults(normalized: NormalizedJob) -> dict[str, Any]:
         "closed_at": None,
         "missed_runs": 0,
     }
+
+
+def _safe_stored_url(value: str) -> str:
+    """Keep persisted links navigable without allowing script or data schemes."""
+    if not value:
+        return ""
+    try:
+        parsed = urlsplit(value)
+        port = parsed.port
+    except ValueError:
+        return ""
+    if (
+        parsed.scheme.casefold() not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or port is not None
+    ):
+        return ""
+    return urlunsplit(
+        (parsed.scheme.casefold(), parsed.netloc, parsed.path or "/", parsed.query, "")
+    )
 
 
 def _text_from_html(value: str) -> str:

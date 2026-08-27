@@ -7,6 +7,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
 
+from .company_discovery import normalize_domain
 from .exclusions import normalize_exclusion_pattern
 from .matching import (
     DEFAULT_WEIGHTS,
@@ -34,30 +35,44 @@ class WorkspaceUserForm(forms.ModelForm):  # type: ignore[type-arg]
 
 
 class CompanyMonitoringTargetForm(forms.Form):
-    company = forms.ModelChoiceField(queryset=Company.objects.filter(is_active=True))
+    domain = forms.CharField(
+        label="Company domain",
+        max_length=253,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "example.com",
+                "autocomplete": "url",
+                "inputmode": "url",
+            }
+        ),
+        help_text="Enter a domain or paste the company website URL.",
+    )
 
     def __init__(self, *args: Any, user: WorkspaceUser, **kwargs: Any) -> None:
         self.user = user
         super().__init__(*args, **kwargs)
 
-    def clean_company(self) -> Company:
-        company = cast(Company, self.cleaned_data["company"])
-        if MonitoringTarget.objects.filter(
-            user=self.user,
-            kind=MonitoringTarget.Kind.COMPANY,
-            company=company,
-        ).exists():
+    def clean_domain(self) -> str:
+        try:
+            domain = normalize_domain(self.cleaned_data["domain"])
+        except ValueError as error:
+            raise ValidationError(str(error)) from error
+        company = Company.objects.filter(domain=domain, is_active=True).first()
+        if (
+            company is not None
+            and MonitoringTarget.objects.filter(
+                user=self.user, kind=MonitoringTarget.Kind.COMPANY, company=company
+            ).exists()
+        ):
             raise ValidationError("This company is already monitored.")
-        return company
+        return domain
 
 
 class CityMonitoringTargetForm(forms.Form):
     place_query = forms.CharField(
         required=False,
         label="City or postal code",
-        widget=forms.TextInput(
-            attrs={"type": "search", "list": "city-place-results", "autocomplete": "off"}
-        ),
+        widget=forms.TextInput(attrs={"type": "search", "autocomplete": "off"}),
     )
     place = forms.ModelChoiceField(queryset=GermanPlace.objects.all(), widget=forms.HiddenInput)
     radius_km = forms.IntegerField(min_value=1, max_value=500, initial=25)

@@ -15,26 +15,26 @@ mise run test
 
 See [AGENTS.md](AGENTS.md) for the commands used by coding agents.
 
-## German place dictionary
+## Dynamic company and location discovery
 
-Profiles use locally imported GeoNames coordinates. Download GeoNames `cities500.zip` and, if postal
-code lookup is wanted, the Germany postal-code archive on the deployment machine. Then import the
-files with the date of the downloaded source snapshot:
+Add a company from the Search page by entering its domain or pasting its website URL. The first
+submission fetches the public HTTPS homepage, reads its organization metadata and career links,
+and registers a generic JSON-LD career source. The website remains the source of truth; no company
+archive or ZIP import is required.
 
-```bash
-python manage.py import_german_places \
-  --cities /data/cities500.zip \
-  --postal-codes /data/DE.zip \
-  --snapshot 2026-08-26
-```
+City and postal-code searches use the configured Nominatim-compatible location API only after the
+user presses Search. Results are cached in PostgreSQL, so profiles can use the selected place on
+future requests. Set `LOCATION_API_URL`, `LOCATION_USER_AGENT`,
+`LOCATION_MIN_REQUEST_INTERVAL_SECONDS`, and `LOCATION_RATE_LIMIT_STATE_PATH` when using a hosted
+or self-managed provider. The default public provider requires visible OpenStreetMap attribution
+and an identifying User-Agent.
 
-The command does not download data. It is safe to run again with the same files, and records the
-snapshot date on each imported place. Contains information from GeoNames.org, licensed under CC BY
-4.0; filtered and normalized by this application.
+The location lookup endpoint is private to the selected workspace account and is intentionally not
+an autocomplete API.
 
 ## Self-hosted deployment
 
-See the [deployment guide](docs/deployment.md) for first startup, place import, source seeding,
+See the [deployment guide](docs/deployment.md) for first startup, dynamic source discovery,
 updates, backups, restore, and troubleshooting.
 
 Install Docker Engine with the Compose plugin on the deployment machine. Then:

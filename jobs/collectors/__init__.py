@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ipaddress
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -10,6 +9,8 @@ from typing import Any, Protocol
 from urllib.parse import urljoin, urlsplit
 
 import httpx
+
+from jobs.network import UnsafeNetworkAddress, validate_public_hostname
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,14 +170,27 @@ def is_bot_protection_response(response: httpx.Response) -> bool:
 
 
 def _validate_detail_url(url: str, *, allowed_hosts: frozenset[str]) -> str:
-    parsed = urlsplit(url)
+    try:
+        parsed = urlsplit(url)
+    except ValueError as error:
+        raise UnsafeDetailUrl("Detail URL must use HTTPS on an allowed host.") from error
     host = parsed.hostname.casefold() if parsed.hostname else ""
-    if parsed.scheme != "https" or not host or host not in allowed_hosts:
+    if (
+        parsed.scheme != "https"
+        or not host
+        or host not in allowed_hosts
+        or parsed.username
+        or parsed.password
+    ):
         raise UnsafeDetailUrl("Detail URL must use HTTPS on an allowed host.")
     try:
-        address = ipaddress.ip_address(host)
+        port = parsed.port
     except ValueError:
-        return url
-    if address.is_private or address.is_loopback or address.is_link_local or address.is_reserved:
-        raise UnsafeDetailUrl("Detail URL host must not be a private address.")
-    raise UnsafeDetailUrl("Detail URL host must be a named allowed host.")
+        raise UnsafeDetailUrl("Detail URL must use HTTPS on an allowed host.") from None
+    if port is not None:
+        raise UnsafeDetailUrl("Detail URL must use HTTPS on an allowed host.")
+    try:
+        validate_public_hostname(host)
+    except UnsafeNetworkAddress as error:
+        raise UnsafeDetailUrl("Detail URL host must resolve to a public address.") from error
+    return url

@@ -5,7 +5,6 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
-from django.core.management import call_command
 
 from jobs.collection import collector_registry
 from jobs.collectors.employers import (
@@ -15,7 +14,6 @@ from jobs.collectors.employers import (
     SiemensAvatureCollector,
     TelekomJsonCollector,
 )
-from jobs.models import CareerSource, Company
 
 FIXTURES = Path(__file__).parent / "fixtures" / "collectors"
 
@@ -408,29 +406,3 @@ def test_dhl_collector_marks_a_capped_total_incomplete() -> None:
 
     assert [job.external_id for job in result.raw_jobs] == ["dhl-77"]
     assert result.is_complete is False
-
-
-@pytest.mark.django_db
-def test_seed_initial_sources_creates_each_company_and_source_once_without_overwriting_source() -> (
-    None
-):
-    call_command("seed_initial_sources")
-    source = CareerSource.objects.get(kind="siemens_avature")
-    source.is_enabled = False
-    source.config = {"custom": "keep"}
-    source.save(update_fields=["is_enabled", "config"])
-
-    call_command("seed_initial_sources")
-
-    source.refresh_from_db()
-    assert Company.objects.count() == 5
-    assert CareerSource.objects.count() == 5
-    assert source.is_enabled is False
-    assert source.config == {"custom": "keep"}
-    assert set(CareerSource.objects.values_list("kind", flat=True)) == {
-        "siemens_avature",
-        "bosch_smartrecruiters",
-        "sap_successfactors",
-        "telekom_json",
-        "dhl_phenom",
-    }
