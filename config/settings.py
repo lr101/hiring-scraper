@@ -90,16 +90,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = DEBUG
+CELERY_TASK_EAGER_PROPAGATES = DEBUG
 COLLECTION_STALE_RUN_SECONDS = int(os.getenv("COLLECTION_STALE_RUN_SECONDS", "43200"))
 COMPANY_DISCOVERY_TIMEOUT_SECONDS = float(os.getenv("COMPANY_DISCOVERY_TIMEOUT_SECONDS", "15"))
 COMPANY_DISCOVERY_USER_AGENT = os.getenv(
     "COMPANY_DISCOVERY_USER_AGENT", "hiring-scraper/0.1 (self-hosted company discovery)"
 )
+COLLECTION_USER_AGENT = os.getenv(
+    "COLLECTION_USER_AGENT", "hiring-scraper/0.1 (self-hosted job collection)"
+)
 COMPANY_LOCATION_API_URL = os.getenv(
     "COMPANY_LOCATION_API_URL", "https://overpass-api.de/api/interpreter"
 )
+COMPANY_LOCATION_FALLBACK_API_URL = os.getenv(
+    "COMPANY_LOCATION_FALLBACK_API_URL",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+)
 COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS = float(
-    os.getenv("COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS", "20")
+    os.getenv("COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS", "45")
 )
 COMPANY_LOCATION_MAX_RESULTS = int(os.getenv("COMPANY_LOCATION_MAX_RESULTS", "25"))
 COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(

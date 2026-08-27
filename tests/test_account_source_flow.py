@@ -148,6 +148,40 @@ def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(client: Cl
 
 
 @pytest.mark.django_db
+@override_settings(CELERY_TASK_ALWAYS_EAGER=False)
+def test_city_search_is_queued_instead_of_blocking_the_web_request(
+    client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    place = make_place()
+    select_account(client, user)
+    synchronous_calls: list[int] = []
+    queued_target_ids: list[int] = []
+
+    def discover_synchronously(
+        *, user: WorkspaceUser, place: GermanPlace, radius_km: int
+    ) -> tuple[int, list[CrawlRun], int]:
+        del user, radius_km
+        synchronous_calls.append(place.pk)
+        return 0, [], 0
+
+    def queue_search(target: MonitoringTarget) -> None:
+        queued_target_ids.append(target.pk)
+
+    monkeypatch.setattr("jobs.views._discover_and_scan_city", discover_synchronously)
+    monkeypatch.setattr("jobs.views._queue_city_search", queue_search, raising=False)
+
+    response = client.post(
+        reverse("jobs:city_target_create"),
+        {"place": place.pk, "place_query": "Berlin", "radius_km": 25},
+    )
+
+    assert response.status_code == 302
+    assert synchronous_calls == []
+    assert len(queued_target_ids) == 1
+
+
+@pytest.mark.django_db
 def test_city_search_can_be_run_again_for_newly_mapped_companies(
     client: Client, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -211,3 +245,114 @@ def test_overpass_company_provider_returns_unique_websites_with_names() -> None:
     assert [(candidate.name, candidate.domain) for candidate in candidates] == [
         ("Acme GmbH", "acme.test")
     ]
+
+
+@pytest.mark.django_db
+@respx.mock
+@override_settings(
+    COMPANY_LOCATION_API_URL="https://overpass.test/api/interpreter",
+    COMPANY_LOCATION_FALLBACK_API_URL="https://fallback.test/api/interpreter",
+    COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS=0,
+)
+def test_overpass_provider_uses_a_fallback_after_a_transient_provider_failure() -> None:
+    from jobs.company_locations import OverpassCompanyProvider
+
+    place = make_place()
+    primary = respx.get("https://overpass.test/api/interpreter").mock(
+        return_value=httpx.Response(504, text="overloaded")
+    )
+    fallback = respx.get("https://fallback.test/api/interpreter").mock(
+        return_value=httpx.Response(
+            200,
+            json=json.loads((FIXTURES / "company_locations" / "berlin.json").read_text()),
+        )
+    )
+
+    provider = OverpassCompanyProvider()
+    candidates = provider.search(place, radius_km=25)
+    provider.close()
+
+    assert primary.called
+    assert fallback.called
+    assert [(candidate.name, candidate.domain) for candidate in candidates] == [
+        ("Acme GmbH", "acme.test")
+    ]
+
+
+@pytest.mark.django_db
+@respx.mock
+@override_settings(
+    COMPANY_LOCATION_API_URL="https://overpass.test/api/interpreter",
+    COMPANY_LOCATION_FALLBACK_API_URL="https://fallback.test/api/interpreter",
+    COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS=0,
+)
+def test_overpass_provider_does_not_treat_a_timeout_remark_as_an_empty_search() -> None:
+    from jobs.company_locations import OverpassCompanyProvider
+
+    place = make_place()
+    respx.get("https://overpass.test/api/interpreter").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "version": 0.6,
+                "elements": [],
+                "remark": 'runtime error: Query timed out in "query" at line 1 after 26 seconds.',
+            },
+        )
+    )
+    fallback = respx.get("https://fallback.test/api/interpreter").mock(
+        return_value=httpx.Response(
+            200,
+            json=json.loads((FIXTURES / "company_locations" / "berlin.json").read_text()),
+        )
+    )
+
+    provider = OverpassCompanyProvider()
+    candidates = provider.search(place, radius_km=25)
+    provider.close()
+
+    assert fallback.called
+    assert [(candidate.name, candidate.domain) for candidate in candidates] == [
+        ("Acme GmbH", "acme.test")
+    ]
+
+
+@override_settings(COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS=20)
+def test_overpass_provider_waits_for_a_queued_query_to_finish() -> None:
+    from jobs.company_locations import OverpassCompanyProvider
+
+    provider = OverpassCompanyProvider(min_interval_seconds=0)
+    try:
+        read_timeout = provider._client.timeout.read
+        assert read_timeout is not None
+        assert read_timeout >= 40
+    finally:
+        provider.close()
+
+
+@pytest.mark.django_db
+@respx.mock
+def test_manual_website_block_is_explained_after_the_company_is_added(client: Client) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    select_account(client, user)
+    respx.get("https://acme.test/").mock(
+        return_value=httpx.Response(
+            200,
+            text=(FIXTURES / "discovery" / "company-home.html").read_text(),
+            headers={"content-type": "text/html"},
+        )
+    )
+    respx.get("https://acme.test/careers").mock(
+        return_value=httpx.Response(403, text="Access denied")
+    )
+
+    response = client.post(
+        reverse("jobs:company_target_create"), {"domain": "acme.test"}, follow=True
+    )
+
+    assert response.status_code == 200
+    assert b"blocked automated access" in response.content
+    source = CareerSource.objects.get(company__domain="acme.test")
+    assert source.blocked_at is not None
+    assert source.runs.get().status == CrawlRun.Status.BLOCKED
+    assert b"site refused automated access" in client.get(reverse("jobs:source_list")).content

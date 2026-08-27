@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 from django.contrib import messages
 from django.db import connection, transaction
@@ -38,6 +40,7 @@ from .models import (
 from .monitoring import filter_jobs_for_user
 from .private import selected_workspace_user
 from .source_setup import MonitoredCompany, monitor_company
+from .tasks import discover_city_sources
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -317,22 +320,7 @@ def city_target_create(request: HttpRequest) -> HttpResponse:
         if not created and target.radius_km != form.cleaned_data["radius_km"]:
             target.radius_km = radius_km
             target.save(update_fields=["radius_km"])
-        try:
-            added_companies, scans, unreadable_websites = _discover_and_scan_city(
-                user=user, place=place, radius_km=radius_km
-            )
-        except CompanyLocationLookupError as error:
-            messages.warning(request, f"{place.name} was saved, but company search failed: {error}")
-            return redirect("jobs:setup")
-        messages.success(
-            request,
-            _city_added_message(
-                place_name=place.name,
-                added_companies=added_companies,
-                scans=scans,
-                unreadable_websites=unreadable_websites,
-            ),
-        )
+        _queue_city_search_response(request=request, target=target, place_name=place.name)
         return redirect("jobs:setup")
     return _setup_response(request=request, user=user, city_form=form)
 
@@ -349,22 +337,7 @@ def city_target_refresh(request: HttpRequest, target_id: int) -> HttpResponse:
         kind=MonitoringTarget.Kind.CITY,
     )
     assert target.place is not None
-    try:
-        added_companies, scans, unreadable_websites = _discover_and_scan_city(
-            user=user, place=target.place, radius_km=target.radius_km
-        )
-    except CompanyLocationLookupError as error:
-        messages.warning(request, f"{target.place.name} search failed: {error}")
-        return redirect("jobs:setup")
-    messages.success(
-        request,
-        _city_added_message(
-            place_name=target.place.name,
-            added_companies=added_companies,
-            scans=scans,
-            unreadable_websites=unreadable_websites,
-        ),
-    )
+    _queue_city_search_response(request=request, target=target, place_name=target.place.name)
     return redirect("jobs:setup")
 
 
@@ -393,6 +366,49 @@ def _run_initial_scan(source: CareerSource) -> CrawlRun | None:
     return collect_source(source=source, registry=collector_registry)
 
 
+def _queue_city_search(*, target: MonitoringTarget) -> Any:
+    return discover_city_sources.delay(target.pk)
+
+
+def _queue_city_search_response(
+    *, request: HttpRequest, target: MonitoringTarget, place_name: str
+) -> None:
+    try:
+        task_result = _queue_city_search(target=target)
+        if not getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False):
+            messages.success(
+                request,
+                f"Saved {place_name}. Company search is running in the background. "
+                "New companies and matching jobs will appear in your feed when it finishes.",
+            )
+            return
+        result = task_result.get()
+    except CompanyLocationLookupError as error:
+        messages.warning(request, f"{place_name} was saved, but company search failed: {error}")
+        return
+    except Exception:
+        messages.warning(
+            request,
+            f"{place_name} was saved, but its company search could not be started. "
+            "Try again shortly.",
+        )
+        return
+    if isinstance(result, dict) and result.get("status") == "complete":
+        messages.success(
+            request,
+            _city_result_message(
+                place_name=place_name,
+                added_companies=_result_int(result, "added_companies"),
+                scanned_sources=_result_int(result, "scanned_sources"),
+                new_jobs=_result_int(result, "new_jobs"),
+                blocked_sources=_result_int(result, "blocked_sources"),
+                unreadable_websites=_result_int(result, "unreadable_websites"),
+            ),
+        )
+        return
+    messages.warning(request, f"{place_name} was saved, but company search did not complete.")
+
+
 def _discover_and_scan_city(
     *, user: WorkspaceUser, place: GermanPlace, radius_km: int
 ) -> tuple[int, list[CrawlRun], int]:
@@ -413,30 +429,43 @@ def _discover_and_scan_city(
 def _company_added_message(company: Company, run: CrawlRun | None) -> str:
     if run is None:
         return f"Added {company.name}. Its source is disabled or blocked, so no scan was started."
+    if run.status == CrawlRun.Status.BLOCKED:
+        return (
+            f"Added {company.name}, but its careers site blocked automated access. "
+            "No jobs were imported. Review it on the Sources page before trying again."
+        )
     if run.status == CrawlRun.Status.SUCCESS:
         return f"Added {company.name}. Initial scan found {run.jobs_created} new jobs."
     return f"Added {company.name}. Initial scan did not finish: {run.get_status_display()}."
 
 
-def _city_added_message(
+def _city_result_message(
     *,
     place_name: str,
     added_companies: int,
-    scans: list[CrawlRun],
+    scanned_sources: int,
+    new_jobs: int,
+    blocked_sources: int,
     unreadable_websites: int,
 ) -> str:
-    if added_companies == 0 and not scans:
+    if added_companies == 0 and scanned_sources == 0:
         message = f"Saved {place_name}. No new companies with readable public websites were found."
+    elif added_companies:
+        message = (
+            f"Saved {place_name}. Added {added_companies} companies and found {new_jobs} new jobs."
+        )
     else:
-        new_jobs = sum(run.jobs_created for run in scans if run.status == CrawlRun.Status.SUCCESS)
-        if added_companies:
-            message = f"Saved {place_name}. Added {added_companies} companies and "
-        else:
-            message = f"Saved {place_name}. Rechecked company sources and "
-        message += f"found {new_jobs} new jobs."
+        message = f"Saved {place_name}. Rechecked company sources and found {new_jobs} new jobs."
+    if blocked_sources:
+        message += f" {blocked_sources} source blocked automated access."
     if unreadable_websites:
         message += f" {unreadable_websites} website could not be read."
     return message
+
+
+def _result_int(result: dict[str, int | str], key: str) -> int:
+    value = result.get(key, 0)
+    return value if isinstance(value, int) else 0
 
 
 def profile(request: HttpRequest) -> HttpResponse:
