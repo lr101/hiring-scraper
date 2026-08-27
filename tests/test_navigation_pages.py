@@ -2,7 +2,6 @@ import pytest
 from django.test import Client
 from django.urls import reverse
 
-from jobs.company_locations import CompanyLocationDiscovery
 from jobs.models import (
     CareerSource,
     Company,
@@ -14,6 +13,7 @@ from jobs.models import (
     UserJobState,
     WorkspaceUser,
 )
+from jobs.reverse_discovery import ReverseDiscoveryResult
 
 
 def make_company(name: str) -> Company:
@@ -136,8 +136,7 @@ def test_setup_creates_and_removes_company_and_city_targets_for_active_account(
     select_account(client, ada)
     monkeypatch.setattr("jobs.views._run_initial_scan", lambda _source: None)
     monkeypatch.setattr(
-        "jobs.views.discover_companies_in_place",
-        lambda _place, radius_km: CompanyLocationDiscovery(companies=()),
+        "jobs.views._discover_city_result", lambda **kwargs: ReverseDiscoveryResult()
     )
 
     company_response = client.post(

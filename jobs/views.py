@@ -39,6 +39,7 @@ from .models import (
 )
 from .monitoring import filter_jobs_for_user
 from .private import selected_workspace_user
+from .reverse_discovery import ReverseDiscoveryResult, ReverseDiscoveryService
 from .source_setup import MonitoredCompany, monitor_company
 from .tasks import discover_city_sources
 
@@ -412,18 +413,23 @@ def _queue_city_search_response(
 def _discover_and_scan_city(
     *, user: WorkspaceUser, place: GermanPlace, radius_km: int
 ) -> tuple[int, list[CrawlRun], int]:
-    discovery = discover_companies_in_place(place, radius_km=radius_km)
-    added_companies = 0
-    scans: list[CrawlRun] = []
-    for company_discovery in discovery.companies:
-        monitored_company = _monitor_company(user=user, discovery=company_discovery)
-        if monitored_company.target_created:
-            added_companies += 1
-        if monitored_company.target_created or monitored_company.source_created:
-            run = _run_initial_scan(monitored_company.source)
-            if run is not None:
-                scans.append(run)
-    return added_companies, scans, discovery.unreadable_websites
+    result = _discover_city_result(user=user, place=place, radius_km=radius_km)
+    return result.companies_added, list(result.runs), result.unreadable_websites
+
+
+def _discover_city_result(
+    *, user: WorkspaceUser, place: GermanPlace, radius_km: int
+) -> ReverseDiscoveryResult:
+    service = ReverseDiscoveryService()
+    try:
+        return service.discover_city(
+            user=user,
+            place=place,
+            radius_km=radius_km,
+            fallback_discoverer=lambda: discover_companies_in_place(place, radius_km=radius_km),
+        )
+    finally:
+        service.close()
 
 
 def _company_added_message(company: Company, run: CrawlRun | None) -> str:

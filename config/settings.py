@@ -153,6 +153,8 @@ COMMON_CRAWL_RATE_LIMIT_STATE_PATH = os.getenv(
 COMMON_CRAWL_USER_AGENT = os.getenv(
     "COMMON_CRAWL_USER_AGENT", "hiring-scraper/0.1 (self-hosted ATS discovery)"
 )
+REVERSE_DISCOVERY_ENABLED = os.getenv("REVERSE_DISCOVERY_ENABLED", "true").lower() == "true"
+REVERSE_DISCOVERY_INTERVAL_SECONDS = float(os.getenv("REVERSE_DISCOVERY_INTERVAL_SECONDS", "86400"))
 LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
 LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
@@ -170,3 +172,8 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,
     }
 }
+if REVERSE_DISCOVERY_ENABLED:
+    CELERY_BEAT_SCHEDULE["reverse-discovery-daily"] = {
+        "task": "jobs.tasks.reverse_discover_sources",
+        "schedule": REVERSE_DISCOVERY_INTERVAL_SECONDS,
+    }

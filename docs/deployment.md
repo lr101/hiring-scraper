@@ -59,11 +59,12 @@ before returning to the setup page. Existing domain records are reused without f
 again.
 
 To find several employers, search for and select a German city or postal code. Nominatim resolves
-the place and caches it in PostgreSQL. The application then uses Overpass to find nearby mapped
-offices, industrial businesses, and company objects that have public website tags. It queues a
-background job that discovers a career source for each readable website and scans newly added
-sources; companies and matching jobs appear in the feed as that work completes. Use **Find
-companies again** on a saved city search later when the map data may have changed.
+the place and caches it in PostgreSQL. The application then queries the bounded BA Jobsuche feed
+for recent German vacancies, resolves matching employer names to public domains, and discovers and
+scans their career or ATS feeds. When BA signals do not produce a usable domain, it falls back to
+Overpass to find nearby mapped businesses with public website tags. It queues a background job so
+companies and matching jobs appear in the feed as that work completes. Use **Find companies again**
+on a saved city search later when the vacancy or map data may have changed.
 
 Set `LOCATION_API_URL` and `LOCATION_USER_AGENT` for a hosted or self-managed Nominatim-compatible
 provider. Keep the identifying User-Agent, request interval, and visible OpenStreetMap attribution.
@@ -77,6 +78,14 @@ bounded query can spend up to 25 seconds running and up to 15 seconds queued on 
 service. Set `COLLECTION_USER_AGENT` to the identifying User-Agent used for career-site scans.
 The company lookup is bounded because public map data is not a complete business directory.
 
+The BA and Common Crawl clients are also bounded and rate-limited. Configure their `BA_JOBS_*` and
+`COMMON_CRAWL_*` variables in `.env`. A failed provider is surfaced as partial discovery and does
+not replace prior BA snapshots or claim an empty successful run. Run the orchestrator manually with
+`docker compose exec web python manage.py reverse_discover --city Berlin`; use `--no-collect` to
+register and report discoveries without starting collectors. Omitting `--city` runs the global ATS
+probe. The scheduler runs that probe and refreshes saved city targets daily; set
+`REVERSE_DISCOVERY_ENABLED=false` to disable the reverse-discovery beat entry.
+
 Review the Sources page before the first run. A source is disabled after bot protection is
 detected. Do not bypass that state with proxy rotation or CAPTCHA solving. Unblock it manually
 only after checking the site and its request settings.
@@ -87,8 +96,11 @@ Run all enabled sources once from the Sources page, or use the command line:
 docker compose exec web python manage.py collect_jobs
 ```
 
-The scheduler runs the same collection task daily. Collection results, blocked sources, and
-failures are visible on the Runs page.
+The scheduler runs daily collection and the reverse-discovery task. The latter probes the public
+ATS index and refreshes every saved city target. Collection results, blocked sources, partial
+discovery status, and failures are visible through the Runs page and worker logs. Set
+`REVERSE_DISCOVERY_ENABLED=false` when this deployment should only collect already configured
+sources.
 
 ## Updates
 

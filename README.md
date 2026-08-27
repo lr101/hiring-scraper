@@ -32,13 +32,13 @@ source, and runs that source immediately. The website remains the source of trut
 archive or ZIP import is required.
 
 For a city, first use the explicit location search to select a German city or postal code. The
-default Nominatim-compatible service resolves it to coordinates. The app then queries the
-OpenStreetMap Overpass API for nearby mapped offices, industrial businesses, and company objects
-with public websites. Each website is inspected with the same dynamic career discovery, and direct
-website sources are scanned immediately. City searches run in the background so a slow map
-provider cannot time out the web request; newly discovered companies and matching jobs appear in
-the feed as the worker processes them. City searches can be run again later to pick up newly
-mapped employers; daily collection continues for all enabled sources.
+default Nominatim-compatible service resolves it to coordinates. The background city search first
+uses recent German vacancy signals from the Bundesagentur für Arbeit, resolves matching employers
+to public domains, and scans their discovered career or ATS feeds. If no employer domain can be
+resolved, it falls back to the bounded OpenStreetMap Overpass website sweep. Newly discovered
+companies and matching jobs appear in the feed as the worker processes them. City searches can be
+run again later to pick up newly mapped employers; daily collection continues for all enabled
+sources.
 
 Set `COMPANY_LOCATION_API_URL`, `COMPANY_LOCATION_FALLBACK_API_URL`, `COMPANY_LOCATION_USER_AGENT`,
 `COMPANY_LOCATION_LOOKUP_TIMEOUT_SECONDS`, `COMPANY_LOCATION_MAX_RESULTS`,
@@ -52,6 +52,14 @@ keep that timeout at 45 seconds or higher unless using a faster private provider
 The public OpenStreetMap services require an identifying User-Agent, visible attribution, and
 careful request rates. Map coverage is not a complete business registry, so a direct website can
 always be added when a city search misses an employer.
+
+The BA and Common Crawl clients are bounded and rate-limited. Configure their `BA_JOBS_*` and
+`COMMON_CRAWL_*` settings in `.env`; a provider error is reported as a partial discovery and does
+not replace prior snapshots or jobs. To run the orchestrator manually without an account target,
+use `docker compose exec web python manage.py reverse_discover --city Berlin`. Add
+`--no-collect` when only discovery metrics are wanted. Omitting `--city` performs the global Common
+Crawl ATS probe. The scheduler runs the same global probe and refreshes every saved city target
+daily; set `REVERSE_DISCOVERY_ENABLED=false` to disable that beat entry.
 
 The location lookup endpoint is private to the selected workspace account and is intentionally not
 an autocomplete API. An account with no monitored company or city has an empty feed until it
