@@ -235,6 +235,7 @@ class EmployerDiscoveryService:
         as_of: date | None = None,
     ) -> EmployerDiscoveryResult:
         """Fetch at most ``max_pages`` and return grouped signals."""
+        starting_requests = self.client.requests_made
         page_limit = _bounded_positive_int(
             max_pages
             if max_pages is not None
@@ -262,13 +263,13 @@ class EmployerDiscoveryService:
             return EmployerDiscoveryResult(
                 employers=(),
                 is_complete=False,
-                requests_made=self.client.requests_made,
+                requests_made=self.client.requests_made - starting_requests,
                 error=str(error),
             )
         return EmployerDiscoveryResult(
             employers=group_employer_signals(signals, recent_since=recent_since),
             is_complete=is_complete,
-            requests_made=self.client.requests_made,
+            requests_made=self.client.requests_made - starting_requests,
         )
 
     def discover_and_persist(
@@ -307,6 +308,8 @@ class EmployerDiscoveryService:
                         query_city=city.strip(),
                         query_radius_km=radius_km,
                         publication_age_days=publication_age_days,
+                        offer_type=offer_type,
+                        include_temporary_agencies=include_temporary_agencies,
                         is_complete=result.is_complete,
                     )
                     for employer in result.employers
@@ -383,9 +386,12 @@ def _signal_payload(signal: BAJobSignal) -> dict[str, str | None]:
 def _parse_search_page(payload: Any, *, page: int, size: int) -> BAJobSearchPage:
     if not isinstance(payload, dict):
         raise JobsucheProviderError("The BA Jobsuche provider returned an invalid response.")
-    raw_records = payload.get("stellenangebote")
+    raw_records = next(
+        (payload[name] for name in ("ergebnisliste", "stellenangebote") if name in payload),
+        None,
+    )
     if not isinstance(raw_records, list):
-        raise JobsucheProviderError("The BA Jobsuche provider returned no stellenangebote list.")
+        raise JobsucheProviderError("The BA Jobsuche provider returned no job result list.")
     signals = tuple(
         signal
         for raw_record in raw_records
@@ -405,16 +411,8 @@ def _parse_search_page(payload: Any, *, page: int, size: int) -> BAJobSearchPage
 
 
 def _parse_job_signal(record: dict[str, Any]) -> BAJobSignal | None:
-    work_location = record.get("arbeitsort") or record.get("arbeitsOrt")
-    if isinstance(work_location, list):
-        work_location = next((value for value in work_location if isinstance(value, dict)), {})
-    if not isinstance(work_location, dict):
-        work_location = {}
-    employer_name = _first_string(record, "arbeitgeber", "arbeitgeberName", "employer")
-    job_title = _first_string(record, "beruf", "titel", "stellenangebotsTitel", "title")
-    location = _first_string(work_location, "ort", "city", "name")
-    postal_code = _first_string(work_location, "plz", "postalCode", "postal_code")
-    country = _first_string(work_location, "land", "country", "countryCode", "country_code")
+    employer_name = _first_string(record, "firma", "arbeitgeber", "arbeitgeberName", "employer")
+    job_title = _first_string(record, "stellenangebotsTitel", "titel", "beruf", "title")
     reference_number = _first_string(
         record,
         "referenznummer",
@@ -422,33 +420,65 @@ def _parse_job_signal(record: dict[str, Any]) -> BAJobSignal | None:
         "referenceNumber",
         "reference_number",
     )
-    if not (
-        employer_name
-        and job_title
-        and location
-        and postal_code
-        and reference_number
-        and _has_germany_evidence(country)
-    ):
+    if not (employer_name and job_title and reference_number):
         return None
-    return BAJobSignal(
-        employer_name=employer_name,
-        job_title=job_title,
-        location=location,
-        postal_code=postal_code,
-        reference_number=reference_number,
-        published_at=_first_date(
-            record,
-            "aktuelleVeroeffentlichungsdatum",
-            "ersteVeroeffentlichungsdatum",
-            "publishedAt",
-            "published_at",
-        ),
-    )
+    for work_location in _job_locations(record):
+        location = _first_string(work_location, "ort", "city", "name")
+        postal_code = _first_string(work_location, "plz", "postalCode", "postal_code")
+        country = _first_string(work_location, "land", "country", "countryCode", "country_code")
+        if not (location and postal_code and _has_germany_evidence(country)):
+            continue
+        return BAJobSignal(
+            employer_name=employer_name,
+            job_title=job_title,
+            location=location,
+            postal_code=postal_code,
+            reference_number=reference_number,
+            published_at=_published_date(record),
+        )
+    return None
+
+
+def _job_locations(record: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+    raw_locations = record.get("stellenlokationen")
+    if isinstance(raw_locations, list):
+        addresses = tuple(
+            address
+            for raw_location in raw_locations
+            if isinstance(raw_location, dict)
+            for address in (raw_location.get("adresse"),)
+            if isinstance(address, dict)
+        )
+        if addresses:
+            return addresses
+
+    legacy_location = record.get("arbeitsort") or record.get("arbeitsOrt")
+    if isinstance(legacy_location, list):
+        return tuple(value for value in legacy_location if isinstance(value, dict))
+    if isinstance(legacy_location, dict):
+        return (legacy_location,)
+    return ()
 
 
 def _has_germany_evidence(country: str) -> bool:
     return country.casefold() in _GERMAN_COUNTRY_VALUES
+
+
+def _published_date(record: dict[str, Any]) -> date | None:
+    published_at = _first_date(
+        record,
+        "datumErsteVeroeffentlichung",
+        "aktuelleVeroeffentlichungsdatum",
+        "ersteVeroeffentlichungsdatum",
+        "publishedAt",
+        "published_at",
+    )
+    if published_at is not None:
+        return published_at
+    publication_period = record.get("veroeffentlichungszeitraum")
+    if isinstance(publication_period, dict):
+        return _first_date(publication_period, "von", "from", "start")
+    return None
 
 
 def _safe_base_url(value: str) -> str:

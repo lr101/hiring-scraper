@@ -186,6 +186,27 @@ def test_employer_discovery_follows_bounded_pages_and_groups_all_known_signals()
     assert [request.url.params["page"] for request in requests] == ["1", "2"]
 
 
+def test_discovery_request_count_is_scoped_to_each_run() -> None:
+    client = ArbeitsagenturJobsucheClient(
+        client=fixture_client([]),
+        base_url="https://rest.arbeitsagentur.test/jobboerse/jobsuche-service",
+        api_key="test-key",
+        result_limit=50,
+        min_interval_seconds=0,
+    )
+    service = EmployerDiscoveryService(client=client)
+
+    first = service.discover(
+        city="Berlin", radius_km=25, publication_age_days=30, as_of=date(2026, 8, 27)
+    )
+    second = service.discover(
+        city="Berlin", radius_km=25, publication_age_days=30, as_of=date(2026, 8, 27)
+    )
+
+    assert first.requests_made == 1
+    assert second.requests_made == 1
+
+
 @pytest.mark.django_db
 def test_employer_discovery_persists_activity_without_creating_monitoring_targets() -> None:
     client = ArbeitsagenturJobsucheClient(
@@ -200,6 +221,8 @@ def test_employer_discovery_persists_activity_without_creating_monitoring_target
         city="Berlin",
         radius_km=25,
         publication_age_days=30,
+        offer_type=4,
+        include_temporary_agencies=True,
         as_of=date(2026, 8, 27),
     )
 
@@ -210,6 +233,8 @@ def test_employer_discovery_persists_activity_without_creating_monitoring_target
     assert snapshot.recent_jobs == 2
     assert snapshot.distinct_locations == ["Berlin", "Munich"]
     assert len(snapshot.signals) == 2
+    assert snapshot.offer_type == 4
+    assert snapshot.include_temporary_agencies is True
     assert MonitoringTarget.objects.count() == 0
 
 

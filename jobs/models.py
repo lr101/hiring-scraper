@@ -43,12 +43,19 @@ class EmployerSignalSnapshot(models.Model):
     query_city = models.CharField(max_length=200)
     query_radius_km = models.PositiveSmallIntegerField()
     publication_age_days = models.PositiveSmallIntegerField()
+    offer_type = models.PositiveSmallIntegerField(default=1)
+    include_temporary_agencies = models.BooleanField(default=False)
     is_complete = models.BooleanField(default=False)
     observed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-observed_at", "normalized_name"]
-        indexes = [models.Index(fields=["normalized_name", "-observed_at"])]
+        indexes = [
+            models.Index(
+                fields=["normalized_name", "-observed_at"],
+                name="jobs_employ_normali_efb108_idx",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.employer_name} ({self.total_active_jobs} active jobs)"
