@@ -636,8 +636,15 @@ def _retire_equivalent_sources(
     source: CareerSource,
     equivalent_sources: Iterable[CareerSource],
 ) -> None:
-    _migrate_jobs_to_canonical(source, equivalent_sources)
-    for equivalent in equivalent_sources:
+    equivalent_ids = [equivalent.pk for equivalent in equivalent_sources]
+    locked_equivalent_sources = tuple(
+        CareerSource.objects.select_for_update()
+        .select_related("company")
+        .filter(pk__in=equivalent_ids)
+        .order_by("pk")
+    )
+    _migrate_jobs_to_canonical(source, locked_equivalent_sources)
+    for equivalent in locked_equivalent_sources:
         config = dict(equivalent.config) if isinstance(equivalent.config, dict) else {}
         config["canonical_source_url"] = source.source_url
         updates: list[str] = []
