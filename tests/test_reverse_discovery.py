@@ -492,7 +492,7 @@ def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe
     result = reverse_discover_sources.run()
 
     assert calls == [
-        ("global", {"city": None, "collect": False}),
+        ("global", {"city": None, "collect": True}),
         "closed",
         ("city", target.pk),
     ]

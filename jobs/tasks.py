@@ -46,7 +46,7 @@ def reverse_discover_sources() -> dict[str, int | str]:
 
     service = ReverseDiscoveryService()
     try:
-        global_result = service.discover(city=None, collect=False)
+        global_result = service.discover(city=None, collect=True)
     finally:
         service.close()
 
