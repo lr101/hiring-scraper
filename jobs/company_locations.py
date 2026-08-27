@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -30,9 +29,6 @@ class CompanyCandidate:
     name: str
     domain: str
     website_url: str
-    source_id: str
-    latitude: float | None = None
-    longitude: float | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,10 +148,13 @@ def _overpass_query(*, place: GermanPlace, radius_km: int) -> str:
 (
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["office"]["website"];
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["office"]["contact:website"];
+  nwr(around:{radius_meters},{latitude},{longitude})["name"]["office"]["operator:website"];
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["industrial"]["website"];
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["industrial"]["contact:website"];
+  nwr(around:{radius_meters},{latitude},{longitude})["name"]["industrial"]["operator:website"];
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["company"]["website"];
   nwr(around:{radius_meters},{latitude},{longitude})["name"]["company"]["contact:website"];
+  nwr(around:{radius_meters},{latitude},{longitude})["name"]["company"]["operator:website"];
 );
 out center tags;"""
 
@@ -179,16 +178,11 @@ def _candidates_from_payload(payload: Any, *, max_results: int) -> list[CompanyC
         if domain in seen_domains:
             continue
         seen_domains.add(domain)
-        source_id = _source_id(element)
-        coordinates = _coordinates(element)
         candidates.append(
             CompanyCandidate(
                 name=name[:200],
                 domain=domain,
                 website_url=website_url,
-                source_id=source_id,
-                latitude=coordinates[0],
-                longitude=coordinates[1],
             )
         )
         if len(candidates) >= max_results:
@@ -215,27 +209,6 @@ def _website_from_tags(tags: dict[str, Any]) -> tuple[str, str] | None:
                 continue
             return domain, urlunsplit(("https", domain, parsed.path or "/", "", ""))
     return None
-
-
-def _coordinates(element: dict[str, Any]) -> tuple[float | None, float | None]:
-    center = element.get("center")
-    if not isinstance(center, dict):
-        center = element
-    return _coordinate(center.get("lat")), _coordinate(center.get("lon"))
-
-
-def _coordinate(value: Any) -> float | None:
-    try:
-        coordinate = float(value)
-    except (TypeError, ValueError):
-        return None
-    return coordinate if math.isfinite(coordinate) else None
-
-
-def _source_id(element: dict[str, Any]) -> str:
-    element_type = _first_string(element, "type") or "object"
-    element_id = element.get("id")
-    return f"overpass:{element_type}:{element_id}" if element_id is not None else "overpass:unknown"
 
 
 def _first_string(value: dict[str, Any], *keys: str) -> str:

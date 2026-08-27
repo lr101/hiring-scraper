@@ -121,6 +121,7 @@ def test_adding_a_website_starts_a_scan_and_matches_every_profile_in_the_account
 def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(client: Client) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     SearchProfile.objects.create(user=user, name="Engineering")
+    SearchProfile.objects.create(user=user, name="Backend")
     place = make_place()
     select_account(client, user)
     respx.get("https://overpass.test/api/interpreter").mock(
@@ -142,7 +143,8 @@ def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(client: Cl
     assert MonitoringTarget.objects.filter(user=user, place=place).exists()
     assert MonitoringTarget.objects.filter(user=user, company=company).exists()
     assert CrawlRun.objects.filter(source=source, status=CrawlRun.Status.SUCCESS).exists()
-    assert Job.objects.filter(source=source, title="Senior Python Engineer").exists()
+    job = Job.objects.get(source=source, title="Senior Python Engineer")
+    assert JobMatch.objects.filter(job=job, profile__user=user).count() == 2
 
 
 @pytest.mark.django_db
@@ -205,6 +207,7 @@ def test_overpass_company_provider_returns_unique_websites_with_names() -> None:
 
     assert route.called
     assert "52.52" in route.calls[0].request.url.params["data"]
+    assert '"operator:website"' in route.calls[0].request.url.params["data"]
     assert [(candidate.name, candidate.domain) for candidate in candidates] == [
         ("Acme GmbH", "acme.test")
     ]
