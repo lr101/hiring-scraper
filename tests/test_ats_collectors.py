@@ -624,6 +624,29 @@ def test_public_ats_collectors_keep_only_jobs_with_germany_evidence(
     assert result.is_complete is True
 
 
+@pytest.mark.parametrize(
+    ("kind", "collector_type", "source_url"),
+    [
+        ("personio", PersonioXmlCollector, "https://acme.jobs.personio.de/xml"),
+        ("dvinci", DVinciCollector, "https://jobs.dvinci.com/acme-gmbh/jobs.xml"),
+        ("recruitee", RecruiteeXmlCollector, "https://acme-gmbh.recruitee.com/api/offers.xml"),
+        ("successfactors", SuccessFactorsXmlCollector, "https://acme.successfactors.com/jobs.xml"),
+    ],
+)
+def test_xml_ats_collectors_reject_a_valid_but_unrelated_xml_document(
+    kind: str,
+    collector_type: type[Any],
+    source_url: str,
+) -> None:
+    collector = collector_type(
+        source(kind, source_url),
+        client=fixture_client("xml-wrong-root.xml"),
+    )
+
+    with pytest.raises(ValueError, match="unexpected XML root"):
+        collector.collect()
+
+
 def test_smartrecruiters_keeps_its_public_ref_url() -> None:
     result = SmartRecruitersCollector(
         source(

@@ -266,13 +266,21 @@ class PersonioXmlCollector(ATSCollector):
     """Collect Personio's public XML feed."""
 
     def collect(self) -> CollectionResult:
-        return self._collect_xml("position", ("id",), ("name",))
+        return self._collect_xml("positions", "position", ("id",), ("name",))
 
     def _collect_xml(
-        self, record_tag: str, id_names: tuple[str, ...], title_names: tuple[str, ...]
+        self,
+        root_name: str,
+        record_tag: str,
+        id_names: tuple[str, ...],
+        title_names: tuple[str, ...],
     ) -> CollectionResult:
         try:
-            root = _xml_root(self.fetch_source().text, self.__class__.__name__)
+            root = _xml_root(
+                self.fetch_source().text,
+                self.__class__.__name__,
+                expected_root=root_name,
+            )
             jobs = [
                 raw
                 for record in _xml_records(root, record_tag)
@@ -318,7 +326,7 @@ class DVinciCollector(PersonioXmlCollector):
         try:
             body = self.fetch_source().text
             if body.lstrip().startswith("<"):
-                root = _xml_root(body, "d.vinci")
+                root = _xml_root(body, "d.vinci", expected_root="jobs")
                 jobs = [
                     raw
                     for record in _xml_records(root, "job")
@@ -488,7 +496,7 @@ class RecruiteeXmlCollector(PersonioXmlCollector):
     """Collect Recruitee's XML offers feed."""
 
     def collect(self) -> CollectionResult:
-        return self._collect_xml("offer", ("id",), ("title", "name"))
+        return self._collect_xml("offers", "offer", ("id",), ("title", "name"))
 
 
 class WorkdayCollector(ATSCollector):
@@ -558,7 +566,7 @@ class SuccessFactorsXmlCollector(PersonioXmlCollector):
     """Collect the public SuccessFactors XML job feed."""
 
     def collect(self) -> CollectionResult:
-        return self._collect_xml("job", ("jobId", "id"), ("title", "name"))
+        return self._collect_xml("jobs", "job", ("jobId", "id"), ("title", "name"))
 
 
 def register_ats_collectors(registry: CollectorRegistry) -> None:
@@ -595,11 +603,19 @@ def _records(payload: dict[str, Any] | list[Any], key: str) -> list[dict[str, An
     return [record for record in payload[key] if isinstance(record, dict)]
 
 
-def _xml_root(body: str, source_name: str) -> ElementTree.Element:
+def _xml_root(
+    body: str,
+    source_name: str,
+    *,
+    expected_root: str | None = None,
+) -> ElementTree.Element:
     try:
-        return ElementTree.fromstring(body)
+        root = ElementTree.fromstring(body)
     except ElementTree.ParseError as error:
         raise ValueError(f"{source_name} returned invalid XML.") from error
+    if expected_root is not None and _local_name(root.tag) != expected_root:
+        raise ValueError(f"{source_name} returned an unexpected XML root.")
+    return root
 
 
 def _xml_records(root: ElementTree.Element, name: str) -> list[ElementTree.Element]:

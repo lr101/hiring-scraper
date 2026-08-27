@@ -31,6 +31,24 @@ class Company(models.Model):
         return self.name
 
 
+class EmployerDiscoveryRun(models.Model):
+    """One account-independent BA employer discovery query and its outcome."""
+
+    query_city = models.CharField(max_length=200)
+    query_radius_km = models.PositiveSmallIntegerField()
+    publication_age_days = models.PositiveSmallIntegerField()
+    offer_type = models.PositiveSmallIntegerField(default=1)
+    include_temporary_agencies = models.BooleanField(default=False)
+    is_complete = models.BooleanField(default=False)
+    observed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-observed_at", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.query_city} employer discovery ({self.observed_at:%Y-%m-%d %H:%M})"
+
+
 class EmployerSignalSnapshot(models.Model):
     """A persisted, account-independent snapshot of employer hiring activity."""
 
@@ -46,6 +64,13 @@ class EmployerSignalSnapshot(models.Model):
     offer_type = models.PositiveSmallIntegerField(default=1)
     include_temporary_agencies = models.BooleanField(default=False)
     is_complete = models.BooleanField(default=False)
+    run = models.ForeignKey(
+        EmployerDiscoveryRun,
+        on_delete=models.CASCADE,
+        related_name="snapshots",
+        null=True,
+        blank=True,
+    )
     observed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

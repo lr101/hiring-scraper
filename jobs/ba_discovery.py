@@ -14,7 +14,7 @@ from django.conf import settings
 from django.db import transaction
 
 from .locations import _wait_for_provider_rate_limit
-from .models import EmployerSignalSnapshot
+from .models import EmployerDiscoveryRun, EmployerSignalSnapshot
 from .network import UnsafeNetworkAddress, validate_public_hostname
 
 DEFAULT_BASE_URL = "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
@@ -296,6 +296,14 @@ class EmployerDiscoveryService:
         if result.error is not None:
             return result
         with transaction.atomic():
+            run = EmployerDiscoveryRun.objects.create(
+                query_city=city.strip(),
+                query_radius_km=radius_km,
+                publication_age_days=publication_age_days,
+                offer_type=offer_type,
+                include_temporary_agencies=include_temporary_agencies,
+                is_complete=result.is_complete,
+            )
             EmployerSignalSnapshot.objects.bulk_create(
                 [
                     EmployerSignalSnapshot(
@@ -311,6 +319,7 @@ class EmployerDiscoveryService:
                         offer_type=offer_type,
                         include_temporary_agencies=include_temporary_agencies,
                         is_complete=result.is_complete,
+                        run=run,
                     )
                     for employer in result.employers
                 ]
@@ -392,21 +401,38 @@ def _parse_search_page(payload: Any, *, page: int, size: int) -> BAJobSearchPage
     )
     if not isinstance(raw_records, list):
         raise JobsucheProviderError("The BA Jobsuche provider returned no job result list.")
-    signals = tuple(
-        signal
-        for raw_record in raw_records
-        if isinstance(raw_record, dict) and (signal := _parse_job_signal(raw_record)) is not None
-    )
+    signals: list[BAJobSignal] = []
+    for raw_record in raw_records:
+        if not isinstance(raw_record, dict) or not _has_job_record_shape(raw_record):
+            raise JobsucheProviderError("The BA Jobsuche provider returned an invalid job record.")
+        signal = _parse_job_signal(raw_record)
+        if signal is not None:
+            signals.append(signal)
     total_results = _first_int(payload, "maxErgebnisse", "total", "totalResults", "total_results")
     is_complete = (
         total_results <= page * size if total_results is not None else len(raw_records) < size
     )
     return BAJobSearchPage(
-        signals=signals,
+        signals=tuple(signals),
         total_results=total_results,
         page=page,
         size=size,
         is_complete=is_complete,
+    )
+
+
+def _has_job_record_shape(record: dict[str, Any]) -> bool:
+    return bool(
+        _first_string(record, "firma", "arbeitgeber", "arbeitgeberName", "employer")
+        and _first_string(record, "stellenangebotsTitel", "titel", "beruf", "title")
+        and _first_string(
+            record,
+            "referenznummer",
+            "refnr",
+            "referenceNumber",
+            "reference_number",
+        )
+        and _job_locations(record)
     )
 
 

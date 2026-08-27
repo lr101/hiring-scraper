@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 from django.conf import settings
@@ -130,14 +132,11 @@ def job_detail(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(
-        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
-        pk=job_id,
-    )
-    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
-    if state.seen_at is None:
-        state.seen_at = timezone.now()
-        state.save(update_fields=["seen_at", "updated_at"])
+    with _locked_user_job(user=user, job_id=job_id) as job:
+        state, _ = UserJobState.objects.select_for_update().get_or_create(user=user, job=job)
+        if state.seen_at is None:
+            state.seen_at = timezone.now()
+            state.save(update_fields=["seen_at", "updated_at"])
     matches = job.matches.filter(profile__user=user).select_related("profile")
     return render(request, "jobs/job_detail.html", {"job": job, "state": state, "matches": matches})
 
@@ -147,17 +146,35 @@ def job_state(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(
+    with _locked_user_job(user=user, job_id=job_id) as job:
+        state, _ = UserJobState.objects.select_for_update().get_or_create(user=user, job=job)
+        status = request.POST.get("status", UserJobState.Status.NONE)
+        valid_statuses = {value for value, _ in UserJobState.Status.choices}
+        state.status = status if status in valid_statuses else UserJobState.Status.NONE
+        state.notes = request.POST.get("notes", "")
+        state.save(update_fields=["status", "notes", "updated_at"])
+    return redirect("jobs:job_detail", job_id=job.pk)
+
+
+@contextmanager
+def _locked_user_job(*, user: WorkspaceUser, job_id: int) -> Iterator[Job]:
+    visible_job = get_object_or_404(
         Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
         pk=job_id,
     )
-    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
-    status = request.POST.get("status", UserJobState.Status.NONE)
-    valid_statuses = {value for value, _ in UserJobState.Status.choices}
-    state.status = status if status in valid_statuses else UserJobState.Status.NONE
-    state.notes = request.POST.get("notes", "")
-    state.save(update_fields=["status", "notes", "updated_at"])
-    return redirect("jobs:job_detail", job_id=job.pk)
+    with transaction.atomic():
+        CareerSource.objects.select_for_update().get(pk=visible_job.source_id)
+        job = (
+            Job.objects.select_for_update(of=("self",))
+            .select_related("source")
+            .filter(pk=job_id)
+            .first()
+        )
+        if job is None:
+            raise Http404("Job no longer exists.")
+        if job.source_id != visible_job.source_id:
+            CareerSource.objects.select_for_update().get(pk=job.source_id)
+        yield job
 
 
 def company_list(request: HttpRequest) -> HttpResponse:

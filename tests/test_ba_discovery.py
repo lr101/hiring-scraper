@@ -13,9 +13,10 @@ from jobs.ba_discovery import (
     ArbeitsagenturJobsucheClient,
     BAJobSignal,
     EmployerDiscoveryService,
+    JobsucheProviderError,
     group_employer_signals,
 )
-from jobs.models import EmployerSignalSnapshot, MonitoringTarget
+from jobs.models import EmployerDiscoveryRun, EmployerSignalSnapshot, MonitoringTarget
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ba"
 
@@ -107,6 +108,20 @@ def test_jobsuche_client_requests_configured_german_search_and_parses_typed_sign
             published_at=date(2026, 7, 1),
         ),
     )
+
+
+def test_jobsuche_client_rejects_a_malformed_job_record() -> None:
+    requests: list[httpx.Request] = []
+    client = ArbeitsagenturJobsucheClient(
+        client=fixture_sequence_client(["malformed-page.json"], requests),
+        base_url="https://rest.arbeitsagentur.test/jobboerse/jobsuche-service",
+        api_key="test-key",
+        result_limit=50,
+        min_interval_seconds=0,
+    )
+
+    with pytest.raises(JobsucheProviderError, match="invalid job record"):
+        client.search(city="Berlin", radius_km=25, publication_age_days=30)
 
 
 def test_employer_grouping_deduplicates_jobs_and_exposes_recent_activity() -> None:
@@ -236,6 +251,66 @@ def test_employer_discovery_persists_activity_without_creating_monitoring_target
     assert snapshot.offer_type == 4
     assert snapshot.include_temporary_agencies is True
     assert MonitoringTarget.objects.count() == 0
+    assert snapshot.run_id is not None
+
+
+@pytest.mark.django_db
+def test_empty_complete_discovery_creates_a_run_without_employer_snapshots() -> None:
+    requests: list[httpx.Request] = []
+    client = ArbeitsagenturJobsucheClient(
+        client=fixture_sequence_client(["jobs-empty-page.json"], requests),
+        base_url="https://rest.arbeitsagentur.test/jobboerse/jobsuche-service",
+        api_key="test-key",
+        result_limit=50,
+        min_interval_seconds=0,
+    )
+
+    result = EmployerDiscoveryService(client=client).discover_and_persist(
+        city="Berlin",
+        radius_km=25,
+        publication_age_days=30,
+        as_of=date(2026, 8, 27),
+    )
+
+    run = EmployerDiscoveryRun.objects.get(query_city="Berlin")
+    assert result.is_complete is True
+    assert run.is_complete is True
+    assert run.snapshots.count() == 0
+
+
+@pytest.mark.django_db
+def test_empty_complete_discovery_supersedes_previous_employer_activity() -> None:
+    requests: list[httpx.Request] = []
+    client = ArbeitsagenturJobsucheClient(
+        client=fixture_sequence_client(
+            ["jobs-page.json", "jobs-empty-page.json"],
+            requests,
+        ),
+        base_url="https://rest.arbeitsagentur.test/jobboerse/jobsuche-service",
+        api_key="test-key",
+        result_limit=50,
+        min_interval_seconds=0,
+    )
+    service = EmployerDiscoveryService(client=client)
+
+    service.discover_and_persist(
+        city="Berlin",
+        radius_km=25,
+        publication_age_days=30,
+        as_of=date(2026, 8, 27),
+    )
+    service.discover_and_persist(
+        city="Berlin",
+        radius_km=25,
+        publication_age_days=30,
+        as_of=date(2026, 8, 27),
+    )
+
+    latest_run = EmployerDiscoveryRun.objects.order_by("-pk").first()
+    assert latest_run is not None
+    assert latest_run.snapshots.count() == 0
+    assert EmployerSignalSnapshot.objects.filter(run__isnull=False).count() == 2
+    assert EmployerSignalSnapshot.objects.filter(run=latest_run).count() == 0
 
 
 @pytest.mark.django_db
