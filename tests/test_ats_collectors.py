@@ -30,6 +30,12 @@ from jobs.models import CareerSource, Company, Job
 FIXTURES = Path(__file__).parent / "fixtures" / "ats"
 
 
+@pytest.fixture(autouse=True)
+def stub_public_hostname_validation(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("jobs.collectors.ats.validate_public_hostname", lambda hostname: None)
+    monkeypatch.setattr("jobs.collectors.validate_public_hostname", lambda hostname: None)
+
+
 def fixture_client(
     fixture_name: str, *, requests: list[httpx.Request] | None = None
 ) -> httpx.Client:
@@ -218,6 +224,24 @@ def test_workday_fingerprint_rejects_unsafe_board_paths(url: str) -> None:
     assert collectors.fingerprint_ats_url(url) is None
 
 
+def test_workday_fingerprint_rejects_a_job_detail_path() -> None:
+    assert (
+        collectors.fingerprint_ats_url(
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme/job/Berlin/123"
+        )
+        is None
+    )
+
+
+def test_workday_fingerprint_keeps_a_cxs_path_canonical() -> None:
+    recognized = collectors.fingerprint_ats_url(
+        "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Acme/jobs?query=ignored"
+    )
+
+    assert recognized is not None
+    assert recognized.source_url == "https://acme.wd5.myworkdayjobs.com/wday/cxs/acme/Acme/jobs"
+
+
 @pytest.mark.parametrize(
     ("kind", "collector_type", "fixture_name", "source_url", "expected_query"),
     ADAPTER_REQUEST_CONTRACTS,
@@ -288,6 +312,20 @@ def test_ats_collectors_reject_invalid_source_urls_before_request(
         collector.collect()
 
     assert requests == []
+
+
+def test_ats_fixture_collection_does_not_use_live_dns(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_live_dns(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("ATS fixture tests must not use live DNS")
+
+    monkeypatch.setattr("jobs.network.socket.getaddrinfo", fail_live_dns)
+
+    result = LeverCollector(
+        source("lever", "https://api.lever.co/v0/postings/acme-gmbh"),
+        client=fixture_client("lever.json"),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == ["lever-de"]
 
 
 @pytest.mark.parametrize(

@@ -33,6 +33,7 @@ WORKDAY = "workday"
 
 _TENANT_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\Z")
 _WORKDAY_SITE_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,200}\Z")
+_WORKDAY_LOCALE_PATTERN = re.compile(r"[A-Za-z]{2,8}(?:-[A-Za-z0-9]{2,8})+\Z")
 _PERSONIO_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.jobs\.personio\.de\Z")
 _RECRUITEE_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.recruitee\.com\Z")
 _WORKDAY_HOST_PATTERN = re.compile(r"[a-z0-9][a-z0-9-]{0,199}\.wd[0-9]+\.myworkdayjobs\.com\Z")
@@ -102,11 +103,18 @@ def workday_feed_url(board_url: str) -> str:
     parsed = urlsplit(source_url)
     tenant = (parsed.hostname or "").split(".", maxsplit=1)[0]
     path = [part for part in parsed.path.split("/") if part]
-    if len(path) == 5 and path[:2] == ["wday", "cxs"] and path[2] == tenant and path[4] == "jobs":
+    if (
+        len(path) == 5
+        and path[:2] == ["wday", "cxs"]
+        and path[2] == tenant
+        and _safe_workday_site(path[3])
+        and path[4] == "jobs"
+    ):
         return source_url
-    if not path or not _safe_workday_site(path[-1]):
+    site = _workday_board_site(path, tenant=tenant)
+    if site is None:
         raise ValueError("Workday board URL must include a safe site identifier.")
-    return urlunsplit(("https", parsed.netloc, f"/wday/cxs/{tenant}/{path[-1]}/jobs", "", ""))
+    return urlunsplit(("https", parsed.netloc, f"/wday/cxs/{tenant}/{site}/jobs", "", ""))
 
 
 def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
@@ -784,6 +792,22 @@ def _safe_workday_source_url(url: str) -> str | None:
 
 def _safe_workday_site(value: str) -> bool:
     return bool(_WORKDAY_SITE_PATTERN.fullmatch(value))
+
+
+def _workday_board_site(path: list[str], *, tenant: str) -> str | None:
+    if len(path) == 1 and _safe_workday_site(path[0]):
+        return path[0]
+    if len(path) == 2 and _safe_workday_site(path[1]):
+        if _WORKDAY_LOCALE_PATTERN.fullmatch(path[0]) or path[0].casefold() == tenant:
+            return path[1]
+    if (
+        len(path) == 3
+        and path[0].casefold() == tenant
+        and _WORKDAY_LOCALE_PATTERN.fullmatch(path[1])
+        and _safe_workday_site(path[2])
+    ):
+        return path[2]
+    return None
 
 
 def _workday_job_url(source_url: str, external_path: str) -> str | None:
