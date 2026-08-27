@@ -113,7 +113,7 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
         return _fingerprint(SMARTRECRUITERS, path[2], smartrecruiters_feed_url)
     if (
         host == "apply.workable.com"
-        and len(path) >= 5
+        and len(path) == 5
         and path[:3] == ["api", "v3", "accounts"]
         and path[4] == "jobs"
     ):
@@ -122,7 +122,7 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
         return _fingerprint(RECRUITEE, host.removesuffix(".recruitee.com"), recruitee_feed_url)
     if (
         host == "api.prescreen.io"
-        and len(path) >= 5
+        and len(path) == 5
         and path[:3] == ["api", "v1", "companies"]
         and path[4] == "jobs"
     ):

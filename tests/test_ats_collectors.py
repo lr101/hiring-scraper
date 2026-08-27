@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 import httpx
 import pytest
@@ -9,14 +10,31 @@ import pytest
 import jobs.collectors as collectors
 from jobs.collection import collect_source, collector_registry
 from jobs.collectors import CollectorRegistry
-from jobs.collectors.ats import WorkdayCollector
+from jobs.collectors.ats import (
+    AshbyCollector,
+    DVinciCollector,
+    GreenhouseCollector,
+    LeverCollector,
+    OnlyfyPrescreenCollector,
+    PersonioXmlCollector,
+    RecruiteeXmlCollector,
+    SmartRecruitersCollector,
+    SoftgardenJsonCollector,
+    SuccessFactorsXmlCollector,
+    WorkableCollector,
+    WorkdayCollector,
+)
 from jobs.models import CareerSource, Company, Job
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ats"
 
 
-def fixture_client(fixture_name: str) -> httpx.Client:
+def fixture_client(
+    fixture_name: str, *, requests: list[httpx.Request] | None = None
+) -> httpx.Client:
     def respond(request: httpx.Request) -> httpx.Response:
+        if requests is not None:
+            requests.append(request)
         return httpx.Response(200, text=(FIXTURES / fixture_name).read_text(), request=request)
 
     return httpx.Client(transport=httpx.MockTransport(respond))
@@ -33,6 +51,94 @@ def source(
         request_delay_seconds=0,
         max_pages=max_pages,
     )
+
+
+ADAPTER_REQUEST_CONTRACTS: list[tuple[str, type[Any], str, str, dict[str, str]]] = [
+    (
+        "personio",
+        PersonioXmlCollector,
+        "personio.xml",
+        "https://acme-gmbh.jobs.personio.de/xml",
+        {},
+    ),
+    (
+        "softgarden",
+        SoftgardenJsonCollector,
+        "softgarden.json",
+        "https://api.softgarden.io/v1/companies/acme-gmbh/jobs",
+        {},
+    ),
+    (
+        "dvinci",
+        DVinciCollector,
+        "dvinci.json",
+        "https://jobs.dvinci.com/acme-gmbh/jobs.json",
+        {},
+    ),
+    (
+        "onlyfy",
+        OnlyfyPrescreenCollector,
+        "onlyfy.json",
+        "https://api.prescreen.io/api/v1/companies/acme-gmbh/jobs",
+        {},
+    ),
+    (
+        "greenhouse",
+        GreenhouseCollector,
+        "greenhouse.json",
+        "https://boards-api.greenhouse.io/v1/boards/acme-gmbh/jobs?content=true",
+        {"content": "true"},
+    ),
+    (
+        "lever",
+        LeverCollector,
+        "lever.json",
+        "https://api.lever.co/v0/postings/acme-gmbh?mode=json",
+        {"mode": "json"},
+    ),
+    (
+        "ashby",
+        AshbyCollector,
+        "ashby.json",
+        "https://api.ashbyhq.com/posting-api/job-board/acme-gmbh",
+        {},
+    ),
+    (
+        "smartrecruiters",
+        SmartRecruitersCollector,
+        "smartrecruiters.json",
+        "https://api.smartrecruiters.com/v1/companies/acme-gmbh/postings",
+        {"limit": "100", "offset": "0"},
+    ),
+    (
+        "workable",
+        WorkableCollector,
+        "workable.json",
+        "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs",
+        {"limit": "100", "offset": "0"},
+    ),
+    (
+        "recruitee",
+        RecruiteeXmlCollector,
+        "recruitee.xml",
+        "https://acme-gmbh.recruitee.com/api/offers.xml",
+        {},
+    ),
+    (
+        "workday",
+        WorkdayCollector,
+        "workday.json",
+        "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme",
+        {},
+    ),
+    (
+        "successfactors",
+        SuccessFactorsXmlCollector,
+        "successfactors.xml",
+        "https://acme.example.test/successfactors/jobs.xml",
+        {},
+    ),
+]
 
 
 def test_ats_tenant_helpers_build_safe_feed_urls_and_fingerprint_known_urls() -> None:
@@ -63,7 +169,9 @@ def test_ats_fingerprint_rejects_a_non_feed_smartrecruiters_path() -> None:
     "url",
     [
         "https://apply.workable.com/api/v3/accounts/acme-gmbh/settings",
+        "https://apply.workable.com/api/v3/accounts/acme-gmbh/jobs/settings",
         "https://api.prescreen.io/api/v1/companies/acme-gmbh/settings",
+        "https://api.prescreen.io/api/v1/companies/acme-gmbh/jobs/settings",
     ],
 )
 def test_ats_fingerprint_rejects_non_feed_workable_and_onlyfy_paths(url: str) -> None:
@@ -91,6 +199,32 @@ def test_workday_fingerprint_strips_query_data_from_a_recognized_board_url() -> 
 )
 def test_workday_fingerprint_rejects_unsafe_board_paths(url: str) -> None:
     assert collectors.fingerprint_ats_url(url) is None
+
+
+@pytest.mark.parametrize(
+    ("kind", "collector_type", "fixture_name", "source_url", "expected_query"),
+    ADAPTER_REQUEST_CONTRACTS,
+)
+def test_ats_collectors_request_the_configured_feed_contract(
+    kind: str,
+    collector_type: type[Any],
+    fixture_name: str,
+    source_url: str,
+    expected_query: dict[str, str],
+) -> None:
+    requests: list[httpx.Request] = []
+
+    collector_type(
+        source(kind, source_url), client=fixture_client(fixture_name, requests=requests)
+    ).collect()
+
+    assert len(requests) == 1
+    request = requests[0]
+    expected = httpx.URL(source_url)
+    assert request.method == "GET"
+    assert request.url.host == expected.host
+    assert request.url.path == expected.path
+    assert dict(request.url.params) == expected_query
 
 
 @pytest.mark.parametrize(
@@ -316,6 +450,86 @@ def test_workday_ats_source_collects_and_persists_fixture_jobs() -> None:
     assert run.jobs_seen == 1
     assert job.country_code == "DE"
     assert job.canonical_url == "https://acme.wd5.myworkdayjobs.com/job/Berlin/workday-de"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("kind", "collector_type", "fixture_name", "source_url", "expected_external_id"),
+    [
+        (kind, collector_type, fixture_name, source_url, "101" if kind == "greenhouse" else None)
+        for kind, collector_type, fixture_name, source_url, _query in ADAPTER_REQUEST_CONTRACTS
+    ],
+)
+def test_ats_sources_persist_and_upsert_fixture_jobs(
+    kind: str,
+    collector_type: type[Any],
+    fixture_name: str,
+    source_url: str,
+    expected_external_id: str | None,
+) -> None:
+    company = Company.objects.create(
+        name=f"{kind.title()} GmbH",
+        domain=f"{kind}.test",
+        career_url=f"https://{kind}.test/careers",
+    )
+    career_source = CareerSource.objects.create(
+        company=company,
+        kind=kind,
+        source_url=source_url,
+        tenant="acme-gmbh",
+        request_delay_seconds=0,
+    )
+    registry = CollectorRegistry()
+    registry.register(
+        kind,
+        lambda configured_source: collector_type(
+            configured_source, client=fixture_client(fixture_name)
+        ),
+    )
+
+    first_run = collect_source(source=career_source, registry=registry)
+    second_run = collect_source(source=career_source, registry=registry)
+
+    jobs = Job.objects.filter(source=career_source)
+    assert first_run.status == "success"
+    assert first_run.jobs_created == 1
+    assert second_run.status == "success"
+    assert second_run.jobs_created == 0
+    assert jobs.count() == 1
+    if expected_external_id is not None:
+        assert jobs.get().external_id == expected_external_id
+
+
+@pytest.mark.django_db
+def test_softgarden_ats_source_closes_a_missing_fixture_job_after_two_complete_runs() -> None:
+    company = Company.objects.create(
+        name="Softgarden GmbH",
+        domain="softgarden-lifecycle.test",
+        career_url="https://softgarden-lifecycle.test/careers",
+    )
+    career_source = CareerSource.objects.create(
+        company=company,
+        kind=CareerSource.Kind.SOFTGARDEN,
+        source_url="https://api.softgarden.io/v1/companies/acme-gmbh/jobs",
+        request_delay_seconds=0,
+    )
+    fixture_names = iter(["softgarden.json", "softgarden-empty.json", "softgarden-empty.json"])
+    registry = CollectorRegistry()
+    registry.register(
+        CareerSource.Kind.SOFTGARDEN,
+        lambda configured_source: SoftgardenJsonCollector(
+            configured_source, client=fixture_client(next(fixture_names))
+        ),
+    )
+
+    collect_source(source=career_source, registry=registry)
+    first_missing_run = collect_source(source=career_source, registry=registry)
+    second_missing_run = collect_source(source=career_source, registry=registry)
+
+    job = Job.objects.get(source=career_source, external_id="softgarden-de")
+    assert first_missing_run.jobs_closed == 0
+    assert second_missing_run.jobs_closed == 1
+    assert job.closed_at is not None
 
 
 def test_new_ats_kinds_are_persisted_and_registered() -> None:
