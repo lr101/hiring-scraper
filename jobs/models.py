@@ -31,6 +31,29 @@ class Company(models.Model):
         return self.name
 
 
+class EmployerSignalSnapshot(models.Model):
+    """A persisted, account-independent snapshot of employer hiring activity."""
+
+    normalized_name = models.CharField(max_length=300, db_index=True)
+    employer_name = models.CharField(max_length=200)
+    total_active_jobs = models.PositiveIntegerField(default=0)
+    recent_jobs = models.PositiveIntegerField(default=0)
+    distinct_locations = models.JSONField(default=list)
+    signals = models.JSONField(default=list)
+    query_city = models.CharField(max_length=200)
+    query_radius_km = models.PositiveSmallIntegerField()
+    publication_age_days = models.PositiveSmallIntegerField()
+    is_complete = models.BooleanField(default=False)
+    observed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-observed_at", "normalized_name"]
+        indexes = [models.Index(fields=["normalized_name", "-observed_at"])]
+
+    def __str__(self) -> str:
+        return f"{self.employer_name} ({self.total_active_jobs} active jobs)"
+
+
 class CareerSource(models.Model):
     class Kind(models.TextChoices):
         CUSTOM = "custom", "Custom"

@@ -120,6 +120,20 @@ COMPANY_LOCATION_RATE_LIMIT_STATE_PATH = os.getenv(
 COMPANY_LOCATION_USER_AGENT = os.getenv(
     "COMPANY_LOCATION_USER_AGENT", "hiring-scraper/0.1 (self-hosted company lookup)"
 )
+BA_JOBS_API_BASE_URL = os.getenv(
+    "BA_JOBS_API_BASE_URL", "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
+)
+BA_JOBS_API_KEY = os.getenv("BA_JOBS_API_KEY", "jobboerse-jobsuche")
+BA_JOBS_TIMEOUT_SECONDS = float(os.getenv("BA_JOBS_TIMEOUT_SECONDS", "30"))
+BA_JOBS_RESULT_LIMIT = int(os.getenv("BA_JOBS_RESULT_LIMIT", "100"))
+BA_JOBS_MAX_PAGES = int(os.getenv("BA_JOBS_MAX_PAGES", "5"))
+BA_JOBS_MIN_REQUEST_INTERVAL_SECONDS = float(os.getenv("BA_JOBS_MIN_REQUEST_INTERVAL_SECONDS", "2"))
+BA_JOBS_RATE_LIMIT_STATE_PATH = os.getenv(
+    "BA_JOBS_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-ba-jobs-rate-limit"
+)
+BA_JOBS_USER_AGENT = os.getenv(
+    "BA_JOBS_USER_AGENT", "hiring-scraper/0.1 (self-hosted BA job discovery)"
+)
 LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
 LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
