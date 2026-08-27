@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from .collection import collect_source, collector_registry
+from .collection import collect_source, collector_registry, is_retired_source
 from .company_discovery import CompanyDiscoveryError, DiscoveredCompany, discover_company
 from .company_locations import (
     CompanyLocationLookupError,
@@ -178,6 +178,9 @@ def source_list(request: HttpRequest) -> HttpResponse:
 @require_POST
 def source_toggle(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     source.is_enabled = not source.is_enabled
     source.save(update_fields=["is_enabled"])
     return redirect("jobs:source_list")
@@ -186,6 +189,9 @@ def source_toggle(request: HttpRequest, source_id: int) -> HttpResponse:
 @require_POST
 def source_unblock(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     source.blocked_at = None
     source.save(update_fields=["blocked_at"])
     return redirect("jobs:source_list")
@@ -194,6 +200,9 @@ def source_unblock(request: HttpRequest, source_id: int) -> HttpResponse:
 @require_POST
 def source_run(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     if source.blocked_at is not None:
         messages.warning(request, "Unblock this source before running it.")
         return redirect("jobs:source_list")

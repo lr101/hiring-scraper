@@ -657,13 +657,10 @@ def _migrate_jobs_to_canonical(
 ) -> None:
     for equivalent in equivalent_sources:
         for job in Job.objects.filter(source=equivalent).order_by("pk").iterator():
-            canonical_job = (
-                Job.objects.filter(
-                    source=source,
-                )
-                .filter(Q(external_id=job.external_id) | Q(canonical_url=job.canonical_url))
-                .first()
-            )
+            identity = Q(external_id=job.external_id)
+            if job.canonical_url:
+                identity |= Q(canonical_url=job.canonical_url)
+            canonical_job = Job.objects.filter(source=source).filter(identity).first()
             if canonical_job is None:
                 job.source = source
                 job.save(update_fields=["source"])
@@ -681,16 +678,8 @@ def _merge_job_references(source_job: Job, canonical_job: Job) -> None:
         if existing_state is None:
             state.job = canonical_job
             state.save(update_fields=["job"])
-        elif (
-            existing_state.status == UserJobState.Status.NONE
-            and state.status != UserJobState.Status.NONE
-        ):
-            existing_state.status = state.status
-            existing_state.seen_at = state.seen_at
-            existing_state.notes = state.notes
-            existing_state.save(update_fields=["status", "seen_at", "notes", "updated_at"])
-            state.delete()
         else:
+            _merge_user_job_state(existing_state, state)
             state.delete()
     for match in JobMatch.objects.filter(job=source_job):
         existing_match = JobMatch.objects.filter(
@@ -704,13 +693,53 @@ def _merge_job_references(source_job: Job, canonical_job: Job) -> None:
             match.delete()
 
 
+_USER_JOB_STATUS_PRIORITY: dict[str, int] = {
+    UserJobState.Status.NONE: 0,
+    UserJobState.Status.SAVED: 10,
+    UserJobState.Status.IGNORED: 10,
+    UserJobState.Status.REJECTED: 20,
+    UserJobState.Status.APPLIED: 30,
+    UserJobState.Status.INTERVIEWING: 40,
+    UserJobState.Status.OFFER: 50,
+}
+
+
+def _merge_user_job_state(target: UserJobState, incoming: UserJobState) -> None:
+    updates: list[str] = []
+    target_priority = _USER_JOB_STATUS_PRIORITY[target.status]
+    incoming_priority = _USER_JOB_STATUS_PRIORITY[incoming.status]
+    if incoming_priority > target_priority or (
+        incoming_priority == target_priority and incoming.updated_at > target.updated_at
+    ):
+        target.status = incoming.status
+        updates.append("status")
+
+    notes = "\n\n".join(
+        dict.fromkeys(note for note in (target.notes.strip(), incoming.notes.strip()) if note)
+    )
+    if notes != target.notes:
+        target.notes = notes
+        updates.append("notes")
+
+    seen_at = min(
+        (value for value in (target.seen_at, incoming.seen_at) if value is not None),
+        default=None,
+    )
+    if seen_at != target.seen_at:
+        target.seen_at = seen_at
+        updates.append("seen_at")
+    if updates:
+        target.save(update_fields=[*updates, "updated_at"])
+
+
 def _collect_registered_source(
     source: CareerSource,
     *,
     errors: list[str],
 ) -> CrawlRun | None:
     try:
-        return collect_source(source=source, registry=collector_registry)
+        run = collect_source(source=source, registry=collector_registry)
+        return None if run.status == CrawlRun.Status.RUNNING else run
     except Exception as error:
         errors.append(str(error))
         return None

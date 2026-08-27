@@ -28,6 +28,12 @@ def discover_city_sources(target_id: int) -> dict[str, int | str]:
         place=target.place,
         radius_km=target.radius_km,
     )
+    for discovery_error in result.errors:
+        logger.error(
+            "Reverse discovery city target %s failed: %s",
+            target_id,
+            discovery_error,
+        )
     return {
         "status": "complete" if result.is_complete else "partial",
         "added_companies": result.companies_added,
@@ -49,6 +55,9 @@ def reverse_discover_sources() -> dict[str, int | str]:
         global_result = service.discover(city=None, collect=True)
     finally:
         service.close()
+
+    for discovery_error in global_result.errors:
+        logger.error("Reverse discovery global stage failed: %s", discovery_error)
 
     summary: dict[str, int | str] = {
         "status": "complete" if global_result.is_complete else "partial",

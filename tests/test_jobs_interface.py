@@ -125,6 +125,34 @@ def test_source_toggle_and_unblock_are_scoped_to_source(client: Client) -> None:
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("view_name", ["source_toggle", "source_unblock", "source_run"])
+def test_retired_source_cannot_be_reenabled_unblocked_or_run(
+    client: Client,
+    monkeypatch: pytest.MonkeyPatch,
+    view_name: str,
+) -> None:
+    WorkspaceUser.objects.create(name="Ada")
+    source = make_job().source
+    source.blocked_at = timezone.now()
+    source.config = {"canonical_source_url": "https://canonical.test/jobs"}
+    source.save(update_fields=["blocked_at", "config"])
+    called = False
+
+    def fail_if_called(**_: object) -> None:
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr("jobs.views.collect_source", fail_if_called)
+    response = client.post(reverse(f"jobs:{view_name}", args=[source.pk]))
+
+    assert response.status_code == 302
+    source.refresh_from_db()
+    assert source.is_enabled is True
+    assert source.blocked_at is not None
+    assert called is False
+
+
+@pytest.mark.django_db
 def test_company_and_run_pages_show_related_data(client: Client) -> None:
     WorkspaceUser.objects.create(name="Ada")
     job = make_job()

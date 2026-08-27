@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from io import StringIO
 from types import SimpleNamespace
 
@@ -20,9 +20,14 @@ from jobs.models import (
     GermanPlace,
     Job,
     MonitoringTarget,
+    UserJobState,
     WorkspaceUser,
 )
-from jobs.reverse_discovery import ReverseDiscoveryResult, ReverseDiscoveryService
+from jobs.reverse_discovery import (
+    ReverseDiscoveryResult,
+    ReverseDiscoveryService,
+    _collect_registered_source,
+)
 
 
 def hiring_signal() -> EmployerHiringSignal:
@@ -340,6 +345,11 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
         request_delay_seconds=7,
         max_pages=8,
     )
+    canonical_source = CareerSource.objects.create(
+        company=direct_company,
+        kind=CareerSource.Kind.GREENHOUSE,
+        source_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true",
+    )
     direct_job = Job.objects.create(
         source=direct_source,
         external_id="acme-1",
@@ -348,6 +358,49 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
         normalized_title="backend engineer",
         content_hash="a" * 64,
         fingerprint="b" * 64,
+    )
+    canonical_job = Job.objects.create(
+        source=canonical_source,
+        external_id="acme-1",
+        canonical_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs/acme-1",
+        title="Backend Engineer",
+        normalized_title="backend engineer",
+        content_hash="c" * 64,
+        fingerprint="d" * 64,
+    )
+    canonical_blank_job = Job.objects.create(
+        source=canonical_source,
+        external_id="canonical-blank",
+        canonical_url="",
+        title="Data Engineer",
+        normalized_title="data engineer",
+        content_hash="e" * 64,
+        fingerprint="f" * 64,
+    )
+    alias_blank_job = Job.objects.create(
+        source=direct_source,
+        external_id="alias-blank",
+        canonical_url="",
+        title="Platform Engineer",
+        normalized_title="platform engineer",
+        content_hash="g" * 64,
+        fingerprint="h" * 64,
+    )
+    seen_later = timezone.now()
+    seen_earlier = seen_later - timedelta(days=1)
+    UserJobState.objects.create(
+        user=user,
+        job=canonical_job,
+        status=UserJobState.Status.SAVED,
+        seen_at=seen_later,
+        notes="canonical note",
+    )
+    UserJobState.objects.create(
+        user=user,
+        job=direct_job,
+        status=UserJobState.Status.APPLIED,
+        seen_at=seen_earlier,
+        notes="alias note",
     )
 
     class BAService:
@@ -391,9 +444,16 @@ def test_ats_alias_is_retired_after_canonical_source_registration() -> None:
     assert canonical.is_enabled is True
     assert direct_source.is_enabled is False
     assert direct_source.config["canonical_source_url"] == canonical.source_url
-    direct_job.refresh_from_db()
-    assert direct_job.source_id == canonical.pk
-    assert canonical.jobs.count() == 1
+    assert Job.objects.filter(pk=direct_job.pk).exists() is False
+    alias_blank_job.refresh_from_db()
+    assert alias_blank_job.source_id == canonical.pk
+    assert canonical.jobs.count() == 3
+    assert canonical_blank_job.source_id == canonical.pk
+    merged_state = UserJobState.objects.get(user=user, job=canonical_job)
+    assert merged_state.status == UserJobState.Status.APPLIED
+    assert merged_state.seen_at == seen_earlier
+    assert "canonical note" in merged_state.notes
+    assert "alias note" in merged_state.notes
 
     second_result = service.discover(
         city="Berlin",
@@ -693,6 +753,7 @@ def test_scheduled_reverse_discovery_scans_saved_city_targets_after_global_probe
 @pytest.mark.django_db
 def test_city_task_preserves_partial_provider_status(
     monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     place = GermanPlace.objects.create(
@@ -722,6 +783,7 @@ def test_city_task_preserves_partial_provider_status(
 
     assert result["status"] == "partial"
     assert result["errors"] == 1
+    assert "BA provider unavailable" in caplog.text
 
 
 @pytest.mark.django_db
@@ -796,3 +858,41 @@ def test_scheduled_reverse_discovery_counts_failed_global_runs(
     assert result["status"] == "partial"
     assert result["errors"] == 1
     assert "ATS feed unavailable" in caplog.text
+
+
+@pytest.mark.django_db
+def test_scheduled_reverse_discovery_logs_global_provider_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    class Service:
+        def discover(self, **kwargs: object) -> ReverseDiscoveryResult:
+            del kwargs
+            return ReverseDiscoveryResult(errors=("Common Crawl unavailable",))
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr("jobs.reverse_discovery.ReverseDiscoveryService", Service)
+
+    from jobs.tasks import reverse_discover_sources
+
+    result = reverse_discover_sources.run()
+
+    assert result["status"] == "partial"
+    assert result["errors"] == 1
+    assert "Common Crawl unavailable" in caplog.text
+
+
+def test_concurrent_collection_is_not_reported_as_a_reverse_discovery_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    running = SimpleNamespace(status=CrawlRun.Status.RUNNING)
+    errors: list[str] = []
+
+    monkeypatch.setattr("jobs.reverse_discovery.collect_source", lambda **kwargs: running)
+
+    result = _collect_registered_source(SimpleNamespace(), errors=errors)  # type: ignore[arg-type]
+
+    assert result is None
+    assert errors == []
