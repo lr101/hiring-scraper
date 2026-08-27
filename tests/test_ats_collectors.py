@@ -7,8 +7,10 @@ import httpx
 import pytest
 
 import jobs.collectors as collectors
-from jobs.collection import collector_registry
-from jobs.models import CareerSource
+from jobs.collection import collect_source, collector_registry
+from jobs.collectors import CollectorRegistry
+from jobs.collectors.ats import WorkdayCollector
+from jobs.models import CareerSource, Company, Job
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ats"
 
@@ -20,11 +22,13 @@ def fixture_client(fixture_name: str) -> httpx.Client:
     return httpx.Client(transport=httpx.MockTransport(respond))
 
 
-def source(kind: str, source_url: str, *, max_pages: int = 5) -> SimpleNamespace:
+def source(
+    kind: str, source_url: str, *, max_pages: int = 5, tenant: str = "acme-gmbh"
+) -> SimpleNamespace:
     return SimpleNamespace(
         kind=kind,
         source_url=source_url,
-        tenant="acme-gmbh",
+        tenant=tenant,
         config={},
         request_delay_seconds=0,
         max_pages=max_pages,
@@ -53,6 +57,40 @@ def test_ats_fingerprint_rejects_a_non_feed_smartrecruiters_path() -> None:
     fingerprint = collectors.fingerprint_ats_url
 
     assert fingerprint("https://api.smartrecruiters.com/v1/companies/acme-gmbh/settings") is None
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://apply.workable.com/api/v3/accounts/acme-gmbh/settings",
+        "https://api.prescreen.io/api/v1/companies/acme-gmbh/settings",
+    ],
+)
+def test_ats_fingerprint_rejects_non_feed_workable_and_onlyfy_paths(url: str) -> None:
+    assert collectors.fingerprint_ats_url(url) is None
+
+
+def test_workday_fingerprint_strips_query_data_from_a_recognized_board_url() -> None:
+    recognized = collectors.fingerprint_ats_url(
+        "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme?returnTo=https://evil.test"
+    )
+
+    assert recognized is not None
+    assert recognized.kind == "workday"
+    assert recognized.tenant == "acme"
+    assert recognized.source_url == "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme"
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://acme.wd5.myworkdayjobs.com//evil.test",
+        "https://acme.wd5.myworkdayjobs.com/../evil",
+        "https://acme.wd5.myworkdayjobs.com/%2e%2e/evil",
+    ],
+)
+def test_workday_fingerprint_rejects_unsafe_board_paths(url: str) -> None:
+    assert collectors.fingerprint_ats_url(url) is None
 
 
 @pytest.mark.parametrize(
@@ -150,7 +188,7 @@ def test_ats_fingerprint_rejects_a_non_feed_smartrecruiters_path() -> None:
             "WorkdayCollector",
             "workday",
             "workday.json",
-            "https://wd.test/jobs",
+            "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme",
             "/job/Berlin/workday-de",
             "Munich",
         ),
@@ -182,6 +220,10 @@ def test_public_ats_collectors_keep_only_jobs_with_germany_evidence(
     assert [(job.external_id, job.city, job.country_code) for job in result.raw_jobs] == [
         (external_id, city, "DE")
     ]
+    if kind == "workday":
+        assert result.raw_jobs[0].canonical_url == (
+            "https://acme.wd5.myworkdayjobs.com/job/Berlin/workday-de"
+        )
     assert result.is_complete is True
 
 
@@ -210,6 +252,70 @@ def test_dvinci_marks_an_unfollowed_json_next_page_as_incomplete() -> None:
 
     assert [job.external_id for job in result.raw_jobs] == ["dvinci-json-de"]
     assert result.is_complete is False
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    [
+        "softgarden-top-level-total.json",
+        "softgarden-top-level-next.json",
+        "softgarden-top-level-token.json",
+    ],
+)
+def test_shared_json_collectors_mark_top_level_pagination_metadata_incomplete(
+    fixture_name: str,
+) -> None:
+    import jobs.collectors.ats as ats
+
+    result = ats.SoftgardenJsonCollector(
+        source("softgarden", "https://api.softgarden.test/jobs"),
+        client=fixture_client(fixture_name),
+    ).collect()
+
+    assert [job.external_id for job in result.raw_jobs] == ["softgarden-de"]
+    assert result.is_complete is False
+
+
+def test_workday_rejects_unsafe_external_paths() -> None:
+    result = WorkdayCollector(
+        source("workday", "https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme"),
+        client=fixture_client("workday-unsafe-paths.json"),
+    ).collect()
+
+    assert [(job.external_id, job.canonical_url) for job in result.raw_jobs] == [
+        ("/job/Berlin/workday-de", "https://acme.wd5.myworkdayjobs.com/job/Berlin/workday-de")
+    ]
+
+
+@pytest.mark.django_db
+def test_workday_ats_source_collects_and_persists_fixture_jobs() -> None:
+    company = Company.objects.create(
+        name="Acme GmbH",
+        domain="acme.test",
+        career_url="https://acme.test/careers",
+    )
+    career_source = CareerSource.objects.create(
+        company=company,
+        kind=CareerSource.Kind.WORKDAY,
+        source_url="https://acme.wd5.myworkdayjobs.com/acme/en-US/Acme",
+        tenant="acme",
+        request_delay_seconds=0,
+    )
+    registry = CollectorRegistry()
+    registry.register(
+        CareerSource.Kind.WORKDAY,
+        lambda configured_source: WorkdayCollector(
+            configured_source, client=fixture_client("workday.json")
+        ),
+    )
+
+    run = collect_source(source=career_source, registry=registry)
+
+    job = Job.objects.get(source=career_source, external_id="/job/Berlin/workday-de")
+    assert run.status == "success"
+    assert run.jobs_seen == 1
+    assert job.country_code == "DE"
+    assert job.canonical_url == "https://acme.wd5.myworkdayjobs.com/job/Berlin/workday-de"
 
 
 def test_new_ats_kinds_are_persisted_and_registered() -> None:

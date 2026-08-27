@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from xml.etree import ElementTree
 
 from jobs.collectors import CollectionResult, CollectorRegistry, HTTPCollector, RawJob
@@ -113,16 +113,18 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
         return _fingerprint(SMARTRECRUITERS, path[2], smartrecruiters_feed_url)
     if (
         host == "apply.workable.com"
-        and len(path) > 4
-        and path[:4] == ["api", "v3", "accounts", path[3]]
+        and len(path) >= 5
+        and path[:3] == ["api", "v3", "accounts"]
+        and path[4] == "jobs"
     ):
         return _fingerprint(WORKABLE, path[3], workable_feed_url)
     if host.endswith(".recruitee.com") and host.count(".") == 2:
         return _fingerprint(RECRUITEE, host.removesuffix(".recruitee.com"), recruitee_feed_url)
     if (
         host == "api.prescreen.io"
-        and len(path) > 4
-        and path[:4] == ["api", "v1", "companies", path[3]]
+        and len(path) >= 5
+        and path[:3] == ["api", "v1", "companies"]
+        and path[4] == "jobs"
     ):
         return _fingerprint(ONLYFY, path[3], onlyfy_feed_url)
     if host.endswith(".myworkdayjobs.com"):
@@ -131,7 +133,10 @@ def fingerprint_ats_url(url: str) -> ATSUrlFingerprint | None:
             normalized_tenant = normalize_ats_tenant(tenant)
         except ValueError:
             return None
-        return ATSUrlFingerprint(kind=WORKDAY, tenant=normalized_tenant, source_url=url)
+        source_url = _safe_workday_source_url(url)
+        if source_url is None:
+            return None
+        return ATSUrlFingerprint(kind=WORKDAY, tenant=normalized_tenant, source_url=source_url)
     return None
 
 
@@ -369,12 +374,34 @@ class RecruiteeXmlCollector(PersonioXmlCollector):
         return self._collect_xml("offer", ("id",), ("title", "name"))
 
 
-class WorkdayCollector(SoftgardenJsonCollector):
+class WorkdayCollector(HTTPCollector):
     """Collect a Workday job-search response stored at the configured source URL."""
 
     def collect(self) -> CollectionResult:
-        return self._collect_json_records(
-            "jobPostings", id_names=("externalPath", "id", "jobReqId"), title_names=("title",)
+        try:
+            payload = _json_payload(self.fetch(self.source.source_url).text, "Workday")
+            records = _records(payload, "jobPostings")
+            jobs: list[RawJob] = []
+            for record in records:
+                canonical_url = _workday_job_url(
+                    self.source.source_url, _string(record.get("externalPath"))
+                )
+                if canonical_url is None:
+                    continue
+                raw = _raw_from_record(
+                    record,
+                    id_names=("externalPath", "id", "jobReqId"),
+                    title_names=("title",),
+                )
+                if raw is not None:
+                    jobs.append(
+                        replace(raw, canonical_url=canonical_url, application_url=canonical_url)
+                    )
+            is_complete = _payload_is_complete(payload, returned=len(records), page_size=None)
+        finally:
+            self.close()
+        return CollectionResult(
+            raw_jobs=jobs, requests_made=self.requests_made, is_complete=is_complete
         )
 
 
@@ -613,16 +640,83 @@ def _with_query(url: str, **parameters: int) -> str:
     return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urlencode(query), ""))
 
 
+def _safe_workday_source_url(url: str) -> str | None:
+    try:
+        parsed = urlsplit(url)
+        port = parsed.port
+    except ValueError:
+        return None
+    host = (parsed.hostname or "").casefold()
+    if (
+        parsed.scheme != "https"
+        or not host.endswith(".myworkdayjobs.com")
+        or parsed.username
+        or parsed.password
+        or port is not None
+        or not _safe_workday_path(parsed.path)
+    ):
+        return None
+    return urlunsplit(("https", host, parsed.path, "", ""))
+
+
+def _workday_job_url(source_url: str, external_path: str) -> str | None:
+    source = _safe_workday_source_url(source_url)
+    if source is None:
+        return None
+    try:
+        parsed = urlsplit(external_path)
+    except ValueError:
+        return None
+    if (
+        parsed.scheme
+        or parsed.netloc
+        or parsed.username
+        or parsed.password
+        or parsed.query
+        or parsed.fragment
+        or not _safe_workday_path(parsed.path)
+    ):
+        return None
+    source_parts = urlsplit(source)
+    return urlunsplit(("https", source_parts.netloc, parsed.path, "", ""))
+
+
+def _safe_workday_path(path: str) -> bool:
+    decoded_path = unquote(path)
+    return (
+        decoded_path.startswith("/")
+        and not decoded_path.startswith("//")
+        and "\\" not in decoded_path
+        and all(segment not in {".", ".."} for segment in decoded_path.split("/"))
+    )
+
+
 def _payload_is_complete(
     payload: dict[str, Any] | list[Any], *, returned: int, page_size: int | None
 ) -> bool:
     if not isinstance(payload, dict):
         return True
     paging = payload.get("paging")
+    metadata = [payload]
     if isinstance(paging, dict):
-        total = _integer(paging.get("total"))
-        if total is not None:
-            return returned >= total
-        if paging.get("next") not in (None, False, ""):
-            return False
+        metadata.append(paging)
+    for values in metadata:
+        for key in ("total", "totalCount", "total_count", "totalFound"):
+            total = _integer(values.get(key))
+            if total is not None and returned < total:
+                return False
+        for key in (
+            "next",
+            "nextPage",
+            "next_page",
+            "nextPageToken",
+            "next_page_token",
+            "nextToken",
+            "next_token",
+            "pageToken",
+            "page_token",
+            "token",
+        ):
+            if values.get(key) not in (None, False, ""):
+                return False
     return page_size is None or returned < page_size
