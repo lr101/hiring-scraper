@@ -1,5 +1,7 @@
 import json
+from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -7,8 +9,10 @@ import respx
 from django.test import Client, override_settings
 from django.urls import reverse
 
+from jobs.ba_discovery import EmployerDiscoveryResult, EmployerHiringSignal
 from jobs.company_discovery import DiscoveredCompany
 from jobs.company_locations import CompanyLocationDiscovery
+from jobs.employer_resolution import ResolvedEmployer
 from jobs.models import (
     CareerSource,
     Company,
@@ -20,6 +24,8 @@ from jobs.models import (
     SearchProfile,
     WorkspaceUser,
 )
+from jobs.reverse_discovery import ReverseDiscoveryResult
+from jobs.reverse_discovery import ReverseDiscoveryService as RealReverseDiscoveryService
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -55,6 +61,51 @@ def mock_company_scan(domain: str = "acme.test") -> None:
             headers={"content-type": "text/html"},
         )
     )
+
+
+def use_empty_ba_reverse_discovery(monkeypatch: pytest.MonkeyPatch) -> None:
+    class EmptyBA:
+        def discover_and_persist(
+            self,
+            *,
+            city: str,
+            radius_km: int,
+            publication_age_days: int,
+            offer_type: int,
+            include_temporary_agencies: bool,
+            max_pages: int | None,
+            as_of: date | None,
+        ) -> EmployerDiscoveryResult:
+            del (
+                city,
+                radius_km,
+                publication_age_days,
+                offer_type,
+                include_temporary_agencies,
+                max_pages,
+                as_of,
+            )
+            return EmployerDiscoveryResult(employers=(), is_complete=True, requests_made=0)
+
+    class EmptyResolver:
+        def resolve(self, employer: EmployerHiringSignal) -> ResolvedEmployer | None:
+            del employer
+            return None
+
+    class Service:
+        def __init__(self) -> None:
+            self.delegate = RealReverseDiscoveryService(
+                ba_service=EmptyBA(),
+                resolver=EmptyResolver(),
+            )
+
+        def discover_city(self, **kwargs: object) -> ReverseDiscoveryResult:
+            return self.delegate.discover_city(**kwargs)  # type: ignore[arg-type]
+
+        def close(self) -> None:
+            self.delegate.close()
+
+    monkeypatch.setattr("jobs.views.ReverseDiscoveryService", Service)
 
 
 @pytest.mark.django_db
@@ -118,12 +169,15 @@ def test_adding_a_website_starts_a_scan_and_matches_every_profile_in_the_account
     COMPANY_LOCATION_API_URL="https://overpass.test/api/interpreter",
     COMPANY_LOCATION_MIN_REQUEST_INTERVAL_SECONDS=0,
 )
-def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(client: Client) -> None:
+def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(
+    client: Client, monkeypatch: pytest.MonkeyPatch
+) -> None:
     user = WorkspaceUser.objects.create(name="Ada")
     SearchProfile.objects.create(user=user, name="Engineering")
     SearchProfile.objects.create(user=user, name="Backend")
     place = make_place()
     select_account(client, user)
+    use_empty_ba_reverse_discovery(monkeypatch)
     respx.get("https://overpass.test/api/interpreter").mock(
         return_value=httpx.Response(
             200,
@@ -145,6 +199,46 @@ def test_adding_a_city_finds_websites_adds_companies_and_starts_scans(client: Cl
     assert CrawlRun.objects.filter(source=source, status=CrawlRun.Status.SUCCESS).exists()
     job = Job.objects.get(source=source, title="Senior Python Engineer")
     assert JobMatch.objects.filter(job=job, profile__user=user).count() == 2
+
+
+@pytest.mark.django_db
+def test_city_discovery_delegates_to_reverse_discovery_before_the_osm_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = WorkspaceUser.objects.create(name="Ada")
+    place = make_place()
+    events: list[str] = []
+
+    class Service:
+        def discover_city(self, **kwargs: object) -> ReverseDiscoveryResult:
+            events.append("reverse")
+            assert kwargs["user"] is user
+            assert kwargs["place"] is place
+            assert kwargs["radius_km"] == 25
+            assert callable(kwargs["fallback_discoverer"])
+            return ReverseDiscoveryResult(companies_created=2, unreadable_websites=1)
+
+        def close(self) -> None:
+            events.append("closed")
+
+    monkeypatch.setattr("jobs.views.ReverseDiscoveryService", Service)
+    monkeypatch.setattr(
+        "jobs.views.discover_companies_in_place",
+        lambda *args, **kwargs: pytest.fail("OSM should only run through the fallback callback"),
+    )
+
+    from jobs.views import _discover_and_scan_city
+
+    added_companies, scans, unreadable_websites = _discover_and_scan_city(
+        user=user,
+        place=place,
+        radius_km=25,
+    )
+
+    assert events == ["reverse", "closed"]
+    assert added_companies == 2
+    assert scans == []
+    assert unreadable_websites == 1
 
 
 @pytest.mark.django_db
@@ -202,6 +296,7 @@ def test_city_search_can_be_run_again_for_newly_mapped_companies(
         allowed_hosts=("newco.test", "www.newco.test"),
     )
     lookup_calls: list[tuple[int, int]] = []
+    use_empty_ba_reverse_discovery(monkeypatch)
 
     def lookup(selected_place: GermanPlace, radius_km: int) -> CompanyLocationDiscovery:
         lookup_calls.append((selected_place.pk, radius_km))
@@ -211,7 +306,10 @@ def test_city_search_can_be_run_again_for_newly_mapped_companies(
         "jobs.views.discover_companies_in_place",
         lookup,
     )
-    monkeypatch.setattr("jobs.views._run_initial_scan", lambda _source: None)
+    monkeypatch.setattr(
+        "jobs.reverse_discovery.collect_source",
+        lambda **kwargs: SimpleNamespace(jobs_created=0, status="success"),
+    )
 
     response = client.post(reverse("jobs:city_target_refresh", args=[target.pk]))
 

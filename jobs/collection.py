@@ -13,12 +13,14 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from jobs.collectors import BotProtectionDetected, Collector, CollectorRegistry, RawJob
+from jobs.collectors.ats import register_ats_collectors
 from jobs.collectors.employers import register_employer_collectors
 from jobs.matching import enabled_profile_match_context, normalize_text, refresh_job_matches
 from jobs.models import CareerSource, CrawlRun, Job, JobMatch, UserJobState
 
 collector_registry = CollectorRegistry()
 register_employer_collectors(collector_registry)
+register_ats_collectors(collector_registry)
 
 
 class _TextExtractor(HTMLParser):
@@ -38,6 +40,12 @@ class NormalizedJob:
     country_code: str
     content_hash: str
     fingerprint: str
+
+
+def is_retired_source(source: CareerSource) -> bool:
+    config = source.config if isinstance(source.config, dict) else {}
+    canonical_source_url = config.get("canonical_source_url")
+    return isinstance(canonical_source_url, str) and bool(canonical_source_url)
 
 
 def normalize_raw_job(*, raw_job: RawJob, company_domain: str) -> NormalizedJob:
@@ -132,6 +140,14 @@ def collect_source(*, source: CareerSource, registry: CollectorRegistry) -> Craw
             )
             if owned_run is None:
                 return CrawlRun.objects.get(pk=run.pk)
+            if is_retired_source(locked_source):
+                now = timezone.now()
+                owned_run.status = CrawlRun.Status.FAILED
+                owned_run.finished_at = now
+                owned_run.requests_made = result.requests_made
+                owned_run.error = "Source was retired before collection completed."
+                owned_run.save(update_fields=["status", "finished_at", "requests_made", "error"])
+                return owned_run
             created, updated, closed = _apply_successful_collection(
                 source=locked_source,
                 raw_jobs=result.raw_jobs,
@@ -256,7 +272,11 @@ def _apply_successful_collection(
 def collect_enabled_sources(*, registry: CollectorRegistry = collector_registry) -> list[CrawlRun]:
     """Run every source that is enabled and not awaiting an unblock decision."""
     sources = CareerSource.objects.filter(is_enabled=True, blocked_at__isnull=True).order_by("id")
-    return [collect_source(source=source, registry=registry) for source in sources]
+    return [
+        collect_source(source=source, registry=registry)
+        for source in sources
+        if not is_retired_source(source)
+    ]
 
 
 def _finish_blocked_run(

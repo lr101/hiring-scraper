@@ -140,9 +140,42 @@ class HTTPCollector:
         self, url: str, *, allowed_hosts: frozenset[str], max_redirects: int = 5
     ) -> httpx.Response:
         """Fetch a payload URL only after validating its host and every redirect."""
+        return self.request_trusted(
+            "GET", url, allowed_hosts=allowed_hosts, max_redirects=max_redirects
+        )
+
+    def post(
+        self, url: str, *, json: dict[str, Any], follow_redirects: bool = True
+    ) -> httpx.Response:
+        if self.requests_made:
+            self._sleeper(self.source.request_delay_seconds)
+        self.requests_made += 1
+        response = self._client.post(url, json=json, follow_redirects=follow_redirects)
+        if is_bot_protection_response(response):
+            raise BotProtectionDetected(f"Bot protection detected for {url}.")
+        if not response.is_redirect:
+            response.raise_for_status()
+        return response
+
+    def request_trusted(
+        self,
+        method: str,
+        url: str,
+        *,
+        allowed_hosts: frozenset[str],
+        json: dict[str, Any] | None = None,
+        max_redirects: int = 5,
+    ) -> httpx.Response:
+        """Send a read-only request after validating its host and every redirect."""
+        if method not in {"GET", "POST"}:
+            raise ValueError(f"Unsupported trusted request method {method!r}.")
         current_url = _validate_detail_url(url, allowed_hosts=allowed_hosts)
         for _ in range(max_redirects + 1):
-            response = self.fetch(current_url, follow_redirects=False)
+            response = (
+                self.fetch(current_url, follow_redirects=False)
+                if method == "GET"
+                else self.post(current_url, json=json or {}, follow_redirects=False)
+            )
             if not response.is_redirect:
                 return response
             location = response.headers.get("location")
@@ -207,3 +240,12 @@ def _validate_detail_url(url: str, *, allowed_hosts: frozenset[str]) -> str:
     except UnsafeNetworkAddress as error:
         raise UnsafeDetailUrl("Detail URL host must resolve to a public address.") from error
     return url
+
+
+def __getattr__(name: str) -> Any:
+    """Expose ATS URL helpers without creating an import cycle during module setup."""
+    if name in {"ATSUrlFingerprint", "fingerprint_ats_url", "personio_feed_url"}:
+        from jobs.collectors import ats
+
+        return getattr(ats, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

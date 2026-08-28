@@ -120,6 +120,41 @@ COMPANY_LOCATION_RATE_LIMIT_STATE_PATH = os.getenv(
 COMPANY_LOCATION_USER_AGENT = os.getenv(
     "COMPANY_LOCATION_USER_AGENT", "hiring-scraper/0.1 (self-hosted company lookup)"
 )
+BA_JOBS_API_BASE_URL = os.getenv(
+    "BA_JOBS_API_BASE_URL", "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service"
+)
+BA_JOBS_API_KEY = os.getenv("BA_JOBS_API_KEY", "jobboerse-jobsuche")
+BA_JOBS_TIMEOUT_SECONDS = float(os.getenv("BA_JOBS_TIMEOUT_SECONDS", "30"))
+BA_JOBS_RESULT_LIMIT = int(os.getenv("BA_JOBS_RESULT_LIMIT", "100"))
+BA_JOBS_MAX_PAGES = int(os.getenv("BA_JOBS_MAX_PAGES", "5"))
+BA_JOBS_MIN_REQUEST_INTERVAL_SECONDS = float(os.getenv("BA_JOBS_MIN_REQUEST_INTERVAL_SECONDS", "2"))
+BA_JOBS_RATE_LIMIT_STATE_PATH = os.getenv(
+    "BA_JOBS_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-ba-jobs-rate-limit"
+)
+BA_JOBS_USER_AGENT = os.getenv(
+    "BA_JOBS_USER_AGENT", "hiring-scraper/0.1 (self-hosted BA job discovery)"
+)
+COMMON_CRAWL_INDEX_BASE_URL = os.getenv(
+    "COMMON_CRAWL_INDEX_BASE_URL", "https://index.commoncrawl.org"
+)
+COMMON_CRAWL_SNAPSHOT = os.getenv("COMMON_CRAWL_SNAPSHOT", "")
+COMMON_CRAWL_TIMEOUT_SECONDS = float(os.getenv("COMMON_CRAWL_TIMEOUT_SECONDS", "30"))
+COMMON_CRAWL_VALIDATION_TIMEOUT_SECONDS = float(
+    os.getenv("COMMON_CRAWL_VALIDATION_TIMEOUT_SECONDS", "30")
+)
+COMMON_CRAWL_MAX_RECORDS_PER_QUERY = int(os.getenv("COMMON_CRAWL_MAX_RECORDS_PER_QUERY", "100"))
+COMMON_CRAWL_MAX_PATTERNS = int(os.getenv("COMMON_CRAWL_MAX_PATTERNS", "12"))
+COMMON_CRAWL_MIN_REQUEST_INTERVAL_SECONDS = float(
+    os.getenv("COMMON_CRAWL_MIN_REQUEST_INTERVAL_SECONDS", "1")
+)
+COMMON_CRAWL_RATE_LIMIT_STATE_PATH = os.getenv(
+    "COMMON_CRAWL_RATE_LIMIT_STATE_PATH", "/tmp/hiring-scraper-common-crawl-rate-limit"
+)
+COMMON_CRAWL_USER_AGENT = os.getenv(
+    "COMMON_CRAWL_USER_AGENT", "hiring-scraper/0.1 (self-hosted ATS discovery)"
+)
+REVERSE_DISCOVERY_ENABLED = os.getenv("REVERSE_DISCOVERY_ENABLED", "true").lower() == "true"
+REVERSE_DISCOVERY_INTERVAL_SECONDS = float(os.getenv("REVERSE_DISCOVERY_INTERVAL_SECONDS", "86400"))
 LOCATION_API_URL = os.getenv("LOCATION_API_URL", "https://nominatim.openstreetmap.org/search")
 LOCATION_LOOKUP_TIMEOUT_SECONDS = float(os.getenv("LOCATION_LOOKUP_TIMEOUT_SECONDS", "10"))
 LOCATION_MIN_REQUEST_INTERVAL_SECONDS = float(
@@ -137,3 +172,8 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 86400.0,
     }
 }
+if REVERSE_DISCOVERY_ENABLED:
+    CELERY_BEAT_SCHEDULE["reverse-discovery-daily"] = {
+        "task": "jobs.tasks.reverse_discover_sources",
+        "schedule": REVERSE_DISCOVERY_INTERVAL_SECONDS,
+    }

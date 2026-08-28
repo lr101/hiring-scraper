@@ -795,6 +795,47 @@ def test_enabled_source_orchestration_skips_disabled_and_blocked_sources() -> No
     assert [run.source_id for run in runs] == [active.id]
 
 
+@pytest.mark.django_db
+def test_enabled_source_orchestration_skips_retired_aliases() -> None:
+    active = make_source()
+    retired = make_source("retired")
+    retired.config = {"canonical_source_url": "https://canonical.test/jobs"}
+    retired.save(update_fields=["config"])
+
+    runs = collect_enabled_sources(registry=registry_for(CollectionResult(raw_jobs=[])))
+
+    assert [run.source_id for run in runs] == [active.id]
+
+
+@pytest.mark.django_db
+def test_in_flight_retired_alias_does_not_persist_collected_jobs() -> None:
+    source = make_source()
+    raw_job = RawJob(
+        external_id="retired-role",
+        canonical_url="https://careers.example.test/jobs/retired-role",
+        title="Engineer",
+    )
+
+    class RetiringCollector:
+        requests_made = 1
+
+        def collect(self) -> CollectionResult:
+            CareerSource.objects.filter(pk=source.pk).update(
+                is_enabled=False,
+                config={"canonical_source_url": "https://canonical.test/jobs"},
+            )
+            return CollectionResult(raw_jobs=[raw_job], requests_made=1)
+
+    registry = CollectorRegistry()
+    registry.register("custom", lambda _source: RetiringCollector())
+
+    run = collect_source(source=source, registry=registry)
+
+    assert run.status == CrawlRun.Status.FAILED
+    assert run.error == "Source was retired before collection completed."
+    assert Job.objects.filter(source=source).exists() is False
+
+
 def test_daily_celery_task_returns_completed_run_ids(monkeypatch: pytest.MonkeyPatch) -> None:
     from jobs.tasks import collect_all_sources
 

@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 from django.conf import settings
@@ -9,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
-from .collection import collect_source, collector_registry
+from .collection import collect_source, collector_registry, is_retired_source
 from .company_discovery import CompanyDiscoveryError, DiscoveredCompany, discover_company
 from .company_locations import (
     CompanyLocationLookupError,
@@ -39,6 +41,7 @@ from .models import (
 )
 from .monitoring import filter_jobs_for_user
 from .private import selected_workspace_user
+from .reverse_discovery import ReverseDiscoveryResult, ReverseDiscoveryService
 from .source_setup import MonitoredCompany, monitor_company
 from .tasks import discover_city_sources
 
@@ -129,14 +132,11 @@ def job_detail(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(
-        Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
-        pk=job_id,
-    )
-    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
-    if state.seen_at is None:
-        state.seen_at = timezone.now()
-        state.save(update_fields=["seen_at", "updated_at"])
+    with _locked_user_job(user=user, job_id=job_id) as job:
+        state, _ = UserJobState.objects.select_for_update().get_or_create(user=user, job=job)
+        if state.seen_at is None:
+            state.seen_at = timezone.now()
+            state.save(update_fields=["seen_at", "updated_at"])
     matches = job.matches.filter(profile__user=user).select_related("profile")
     return render(request, "jobs/job_detail.html", {"job": job, "state": state, "matches": matches})
 
@@ -146,17 +146,35 @@ def job_state(request: HttpRequest, job_id: int) -> HttpResponse:
     user = _private_user_or_redirect(request)
     if isinstance(user, HttpResponse):
         return user
-    job = get_object_or_404(
+    with _locked_user_job(user=user, job_id=job_id) as job:
+        state, _ = UserJobState.objects.select_for_update().get_or_create(user=user, job=job)
+        status = request.POST.get("status", UserJobState.Status.NONE)
+        valid_statuses = {value for value, _ in UserJobState.Status.choices}
+        state.status = status if status in valid_statuses else UserJobState.Status.NONE
+        state.notes = request.POST.get("notes", "")
+        state.save(update_fields=["status", "notes", "updated_at"])
+    return redirect("jobs:job_detail", job_id=job.pk)
+
+
+@contextmanager
+def _locked_user_job(*, user: WorkspaceUser, job_id: int) -> Iterator[Job]:
+    visible_job = get_object_or_404(
         Job.objects.filter(Q(matches__profile__user=user) | Q(user_states__user=user)).distinct(),
         pk=job_id,
     )
-    state, _ = UserJobState.objects.get_or_create(user=user, job=job)
-    status = request.POST.get("status", UserJobState.Status.NONE)
-    valid_statuses = {value for value, _ in UserJobState.Status.choices}
-    state.status = status if status in valid_statuses else UserJobState.Status.NONE
-    state.notes = request.POST.get("notes", "")
-    state.save(update_fields=["status", "notes", "updated_at"])
-    return redirect("jobs:job_detail", job_id=job.pk)
+    with transaction.atomic():
+        CareerSource.objects.select_for_update().get(pk=visible_job.source_id)
+        job = (
+            Job.objects.select_for_update(of=("self",))
+            .select_related("source")
+            .filter(pk=job_id)
+            .first()
+        )
+        if job is None:
+            raise Http404("Job no longer exists.")
+        if job.source_id != visible_job.source_id:
+            CareerSource.objects.select_for_update().get(pk=job.source_id)
+        yield job
 
 
 def company_list(request: HttpRequest) -> HttpResponse:
@@ -177,6 +195,9 @@ def source_list(request: HttpRequest) -> HttpResponse:
 @require_POST
 def source_toggle(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     source.is_enabled = not source.is_enabled
     source.save(update_fields=["is_enabled"])
     return redirect("jobs:source_list")
@@ -185,6 +206,9 @@ def source_toggle(request: HttpRequest, source_id: int) -> HttpResponse:
 @require_POST
 def source_unblock(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     source.blocked_at = None
     source.save(update_fields=["blocked_at"])
     return redirect("jobs:source_list")
@@ -193,6 +217,9 @@ def source_unblock(request: HttpRequest, source_id: int) -> HttpResponse:
 @require_POST
 def source_run(request: HttpRequest, source_id: int) -> HttpResponse:
     source = get_object_or_404(CareerSource, pk=source_id)
+    if is_retired_source(source):
+        messages.warning(request, "This ATS alias was retired; use its canonical source instead.")
+        return redirect("jobs:source_list")
     if source.blocked_at is not None:
         messages.warning(request, "Unblock this source before running it.")
         return redirect("jobs:source_list")
@@ -412,18 +439,23 @@ def _queue_city_search_response(
 def _discover_and_scan_city(
     *, user: WorkspaceUser, place: GermanPlace, radius_km: int
 ) -> tuple[int, list[CrawlRun], int]:
-    discovery = discover_companies_in_place(place, radius_km=radius_km)
-    added_companies = 0
-    scans: list[CrawlRun] = []
-    for company_discovery in discovery.companies:
-        monitored_company = _monitor_company(user=user, discovery=company_discovery)
-        if monitored_company.target_created:
-            added_companies += 1
-        if monitored_company.target_created or monitored_company.source_created:
-            run = _run_initial_scan(monitored_company.source)
-            if run is not None:
-                scans.append(run)
-    return added_companies, scans, discovery.unreadable_websites
+    result = _discover_city_result(user=user, place=place, radius_km=radius_km)
+    return result.companies_added, list(result.runs), result.unreadable_websites
+
+
+def _discover_city_result(
+    *, user: WorkspaceUser, place: GermanPlace, radius_km: int
+) -> ReverseDiscoveryResult:
+    service = ReverseDiscoveryService()
+    try:
+        return service.discover_city(
+            user=user,
+            place=place,
+            radius_km=radius_km,
+            fallback_discoverer=lambda: discover_companies_in_place(place, radius_km=radius_km),
+        )
+    finally:
+        service.close()
 
 
 def _company_added_message(company: Company, run: CrawlRun | None) -> str:
