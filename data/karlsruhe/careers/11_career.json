@@ -1,0 +1,12 @@
+{
+  "url": "https://www.komm.one/karriere",
+  "checked_at": "2026-10-05T08:24:18.205598+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.komm.one/karriere",
+  "content_type": "text/html;charset=UTF-8",
+  "bytes": 27632,
+  "truncated": false,
+  "elapsed_seconds": 0.31,
+  "sha256": "9ec036dc93acaf4de4b61e2be2660889a2828b2b116b722a9a2299eb65f12a8b"
+}

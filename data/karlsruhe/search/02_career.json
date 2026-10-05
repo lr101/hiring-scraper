@@ -1,0 +1,12 @@
+{
+  "url": "https://openexperience.de/de/karriere/",
+  "checked_at": "2026-10-05T08:23:46.266357+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://openexperience.de/de/karriere/",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 121140,
+  "truncated": false,
+  "elapsed_seconds": 0.13,
+  "sha256": "ecfcdd3f8f40f2096f15ca7c5062e8ab171a594dd77af129b2f133c976901fff"
+}

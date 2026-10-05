@@ -1,0 +1,12 @@
+{
+  "url": "https://www.bai.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:55.545289+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.bai.de/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 245,
+  "truncated": false,
+  "elapsed_seconds": 0.14,
+  "sha256": "edf08beb9b2379dce6cbb53b501eac259223c1a675539f842d6f20fc6417458b"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.planta.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:47.394718+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.planta.de/robots.txt",
+  "content_type": "text/plain; charset=UTF-8",
+  "bytes": 120,
+  "truncated": false,
+  "elapsed_seconds": 0.13,
+  "sha256": "77e2191aa1a36acde9969a68bccf6b140d32a21b9cbcb9bd1b41e3cbea7bb67b"
+}

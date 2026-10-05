@@ -1,0 +1,8 @@
+[
+  {"name":"Volksbank pur eG","url":"https://www.volksbank-pur.de/meine-bank/karriere.html","query":"\"Volksbank pur\" Karriere","discovery":"BA employer name + web search","location_evidence":"BA result 10001-1003796150-S: Karlsruhe, Baden"},
+  {"name":"Simon Hegele","url":"https://www.simon-hegele.com/jetzt-it-pionier-werden","query":"\"Simon Hegele\" Karriere Karlsruhe","discovery":"BA employer name + web search","location_evidence":"Career page explicitly locates IT jobs in Karlsruhe"},
+  {"name":"Open Experience","url":"https://openexperience.de/de/karriere/","query":"Karlsruhe Unternehmen Karriere Stellenangebote eigene Website","discovery":"web search","location_evidence":"Career page: Karlsruhe software and Baden-Baden hardware"},
+  {"name":"PLANTA","url":"https://www.planta.de/karriere/","query":"Karlsruhe Unternehmen Karriere Stellenangebote eigene Website","discovery":"web search","location_evidence":"Career page lists Karlsruhe and Winterthur"},
+  {"name":"Seven2one","url":"https://www.seven2one.de/karriere","query":"Karlsruhe Unternehmen Karriere Stellenangebote eigene Website","discovery":"web search","location_evidence":"Career page describes Karlsruhe (Durlach)"},
+  {"name":"Arnotec GmbH","url":"https://job.arnotec.de/","query":"Karlsruhe Unternehmen Karriere Stellenangebote eigene Website","discovery":"web search","location_evidence":"Career page states company based in Karlsruhe"}
+]

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.seven2one.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:49.785619+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.seven2one.de/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 45,
+  "truncated": false,
+  "elapsed_seconds": 0.3,
+  "sha256": "1f676679df5ba17bb0d9a59ed0f3749090470b25151b623c1150e2ffbaca7790"
+}

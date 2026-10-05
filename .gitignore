@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+# Full third-party responses stay local; compact metadata and derived tables are tracked.
+*.body

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.komm.one/",
+  "checked_at": "2026-10-05T08:24:16.774780+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.komm.one/startseite",
+  "content_type": "text/html;charset=UTF-8",
+  "bytes": 29865,
+  "truncated": false,
+  "elapsed_seconds": 0.42,
+  "sha256": "42023bb0e44fc18ee3dd8304fb8358b63ac0f3117371f708d016a5ef72a3610f"
+}

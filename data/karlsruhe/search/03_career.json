@@ -1,0 +1,12 @@
+{
+  "url": "https://www.planta.de/karriere/",
+  "checked_at": "2026-10-05T08:23:48.527987+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.planta.de/karriere/",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 831478,
+  "truncated": false,
+  "elapsed_seconds": 0.25,
+  "sha256": "82e781774f1419419478eaf3856316a7655a6a943805a3ed0d7dfeb0814952d0"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.simon-hegele.com/robots.txt",
+  "checked_at": "2026-10-05T08:23:41.383733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.simon-hegele.com/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 212,
+  "truncated": false,
+  "elapsed_seconds": 0.15,
+  "sha256": "9a0133997760d52e29e0728855d8dee0101d5b8227bef6b582891bbffee968e1"
+}

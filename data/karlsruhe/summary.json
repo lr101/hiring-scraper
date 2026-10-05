@@ -1,0 +1,23 @@
+{
+  "osm": {
+    "elements": 1453,
+    "with_website": 1080,
+    "distinct_exact_hosts": 1012
+  },
+  "ba_api": {
+    "jobs_in_page": 25,
+    "reported_total": 3070,
+    "unique_employer_names": 15,
+    "external_urls": 3
+  },
+  "ba_html": {
+    "jobs_in_page": 25,
+    "unique_employer_names": 13
+  },
+  "kit": {
+    "parsed_cards": 1445,
+    "with_homepage": 1074,
+    "karlsruhe_cards": 285,
+    "karlsruhe_with_homepage": 218
+  }
+}

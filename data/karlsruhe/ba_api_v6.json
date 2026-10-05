@@ -1,0 +1,12 @@
+{
+  "url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?wo=Karlsruhe&umkreis=5&angebotsart=1&pav=false&page=1&size=25",
+  "checked_at": "2026-10-05T08:20:52.008059+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?wo=Karlsruhe&umkreis=5&angebotsart=1&pav=false&page=1&size=25",
+  "content_type": "application/json",
+  "bytes": 55584,
+  "truncated": false,
+  "elapsed_seconds": 0.17,
+  "sha256": "11e32ca256ad794ca7de55aea33ce389a323057562948d5a68f689b66d581b76"
+}

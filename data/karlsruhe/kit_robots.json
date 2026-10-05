@@ -1,0 +1,12 @@
+{
+  "url": "https://www.careerserviceportal.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T08:21:02.404487+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.careerservice.kit.edu/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 36,
+  "truncated": false,
+  "elapsed_seconds": 0.44,
+  "sha256": "f97b220684d7f1406e1d322bf27ff758e19de7fdcecfbc8e73739188cd421fcd"
+}

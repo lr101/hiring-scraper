@@ -1,0 +1,12 @@
+{
+  "url": "https://openexperience.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:45.163269+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://openexperience.de/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 326,
+  "truncated": false,
+  "elapsed_seconds": 0.1,
+  "sha256": "fb5b410dcdfe1e22306dffac59a74e1350149527f6d63d124656073df4e21244"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+  "checked_at": "2026-10-05T08:24:58.866171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 861298,
+  "truncated": false,
+  "elapsed_seconds": 0.17,
+  "sha256": "226918e0a436be9f7c55cbea932fc8771a297cb0b96d53fa5fa601369606379f"
+}

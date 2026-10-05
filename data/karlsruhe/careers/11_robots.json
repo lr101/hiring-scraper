@@ -1,0 +1,12 @@
+{
+  "url": "https://www.komm.one/robots.txt",
+  "checked_at": "2026-10-05T08:24:15.620232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.komm.one/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 161,
+  "truncated": false,
+  "elapsed_seconds": 0.15,
+  "sha256": "52dc6f494bd0308732ff78a4c50623b9ad2a01fe0569bc0d8b0cb6531c53c2e7"
+}

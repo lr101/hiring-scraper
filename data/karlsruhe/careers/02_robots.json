@@ -1,0 +1,12 @@
+{
+  "url": "https://www.iscl.de/robots.txt",
+  "checked_at": "2026-10-05T08:22:55.374336+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://iscl.de/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 111,
+  "truncated": false,
+  "elapsed_seconds": 1.57,
+  "sha256": "0887f519ed2f4a048f1743f1cfeaac67b6565495fa9af161397ce129e49e506e"
+}

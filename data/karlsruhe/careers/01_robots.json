@@ -1,0 +1,12 @@
+{
+  "url": "https://www.codewrights.de/robots.txt",
+  "checked_at": "2026-10-05T08:22:53.007177+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 404,
+  "final_url": "https://www.codewrights.de/robots.txt",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 5044,
+  "truncated": false,
+  "elapsed_seconds": 0.13,
+  "sha256": "9d19039fcf357efad1e4b5bbddc2e8e020de401b5c8176e68ebbb7d280c7a602"
+}

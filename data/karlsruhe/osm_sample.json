@@ -1,0 +1,230 @@
+[
+  {
+    "type": "node",
+    "id": 540998399,
+    "lat": 49.0053468,
+    "lon": 8.4090403,
+    "tags": {
+      "addr:housenumber": "51",
+      "addr:postcode": "76137",
+      "addr:street": "Adlerstraße",
+      "contact:website": "https://megacycle-gmbh.de/",
+      "level": "0",
+      "name": "MegaCycle",
+      "office": "it"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1249060110,
+    "lat": 48.9965398,
+    "lon": 8.4038286,
+    "tags": {
+      "check_date:opening_hours": "2024-03-10",
+      "name": "CodeWrights GmbH",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "website": "https://www.codewrights.de/",
+      "wheelchair": "limited"
+    }
+  },
+  {
+    "type": "node",
+    "id": 3267801586,
+    "lat": 49.0097171,
+    "lon": 8.3990214,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "181-183",
+      "addr:postcode": "76133",
+      "addr:street": "Kaiserstraße",
+      "name": "ISCL - Internet Security Consulting Lang",
+      "office": "it",
+      "phone": "+49 721 9688512 0",
+      "website": "http://www.iscl.de"
+    }
+  },
+  {
+    "type": "node",
+    "id": 3374741649,
+    "lat": 49.0042261,
+    "lon": 8.4184275,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "10",
+      "addr:postcode": "76131",
+      "addr:street": "Ludwig-Erhard-Allee",
+      "check_date:opening_hours": "2023-09-09",
+      "level": "1",
+      "name": "PDMLab e.K.",
+      "note": "Eingang links von den Briefkästen",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "phone": "+49 721 32917780",
+      "website": "https://pdmlab.com"
+    }
+  },
+  {
+    "type": "node",
+    "id": 3717670808,
+    "lat": 49.0055366,
+    "lon": 8.4318389,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "51-53",
+      "addr:postcode": "76131",
+      "addr:street": "Alter Schlachthof",
+      "check_date:opening_hours": "2024-09-21",
+      "contact:phone": "+49 721 86007-0",
+      "contact:website": "http://www.grenke.de",
+      "name": "Grenke Technology Center",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "operator": "Grenkeleasing AG",
+      "website": "http://www.grenke.de",
+      "wheelchair": "yes"
+    }
+  },
+  {
+    "type": "node",
+    "id": 3851429093,
+    "lat": 49.0109328,
+    "lon": 8.3703861,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "99",
+      "addr:postcode": "76185",
+      "addr:street": "Kaiserallee",
+      "check_date:opening_hours": "2024-08-28",
+      "name": "BAI - Böcherer Angewandte Informatik",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "website": "https://www.bai.de/"
+    }
+  },
+  {
+    "type": "node",
+    "id": 4109525427,
+    "lat": 49.0031897,
+    "lon": 8.4230688,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:country": "DE",
+      "addr:housenumber": "34",
+      "addr:postcode": "76131",
+      "addr:street": "Ludwig-Erhard-Allee",
+      "check_date:opening_hours": "2023-09-09",
+      "contact:website": "http://excipio.de",
+      "name": "Excipio",
+      "office": "it",
+      "official_name": "Excipio GmbH",
+      "opening_hours:signed": "no"
+    }
+  },
+  {
+    "type": "node",
+    "id": 4128275408,
+    "lat": 49.0195199,
+    "lon": 8.4400289,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:country": "DE",
+      "addr:housenumber": "9",
+      "addr:postcode": "76131",
+      "addr:street": "Emmy-Noether-Straße",
+      "addr:suburb": "Rintheim",
+      "branch": "Karlsruhe",
+      "check_date": "2019-12",
+      "contact:website": "https://www.its-technidata.de/",
+      "name": "Technidata",
+      "office": "it",
+      "operator": "TechniData IT-Service GmbH"
+    }
+  },
+  {
+    "type": "node",
+    "id": 4231017084,
+    "lat": 48.9957209,
+    "lon": 8.4639946,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:country": "DE",
+      "addr:housename": "Bau 61",
+      "addr:housenumber": "41",
+      "addr:postcode": "76227",
+      "addr:street": "Amalienbadstraße",
+      "addr:suburb": "Durlach",
+      "check_date": "2025-09-23",
+      "contact:email": "info@telemaxx.de",
+      "contact:phone": "+49 721 130880",
+      "contact:website": "https://www.telemaxx.de/",
+      "level": "3",
+      "name": "TelemaxX",
+      "office": "it",
+      "official_name": "TelemaxX Telekommunikation GmbH"
+    }
+  },
+  {
+    "type": "node",
+    "id": 4382036435,
+    "lat": 48.9963428,
+    "lon": 8.4633393,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "34",
+      "addr:postcode": "76227",
+      "addr:street": "An der RaumFabrik",
+      "check_date": "2025-10-03",
+      "contact:phone": "+49 69 380760",
+      "contact:website": "http://www.ratiodata.de/",
+      "name": "Ratiodata SE",
+      "office": "it",
+      "operator:wikidata": "Q26772614"
+    }
+  },
+  {
+    "type": "node",
+    "id": 4461286920,
+    "lat": 49.0097884,
+    "lon": 8.396678,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "201",
+      "addr:postcode": "76133",
+      "addr:street": "Kaiserstraße",
+      "check_date:opening_hours": "2023-10-27",
+      "email": "karlsruhe@unic.com",
+      "level": "3",
+      "name": "Unic GmbH",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "phone": "+49 721 120845-0",
+      "source": "https://www.unic.com/de/about.html",
+      "website": "https://www.unic.com/"
+    }
+  },
+  {
+    "type": "node",
+    "id": 5739216507,
+    "lat": 49.0081285,
+    "lon": 8.344695,
+    "tags": {
+      "addr:city": "Karlsruhe",
+      "addr:housenumber": "4",
+      "addr:postcode": "76185",
+      "addr:street": "Pfannkuchstraße",
+      "check_date:opening_hours": "2026-04-24",
+      "contact:email": "info@komm.one",
+      "contact:phone": "+49 721 95 29-0",
+      "contact:website": "https://www.komm.one/",
+      "name": "Komm.ONE",
+      "office": "it",
+      "opening_hours:signed": "no",
+      "operator": "Komm.ONE Anstalt des öffentlichen Rechts",
+      "smoking": "isolated",
+      "wheelchair": "yes",
+      "wikidata": "Q55334292",
+      "wikipedia": "de:Komm.ONE"
+    }
+  }
+]

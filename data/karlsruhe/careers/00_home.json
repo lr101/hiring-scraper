@@ -1,0 +1,12 @@
+{
+  "url": "https://megacycle-gmbh.de/",
+  "checked_at": "2026-10-05T08:22:48.699173+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://megacycle-gmbh.de/",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 197892,
+  "truncated": false,
+  "elapsed_seconds": 1.56,
+  "sha256": "5790cef032ac022f5efcfd8b43e51f749259e4cfc5ba7adf59ae756c4d071b30"
+}

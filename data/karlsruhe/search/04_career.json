@@ -1,0 +1,12 @@
+{
+  "url": "https://www.seven2one.de/karriere",
+  "checked_at": "2026-10-05T08:23:51.087038+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.seven2one.de/karriere",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 62087,
+  "truncated": false,
+  "elapsed_seconds": 0.11,
+  "sha256": "37d4ef737e3cc50e2c1b1346db0c8f8c9ddbb6f5a603bf6c8c1fe45dbeaed6ba"
+}

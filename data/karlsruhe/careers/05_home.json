@@ -1,0 +1,12 @@
+{
+  "url": "https://www.bai.de/",
+  "checked_at": "2026-10-05T08:23:56.681729+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.bai.de/",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 23864,
+  "truncated": false,
+  "elapsed_seconds": 0.22,
+  "sha256": "dfd286230b294305f7518ddf11811101d23ac7b5f046e4903fc3cf142158d2d7"
+}
