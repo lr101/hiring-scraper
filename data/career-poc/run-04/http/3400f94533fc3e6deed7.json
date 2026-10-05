@@ -1,0 +1,14 @@
+{
+  "url": "https://www.grenke.de/",
+  "checked_at": "2026-10-05T09:07:20.673212+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "location": null,
+  "bytes": 267186,
+  "state": "ok",
+  "elapsed_seconds": 1.141,
+  "sha256": "e73f2bbd57687265403d4e1e5807b00da41d822902e1dc4571ba6477ea158117",
+  "capture": "3400f94533fc3e6deed7",
+  "reused_from": "data/career-poc/run-03/http/3400f94533fc3e6deed7.json"
+}

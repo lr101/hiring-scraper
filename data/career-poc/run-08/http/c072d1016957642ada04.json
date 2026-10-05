@@ -1,0 +1,14 @@
+{
+  "url": "https://www.wooga.com/about/howwework",
+  "checked_at": "2026-10-05T09:12:50.679148+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 20790,
+  "state": "ok",
+  "elapsed_seconds": 1.121,
+  "sha256": "744d390040f71886c13e553a6d64b31338349257c7c7b10083d476b1a692f63a",
+  "capture": "c072d1016957642ada04",
+  "reused_from": "data/career-poc/run-02/http/c072d1016957642ada04.json"
+}

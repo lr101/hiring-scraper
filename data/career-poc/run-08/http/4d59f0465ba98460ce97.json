@@ -1,0 +1,14 @@
+{
+  "url": "http://wooga.com/jobs",
+  "checked_at": "2026-10-05T09:12:48.185086+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "location": "https://wooga.com/jobs",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 0.764,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "4d59f0465ba98460ce97",
+  "reused_from": "data/career-poc/run-02/http/4d59f0465ba98460ce97.json"
+}

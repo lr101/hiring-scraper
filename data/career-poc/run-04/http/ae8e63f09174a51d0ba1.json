@@ -1,0 +1,14 @@
+{
+  "url": "https://job-boards.greenhouse.io/wooga",
+  "checked_at": "2026-10-05T13:24:50.380980+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 20403,
+  "state": "ok",
+  "elapsed_seconds": 1.261,
+  "sha256": "eea8b01029d3a584834660ef82a34836c66d45ae7e7a8e3a670a83158a1a9de9",
+  "capture": "ae8e63f09174a51d0ba1",
+  "reused_from": "data/career-poc/run-03/http/ae8e63f09174a51d0ba1.json"
+}

@@ -1,0 +1,846 @@
+[
+  {
+    "name": "trivago",
+    "website": "https://company.trivago.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected corporate homepage; custom-domain careers integration",
+    "pages": [
+      {
+        "requested_url": "https://company.trivago.com/",
+        "url": "https://company.trivago.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "d4174663b7e76509d708",
+        "redirect_chain": [
+          "https://company.trivago.com/"
+        ],
+        "title": "trivago - trivago company",
+        "headings": "trivago Our mission Our strategy Our story How we do it Our company stats Our Leadership Latest news",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "Work at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs",
+            "label": "Work at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/newsroom/",
+            "label": "Newsroom",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/get-listed/",
+            "label": "Partners",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/newsroom/press-contact/",
+            "label": "Media Enquiries",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://ir.trivago.com/corporate-governance/management",
+            "label": "More about our leadership team",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivagos-600-to-6-000-bet-building-an-ai-native-company/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivago-posts-15-growth-in-q1-extending-doubledigit-streak-to-fifth-quarter/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivago-delivers-impressive-21-growth-in-q2-raises-full-year-guidance-again-after-sixth-double-digit-quarter/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/",
+        "url": "https://careers.trivago.com/",
+        "parent": "https://company.trivago.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "cf0b9df6c75152639390",
+        "redirect_chain": [
+          "https://careers.trivago.com/"
+        ],
+        "title": "Careers - trivago careers",
+        "headings": "Career? trivago. Our mission Who we are Our working culture Tech at trivago Our business model Our stories Work with us Senior Investor Relations Manager Frontend Engineering Lead – Content Product Manager – Decision Intelligence & Experimentation Data Scientist – Content Working Student – Data & Insights Product Manager – Monetization & Retention Senior Investor Relations Manager Frontend Enginee",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8732475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8641657002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8573270002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8618361002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8675630002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8608475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/jobs",
+        "url": "https://careers.trivago.com/jobs/",
+        "parent": "https://company.trivago.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "81c9fa446a3a277fa123",
+        "redirect_chain": [
+          "https://careers.trivago.com/jobs",
+          "https://careers.trivago.com/jobs/"
+        ],
+        "title": "Jobs - trivago careers",
+        "headings": "Join a team of challengers and fanatic learners. Senior Investor Relations Manager Frontend Engineering Lead – Content Product Manager – Decision Intelligence & Experimentation Data Scientist – Content Working Student – Data & Insights Product Manager – Monetization & Retention B2B Digital Marketing Internship Site Reliability Engineer International Media Buyer Account Support Student Media Buying",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "greenhouse",
+            "tenant": null,
+            "board_url": "https://careers.trivago.com",
+            "feed_url": null,
+            "evidence_url": "https://careers.trivago.com/apply?gh_jid=4431832002",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/apply?gh_jid=4431832002",
+            "label": "Sign up",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8732475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8641657002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8573270002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8618361002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8675630002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8608475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8836602002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8794953002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com",
+        "url": "https://careers.trivago.com",
+        "parent": "https://careers.trivago.com/jobs/",
+        "method": "ats_link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "f2fb116facc6994deb43",
+        "redirect_chain": [
+          "https://careers.trivago.com"
+        ],
+        "title": "Careers - trivago careers",
+        "headings": "Career? trivago. Our mission Who we are Our working culture Tech at trivago Our business model Our stories Work with us Senior Investor Relations Manager Frontend Engineering Lead – Content Product Manager – Decision Intelligence & Experimentation Data Scientist – Content Working Student – Data & Insights Product Manager – Monetization & Retention Senior Investor Relations Manager Frontend Enginee",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8732475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8641657002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8573270002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8618361002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8675630002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8608475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/privacy-policy/",
+        "url": "https://careers.trivago.com/privacy-policy/",
+        "parent": "https://careers.trivago.com/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "0ae93604b6cccf1a0bcf",
+        "redirect_chain": [
+          "https://careers.trivago.com/privacy-policy/"
+        ],
+        "title": "Privacy Policy - trivago careers",
+        "headings": "Data Protection",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/life-at-trivago/",
+        "url": "https://careers.trivago.com/life-at-trivago/",
+        "parent": "https://careers.trivago.com/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "68e0f4d24f608f989c0b",
+        "redirect_chain": [
+          "https://careers.trivago.com/life-at-trivago/"
+        ],
+        "title": "Life at trivago - trivago careers",
+        "headings": "Life at trivago Our benefits Inclusive workplace Event highlights Our location Discover Düsseldorf Join our community Follow us",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/job/r8732475002/",
+        "url": "https://careers.trivago.com/job/r8732475002/",
+        "parent": "https://careers.trivago.com/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "d40ab52e68be4cc2c406",
+        "redirect_chain": [
+          "https://careers.trivago.com/job/r8732475002/"
+        ],
+        "title": "Senior Investor Relations Manager - trivago careers",
+        "headings": "Senior Investor Relations Manager Find out more about life at trivago",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "greenhouse",
+            "tenant": null,
+            "board_url": "https://careers.trivago.com",
+            "feed_url": null,
+            "evidence_url": "https://careers.trivago.com/apply/?gh_jid=8732475002",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/apply/?gh_jid=8732475002",
+            "label": "Apply",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/job/r8641657002/",
+        "url": "https://careers.trivago.com/job/r8641657002/",
+        "parent": "https://careers.trivago.com/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "ea07d1687d9f469b0e15",
+        "redirect_chain": [
+          "https://careers.trivago.com/job/r8641657002/"
+        ],
+        "title": "Frontend Engineering Lead - Content - trivago careers",
+        "headings": "Frontend Engineering Lead – Content Find out more about life at trivago",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "greenhouse",
+            "tenant": null,
+            "board_url": "https://careers.trivago.com",
+            "feed_url": null,
+            "evidence_url": "https://careers.trivago.com/apply/?gh_jid=8641657002",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/apply/?gh_jid=8641657002",
+            "label": "Apply",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/job/r8573270002/",
+        "url": "https://careers.trivago.com/job/r8573270002/",
+        "parent": "https://careers.trivago.com/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "2ae7ead255b1f3bce511",
+        "redirect_chain": [
+          "https://careers.trivago.com/job/r8573270002/"
+        ],
+        "title": "Product Manager - Decision Intelligence & Experimentation - trivago careers",
+        "headings": "Product Manager – Decision Intelligence & Experimentation Find out more about life at trivago",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "greenhouse",
+            "tenant": null,
+            "board_url": "https://careers.trivago.com",
+            "feed_url": null,
+            "evidence_url": "https://careers.trivago.com/apply/?gh_jid=8573270002",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/apply/?gh_jid=8573270002",
+            "label": "Apply",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/our-values-principles/",
+        "url": "https://careers.trivago.com/our-values-principles/",
+        "parent": "https://careers.trivago.com/privacy-policy/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "bb00fb119b2383f423c5",
+        "redirect_chain": [
+          "https://careers.trivago.com/our-values-principles/"
+        ],
+        "title": "Our Values & Principles - trivago careers",
+        "headings": "Our core values Our leadership principles Flow at trivago",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "greenhouse",
+        "tenant": null,
+        "board_url": "https://careers.trivago.com",
+        "feed_url": null,
+        "evidence_url": "https://careers.trivago.com/apply?gh_jid=4431832002",
+        "evidence_kind": "link",
+        "discovered_on": "https://careers.trivago.com/jobs/",
+        "job_count": null,
+        "feed_state": "not_supported",
+        "complete": false,
+        "jobs": []
+      }
+    ],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 10,
+      "max_depth": 5,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 11
+    }
+  }
+]

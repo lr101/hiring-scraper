@@ -1,0 +1,77 @@
+[
+  {
+    "name": "ISCL - Internet Security Consulting Lang",
+    "website": "https://www.iscl.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3267801586",
+    "original_website": "http://www.iscl.de"
+  },
+  {
+    "name": "Grenke Technology Center",
+    "website": "https://www.grenke.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3717670808",
+    "original_website": "http://www.grenke.de"
+  },
+  {
+    "name": "TelemaxX",
+    "website": "https://www.telemaxx.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4231017084",
+    "original_website": "https://www.telemaxx.de/"
+  },
+  {
+    "name": "cinemo",
+    "website": "https://www.cinemo.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/3691999453"
+  },
+  {
+    "name": "Chrono24",
+    "website": "https://about.chrono24.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/4078945377"
+  },
+  {
+    "name": "DeepL",
+    "website": "https://www.deepl.com/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "Ecosia",
+    "website": "https://www.ecosia.org/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "Wooga",
+    "website": "https://www.wooga.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected Berlin employer corporate homepage"
+  },
+  {
+    "name": "trivago",
+    "website": "https://company.trivago.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected corporate homepage; custom-domain careers integration"
+  },
+  {
+    "name": "ResearchGate Lever board (connector only)",
+    "website": "https://jobs.lever.co/researchgate",
+    "cohort": "direct_board_control",
+    "source": "Known board URL from search; does NOT test company-homepage discovery"
+  },
+  {
+    "name": "Wooga hosted Greenhouse board (connector control)",
+    "website": "https://job-boards.greenhouse.io/wooga",
+    "cohort": "direct_board_control",
+    "source": "Employer-branded Greenhouse board; validated via search result"
+  },
+  {
+    "name": "Packmatic GmbH (Lever connector control)",
+    "website": "https://jobs.lever.co/Packmatic",
+    "cohort": "direct_board_control",
+    "source": "Live Lever job board surfaced for Berlin; this control tests its public listing feed, not homepage discovery"
+  }
+]

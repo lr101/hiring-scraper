@@ -1,0 +1,1827 @@
+[
+  {
+    "name": "ISCL - Internet Security Consulting Lang",
+    "website": "https://www.iscl.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3267801586",
+    "original_website": "http://www.iscl.de",
+    "pages": [
+      {
+        "requested_url": "https://www.iscl.de/",
+        "url": "https://iscl.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "6998c6bf74e6243e3544",
+        "redirect_chain": [
+          "https://www.iscl.de/",
+          "https://iscl.de/"
+        ],
+        "title": "IT Security Consulting - ISCL",
+        "headings": "Immer einen Schritt voraus: IT-Sicherheit mit ISCL Endpoint Security IT Security Monitoring Neuigkeiten Ready für NIS-2? – Jetzt den CyberRisikoCheck durchführen Digitalisierungshilfe für kleine und mittelständische Unternehmen in Baden-Württemberg Das sagen unsere Kunden: NIS 2 – Sind Sie bereit? Professionelle Security-Audits Warum ISCL? Was sind Query-Injection-Angriffe? Welchen Einfluss hat KI",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://iscl.de/karriere/",
+            "label": "KARRIERE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://iscl.de/ueber-iscl/",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://iscl.de/karriere/",
+        "url": "https://iscl.de/karriere/",
+        "parent": "https://iscl.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "f3ad3267fb3ae147d822",
+        "redirect_chain": [
+          "https://iscl.de/karriere/"
+        ],
+        "title": "Finde deinen Traumjob bei ISCL!",
+        "headings": "Werde Teil von ISCL Mit ISCL hilfst Du die IT-Welt sicher zu machen. Offene Stellen Ganz EiNFACH BEwerben: Sende uns D eine Kontaktdaten Wir rufen Dich an! Lerne Deinen zukünftigen Arbeitsplatz besser kennen!",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://iscl.de/ueber-iscl/",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 5
+    }
+  },
+  {
+    "name": "Grenke Technology Center",
+    "website": "https://www.grenke.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3717670808",
+    "original_website": "http://www.grenke.de",
+    "pages": [
+      {
+        "requested_url": "https://www.grenke.de/",
+        "url": "https://www.grenke.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "3400f94533fc3e6deed7",
+        "redirect_chain": [
+          "https://www.grenke.de/"
+        ],
+        "title": "grenke – Leasing, Factoring und Banking aus einer Hand",
+        "headings": "Leasing, Factoring & Banking Wir finanzieren mehr als Sie denken Was grenke ausmacht Wann sich Leasing lohnt Mieten so einfach wie Online-Shopping grenke in Ihrer Nähe Finden Sie grenke in Ihrer Region",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+            "label": "Arbeiten bei grenke",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/unternehmen/fuer-lieferanten/",
+            "label": "Für Lieferanten",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/unternehmen/grenke-gruppe/esg/",
+            "label": "Nachhaltigkeit",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/unternehmen/investor-relations/",
+            "label": "Investor Relations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.de/unternehmen/grenke-deutschland/geschaeftsfelder/",
+            "label": "Überblick Mehr erfahren",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.de/unternehmen/grenke-deutschland/geschaeftsfelder/bank/",
+            "label": "Banking",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.de/unternehmen/grenke-deutschland/geschaeftsfelder/leasing/",
+            "label": "Leasing",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.de/unternehmen/grenke-deutschland/geschaeftsfelder/factoring/",
+            "label": "Factoring",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+        "url": "https://www.grenke.com/de/karriere/",
+        "parent": "https://www.grenke.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "cdaa66b8598e5b715697",
+        "redirect_chain": [
+          "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+          "https://www.grenke.com/de/karriere",
+          "https://www.grenke.com/de/karriere/"
+        ],
+        "title": "Karriere bei grenke",
+        "headings": "Karriere // Deine Qualifikation zählt. Aber entscheidend ist Dein Mindset. Offene Stellen in unseren Bereichen Team grenke - was unsere Mitarbeiter und Mitarbeiterinnen sagen Bewerbungsprozess & Kontakt",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.grenke.com/",
+            "label": "Erfolg hat viele Gesichter. Werde eines davon. Unsere offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/de",
+            "label": "Karriere-Portal",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/06_Sales/9295701/",
+            "label": "Sales Zu den offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/karriere/ausbildung/",
+            "label": "Ausbildung, Studium & Praktikum",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/05_IT_Digital/9295601/",
+            "label": "IT & Digital Zu den offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+            "label": "Arbeiten bei grenke",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/02_Banking_Accounting/9296001/",
+            "label": "Banking & Accounting Zu den offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/08_Initiativbewerbung/9295901/",
+            "label": "Initiativbewerbung Zum Karriereportal",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/03_Finance_Controlling/9295401/",
+            "label": "Finance & Controlling Zu den offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/karriere/bewerbungsprozess-und-kontakt/",
+            "label": "Bewerbungsprozess & Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.grenke.com/go/04_HR_Communication_Marketing/9295501/",
+            "label": "Human Resources & Marketing Zu den offenen Stellen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.grenke.com/de/karriere/unternehmenskultur-und-benefits/",
+            "label": "Unternehmenskultur & Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 6
+    }
+  },
+  {
+    "name": "TelemaxX",
+    "website": "https://www.telemaxx.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4231017084",
+    "original_website": "https://www.telemaxx.de/",
+    "pages": [
+      {
+        "requested_url": "https://www.telemaxx.de/",
+        "url": "https://www.telemaxx.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "46e3b11253f93d4cef66",
+        "redirect_chain": [
+          "https://www.telemaxx.de/"
+        ],
+        "title": "TelemaxX: Rechenzentrum, Managed Services & Colocation",
+        "headings": "Rechenzentrum - Cloud - IT Services - Telekommunikation aus der IT-Region Karlsruhe Unsere Kund:innen Gemeinsam zur digitalen Wettbewerbsfähigkeit Bleiben Sie immer auf dem Laufenden",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+            "label": "Aktuelle Stellenangebote Direkt zu unseren offenen Stellenangeboten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/ausbildung-studium",
+            "label": "Ausbildung & Studium Alles rund um Ausbildung und Studium",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/arbeiten-bei-telemaxx",
+            "label": "Arbeiten bei TelemaxX Vertrauensvolle Zusammenarbeit",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/deine-bewerbung-bei-uns",
+            "label": "Ihre Bewerbung bei uns Fragen zur Bewerbung bei TelemaxX",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns",
+            "label": "Über TelemaxX",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/partner/bitmi",
+            "label": "BITMi Software Hosted in Germany Gütesiegel",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/services/managed-services",
+            "label": "TelemaxX Managed Services Volle Entlastung für Ihr Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/unternehmen/emas",
+            "label": "EMAS Umweltmanagementsystem der TelemaxX",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/aktuelles/presse",
+            "label": "Pressemitteilungen Aktuelle Pressemitteilungen & News bei TelemaxX",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/unternehmen/vision",
+            "label": "Vision Erfolg durch langjährige Expertise",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/partner/fairdigital",
+            "label": "fair.digital Datenschutz, Fairness & Transparenz",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.telemaxx.de/ueber-uns/karriere",
+        "url": "https://www.telemaxx.de/ueber-uns/karriere",
+        "parent": "https://www.telemaxx.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "15a1a316ce432b351267",
+        "redirect_chain": [
+          "https://www.telemaxx.de/ueber-uns/karriere"
+        ],
+        "title": "TelemaxX Karriere: IT-Jobs und Stellenangebote Karlsruhe",
+        "headings": "KARRIERE BEI TELEMAXX Deine Ansprechpartner",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.telemaxx.de/en/about-telemaxx/careers",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+            "label": "Aktuelle Stellenangebote Direkt zu unseren offenen Stellenangeboten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/ausbildung-studium",
+            "label": "Ausbildung & Studium Alles rund um Ausbildung und Studium",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/arbeiten-bei-telemaxx",
+            "label": "Arbeiten bei TelemaxX Vertrauensvolle Zusammenarbeit",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/karriere/deine-bewerbung-bei-uns",
+            "label": "Ihre Bewerbung bei uns Fragen zur Bewerbung bei TelemaxX",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/partner/bitmi",
+            "label": "BITMi Software Hosted in Germany Gütesiegel",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/services/managed-services",
+            "label": "TelemaxX Managed Services Volle Entlastung für Ihr Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/unternehmen/emas",
+            "label": "EMAS Umweltmanagementsystem der TelemaxX",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/aktuelles/presse",
+            "label": "Pressemitteilungen Aktuelle Pressemitteilungen & News bei TelemaxX",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/unternehmen/vision",
+            "label": "Vision Erfolg durch langjährige Expertise",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.telemaxx.de/ueber-uns/partner/fairdigital",
+            "label": "fair.digital Datenschutz, Fairness & Transparenz",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 9
+    }
+  },
+  {
+    "name": "cinemo",
+    "website": "https://www.cinemo.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/3691999453",
+    "pages": [
+      {
+        "requested_url": "https://www.cinemo.com/",
+        "url": "https://www.cinemo.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "ecb2559a45d8e6653a42",
+        "redirect_chain": [
+          "https://www.cinemo.com/"
+        ],
+        "title": "Cinemo | Creating Seamless Digital Media Experiences",
+        "headings": "Immerse yourself in the future of connectivity About us",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.cinemo.com/",
+            "label": "CareersCareers",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.cinemo.com/",
+        "url": "https://careers.cinemo.com/",
+        "parent": "https://www.cinemo.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "7b4280769d37cfb75265",
+        "redirect_chain": [
+          "https://careers.cinemo.com/"
+        ],
+        "title": "Careers at Cinemo",
+        "headings": "Careers at Cinemo Join our team and define the future of digital media experiences with us Recognized Excellence: Our Employer Awards You will love it here if: Perks for our people Four steps to Cinemo Are you ready to drive one of these roles? Any other questions?",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "cinemo",
+            "board_url": "https://cinemo.jobs.personio.de",
+            "feed_url": "https://cinemo.jobs.personio.de/xml",
+            "evidence_url": "https://cinemo.jobs.personio.de/",
+            "evidence_kind": "csp_hint"
+          }
+        ],
+        "candidates": []
+      }
+    ],
+    "boards": [
+      {
+        "provider": "personio",
+        "tenant": "cinemo",
+        "board_url": "https://cinemo.jobs.personio.de",
+        "feed_url": "https://cinemo.jobs.personio.de/xml",
+        "evidence_url": "https://cinemo.jobs.personio.de/",
+        "evidence_kind": "csp_hint",
+        "discovered_on": "https://careers.cinemo.com/",
+        "job_count": 0,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [],
+        "feed_http_status": 200,
+        "capture": "81c09a6ad58d85a4b34d"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 4
+    }
+  },
+  {
+    "name": "Chrono24",
+    "website": "https://about.chrono24.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/4078945377",
+    "pages": [
+      {
+        "requested_url": "https://about.chrono24.com/",
+        "url": "https://about.chrono24.com/en/company",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "2fd5786be844a63fec26",
+        "redirect_chain": [
+          "https://about.chrono24.com/",
+          "https://about.chrono24.com/en",
+          "https://about.chrono24.com/en/company"
+        ],
+        "title": "Company — Chrono24",
+        "headings": "the world's leading marketplace for luxury watches What we offer at Chrono24 Stay ahead of time with us Start selling on Chrono24 Grow your career at Chrono24 Your Luxury Watch Companion Exceptional growth since 2003 Backed by 22 Years of Excellence Security at Our Core",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "chrono24",
+            "board_url": "https://chrono24.jobs.personio.de",
+            "feed_url": "https://chrono24.jobs.personio.de/xml",
+            "evidence_url": "https://chrono24.jobs.personio.de/",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://chrono24.jobs.personio.de/",
+            "label": "Discover open jobs",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://chrono24.jobs.personio.de/job/2827323",
+            "label": "Resolution Specialist (m/w/d)temporary, Full-timeKarlsruhe",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://about.chrono24.com/en/career",
+            "label": "Career",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.chrono24.com/about-us.htm",
+            "label": "Learn more about our Buyer Protection",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://about.chrono24.com/ja/company",
+            "label": "JA",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://about.chrono24.com/de/unternehmen",
+            "label": "DE",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "personio",
+        "tenant": "chrono24",
+        "board_url": "https://chrono24.jobs.personio.de",
+        "feed_url": "https://chrono24.jobs.personio.de/xml",
+        "evidence_url": "https://chrono24.jobs.personio.de/",
+        "evidence_kind": "link",
+        "discovered_on": "https://about.chrono24.com/en/company",
+        "job_count": 23,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [
+          {
+            "id": "2827202",
+            "title": "(Senior) Full Stack Engineer (Backend Focus) (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2827202",
+            "location": "Remote"
+          },
+          {
+            "id": "2735451",
+            "title": "AI Solution Engineer (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2735451",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2732431",
+            "title": "Android Developer (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2732431",
+            "location": "Remote"
+          },
+          {
+            "id": "2822982",
+            "title": "Complaint Specialist",
+            "url": "https://chrono24.jobs.personio.de/job/2822982",
+            "location": "Miami"
+          },
+          {
+            "id": "2747200",
+            "title": "Customer Care Manager (1-year contract)",
+            "url": "https://chrono24.jobs.personio.de/job/2747200",
+            "location": "Hong Kong"
+          },
+          {
+            "id": "2747201",
+            "title": "Customer Care Manager (1-year contract)",
+            "url": "https://chrono24.jobs.personio.de/job/2747201",
+            "location": "Japan"
+          },
+          {
+            "id": "2709297",
+            "title": "Dealer Success Manager (US Market)",
+            "url": "https://chrono24.jobs.personio.de/job/2709297",
+            "location": "Miami"
+          },
+          {
+            "id": "2782313",
+            "title": "Global Sales Operations Manager (m/w/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2782313",
+            "location": "Berlin"
+          },
+          {
+            "id": "2707585",
+            "title": "Head of Controlling (f/m/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2707585",
+            "location": "Remote"
+          },
+          {
+            "id": "2732441",
+            "title": "iOS Developer (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2732441",
+            "location": "Remote"
+          },
+          {
+            "id": "2712222",
+            "title": "Legal Counsel (m/w/d) - Remote/befristet",
+            "url": "https://chrono24.jobs.personio.de/job/2712222",
+            "location": "Remote"
+          },
+          {
+            "id": "2765283",
+            "title": "Luxury Watch Sales Consultant (m/w/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2765283",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2760387",
+            "title": "Partner Acquisition Manager / Sales Representative",
+            "url": "https://chrono24.jobs.personio.de/job/2760387",
+            "location": "Los Angeles, California"
+          },
+          {
+            "id": "2490283",
+            "title": "Partner Acquisition Manager/ Sales Manager",
+            "url": "https://chrono24.jobs.personio.de/job/2490283",
+            "location": "Hong Kong"
+          },
+          {
+            "id": "2494862",
+            "title": "Partner Acquisition Manager/ Sales Manager",
+            "url": "https://chrono24.jobs.personio.de/job/2494862",
+            "location": "Japan"
+          },
+          {
+            "id": "2827323",
+            "title": "Resolution Specialist (m/w/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2827323",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2661227",
+            "title": "Senior Business Analyst - Marketing & Demand (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2661227",
+            "location": "Remote"
+          },
+          {
+            "id": "2803952",
+            "title": "Senior Controller (f/m/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2803952",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2767519",
+            "title": "Senior GTM Strategy Manager (m/f/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2767519",
+            "location": "Berlin"
+          },
+          {
+            "id": "2721517",
+            "title": "SEO Manager (m/w/d)",
+            "url": "https://chrono24.jobs.personio.de/job/2721517",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2768876",
+            "title": "Watch Expert/Fraud Prevention Representative",
+            "url": "https://chrono24.jobs.personio.de/job/2768876",
+            "location": "Miami"
+          },
+          {
+            "id": "1975756",
+            "title": "Werkstudent Data Science (m/w/d)",
+            "url": "https://chrono24.jobs.personio.de/job/1975756",
+            "location": "Karlsruhe"
+          },
+          {
+            "id": "2648600",
+            "title": "マーケティングマネージャー",
+            "url": "https://chrono24.jobs.personio.de/job/2648600",
+            "location": "Japan"
+          }
+        ],
+        "feed_http_status": 200,
+        "capture": "78dc24d3c6b43c12a2b6"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 4
+    }
+  },
+  {
+    "name": "DeepL",
+    "website": "https://www.deepl.com/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence",
+    "pages": [
+      {
+        "requested_url": "https://www.deepl.com/",
+        "url": "https://www.deepl.com/en",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "0df154cc90a842eb257a",
+        "redirect_chain": [
+          "https://www.deepl.com/",
+          "https://www.deepl.com/en"
+        ],
+        "title": "DeepL AI Platform: Translation, Voice & API",
+        "headings": "AI solutions that help you get work done Drag-and-drop translation for any file type Trusted by over 200,000 businesses globally Real-time voice translation that still sounds like you DeepL is transforming how 200,000+ businesses communicate globally A full suite of language tools, built to power your global voice DeepL AI labs Integrate better communication wherever you work We speak the language",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.deepl.com/careers",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/en/about-us",
+            "label": "About Us",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/en/blog/what-mcp-changes-about-enterprise-software",
+            "label": "What MCP changes about enterprise software",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.deepl.com/careers",
+        "url": "https://www.deepl.com/en/careers",
+        "parent": "https://www.deepl.com/en",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "3fc58e9b9efab61064d4",
+        "redirect_chain": [
+          "https://www.deepl.com/careers",
+          "https://www.deepl.com/en/careers"
+        ],
+        "title": "Join DeepL: Innovative Career Opportunities in Language AI Tech",
+        "headings": "Join us in creating AI that connects the world and empowers how we work Meet DeepL 0 + employees 1000+ employees 0 + business customers 200,000+ business customers 0 million paid licenses 1 million paid licenses Used by millions of individuals worldwide Get to know our leaders Our offices Discover life #InsideDeepL Follow our journey",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "ashby",
+            "tenant": "DeepL",
+            "board_url": "https://jobs.ashbyhq.com/DeepL",
+            "feed_url": "https://api.ashbyhq.com/posting-api/job-board/DeepL",
+            "evidence_url": "https://jobs.ashbyhq.com/DeepL",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://jobs.ashbyhq.com/DeepL",
+            "label": "Roles",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/careers",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/de/careers",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/es/careers",
+            "label": "Español",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/ja/careers",
+            "label": "日本語",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/fr/careers",
+            "label": "Français",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/it/careers",
+            "label": "Italiano",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/id/careers",
+            "label": "Bahasa Indonesia",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/ko/careers",
+            "label": "한국어",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/nl/careers",
+            "label": "Nederlands",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/cs/careers",
+            "label": "Čeština",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.deepl.com/sv/careers",
+            "label": "Svenska",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "ashby",
+        "tenant": "DeepL",
+        "board_url": "https://jobs.ashbyhq.com/DeepL",
+        "feed_url": "https://api.ashbyhq.com/posting-api/job-board/DeepL",
+        "evidence_url": "https://jobs.ashbyhq.com/DeepL",
+        "evidence_kind": "link",
+        "discovered_on": "https://www.deepl.com/en/careers",
+        "job_count": 18,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [
+          {
+            "id": "e22fd6f1-1b48-46b1-ae05-b961668c02c4",
+            "title": "Sales Enablement Manager | APJ",
+            "url": "https://jobs.ashbyhq.com/DeepL/e22fd6f1-1b48-46b1-ae05-b961668c02c4",
+            "location": "Tokyo"
+          },
+          {
+            "id": "c933849c-0ed8-4981-bd35-97800c4e1da0",
+            "title": "Senior Sales Specialist Voice | DACH",
+            "url": "https://jobs.ashbyhq.com/DeepL/c933849c-0ed8-4981-bd35-97800c4e1da0",
+            "location": "Munich"
+          },
+          {
+            "id": "d76e8fbf-19f4-495b-9e2a-55b7a7ef3fa6",
+            "title": "Product GTM Specialist | DeepL Voice",
+            "url": "https://jobs.ashbyhq.com/DeepL/d76e8fbf-19f4-495b-9e2a-55b7a7ef3fa6",
+            "location": "Tokyo"
+          },
+          {
+            "id": "5d5ed7b1-8a46-4123-8ad2-0b612b13355c",
+            "title": "Enterprise Account Executive | in Österreich",
+            "url": "https://jobs.ashbyhq.com/DeepL/5d5ed7b1-8a46-4123-8ad2-0b612b13355c",
+            "location": "Vienna"
+          },
+          {
+            "id": "ee1e5089-4652-4ea2-b233-8c3ab0fe729d",
+            "title": "VP of Sales, AMER",
+            "url": "https://jobs.ashbyhq.com/DeepL/ee1e5089-4652-4ea2-b233-8c3ab0fe729d",
+            "location": "Austin"
+          },
+          {
+            "id": "6eec6707-c7b6-4b28-8d2a-c218c34a1897",
+            "title": "Regional Sales Leader (Enterprise) | Germany",
+            "url": "https://jobs.ashbyhq.com/DeepL/6eec6707-c7b6-4b28-8d2a-c218c34a1897",
+            "location": "Munich"
+          },
+          {
+            "id": "bd5ea968-a2bc-4951-bf29-02dd324169c6",
+            "title": "Sales Support Specialist | Contract",
+            "url": "https://jobs.ashbyhq.com/DeepL/bd5ea968-a2bc-4951-bf29-02dd324169c6",
+            "location": "London"
+          },
+          {
+            "id": "d8f07b1a-0b4f-48c4-9047-081c9cafd424",
+            "title": "Senior Manager - Technical Support Engineering ",
+            "url": "https://jobs.ashbyhq.com/DeepL/d8f07b1a-0b4f-48c4-9047-081c9cafd424",
+            "location": "London"
+          },
+          {
+            "id": "5e2a6164-5a3e-4cca-bcb8-747778782e98",
+            "title": "Executive & Office Assistant",
+            "url": "https://jobs.ashbyhq.com/DeepL/5e2a6164-5a3e-4cca-bcb8-747778782e98",
+            "location": "Tokyo"
+          },
+          {
+            "id": "5d01cb48-de69-4941-b470-05020908b3f5",
+            "title": "Lead Product Marketing Manager | Translator",
+            "url": "https://jobs.ashbyhq.com/DeepL/5d01cb48-de69-4941-b470-05020908b3f5",
+            "location": "London"
+          },
+          {
+            "id": "14d6eeda-bbf1-44c3-a881-8f04b4e4d664",
+            "title": "Lead Customer Marketing Manager",
+            "url": "https://jobs.ashbyhq.com/DeepL/14d6eeda-bbf1-44c3-a881-8f04b4e4d664",
+            "location": "London"
+          },
+          {
+            "id": "4a19cb14-4ee7-4227-b7ed-02d7ef8aae55",
+            "title": "Director, Global Field & Partner Marketing",
+            "url": "https://jobs.ashbyhq.com/DeepL/4a19cb14-4ee7-4227-b7ed-02d7ef8aae55",
+            "location": "London"
+          },
+          {
+            "id": "d930454d-9b73-499f-8cff-0fcbdee6d4a6",
+            "title": "Lead Solutions Consultant | APJ",
+            "url": "https://jobs.ashbyhq.com/DeepL/d930454d-9b73-499f-8cff-0fcbdee6d4a6",
+            "location": "Tokyo"
+          },
+          {
+            "id": "f0633d4b-a791-4e4d-b909-cf83c666489a",
+            "title": "リード ソリューションコンサルタント（APJ)",
+            "url": "https://jobs.ashbyhq.com/DeepL/f0633d4b-a791-4e4d-b909-cf83c666489a",
+            "location": "Tokyo"
+          },
+          {
+            "id": "919b8cf8-794d-4981-ac8f-97aedea19f53",
+            "title": "シニア ソリューションコンサルタント / 勤務地：東京（ハイブリッド）",
+            "url": "https://jobs.ashbyhq.com/DeepL/919b8cf8-794d-4981-ac8f-97aedea19f53",
+            "location": "Tokyo"
+          },
+          {
+            "id": "d5cea1af-08a0-463c-aa31-a1a001761eae",
+            "title": "Senior Solutions Consultant | Tokyo, Japan (Hybrid)",
+            "url": "https://jobs.ashbyhq.com/DeepL/d5cea1af-08a0-463c-aa31-a1a001761eae",
+            "location": "Tokyo"
+          },
+          {
+            "id": "fa79ede0-e055-4bf7-ba6a-443f1420fe28",
+            "title": "Sales Support Specialist | 6 Month Contract",
+            "url": "https://jobs.ashbyhq.com/DeepL/fa79ede0-e055-4bf7-ba6a-443f1420fe28",
+            "location": "Austin"
+          },
+          {
+            "id": "a269d905-ae6a-4a20-8ed6-42904aee139f",
+            "title": "Senior Revenue Accountant ",
+            "url": "https://jobs.ashbyhq.com/DeepL/a269d905-ae6a-4a20-8ed6-42904aee139f",
+            "location": "London"
+          }
+        ],
+        "feed_http_status": 200,
+        "capture": "0be7d1bf9b7622b9848e"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 6
+    }
+  },
+  {
+    "name": "Ecosia",
+    "website": "https://www.ecosia.org/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence",
+    "pages": [
+      {
+        "requested_url": "https://www.ecosia.org/",
+        "url": "https://www.ecosia.org/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "d7535537ae4efe9d2a7b",
+        "redirect_chain": [
+          "https://www.ecosia.org/"
+        ],
+        "title": "Ecosia - the search engine that plants trees",
+        "headings": "Turn your curiosity into climate action Why choose Ecosia? Monthly financial report Our tree planting approach Join 20 million people making a difference every day. What we do About Legal Apps",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ecosia.org/about/careers",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.bcorporation.net/find-a-b-corp/company/ecosia-gmbh/",
+            "label": "B-Corporation Certificate",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ecosia.org/about/careers",
+        "url": "https://www.ecosia.org/about/careers/",
+        "parent": "https://www.ecosia.org/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "6e918fd16a9bf42f5029",
+        "redirect_chain": [
+          "https://www.ecosia.org/about/careers",
+          "https://www.ecosia.org/about/careers/"
+        ],
+        "title": "Ecosia Careers",
+        "headings": "A tech company that puts people & the planet first Our mission Our culture What our team says . Diversity, equity and inclusion . Take a look inside . We're hiring! Hi there, I’m Sabīne.",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "ashby",
+            "tenant": "ecosia.org",
+            "board_url": "https://jobs.ashbyhq.com/ecosia.org",
+            "feed_url": "https://api.ashbyhq.com/posting-api/job-board/ecosia.org",
+            "evidence_url": "https://jobs.ashbyhq.com/ecosia.org",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://jobs.ashbyhq.com/ecosia.org",
+            "label": "Open positions",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://support.ecosia.org/article/406-about-ecosia",
+            "label": "About Ecosia",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "ashby",
+        "tenant": "ecosia.org",
+        "board_url": "https://jobs.ashbyhq.com/ecosia.org",
+        "feed_url": "https://api.ashbyhq.com/posting-api/job-board/ecosia.org",
+        "evidence_url": "https://jobs.ashbyhq.com/ecosia.org",
+        "evidence_kind": "link",
+        "discovered_on": "https://www.ecosia.org/about/careers/",
+        "job_count": 0,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [],
+        "feed_http_status": 200,
+        "capture": "5787faf7f3a80cc5ab41"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 4
+    }
+  },
+  {
+    "name": "Wooga",
+    "website": "https://www.wooga.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected Berlin employer corporate homepage",
+    "pages": [
+      {
+        "requested_url": "https://www.wooga.com/",
+        "url": "https://www.wooga.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "df7f7961599c2e2699ad",
+        "redirect_chain": [
+          "https://www.wooga.com/"
+        ],
+        "title": "Wooga – Games with Thoughtful Stories",
+        "headings": "Other Games This Is Us Level Up With Us",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "http://wooga.com/jobs",
+            "label": "Apply Now",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/this-is-us",
+            "label": "About",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/about/howwework",
+            "label": "How we work",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/about/code-of-conduct",
+            "label": "Code of Conduct",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "http://wooga.com/jobs",
+        "url": "https://www.wooga.com/jobs",
+        "parent": "https://www.wooga.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "1f222adc283da88a9fe3",
+        "redirect_chain": [
+          "http://wooga.com/jobs",
+          "https://wooga.com/jobs",
+          "https://www.wooga.com/jobs"
+        ],
+        "title": "Join Games Studio Wooga in Berlin – Careers",
+        "headings": "Level Up With Us Open Positions Our Recruiting Process Application Review Recruiter Screen Hiring Manager Interview Test Panel Interviews Benefits Students & Internships",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.wooga.com/this-is-us",
+            "label": "About",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/about/howwework",
+            "label": "How we work",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.wooga.com/about/code-of-conduct",
+            "label": "Code of Conduct",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 8
+    }
+  },
+  {
+    "name": "trivago",
+    "website": "https://company.trivago.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected corporate homepage; custom-domain careers integration",
+    "pages": [
+      {
+        "requested_url": "https://company.trivago.com/",
+        "url": "https://company.trivago.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "d4174663b7e76509d708",
+        "redirect_chain": [
+          "https://company.trivago.com/"
+        ],
+        "title": "trivago - trivago company",
+        "headings": "trivago Our mission Our strategy Our story How we do it Our company stats Our Leadership Latest news",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/",
+            "label": "Work at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs",
+            "label": "Work at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/newsroom/",
+            "label": "Newsroom",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/get-listed/",
+            "label": "Partners",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/category/company-blog/",
+            "label": "Company blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/newsroom/press-contact/",
+            "label": "Media Enquiries",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://ir.trivago.com/corporate-governance/management",
+            "label": "More about our leadership team",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivagos-600-to-6-000-bet-building-an-ai-native-company/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivago-posts-15-growth-in-q1-extending-doubledigit-streak-to-fifth-quarter/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/trivago-delivers-impressive-21-growth-in-q2-raises-full-year-guidance-again-after-sixth-double-digit-quarter/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.trivago.com/",
+        "url": "https://careers.trivago.com/",
+        "parent": "https://company.trivago.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "cf0b9df6c75152639390",
+        "redirect_chain": [
+          "https://careers.trivago.com/"
+        ],
+        "title": "Careers - trivago careers",
+        "headings": "Career? trivago. Our mission Who we are Our working culture Tech at trivago Our business model Our stories Work with us Senior Investor Relations Manager Frontend Engineering Lead – Content Product Manager – Decision Intelligence & Experimentation Data Scientist – Content Working Student – Data & Insights Product Manager – Monetization & Retention Senior Investor Relations Manager Frontend Enginee",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.trivago.com/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/life-at-trivago/",
+            "label": "Life at trivago",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8732475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8641657002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8573270002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8618361002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8675630002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/job/r8608475002/",
+            "label": "View Job",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.trivago.com/our-values-principles/",
+            "label": "Our values & principles",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/",
+            "label": "About trivago",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://company.trivago.com/dsa-information/",
+            "label": "DSA Information",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 9
+    }
+  },
+  {
+    "name": "ResearchGate Lever board (connector only)",
+    "website": "https://jobs.lever.co/researchgate",
+    "cohort": "direct_board_control",
+    "source": "Known board URL from search; does NOT test company-homepage discovery",
+    "pages": [
+      {
+        "requested_url": "https://jobs.lever.co/researchgate",
+        "url": "https://jobs.lever.co/researchgate",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "capture": "4ac861b010b8408ea17a",
+        "redirect_chain": [
+          "https://jobs.lever.co/researchgate"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0
+    }
+  },
+  {
+    "name": "Wooga hosted Greenhouse board (connector control)",
+    "website": "https://job-boards.greenhouse.io/wooga",
+    "cohort": "direct_board_control",
+    "source": "Employer-branded Greenhouse board; validated via search result",
+    "pages": [
+      {
+        "requested_url": "https://job-boards.greenhouse.io/wooga",
+        "url": "https://job-boards.greenhouse.io/wooga",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "ae8e63f09174a51d0ba1",
+        "redirect_chain": [
+          "https://job-boards.greenhouse.io/wooga"
+        ],
+        "title": "Jobs at Wooga",
+        "headings": "Current openings at Wooga 3 jobs",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "greenhouse",
+            "tenant": "wooga",
+            "board_url": "https://job-boards.greenhouse.io/wooga",
+            "feed_url": "https://boards-api.greenhouse.io/v1/boards/wooga/jobs",
+            "evidence_url": "https://job-boards.greenhouse.io/wooga/jobs/8213546",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213546",
+            "label": "Senior UI/UX Designer - New Games (1-year contract)Berlin or Remote",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213462",
+            "label": "Marketing Data Analyst (18-month contract)Berlin",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213368",
+            "label": "Senior User Acquisition ManagerBerlin",
+            "score": 100,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "greenhouse",
+        "tenant": "wooga",
+        "board_url": "https://job-boards.greenhouse.io/wooga",
+        "feed_url": "https://boards-api.greenhouse.io/v1/boards/wooga/jobs",
+        "evidence_url": "https://job-boards.greenhouse.io/wooga",
+        "evidence_kind": "redirect_or_board_page",
+        "discovered_on": "https://job-boards.greenhouse.io/wooga",
+        "job_count": 3,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [
+          {
+            "id": "8213462",
+            "title": "Marketing Data Analyst (18-month contract)",
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213462",
+            "location": "Berlin"
+          },
+          {
+            "id": "8213546",
+            "title": "Senior UI/UX Designer - New Games (1-year contract)",
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213546",
+            "location": "Berlin or Remote"
+          },
+          {
+            "id": "8213368",
+            "title": "Senior User Acquisition Manager",
+            "url": "https://job-boards.greenhouse.io/wooga/jobs/8213368",
+            "location": "Berlin"
+          }
+        ],
+        "feed_http_status": 200,
+        "capture": "fbd3145b768c8eb2f4b7"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 4
+    }
+  },
+  {
+    "name": "Packmatic GmbH (Lever connector control)",
+    "website": "https://jobs.lever.co/Packmatic",
+    "cohort": "direct_board_control",
+    "source": "Live Lever job board surfaced for Berlin; this control tests its public listing feed, not homepage discovery",
+    "pages": [
+      {
+        "requested_url": "https://jobs.lever.co/Packmatic",
+        "url": "https://jobs.lever.co/Packmatic",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "capture": "3a1d631ab9cb4779b59e",
+        "redirect_chain": [
+          "https://jobs.lever.co/Packmatic"
+        ],
+        "title": "Packmatic GmbH",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "lever",
+            "tenant": "Packmatic",
+            "board_url": "https://jobs.lever.co/Packmatic",
+            "feed_url": "https://api.lever.co/v0/postings/Packmatic?mode=json&limit=100",
+            "evidence_url": "https://jobs.lever.co/Packmatic?workplaceType=onsite",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://jobs.lever.co/Packmatic?department=",
+            "label": "Other teams",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?commitment=",
+            "label": "Uncategorized",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?location=Berlin",
+            "label": "Berlin",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?department=Packa",
+            "label": "Packa",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?department=Sales",
+            "label": "Sales",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?location=Copenhagen",
+            "label": "Copenhagen",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?workplaceType=onsite",
+            "label": "On-site",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?workplaceType=hybrid",
+            "label": "Hybrid",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?workplaceType=remote",
+            "label": "Remote",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?commitment=Full-Time",
+            "label": "Full-Time",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?department=Management",
+            "label": "Management",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.lever.co/Packmatic?department=Operations",
+            "label": "Operations",
+            "score": 100,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "lever",
+        "tenant": "Packmatic",
+        "board_url": "https://jobs.lever.co/Packmatic",
+        "feed_url": "https://api.lever.co/v0/postings/Packmatic?mode=json&limit=100",
+        "evidence_url": "https://jobs.lever.co/Packmatic",
+        "evidence_kind": "redirect_or_board_page",
+        "discovered_on": "https://jobs.lever.co/Packmatic",
+        "job_count": 13,
+        "feed_state": "parsed",
+        "complete": true,
+        "jobs": [
+          {
+            "id": "39be2824-78db-4070-aa51-611d0afca010",
+            "title": "(Senior) Account Executive (w/m/d) - B2B Saas I Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/39be2824-78db-4070-aa51-611d0afca010",
+            "location": "Berlin"
+          },
+          {
+            "id": "59a0608e-997e-444c-bab4-a1559e3d71fb",
+            "title": "(Senior) Key Account Manager (f/m/d)– Danish Market | Native Speaker | Copenhagen (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/59a0608e-997e-444c-bab4-a1559e3d71fb",
+            "location": "Copenhagen"
+          },
+          {
+            "id": "2ddb4798-7eec-4c4f-be6d-1f8ea630ab9b",
+            "title": "(Senior) Product Designer - Systems & AI (m/w/d) - B2B SaaS | Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/2ddb4798-7eec-4c4f-be6d-1f8ea630ab9b",
+            "location": "Berlin"
+          },
+          {
+            "id": "a9bf9ab2-f47f-41c0-aa25-48872faedb0f",
+            "title": "(Senior) Sales Development Representative (d/w/m) - Packa",
+            "url": "https://jobs.lever.co/Packmatic/a9bf9ab2-f47f-41c0-aa25-48872faedb0f",
+            "location": "Berlin"
+          },
+          {
+            "id": "f057a42e-520b-4096-b969-8ca8e51fea1d",
+            "title": "Junior Buying Manager (w/m/d)",
+            "url": "https://jobs.lever.co/Packmatic/f057a42e-520b-4096-b969-8ca8e51fea1d",
+            "location": "Berlin"
+          },
+          {
+            "id": "1ccba86f-bbb2-4d97-8270-a89ccc3dcc53",
+            "title": "Packa | Initiativbewerbung",
+            "url": "https://jobs.lever.co/Packmatic/1ccba86f-bbb2-4d97-8270-a89ccc3dcc53",
+            "location": "Berlin"
+          },
+          {
+            "id": "bd0cdd8a-b731-4429-90be-5024d3f90ccc",
+            "title": "Packmatic | Initiativbewerbung",
+            "url": "https://jobs.lever.co/Packmatic/bd0cdd8a-b731-4429-90be-5024d3f90ccc",
+            "location": "Berlin"
+          },
+          {
+            "id": "b3e3c67d-6dfe-4b43-ad17-0e5588ad411e",
+            "title": "Sales Development Representative (w/m/d) - Remote / Berlin / Hamburg",
+            "url": "https://jobs.lever.co/Packmatic/b3e3c67d-6dfe-4b43-ad17-0e5588ad411e",
+            "location": "Berlin"
+          },
+          {
+            "id": "6b2371f9-ab71-4620-b63c-a0c7925374a9",
+            "title": "Senior Software Engineer (w/m/d) - B2B Saas I Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/6b2371f9-ab71-4620-b63c-a0c7925374a9",
+            "location": "Berlin"
+          },
+          {
+            "id": "bf8aaa0d-b252-4ee8-b308-7c11e897bad9",
+            "title": "Software Engineer (w/m/d) - B2B Saas I Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/bf8aaa0d-b252-4ee8-b308-7c11e897bad9",
+            "location": "Berlin"
+          },
+          {
+            "id": "cbc1f782-80ef-457d-9afd-81575f155e37",
+            "title": "Technical Onboarding Manager (w/m/d) - B2B Saas I Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/cbc1f782-80ef-457d-9afd-81575f155e37",
+            "location": "Berlin"
+          },
+          {
+            "id": "43ad2e17-5541-4fcb-a75b-017577fdd3fb",
+            "title": "VP Sales Packa (w/m/d)",
+            "url": "https://jobs.lever.co/Packmatic/43ad2e17-5541-4fcb-a75b-017577fdd3fb",
+            "location": "Berlin"
+          },
+          {
+            "id": "4d84e34b-f50d-413a-82b5-71e304a715ab",
+            "title": "Working Student – Technical Onboarding (f/m/d) | B2B SaaS | Berlin (hybrid)",
+            "url": "https://jobs.lever.co/Packmatic/4d84e34b-f50d-413a-82b5-71e304a715ab",
+            "location": "Berlin"
+          }
+        ],
+        "feed_http_status": 200,
+        "capture": "71dd5b7aa08d5f259218"
+      }
+    ],
+    "status": "jobs_feed_found",
+    "limits": {
+      "max_pages": 2,
+      "max_depth": 1,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 4
+    }
+  }
+]

@@ -1,0 +1,13 @@
+name,website,cohort,status,career_pages,providers,feed_jobs
+ISCL - Internet Security Consulting Lang,https://www.iscl.de,original_osm_12,career_content_found,https://iscl.de/karriere/,,
+Grenke Technology Center,https://www.grenke.de,original_osm_12,career_content_found,https://www.grenke.com/de/karriere/,,
+TelemaxX,https://www.telemaxx.de/,original_osm_12,career_content_found,https://www.telemaxx.de/ueber-uns/karriere,,
+cinemo,https://www.cinemo.com/,selected_karlsruhe,jobs_feed_found,https://careers.cinemo.com/,personio,0
+Chrono24,https://about.chrono24.com/,selected_karlsruhe,jobs_feed_found,,personio,23
+DeepL,https://www.deepl.com/,selected_ats_controls,jobs_feed_found,https://www.deepl.com/en/careers,ashby,18
+Ecosia,https://www.ecosia.org/,selected_ats_controls,jobs_feed_found,https://www.ecosia.org/about/careers/,ashby,0
+Wooga,https://www.wooga.com/,additional_greenhouse_controls,career_content_found,https://www.wooga.com/jobs,,
+trivago,https://company.trivago.com/,additional_greenhouse_controls,unresolved,,,
+ResearchGate Lever board (connector only),https://jobs.lever.co/researchgate,direct_board_control,unresolved,,,
+Wooga hosted Greenhouse board (connector control),https://job-boards.greenhouse.io/wooga,direct_board_control,jobs_feed_found,https://job-boards.greenhouse.io/wooga,greenhouse,3
+Packmatic GmbH (Lever connector control),https://jobs.lever.co/Packmatic,direct_board_control,jobs_feed_found,,lever,13

@@ -1,0 +1,14 @@
+{
+  "url": "https://jobs.grenke.com/go/06_Sales/9295701/",
+  "checked_at": "2026-10-05T09:12:42.595961+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "location": null,
+  "bytes": 168905,
+  "state": "ok",
+  "elapsed_seconds": 1.301,
+  "sha256": "2e52ce51cc1b639865a2510b5b614ddab2b8dcff00c3fa60ee66b2104d07d03b",
+  "capture": "d9dd482b6093b50b5182",
+  "reused_from": "data/career-poc/run-02/http/d9dd482b6093b50b5182.json"
+}

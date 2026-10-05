@@ -1,0 +1,14 @@
+{
+  "url": "https://job-boards.greenhouse.io/robots.txt",
+  "checked_at": "2026-10-05T13:24:49.894950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "location": null,
+  "bytes": 202,
+  "state": "ok",
+  "elapsed_seconds": 0.484,
+  "sha256": "17fb1dc3361b057783040fa7f58d72f18707170866d370bd3db6e547bee09058",
+  "capture": "261b42e13986bbec6e0a",
+  "reused_from": "data/career-poc/run-03/http/261b42e13986bbec6e0a.json"
+}

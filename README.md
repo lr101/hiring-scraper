@@ -42,3 +42,15 @@ Before recurring use: add per-origin scheduling and backoff, caching and conditi
 ## Data attribution
 
 OSM-derived data is © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under ODbL. Preserve attribution and assess the applicable database sharing requirements when distributing derived databases. Other source data retains its source rights; this repository does not grant a license to third-party content. Successful HTTP access is an observation, not a determination of reuse permission.
+
+## Career-page discovery POC
+
+The follow-up crawler starts with a company homepage, follows bounded career links and sitemaps, and supports public Greenhouse, Lever, Personio and Ashby feeds. It also detects hosted Workday, SuccessFactors, Softgarden, Recruitee, Helix, Onlyfy and SmartRecruiters URLs without claiming unimplemented feeds. Run instructions, live results and limitations are in [the POC evaluation](reports/career-discovery-poc.md).
+
+Example:
+
+```bash
+python3 -m hiring_scraper --seeds data/career-poc/seeds-full-validation.json --out data/career-poc/my-run
+```
+
+Runs require a new output directory. The input seed lists and result manifests make the scope visible. Body captures stay local and are omitted from Git; reuse them with `--cache-from` for deterministic parsing experiments.

@@ -1,0 +1,38 @@
+{
+  "companies": 12,
+  "statuses": {
+    "career_content_found": 4,
+    "jobs_feed_found": 6,
+    "unresolved": 2
+  },
+  "unique_requests_or_reused_captures": 53,
+  "new_requests": 2,
+  "reused_captures": 51,
+  "http_statuses": {
+    "301": 9,
+    "200": 38,
+    "302": 1,
+    "404": 2,
+    "307": 3
+  },
+  "by_cohort": {
+    "additional_greenhouse_controls": {
+      "career_content_found": 1,
+      "unresolved": 1
+    },
+    "direct_board_control": {
+      "unresolved": 1,
+      "jobs_feed_found": 2
+    },
+    "original_osm_12": {
+      "career_content_found": 3
+    },
+    "selected_ats_controls": {
+      "jobs_feed_found": 2
+    },
+    "selected_karlsruhe": {
+      "jobs_feed_found": 2
+    }
+  },
+  "finished_at": "2026-10-05T13:25:58.836040+00:00"
+}
