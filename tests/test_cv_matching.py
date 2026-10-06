@@ -1,7 +1,10 @@
 """Regression cases for a broad, evidence-backed project/product CV."""
 import unittest
+from unittest.mock import patch
 
+import hiring_scraper.matching as matching
 from hiring_scraper.matching import enrich_job, extract_profile_skills, match_job, plain_text
+from hiring_scraper.pages import Document
 
 
 CV = {
@@ -151,6 +154,62 @@ class CvMatchingTests(unittest.TestCase):
         result = enrich_job({'title': 'Projektmanagerin', 'description':
                              'PV and construction experience required. Coordinate projects. ' * 10})
         self.assertEqual({row['value'].lower() for row in result['requirements']}, {'pv', 'construction'})
+
+    def test_client_language_mention_is_not_a_candidate_requirement(self):
+        result = match_job({'title': 'Project Coordinator',
+                            'description': 'German C1 is spoken by our clients. Coordinate projects. ' * 12}, CV)
+        self.assertTrue(result['eligible'])
+        self.assertEqual(result['conflicts'], [])
+
+    def test_optional_and_mandatory_language_clauses_are_separate(self):
+        for wording, expected in (
+            ('German C1 preferred and English C1 required.', {'English': 'C1'}),
+            ('German C1 required and English C2 preferred.', {'German': 'C1'}),
+        ):
+            with self.subTest(wording=wording):
+                enriched = enrich_job({'title': 'Project Coordinator', 'description': wording})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']}, expected)
+
+    def test_optional_and_mandatory_experience_and_qualifications_are_separate(self):
+        enriched = enrich_job({'title': 'Project Coordinator', 'description':
+                               '2 years experience preferred and at least 5 years project management experience required. '
+                               'Scrum preferred and PMP certification required.'})
+        self.assertEqual(enriched['experience_years']['value'], 5)
+        self.assertEqual({row['value'] for row in enriched['requirements']}, {'PMP', 'certification'})
+
+    def test_benefits_only_skill_overlap_keeps_matching_title_possible(self):
+        result = match_job({'title': 'Project Coordinator',
+                            'description': 'Our benefits include Excel training, flexible hours and lunch vouchers. ' * 12},
+                           {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
+        self.assertEqual(result['fit_tier'], 'possible')
+        self.assertLess(result['score'], 65)
+
+    def test_role_duty_skill_outweighs_earlier_benefit_mention(self):
+        result = match_job({'title': 'Project Coordinator', 'description':
+                            'Our benefits include Excel training. Your duties require Excel reporting. ' * 12},
+                           {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
+        self.assertEqual(result['fit_tier'], 'recommended')
+
+    def test_german_tasks_heading_ends_requirement_section(self):
+        enriched = enrich_job({'title': 'Project Coordinator', 'description':
+                               'Ihr Profil. PMP certification required. Ihre Aufgaben. Wir nutzen Scrum.'})
+        self.assertNotIn('Scrum', {row['value'] for row in enriched['requirements']})
+
+    def test_large_html_input_has_bounded_head_and_tail_parsing(self):
+        chunks = []
+        class RecordingDocument(Document):
+            def feed(self, data):
+                chunks.append(len(data))
+                return super().feed(data)
+
+        html = '<nav>' + ('A' * 300000) + '</nav><p>MiddleMarker</p><nav>' + ('B' * 300000)
+        html += '</nav><main>German C1 required. Project management.</main>'
+        with patch.object(matching, 'Document', RecordingDocument):
+            extracted = plain_text(html)
+        self.assertIn('German C1 required', extracted)
+        self.assertNotIn('MiddleMarker', extracted)
+        self.assertLessEqual(len(extracted), 240001)
+        self.assertLessEqual(max(chunks), 120000)
 
 
 if __name__ == '__main__':

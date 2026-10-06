@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 
-VERSION = 'rules-v2'
+VERSION = 'rules-v3'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -91,9 +91,14 @@ CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
 def plain_text(value) -> str:
     if not isinstance(value, str):
         return ''
-    doc = Document()
-    doc.feed(value)
-    result = ' '.join(' '.join(doc.text).split())
+    # Bound parser input while retaining late job content after large navigation blocks.
+    chunks = [value] if len(value) <= 240000 else [value[:120000], value[-120000:]]
+    parts = []
+    for chunk in chunks:
+        doc = Document()
+        doc.feed(chunk)
+        parts.extend(doc.text)
+    result = ' '.join(' '.join(parts).split())
     return result if len(result) <= 240000 else result[:120000] + ' ' + result[-120000:]
 
 
@@ -104,6 +109,19 @@ def _pattern(term: str):
 def _evidence(value, text, match, source):
     return {'value': value, 'source': source,
             'evidence': text[max(0, match.start()-50):min(len(text), match.end()+70)]}
+
+
+def _mention_kind(text: str, match, source: str) -> str:
+    if source == 'title':
+        return 'mentioned'
+    left = max(text.rfind('.', 0, match.start()), text.rfind(';', 0, match.start())) + 1
+    ends = [position for position in (text.find('.', match.end()), text.find(';', match.end())) if position >= 0]
+    sentence = text[left:min(ends) if ends else len(text)]
+    if NON_REQUIREMENT.search(sentence):
+        return 'incidental'
+    if OPTIONAL.search(sentence):
+        return 'optional'
+    return 'mentioned'
 
 
 def extract_profile_skills(text: str) -> list[str]:
@@ -130,6 +148,22 @@ def _normalized(value: str, groups: dict[str, list[str]]) -> str | None:
 
 def _sentences(text: str) -> list[str]:
     return [part.strip() for part in re.split(r'(?<=[.!?])\s+|\s*[;\n]\s*', text) if part.strip()]
+
+
+def _requirement_clauses(sentence: str) -> list[str]:
+    """Keep shared wording together, but separate independently qualified clauses."""
+    parts = re.split(r'\b(?:and|und)\b', sentence, flags=re.I)
+    clauses = []
+    current = parts[0].strip()
+    for part in parts[1:]:
+        part = part.strip()
+        if (OPTIONAL.search(current) or REQUIREMENT.search(current)) and (OPTIONAL.search(part) or REQUIREMENT.search(part)):
+            clauses.append(current)
+            current = part
+        else:
+            current += ' and ' + part
+    clauses.append(current)
+    return clauses
 
 
 def _required_context(sentence: str, *, explicit: bool = False) -> bool:
@@ -165,39 +199,39 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 continue
             if re.match(r'^(?:ihr|dein|your)\s+profil\b|^\b(?:requirements|anforderungen|qualifications)\b', sentence, re.I):
                 requirement_section = True
-            elif re.match(r'^(?:ihr|deine|your|unsere)\s+aufgaben\b|^\b(?:responsibilities|benefits|wir bieten|we offer)\b', sentence, re.I):
+            elif re.match(r'^(?:ihr|ihre|dein|deine|your|unsere)\s+aufgaben\b|^\b(?:responsibilities|benefits|wir bieten|we offer)\b', sentence, re.I):
                 requirement_section = False
-            optional = bool(OPTIONAL.search(sentence) or NON_REQUIREMENT.search(sentence))
-            exp = experience_pattern.search(sentence)
-            if exp and not optional and _required_context(sentence, explicit=requirement_section or bool(re.search(r'at least|minimum|min\.?|mindestens|\+\s*years?', exp.group(), re.I))):
-                if experience is None:
-                    experience = _evidence(int(next(group for group in exp.groups() if group)), sentence, exp, source)
-            language_hits = sorted(((name, hit) for name, pattern in language_patterns.items()
-                                    if (hit := pattern.search(sentence))), key=lambda pair: pair[1].start())
-            for index, (language, found) in enumerate(language_hits):
-                next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(sentence)
-                previous_end = language_hits[index - 1][1].end() if index else 0
-                after = sentence[found.end():next_start]
-                before = sentence[previous_end:found.start()]
-                level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b', after[:28], re.I)
-                if level and re.search(r'\b(?:and|und|or|oder)\b', after[:level.start()], re.I):
-                    level = None
-                if not level:
-                    level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b\s*$', before[-15:], re.I)
-                if not (level or fluency.search(sentence)) or optional:
-                    continue
-                if any(row['value'] == language for row in languages):
-                    continue
-                row = _evidence(language, sentence, found, source)
-                row['level'] = level.group().upper() if level else None
-                row['kind'] = 'explicit_cefr' if level else 'fluency'
-                languages.append(row)
-            if _required_context(sentence, explicit=requirement_section):
-                for found in qualification.finditer(sentence):
-                    key = (source, found.group().casefold())
-                    if key not in seen_qualifications:
-                        qualifications.append({**_evidence(found.group(), sentence, found, source), 'kind': 'qualification'})
-                        seen_qualifications.add(key)
+            for clause in _requirement_clauses(sentence):
+                for exp in experience_pattern.finditer(clause):
+                    minimum = bool(re.search(r'at least|minimum|min\.?|mindestens|\+\s*years?', exp.group(), re.I))
+                    if experience is None and _required_context(clause, explicit=requirement_section or minimum):
+                        experience = _evidence(int(next(group for group in exp.groups() if group)), clause, exp, source)
+                language_hits = sorted(((name, hit) for name, pattern in language_patterns.items()
+                                        if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
+                for index, (language, found) in enumerate(language_hits):
+                    next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(clause)
+                    previous_end = language_hits[index - 1][1].end() if index else 0
+                    after = clause[found.end():next_start]
+                    before = clause[previous_end:found.start()]
+                    level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b', after[:28], re.I)
+                    if level and re.search(r'\b(?:and|und|or|oder)\b', after[:level.start()], re.I):
+                        level = None
+                    if not level:
+                        level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b\s*$', before[-15:], re.I)
+                    if not (level or fluency.search(clause)) or not _required_context(clause, explicit=requirement_section or bool(fluency.search(clause))):
+                        continue
+                    if any(row['value'] == language for row in languages):
+                        continue
+                    row = _evidence(language, clause, found, source)
+                    row['level'] = level.group().upper() if level else None
+                    row['kind'] = 'explicit_cefr' if level else 'fluency'
+                    languages.append(row)
+                if _required_context(clause, explicit=requirement_section):
+                    for found in qualification.finditer(clause):
+                        key = (source, found.group().casefold())
+                        if key not in seen_qualifications:
+                            qualifications.append({**_evidence(found.group(), clause, found, source), 'kind': 'qualification'})
+                            seen_qualifications.add(key)
     return experience, languages, qualifications
 
 
@@ -216,10 +250,20 @@ def enrich_job(job: dict) -> dict:
     skills = []
     for name, aliases in SKILLS.items():
         evidence = None
+        best_rank = -1
         for source, text in texts:
-            match = next((found for alias in aliases if (found := _pattern(alias).search(text))), None)
-            if match:
-                evidence = {**_evidence(name, text, match, source), 'name': name, 'kind': 'mentioned'}
+            for alias in aliases:
+                for match in _pattern(alias).finditer(text):
+                    kind = _mention_kind(text, match, source)
+                    rank = {'incidental': 0, 'optional': 1, 'mentioned': 2}[kind]
+                    if rank > best_rank:
+                        evidence = {**_evidence(name, text, match, source), 'name': name, 'kind': kind}
+                        best_rank = rank
+                    if best_rank == 2:
+                        break
+                if best_rank == 2:
+                    break
+            if best_rank == 2:
                 break
         if evidence:
             skills.append(evidence)
@@ -302,7 +346,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
                 found = _pattern(skill).search(evidence_text)
                 if found:
                     job_skills.append(skill)
-                    custom_evidence.append({**_evidence(skill,evidence_text,found,source), 'name':skill})
+                    custom_evidence.append({**_evidence(skill,evidence_text,found,source), 'name':skill,
+                                            'kind': _mention_kind(evidence_text, found, source)})
                     break
     matched = [name for name in profile_skills if name in job_skills]
     missing = [name for name in job_skills if name not in profile_skills]
@@ -362,19 +407,36 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     has_role_preferences = bool(profile.get('desired_roles') or profile.get('secondary_roles'))
     score = 55 if roles else 35 if secondary_roles else 0
     academic_matches = []
-    professional_matches = []
+    substantive_matches = []
+    incidental_matches = []
+    optional_matches = []
+    job_evidence = {row['name']: row for row in enriched['skills']}
+    job_evidence.update({row['name']: row for row in custom_evidence})
+    weighted_matches = 0.0
     for skill in matched:
         entry = evidence_by_skill.get(skill.casefold()) or {}
         context = str(entry.get('context', '')).casefold()
+        kind = job_evidence.get(skill, {}).get('kind', 'mentioned')
         if context in {'academic', 'research'}:
             academic_matches.append((skill, context))
+        if kind == 'incidental':
+            incidental_matches.append(skill)
+        elif kind == 'optional':
+            optional_matches.append(skill)
+            weighted_matches += .25 * (.5 if context in {'academic', 'research'} else 1)
         else:
-            professional_matches.append(skill)
+            substantive_matches.append(skill)
+            weighted_matches += .5 if context in {'academic', 'research'} else 1
     if matched:
         # Job evidence determines coverage; a broad CV is not penalized for extra skills.
-        coverage = (len(professional_matches) + .5 * len(academic_matches)) / max(1, len(set(job_skills)))
+        coverage = weighted_matches / max(1, len(set(job_skills)))
         score += (45 if roles else 20 if secondary_roles else 25 if has_role_preferences else 100) * coverage
-        reasons.append('Skills mentioned: ' + ', '.join(matched))
+        if substantive_matches:
+            reasons.append('Skills mentioned: ' + ', '.join(substantive_matches))
+        if optional_matches:
+            reasons.append('Optional skills mentioned: ' + ', '.join(optional_matches))
+        if incidental_matches:
+            reasons.append('Incidental mentions: ' + ', '.join(incidental_matches))
         reasons.extend(f'{skill} evidence is {context} or project based' for skill, context in academic_matches)
     if roles:
         reasons.extend('Role matches ' + role for role in roles)
