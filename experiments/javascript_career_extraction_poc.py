@@ -9,7 +9,6 @@ import re
 from collections import Counter
 from pathlib import Path
 
-from hiring_scraper.discovery import trusted_html_jobs
 from hiring_scraper.html_jobs import extract_html_jobs, html_job_key
 
 
@@ -21,6 +20,7 @@ MARKERS = {
     "job_script_text": re.compile(r"<script[^>]*>[^<]{0,20000}(?:jobs|openings|vacancies|jobOffers)", re.I | re.S),
 }
 CAREER_TERMS = re.compile(r"career|karriere|job|stellen|vacan|position", re.I)
+TRUSTED_CARD_SOURCE_RELATIONSHIPS = {"first_party", "branded_external"}
 
 
 def _read_json(path: Path):
@@ -67,6 +67,12 @@ def _compact_job(job: dict) -> dict:
     }
 
 
+def _active_cards_from_saved_trust(page: dict, cards: list[dict]) -> tuple[list[dict], str]:
+    """Admit card rows only when the captured page's saved relationship permits them."""
+    trust = page.get("html_extraction_trust", "unverified_external_source")
+    return (cards if trust in TRUSTED_CARD_SOURCE_RELATIONSHIPS else []), trust
+
+
 def run(run_dir: Path, sample_size: int) -> dict:
     metadata = _capture_metadata(run_dir)
     results = _read_json(run_dir / "results.json")
@@ -88,7 +94,7 @@ def run(run_dir: Path, sample_size: int) -> dict:
         card_jobs = [job for job in extracted["jobs"]
                      if (job.get("raw_metadata") or {}).get("extraction_method") == "structured_job_card"]
         if card_jobs:
-            accepted, trust = trusted_html_jobs(result, page, result.get("pages", []), card_jobs)
+            accepted, trust = _active_cards_from_saved_trust(page, card_jobs)
             structured.append({
                 "capture": capture,
                 "company": result.get("name"),
@@ -110,7 +116,8 @@ def run(run_dir: Path, sample_size: int) -> dict:
     accepted_by_identity = {html_job_key(job): job for job in accepted}
     baseline_titles = {_title_key(job) for job in baseline_jobs}
     overlap_titles = sorted({_title_key(job) for job in accepted_by_identity.values()} & baseline_titles)
-    new_title_roles = [job for job in accepted_by_identity.values() if _title_key(job) not in baseline_titles]
+    new_title_novelty_rows = [job for job in accepted_by_identity.values()
+                              if _title_key(job) not in baseline_titles]
     return {
         "run_dir": str(run_dir),
         "eligible_unique_captures": len(captures),
@@ -131,8 +138,8 @@ def run(run_dir: Path, sample_size: int) -> dict:
         "baseline_title_overlap": overlap_titles,
         "new_stable_detail_identity_count": len(accepted_by_identity),
         "new_stable_detail_rows": [_compact_job(job) for job in accepted_by_identity.values()],
-        "new_title_location_role_count": len(new_title_roles),
-        "new_title_location_role_rows": [_compact_job(job) for job in new_title_roles],
+        "new_title_novelty_count": len(new_title_novelty_rows),
+        "new_title_novelty_rows": [_compact_job(job) for job in new_title_novelty_rows],
         "prior_generic_hint_replacement_count": len(overlap_titles),
         "same_origin_endpoint_requests": 0,
         "browser_available": {

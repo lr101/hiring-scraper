@@ -19,7 +19,10 @@ The command writes the compact replay artifact at
 per capture from saved page metadata for career/job-like successful HTML pages
 without an ATS marker and with `jobposting_count=0`; it orders them by
 `SHA-256(page URL + newline + capture ID)` and takes the first 250. It loads
-only those 250 bodies.
+only those 250 bodies. Replaying requires the local saved
+`data/career-poc/run-31` capture directory, including its large response bodies;
+that directory is intentionally not committed. The compact replay JSON is
+committed and remains reviewable without those bodies.
 
 ## Results
 
@@ -37,16 +40,20 @@ The one useful framework-bearing lead was Wibu Systems:
 | --- | --- | ---: | ---: | ---: |
 | `https://jobs.wibu.com/en` | capture `cf39ff8b1927aa89fb50`; 200 HTML, 472,810 bytes; `robots.txt` capture `b96ca803147990271f9f` was 200 `text/plain` | 2 synthetic role headings | 9 active cards plus 1 unconfirmed initiative route | 9 new stable detail identities; 7 roles without a prior title hint |
 
-The capture is linked to the employer's `https://www.wibu.com/` site and the
-existing `trusted_html_jobs` check returns `first_party`. The active rows have
-distinct normalized `?id=` destination identities, non-placeholder titles, and
-the card's explicit Karlsruhe location. The saved card list has no
+The saved page metadata records the Wibu capture's
+`html_extraction_trust` as `first_party`. This experiment consumes that saved
+relationship directly: it admits structured-card rows only for `first_party`
+or `branded_external` pages, without importing or reimplementing the broader
+discovery trust policy. The active rows have distinct normalized `?id=`
+destination identities, non-placeholder titles, and the card's explicit
+Karlsruhe location. The saved card list has no
 closed/no-open-jobs signal. The two earlier student headings overlap two card
 titles and are suppressed only as synthetic hints; they are not used as posting
 identity. Therefore all nine card URLs are new stable detail identities; seven
-have no prior title/location role hint and two replace synthetic heading hints.
-If a downstream display intentionally title-deduplicates them, that is a
-separate seven-role presentation metric, not posting identity deduplication.
+have titles absent from the prior synthetic headings and two replace synthetic
+heading hints. This title-novelty measure does not compare locations. If a
+downstream display intentionally title-deduplicates them, that is a separate
+seven-role presentation metric, not posting identity deduplication.
 `Initiativbewerbung (m/w/d)`
 is an unsolicited application route and is retained only as an unconfirmed
 role candidate. The same treatment applies to narrow generic English labels

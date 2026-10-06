@@ -145,3 +145,54 @@ Full suite command and output:
 ```
 
 Output: `Ran 153 tests in 1.709s` / `OK`.
+
+## Committed replay reproducibility repair
+
+The experiment no longer imports the uncommitted discovery-time
+`trusted_html_jobs` helper. It reads each selected page's saved
+`html_extraction_trust` and admits explicit card rows only for `first_party`
+and `branded_external` relationships; unverified saved sources add no active
+rows. This is intentionally limited to the replay and does not duplicate the
+discovery trust policy.
+
+The replay still requires the local `data/career-poc/run-31` capture directory,
+whose large response bodies are not committed. The compact,
+`data/career-poc/js-extraction-poc-2026-10/replay.json` artifact is committed
+for review. The regenerated replay preserves 1,775 eligible captures, the
+250-body sample, nine new stable destination identities, two title overlaps,
+and seven title-novel rows. The seven-row metric compares normalized titles to
+the baseline headings only; it is not location-aware.
+
+The trust-metadata regression was written before the replay change and failed
+because the admission step did not exist:
+
+```bash
+.venv/bin/python -m unittest tests.test_javascript_career_extraction_poc
+```
+
+Output: `Ran 1 test in 0.000s` / `FAILED (failures=1)`.
+
+After adding the saved-trust allow-list, focused verification was:
+
+```bash
+.venv/bin/python -m unittest tests.test_javascript_career_extraction_poc tests.test_html_jobs -v
+```
+
+Output: `Ran 28 tests in 0.043s` / `OK`.
+
+The regenerated replay command was:
+
+```bash
+.venv/bin/python experiments/javascript_career_extraction_poc.py --run-dir data/career-poc/run-31 --sample-size 250 --output data/career-poc/js-extraction-poc-2026-10/replay.json
+```
+
+Output: 1,775 eligible captures; 250 selected bodies; 9 structured active
+destination identities; 2 baseline-title overlaps; and 7 title-novel rows.
+
+Full-suite verification was:
+
+```bash
+.venv/bin/python -m unittest discover -s tests
+```
+
+Output: `Ran 154 tests in 1.411s` / `OK`.
