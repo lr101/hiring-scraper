@@ -196,3 +196,17 @@ Full-suite verification was:
 ```
 
 Output: `Ran 154 tests in 1.411s` / `OK`.
+
+Finally, the committed replay was verified from a clean `git archive` of
+`1c072adc`, passing the local capture directory explicitly:
+
+```bash
+task_archive_dir=$(mktemp -d /tmp/javascript-career-poc-archive.XXXXXX)
+git archive --format=tar 1c072adc | tar -xf - -C "$task_archive_dir"
+/workspace/hiring-scraper/.venv/bin/python "$task_archive_dir/experiments/javascript_career_extraction_poc.py" --run-dir /workspace/hiring-scraper/data/career-poc/run-31 --sample-size 250 --output "$task_archive_dir/replay.json"
+```
+
+Output: archive `/tmp/javascript-career-poc-archive.cE79sb` completed with 1,775
+eligible captures, 250 selected bodies, 9 active stable destination identities,
+2 baseline-title overlaps, and 7 title-novel rows. The replay reported
+`/workspace/hiring-scraper/data/career-poc/run-31` as its external source data.
