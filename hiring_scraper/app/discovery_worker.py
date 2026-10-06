@@ -1,0 +1,748 @@
+"""Scheduled, bounded discovery of employer career pages and public job feeds."""
+from __future__ import annotations
+
+import argparse
+import logging
+import os
+import random
+import time
+from uuid import uuid4
+from datetime import timedelta, timezone
+from pathlib import Path
+
+from sqlalchemy import or_, select
+from sqlalchemy.orm import selectinload
+
+from hiring_scraper.app.database import SessionLocal, engine
+from hiring_scraper.app.discovery_jobs import (
+    advance_location_schedule, company_ids_in_radius, create_discovery_job,
+)
+from hiring_scraper.app.models import (
+    Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
+    Job, JobFeed, JobLocation, utcnow,
+)
+from hiring_scraper.discovery import discover, trusted_html_jobs
+from hiring_scraper.http import Client, OriginPacer
+from hiring_scraper.location_discovery import fetch_location_companies
+
+
+LOG = logging.getLogger("hiring_scraper.discovery_worker")
+POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
+INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
+LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
+REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
+MAX_PAGES = min(12, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "6"))))
+MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
+MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "24"))))
+TIMEOUT_SECONDS = max(5, float(os.getenv("CAREER_DISCOVERY_TIMEOUT_SECONDS", "15")))
+CAPTURE_DIR = Path(os.getenv("CAREER_DISCOVERY_CAPTURE_DIR", "/tmp/hiring-scraper-discovery-captures"))
+USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public career discovery)")
+FEED_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
+_ORIGIN_PACER = OriginPacer()
+
+_CAREER_STATUS = {
+    "career_content_found": "career_page_found",
+    "jobs_feed_found": "jobs_feed_found",
+    "jobs_extracted": "jobs_extracted",
+    "ats_identified": "provider_detected",
+    "unresolved": "unresolved",
+}
+_POSITIVE_CAREER_STATUSES = {"career_page_found", "jobs_feed_found", "jobs_extracted", "provider_detected"}
+
+
+def _claim_due_company() -> tuple[int, int] | None:
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        statement = (select(Company)
+                     .where(Company.website_url.is_not(None),
+                            or_(Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
+                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
+                     .order_by(Company.next_discovery_at.asc().nullsfirst(), Company.id).limit(1))
+        if engine.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True)
+        company = session.scalars(statement).first()
+        if company is None:
+            return None
+        stale_runs = session.scalars(select(DiscoveryRun).where(
+            DiscoveryRun.company_id == company.id, DiscoveryRun.status == "running"
+        ).with_for_update()).all()
+        for stale_run in stale_runs:
+            stale_run.status = "failed"
+            stale_run.error = "Worker lease expired; discovery was requeued."
+            stale_run.finished_at = now
+        company.discovery_lease_until = now + timedelta(minutes=LEASE_MINUTES)
+        company.discovery_attempt_count += 1
+        run = DiscoveryRun(company_id=company.id, started_at=now, status="running")
+        session.add(run)
+        session.flush()
+        return company.id, run.id
+
+
+def _retry_time(attempt: int) -> datetime:
+    minutes = min(7 * 24 * 60, 5 * 2 ** min(max(attempt - 1, 0), 10))
+    return utcnow() + timedelta(minutes=minutes, seconds=random.randint(0, 59))
+
+
+def _job_locations(job_data: dict, old_locations: list[JobLocation]) -> list[dict]:
+    source_locations = job_data.get("locations")
+    if not source_locations:
+        label = (job_data.get("location") or "").strip()
+        source_locations = [{"label": label}] if label else []
+    old_by_label = {row.label.casefold(): row for row in old_locations}
+    output = []
+    for source in source_locations:
+        source = {"label": source} if isinstance(source, str) else source
+        if not isinstance(source, dict) or not source.get("label"):
+            continue
+        label = str(source["label"]).strip()
+        old = old_by_label.get(label.casefold())
+        latitude, longitude = source.get("latitude"), source.get("longitude")
+        precision, country = source.get("precision"), source.get("country_code")
+        if latitude is None and old:
+            latitude, longitude = old.latitude, old.longitude
+            precision, country = old.precision, old.country_code
+        key = label.casefold().strip()
+        locality = key.split(" - ", 1)[0].split(",", 1)[0].strip()
+        if locality == "karlsruhe" and latitude is None:
+            latitude, longitude, precision, country = 49.0068705, 8.4034195, "city_centroid", "de"
+        elif locality == "berlin" and latitude is None:
+            latitude, longitude, precision, country = 52.5200, 13.4050, "city_centroid", "de"
+        output.append({"label": label, "latitude": latitude, "longitude": longitude,
+                       "precision": precision, "country_code": country})
+    return output
+
+
+def _lock_current_discovery_run(session, company_id: int, run_id: int) -> DiscoveryRun | None:
+    """Return a run only while it remains the company's latest active attempt."""
+    run = session.scalars(select(DiscoveryRun).where(
+        DiscoveryRun.id == run_id, DiscoveryRun.company_id == company_id
+    ).with_for_update()).first()
+    if run is None or run.status != "running":
+        return None
+    latest_id = session.scalar(select(DiscoveryRun.id).where(
+        DiscoveryRun.company_id == company_id
+    ).order_by(DiscoveryRun.id.desc()).limit(1))
+    return run if latest_id == run_id else None
+
+
+def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: datetime) -> int:
+    existing = {job.external_id: job for job in session.scalars(
+        select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
+    seen: set[str] = set()
+    for data in rows:
+        external_id, title, url = data.get("id"), data.get("title"), data.get("url")
+        if external_id in (None, "") or not title or not url:
+            continue
+        external_id = str(external_id)
+        seen.add(external_id)
+        job = existing.get(external_id)
+        if job is None:
+            job = Job(feed_id=feed.id, external_id=external_id, title=title, url=url,
+                      first_seen_at=now, last_seen_at=now)
+            session.add(job)
+            session.flush()
+            existing[external_id] = job
+            old_locations = []
+        else:
+            old_locations = list(job.locations)
+        job.title, job.url = title, url
+        job.description = data.get("description")
+        job.location_text = data.get("location") or None
+        job.is_remote = bool(data.get("is_remote")) or (job.location_text or "").casefold().strip() == "remote"
+        job.work_arrangement = data.get("work_arrangement") or ("remote" if job.is_remote else None)
+        for field in ("employment_type", "schedule", "department", "seniority", "date_posted", "salary"):
+            setattr(job, field, data.get(field))
+        job.raw_metadata = data.get("raw_metadata") or {}
+        job.last_seen_at = now
+        job.is_active = True
+        job.missing_complete_scans = 0
+        job.closed_at = None
+        for location in old_locations:
+            session.delete(location)
+        for location in _job_locations(data, old_locations):
+            session.add(JobLocation(job_id=job.id, label=location["label"],
+                                    latitude=location["latitude"], longitude=location["longitude"],
+                                    precision=location["precision"], country_code=location["country_code"]))
+
+    if complete:
+        for external_id, job in existing.items():
+            if external_id in seen:
+                continue
+            job.missing_complete_scans += 1
+            last_seen = job.last_seen_at
+            if last_seen.tzinfo is None:
+                last_seen = last_seen.replace(tzinfo=timezone.utc)
+            if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
+                job.is_active = False
+                job.closed_at = now
+
+    feed.job_count = len(seen)
+    feed.status = "parsed" if complete and seen else "complete_empty" if complete else "incomplete"
+    feed.last_checked_at = now
+    feed.last_error = None if complete else "Discovery returned a partial job list; no jobs were closed."
+    feed.next_scan_at = now + timedelta(hours=FEED_INTERVAL_HOURS)
+    feed.attempt_count = 0
+    return len(seen)
+
+
+def _campaign_attempt(session, item_id: int, run_id: int):
+    """Load the parent job under lock and verify this campaign still owns its task."""
+    item = session.get(DiscoveryJobCompany, item_id)
+    if item is None:
+        return None
+    job = session.scalars(select(DiscoveryJob).where(
+        DiscoveryJob.id == item.discovery_job_id).with_for_update()).first()
+    if (job is None or job.stage != "career_page_discovery" or job.status != "running" or
+            item.status != "running" or item.discovery_run_id != run_id):
+        return (job, item) if job is not None and job.status == "cancelled" and \
+            item.status == "running" and item.discovery_run_id == run_id else None
+    return job, item
+
+
+def _discard_cancelled_campaign_attempt(company: Company, run: DiscoveryRun,
+                                        item: DiscoveryJobCompany, now) -> None:
+    company.discovery_lease_until = None
+    run.status = "cancelled"
+    run.finished_at = now
+    item.status = "cancelled"
+    item.finished_at = now
+    item.jobs_found = 0
+    item.error = None
+
+
+def _persist_discovery(company_id: int, run_id: int, result: dict,
+                       *, campaign_item_id: int | None = None) -> int | None:
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        company = session.scalars(select(Company).where(
+            Company.id == company_id).with_for_update()).first()
+        run = _lock_current_discovery_run(session, company_id, run_id)
+        if company is None or run is None:
+            return 0
+        if campaign_item_id is not None:
+            attempt = _campaign_attempt(session, campaign_item_id, run_id)
+            if attempt is None:
+                return None
+            job, item = attempt
+            if job.status == "cancelled":
+                _discard_cancelled_campaign_attempt(company, run, item, now)
+                return None
+        company.discovery_lease_until = None
+        company.discovery_error = None
+        company.discovery_attempt_count = 0
+        company.last_checked_at = now
+        company.next_discovery_at = now + timedelta(days=INTERVAL_DAYS)
+        fresh_status = _CAREER_STATUS.get(result.get("status"), "unresolved")
+        if fresh_status != "unresolved" or company.career_status not in _POSITIVE_CAREER_STATUSES:
+            company.career_status = fresh_status
+
+        page_by_url = {page.get("url"): page for page in result.get("pages", [])}
+        career_pages = [page for page in result.get("pages", [])
+                        if page.get("classification") in {"career_content", "jobposting"} and
+                        page.get("html_extraction_trust") != "unverified_external_source"]
+        career_url = next((page.get("url") for page in career_pages if page.get("url")), None)
+        parsed_boards = [board for board in result.get("boards", [])
+                         if board.get("feed_state") == "parsed" and board.get("feed_url")]
+        if career_url is None and parsed_boards:
+            career_url = parsed_boards[0].get("board_url") or parsed_boards[0].get("feed_url")
+        if career_url:
+            company.career_url = career_url
+
+        feed_by_key = {(feed.provider, feed.feed_url): feed for feed in session.scalars(
+            select(JobFeed).where(JobFeed.company_id == company_id)).all()}
+        total_jobs = 0
+        for board in parsed_boards:
+            jobs = board.get("jobs", [])
+            if board.get("provider") == "html_jobs":
+                source_page = page_by_url.get(board.get("discovered_on"), {})
+                seed = {"name": company.name, "website": company.website_url}
+                jobs, trust = trusted_html_jobs(seed, source_page, result.get("pages", []), jobs)
+                source_page["html_extraction_trust"] = trust
+                if not jobs:
+                    continue
+            key = (board["provider"], board["feed_url"])
+            feed = feed_by_key.get(key)
+            if feed is None:
+                feed = JobFeed(company_id=company_id, provider=board["provider"],
+                               tenant=board.get("tenant"), board_url=board.get("board_url"),
+                               feed_url=board["feed_url"], status="parsed", job_count=0,
+                               last_checked_at=now, next_scan_at=now + timedelta(hours=FEED_INTERVAL_HOURS))
+                session.add(feed)
+                session.flush()
+                feed_by_key[key] = feed
+            else:
+                feed.tenant = board.get("tenant") or feed.tenant
+                feed.board_url = board.get("board_url") or feed.board_url
+            total_jobs += _upsert_jobs(session, feed, jobs,
+                                       bool(board.get("complete")), now)
+
+        run.finished_at = now
+        run.status = result.get("status", "unresolved")
+        run.pages_checked = len(result.get("pages", []))
+        run.jobs_found = total_jobs
+        run.evidence = {
+            "website_url": company.website_url,
+            "seed_resolution": result.get("seed_resolution"),
+            "career_pages": [{key: page.get(key) for key in
+                               ("requested_url", "url", "parent", "method", "depth", "classification",
+                                "html_extraction_trust", "fetch_state", "http_status", "redirect_chain")}
+                              for page in result.get("pages", [])
+                              if page.get("classification") in {"career_content", "jobposting"} or
+                              page.get("html_extraction_trust") == "unverified_external_source"],
+            "boards": [{key: board.get(key) for key in
+                        ("provider", "tenant", "board_url", "feed_url", "evidence_url", "evidence_kind",
+                         "discovered_on", "feed_state", "feed_http_status", "job_count", "complete")}
+                       for board in result.get("boards", [])],
+            "unverified_external_html_pages": result.get("unverified_external_html_pages", []),
+            "limits": result.get("limits", {}),
+        }
+        return total_jobs
+
+
+def _record_failure(company_id: int, run_id: int, error: Exception,
+                    *, campaign_item_id: int | None = None) -> None:
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        company = session.scalars(select(Company).where(
+            Company.id == company_id).with_for_update()).first()
+        run = _lock_current_discovery_run(session, company_id, run_id)
+        if company is None or run is None:
+            return
+        if campaign_item_id is not None:
+            attempt = _campaign_attempt(session, campaign_item_id, run_id)
+            if attempt is None:
+                return
+            job, item = attempt
+            if job.status == "cancelled":
+                _discard_cancelled_campaign_attempt(company, run, item, now)
+                return
+        detail = str(error)[:2000]
+        company.discovery_lease_until = None
+        company.discovery_error = detail
+        company.next_discovery_at = _retry_time(company.discovery_attempt_count)
+        run.finished_at = now
+        run.status = "failed"
+        run.error = detail
+
+
+def _claim_location_company_search(now=None) -> tuple[int, str] | None:
+    """Lease one queued location-level company and homepage search."""
+    now = now or utcnow()
+    with SessionLocal.begin() as session:
+        statement = (select(DiscoveryJob)
+                     .where(DiscoveryJob.stage == "company_homepage_discovery",
+                            or_(DiscoveryJob.status == "queued",
+                                ((DiscoveryJob.status == "scheduled") &
+                                 or_(DiscoveryJob.scheduled_for.is_(None),
+                                     DiscoveryJob.scheduled_for <= now)),
+                                ((DiscoveryJob.status == "running") &
+                                 or_(DiscoveryJob.location_scan_lease_until.is_(None),
+                                     DiscoveryJob.location_scan_lease_until <= now))))
+                     .order_by(DiscoveryJob.created_at, DiscoveryJob.id).limit(1))
+        if engine.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True)
+        job = session.scalars(statement).first()
+        if job is None:
+            return None
+        job.status = "running"
+        job.started_at = job.started_at or now
+        job.progress_message = "Searching nearby map listings"
+        job.progress_updated_at = now
+        job.location_scan_lease_until = now + timedelta(minutes=LEASE_MINUTES)
+        job.location_scan_token = uuid4().hex
+        return job.id, job.location_scan_token
+
+
+def _lock_location_scan_attempt(session, job_id: int, attempt_token: str, now):
+    statement = select(DiscoveryJob).where(DiscoveryJob.id == job_id)
+    if engine.dialect.name == "postgresql":
+        statement = statement.with_for_update()
+    job = session.scalars(statement).first()
+    if (job is None or job.stage != "company_homepage_discovery" or job.status != "running" or
+            not attempt_token or job.location_scan_token != attempt_token):
+        return None
+    lease = job.location_scan_lease_until
+    if lease is None:
+        return None
+    if lease.tzinfo is None:
+        lease = lease.replace(tzinfo=timezone.utc)
+    return job if lease > now else None
+
+
+def _update_location_search_progress(job_id: int, attempt_token: str,
+                                     message: str, *, companies_found: int | None = None,
+                                     homepages_found: int | None = None) -> bool:
+    """Persist a source-search phase while its worker still owns the location lease."""
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        job = _lock_location_scan_attempt(session, job_id, attempt_token, now)
+        if job is None:
+            return False
+        job.progress_message = message[:500]
+        job.progress_updated_at = now
+        if companies_found is not None:
+            job.companies_found = max(0, int(companies_found))
+        if homepages_found is not None:
+            job.homepages_found = max(0, int(homepages_found))
+        return True
+
+
+def _persist_location_companies(job_id: int, attempt_token: str, candidates: list[dict]) -> None:
+    """Save nearby companies and homepage evidence, then queue homepages for career checks."""
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        job = _lock_location_scan_attempt(session, job_id, attempt_token, now)
+        if job is None:
+            return
+
+        imported = {}
+        for candidate in candidates:
+            source_id = str(candidate.get("source_id") or "").strip()
+            name = str(candidate.get("name") or "").strip()
+            if not source_id or not name:
+                continue
+            company = session.scalar(select(Company).where(
+                Company.source == "openstreetmap", Company.source_id == source_id))
+            website_url = candidate.get("website_url")
+            if company is None:
+                company = Company(
+                    source="openstreetmap", source_id=source_id, name=name,
+                    website_url=website_url, domain=candidate.get("domain") if website_url else None,
+                    domain_match_method=candidate.get("domain_match_method") if website_url else None,
+                    domain_evidence_url=candidate.get("domain_evidence_url") if website_url else None,
+                    category=candidate.get("category"), source_url=candidate.get("source_url"),
+                    latitude=candidate.get("latitude"), longitude=candidate.get("longitude"),
+                    location_precision=candidate.get("location_precision"),
+                    location_label=candidate.get("location_label"), career_status="not_checked",
+                    next_discovery_at=now + timedelta(days=INTERVAL_DAYS) if website_url else None,
+                )
+                session.add(company)
+            else:
+                company.name = name
+                company.category = candidate.get("category") or company.category
+                company.source_url = candidate.get("source_url") or company.source_url
+                if candidate.get("latitude") is not None:
+                    company.latitude = candidate["latitude"]
+                if candidate.get("longitude") is not None:
+                    company.longitude = candidate["longitude"]
+                company.location_precision = candidate.get("location_precision") or company.location_precision
+                company.location_label = candidate.get("location_label") or company.location_label
+                if not company.website_url and website_url:
+                    company.website_url = website_url
+                    company.domain = candidate.get("domain")
+                    company.domain_match_method = candidate.get("domain_match_method")
+                    company.domain_evidence_url = candidate.get("domain_evidence_url")
+                    company.next_discovery_at = now + timedelta(days=INTERVAL_DAYS)
+            imported[source_id] = bool(website_url)
+
+        session.flush()
+        company_ids = company_ids_in_radius(session, job.latitude, job.longitude, job.radius_km)
+        job.candidate_total = len(company_ids)
+        job.processed_count = 0
+        job.succeeded_count = 0
+        job.failed_count = 0
+        job.jobs_found = 0
+        job.companies_found = len(imported)
+        job.homepages_found = sum(imported.values())
+        job.location_scan_lease_until = None
+        job.location_scan_token = None
+        job.error = None
+        job.stage = "career_page_discovery"
+        job.progress_message = "Company search complete; checking company websites for jobs"
+        job.progress_updated_at = now
+        if company_ids:
+            session.add_all(DiscoveryJobCompany(discovery_job_id=job.id, company_id=company_id,
+                                                status="queued") for company_id in company_ids)
+            job.status = "queued"
+        else:
+            job.status = "completed"
+            job.stage = "complete"
+            job.finished_at = now
+            job.progress_message = "Search complete"
+
+
+def _fail_location_company_search(job_id: int, attempt_token: str, error: Exception) -> None:
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        job = _lock_location_scan_attempt(session, job_id, attempt_token, now)
+        if job is None:
+            return
+        job.status = "failed"
+        job.finished_at = now
+        job.location_scan_lease_until = None
+        job.location_scan_token = None
+        job.error = str(error)[:2000]
+        job.progress_message = "Company and website search could not be completed"
+        job.progress_updated_at = now
+
+
+def schedule_due_locations(now=None) -> int:
+    """Materialize due recurring location schedules into durable discovery jobs."""
+    now = now or utcnow()
+    created = 0
+    with SessionLocal.begin() as session:
+        statement = (select(ConfiguredLocation)
+                     .where(ConfiguredLocation.enabled.is_(True),
+                            ConfiguredLocation.next_run_at.is_not(None),
+                            ConfiguredLocation.next_run_at <= now)
+                     .order_by(ConfiguredLocation.next_run_at, ConfiguredLocation.id)
+                     .limit(25))
+        if engine.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True)
+        locations = session.scalars(statement).all()
+        for location in locations:
+            active = session.scalar(select(DiscoveryJob.id).where(
+                DiscoveryJob.configured_location_id == location.id,
+                DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+            ).limit(1))
+            if active is None:
+                create_discovery_job(
+                    session, label=location.label, city=location.city, state=location.state,
+                    postcode=location.postcode, latitude=location.latitude, longitude=location.longitude,
+                    radius_km=location.radius_km, configured_location_id=location.id,
+                    kind="recurring", scheduled_for=now, now=now,
+                )
+                created += 1
+            advance_location_schedule(location, now)
+    return created
+
+
+def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
+    now = now or utcnow()
+    stale_before = now - timedelta(minutes=LEASE_MINUTES)
+    with SessionLocal.begin() as session:
+        stale_statement = (select(DiscoveryJobCompany)
+                           .join(Company, Company.id == DiscoveryJobCompany.company_id)
+                           .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
+                           .where(DiscoveryJobCompany.status == "running",
+                                  DiscoveryJob.stage == "career_page_discovery",
+                                  DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+                                  DiscoveryJobCompany.started_at < stale_before)
+                           .order_by(DiscoveryJobCompany.started_at, DiscoveryJobCompany.id)
+                           .limit(100))
+        if engine.dialect.name == "postgresql":
+            stale_statement = stale_statement.with_for_update(
+                skip_locked=True, of=(DiscoveryJobCompany, Company))
+        stale_items = session.scalars(stale_statement).all()
+        for item in stale_items:
+            item.status = "queued"
+            item.started_at = None
+            if item.discovery_run_id:
+                stale_run = session.get(DiscoveryRun, item.discovery_run_id)
+                if stale_run is not None and stale_run.status == "running":
+                    stale_run.status = "failed"
+                    stale_run.error = "Worker lease expired; campaign task was requeued."
+                    stale_run.finished_at = now
+            item.discovery_run_id = None
+            company = session.get(Company, item.company_id)
+            if company is not None and company.discovery_lease_until is not None:
+                lease = company.discovery_lease_until
+                if lease.tzinfo is None:
+                    lease = lease.replace(tzinfo=timezone.utc)
+                if lease <= now:
+                    company.discovery_lease_until = None
+
+        # The session factory disables autoflush. Make the requeued status
+        # visible to the queued-task query in this same transaction.
+        if stale_items:
+            session.flush()
+
+        statement = (select(DiscoveryJobCompany)
+                     .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
+                     .join(Company, Company.id == DiscoveryJobCompany.company_id)
+                     .where(DiscoveryJobCompany.status == "queued",
+                            DiscoveryJob.stage == "career_page_discovery",
+                            DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+                            or_(DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
+                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
+                     .order_by(DiscoveryJob.scheduled_for.asc().nullsfirst(),
+                               DiscoveryJob.id.asc(), DiscoveryJobCompany.id.asc())
+                     .limit(1))
+        if engine.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True, of=(DiscoveryJobCompany, Company))
+        item = session.scalars(statement).first()
+        if item is None:
+            return None
+        job = session.scalar(select(DiscoveryJob).where(
+            DiscoveryJob.id == item.discovery_job_id).with_for_update())
+        company = session.get(Company, item.company_id)
+        if job is None or company is None:
+            item.status = "failed"
+            item.error = "Discovery job company or company record was deleted."
+            item.finished_at = now
+            if job is not None:
+                job.processed_count += 1
+                job.failed_count += 1
+            return None
+        if (job.stage != "career_page_discovery" or
+                job.status not in {"scheduled", "queued", "running"}):
+            return None
+
+        company.discovery_lease_until = now + timedelta(minutes=LEASE_MINUTES)
+        company.discovery_attempt_count += 1
+        run = DiscoveryRun(company_id=company.id, started_at=now, status="running")
+        session.add(run)
+        session.flush()
+        item.status = "running"
+        item.started_at = now
+        item.discovery_run_id = run.id
+        job.status = "running"
+        job.started_at = job.started_at or now
+        job.progress_message = f"Checking {company.name}'s website for jobs"[:500]
+        job.progress_updated_at = now
+        return company.id, run.id, item.id, job.id
+
+
+def _complete_due_empty_jobs(now=None) -> int:
+    now = now or utcnow()
+    with SessionLocal.begin() as session:
+        jobs = session.scalars(select(DiscoveryJob).where(
+            DiscoveryJob.status == "scheduled", DiscoveryJob.candidate_total == 0,
+            DiscoveryJob.stage == "career_page_discovery",
+            DiscoveryJob.scheduled_for.is_not(None), DiscoveryJob.scheduled_for <= now,
+        )).all()
+        for job in jobs:
+            job.status = "completed"
+            job.started_at = job.started_at or now
+            job.finished_at = now
+            job.progress_message = "Search complete"
+            job.progress_updated_at = now
+        return len(jobs)
+
+
+def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
+                             error: Exception | None = None) -> None:
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        item = session.scalar(select(DiscoveryJobCompany).where(
+            DiscoveryJobCompany.id == item_id).with_for_update())
+        if item is None or item.status != "running" or item.discovery_run_id != run_id:
+            return
+        job = session.scalar(select(DiscoveryJob).where(
+            DiscoveryJob.id == item.discovery_job_id).with_for_update())
+        if job is not None and job.status == "cancelled":
+            company = session.get(Company, item.company_id)
+            run = session.get(DiscoveryRun, run_id)
+            if company is not None and run is not None:
+                _discard_cancelled_campaign_attempt(company, run, item, now)
+            else:
+                item.status = "cancelled"
+                item.finished_at = now
+            return
+        if job is None or job.status not in {"scheduled", "queued", "running"}:
+            return
+        item.finished_at = now
+        item.jobs_found = max(0, int(jobs_found))
+        item.error = str(error)[:2000] if error else None
+        item.status = "failed" if error else "completed"
+        job.processed_count += 1
+        if error:
+            job.failed_count += 1
+            job.error = str(error)[:2000]
+        else:
+            job.succeeded_count += 1
+            job.jobs_found += item.jobs_found
+        if job.processed_count >= job.candidate_total:
+            job.finished_at = now
+            if job.failed_count == job.candidate_total and job.candidate_total:
+                job.status = "failed"
+            elif job.failed_count:
+                job.status = "partial"
+            else:
+                job.status = "completed"
+            job.stage = "complete"
+            job.progress_message = "Search complete" if not job.failed_count else "Search finished with some issues"
+        else:
+            job.progress_message = f"Checked {job.processed_count} of {job.candidate_total} company websites"
+        job.progress_updated_at = now
+
+
+def process_once(*, location_jobs_only: bool = False) -> bool:
+    try:
+        schedule_due_locations()
+        _complete_due_empty_jobs()
+    except Exception:
+        LOG.exception("could not materialize scheduled location discovery jobs")
+    location_attempt = _claim_location_company_search()
+    if location_attempt is not None:
+        location_job_id, attempt_token = location_attempt
+        try:
+            with SessionLocal() as session:
+                job = session.get(DiscoveryJob, location_job_id)
+                if job is None:
+                    return True
+                scope = (job.latitude, job.longitude, job.radius_km * 1000)
+            def report_progress(message: str, **counts) -> None:
+                _update_location_search_progress(location_job_id, attempt_token, message, **counts)
+
+            candidates = fetch_location_companies(*scope, progress_callback=report_progress)
+            _persist_location_companies(location_job_id, attempt_token, candidates)
+            LOG.info("location company search id=%s companies=%s homepages=%s",
+                     location_job_id, len(candidates),
+                     sum(bool(row.get("website_url")) for row in candidates))
+        except Exception as error:
+            LOG.exception("location company and homepage search failed id=%s", location_job_id)
+            _fail_location_company_search(location_job_id, attempt_token, error)
+        return True
+    campaign = _claim_campaign_company()
+    if campaign is not None:
+        company_id, run_id, item_id, _job_id = campaign
+    else:
+        if location_jobs_only:
+            return False
+        claimed = _claim_due_company()
+        if claimed is None:
+            return False
+        company_id, run_id = claimed
+        item_id = None
+
+    with SessionLocal() as session:
+        company = session.get(Company, company_id)
+        seed = ({"name": company.name, "website": company.website_url,
+                 "category": company.category, "latitude": company.latitude,
+                 "longitude": company.longitude, "source_id": company.source_id}
+                if company is not None and company.website_url else None)
+    if seed is None:
+        error = ValueError("Company no longer has a website URL")
+        _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+        if item_id is not None:
+            _finish_campaign_company(item_id, run_id, error=error)
+        return True
+    try:
+        capture_dir = CAPTURE_DIR / f"company-{company_id}"
+        client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
+                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
+        result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
+        jobs = _persist_discovery(company_id, run_id, result, campaign_item_id=item_id)
+        if item_id is not None:
+            _finish_campaign_company(item_id, run_id, jobs_found=jobs or 0)
+        LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
+                 company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
+    except Exception as error:
+        LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
+        _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+        if item_id is not None:
+            _finish_campaign_company(item_id, run_id, error=error)
+    return True
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--once", action="store_true", help="Process at most one due company and exit")
+    parser.add_argument("--location-jobs-only", action="store_true",
+                        help="Skip the site-wide company rescan backlog")
+    args = parser.parse_args()
+    logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"),
+                        format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    if args.once:
+        process_once(location_jobs_only=args.location_jobs_only)
+        return
+    LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s location_jobs_only=%s",
+             INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, args.location_jobs_only)
+    while True:
+        if not process_once(location_jobs_only=args.location_jobs_only):
+            time.sleep(POLL_SECONDS)
+
+
+if __name__ == "__main__":
+    main()

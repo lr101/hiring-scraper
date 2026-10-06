@@ -6,16 +6,28 @@ from html.parser import HTMLParser
 from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 from .ats import identify
 
-CAREER = re.compile(r'karriere|careers?|\bjobs?\b|stellenangebote?|stellenmarkt|vacanc|open.positions|offene.stellen|arbeiten.bei|join.us|jobboerse|traumjobs?|werde.teil|we.re.hiring|join.our.team|apply.now|open.roles', re.I)
+CAREER = re.compile(r'karriere|careers?|\bjobs?\b|jobangebote?|stellenangebote?|stellenmarkt|arbeitgeber|employer|vacanc|open.positions|offene.stellen|arbeiten.bei|join.us|jobboerse|traumjobs?|werde.teil|we.re.hiring|join.our.team|work\s+at|apply.now|open.roles', re.I)
 ABOUT = re.compile(r'unternehmen|über.uns|ueber.uns|about|company|\bteam\b', re.I)
+NON_CAREER_PATH = re.compile(r'(?:^|/)(?:privacy(?:-policy)?|datenschutz|legal|terms?|agb|impressum|imprint|cookies?|life-at(?:-[^/]*)?|values?(?:-[^/]*)?|culture|news|blog|aktuelles(?:-[^/]*)?|publikationen|presse)(?:/|$)', re.I)
 SOCIAL = ('linkedin.com','xing.com','instagram.com','facebook.com','youtube.com','twitter.com','indeed.com','stepstone.de','kununu.com')
+JOB_DETAIL_PATH = re.compile(r'(?:^|/)(?:job|jobangebote?|stellenangebot|stellenanzeige|vacanc(?:y|ies)|position)/[^/]+', re.I)
+APPLICATION_PATH = re.compile(r'(?:^|/)(?:apply|application|bewerbung)(?:/|$)', re.I)
+STRONG_JOB_LINK = re.compile(
+    r'jobsuche|job[-\s]?search|job\s+listings?|vacanc(?:y|ies)|stellen(?:aus)?schreib|'
+    r'stellenangebote?|offene\s+stellen|current\s+(?:jobs?|vacanc)|open\s+positions|'
+    r'find\s+(?:your\s+)?(?:next\s+)?jobs?|jetzt\s+bewerben|apply\s+now', re.I)
 
 
 def clean_url(base, href):
+    if not isinstance(href, str):
+        return None
     href = html.unescape(href).strip()
     if not href or href.startswith('#'):
         return None
-    p = urlsplit(urljoin(base, href))
+    try:
+        p = urlsplit(urljoin(base, href))
+    except ValueError:
+        return None
     if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password:
         return None
     query = urlencode([(k,v) for k,v in parse_qsl(p.query, keep_blank_values=True)
@@ -116,7 +128,15 @@ def inspect_page(url, source):
         if any(host == d or host.endswith('.'+d) for d in SOCIAL): continue
         if re.search(r'\.(pdf|jpg|png|zip|svg)(?:\?|$)',target,re.I): continue
         provider = remember(target, 'link')
-        score = 100 if provider else 70 if CAREER.search(href+' '+label) else 20 if ABOUT.search(href+' '+label) else 0
+        target_path = urlsplit(target).path
+        path_label = target_path+' '+label
+        job_detail = bool(JOB_DETAIL_PATH.search(target_path))
+        application_route = bool(APPLICATION_PATH.search(target_path)) or bool(
+            re.search(r'(?:^|[?&])gh_jid=\d+(?:&|$)', urlsplit(target).query, re.I))
+        strong_job_link = bool(STRONG_JOB_LINK.search(path_label))
+        score = (100 if provider else 92 if job_detail or application_route else
+                 86 if strong_job_link else
+                 70 if CAREER.search(path_label) else 20 if ABOUT.search(path_label) else 0)
         if score:
             candidates.setdefault(target, {'url':target,'label':' '.join(label.split())[:140],
                                            'score':score,'evidence_kind':'link'})
@@ -132,13 +152,20 @@ def inspect_page(url, source):
         for target in re.findall(r'https?://[^\s"\'<>\\]+', unescaped):
             target = clean_url(url,target)
             if target: remember(target,'script_reference')
-    is_career_heading = bool(CAREER.search(title+' '+' '.join(doc.h1)))
-    recruitment = bool(re.search(r'bewerb|apply|hiring|offene.stellen|open.positions|vacanc|benefits|mitarbeiter|your.team',text,re.I))
-    if re.search(r'your content goes here|edit or remove this text|lorem ipsum',text,re.I) and is_career_heading:
+    path = urlsplit(url).path
+    noise_path = bool(NON_CAREER_PATH.search(path))
+    is_career_heading = bool(CAREER.search(' '.join(doc.h1))) or (not doc.h1 and bool(CAREER.search(title)))
+    is_career_route = not noise_path and bool(CAREER.search(path))
+    career_context = not noise_path and (is_career_heading or is_career_route)
+    recruitment = bool(re.search(
+        r'bewerb|apply|hiring|jobangebote?|stellenangebote?|offene.stellen|open.positions|vacanc|'
+        r'benefits|mitarbeiter|your.team|looks?\s+for\s+(?:talents?|employees|people|you)|'
+        r'working\s+students?|master\s+theses?', text, re.I))
+    if re.search(r'your content goes here|edit or remove this text|lorem ipsum',text,re.I) and career_context:
         classification = 'placeholder'
     elif postings:
         classification = 'jobposting'
-    elif is_career_heading and (recruitment or ats):
+    elif career_context and (recruitment or ats):
         classification = 'career_content'
     else:
         classification = 'ordinary_page'

@@ -141,7 +141,7 @@ def _email_website_url(domain: str) -> str:
     return f"https://[{domain}]/" if ":" in domain else f"https://{domain}/"
 
 
-def _is_public_hostname(hostname: str | None) -> bool:
+def is_public_hostname(hostname: str | None) -> bool:
     """Reject literal, local and IANA-reserved names before enrichment."""
     host = (hostname or "").casefold().rstrip(".")
     if not host:
@@ -349,11 +349,11 @@ def resolve_osm_email_websites(candidates: list[dict], verification_evidence: ob
             score = _identity_score(candidate.get("name", ""), [], website_url)
             free_provider = domain in _FREE_EMAIL_DOMAINS
             already_mapped_domain = domain in mapped_domains
-            public_domain = _is_public_hostname(_hostname(website_url))
+            public_domain = is_public_hostname(_hostname(website_url))
             verification = verifications.get((source_id, domain), {})
             verified = bool(verification.get("identity_confirmed") is True and
                             _web_url(verification.get("evidence_url")) and
-                            _is_public_hostname(_hostname(verification.get("evidence_url"))))
+                            is_public_hostname(_hostname(verification.get("evidence_url"))))
             verification_state = ("identity_confirmed" if verified else
                                   str(verification.get("access_state") or "not_checked"))
             eligible = bool(score >= 0.8 and public_domain and not free_provider and

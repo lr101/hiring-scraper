@@ -1,0 +1,121 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_DB: hiring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+      HIRING_DB_PASSWORD: ${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}
+    restart: unless-stopped
+    volumes:
+      - hiring_db:/var/lib/postgresql/data
+      - ./docker/init-app-user.sh:/docker-entrypoint-initdb.d/010-app-user.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hiring"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  migrate:
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/hiring
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  seed:
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
+      CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
+    command: ["hiring-seed"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+  api:
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
+      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  worker:
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
+      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.2 (public job-feed refresh)}"
+      FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
+      CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-1}
+    command: ["python", "-m", "hiring_scraper.app.worker"]
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  discovery-worker:
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
+      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.2 (public career discovery)}"
+      CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
+      CAREER_DISCOVERY_POLL_SECONDS: ${CAREER_DISCOVERY_POLL_SECONDS:-30}
+      CAREER_DISCOVERY_DELAY_SECONDS: ${CAREER_DISCOVERY_DELAY_SECONDS:-1}
+      CAREER_DISCOVERY_MAX_PAGES: ${CAREER_DISCOVERY_MAX_PAGES:-6}
+      CAREER_DISCOVERY_MAX_DEPTH: ${CAREER_DISCOVERY_MAX_DEPTH:-3}
+      CAREER_DISCOVERY_MAX_REQUESTS: ${CAREER_DISCOVERY_MAX_REQUESTS:-24}
+      FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
+    command: ["python", "-m", "hiring_scraper.app.discovery_worker"]
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  web:
+    image: ${HIRING_WEB_IMAGE:-hiring-scraper-web:dev}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 20s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  hiring_db:
