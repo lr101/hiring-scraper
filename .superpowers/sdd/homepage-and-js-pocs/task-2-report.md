@@ -222,3 +222,55 @@ Output: archive `/tmp/javascript-career-poc-archive.cE79sb` completed with 1,775
 eligible captures, 250 selected bodies, 9 active stable destination identities,
 2 baseline-title overlaps, and 7 title-novel rows. The replay reported
 `/workspace/hiring-scraper/data/career-poc/run-31` as its external source data.
+
+## Generic-route suffix regression
+
+Generic structured-card application and talent-pool labels remain unconfirmed
+role candidates when they have optional parenthesized suffixes. This covers
+`Talent Pool (m/f/d)`, `Join our talent community (m/w/d)`, `Speculative
+Application (m/f/d)`, and `Open Application`. Existing German
+`Initiativbewerbung` and English initiative, unsolicited, and general
+application handling remains unchanged. Specific labels such as `Talent
+Acquisition Manager`, `General Application Engineer`, and `Open Application
+Engineer` remain active vacancies.
+
+The new regression coverage was run before the parser change:
+
+```bash
+.venv/bin/python -m unittest tests/test_html_jobs.py
+```
+
+Output: `Ran 26 tests in 0.030s` / `FAILED (failures=2)`. The expected
+failures showed the speculative/open application labels and gender-suffixed
+talent-pool/community labels incorrectly returned as active jobs.
+
+After the parser change, the same focused parser suite was green:
+
+```bash
+.venv/bin/python -m unittest tests/test_html_jobs.py
+```
+
+Output: `Ran 26 tests in 0.029s` / `OK`.
+
+Post-commit verification distinguished the shared dirty worktree from the
+tracked archive. The worktree includes separately uncommitted application
+files and their tests:
+
+```bash
+.venv/bin/python -m unittest tests/test_html_jobs.py && .venv/bin/python -m unittest discover -s tests
+```
+
+Output: `Ran 26 tests in 0.032s` / `OK`; then `Ran 154 tests in 1.433s` /
+`OK`.
+
+The clean archive uses only tracked files from the commit and disables Python
+site initialization, preventing installed editable-package hooks from
+satisfying imports:
+
+```bash
+task_archive_dir=$(mktemp -d /tmp/hiring-scraper-generic-route.XXXXXX)
+git archive --format=tar HEAD | tar -xf - -C "$task_archive_dir"
+(cd "$task_archive_dir" && /workspace/hiring-scraper/.venv/bin/python -S -m unittest discover -s tests)
+```
+
+Output: `Ran 78 tests in 0.044s` / `OK`.

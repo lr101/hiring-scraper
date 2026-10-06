@@ -51,10 +51,10 @@ _INACTIVE_CARD_CLASS = re.compile(
 )
 _CLOSED_CARD_TEXT = re.compile(r"(?:position|job|stelle).{0,16}(?:closed|filled)|(?:closed|filled).{0,16}(?:position|job|stelle)", re.I)
 _INITIATIVE_APPLICATION = re.compile(
-    r"(?:\binitiativ(?:bewerbung|application)\b|^(?:initiative|unsolicited|general)\s+application(?:\s*\([^)]*\))?$)",
+    r"(?:\binitiativ(?:bewerbung|application)\b|^(?:initiative|unsolicited|general|speculative|open)\s+application(?:\s*\([^)]*\))?$)",
     re.I,
 )
-_TALENT_POOL = re.compile(r"^(?:join (?:our )?)?talent (?:pool|community|network)$", re.I)
+_TALENT_POOL = re.compile(r"^(?:join (?:our )?)?talent (?:pool|community|network)(?:\s*\([^)]*\))?$", re.I)
 _TRUE_DATA_FLAG_VALUES = frozenset({"true", "1", "yes"})
 
 

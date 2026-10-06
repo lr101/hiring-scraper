@@ -58,8 +58,9 @@ seven-role presentation metric, not posting identity deduplication.
 is an unsolicited application route and is retained only as an unconfirmed
 role candidate. The same treatment applies to narrow generic English labels
 such as `Initiative Application`, `Unsolicited Application`, `General
-Application`, and talent-pool/community routes; a specific role such as
-`Talent Acquisition Manager` remains active. The replay artifact records every
+Application`, `Speculative Application`, and `Open Application`, plus generic
+talent-pool/community routes with optional parenthesized suffixes; a specific
+role such as `Talent Acquisition Manager` remains active. The replay artifact records every
 active Wibu row, its identity key, source access metadata, trust result,
 baseline count, title overlap, and new-row count.
 

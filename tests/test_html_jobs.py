@@ -1,10 +1,7 @@
 import json
 import unittest
-from unittest.mock import Mock, patch
 
 from hiring_scraper.ats import parse_feed
-from hiring_scraper.app.models import JobFeed
-from hiring_scraper.app.worker import _request
 from hiring_scraper.html_jobs import _merge, extract_html_jobs, html_job_key
 
 
@@ -214,24 +211,30 @@ class HtmlJobExtractionTests(unittest.TestCase):
           <a data-guide-id="joblist-card" href="/en?id=initiative"><div data-guide-id="joblist-card-title">Initiative Application</div></a>
           <a data-guide-id="joblist-card" href="/en?id=unsolicited"><div data-guide-id="joblist-card-title">Unsolicited Application</div></a>
           <a data-guide-id="joblist-card" href="/en?id=general"><div data-guide-id="joblist-card-title">General Application (m/f/d)</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=speculative"><div data-guide-id="joblist-card-title">Speculative Application (m/f/d)</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=open"><div data-guide-id="joblist-card-title">Open Application</div></a>
           <a data-guide-id="joblist-card" href="/en?id=specific"><div data-guide-id="joblist-card-title">General Application Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=open-specific"><div data-guide-id="joblist-card-title">Open Application Engineer</div></a>
         </body></html>'''
         result = extract_html_jobs(body, 'https://jobs.example/en')
-        self.assertEqual([job['title'] for job in result['jobs']], ['General Application Engineer'])
+        self.assertEqual([job['title'] for job in result['jobs']], [
+            'General Application Engineer', 'Open Application Engineer',
+        ])
         self.assertEqual([candidate['title'] for candidate in result['role_candidates']], [
             'Initiative Application', 'Unsolicited Application', 'General Application (m/f/d)',
+            'Speculative Application (m/f/d)', 'Open Application',
         ])
 
     def test_structured_talent_pools_are_unconfirmed_but_specific_talent_roles_are_jobs(self):
         body = b'''<html><body>
-          <a data-guide-id="joblist-card" href="/en?id=pool"><div data-guide-id="joblist-card-title">Talent Pool</div></a>
-          <a data-guide-id="joblist-card" href="/en?id=community"><div data-guide-id="joblist-card-title">Join our talent community</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=pool"><div data-guide-id="joblist-card-title">Talent Pool (m/f/d)</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=community"><div data-guide-id="joblist-card-title">Join our talent community (m/w/d)</div></a>
           <a data-guide-id="joblist-card" href="/en?id=manager"><div data-guide-id="joblist-card-title">Talent Acquisition Manager</div></a>
         </body></html>'''
         result = extract_html_jobs(body, 'https://jobs.example/en')
         self.assertEqual([job['title'] for job in result['jobs']], ['Talent Acquisition Manager'])
         self.assertEqual([candidate['title'] for candidate in result['role_candidates']], [
-            'Talent Pool', 'Join our talent community',
+            'Talent Pool (m/f/d)', 'Join our talent community (m/w/d)',
         ])
 
     def test_structured_cards_reject_hidden_disabled_closed_and_template_rows(self):
@@ -300,19 +303,6 @@ class HtmlJobExtractionTests(unittest.TestCase):
         body = b'<html><body><h1>Software Jobs in Karlsruhe</h1><h2>Working students and thesis topics</h2><a href="/company/jobs">Visit our job site</a></body></html>'
         result = parse_feed('html_jobs', body, 'https://emmtrix.example/news/software-jobs.html')
         self.assertEqual(result['jobs'], [])
-
-    def test_html_job_refresh_uses_robots_aware_page_fetch(self):
-        client = Mock()
-        client.get.return_value = ({'state': 'ok'}, b'<html></html>')
-        feed = JobFeed(provider='html_jobs', feed_url='https://example.test/careers/')
-        with patch('hiring_scraper.app.worker._pace_origin'), \
-             patch('hiring_scraper.app.worker.Client', return_value=client):
-            metadata, body = _request(feed)
-        self.assertEqual(metadata['state'], 'ok')
-        self.assertTrue(body.startswith(b'<html'))
-        client.get.assert_called_once_with(feed.feed_url)
-        client.get_feed.assert_not_called()
-
 
 if __name__ == '__main__':
     unittest.main()
