@@ -86,3 +86,62 @@ Final verification after separating stable identity and title-overlap metrics:
 ```
 
 Output: `Ran 24 tests in 0.045s` / `OK`; then `Ran 150 tests in 1.393s` / `OK`.
+
+## Talent-pool hardening
+
+Structured-card labels that are clearly generic talent pools or communities are
+now unconfirmed role candidates. Specific vacancies such as `Talent Acquisition
+Manager` remain active structured jobs.
+
+Focused module command and output:
+
+```bash
+.venv/bin/python -m unittest tests.test_html_jobs
+```
+
+Output: `Ran 25 tests in 0.046s` / `OK`.
+
+Full suite command and output:
+
+```bash
+.venv/bin/python -m unittest discover -s tests
+```
+
+Output: `Ran 151 tests in 1.440s` / `OK`.
+
+## Review fix round 2
+
+Structured-card labels `Initiative Application`, `Unsolicited Application`,
+and `General Application` now join the existing German initiative and
+talent-pool/community paths as unconfirmed role candidates. The pattern is
+anchored, so `General Application Engineer` remains an active vacancy.
+Inactive card detection now recognizes closed/archived class-state tokens and
+true `data-template`/`data-disabled` values. Explicit false values leave a
+live card eligible.
+
+The new regression tests were first run before the parser change and failed as
+expected: the three English generic applications and four inactive cards were
+returned as active jobs. After the parser change, the focused regression
+command passed:
+
+```bash
+.venv/bin/python -m unittest tests.test_html_jobs.HtmlJobExtractionTests.test_structured_generic_application_labels_are_unconfirmed tests.test_html_jobs.HtmlJobExtractionTests.test_structured_cards_reject_inactive_class_tokens_and_true_data_flags -v
+```
+
+Output: `Ran 2 tests in 0.011s` / `OK`.
+
+Focused module command and output:
+
+```bash
+.venv/bin/python -m unittest tests.test_html_jobs -v
+```
+
+Output: `Ran 27 tests in 0.046s` / `OK`.
+
+Full suite command and output:
+
+```bash
+.venv/bin/python -m unittest discover -s tests
+```
+
+Output: `Ran 153 tests in 1.709s` / `OK`.

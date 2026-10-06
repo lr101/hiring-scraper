@@ -45,8 +45,17 @@ _DISPLAY_NONE = re.compile(r"(?:^|;)display:none(?:!important)?(?:;|$)")
 _VISIBILITY_HIDDEN = re.compile(r"(?:^|;)visibility:hidden(?:!important)?(?:;|$)")
 _DISPLAY_BLOCK = re.compile(r"(?:^|;)display:block(?:!important)?(?:;|$)")
 _INACTIVE_CARD_STATE = re.compile(r"closed|inactive|archiv|expired|filled|template|draft|disabled", re.I)
+_INACTIVE_CARD_CLASS = re.compile(
+    r"(?:^|[-_])(?:closed|inactive|archiv(?:ed)?|expired|filled|template|draft|disabled)(?:$|[-_])",
+    re.I,
+)
 _CLOSED_CARD_TEXT = re.compile(r"(?:position|job|stelle).{0,16}(?:closed|filled)|(?:closed|filled).{0,16}(?:position|job|stelle)", re.I)
-_INITIATIVE_APPLICATION = re.compile(r"\binitiativ(?:bewerbung|application)\b", re.I)
+_INITIATIVE_APPLICATION = re.compile(
+    r"(?:\binitiativ(?:bewerbung|application)\b|^(?:initiative|unsolicited|general)\s+application(?:\s*\([^)]*\))?$)",
+    re.I,
+)
+_TALENT_POOL = re.compile(r"^(?:join (?:our )?)?talent (?:pool|community|network)$", re.I)
+_TRUE_DATA_FLAG_VALUES = frozenset({"true", "1", "yes"})
 
 
 def _element_hidden(tag: str, attrs: dict[str, str]) -> bool:
@@ -427,6 +436,17 @@ def _job_link_title(anchor: _Element) -> str:
     return _clean_text(anchor.text()).strip()
 
 
+def _true_data_flag(attrs: dict[str, str], name: str) -> bool:
+    return attrs.get(name, "").strip().casefold() in _TRUE_DATA_FLAG_VALUES
+
+
+def _inactive_card_class(classes: set[str]) -> bool:
+    return any(
+        _INACTIVE_CARD_CLASS.search(name) and not name.startswith(("not-", "not_"))
+        for name in classes
+    )
+
+
 def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[dict], list[dict]]:
     """Read explicit, server-rendered vacancy cards whose detail URLs use a query string."""
     jobs, candidates = [], []
@@ -436,7 +456,8 @@ def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[di
         state = " ".join(card.attrs.get(key, "") for key in ("data-status", "data-state", "status"))
         classes = set(card.attrs.get("class", "").casefold().split())
         if (card.hidden or card.attrs.get("aria-disabled", "").casefold() == "true" or
-                "disabled" in card.attrs or "disabled" in classes or "template" in classes or
+                "disabled" in card.attrs or _inactive_card_class(classes) or
+                _true_data_flag(card.attrs, "data-disabled") or _true_data_flag(card.attrs, "data-template") or
                 _INACTIVE_CARD_STATE.search(state)):
             continue
         context = card.text()
@@ -457,7 +478,7 @@ def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[di
         tags_node = next((child for child in card.walk()
                           if child.attrs.get("data-guide-id", "").casefold() == "joblist-card-tags"), None)
         employment_type = _employment(tags_node.text()) if tags_node else None
-        if _INITIATIVE_APPLICATION.search(title):
+        if _INITIATIVE_APPLICATION.search(title) or _TALENT_POOL.fullmatch(title):
             candidates.append({"title": title, "url": target,
                                "method": "structured_job_card", "confidence": "unconfirmed_role"})
             continue

@@ -49,9 +49,12 @@ If a downstream display intentionally title-deduplicates them, that is a
 separate seven-role presentation metric, not posting identity deduplication.
 `Initiativbewerbung (m/w/d)`
 is an unsolicited application route and is retained only as an unconfirmed
-role candidate. The replay artifact records every active Wibu row, its identity
-key, source access metadata, trust result, baseline count, title overlap, and
-new-row count.
+role candidate. The same treatment applies to narrow generic English labels
+such as `Initiative Application`, `Unsolicited Application`, `General
+Application`, and talent-pool/community routes; a specific role such as
+`Talent Acquisition Manager` remains active. The replay artifact records every
+active Wibu row, its identity key, source access metadata, trust result,
+baseline count, title overlap, and new-row count.
 
 ## Exclusions and competing approaches
 
@@ -71,4 +74,7 @@ The parser is intentionally narrow. It costs one additional walk over the
 already parsed HTML tree and adds no network, JavaScript engine, browser, or
 third-party dependency. Generalization is limited to sites that expose the
 observed `joblist-card`, `joblist-card-title`, and optional location/tag
-contracts; other framework markers remain evidence only.
+contracts; other framework markers remain evidence only. Cards are rejected
+when their class names identify them as closed or archived, or when explicit
+`data-disabled`/`data-template` flags are true. False flag values do not hide a
+live card.

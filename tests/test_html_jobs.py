@@ -209,6 +209,31 @@ class HtmlJobExtractionTests(unittest.TestCase):
             'method': 'structured_job_card', 'confidence': 'unconfirmed_role',
         }])
 
+    def test_structured_generic_application_labels_are_unconfirmed(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="/en?id=initiative"><div data-guide-id="joblist-card-title">Initiative Application</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=unsolicited"><div data-guide-id="joblist-card-title">Unsolicited Application</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=general"><div data-guide-id="joblist-card-title">General Application (m/f/d)</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=specific"><div data-guide-id="joblist-card-title">General Application Engineer</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual([job['title'] for job in result['jobs']], ['General Application Engineer'])
+        self.assertEqual([candidate['title'] for candidate in result['role_candidates']], [
+            'Initiative Application', 'Unsolicited Application', 'General Application (m/f/d)',
+        ])
+
+    def test_structured_talent_pools_are_unconfirmed_but_specific_talent_roles_are_jobs(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="/en?id=pool"><div data-guide-id="joblist-card-title">Talent Pool</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=community"><div data-guide-id="joblist-card-title">Join our talent community</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=manager"><div data-guide-id="joblist-card-title">Talent Acquisition Manager</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual([job['title'] for job in result['jobs']], ['Talent Acquisition Manager'])
+        self.assertEqual([candidate['title'] for candidate in result['role_candidates']], [
+            'Talent Pool', 'Join our talent community',
+        ])
+
     def test_structured_cards_reject_hidden_disabled_closed_and_template_rows(self):
         body = b'''<html><body>
           <a data-guide-id="joblist-card" href="/en?id=hidden" hidden><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
@@ -219,6 +244,18 @@ class HtmlJobExtractionTests(unittest.TestCase):
         </body></html>'''
         result = extract_html_jobs(body, 'https://jobs.example/en')
         self.assertEqual(result['jobs'], [])
+        self.assertEqual(result['role_candidates'], [])
+
+    def test_structured_cards_reject_inactive_class_tokens_and_true_data_flags(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="/en?id=closed" class="job-card--closed"><div data-guide-id="joblist-card-title">Closed Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=archived" class="state-archived"><div data-guide-id="joblist-card-title">Archived Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=template" data-template="true"><div data-guide-id="joblist-card-title">Template Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=disabled" data-disabled="TRUE"><div data-guide-id="joblist-card-title">Disabled Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=active" class="not-closed" data-template="false" data-disabled="0"><div data-guide-id="joblist-card-title">Live Engineer</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual([job['title'] for job in result['jobs']], ['Live Engineer'])
         self.assertEqual(result['role_candidates'], [])
 
     def test_structured_cards_require_a_same_origin_destination(self):
