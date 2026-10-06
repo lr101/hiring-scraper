@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.sozialstation-leonberg.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:37.100996+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"344-56484ac41b000\"",
+  "last_modified": "Tue, 06 Feb 2018 05:44:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 836,
+  "state": "ok",
+  "elapsed_seconds": 0.794,
+  "sha256": "d974f42f070bb96d4601c706c54f883b73a2e8334117a270682608e58c6f8cc4",
+  "capture": "338d4706a892fab0343d",
+  "merged_from_run": "run-28"
+}

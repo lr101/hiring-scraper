@@ -1,0 +1,17 @@
+{
+  "url": "https://www.flexjob-personal.de/",
+  "checked_at": "2026-10-05T22:56:18.602999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82660,
+  "state": "ok",
+  "elapsed_seconds": 1.319,
+  "sha256": "a96388b5b38471442aca9ba75dc2bf1c2c802d5aa361a02d32518e57d942a56e",
+  "capture": "63b4ccc2c2e743b169f4",
+  "merged_from_run": "run-27"
+}

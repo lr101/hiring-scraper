@@ -1,0 +1,16 @@
+{
+  "url": "https://church.tools/de/app-entwickler-in/",
+  "checked_at": "2026-10-05T22:22:37.660921+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245234,
+  "state": "ok",
+  "elapsed_seconds": 2.523,
+  "sha256": "c9e75b909a15b3d93d69d9eb1dbba4b0b33af52dd47b7ccf9f298a24888e78cf",
+  "capture": "253766c6b20196259d3c"
+}

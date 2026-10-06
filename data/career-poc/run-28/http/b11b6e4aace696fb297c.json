@@ -1,0 +1,16 @@
+{
+  "url": "https://rpk.baden-wuerttemberg.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:41.472238+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87328,
+  "state": "http_error",
+  "elapsed_seconds": 1.164,
+  "sha256": "0f33c2bf1020769f3988e4a66b8e1ca7b2bd15488fe01fd3d0443e8171087f83",
+  "capture": "b11b6e4aace696fb297c"
+}

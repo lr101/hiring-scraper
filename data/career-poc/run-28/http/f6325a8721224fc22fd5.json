@@ -1,0 +1,16 @@
+{
+  "url": "https://saxsoft.de/",
+  "checked_at": "2026-10-05T23:25:38.437438+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:14:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 188915,
+  "state": "ok",
+  "elapsed_seconds": 0.789,
+  "sha256": "c288c25a63ed7d02cea3d22053e4c6ad4ee211fd045a2af79c181de2c246c960",
+  "capture": "f6325a8721224fc22fd5"
+}

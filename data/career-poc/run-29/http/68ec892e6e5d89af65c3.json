@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steuerring.de/sitemap.xml?sitemap=pages&cHash=e838655eab7079f54105700e4c341922",
+  "checked_at": "2026-10-05T22:48:14.128292+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 9127,
+  "state": "ok",
+  "elapsed_seconds": 1.635,
+  "sha256": "04ee7d76cf70a5cfe88a43307021ce75a62c1747c25eb7435650891904dd14f4",
+  "capture": "68ec892e6e5d89af65c3",
+  "merged_from_run": "run-27"
+}

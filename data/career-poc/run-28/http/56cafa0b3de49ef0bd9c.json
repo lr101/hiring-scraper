@@ -1,0 +1,16 @@
+{
+  "url": "https://expedition.4wheel.travel/robots.txt",
+  "checked_at": "2026-10-05T23:44:11.595911+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"68b16772-1561\"",
+  "last_modified": "Fri, 29 Aug 2025 08:40:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 5473,
+  "state": "ok",
+  "elapsed_seconds": 0.876,
+  "sha256": "e8c9f60d124cdcae1dd581583a8011af1f95d10ba14a35e40a10246bdc997917",
+  "capture": "56cafa0b3de49ef0bd9c"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sprachmuehle.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:55.104533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"38-57f723643f00c\"",
+  "last_modified": "Mon, 14 Jan 2019 22:03:16 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 56,
+  "state": "ok",
+  "elapsed_seconds": 1.011,
+  "sha256": "80aa45233a3b75c756f9d2161a8b3b8e5b1003b1c1b1e77aee1c54473c26c9f2",
+  "capture": "ffe1dea8f080c117308a",
+  "merged_from_run": "run-28"
+}

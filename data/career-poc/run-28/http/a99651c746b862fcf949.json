@@ -1,0 +1,16 @@
+{
+  "url": "https://ochs-gruppe.com/",
+  "checked_at": "2026-10-05T23:30:51.728032+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 332645,
+  "state": "ok",
+  "elapsed_seconds": 0.916,
+  "sha256": "e12cb41dfcf48eb8b27c7f6b35c8285d9d6ce5e641bc47487440d173df9b193e",
+  "capture": "a99651c746b862fcf949"
+}

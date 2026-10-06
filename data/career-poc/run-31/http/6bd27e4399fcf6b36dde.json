@@ -1,0 +1,17 @@
+{
+  "url": "https://pflugers.com/karriere/assistenz-wirtschaftspruefung/",
+  "checked_at": "2026-10-05T23:01:56.858600+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"650a46118a15ad76232d02ea4afe58bb\"",
+  "last_modified": "Mon, 05 Oct 2026 23:01:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 105857,
+  "state": "ok",
+  "elapsed_seconds": 1.75,
+  "sha256": "5dc2a2a1465970d1bc90ffbb88523748fbec32807c90d3e2650848e3468532c9",
+  "capture": "6bd27e4399fcf6b36dde",
+  "merged_from_run": "run-27"
+}

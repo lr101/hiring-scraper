@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enviolet.com/jobs/schreiner-/-tischler-m/w/d.html",
+  "checked_at": "2026-10-05T23:19:03.392836+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 148442,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "ed62175a04cf7b6eb2749dac54a06b4b9840a44c61b354b097b5850f255330a0",
+  "capture": "2011a6d427989913ae53",
+  "merged_from_run": "run-28"
+}

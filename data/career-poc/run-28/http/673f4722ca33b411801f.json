@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dgri.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:20:34.979367+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20332,
+  "state": "ok",
+  "elapsed_seconds": 0.707,
+  "sha256": "7893fcea95ba57447a98e359b98ea2ecc44e6b12d733c33480401a07462e3f3e",
+  "capture": "673f4722ca33b411801f"
+}

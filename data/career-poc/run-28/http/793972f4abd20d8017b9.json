@@ -1,0 +1,16 @@
+{
+  "url": "https://www.eurobaustoff.com/de/karriere/unsere-stellenangebote/",
+  "checked_at": "2026-10-05T23:27:48.988946+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 97373,
+  "state": "ok",
+  "elapsed_seconds": 0.829,
+  "sha256": "9a56da3b7bdd77783fcd887edaf587081ec56a9cf236dbadd6f45b632040aae0",
+  "capture": "793972f4abd20d8017b9"
+}

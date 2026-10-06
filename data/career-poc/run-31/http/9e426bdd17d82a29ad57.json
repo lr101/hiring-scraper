@@ -1,0 +1,17 @@
+{
+  "url": "https://perez-haustechnik.de/jobs/",
+  "checked_at": "2026-10-05T23:37:18.809989+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169469,
+  "state": "ok",
+  "elapsed_seconds": 0.806,
+  "sha256": "4b9a59af086e45b40a2f0b18cdae5e66772242b6f0cb9502a42a802cfef3ceb8",
+  "capture": "9e426bdd17d82a29ad57",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.woomedia.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:24:43.413000+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"1af8-636373b9537c0\"",
+  "last_modified": "Wed, 28 May 2025 19:31:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 6904,
+  "state": "ok",
+  "elapsed_seconds": 0.526,
+  "sha256": "49a6c7ea3ca762573e582d49bff269409f7fc0e76ad9ba3aba03883cf659c922",
+  "capture": "35958fe1c2901d382f22"
+}

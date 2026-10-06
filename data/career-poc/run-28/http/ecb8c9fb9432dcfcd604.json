@@ -1,0 +1,16 @@
+{
+  "url": "https://icf.church/de//sitemaps.xml",
+  "checked_at": "2026-10-05T23:20:56.060593+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 12:49:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 551,
+  "state": "ok",
+  "elapsed_seconds": 0.686,
+  "sha256": "c1f263a812e9c973634dd791296afc44409510d18256cfb91977519729888bb0",
+  "capture": "ecb8c9fb9432dcfcd604"
+}

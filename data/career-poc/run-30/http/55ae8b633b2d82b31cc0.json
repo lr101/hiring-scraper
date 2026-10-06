@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ascent.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:03.804084+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96,
+  "state": "ok",
+  "elapsed_seconds": 0.769,
+  "sha256": "2c4f3ad4fa35279b1edbff421b241828408eaa6c51917b31dbe73290cd58fcf7",
+  "capture": "55ae8b633b2d82b31cc0",
+  "merged_from_run": "run-28"
+}

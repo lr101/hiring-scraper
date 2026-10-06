@@ -1,0 +1,16 @@
+{
+  "url": "https://topjobs.ga-tec.de/",
+  "checked_at": "2026-10-05T23:29:49.407504+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118118,
+  "state": "ok",
+  "elapsed_seconds": 1.185,
+  "sha256": "d15db16de88abe20d72ca315fce9fa2545975445024789f369323725b6024439",
+  "capture": "7e795043788f9c9a7e3e"
+}

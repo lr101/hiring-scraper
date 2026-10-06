@@ -1,0 +1,17 @@
+{
+  "url": "https://anexia.jobbase.io/robots.txt",
+  "checked_at": "2026-10-05T23:21:32.558658+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 307,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://anexia.onlyfy.jobs/robots.txt",
+  "bytes": 164,
+  "state": "http_error",
+  "elapsed_seconds": 0.696,
+  "sha256": "8f03491247cbfa8a2e60e0f7ec62d63b5070659f60383a1c81abeb2b20221be3",
+  "capture": "3919a558be86125ae677",
+  "merged_from_run": "run-28"
+}

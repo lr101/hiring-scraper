@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ksc.de/",
+  "checked_at": "2026-10-05T22:57:16.033117+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 158825,
+  "state": "ok",
+  "elapsed_seconds": 1.313,
+  "sha256": "09d5f64dfc7fcecf8dbb156b6fb4cb8ee114cb9dd518785c494c633feda4e254",
+  "capture": "b3928970509031b3dc66"
+}

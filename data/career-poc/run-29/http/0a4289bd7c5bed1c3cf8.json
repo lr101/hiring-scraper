@@ -1,0 +1,17 @@
+{
+  "url": "https://uhrenbenesch.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:41.902286+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"329-5a831f307f611\"",
+  "last_modified": "Tue, 16 Jun 2020 11:36:07 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 809,
+  "state": "http_error",
+  "elapsed_seconds": 0.151,
+  "sha256": "2de5427c3e22c4fbfb8031ec276be13a395af240f7df3d590fdb76f6d280a85f",
+  "capture": "0a4289bd7c5bed1c3cf8",
+  "merged_from_run": "run-28"
+}

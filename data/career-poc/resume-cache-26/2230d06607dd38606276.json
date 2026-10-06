@@ -1,0 +1,16 @@
+{
+  "url": "https://ks-personal.jobs/jobs-in-karlsruhe/?search_keywords=Karlsruhe",
+  "checked_at": "2026-10-05T22:20:06.206715+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62923,
+  "state": "ok",
+  "elapsed_seconds": 1.701,
+  "sha256": "a834f569c24b70941a9a90e7446129e75f0cb3691b9cf348b6307a168895b58e",
+  "capture": "2230d06607dd38606276"
+}

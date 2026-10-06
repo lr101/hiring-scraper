@@ -1,0 +1,16 @@
+{
+  "url": "http://www.dvgw-ebi.de/robots.txt",
+  "checked_at": "2026-10-05T22:47:46.450449+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.dvgw-ebi.de/robots.txt",
+  "bytes": 178,
+  "state": "http_error",
+  "elapsed_seconds": 0.031,
+  "sha256": "7cb59ce037656d9a4e8ee9194bc31dfc540cbc8fd5b19c64439a89631cde3715",
+  "capture": "8180293aaf7789f409e7"
+}

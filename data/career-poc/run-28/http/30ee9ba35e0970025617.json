@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schloesser-und-gaerten.de/sitemap.xml?page=1&sitemap=pages&cHash=a23a818a8a9386765c5e66ca30ffa434",
+  "checked_at": "2026-10-05T23:26:04.965832+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 330847,
+  "state": "ok",
+  "elapsed_seconds": 10.012,
+  "sha256": "01e5f75864a504226065ad84015f36e1d92a77a788ceaeb55e571bc117fee25e",
+  "capture": "30ee9ba35e0970025617"
+}

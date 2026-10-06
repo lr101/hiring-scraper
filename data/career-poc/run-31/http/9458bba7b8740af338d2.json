@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kuhn-edeka.de/karriere/ausbildung/",
+  "checked_at": "2026-10-05T23:37:16.327321+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 799507,
+  "state": "ok",
+  "elapsed_seconds": 2.543,
+  "sha256": "ce556d1ca15a221df40cb40c1aa3d4c445fd1f0f7c6b9ff7c7137bf727d13f03",
+  "capture": "9458bba7b8740af338d2",
+  "merged_from_run": "run-28"
+}

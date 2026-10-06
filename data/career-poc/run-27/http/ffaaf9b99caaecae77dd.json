@@ -1,0 +1,16 @@
+{
+  "url": "https://www.podologie-kaviar.de/careers",
+  "checked_at": "2026-10-05T23:08:38.563735+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 601,
+  "state": "http_error",
+  "elapsed_seconds": 1.108,
+  "sha256": "e3a1783fe697f2b13807e497d9f91dcf017c479031d9b49bbc47a5ae546974a6",
+  "capture": "ffaaf9b99caaecae77dd"
+}

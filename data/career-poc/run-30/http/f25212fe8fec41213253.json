@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pt-massivbau.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:40:40.934979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1000,
+  "state": "ok",
+  "elapsed_seconds": 0.999,
+  "sha256": "744a14ffee24460f34a454f68924df87d2e4cb4d6e6f63b5f2a667d00dfd8965",
+  "capture": "f25212fe8fec41213253",
+  "merged_from_run": "run-28"
+}

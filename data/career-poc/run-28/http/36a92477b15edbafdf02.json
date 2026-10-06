@@ -1,0 +1,16 @@
+{
+  "url": "https://landschaftspflege-mohrhardt.de/",
+  "checked_at": "2026-10-05T23:37:02.289775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"308d-4b7e29ea5cac0\"",
+  "last_modified": "Wed, 01 Feb 2012 08:10:59 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 12429,
+  "state": "ok",
+  "elapsed_seconds": 0.936,
+  "sha256": "4a7b31b098204a2ce883429947fab1ca4984f6ffa76e7f15e5637d7717831d37",
+  "capture": "36a92477b15edbafdf02"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.baeder-singer.de/xml-menu-sitemap.xml",
+  "checked_at": "2026-10-05T23:39:36.485105+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"baaa387a7bddc1:0\"",
+  "last_modified": "Thu, 26 Mar 2026 10:01:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22069,
+  "state": "ok",
+  "elapsed_seconds": 1.042,
+  "sha256": "6f90adb87dd8e1b3ed19b7efd2e4e5ac1371a4264b4acf8fe6f5d88a7def55b8",
+  "capture": "67739f975e8d6785cc3e"
+}

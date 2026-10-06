@@ -1,0 +1,16 @@
+{
+  "url": "https://www.badischer-sportbund.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:49.868782+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Thu, 01 Oct 2026 08:32:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 346,
+  "state": "ok",
+  "elapsed_seconds": 0.39,
+  "sha256": "73ccfc3951d22416f86c8a51cc3afbff656a341d834bd9f67a96b1834dfe6bc9",
+  "capture": "a76b9f5cf81a809c8c6c"
+}

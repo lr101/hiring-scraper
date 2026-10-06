@@ -1,0 +1,16 @@
+{
+  "url": "https://riedle-heiztech.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:00.883266+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 176,
+  "state": "ok",
+  "elapsed_seconds": 0.262,
+  "sha256": "5857c084740d91daeebfc7affc2921eb32b87908d6101ea9d0cb18e1b9dbd9b9",
+  "capture": "d7ea5a6b14909b179bbc"
+}

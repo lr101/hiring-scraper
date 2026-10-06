@@ -1,0 +1,17 @@
+{
+  "url": "https://bremerbau.de/de/karriere",
+  "checked_at": "2026-10-05T23:17:47.916734+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 156610,
+  "state": "ok",
+  "elapsed_seconds": 0.634,
+  "sha256": "1a45e25f50ee9808d45347320d90a1f3754aac321575d3b65c95308024186d24",
+  "capture": "a1f069ca2cd2af3474b2",
+  "merged_from_run": "run-28"
+}

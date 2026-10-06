@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sht-rudolph.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:53.725037+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 176,
+  "state": "ok",
+  "elapsed_seconds": 2.697,
+  "sha256": "0d3c9ac85ddea3625943c8e8a974ce1322f72213e281bd06af244e7ea30371c8",
+  "capture": "d40668c4a1559d506b4a"
+}

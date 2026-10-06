@@ -1,0 +1,16 @@
+{
+  "url": "https://www.waldpaedagogik-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:40.253591+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"-608444113\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 175,
+  "state": "ok",
+  "elapsed_seconds": 0.264,
+  "sha256": "14e912aab33f3cd760394d4a3f733d4af638f47b3b47876da14c8a63f1c4668c",
+  "capture": "69ca27a9ac7008b15cdc"
+}

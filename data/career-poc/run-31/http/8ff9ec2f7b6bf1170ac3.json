@@ -1,0 +1,17 @@
+{
+  "url": "https://baeckerei-visel.de/jobs",
+  "checked_at": "2026-10-05T23:40:51.073190+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 131632,
+  "state": "http_error",
+  "elapsed_seconds": 1.433,
+  "sha256": "d245a23a3277d476e219dc2f4d92a08a394e1433941f51134ea2a8f9aca4c1cc",
+  "capture": "8ff9ec2f7b6bf1170ac3",
+  "merged_from_run": "run-28"
+}

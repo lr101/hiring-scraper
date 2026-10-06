@@ -1,0 +1,16 @@
+{
+  "url": "https://www.msg.group/robots.txt",
+  "checked_at": "2026-10-05T23:21:01.943935+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Tue, 29 Sep 2026 14:32:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 153,
+  "state": "ok",
+  "elapsed_seconds": 0.122,
+  "sha256": "37a2b66d1f077b8357787986542a3fe4d105dcd8c79bd144f61b23863ba8b5af",
+  "capture": "70bf2500bf04e28e65f4"
+}

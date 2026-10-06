@@ -1,0 +1,16 @@
+{
+  "url": "https://www.verbraucherzentrale-bawue.de/warnungen/finanztransfers-fuer-dritte-warnung-vor-jobangeboten-106048",
+  "checked_at": "2026-10-05T22:10:40.778481+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1791238241\"",
+  "last_modified": "Mon, 05 Oct 2026 22:10:41 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 493331,
+  "state": "ok",
+  "elapsed_seconds": 2.56,
+  "sha256": "1a8b5797b5ae58d2a01afdefe1a027201faa97f78d78bedafd502b48fc0da6fe",
+  "capture": "d8720e43b71a92f1838f"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://db.jobs/de-de",
+  "checked_at": "2026-10-05T22:56:36.459306+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 201612,
+  "state": "ok",
+  "elapsed_seconds": 1.275,
+  "sha256": "95fac7c1cf8639d4ea8ce5548c7722376ee5699b316750a8e55355f37e36dab9",
+  "capture": "e5124037883c0482e596"
+}

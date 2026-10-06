@@ -1,0 +1,17 @@
+{
+  "url": "https://k3-karlsruhe.de/jobboerse/",
+  "checked_at": "2026-10-05T23:16:25.515438+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245248,
+  "state": "ok",
+  "elapsed_seconds": 0.555,
+  "sha256": "e6d8881b6f85897badbdb193b18d6cfb5756b7b5c5f8730fb563183d8a27ba6a",
+  "capture": "413dd5c9cf4d77ca7ee4",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.awo-baden.de/jobs-und-karriere/arbeitsgeber-awo",
+  "checked_at": "2026-10-05T23:33:57.471292+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64052,
+  "state": "ok",
+  "elapsed_seconds": 0.917,
+  "sha256": "cd71df3eb30846e7b024e025b4f857ce20dcf58dbc8816b2e73134e1a401603a",
+  "capture": "bbee261243fb45e2af40"
+}

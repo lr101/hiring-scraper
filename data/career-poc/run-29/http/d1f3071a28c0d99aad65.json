@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pensum-gmbh.de/stellenangebote/",
+  "checked_at": "2026-10-05T22:31:50.910153+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 207174,
+  "state": "ok",
+  "elapsed_seconds": 2.14,
+  "sha256": "fffa2afc4b63ed70ec6b5078d9db251e6ff42313cf68a660061ec9d69a8123ac",
+  "capture": "d1f3071a28c0d99aad65",
+  "merged_from_run": "run-26"
+}

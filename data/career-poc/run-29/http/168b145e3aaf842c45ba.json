@@ -1,0 +1,17 @@
+{
+  "url": "https://www.awo-baden.de/jobs-und-karriere/ausbildung",
+  "checked_at": "2026-10-05T23:33:56.419490+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86505,
+  "state": "ok",
+  "elapsed_seconds": 1.004,
+  "sha256": "2c8f379df0b96895bc434b24b3f8ad718bd576e67ad3953312e36c984b3f90dd",
+  "capture": "168b145e3aaf842c45ba",
+  "merged_from_run": "run-28"
+}

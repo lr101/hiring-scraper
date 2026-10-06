@@ -1,0 +1,17 @@
+{
+  "url": "https://virtual7jobs.recruitee.com/o/initiativbewerbung",
+  "checked_at": "2026-10-05T23:30:51.515407+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 569362,
+  "state": "ok",
+  "elapsed_seconds": 1.275,
+  "sha256": "27ca186361466587d177a6bb0e7bb6d5f2132e1ef4bd0ecfd148dacf47450027",
+  "capture": "a9d0beebf80407c87ebf",
+  "merged_from_run": "run-28"
+}

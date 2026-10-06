@@ -1,0 +1,16 @@
+{
+  "url": "https://www.esg-kanzlei.de/karriere",
+  "checked_at": "2026-10-05T23:20:16.654832+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23329,
+  "state": "ok",
+  "elapsed_seconds": 0.971,
+  "sha256": "69dcb8b5bb8af8b899adc09adb5610cf47486fd48cbae8426f52299665dab9f5",
+  "capture": "fd829b00b2247b369b1c"
+}

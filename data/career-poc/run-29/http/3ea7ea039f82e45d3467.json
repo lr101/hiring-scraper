@@ -1,0 +1,17 @@
+{
+  "url": "https://www.e-kern.com/en/kern-worlds/career/",
+  "checked_at": "2026-10-05T22:09:37.285492+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:00:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 365783,
+  "state": "ok",
+  "elapsed_seconds": 1.05,
+  "sha256": "352d711cff54ea0427d81b1f93db6ff815e0a759370769053a60065ea6608bf4",
+  "capture": "3ea7ea039f82e45d3467",
+  "merged_from_run": "run-25"
+}

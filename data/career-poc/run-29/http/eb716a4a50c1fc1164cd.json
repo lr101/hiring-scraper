@@ -1,0 +1,17 @@
+{
+  "url": "https://interflex.com/en/career/jobs/",
+  "checked_at": "2026-10-05T23:21:01.652434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 373181,
+  "state": "ok",
+  "elapsed_seconds": 4.711,
+  "sha256": "160bf69d48bb87a0bf5d6cb78b7e10ff2fc1da788243c41ca94ba9e2b56cf52f",
+  "capture": "eb716a4a50c1fc1164cd",
+  "merged_from_run": "run-28"
+}

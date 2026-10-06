@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wohlfarth-pflasterbau.de/careers",
+  "checked_at": "2026-10-05T23:19:17.688497+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 164490,
+  "state": "http_error",
+  "elapsed_seconds": 2.625,
+  "sha256": "88aa130727a99e4f58bfa1f104d221f3c67f11047c8f9f794b0dfdda91d94d5f",
+  "capture": "4eadbecbba3660938d39"
+}

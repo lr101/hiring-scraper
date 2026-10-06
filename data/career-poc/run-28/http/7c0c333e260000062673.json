@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stukkateurhoffmann.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:54.175161+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 24067,
+  "state": "ok",
+  "elapsed_seconds": 1.138,
+  "sha256": "05b55e496064764a55c90ef8b1314df453608618329dddeef840178ed321940c",
+  "capture": "7c0c333e260000062673"
+}

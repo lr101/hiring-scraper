@@ -1,0 +1,17 @@
+{
+  "url": "https://ritterweiss.de/karriere/",
+  "checked_at": "2026-10-05T23:40:56.333157+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 131657,
+  "state": "ok",
+  "elapsed_seconds": 1.32,
+  "sha256": "f9f03a7a3ef3ea365d8498f28165dce2cf1cf9b061e7ba3b65c1ccade9003feb",
+  "capture": "dc546ba1ee95da894cd9",
+  "merged_from_run": "run-28"
+}

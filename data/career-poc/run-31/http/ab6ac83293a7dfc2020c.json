@@ -1,0 +1,17 @@
+{
+  "url": "https://www.joimax.com/en/careers/",
+  "checked_at": "2026-10-05T23:30:46.557887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"19ed3-65d1f49c61ac2;65d0c65646110",
+  "last_modified": "Mon, 05 Oct 2026 22:20:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 106195,
+  "state": "ok",
+  "elapsed_seconds": 1.008,
+  "sha256": "9c9c3d10538745884f19bd6392deccf6cc611bcc1e196fa2c1618f8d3e0d68e7",
+  "capture": "ab6ac83293a7dfc2020c",
+  "merged_from_run": "run-28"
+}

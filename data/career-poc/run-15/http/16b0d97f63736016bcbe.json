@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+  "checked_at": "2026-10-05T20:46:49.784722+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52746,
+  "state": "ok",
+  "elapsed_seconds": 1.775,
+  "sha256": "a28d7a92b71980d8b3c16959872216299bc148a2cee8878c45b13aac40673c8f",
+  "capture": "16b0d97f63736016bcbe"
+}

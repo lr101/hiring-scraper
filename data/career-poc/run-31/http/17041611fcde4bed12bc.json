@@ -1,0 +1,17 @@
+{
+  "url": "https://hoellstern.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:22.601722+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 117,
+  "state": "ok",
+  "elapsed_seconds": 1.197,
+  "sha256": "ac5143d30e37b0ab088dde786ed7bbc768a008121f81d466da413f1c36370038",
+  "capture": "17041611fcde4bed12bc",
+  "merged_from_run": "run-28"
+}

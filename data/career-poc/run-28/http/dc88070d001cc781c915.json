@@ -1,0 +1,16 @@
+{
+  "url": "https://hydrowatt.de/de",
+  "checked_at": "2026-10-05T23:34:28.321249+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://hydrowatt.de/de/",
+  "bytes": 272,
+  "state": "http_error",
+  "elapsed_seconds": 0.791,
+  "sha256": "08fab7258b85b62127ee4fe72832f9703eb37c7c53df0fba78ceb63001d61415",
+  "capture": "dc88070d001cc781c915"
+}

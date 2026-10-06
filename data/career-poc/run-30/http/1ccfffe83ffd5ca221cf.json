@@ -1,0 +1,17 @@
+{
+  "url": "https://www.freunde-waldorf.de/die-freunde/stellenangebote/",
+  "checked_at": "2026-10-05T23:33:51.201052+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93441,
+  "state": "ok",
+  "elapsed_seconds": 1.581,
+  "sha256": "0195add2247e139f4f761ae972aec231d515f0c22cd88e61bd64b536ba12c390",
+  "capture": "1ccfffe83ffd5ca221cf",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,14 @@
+{
+  "url": "https://iscl.de/sitemap.xml",
+  "checked_at": "2026-10-05T09:07:02.803355+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "location": "https://iscl.de/sitemap_index.xml",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.707,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "cea45b7a4c7ec989d328",
+  "reused_from": "data/career-poc/run-09/http/cea45b7a4c7ec989d328.json"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.neuroimmun.com/robots.txt",
+  "checked_at": "2026-10-05T23:19:45.888579+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1495,
+  "state": "ok",
+  "elapsed_seconds": 0.904,
+  "sha256": "e8e2fec98a15f4eddf4fbee1f291677e4fa2fadd18e21671283de581455f5eb0",
+  "capture": "d5d2dfc4af32f5b7e749"
+}

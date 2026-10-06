@@ -1,0 +1,16 @@
+{
+  "url": "https://www.leitz.org/de/",
+  "checked_at": "2026-10-05T23:34:33.339327+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 135606,
+  "state": "ok",
+  "elapsed_seconds": 0.961,
+  "sha256": "c5d708cf3f40512330491b98cdbb6de0fdbeeb7dca43221daf4c14082a98cdee",
+  "capture": "bf024a1abc014133c04e"
+}

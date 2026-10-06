@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bai.de/",
+  "checked_at": "2026-10-05T23:18:28.584635+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23864,
+  "state": "ok",
+  "elapsed_seconds": 1.155,
+  "sha256": "dfd286230b294305f7518ddf11811101d23ac7b5f046e4903fc3cf142158d2d7",
+  "capture": "edff722ef598fee0f816",
+  "merged_from_run": "run-28"
+}

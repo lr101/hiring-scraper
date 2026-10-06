@@ -1,0 +1,17 @@
+{
+  "url": "https://www.badenia.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:45.859435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 160,
+  "state": "ok",
+  "elapsed_seconds": 0.158,
+  "sha256": "7e59e9da68c25527df0f9563897b87849a064c84c515d7333bfe88896f59d047",
+  "capture": "8d78ede0dd644eff64df",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.paseo-marketing.de/en/online-agentur/jobs/",
+  "checked_at": "2026-10-05T23:25:48.285557+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 13:35:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 378826,
+  "state": "ok",
+  "elapsed_seconds": 1.017,
+  "sha256": "3e14528ba0dda0095cc4a965b3bf388ea1a43cb1428d68a503b04aa465b9f6d0",
+  "capture": "b754e1ab60a3ab66cc14"
+}

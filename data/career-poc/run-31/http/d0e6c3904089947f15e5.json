@@ -1,0 +1,17 @@
+{
+  "url": "https://www.rrteam.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:20.040577+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"11792-1791242298;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171,
+  "state": "ok",
+  "elapsed_seconds": 0.812,
+  "sha256": "35f13996a8c2991f4122a4cdd02255a0564833688f6db2b92ddfdd7121bb6597",
+  "capture": "d0e6c3904089947f15e5",
+  "merged_from_run": "run-28"
+}

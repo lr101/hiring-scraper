@@ -1,0 +1,16 @@
+{
+  "url": "https://bartsch.law/stellenausschreibung/rechtsreferendar/",
+  "checked_at": "2026-10-05T22:39:56.218179+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 462751,
+  "state": "ok",
+  "elapsed_seconds": 1.264,
+  "sha256": "7943ad3a7e5c3e47a9b96ae91b3694610b67d9408a4c5ede015d3e1e2136014e",
+  "capture": "6e223c26e272b6cfe758"
+}

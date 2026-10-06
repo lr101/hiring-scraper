@@ -1,0 +1,16 @@
+{
+  "url": "https://gwk1921.de/robots.txt",
+  "checked_at": "2026-10-05T22:44:53.885207+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89,
+  "state": "ok",
+  "elapsed_seconds": 0.202,
+  "sha256": "ea995084ebfeccb5d9bc062ef9aac6885efbfbf0ce894a84fe89b943ec7d21e4",
+  "capture": "10bd1fc623a5df0ab38a"
+}

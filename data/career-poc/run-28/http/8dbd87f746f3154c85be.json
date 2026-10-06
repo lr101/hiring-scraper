@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stolzenburg-dach.de/",
+  "checked_at": "2026-10-05T23:24:57.953837+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20114,
+  "state": "ok",
+  "elapsed_seconds": 1.877,
+  "sha256": "1bcaecaf409b253dd3259f77a991f2b5c99f2d7133da369e10a070a8b1d379cc",
+  "capture": "8dbd87f746f3154c85be"
+}

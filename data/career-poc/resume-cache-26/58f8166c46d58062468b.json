@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hogapage.de/robots.txt",
+  "checked_at": "2026-10-05T22:20:34.310724+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 618,
+  "state": "ok",
+  "elapsed_seconds": 0.177,
+  "sha256": "522058e96e1d326012b4c6ed77d5e89895ca5e06a82af8f73156f2b48867a853",
+  "capture": "58f8166c46d58062468b"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.strabag.com/KARRIEREWEBSITE/index_de_de.php",
+  "checked_at": "2026-10-05T23:33:04.913756+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://karriere.strabag.com/de",
+  "bytes": 239,
+  "state": "http_error",
+  "elapsed_seconds": 0.752,
+  "sha256": "ee0a77084de0863402d245d4e605129164d8276ae12424bebd224f21e3819b6f",
+  "capture": "1ac96f72016c4eaef7fb"
+}

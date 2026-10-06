@@ -1,0 +1,17 @@
+{
+  "url": "https://www.afb-group.de/",
+  "checked_at": "2026-10-05T23:38:32.196687+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:57:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 242289,
+  "state": "ok",
+  "elapsed_seconds": 0.903,
+  "sha256": "9ee7aa6512e4f7f976ed748b8b138597d73526edef6705f082440c8b435e1def",
+  "capture": "93f8dfc9371417ccad0c",
+  "merged_from_run": "run-28"
+}

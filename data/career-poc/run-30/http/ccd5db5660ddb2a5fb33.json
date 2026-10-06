@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lbs.de/unternehmen/karriere",
+  "checked_at": "2026-10-05T23:14:31.102118+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"g77e1m85qt6shn\"",
+  "last_modified": "Thu, 05 Mar 2026 15:06:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 317165,
+  "state": "ok",
+  "elapsed_seconds": 0.383,
+  "sha256": "397cc688893b84067cf92d72cebee2d842a33f67baf76931343835c74c756d64",
+  "capture": "ccd5db5660ddb2a5fb33",
+  "merged_from_run": "run-28"
+}

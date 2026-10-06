@@ -1,0 +1,17 @@
+{
+  "url": "https://glasraum.business.site/",
+  "checked_at": "2026-10-05T23:38:41.938905+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1561,
+  "state": "http_error",
+  "elapsed_seconds": 1.004,
+  "sha256": "23926e9185d8d43c02807a838ffb373cc1977726094a4e46807c66ada9dd7660",
+  "capture": "74919a7b87f9a2b1e5a3",
+  "merged_from_run": "run-28"
+}

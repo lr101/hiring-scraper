@@ -1,0 +1,16 @@
+{
+  "url": "https://kammer-kirsch.de/sitemap_products_1.xml?from=5900270370973&to=12219694252296",
+  "checked_at": "2026-10-05T23:25:05.209657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"page_cache:51670122653:SitemapProductsController:0c8c707c21d75b5c020012949184cc7c\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 145253,
+  "state": "ok",
+  "elapsed_seconds": 1.322,
+  "sha256": "132ae4ade7dbc1a814d23ddc4b52a7a45a2d22ee67aeb133b2b571057c4753f5",
+  "capture": "387a624732c7acdbbbb6"
+}

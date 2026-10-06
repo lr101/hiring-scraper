@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fiz-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:07.180536+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"85f-65c996814894a\"",
+  "last_modified": "Tue, 29 Sep 2026 06:36:46 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2143,
+  "state": "ok",
+  "elapsed_seconds": 0.111,
+  "sha256": "e62a9b78a71d2f4a963fbe7aa196d365f8a084139187602e5ea96a40d2838635",
+  "capture": "d66771c4f2c4623162c3"
+}

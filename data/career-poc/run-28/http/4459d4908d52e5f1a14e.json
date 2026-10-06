@@ -1,0 +1,16 @@
+{
+  "url": "https://www.texense.com/de/",
+  "checked_at": "2026-10-05T23:19:51.003133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"ucibi4w93swoz\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 42751,
+  "state": "ok",
+  "elapsed_seconds": 1.655,
+  "sha256": "4eaaa5e5d0bbcbd1d3fd5b69b71c1c2e3f75e831fd73360c01db0b0ae3052e5f",
+  "capture": "4459d4908d52e5f1a14e"
+}

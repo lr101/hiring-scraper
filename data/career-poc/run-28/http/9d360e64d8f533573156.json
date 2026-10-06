@@ -1,0 +1,16 @@
+{
+  "url": "https://www.autolackierung-weisenburger.de/aktuelles",
+  "checked_at": "2026-10-05T23:29:43.191597+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61385,
+  "state": "ok",
+  "elapsed_seconds": 0.964,
+  "sha256": "28eac471189514f6e56f9579d8f2c3f311d01cb670014e304193d705b661ac6a",
+  "capture": "9d360e64d8f533573156"
+}

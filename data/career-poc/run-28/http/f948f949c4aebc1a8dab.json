@@ -1,0 +1,16 @@
+{
+  "url": "https://verlagvonloeper.ariadne.de/web/sitemap/shop-7/sitemap-1.xml.gz",
+  "checked_at": "2026-10-05T23:27:57.423229+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/x-gzip",
+  "etag": "\"6ac1627b-2e49\"",
+  "last_modified": "Sat, 03 Oct 2026 20:15:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 11849,
+  "state": "ok",
+  "elapsed_seconds": 0.846,
+  "sha256": "4e1511a8063462fb8271434552700ec54f3ed90d96798f458811154d275e0e52",
+  "capture": "f948f949c4aebc1a8dab"
+}

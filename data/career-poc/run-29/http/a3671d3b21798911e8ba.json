@@ -1,0 +1,17 @@
+{
+  "url": "https://www.generali.de/",
+  "checked_at": "2026-10-05T23:22:34.594631+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 204152,
+  "state": "ok",
+  "elapsed_seconds": 1.178,
+  "sha256": "26f43deeb3e93ab2bacb7f2ae3837f52a4c598ae982de22a1754988227b43a46",
+  "capture": "a3671d3b21798911e8ba",
+  "merged_from_run": "run-28"
+}

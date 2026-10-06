@@ -1,0 +1,17 @@
+{
+  "url": "https://wurzelwerk-beratung.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:24:46.204817+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 669,
+  "state": "ok",
+  "elapsed_seconds": 1.016,
+  "sha256": "220ac4c43ea9c2f3b8c1f35a381d276434ee7a3e8b7d7394c004b7252ef04bda",
+  "capture": "26b88d8a05d959db43a7",
+  "merged_from_run": "run-28"
+}

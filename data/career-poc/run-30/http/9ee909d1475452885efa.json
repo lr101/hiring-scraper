@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ias-gruppe.de/robots.txt",
+  "checked_at": "2026-10-05T23:08:40.926112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 433,
+  "state": "ok",
+  "elapsed_seconds": 0.401,
+  "sha256": "becce03b8c2c9f09b350326bca4557a2176f8fc0e64c6a3509f5f5535fc92f21",
+  "capture": "9ee909d1475452885efa",
+  "merged_from_run": "run-27"
+}

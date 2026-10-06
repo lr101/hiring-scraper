@@ -1,0 +1,16 @@
+{
+  "url": "https://v-er.eu/robots.txt",
+  "checked_at": "2026-10-05T23:30:57.756386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 153,
+  "state": "http_error",
+  "elapsed_seconds": 0.147,
+  "sha256": "1eb89d137d75e0aa452abe2e9138384ea2c70e7a1faaa6f1809fa49b37f51be4",
+  "capture": "7b750b0d6e0be517673c"
+}

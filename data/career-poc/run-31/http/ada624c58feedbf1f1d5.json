@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zwick-hanke-hartmann.com/robots.txt",
+  "checked_at": "2026-10-05T23:31:30.280464+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"361-4b8ee397c0940\"",
+  "last_modified": "Tue, 14 Feb 2012 15:26:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 865,
+  "state": "ok",
+  "elapsed_seconds": 0.33,
+  "sha256": "4d508a7340a4cedc3b3f893e245a412adc6e861b37562762ab5c6ed43144c6ee",
+  "capture": "ada624c58feedbf1f1d5",
+  "merged_from_run": "run-28"
+}

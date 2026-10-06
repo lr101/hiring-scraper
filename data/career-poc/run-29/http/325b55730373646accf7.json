@@ -1,0 +1,17 @@
+{
+  "url": "https://www.autensys.de/robots.txt",
+  "checked_at": "2026-10-05T22:32:24.134732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"20-65a6c56aa77d1\"",
+  "last_modified": "Tue, 01 Sep 2026 14:00:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 32,
+  "state": "ok",
+  "elapsed_seconds": 0.102,
+  "sha256": "7872736126d4589c1e8f0c50f028688243dc66d95bde5c4bbd06191d197bb126",
+  "capture": "325b55730373646accf7",
+  "merged_from_run": "run-26"
+}

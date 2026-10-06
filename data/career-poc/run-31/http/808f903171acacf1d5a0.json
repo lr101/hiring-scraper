@@ -1,0 +1,17 @@
+{
+  "url": "https://deutsche-erdwaerme.de/karriere/",
+  "checked_at": "2026-10-05T22:42:05.703856+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 168238,
+  "state": "ok",
+  "elapsed_seconds": 1.767,
+  "sha256": "5db1638779ed0ab2cf7755e9c19c481b1289d7296640bf1bd7e96841f3d64770",
+  "capture": "808f903171acacf1d5a0",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.gawa-gmbh.de/jobs--aktuelles",
+  "checked_at": "2026-10-05T23:16:59.655682+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61398,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "3bc65376975bb067827f01a008e33f58944795735c8c41dc785eddc8738afb05",
+  "capture": "cba465a9b90819f54870",
+  "merged_from_run": "run-28"
+}

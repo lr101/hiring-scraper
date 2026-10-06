@@ -1,0 +1,17 @@
+{
+  "url": "https://heatit.de/pages/jobs",
+  "checked_at": "2026-10-05T23:05:13.540410+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 254808,
+  "state": "ok",
+  "elapsed_seconds": 1.175,
+  "sha256": "75e1d560d2b8261e0d871d7a8bb4b5a754fc5d991d6867d83348fa7e6218381d",
+  "capture": "53db4304928e0315e116",
+  "merged_from_run": "run-27"
+}

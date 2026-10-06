@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tema-medien.de/robots.txt",
+  "checked_at": "2026-10-05T23:15:00.605716+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4465,
+  "state": "http_error",
+  "elapsed_seconds": 1.609,
+  "sha256": "ec0b75b209341e1bd341b842d4d6bb2401b047e0ad349b5f2f2304bb4a5ea4e3",
+  "capture": "9a628d29ae2f533a26e7",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aok.de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T22:21:03.953051+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"31991-65d1ad86ffc09\"",
+  "last_modified": "Mon, 05 Oct 2026 17:02:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 203153,
+  "state": "ok",
+  "elapsed_seconds": 1.091,
+  "sha256": "f2c64497cea1e16b93927e7042877a7c4909863ea41c98c653ac827c71942a07",
+  "capture": "7bfbfe446e18c5b5cf81"
+}

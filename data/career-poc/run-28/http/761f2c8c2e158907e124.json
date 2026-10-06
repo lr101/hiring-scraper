@@ -1,0 +1,16 @@
+{
+  "url": "https://www.trueb-fensterbau.de/kontakt/jobs/",
+  "checked_at": "2026-10-05T23:37:32.762495+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7075,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "a52e9b607a3f990dee5118c0e7a30e0a0658c21a9c4b9dd342c8ca7704b7f77b",
+  "capture": "761f2c8c2e158907e124"
+}

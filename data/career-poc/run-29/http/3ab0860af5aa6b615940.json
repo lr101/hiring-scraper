@@ -1,0 +1,17 @@
+{
+  "url": "https://www.buegefliesen.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:02.527429+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"1a-650287854c800\"",
+  "last_modified": "Thu, 23 Apr 2026 22:50:08 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 26,
+  "state": "ok",
+  "elapsed_seconds": 1.088,
+  "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+  "capture": "3ab0860af5aa6b615940",
+  "merged_from_run": "run-28"
+}

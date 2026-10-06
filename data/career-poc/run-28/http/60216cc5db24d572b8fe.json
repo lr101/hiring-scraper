@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dokuschmiede.de/jobs/dokuschmiede-vorteile",
+  "checked_at": "2026-10-05T23:23:30.046701+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94768,
+  "state": "ok",
+  "elapsed_seconds": 3.072,
+  "sha256": "5aca5de96930d6258507174a97f5e77e250d3ce4b251dbe7e6906e5de7d1bbd7",
+  "capture": "60216cc5db24d572b8fe"
+}

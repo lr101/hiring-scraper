@@ -1,0 +1,16 @@
+{
+  "url": "https://geistsoz.de/",
+  "checked_at": "2026-10-05T22:42:46.796950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77928,
+  "state": "ok",
+  "elapsed_seconds": 1.335,
+  "sha256": "06a758b5ab6f924ee713b4387a1d6f3459f8dc5d04865fb276d74211e900b13f",
+  "capture": "1d8d7d75e8a96e634656"
+}

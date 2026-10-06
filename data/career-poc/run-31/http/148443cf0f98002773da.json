@@ -1,0 +1,17 @@
+{
+  "url": "https://agentur.lvm.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:43.935844+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Thu, 01 Oct 2026 12:07:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 19827,
+  "state": "ok",
+  "elapsed_seconds": 0.209,
+  "sha256": "060dafc56055f63d753ac56e0051d1fff886364751e051f054e9e81a5ede8479",
+  "capture": "148443cf0f98002773da",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ggukarlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:44:39.853703+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 319,
+  "state": "ok",
+  "elapsed_seconds": 0.366,
+  "sha256": "c827667ea25ff117633ceabdd2bb4e4745bd61fed3e217f530d096b92e04b4f9",
+  "capture": "5a4df253f06d977c0780",
+  "merged_from_run": "run-27"
+}

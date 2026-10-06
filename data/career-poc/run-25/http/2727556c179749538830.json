@@ -1,0 +1,16 @@
+{
+  "url": "https://awesome-it.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:23:53.710493+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20034,
+  "state": "ok",
+  "elapsed_seconds": 1.095,
+  "sha256": "dc96d17771fc97272f79a7ee2d526b4d2faf862606f2efa05cf9dee823d7565b",
+  "capture": "2727556c179749538830"
+}

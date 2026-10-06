@@ -1,0 +1,16 @@
+{
+  "url": "https://suedwest.ngg.net/presse/pressemeldungen/arbeitgeber-bieten-nur-magere-2-prozent-mehr-entgelt-an",
+  "checked_at": "2026-10-05T22:12:18.855938+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77650,
+  "state": "ok",
+  "elapsed_seconds": 2.478,
+  "sha256": "5278726bed6df3aba89739686b312c8de7edb67a11685570310c9c3702bb09c6",
+  "capture": "0798c240ab59e459f021"
+}

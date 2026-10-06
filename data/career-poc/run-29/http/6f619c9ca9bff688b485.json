@@ -1,0 +1,17 @@
+{
+  "url": "https://www.leonhard-weiss.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:25.798618+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 267,
+  "state": "ok",
+  "elapsed_seconds": 0.826,
+  "sha256": "326b051f37d2daeb0ae4117246a146d96da29ba675588f95b1b24060d2afc07a",
+  "capture": "6f619c9ca9bff688b485",
+  "merged_from_run": "run-28"
+}

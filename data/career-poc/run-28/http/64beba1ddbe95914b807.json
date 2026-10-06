@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.ziemann-gruppe.de/stellenangebote.html?reset_search=1",
+  "checked_at": "2026-10-05T23:41:37.914638+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84770,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "9145b444337e926718e2104cf834bfcb8ce0882cbff7aa04255b28173690c15b",
+  "capture": "64beba1ddbe95914b807"
+}

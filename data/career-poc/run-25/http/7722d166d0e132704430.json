@@ -1,0 +1,16 @@
+{
+  "url": "https://augenzentrum-eckert.de/ueber-uns/stellenangebote/",
+  "checked_at": "2026-10-05T22:17:20.319981+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"4978a-65d1ed0948ae7\"",
+  "last_modified": "Mon, 05 Oct 2026 21:46:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 300938,
+  "state": "ok",
+  "elapsed_seconds": 1.188,
+  "sha256": "e99fcf7505deeb3b031d1cc5ae09efb220483a8fe75552643f1584054db279a6",
+  "capture": "7722d166d0e132704430"
+}

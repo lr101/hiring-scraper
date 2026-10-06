@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hays.de/blog/karriere-und-entwicklung/lebenslauf-fuer-ki-optimieren",
+  "checked_at": "2026-10-05T22:19:12.588467+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 294576,
+  "state": "ok",
+  "elapsed_seconds": 1.266,
+  "sha256": "46cdc57c33baa36e7791c1492cd7f275cff0b603ca80e4bb8de96d8fcbf93bcd",
+  "capture": "e58c24ea0b03f79912a0",
+  "merged_from_run": "run-25"
+}

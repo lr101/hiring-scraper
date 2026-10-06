@@ -1,0 +1,17 @@
+{
+  "url": "https://www.psigridconnect.com/robots.txt",
+  "checked_at": "2026-10-05T23:34:53.976234+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://www.psi.de",
+  "bytes": 265,
+  "state": "http_error",
+  "elapsed_seconds": 0.362,
+  "sha256": "3e70434000266c3dd7df71baf272dfb61c25d91bd5ffb80c9a4f75cca98390c3",
+  "capture": "1b9ea17f524c780dae6a",
+  "merged_from_run": "run-28"
+}

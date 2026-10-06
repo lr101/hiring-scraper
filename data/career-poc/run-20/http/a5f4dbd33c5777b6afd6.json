@@ -1,0 +1,17 @@
+{
+  "url": "https://hs-analysis.com/karriere/",
+  "checked_at": "2026-10-05T20:43:47.482838+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 504967,
+  "state": "ok",
+  "elapsed_seconds": 4.557,
+  "sha256": "74c512e9a9cd3568e88f9e417df1d56d45b85c4738cc643e41e89542fca768c1",
+  "capture": "a5f4dbd33c5777b6afd6",
+  "reused_from": "data/career-poc/run-18/http/a5f4dbd33c5777b6afd6.json"
+}

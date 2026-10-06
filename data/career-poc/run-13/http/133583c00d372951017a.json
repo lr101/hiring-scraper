@@ -1,0 +1,14 @@
+{
+  "url": "https://about.chrono24.com/robots.txt",
+  "checked_at": "2026-10-05T09:08:39.856320+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "location": null,
+  "bytes": 169,
+  "state": "ok",
+  "elapsed_seconds": 0.36,
+  "sha256": "5aefe0927c40dc72751408ed0898f6906f1521096a9e3ee7d0fb6113cc0bcd4f",
+  "capture": "133583c00d372951017a",
+  "reused_from": "data/career-poc/run-12/http/133583c00d372951017a.json"
+}

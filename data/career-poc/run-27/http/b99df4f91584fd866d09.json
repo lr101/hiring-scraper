@@ -1,0 +1,16 @@
+{
+  "url": "https://www.emmtrix.com/news/software-jobs-emmtrix.html",
+  "checked_at": "2026-10-05T23:04:28.328261+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 496834,
+  "state": "ok",
+  "elapsed_seconds": 1.928,
+  "sha256": "75f8895348ef5326dcfbe7eafa5df577fa69d43ab22e855510617d61fe17a17b",
+  "capture": "b99df4f91584fd866d09"
+}

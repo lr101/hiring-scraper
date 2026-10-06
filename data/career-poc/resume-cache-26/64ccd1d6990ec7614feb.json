@@ -1,0 +1,16 @@
+{
+  "url": "https://www.krankengymnastik-konz.de/",
+  "checked_at": "2026-10-05T22:18:43.876876+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"906582842\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 92679,
+  "state": "ok",
+  "elapsed_seconds": 1.153,
+  "sha256": "5f49b83e13ecf1f0b14d48b6fc293eb69718d7ec5304ef54b957a890f016d9ef",
+  "capture": "64ccd1d6990ec7614feb"
+}

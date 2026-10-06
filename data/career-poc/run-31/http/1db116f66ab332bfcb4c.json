@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schleith.de/",
+  "checked_at": "2026-10-05T23:23:43.209116+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112394,
+  "state": "ok",
+  "elapsed_seconds": 1.518,
+  "sha256": "a409649e4ed53d77371101965c846bb664b5154f8bacdd7c81213d733b0aee9d",
+  "capture": "1db116f66ab332bfcb4c",
+  "merged_from_run": "run-28"
+}

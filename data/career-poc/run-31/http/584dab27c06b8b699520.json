@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ft-design.de/",
+  "checked_at": "2026-10-05T23:37:48.844594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 54903,
+  "state": "ok",
+  "elapsed_seconds": 0.876,
+  "sha256": "0d17d5a564bf1f02de145fa278b79f87e55c55e57cc7124914011f4a6a9be0dd",
+  "capture": "584dab27c06b8b699520",
+  "merged_from_run": "run-28"
+}

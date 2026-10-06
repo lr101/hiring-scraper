@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fliesenleger-stutensee.de/karriere",
+  "checked_at": "2026-10-05T23:43:11.111920+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"5d9-658d5fde55fc8;64bfb72a79d18",
+  "last_modified": "Wed, 12 Aug 2026 09:12:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1497,
+  "state": "ok",
+  "elapsed_seconds": 0.977,
+  "sha256": "2766a2e0bf5b5f104f9351d649fb7035490b33b5603ca2ca9ccf8aca330285cc",
+  "capture": "637d634a5adf38d893b7",
+  "merged_from_run": "run-28"
+}

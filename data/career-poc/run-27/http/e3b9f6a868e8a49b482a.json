@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kuk.de/",
+  "checked_at": "2026-10-05T22:41:49.273712+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68466,
+  "state": "ok",
+  "elapsed_seconds": 1.16,
+  "sha256": "f0db1f10540c3dbc8012bd5c2aa9672ee6407bfc1e508f7ad4abc65589c6aab7",
+  "capture": "e3b9f6a868e8a49b482a"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://galabau-ka.de/landschaftsgaertner-karlsruhe/stellenangebote/",
+  "checked_at": "2026-10-05T23:30:22.528766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 299739,
+  "state": "ok",
+  "elapsed_seconds": 1.145,
+  "sha256": "d5dc8dfe7d6aef1d4502ea71370a53440354370f4ddd3a6d831c10d3a39c77b5",
+  "capture": "debfefb0b28e3ef71bb9",
+  "merged_from_run": "run-28"
+}

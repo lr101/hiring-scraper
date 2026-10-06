@@ -1,0 +1,16 @@
+{
+  "url": "https://www.twk-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:39:43.765330+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1285,
+  "state": "http_error",
+  "elapsed_seconds": 0.998,
+  "sha256": "2d781355e6754bead57f78d34bb6d38258c32391bbb43629d3ef5124fe4b1259",
+  "capture": "fb05d78ca633c97bc2e8"
+}

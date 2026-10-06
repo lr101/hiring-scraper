@@ -1,0 +1,16 @@
+{
+  "url": "https://kgv-weiherfeld.de/careers",
+  "checked_at": "2026-10-05T23:23:54.253645+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43945,
+  "state": "http_error",
+  "elapsed_seconds": 0.982,
+  "sha256": "21b7b5bdc975a0eb1eecc6a072dec1cd3d5968655b7ba518aca6c356942ce2f0",
+  "capture": "e3455ad9c2ec03f30c9b"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.taxi-zentrale-karlsruhe.de/careers",
+  "checked_at": "2026-10-05T23:34:02.742202+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:34:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 4403,
+  "state": "http_error",
+  "elapsed_seconds": 1.108,
+  "sha256": "27aef7f4f7be661a303b6f5670e200979b00271fe76427f379203a097444a89a",
+  "capture": "6cce864062f7c87fb875",
+  "merged_from_run": "run-28"
+}

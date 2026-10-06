@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tomkohler.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T22:13:00.769910+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 671,
+  "state": "ok",
+  "elapsed_seconds": 1.428,
+  "sha256": "02a40b8c60b0f6f41c7368fe7b182c47ee7130000d4beed7ace2ea4ae3c395fd",
+  "capture": "a52d00436b8ec0d4e4ee"
+}

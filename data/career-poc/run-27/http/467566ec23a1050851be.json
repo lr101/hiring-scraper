@@ -1,0 +1,16 @@
+{
+  "url": "https://www.asconda.de/karriere/buchhaltung/",
+  "checked_at": "2026-10-05T22:49:47.998246+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64005,
+  "state": "ok",
+  "elapsed_seconds": 1.474,
+  "sha256": "0cae1f2f3b0537a1fa589bb692201721e3690e6dbdf995985857791e0bab8e2a",
+  "capture": "467566ec23a1050851be"
+}

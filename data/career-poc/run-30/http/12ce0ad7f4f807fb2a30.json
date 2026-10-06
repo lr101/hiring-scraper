@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ihk-biz.de/ueber-uns/jobs/",
+  "checked_at": "2026-10-05T23:26:02.528058+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 174873,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "e6504d22df8f611b0eb51da3ab27757b137c319f5bd62bcf2fed1668b91c740f",
+  "capture": "12ce0ad7f4f807fb2a30",
+  "merged_from_run": "run-28"
+}

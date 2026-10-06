@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schick-architektur.de/robots.txt",
+  "checked_at": "2026-10-05T23:09:17.314485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1007,
+  "state": "http_error",
+  "elapsed_seconds": 0.134,
+  "sha256": "e68a28e1caad3f20eb3d791aadc1ce793e06011bac7e2e6f2cacbb590e50f38c",
+  "capture": "60a5f473c794e95602b2",
+  "merged_from_run": "run-27"
+}

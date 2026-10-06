@@ -1,0 +1,11 @@
+{
+  "url": "https://www.immoservices.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:54.920733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error TLS/SSL connection has been closed (EOF) (_ssl.c:992)>",
+  "elapsed_seconds": 0.41,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "68e95aac78b14ad242eb",
+  "merged_from_run": "run-28"
+}

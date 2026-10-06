@@ -1,0 +1,17 @@
+{
+  "url": "https://zeppelin.wd3.myworkdayjobs.com/robots.txt",
+  "checked_at": "2026-10-05T23:36:22.228321+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 356,
+  "state": "ok",
+  "elapsed_seconds": 1.092,
+  "sha256": "ee28356653037abd5c2c11db5da6d36c57d472d20e9c50faf1752548a861a1e4",
+  "capture": "cd300995ab31c2cb18f8",
+  "merged_from_run": "run-28"
+}

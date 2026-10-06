@@ -1,0 +1,17 @@
+{
+  "url": "https://icp-ing.de/stellenangebotbauingenieur-m-w-d-gesucht/",
+  "checked_at": "2026-10-05T23:34:15.670748+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196399,
+  "state": "ok",
+  "elapsed_seconds": 1.519,
+  "sha256": "556d9bf60da9a89ab92813ad4da57834eefff7ef9475827b8f223ce0e1ba5ea0",
+  "capture": "f45e9d8719dccfee4050",
+  "merged_from_run": "run-28"
+}

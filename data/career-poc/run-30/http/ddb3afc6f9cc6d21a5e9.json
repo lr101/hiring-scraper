@@ -1,0 +1,17 @@
+{
+  "url": "https://www.jaeger-haustechnik.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:46.233786+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 191,
+  "state": "ok",
+  "elapsed_seconds": 1.098,
+  "sha256": "311b96617dc06258b4ee26793a5571516078ce4bed1b326f6f78310cf6d44444",
+  "capture": "ddb3afc6f9cc6d21a5e9",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.gut-gruppe.de/unternehmen/keilhauer/karriere/stellenangebote/vertriebsinnendienst-mwd-11198",
+  "checked_at": "2026-10-05T22:59:49.694163+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116929,
+  "state": "ok",
+  "elapsed_seconds": 1.363,
+  "sha256": "5feb7ccc9caf9e4387286122439954d3462f0056d58bf7e4479380e72323b006",
+  "capture": "570f4260fc1d47660e2a",
+  "merged_from_run": "run-27"
+}

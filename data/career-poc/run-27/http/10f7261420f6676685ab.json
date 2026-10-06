@@ -1,0 +1,16 @@
+{
+  "url": "https://throm.de/careers",
+  "checked_at": "2026-10-05T22:56:32.248990+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 9987,
+  "state": "http_error",
+  "elapsed_seconds": 1.18,
+  "sha256": "1b6c636a3d12bff6c3005ecfcd5018f8e95ad9df69c1d2cb8faa9c4e17520cfc",
+  "capture": "10f7261420f6676685ab"
+}

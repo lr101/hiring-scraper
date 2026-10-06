@@ -1,0 +1,16 @@
+{
+  "url": "https://www.itusgmbh.com/",
+  "checked_at": "2026-10-05T23:26:41.787536+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.mrh-trowe.com/",
+  "bytes": 274,
+  "state": "http_error",
+  "elapsed_seconds": 0.732,
+  "sha256": "b275a29097b37a48a06f55630b7e614610fc41964ed05aea1069293fca55cff4",
+  "capture": "bf3ce39fef1c3a11448d"
+}

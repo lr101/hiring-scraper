@@ -1,0 +1,17 @@
+{
+  "url": "https://mg-ie.de/en/jobs-en-c-qml-developer/c-qml-developer/",
+  "checked_at": "2026-10-05T23:39:50.132697+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119922,
+  "state": "ok",
+  "elapsed_seconds": 2.181,
+  "sha256": "e369b8cd7189038376a185dc068aa9f71ead5cfc0bd16c806065ff2a9a0253df",
+  "capture": "e1e12557153903c659af",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://rechtsanwalt-stutensee.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:33.046293+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"259752905\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 173,
+  "state": "ok",
+  "elapsed_seconds": 0.186,
+  "sha256": "6c7b21e9679278dad34e1e1c7454969aa922ffd43d1bd6d921014444a2c7c17e",
+  "capture": "48a9623b99c8d7c2dafc",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://fachschaft.org/post-sitemap.xml",
+  "checked_at": "2026-10-05T22:12:31.296268+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29151,
+  "state": "ok",
+  "elapsed_seconds": 2.051,
+  "sha256": "2be22d97b1a85d27965c7f9e00371c6aebeadadb839a6a088670884165af2430",
+  "capture": "a612fb446e67339a7f2a"
+}

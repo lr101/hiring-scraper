@@ -1,0 +1,17 @@
+{
+  "url": "https://www.medie-ambulanz.de/karriere/rettungsassistent-notfallsanitaeter-m-w-d-gesucht",
+  "checked_at": "2026-10-05T23:18:49.273931+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:18:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 58634,
+  "state": "ok",
+  "elapsed_seconds": 0.98,
+  "sha256": "8a6ab223f1641e11c02799c080f5a0ac98c8a7f6f7d2305811d974e45af42e8d",
+  "capture": "120fd5df9127b5158397",
+  "merged_from_run": "run-28"
+}

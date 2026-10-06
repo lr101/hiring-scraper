@@ -1,0 +1,16 @@
+{
+  "url": "https://www.harrer-ing.net/",
+  "checked_at": "2026-10-05T23:21:25.325823+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 393456,
+  "state": "ok",
+  "elapsed_seconds": 3.331,
+  "sha256": "4750c4c9bf48a8ad7f26a38eabf71c04b4c0c21fa65f1c3fe7a0d46184bd6a82",
+  "capture": "6d4b264f46bc6510b22d"
+}

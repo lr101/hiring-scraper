@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rechnungshof.baden-wuerttemberg.de/",
+  "checked_at": "2026-10-05T22:59:27.349255+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://rechnungshof.baden-wuerttemberg.de/",
+  "bytes": 251,
+  "state": "http_error",
+  "elapsed_seconds": 0.959,
+  "sha256": "57f972c2e4509ed017b7a7c79b8e500ca19c520570e8887d63cb42a86200761a",
+  "capture": "a97b356083c483a00cda"
+}

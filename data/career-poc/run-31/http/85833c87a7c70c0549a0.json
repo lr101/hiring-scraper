@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diqp.eu/robots.txt",
+  "checked_at": "2026-10-05T23:45:57.324909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 208,
+  "state": "ok",
+  "elapsed_seconds": 2.227,
+  "sha256": "847412029ecfc98813d9659863ec7b3dc64a425c5f00fac87a01c759b6e52e31",
+  "capture": "85833c87a7c70c0549a0",
+  "merged_from_run": "run-28"
+}

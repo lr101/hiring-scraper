@@ -1,0 +1,16 @@
+{
+  "url": "https://www.polygongroup.com/da-dk/Job/",
+  "checked_at": "2026-10-05T23:27:37.005536+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:27:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 89464,
+  "state": "ok",
+  "elapsed_seconds": 0.996,
+  "sha256": "59116cf3dab5d3e36d2bc7d6f45bc9161dfd71dbfe0ba24c05380514f13970a0",
+  "capture": "c15ec729d0378d28b5ec"
+}

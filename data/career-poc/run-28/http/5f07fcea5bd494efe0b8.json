@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pt-massivbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:40:37.520420+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 120,
+  "state": "ok",
+  "elapsed_seconds": 0.386,
+  "sha256": "c6e089edf4a4e044f31316036f05205d8fef5977d27422cde152c31ce8654b22",
+  "capture": "5f07fcea5bd494efe0b8"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://roeser-online.de/robots.txt",
+  "checked_at": "2026-10-05T22:14:28.167987+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://www.roeser-medienhaus.de/robots.txt",
+  "bytes": 357,
+  "state": "http_error",
+  "elapsed_seconds": 0.149,
+  "sha256": "f532f9988b7ac08e1976ddfa15f59a2d585e4808401321982bf7e601f2b04a42",
+  "capture": "ac3b90a96415534dc52b",
+  "merged_from_run": "run-25"
+}

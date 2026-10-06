@@ -1,0 +1,17 @@
+{
+  "url": "https://intrepidcs.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:07:21.342801+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 647152,
+  "state": "ok",
+  "elapsed_seconds": 2.725,
+  "sha256": "1b6023fd6c9d8da102843016f9799db6720f3ff0d96d3c0bf44164902d43e346",
+  "capture": "287a5297e6107d0cfb1b",
+  "merged_from_run": "run-27"
+}

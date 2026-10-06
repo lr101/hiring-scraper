@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sts-heilbronn.de/",
+  "checked_at": "2026-10-05T23:34:19.930289+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20791,
+  "state": "ok",
+  "elapsed_seconds": 0.998,
+  "sha256": "ee36804752bae9f454f591792d492538986868f456ef814059edff03c01deb17",
+  "capture": "8e931264ba2082531de7",
+  "merged_from_run": "run-28"
+}

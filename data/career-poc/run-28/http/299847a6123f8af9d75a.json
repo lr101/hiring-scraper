@@ -1,0 +1,16 @@
+{
+  "url": "https://pickel-haustechnik.de/careers",
+  "checked_at": "2026-10-05T23:39:06.452299+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43149,
+  "state": "http_error",
+  "elapsed_seconds": 0.978,
+  "sha256": "4c547b70ef1f4e69003dade370d848628000a2ad94eb3bc4e013417bbc0db58f",
+  "capture": "299847a6123f8af9d75a"
+}

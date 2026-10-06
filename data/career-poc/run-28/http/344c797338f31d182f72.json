@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoffmann-umzuege.de/karriere",
+  "checked_at": "2026-10-05T23:28:56.419492+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://hoffmann-umzuege.de/karriere",
+  "bytes": 284,
+  "state": "http_error",
+  "elapsed_seconds": 0.98,
+  "sha256": "a970a933a12df931f6868f02cc106298dd8471a9cbe3c61bc85b63b42fcd0a53",
+  "capture": "344c797338f31d182f72"
+}

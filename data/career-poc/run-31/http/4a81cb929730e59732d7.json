@@ -1,0 +1,17 @@
+{
+  "url": "https://www.comebackfilm.de/careers",
+  "checked_at": "2026-10-05T22:51:05.519797+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58310,
+  "state": "http_error",
+  "elapsed_seconds": 1.702,
+  "sha256": "92f00a020cbdd49e65657ce6f921a8bc5fac3d35313458e0d639e9ae7fd52fc0",
+  "capture": "4a81cb929730e59732d7",
+  "merged_from_run": "run-27"
+}

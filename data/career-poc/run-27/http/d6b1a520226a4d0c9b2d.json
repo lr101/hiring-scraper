@@ -1,0 +1,16 @@
+{
+  "url": "https://www.andreasfriedrich.org/robots.txt",
+  "checked_at": "2026-10-05T22:49:08.219318+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"123-5b31c9e8cf975\"",
+  "last_modified": "Mon, 02 Nov 2020 09:46:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 291,
+  "state": "ok",
+  "elapsed_seconds": 0.221,
+  "sha256": "d0562bfb1105eb49be6ad8fcd7dfeed8d889a7e56222a004e9e9e54e3efd8c74",
+  "capture": "d6b1a520226a4d0c9b2d"
+}

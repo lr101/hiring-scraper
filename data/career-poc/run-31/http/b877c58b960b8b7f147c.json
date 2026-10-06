@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wisag.de/karriere/",
+  "checked_at": "2026-10-05T23:25:34.474846+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 247,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "http_error",
+  "elapsed_seconds": 1.053,
+  "sha256": "68dffa3542e00929454a959179637816f78b9cea5cc7ad8dc31a24815ecde152",
+  "capture": "b877c58b960b8b7f147c",
+  "merged_from_run": "run-28"
+}

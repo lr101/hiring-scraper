@@ -1,0 +1,16 @@
+{
+  "url": "https://klingelnberg.com/karriere/ausbildung",
+  "checked_at": "2026-10-05T23:42:38.594266+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91409,
+  "state": "ok",
+  "elapsed_seconds": 0.965,
+  "sha256": "2218a11bb11c518adedf79bb2f0b9018bb00b529358fa3672ab2c120a6a119ab",
+  "capture": "8de2ad97f83753c13f11"
+}

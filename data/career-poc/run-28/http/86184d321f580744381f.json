@@ -1,0 +1,16 @@
+{
+  "url": "http://www.ascentkarlsruhe.com/robots.txt",
+  "checked_at": "2026-10-05T23:29:05.673770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ascentkarlsruhe.com/robots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.763,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "86184d321f580744381f"
+}

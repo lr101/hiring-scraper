@@ -1,0 +1,17 @@
+{
+  "url": "https://sam-elektrotechnik.de/",
+  "checked_at": "2026-10-05T23:22:59.348916+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 113452,
+  "state": "ok",
+  "elapsed_seconds": 1.537,
+  "sha256": "767ad82c7fbb12491954d55d05b7e8b1904ff3232bce1fec5443a05c51dd1085",
+  "capture": "5ed30d654bfec8d3c0b8",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://asr-web.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:45:11.997481+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://asr-web.de/sitemap_index.xml",
+  "bytes": 161,
+  "state": "http_error",
+  "elapsed_seconds": 0.516,
+  "sha256": "7729e82cf6e68f42e11257e678e08e28e3dd3597033bed67f206e04623c8d166",
+  "capture": "0e69e108f9be06521c03"
+}

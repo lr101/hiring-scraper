@@ -1,0 +1,16 @@
+{
+  "url": "https://www.badisch-brauhaus.de/",
+  "checked_at": "2026-10-05T22:38:21.183999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 325114,
+  "state": "ok",
+  "elapsed_seconds": 2.104,
+  "sha256": "a531d000c0902027844f8456293bbf242b13235d9bc9ef33d5122d09421c1809",
+  "capture": "2fdc7152065fad88f122"
+}

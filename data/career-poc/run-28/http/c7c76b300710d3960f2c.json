@@ -1,0 +1,16 @@
+{
+  "url": "https://blaupause.studio/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:15:07.169522+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 638,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "65d66385caf2453d541a6d454c12458dd00e17afbbf12d84696f0e9f178e29af",
+  "capture": "c7c76b300710d3960f2c"
+}

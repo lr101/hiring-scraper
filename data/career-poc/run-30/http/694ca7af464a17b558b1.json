@@ -1,0 +1,17 @@
+{
+  "url": "https://www.leonhard-weiss.jobs/robots.txt",
+  "checked_at": "2026-10-05T23:27:27.735983+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91,
+  "state": "ok",
+  "elapsed_seconds": 0.932,
+  "sha256": "d2814afbbfd2dcd0ab673df1ddc8d9972e5d48134991bc4ad526aef93449c1c2",
+  "capture": "694ca7af464a17b558b1",
+  "merged_from_run": "run-28"
+}

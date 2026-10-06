@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vus-diamanttechnik.de/karriere",
+  "checked_at": "2026-10-05T23:35:33.322585+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45752,
+  "state": "http_error",
+  "elapsed_seconds": 1.241,
+  "sha256": "d15bbfb4ee51c473c448d17eb635136d70f2d7b00f02571f221f999d906af251",
+  "capture": "4b4f346b17351a5b23db",
+  "merged_from_run": "run-28"
+}

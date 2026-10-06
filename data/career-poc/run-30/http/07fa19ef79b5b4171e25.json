@@ -1,0 +1,17 @@
+{
+  "url": "https://ra-thie.de/",
+  "checked_at": "2026-10-05T23:10:28.547454+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50247,
+  "state": "ok",
+  "elapsed_seconds": 1.63,
+  "sha256": "700aa9eb26eb7cf00571b7c476c900919ab744ae8e8c0a9ae9391ff46c0dc60c",
+  "capture": "07fa19ef79b5b4171e25",
+  "merged_from_run": "run-27"
+}

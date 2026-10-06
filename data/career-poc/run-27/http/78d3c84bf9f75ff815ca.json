@@ -1,0 +1,16 @@
+{
+  "url": "https://asta-hka.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T22:53:13.303430+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 461,
+  "state": "ok",
+  "elapsed_seconds": 1.36,
+  "sha256": "6ac8778da3f66202ddf8e2abc87d16332a9cea843aae034a94024c3c2e170073",
+  "capture": "78d3c84bf9f75ff815ca"
+}

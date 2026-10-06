@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.diva-e.com/",
+  "checked_at": "2026-10-05T22:49:29.634878+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1356507,
+  "state": "ok",
+  "elapsed_seconds": 1.369,
+  "sha256": "9e296ffe689e7e8b09feb75c6a844eeb3377e084f58884f969186f5df9d6066c",
+  "capture": "7d9818771e9e8eedfa6c"
+}

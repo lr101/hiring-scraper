@@ -1,0 +1,17 @@
+{
+  "url": "https://blechnerei-nock.de/kontakt/stellen/",
+  "checked_at": "2026-10-05T23:41:48.299500+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129695,
+  "state": "ok",
+  "elapsed_seconds": 2.036,
+  "sha256": "171490740af37abb537d171c62a391934fba98777e893a372e6bc7e998a1e1f7",
+  "capture": "7bf4f8b74cbc13621442",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cloudflight.io/de/macio/",
+  "checked_at": "2026-10-05T23:19:52.983065+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 266725,
+  "state": "ok",
+  "elapsed_seconds": 1.149,
+  "sha256": "6f383c8c3e044a7437332049ac77f54445ef1f51be74e2db04e9decf4baa9b6f",
+  "capture": "6542c326214315aa7a09"
+}

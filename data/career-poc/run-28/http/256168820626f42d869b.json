@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arag-vertrieb.de/",
+  "checked_at": "2026-10-05T23:26:41.570349+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1587402,
+  "state": "ok",
+  "elapsed_seconds": 1.359,
+  "sha256": "f33cc30dc07cf6f0f662c98308db280eeac37eb5be6ad705b82a371067cf940b",
+  "capture": "256168820626f42d869b"
+}

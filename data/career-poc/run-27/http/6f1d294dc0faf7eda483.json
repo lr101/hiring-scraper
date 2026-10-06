@@ -1,0 +1,16 @@
+{
+  "url": "https://schlachtergmbh.de/karriere/",
+  "checked_at": "2026-10-05T22:45:28.181649+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118020,
+  "state": "ok",
+  "elapsed_seconds": 5.522,
+  "sha256": "014eb0a8ef76657c39c71ac8b5ed139c538b038446a2defbdd00bbdb454e662b",
+  "capture": "6f1d294dc0faf7eda483"
+}

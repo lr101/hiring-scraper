@@ -1,0 +1,16 @@
+{
+  "url": "https://gross-bau.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:17.250671+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "W/\"58-18ada72f6d0\"",
+  "last_modified": "Thu, 28 Sep 2023 06:21:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 88,
+  "state": "ok",
+  "elapsed_seconds": 0.63,
+  "sha256": "9101fe0f28770a2cccd77dc857aad2dad4465c98ad96008131bc05bcf559f718",
+  "capture": "d4d20ea002c2dcfbf459"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mall.info/unternehmen/karriere/arbeiten-bei-mall",
+  "checked_at": "2026-10-05T23:42:26.139491+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.mall.info/unternehmen/karriere/arbeiten-bei-mall/",
+  "bytes": 309,
+  "state": "http_error",
+  "elapsed_seconds": 0.373,
+  "sha256": "f3d6d2af896bea02d7b51bfb69b9d352beb4f68a99bc1cc2f761b309e1f53cb0",
+  "capture": "350070777efce9265b7b"
+}

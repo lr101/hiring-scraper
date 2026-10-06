@@ -1,0 +1,16 @@
+{
+  "url": "https://altenis.de/karriere",
+  "checked_at": "2026-10-05T23:41:30.541697+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49659,
+  "state": "http_error",
+  "elapsed_seconds": 1.154,
+  "sha256": "f1b9a9c39211336446970b5eb42d053f45aa67194a3a93500fd0a95ececbe66b",
+  "capture": "c9073f10c95c2f6ed8b3"
+}

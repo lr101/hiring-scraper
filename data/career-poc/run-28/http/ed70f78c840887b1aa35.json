@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vermessung-kudoke.de/careers",
+  "checked_at": "2026-10-05T23:40:56.098408+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"6ab67fe9-39a8\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14760,
+  "state": "http_error",
+  "elapsed_seconds": 1.048,
+  "sha256": "0885c9fdba7743bb299aaa0071b8b8720cb9f86af04281222202cbe9a71448a6",
+  "capture": "ed70f78c840887b1aa35"
+}

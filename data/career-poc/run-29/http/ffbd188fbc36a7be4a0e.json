@@ -1,0 +1,17 @@
+{
+  "url": "https://www.burst-zick.de/robots.txt",
+  "checked_at": "2026-10-05T23:35:04.228695+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118,
+  "state": "ok",
+  "elapsed_seconds": 0.314,
+  "sha256": "3b6d973ae9f8857cc4e2c5e1a5504b60f0408ebb506ddce9b9721202ee7b2fdf",
+  "capture": "ffbd188fbc36a7be4a0e",
+  "merged_from_run": "run-28"
+}

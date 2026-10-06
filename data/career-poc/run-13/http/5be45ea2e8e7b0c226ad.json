@@ -1,0 +1,14 @@
+{
+  "url": "https://www.contentful.com/robots.txt",
+  "checked_at": "2026-10-05T09:08:45.094082+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 429,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 33940,
+  "state": "http_error",
+  "elapsed_seconds": 0.127,
+  "sha256": "3ee2611f0ec7ce155ac3ebc840942fd15e74f4e563a7aa7e4886b192baf364c2",
+  "capture": "5be45ea2e8e7b0c226ad",
+  "reused_from": "data/career-poc/run-12/http/5be45ea2e8e7b0c226ad.json"
+}

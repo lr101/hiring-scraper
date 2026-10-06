@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schullv.de/jobs/ai-content-creator-weitere-faecher",
+  "checked_at": "2026-10-05T22:20:44.284679+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"c32ef82edf2a920f6bf2c459e392d876\"",
+  "last_modified": "Mon, 05 Oct 2026 15:46:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 16493,
+  "state": "ok",
+  "elapsed_seconds": 1.096,
+  "sha256": "d46f0cbee5ec3ca283b8e37f77ff2966914a5b531b242f9fa6313c30380a0b49",
+  "capture": "df1263ee3dd64c5cb1e0",
+  "merged_from_run": "run-25"
+}

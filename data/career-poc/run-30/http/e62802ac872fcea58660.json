@@ -1,0 +1,17 @@
+{
+  "url": "https://energy4u.org/job/sales-manager-m-w-d-worldgrid/",
+  "checked_at": "2026-10-05T23:23:12.633745+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 516829,
+  "state": "ok",
+  "elapsed_seconds": 1.016,
+  "sha256": "c00a9c0738fcf49b4b3282a1605563d5a0de1d072f4e8de058b4d2ec8074bc76",
+  "capture": "e62802ac872fcea58660",
+  "merged_from_run": "run-28"
+}

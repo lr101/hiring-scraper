@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.arburg.com/",
+  "checked_at": "2026-10-05T23:01:44.767134+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103875,
+  "state": "ok",
+  "elapsed_seconds": 1.172,
+  "sha256": "4588b7714df2564257270bda91037428b7b759453fafc8527d516b1b41f8f993",
+  "capture": "1418f02c2a9c27578c67"
+}

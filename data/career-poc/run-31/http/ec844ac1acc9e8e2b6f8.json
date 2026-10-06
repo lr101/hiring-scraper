@@ -1,0 +1,17 @@
+{
+  "url": "https://www.leverkus.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:33:29.863733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 402,
+  "state": "ok",
+  "elapsed_seconds": 0.838,
+  "sha256": "2edd5a869c7875781c716b020b38cdf613ed187e5969f8663a81ce49389f41cf",
+  "capture": "ec844ac1acc9e8e2b6f8",
+  "merged_from_run": "run-28"
+}

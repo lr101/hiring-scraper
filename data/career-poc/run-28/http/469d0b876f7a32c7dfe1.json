@@ -1,0 +1,16 @@
+{
+  "url": "https://pdtec.de/careers",
+  "checked_at": "2026-10-05T23:24:37.109568+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 236041,
+  "state": "http_error",
+  "elapsed_seconds": 2.126,
+  "sha256": "190d93f8b5d24022e3c179843d6bb67b1249d46368571afadcb9321bd9641803",
+  "capture": "469d0b876f7a32c7dfe1"
+}

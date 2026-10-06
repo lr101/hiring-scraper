@@ -1,0 +1,17 @@
+{
+  "url": "https://www.teamviewer.com/robots.txt",
+  "checked_at": "2026-10-05T23:31:09.859510+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 581,
+  "state": "ok",
+  "elapsed_seconds": 0.973,
+  "sha256": "160bad0ace888f14d455b916cd79472986eb1a34515d8fba0f51d44754eab264",
+  "capture": "2ba5ba456062aec6b2cd",
+  "merged_from_run": "run-28"
+}

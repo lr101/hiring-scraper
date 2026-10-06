@@ -1,0 +1,17 @@
+{
+  "url": "https://www.artwork.de/",
+  "checked_at": "2026-10-05T23:00:18.469379+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129113,
+  "state": "ok",
+  "elapsed_seconds": 2.472,
+  "sha256": "481d973a22c144fafcc49da32db937f95668b7d831f2de5b8e404824caf53966",
+  "capture": "4468df93ad53b2f714bb",
+  "merged_from_run": "run-27"
+}

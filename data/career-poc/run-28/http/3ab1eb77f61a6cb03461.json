@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fahren-lernen.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:08.047620+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94,
+  "state": "ok",
+  "elapsed_seconds": 0.942,
+  "sha256": "0200cd3d4662ad85496a6919e610fc80a0e0a665294f413b2e05db35e85f14f1",
+  "capture": "3ab1eb77f61a6cb03461"
+}

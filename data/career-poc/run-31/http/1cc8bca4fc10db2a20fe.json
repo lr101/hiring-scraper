@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wir-bewegen-alle.de/bewerben/jobs/job/busfahrerinnen-1",
+  "checked_at": "2026-10-05T23:16:36.899570+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 0,
+  "state": "ok",
+  "elapsed_seconds": 1.094,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "1cc8bca4fc10db2a20fe",
+  "merged_from_run": "run-28"
+}

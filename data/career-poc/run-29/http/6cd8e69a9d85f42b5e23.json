@@ -1,0 +1,17 @@
+{
+  "url": "https://www.connexity.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:28:16.290033+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1024,
+  "state": "ok",
+  "elapsed_seconds": 1.56,
+  "sha256": "96d532671df5e22d51892acabc59146e5f0fd08547be1dc4df8de38b55cb8a34",
+  "capture": "6cd8e69a9d85f42b5e23",
+  "merged_from_run": "run-28"
+}

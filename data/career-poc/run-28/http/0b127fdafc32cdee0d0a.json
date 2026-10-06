@@ -1,0 +1,16 @@
+{
+  "url": "https://online-psk.de/karriere",
+  "checked_at": "2026-10-05T23:18:35.067344+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 634351,
+  "state": "http_error",
+  "elapsed_seconds": 6.444,
+  "sha256": "295239ed010d49eee487f3f68205bfe9105f0d230d9988119042351af22c2ff3",
+  "capture": "0b127fdafc32cdee0d0a"
+}

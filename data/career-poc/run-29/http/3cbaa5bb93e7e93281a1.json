@@ -1,0 +1,17 @@
+{
+  "url": "https://stellenmarkt.faz.net/robots.txt",
+  "checked_at": "2026-10-05T23:11:00.312988+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"291-62744045a1949\"",
+  "last_modified": "Tue, 19 Nov 2024 13:29:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 657,
+  "state": "ok",
+  "elapsed_seconds": 0.461,
+  "sha256": "3884aad3d4142772e51cc4c3a87e6cca626b3a9c250c8a8c749eac4ad921881d",
+  "capture": "3cbaa5bb93e7e93281a1",
+  "merged_from_run": "run-27"
+}

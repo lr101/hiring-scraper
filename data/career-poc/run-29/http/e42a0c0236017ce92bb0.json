@@ -1,0 +1,17 @@
+{
+  "url": "https://www.heinrich-schmid.com/karriere/handwerker/",
+  "checked_at": "2026-10-05T23:46:33.071679+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 253300,
+  "state": "ok",
+  "elapsed_seconds": 0.689,
+  "sha256": "90904bce2f15c878e2e36091826e416dbc5739d3924d84a7ffacbbe97a532bc9",
+  "capture": "e42a0c0236017ce92bb0",
+  "merged_from_run": "run-28"
+}

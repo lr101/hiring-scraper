@@ -1,0 +1,16 @@
+{
+  "url": "https://online-psk.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:11.521394+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"77e5b69-f5-6446ab7675b60\"",
+  "last_modified": "Tue, 25 Nov 2025 12:49:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 245,
+  "state": "ok",
+  "elapsed_seconds": 0.498,
+  "sha256": "46b0cf495001706795d94271b1fe4b16f161eba1c1cf400d9a7c92da24d26100",
+  "capture": "72d19af9e1472676e9aa"
+}

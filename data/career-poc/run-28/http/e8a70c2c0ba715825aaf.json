@@ -1,0 +1,16 @@
+{
+  "url": "http://www.hug-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:19.028730+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.hug-ka.de/robots.txt",
+  "bytes": 240,
+  "state": "http_error",
+  "elapsed_seconds": 0.467,
+  "sha256": "c77958b788e2fbe0e0838c67e709ee04e1f1202eac9997cd709e1406016927aa",
+  "capture": "e8a70c2c0ba715825aaf"
+}

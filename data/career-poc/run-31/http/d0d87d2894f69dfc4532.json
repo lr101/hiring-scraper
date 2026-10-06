@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.ratiodata.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:54.885139+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 122,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "7833ec7317a74b02bd0224af8aaf9043e1f583daec8744125b2efebc71820fac",
+  "capture": "d0d87d2894f69dfc4532",
+  "merged_from_run": "run-28"
+}

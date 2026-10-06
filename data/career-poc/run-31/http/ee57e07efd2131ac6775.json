@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sle.kit.edu",
+  "checked_at": "2026-10-05T22:28:18.065439+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76359,
+  "state": "ok",
+  "elapsed_seconds": 0.105,
+  "sha256": "bac669ffc61b03865ff3104d9fd62d331ec9f1fbaccb2ccbf0722aeecdb0f34e",
+  "capture": "ee57e07efd2131ac6775",
+  "merged_from_run": "run-26"
+}

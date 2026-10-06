@@ -1,0 +1,17 @@
+{
+  "url": "https://www.adjusted-ventures.com/sitemap.xml",
+  "checked_at": "2026-10-05T22:17:49.119010+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17446,
+  "state": "ok",
+  "elapsed_seconds": 1.138,
+  "sha256": "506375126d6e27d6b94c4f2bb34ab480f62712c02b4619059e6ec612fe5465b4",
+  "capture": "e0c7f88b1003212faa6d",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://bodelschwingh.de/atelier-b/",
+  "checked_at": "2026-10-05T22:40:47.928927+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 163985,
+  "state": "ok",
+  "elapsed_seconds": 1.761,
+  "sha256": "4e50028be30ede79e2c224fd9ef31fc27bffeaa85c715a122866f46925bb3e8b",
+  "capture": "74d3f429c3312ed2ef61",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.miedel-dirr.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:28:21.129778+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 296,
+  "state": "ok",
+  "elapsed_seconds": 1.01,
+  "sha256": "368cae0b461a99ad8e82fa91d59d91538db4b0b9784477bf727c73d1b988d8a3",
+  "capture": "6ab8f7427ed59656dc68"
+}

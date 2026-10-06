@@ -1,0 +1,16 @@
+{
+  "url": "https://www.draht-jaeger.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:35:51.329009+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Thu, 09 Apr 2020 07:38:31 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 4094,
+  "state": "ok",
+  "elapsed_seconds": 0.51,
+  "sha256": "cfe16e9e9b10902390790f3a8281414824fbd989b61be9aa31c22e9abe0c4960",
+  "capture": "4801ea9089656705e8ed"
+}

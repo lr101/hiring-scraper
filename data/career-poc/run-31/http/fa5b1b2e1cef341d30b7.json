@@ -1,0 +1,17 @@
+{
+  "url": "https://punkt.de/de/stellenangebote/stellenangebote.html",
+  "checked_at": "2026-10-05T23:19:30.965399+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 99882,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "b8c240ea799251bda7e27d7bfa857c3c2a5525f932c1102f66f9af7e9aec025c",
+  "capture": "fa5b1b2e1cef341d30b7",
+  "merged_from_run": "run-28"
+}

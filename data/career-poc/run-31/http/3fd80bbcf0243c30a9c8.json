@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aydin-tax.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T22:50:03.766488+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 404,
+  "state": "ok",
+  "elapsed_seconds": 2.29,
+  "sha256": "2554375d24fee37ac2d42033582b5c88b0f6ac911a72860cae9c4458fbd7d997",
+  "capture": "3fd80bbcf0243c30a9c8",
+  "merged_from_run": "run-27"
+}

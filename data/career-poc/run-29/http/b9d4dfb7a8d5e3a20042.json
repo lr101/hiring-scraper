@@ -1,0 +1,17 @@
+{
+  "url": "https://hoepfner.softgarden.io/de/widgets/jobs?config=eyJzaG93Sm9iTGlzdCI6eyJhdWRpZW5jZSI6dHJ1ZSwiam9iY2F0ZWdvcnkiOnRydWUsIlByb2plY3RHZW9Mb2NhdGlvbkNpdHkiOnRydWUsInNnX2NvbXBhbnlfaWQiOmZhbHNlLCJzaG93RGF0ZUluRnJvbnRlbmQiOnRydWV9LCJzaG93RmlsdGVyIjp7ImF1ZGllbmNlIjp0cnVlLCJqb2JjYXRlZ29yeSI6dHJ1ZSwiUHJvamVjdEdlb0xvY2F0aW9uQ2l0eSI6dHJ1ZSwic2dfY29tcGFueV9pZCI6ZmFsc2V9LCJwcmVmaWxsRmlsdGVyIjp7ImF1ZGllbmNlIjoiIiwiam9iY2F0ZWdvcnkiOiIiLCJzZ19jb21wYW55X2lkIjoiIiwiUHJvamVjdEdlb0xvY2F0aW9uQ2l0eSI6IiIsIlByb2plY3RHZW9Mb2NhdGlvbkNpdHlSYWRpdXMiOiIyNSJ9LCJudW1iZXJPZkpvYnMiOjEwfQ%3D%3D",
+  "checked_at": "2026-10-05T23:14:26.367774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32416,
+  "state": "ok",
+  "elapsed_seconds": 1.032,
+  "sha256": "cc1f1d8e3b8f51cf148da27c569e1d3ccf4ea7c21e525e9f96f112ad7e1dc1e4",
+  "capture": "b9d4dfb7a8d5e3a20042",
+  "merged_from_run": "run-28"
+}

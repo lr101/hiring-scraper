@@ -1,0 +1,17 @@
+{
+  "url": "https://db.jobs/robots.txt",
+  "checked_at": "2026-10-05T22:56:36.305386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 108,
+  "state": "ok",
+  "elapsed_seconds": 0.153,
+  "sha256": "31b24793427f59189c2a3c2d622b678d09874d61c4095c75f2c75022becc22bb",
+  "capture": "ee91b657fe93ef742950",
+  "merged_from_run": "run-27"
+}

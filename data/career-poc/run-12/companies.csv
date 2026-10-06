@@ -1,0 +1,27 @@
+name,website,cohort,status,career_pages,providers,feed_jobs
+MegaCycle,https://megacycle-gmbh.de/,original_osm_12,unresolved,,,
+CodeWrights GmbH,https://www.codewrights.de/,original_osm_12,career_content_found,https://www.codewrights.de/de/arbeitgeber | https://www.codewrights.de/en/employer | https://www.codewrights.de/de/arbeitgeber/werkstudent-m-w-d-sales-backoffice | https://www.codewrights.de/de/arbeitgeber/praktikumsplatz-fuer-schueler-m-w-d,,
+ISCL - Internet Security Consulting Lang,https://www.iscl.de,original_osm_12,career_content_found,https://iscl.de/karriere/,,
+PDMLab e.K.,https://pdmlab.com,original_osm_12,unresolved,,,
+Grenke Technology Center,https://www.grenke.de,original_osm_12,career_content_found,https://www.grenke.com/de/karriere/ | https://jobs.grenke.com/de | https://www.grenke.com/de/karriere/ausbildung/ | https://www.grenke.com/de/karriere/bewerbungsprozess-und-kontakt/,,
+BAI - Böcherer Angewandte Informatik,https://www.bai.de/,original_osm_12,unresolved,,,
+Excipio,https://excipio.de,original_osm_12,unresolved,,,
+Technidata,https://www.its-technidata.de/,original_osm_12,unresolved,,,
+TelemaxX,https://www.telemaxx.de/,original_osm_12,jobs_feed_found,https://www.telemaxx.de/ueber-uns/karriere | https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene,personio,10
+Ratiodata SE,https://www.ratiodata.de/,original_osm_12,career_content_found,https://karriere.ratiodata.de/jobs/ | https://karriere.ratiodata.de/karriere/ | https://karriere.ratiodata.de/job/?vacancieid=2023-111 | https://karriere.ratiodata.de/job/?vacancieid=2025-218,,
+Unic GmbH,https://www.unic.com/,original_osm_12,career_content_found,https://www.unic.com/de/jobs | https://www.unic.com/en/jobs | https://www.unic.com/de/jobs/consultant | https://www.unic.com/de/jobs/test-manager | https://www.unic.com/de/jobs/unsere-kultur,,
+Komm.ONE,https://www.komm.one/,original_osm_12,career_content_found,https://www.komm.one/karriere/stellenangebote | https://www.komm.one/karriere/studium-ausbildung-und-praktika | https://www.komm.one/karriere/stellenangebote+komm_one | https://www.endica.de/karriere/aktuelle%20stellenangebote,,
+cinemo,https://www.cinemo.com/,selected_karlsruhe,jobs_feed_found,https://careers.cinemo.com/,personio,0
+inovex GmbH,https://www.inovex.de/,selected_karlsruhe,career_content_found,https://www.inovex.de/de/karriere/ | https://www.inovex.de/de/karriere/stellenangebote/ | https://www.inovex.de/de/karriere/teams-und-projekte/ | https://www.inovex.de/de/karriere/das-inovex-package-fuer-mitarbeiterinnen/ | https://www.inovex.de/de/karriere/stellenangebote/office-manager-in-muenchen/,,
+Exxeta AG,https://exxeta.com/,selected_karlsruhe,career_content_found,https://exxeta.com/karriere | https://exxeta.com/en/karriere,,
+Chrono24,https://about.chrono24.com/,selected_karlsruhe,jobs_feed_found,,personio,23
+Contentful,https://www.contentful.com/,selected_ats_controls,unresolved,,,
+ResearchGate,https://www.researchgate.net/,selected_ats_controls,unresolved,,,
+DeepL,https://www.deepl.com/,selected_ats_controls,jobs_feed_found,https://www.deepl.com/en/careers,ashby,18
+Ecosia,https://www.ecosia.org/,selected_ats_controls,jobs_feed_found,https://www.ecosia.org/about/careers/,ashby,0
+Wooga,https://www.wooga.com/,additional_greenhouse_controls,career_content_found,https://www.wooga.com/jobs,,
+trivago,https://company.trivago.com/,additional_greenhouse_controls,jobs_feed_found,https://careers.trivago.com/jobs/ | https://careers.trivago.com/apply/?gh_jid=4431832002,greenhouse | greenhouse,15
+ResearchGate Lever board (connector only),https://jobs.lever.co/researchgate,direct_board_control,unresolved,,,
+Packmatic GmbH homepage (Lever discovery),https://packmatic.io/,selected_lever_homepages,jobs_feed_found,,lever,13
+trivago careers site (Greenhouse application signal check),https://careers.trivago.com/,selected_greenhouse_homepages,jobs_feed_found,https://careers.trivago.com/jobs/ | https://careers.trivago.com/apply/?gh_jid=4431832002,greenhouse | greenhouse,15
+TechniData career site (search-assisted),https://karriere.technidata.de/,search_assisted,jobs_feed_found,https://karriere.technidata.de/ | https://karriere.technidata.de/jobs/64121193/,softgarden | schema_org,10

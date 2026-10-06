@@ -1,0 +1,17 @@
+{
+  "url": "https://fundr.com/karriere",
+  "checked_at": "2026-10-05T23:39:29.339932+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89482,
+  "state": "http_error",
+  "elapsed_seconds": 1.255,
+  "sha256": "c001ac8a7a965796a248c0a7812f76906e4726cce7839a13f9926a6edc0b3406",
+  "capture": "e99de40e0afb736d7685",
+  "merged_from_run": "run-28"
+}

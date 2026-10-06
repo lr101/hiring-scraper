@@ -1,0 +1,202 @@
+[
+  {
+    "name": "audials",
+    "website": "https://audials.com/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12566506477",
+    "original_website": "https://audials.com/",
+    "osm_source_id": "node/12566506477",
+    "distance_m": 530.8,
+    "osm_category": "it"
+  },
+  {
+    "name": "qwertiko GmbH",
+    "website": "https://www.qwertiko.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/9217989066",
+    "original_website": "https://www.qwertiko.de/",
+    "osm_source_id": "node/9217989066",
+    "distance_m": 562.6,
+    "osm_category": "it"
+  },
+  {
+    "name": "Navigate AG",
+    "website": "https://navigate.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/9217989069",
+    "original_website": "https://navigate.de",
+    "osm_source_id": "node/9217989069",
+    "distance_m": 566.7,
+    "osm_category": "it"
+  },
+  {
+    "name": "awesome",
+    "website": "https://awesome-it.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12093593641",
+    "original_website": "https://awesome-it.de/",
+    "osm_source_id": "node/12093593641",
+    "distance_m": 638.1,
+    "osm_category": "it"
+  },
+  {
+    "name": "act smartware",
+    "website": "https://www.act-smartware.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11347267934",
+    "original_website": "https://www.act-smartware.de/",
+    "osm_source_id": "node/11347267934",
+    "distance_m": 1134.1,
+    "osm_category": "it"
+  },
+  {
+    "name": "adesso",
+    "website": "https://www.adesso.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/6688483711",
+    "original_website": "https://www.adesso.de",
+    "osm_source_id": "node/6688483711",
+    "distance_m": 1191.3,
+    "osm_category": "it"
+  },
+  {
+    "name": "IONOS",
+    "website": "https://www.ionos.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12324666851",
+    "original_website": "https://www.ionos.de/",
+    "osm_source_id": "node/12324666851",
+    "distance_m": 1621.3,
+    "osm_category": "it"
+  },
+  {
+    "name": "Tooltec IT GmbH",
+    "website": "https://tooltec.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271942",
+    "original_website": "https://tooltec.de",
+    "osm_source_id": "node/11349271942",
+    "distance_m": 1697.9,
+    "osm_category": "it"
+  },
+  {
+    "name": "DatenBerg GmbH",
+    "website": "https://datenberg.eu",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271941",
+    "original_website": "https://datenberg.eu",
+    "osm_source_id": "node/11349271941",
+    "distance_m": 1699.6,
+    "osm_category": "it"
+  },
+  {
+    "name": "Renumics GmbH",
+    "website": "https://renumics.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271937",
+    "original_website": "https://renumics.com",
+    "osm_source_id": "node/11349271937",
+    "distance_m": 1701.1,
+    "osm_category": "it"
+  },
+  {
+    "name": "dipano GmbH",
+    "website": "https://dipano.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271934",
+    "original_website": "https://dipano.com",
+    "osm_source_id": "node/11349271934",
+    "distance_m": 1703.3,
+    "osm_category": "it"
+  },
+  {
+    "name": "emmtrix Technologies GmbH",
+    "website": "https://www.emmtrix.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271933",
+    "original_website": "https://www.emmtrix.com",
+    "osm_source_id": "node/11349271933",
+    "distance_m": 1705.2,
+    "osm_category": "it"
+  },
+  {
+    "name": "heliopas.ai GmbH",
+    "website": "https://heliopas.ai/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271939",
+    "original_website": "https://heliopas.ai/",
+    "osm_source_id": "node/11349271939",
+    "distance_m": 1706.4,
+    "osm_category": "it"
+  },
+  {
+    "name": "thingsTHINKING GmbH",
+    "website": "https://www.semantha.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271929",
+    "original_website": "https://www.semantha.de/",
+    "osm_source_id": "node/11349271929",
+    "distance_m": 1708.7,
+    "osm_category": "it"
+  },
+  {
+    "name": "Easy Smart Grid GmbH",
+    "website": "https://www.easysg.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271936",
+    "original_website": "https://www.easysg.de/",
+    "osm_source_id": "node/11349271936",
+    "distance_m": 1709.9,
+    "osm_category": "it"
+  },
+  {
+    "name": "HS High Stake GmbH",
+    "website": "https://high-stake.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271924",
+    "original_website": "https://high-stake.de/",
+    "osm_source_id": "node/11349271924",
+    "distance_m": 1713.2,
+    "osm_category": "it"
+  },
+  {
+    "name": "BIN Holding",
+    "website": "https://binholding.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271927",
+    "original_website": "https://binholding.de",
+    "osm_source_id": "node/11349271927",
+    "distance_m": 1716.1,
+    "osm_category": "it"
+  },
+  {
+    "name": "HS Analysis GmbH",
+    "website": "https://www.hs-analysis.com/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271925",
+    "original_website": "https://www.hs-analysis.com/",
+    "osm_source_id": "node/11349271925",
+    "distance_m": 1718.0,
+    "osm_category": "it"
+  },
+  {
+    "name": "SL Optimum GmbH",
+    "website": "https://sl-optimum.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271921",
+    "original_website": "https://sl-optimum.com",
+    "osm_source_id": "node/11349271921",
+    "distance_m": 1721.4,
+    "osm_category": "it"
+  },
+  {
+    "name": "PTV Logistics GmbH",
+    "website": "https://www.ptvlogistics.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11270910756",
+    "original_website": "https://www.ptvlogistics.com",
+    "osm_source_id": "node/11270910756",
+    "distance_m": 1925.1,
+    "osm_category": "it"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aerztekammer-bw.de:443/baek-nb",
+  "checked_at": "2026-10-05T23:01:39.480234+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"20de37585e55a319f967b1bc79598d64\"",
+  "last_modified": "Mon, 05 Oct 2026 14:06:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 75761,
+  "state": "ok",
+  "elapsed_seconds": 0.333,
+  "sha256": "e60d8e1e6fc97121af81a9018a436b9fcba099b0e4f48944e8c62f60f8071936",
+  "capture": "7f408435e27ef6d89f0e",
+  "merged_from_run": "run-27"
+}

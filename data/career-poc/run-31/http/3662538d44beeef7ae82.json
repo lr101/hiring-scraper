@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fokusenergie.net/robots.txt",
+  "checked_at": "2026-10-05T23:07:50.421326+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"402-4f958bf412b00\"",
+  "last_modified": "Wed, 14 May 2014 09:24:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1026,
+  "state": "http_error",
+  "elapsed_seconds": 0.291,
+  "sha256": "57717ab141a5d3e30c40d43ace89c6898098c532d8d679617cd1fa31807b1e7d",
+  "capture": "3662538d44beeef7ae82",
+  "merged_from_run": "run-27"
+}

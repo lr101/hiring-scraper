@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.pse.kit.edu/de/jobs/170842/apply",
+  "checked_at": "2026-10-05T22:28:09.028542+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://jobs.pse.kit.edu/de/jobs/170842/intro",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.144,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "8d75e1a0864e4d7a64a8"
+}

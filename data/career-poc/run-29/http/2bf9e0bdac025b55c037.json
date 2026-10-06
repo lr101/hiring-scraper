@@ -1,0 +1,17 @@
+{
+  "url": "https://objektkultur.de/",
+  "checked_at": "2026-10-05T22:08:55.382621+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 404778,
+  "state": "ok",
+  "elapsed_seconds": 1.09,
+  "sha256": "95ea425dce7742b5466cb5c6c972b2aa1feeec7446731944a5a4fa46e9e5d3ec",
+  "capture": "2bf9e0bdac025b55c037",
+  "merged_from_run": "run-25"
+}

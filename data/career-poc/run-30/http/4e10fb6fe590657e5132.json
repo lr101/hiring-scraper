@@ -1,0 +1,17 @@
+{
+  "url": "https://www.procad.de/robots.txt",
+  "checked_at": "2026-10-05T23:03:05.444160+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.revalizesoftware.com/pro-file",
+  "bytes": 164,
+  "state": "http_error",
+  "elapsed_seconds": 0.198,
+  "sha256": "d960e10dcc65401f6eaca442476c175ab83f5d4b16aecef3e79e12c85a106bd1",
+  "capture": "4e10fb6fe590657e5132",
+  "merged_from_run": "run-27"
+}

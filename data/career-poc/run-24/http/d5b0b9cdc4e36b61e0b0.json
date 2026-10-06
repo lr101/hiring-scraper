@@ -1,0 +1,16 @@
+{
+  "url": "https://www.emmtrix.com/company/jobs",
+  "checked_at": "2026-10-05T22:00:52.082030+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 469945,
+  "state": "ok",
+  "elapsed_seconds": 2.194,
+  "sha256": "72d97c0126ccf878f29a71997067bb37008261b5b9df16cf826e1b4ba5d134c7",
+  "capture": "d5b0b9cdc4e36b61e0b0"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://hoelzergmbh.de/wp-sitemap-posts-header-1.xml",
+  "checked_at": "2026-10-05T23:32:33.559615+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 962,
+  "state": "ok",
+  "elapsed_seconds": 1.109,
+  "sha256": "9482c665b6a4ca529faa123dd060798060244b4dfcbefca419166b04c1447c9b",
+  "capture": "41d355d3b5cc1728a50d",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.magnie.de/wp-content/uploads/2021/04/004-job-search.png",
+  "checked_at": "2026-10-05T23:45:43.392891+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "image/png",
+  "etag": null,
+  "last_modified": "Mon, 24 Aug 2026 09:18:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 5120,
+  "state": "ok",
+  "elapsed_seconds": 0.225,
+  "sha256": "9f9d274b67f7b760d2de434b32a4692659d46c829a701639aaf1a637ece97266",
+  "capture": "3c18067d4a08781762fc",
+  "merged_from_run": "run-28"
+}

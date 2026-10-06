@@ -1,0 +1,10 @@
+{
+  "url": "https://www.mic.de/bewerben/berufserfahrene/\u00f6kologe-artenexperte-m-wd-in-der-abteilung-artenschutz/",
+  "checked_at": "2026-10-05T22:35:51.103402+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "'ascii' codec can't encode character '\\xf6' in position 30: ordinal not in range(128)",
+  "elapsed_seconds": 1.009,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "b77db84ee0c9b8fd6d6e"
+}

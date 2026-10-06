@@ -1,0 +1,16 @@
+{
+  "url": "https://www.phytonics.com/careers",
+  "checked_at": "2026-10-05T23:23:06.514023+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"page_cache:93090513278:NotFoundController:03a376e437744ba062c9b551ef4bd044:62b1a0a3e6f38515e1ba729bee211379\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 215848,
+  "state": "http_error",
+  "elapsed_seconds": 1.119,
+  "sha256": "676909298f02369338a6e853df03c9f48a5a1bf056e8cbecd7d9cfc8dec39ac6",
+  "capture": "257e94bff92d3cb0976e"
+}

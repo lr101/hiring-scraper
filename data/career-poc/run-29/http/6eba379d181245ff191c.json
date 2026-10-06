@@ -1,0 +1,17 @@
+{
+  "url": "https://silke-wuestholz.de/robots.txt",
+  "checked_at": "2026-10-05T22:16:22.266029+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119,
+  "state": "ok",
+  "elapsed_seconds": 5.988,
+  "sha256": "2e528ae2eec13f2ff0b292afada7ff550773071cb3651affe83bb543859b6387",
+  "capture": "6eba379d181245ff191c",
+  "merged_from_run": "run-25"
+}

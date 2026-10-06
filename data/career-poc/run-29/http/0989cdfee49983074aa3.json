@@ -1,0 +1,17 @@
+{
+  "url": "https://m-a-u-s-seminare-ggmbh.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T22:40:16.151963+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"0165dd7f96f63da2c88bafde2679a23f\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111531,
+  "state": "ok",
+  "elapsed_seconds": 0.194,
+  "sha256": "b9d67d5dc5b453f1778783621ae0f23f9eb6303203840a8fdfe17dec7ebd26e8",
+  "capture": "0989cdfee49983074aa3",
+  "merged_from_run": "run-27"
+}

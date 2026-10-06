@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sle.kit.edu/wirueberuns/zsb.php",
+  "checked_at": "2026-10-05T22:30:46.501184+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 126087,
+  "state": "ok",
+  "elapsed_seconds": 0.139,
+  "sha256": "c59fa50738e00582c9163494929091e2b5a0d666bae33db36a68ee82ee5b40e3",
+  "capture": "bef1572f079700f63955",
+  "merged_from_run": "run-26"
+}

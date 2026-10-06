@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitsagentur.de/karriere-und-weiterbildung/beruflich-weiterbilden/berufliches-weiterbildungsziel-festlegen",
+  "checked_at": "2026-10-05T22:06:05.593870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1354f7lasty1orr\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78993,
+  "state": "ok",
+  "elapsed_seconds": 1.128,
+  "sha256": "33b12bd7ea8a8cb05bc35a3818ecaa9a3010b1875efee702b6d7e4c6b496d155",
+  "capture": "00b4b958832791218a35"
+}

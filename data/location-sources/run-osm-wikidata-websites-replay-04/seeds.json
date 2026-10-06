@@ -1,0 +1,200 @@
+[
+  {
+    "name": "Bundesamt für Migration und Flüchtlinge",
+    "website": "https://www.bamf.de/",
+    "osm_source_id": "node/4405674847",
+    "website_resolution": {
+      "method": "osm_entity_wikidata_p856",
+      "relation": "entity",
+      "wikidata_id": "Q1005470",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1005470"
+    }
+  },
+  {
+    "name": "Rheinhafen",
+    "website": "http://www.rheinhafen.de/rheinhaefen-karlsruhe/",
+    "osm_source_id": "relation/7906688",
+    "website_resolution": {
+      "method": "osm_entity_wikidata_p856",
+      "relation": "entity",
+      "wikidata_id": "Q2147707",
+      "evidence_url": "https://www.wikidata.org/wiki/Q2147707"
+    }
+  },
+  {
+    "name": "Hatz-Moninger Brauhaus",
+    "website": "https://www.moninger.de/",
+    "osm_source_id": "way/160832479",
+    "website_resolution": {
+      "method": "osm_entity_wikidata_p856",
+      "relation": "entity",
+      "wikidata_id": "Q1589080",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1589080"
+    }
+  },
+  {
+    "name": "HUK-Coburg",
+    "website": "https://www.huk.de",
+    "osm_source_id": "node/11328328217",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q1566111",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1566111"
+    }
+  },
+  {
+    "name": "Helvetia",
+    "website": "https://www.helvetia.com/corporate/content/de/home.html/",
+    "osm_source_id": "node/11810464561",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q933766",
+      "evidence_url": "https://www.wikidata.org/wiki/Q933766"
+    }
+  },
+  {
+    "name": "BGV",
+    "website": "https://www.bgv.de",
+    "osm_source_id": "node/13159956405",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q795911",
+      "evidence_url": "https://www.wikidata.org/wiki/Q795911"
+    }
+  },
+  {
+    "name": "Debeka",
+    "website": "https://www.debeka.de/",
+    "osm_source_id": "node/13665841693",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q1181452",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1181452"
+    }
+  },
+  {
+    "name": "KKH Kaufmännische Krankenkasse",
+    "website": "https://www.kkh.de/",
+    "osm_source_id": "node/13696583156",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q2740121",
+      "evidence_url": "https://www.wikidata.org/wiki/Q2740121"
+    }
+  },
+  {
+    "name": "Techniker Krankenkasse",
+    "website": "https://www.tk.de/",
+    "osm_source_id": "node/2998265443",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q607531",
+      "evidence_url": "https://www.wikidata.org/wiki/Q607531"
+    }
+  },
+  {
+    "name": "LVM",
+    "website": "https://www.lvm.de/",
+    "osm_source_id": "node/4086852009",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q1798429",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1798429"
+    }
+  },
+  {
+    "name": "Agentur für Arbeit",
+    "website": "https://www.arbeitsagentur.de/",
+    "osm_source_id": "node/4442791369",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q1478016",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1478016"
+    }
+  },
+  {
+    "name": "Greenpeace Karlsruhe",
+    "website": "https://www.greenpeace.org/international/",
+    "osm_source_id": "node/4825818954",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q81307",
+      "evidence_url": "https://www.wikidata.org/wiki/Q81307"
+    }
+  },
+  {
+    "name": "Allianz",
+    "website": "https://www.allianz.de/",
+    "osm_source_id": "node/9070530368",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q487292",
+      "evidence_url": "https://www.wikidata.org/wiki/Q487292"
+    }
+  },
+  {
+    "name": "Lohnsteuerhilfe Baden-Württemberg",
+    "website": "https://www.lohi-bw.de/",
+    "osm_source_id": "node/9195617770",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q76215293",
+      "evidence_url": "https://www.wikidata.org/wiki/Q76215293"
+    }
+  },
+  {
+    "name": "IG BAU Mitgliederbüro Karlsruhe",
+    "website": "https://www.igbau.de/",
+    "osm_source_id": "node/9369517965",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q896472",
+      "evidence_url": "https://www.wikidata.org/wiki/Q896472"
+    }
+  },
+  {
+    "name": "DRK Ortsverein Hagenbach",
+    "website": "https://www.drk.de/",
+    "osm_source_id": "way/309712354",
+    "website_resolution": {
+      "method": "osm_brand_wikidata_p856",
+      "relation": "brand",
+      "wikidata_id": "Q694104",
+      "evidence_url": "https://www.wikidata.org/wiki/Q694104"
+    }
+  },
+  {
+    "name": "Stadt Karlsruhe",
+    "website": "http://www.stadt-karlsruhe.de/",
+    "osm_source_id": "node/10900306486",
+    "website_resolution": {
+      "method": "osm_operator_wikidata_p856",
+      "relation": "operator",
+      "wikidata_id": "Q1040",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1040"
+    }
+  },
+  {
+    "name": "Contargo Wörth-Karlsruhe GmbH",
+    "website": "https://www.contargo.net",
+    "osm_source_id": "way/257764228",
+    "website_resolution": {
+      "method": "osm_url_name_match",
+      "relation": "osm_url_tag",
+      "wikidata_id": "",
+      "evidence_url": "https://www.openstreetmap.org/way/257764228"
+    }
+  }
+]

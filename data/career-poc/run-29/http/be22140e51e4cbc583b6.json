@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pbeakk.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:35.718659+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Thu, 17 Sep 2026 06:51:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 150,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "56b51ab900432a82b37443837623890eb7595a1901a132d85f862bcf53a2d3e8",
+  "capture": "be22140e51e4cbc583b6",
+  "merged_from_run": "run-25"
+}

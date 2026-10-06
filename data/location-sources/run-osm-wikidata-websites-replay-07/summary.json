@@ -1,0 +1,28 @@
+{
+  "companies": 18,
+  "statuses": {
+    "career_content_found": 7,
+    "unresolved": 8,
+    "jobs_extracted": 3
+  },
+  "unique_requests_or_reused_captures": 123,
+  "new_requests": 0,
+  "reused_captures": 123,
+  "http_statuses": {
+    "200": 93,
+    "404": 10,
+    "301": 12,
+    "302": 4,
+    "307": 2,
+    "403": 1,
+    "network_error": 1
+  },
+  "by_cohort": {
+    "unspecified": {
+      "career_content_found": 7,
+      "unresolved": 8,
+      "jobs_extracted": 3
+    }
+  },
+  "finished_at": "2026-10-06T07:25:04.822069+00:00"
+}

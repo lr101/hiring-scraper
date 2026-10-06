@@ -1,0 +1,16 @@
+{
+  "url": "https://www.knappe1a.de/",
+  "checked_at": "2026-10-05T23:18:52.706096+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10659,
+  "state": "ok",
+  "elapsed_seconds": 1.454,
+  "sha256": "c34ed1df250f1d07b7bd2009bad7761cf1cef0cf3c5d5ce518cfa41fa6219e70",
+  "capture": "30f07c40ea219484683d"
+}

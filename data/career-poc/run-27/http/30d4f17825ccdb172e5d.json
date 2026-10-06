@@ -1,0 +1,16 @@
+{
+  "url": "https://versicherung.gothaer.de/careers/",
+  "checked_at": "2026-10-05T22:43:49.911732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"fuq9ThLFbN\"",
+  "last_modified": "Mon, 05 Oct 2026 22:43:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 552456,
+  "state": "http_error",
+  "elapsed_seconds": 1.355,
+  "sha256": "7eeabd4e12c56cd66b27e88885d549e92ef877594281e3ce65d944bd42a62ac8",
+  "capture": "30d4f17825ccdb172e5d"
+}

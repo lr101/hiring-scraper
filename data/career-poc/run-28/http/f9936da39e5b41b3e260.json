@@ -1,0 +1,16 @@
+{
+  "url": "https://rnt.de/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:41:32.855716+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 142356,
+  "state": "http_error",
+  "elapsed_seconds": 1.618,
+  "sha256": "4613d1dcab206b4826d6cabab8dcab48c3df2a5adbb092080e326e10d756e336",
+  "capture": "f9936da39e5b41b3e260"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://cse-engineering.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:40:25.665308+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15816,
+  "state": "ok",
+  "elapsed_seconds": 1.092,
+  "sha256": "0ac81ba269a49dd3b18eaa5d957be29613e41e0eace500dd1922497311872833",
+  "capture": "46f56a8ae10a8dbba2d5",
+  "merged_from_run": "run-28"
+}

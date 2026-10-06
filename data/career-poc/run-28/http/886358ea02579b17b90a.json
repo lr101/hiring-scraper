@@ -1,0 +1,16 @@
+{
+  "url": "https://bau-lang.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:13.659681+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169,
+  "state": "ok",
+  "elapsed_seconds": 0.473,
+  "sha256": "f27c046c8aa730bfb66b9b7a4d0065fd295026dd87904a0583ea2fce6ef7656e",
+  "capture": "886358ea02579b17b90a"
+}

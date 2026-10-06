@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kuhnle-laborbedarf.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:55.539930+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"344-57d47056310de\"",
+  "last_modified": "Tue, 18 Dec 2018 07:41:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 836,
+  "state": "ok",
+  "elapsed_seconds": 0.812,
+  "sha256": "d974f42f070bb96d4601c706c54f883b73a2e8334117a270682608e58c6f8cc4",
+  "capture": "85bb98a0331b03d8fb0e"
+}

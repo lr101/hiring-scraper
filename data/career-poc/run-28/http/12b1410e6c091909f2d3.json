@@ -1,0 +1,16 @@
+{
+  "url": "https://funkybooth.eu/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:16:10.879215+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6532,
+  "state": "ok",
+  "elapsed_seconds": 1.062,
+  "sha256": "c806a72f25b1beba9af1a83cef1ea1dfaf3c157f4da3d6d4bd755123ff0356c5",
+  "capture": "12b1410e6c091909f2d3"
+}

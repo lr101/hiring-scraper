@@ -1,0 +1,16 @@
+{
+  "url": "https://www.krz-swd.de/",
+  "checked_at": "2026-10-05T23:39:00.978717+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 14:24:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 451569,
+  "state": "ok",
+  "elapsed_seconds": 0.365,
+  "sha256": "b64a665c36d0a8f83ff022250a4ddc22e4c4ecf4cd4f07fc968cb3b1a1d61a48",
+  "capture": "058023a5d9adb1f682e9"
+}

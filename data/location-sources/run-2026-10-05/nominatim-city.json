@@ -1,0 +1,10 @@
+{
+  "name": "nominatim-city",
+  "url": "https://nominatim.openstreetmap.org/search?q=Karlsruhe%2C+Deutschland&countrycodes=de&featureType=city&format=jsonv2&addressdetails=1&limit=1",
+  "method": "GET",
+  "checked_at": "2026-10-05T14:41:30.231317+00:00",
+  "status": 200,
+  "content_type": "application/json; charset=utf-8",
+  "bytes": 569,
+  "sha256": "1a5d3ca61c7ee8e4bc38e770401cbd12e5f629e414da0ba0258153073c5407e3"
+}

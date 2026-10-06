@@ -1,0 +1,17 @@
+{
+  "url": "https://perfekt-futur.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:17:03.412384+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 544,
+  "state": "ok",
+  "elapsed_seconds": 2.22,
+  "sha256": "b2cae1ceb789c016dd7bff38ec7e667f02495a05ce693caf38e29b71de9a0f87",
+  "capture": "2cf7b4f2288b8e169816",
+  "merged_from_run": "run-28"
+}

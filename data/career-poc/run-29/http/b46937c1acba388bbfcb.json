@@ -1,0 +1,17 @@
+{
+  "url": "https://msales.com/jobs",
+  "checked_at": "2026-10-05T23:11:27.895146+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3332,
+  "state": "http_error",
+  "elapsed_seconds": 1.077,
+  "sha256": "91b6b69a5d192336e5f5bb37d843cf34f484266d79d37e23b7616c04609bbe22",
+  "capture": "b46937c1acba388bbfcb",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.diebauingenieure.com/index.html",
+  "checked_at": "2026-10-05T23:28:10.929940+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"57c9-657946c5e503e\"",
+  "last_modified": "Mon, 27 Jul 2026 09:34:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22473,
+  "state": "ok",
+  "elapsed_seconds": 0.917,
+  "sha256": "0a58f051be4dab2b5fff81ec37474518b1f0875c09cf31e9714a39bbf01abb3f",
+  "capture": "340aa64d45dc5ded88db",
+  "merged_from_run": "run-28"
+}

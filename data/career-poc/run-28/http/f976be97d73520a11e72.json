@@ -1,0 +1,16 @@
+{
+  "url": "https://elosmedtech.com/",
+  "checked_at": "2026-10-05T23:39:49.927212+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"30092-1791228592;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 215065,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "1fa1f3819349fc1204eff58afc344d2231ff1ea82d36da6b66a9bde6d924f13a",
+  "capture": "f976be97d73520a11e72"
+}

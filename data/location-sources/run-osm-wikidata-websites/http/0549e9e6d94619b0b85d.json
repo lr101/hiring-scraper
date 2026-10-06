@@ -1,0 +1,16 @@
+{
+  "url": "https://igbau.de/sitemap.xml",
+  "checked_at": "2026-10-06T07:07:22.308929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "\"d57e6-65d1dc056c383\"",
+  "last_modified": "Mon, 05 Oct 2026 20:30:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 874470,
+  "state": "ok",
+  "elapsed_seconds": 1.11,
+  "sha256": "2aaf5ac7f58287364b6dc50be18882a94790a42d27795f68b0b7a740a486032b",
+  "capture": "0549e9e6d94619b0b85d"
+}

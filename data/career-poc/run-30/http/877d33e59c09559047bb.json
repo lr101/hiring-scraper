@@ -1,0 +1,17 @@
+{
+  "url": "https://zutun.de/bayreuth/jobs/top-10-arbeitgeber",
+  "checked_at": "2026-10-05T23:35:31.044779+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65837,
+  "state": "ok",
+  "elapsed_seconds": 1.191,
+  "sha256": "372925c207e5d04768675b5fa5f9988108f9e2fdf0137f7b86e1dd1cff0a5aaf",
+  "capture": "877d33e59c09559047bb",
+  "merged_from_run": "run-28"
+}

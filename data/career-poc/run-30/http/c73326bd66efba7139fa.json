@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bell.de/jobs/system-engineer-m-w-d",
+  "checked_at": "2026-10-05T23:34:28.236815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53659,
+  "state": "ok",
+  "elapsed_seconds": 0.909,
+  "sha256": "b23c4bf2c3b8e2cb3712f4bc81b82583a89b16e77e1756800e02bcb8a21226f5",
+  "capture": "c73326bd66efba7139fa",
+  "merged_from_run": "run-28"
+}

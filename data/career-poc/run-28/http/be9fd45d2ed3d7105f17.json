@@ -1,0 +1,16 @@
+{
+  "url": "https://zwilicht.com/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:16:17.580580+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 284,
+  "state": "ok",
+  "elapsed_seconds": 1.007,
+  "sha256": "e7662ed12285db95aa6900fd0ad3fb7e66d59a9f7c34bbdd97dfe98d2a96448c",
+  "capture": "be9fd45d2ed3d7105f17"
+}

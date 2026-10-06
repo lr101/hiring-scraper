@@ -1,0 +1,16 @@
+{
+  "url": "https://sl-optimum.com/robots.txt",
+  "checked_at": "2026-10-05T22:02:00.845722+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1271,
+  "state": "http_error",
+  "elapsed_seconds": 0.252,
+  "sha256": "5b91dd665bf31140958c0a1a6a3de0e34b41b9ef560eb7cdcb8fd255b5266604",
+  "capture": "a39218c822010e5ace3e"
+}

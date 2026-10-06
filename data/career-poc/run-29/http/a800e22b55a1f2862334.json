@@ -1,0 +1,17 @@
+{
+  "url": "https://ks-personal.jobs/jobs/",
+  "checked_at": "2026-10-05T22:19:58.045489+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"2d8db-65d1f0dce8001\"",
+  "last_modified": "Mon, 05 Oct 2026 22:03:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 186587,
+  "state": "ok",
+  "elapsed_seconds": 1.229,
+  "sha256": "2623f4e90335d6e6658cfa07a53dc4c213eb8adac39758987e7d59d5b73304bf",
+  "capture": "a800e22b55a1f2862334",
+  "merged_from_run": "run-25"
+}

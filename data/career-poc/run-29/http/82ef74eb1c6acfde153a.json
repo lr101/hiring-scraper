@@ -1,0 +1,17 @@
+{
+  "url": "https://www.isi.fraunhofer.de/de/karriere.html",
+  "checked_at": "2026-10-05T23:26:23.985522+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 80803,
+  "state": "ok",
+  "elapsed_seconds": 0.967,
+  "sha256": "ec69cecf8e4d2ef71b44e52ee3b1238bf05a91ecc1fc1ae62fece5bac7b26eca",
+  "capture": "82ef74eb1c6acfde153a",
+  "merged_from_run": "run-28"
+}

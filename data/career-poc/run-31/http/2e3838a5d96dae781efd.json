@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schukraft.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:31.306643+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1b8-65604c170d0cf\"",
+  "last_modified": "Tue, 07 Jul 2026 12:44:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 440,
+  "state": "ok",
+  "elapsed_seconds": 1.055,
+  "sha256": "7fba396c8de7a6888aa27268fc21636617499f9bbd7e7663c901a14d6b75950a",
+  "capture": "2e3838a5d96dae781efd",
+  "merged_from_run": "run-28"
+}

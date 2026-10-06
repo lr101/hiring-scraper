@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sparkassenversicherung.de/robots.txt",
+  "checked_at": "2026-10-05T22:41:35.863566+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 17:15:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 3520,
+  "state": "ok",
+  "elapsed_seconds": 0.206,
+  "sha256": "63a0e8c46b3ec7707071735cd993c476bf5cb1c18818977a8d40801c0e6dc1c4",
+  "capture": "cd340f38541cde6584ab",
+  "merged_from_run": "run-27"
+}

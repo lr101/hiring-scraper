@@ -1,0 +1,17 @@
+{
+  "url": "https://diakonie-kork.de/",
+  "checked_at": "2026-10-05T22:50:45.054782+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 512814,
+  "state": "ok",
+  "elapsed_seconds": 2.231,
+  "sha256": "ab254659eb73e10651b0001390afa3b29d83152b6a6d7190e3041d9b24b42f72",
+  "capture": "9e3f4acce8344a67b731",
+  "merged_from_run": "run-27"
+}

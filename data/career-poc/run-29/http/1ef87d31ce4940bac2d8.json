@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lutherisch-karlsruhe.org/karriere",
+  "checked_at": "2026-10-05T22:35:45.172280+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32936,
+  "state": "http_error",
+  "elapsed_seconds": 1.433,
+  "sha256": "61eaf1aedca6af4408acf4e4865e2b31440884a327944fc39512b5659f1405a3",
+  "capture": "1ef87d31ce4940bac2d8",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://cluetecgmbh.recruitee.com/o/account-manager-mwd",
+  "checked_at": "2026-10-05T23:23:16.613883+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245188,
+  "state": "ok",
+  "elapsed_seconds": 1.035,
+  "sha256": "67c392907575a058f542f622e66e705bf690c85df0788564128d2df4f274ad31",
+  "capture": "94761062a4e42e0ddcde"
+}

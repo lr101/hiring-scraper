@@ -1,0 +1,17 @@
+{
+  "url": "https://igbce.de/igbce/vor-ort/in-der-region/landesbezirke-und-bezirke/bezirk-karlsruhe",
+  "checked_at": "2026-10-05T22:11:58.427747+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": "\"KXHKNEBJDDRZMX\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 147039,
+  "state": "ok",
+  "elapsed_seconds": 0.498,
+  "sha256": "a2dedbb3a8b684e05c1ef8e15e8de4f493fba323ed1786870dd68a0c135bf1b6",
+  "capture": "f429de07f22fd297de4e",
+  "merged_from_run": "run-25"
+}

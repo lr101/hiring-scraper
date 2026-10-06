@@ -1,0 +1,16 @@
+{
+  "url": "https://www.emilfrey.de/de/ef-logistik-gmbh",
+  "checked_at": "2026-10-05T23:33:17.132689+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"4228e573a67b4dc9b02a579aa91a9212\"",
+  "last_modified": "Thu, 01 Oct 2026 11:49:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22583,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "85306d5d1f0288e801fc6ce8fff3fea9429f0c7835ae418e8801940825a7464b",
+  "capture": "360d10d98064efbd3caa"
+}

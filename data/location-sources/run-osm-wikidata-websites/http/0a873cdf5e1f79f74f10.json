@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.huk.de/errors/404",
+  "checked_at": "2026-10-06T07:06:08.004662+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5472,
+  "state": "ok",
+  "elapsed_seconds": 1.238,
+  "sha256": "cd8b0be70c4f265209096146aeb7d34236d49a5d23c0b9475d53aa5e2baf8a63",
+  "capture": "0a873cdf5e1f79f74f10"
+}

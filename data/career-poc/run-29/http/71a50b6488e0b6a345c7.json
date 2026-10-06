@@ -1,0 +1,17 @@
+{
+  "url": "https://www.texense.com/karriere",
+  "checked_at": "2026-10-05T23:19:53.019966+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/karriere/",
+  "bytes": 10,
+  "state": "http_error",
+  "elapsed_seconds": 0.961,
+  "sha256": "abd8e8cc67f238e0a0a534f8af7f5ebf32ec9079a6a293b11764ece4fe8fca9c",
+  "capture": "71a50b6488e0b6a345c7",
+  "merged_from_run": "run-28"
+}

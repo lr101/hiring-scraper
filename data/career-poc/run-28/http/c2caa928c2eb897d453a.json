@@ -1,0 +1,16 @@
+{
+  "url": "https://steuerberatung-weigel.de/karriere",
+  "checked_at": "2026-10-05T23:28:55.104096+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 38344,
+  "state": "http_error",
+  "elapsed_seconds": 0.924,
+  "sha256": "5a01f1e95b403855513c74ef975ede01a0425cee75a32f4d176e82ac34edca42",
+  "capture": "c2caa928c2eb897d453a"
+}

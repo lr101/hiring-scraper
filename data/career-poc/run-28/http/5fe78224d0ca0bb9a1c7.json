@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pink-event-service.de/karriere",
+  "checked_at": "2026-10-05T23:40:39.207095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20136,
+  "state": "http_error",
+  "elapsed_seconds": 1.04,
+  "sha256": "a76b095fab51cef56066309aa41d37a36d6a775ed121f030542bb5cfbf483c2a",
+  "capture": "5fe78224d0ca0bb9a1c7"
+}

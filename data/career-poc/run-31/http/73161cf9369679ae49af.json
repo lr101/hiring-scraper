@@ -1,0 +1,17 @@
+{
+  "url": "https://career.keyence.de/go/JOBS/2945201/",
+  "checked_at": "2026-10-05T23:31:34.612118+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74007,
+  "state": "ok",
+  "elapsed_seconds": 1.151,
+  "sha256": "8bd4679aabfd5abd97af9c1dbbba421d431c46995209f111f379de76eb88101a",
+  "capture": "73161cf9369679ae49af",
+  "merged_from_run": "run-28"
+}

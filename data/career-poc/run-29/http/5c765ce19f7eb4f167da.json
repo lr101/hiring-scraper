@@ -1,0 +1,17 @@
+{
+  "url": "https://www.jungheinrich.de/karriere/jobs",
+  "checked_at": "2026-10-05T23:36:50.137048+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 316273,
+  "state": "ok",
+  "elapsed_seconds": 0.744,
+  "sha256": "6726e783ebc605d504efe5c06114960e3652e9d0b3cc64e931183395b8f9ff58",
+  "capture": "5c765ce19f7eb4f167da",
+  "merged_from_run": "run-28"
+}

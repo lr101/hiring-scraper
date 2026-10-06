@@ -1,0 +1,16 @@
+{
+  "url": "https://jamit.de/",
+  "checked_at": "2026-10-05T23:41:06.271533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": "Wed, 31 Dec 2025 23:26:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 556,
+  "state": "ok",
+  "elapsed_seconds": 1.06,
+  "sha256": "ad8392f74845754168e7e10a6edeb691f93ba5646ab7638e07ee76535ff5736e",
+  "capture": "162b21b98ec4347cc5d4"
+}

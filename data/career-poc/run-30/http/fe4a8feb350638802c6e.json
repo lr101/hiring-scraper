@@ -1,0 +1,17 @@
+{
+  "url": "https://www.generic.de/",
+  "checked_at": "2026-10-05T23:34:04.579504+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Fri, 02 Oct 2026 11:08:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 256093,
+  "state": "ok",
+  "elapsed_seconds": 1.032,
+  "sha256": "3f09fc23d2e18ffc833bf8bf4b0bc41d87eb7d90fadb29ae351ef2fdce04a655",
+  "capture": "fe4a8feb350638802c6e",
+  "merged_from_run": "run-28"
+}

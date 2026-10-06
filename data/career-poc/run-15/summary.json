@@ -1,0 +1,19 @@
+{
+  "companies": 3,
+  "statuses": {
+    "career_content_found": 3
+  },
+  "unique_requests_or_reused_captures": 21,
+  "new_requests": 21,
+  "reused_captures": 0,
+  "http_statuses": {
+    "404": 3,
+    "200": 18
+  },
+  "by_cohort": {
+    "targeted_portal_followup": {
+      "career_content_found": 3
+    }
+  },
+  "finished_at": "2026-10-05T20:47:13.397197+00:00"
+}

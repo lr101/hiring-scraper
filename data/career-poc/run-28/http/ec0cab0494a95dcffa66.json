@@ -1,0 +1,16 @@
+{
+  "url": "https://eiferkit.softgarden.io/sign-in?l=en",
+  "checked_at": "2026-10-05T23:22:07.273544+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://eiferkit.softgarden.io/sign-in?0&l=en",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.014,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "ec0cab0494a95dcffa66"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://query.wikidata.org/sparql?query=PREFIX+bd%3A+%3Chttp%3A%2F%2Fwww.bigdata.com%2Frdf%23%3E%0APREFIX+wd%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0APREFIX+wdt%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.opengis.net%2Font%2Fgeosparql%23%3E%0APREFIX+wikibase%3A+%3Chttp%3A%2F%2Fwikiba.se%2Fontology%23%3E%0ASELECT+DISTINCT+%3Fcompany+%3Flabel+%3Fwebsite+%3Fcoord+%3Fdistance+WHERE+%7B%0A+SERVICE+wikibase%3Aaround+%7B%0A++%3Fcompany+wdt%3AP625+%3Fcoord+.%0A++bd%3AserviceParam+wikibase%3Acenter+%22Point%288.4037+49.0069%29%22%5E%5Egeo%3AwktLiteral+.%0A++bd%3AserviceParam+wikibase%3Aradius+%2225%22+.%0A++bd%3AserviceParam+wikibase%3Adistance+%3Fdistance+.%0A+%7D%0A+%3Fcompany+wdt%3AP17+wd%3AQ183+%3B+wdt%3AP856+%3Fwebsite+.%0A+OPTIONAL+%7B+%3Fcompany+rdfs%3Alabel+%3Flabel+.+FILTER%28LANG%28%3Flabel%29+%3D+%22de%22+%7C%7C+LANG%28%3Flabel%29+%3D+%22en%22%29+%7D%0A%7D%0AORDER+BY+%3Fdistance+LIMIT+100&format=json",
+  "checked_at": "2026-10-05T15:09:18.847052+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://query.wikidata.org/sparql?query=PREFIX+bd%3A+%3Chttp%3A%2F%2Fwww.bigdata.com%2Frdf%23%3E%0APREFIX+wd%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0APREFIX+wdt%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.opengis.net%2Font%2Fgeosparql%23%3E%0APREFIX+wikibase%3A+%3Chttp%3A%2F%2Fwikiba.se%2Fontology%23%3E%0ASELECT+DISTINCT+%3Fcompany+%3Flabel+%3Fwebsite+%3Fcoord+%3Fdistance+WHERE+%7B%0A+SERVICE+wikibase%3Aaround+%7B%0A++%3Fcompany+wdt%3AP625+%3Fcoord+.%0A++bd%3AserviceParam+wikibase%3Acenter+%22Point%288.4037+49.0069%29%22%5E%5Egeo%3AwktLiteral+.%0A++bd%3AserviceParam+wikibase%3Aradius+%2225%22+.%0A++bd%3AserviceParam+wikibase%3Adistance+%3Fdistance+.%0A+%7D%0A+%3Fcompany+wdt%3AP17+wd%3AQ183+%3B+wdt%3AP856+%3Fwebsite+.%0A+OPTIONAL+%7B+%3Fcompany+rdfs%3Alabel+%3Flabel+.+FILTER%28LANG%28%3Flabel%29+%3D+%22de%22+%7C%7C+LANG%28%3Flabel%29+%3D+%22en%22%29+%7D%0A%7D%0AORDER+BY+%3Fdistance+LIMIT+100&format=json",
+  "content_type": "application/sparql-results+json;charset=utf-8",
+  "bytes": 69077,
+  "truncated": false,
+  "elapsed_seconds": 9.69,
+  "sha256": "efb94ba1f36417e9ec4f565f12f918666be7ac6649c2b4b92a94edd4241f49d2"
+}

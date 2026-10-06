@@ -1,0 +1,17 @@
+{
+  "url": "https://www.stulz.com/de-de/karriere/kontakt/",
+  "checked_at": "2026-10-05T22:53:05.897609+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"dfa2df8c160e26371d9b77954f5fe328\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114516,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "1e45c9741a61dc106ec8add572908987268c3bdd7945b01b9089e012f7a97777",
+  "capture": "33fb0d651b5b0ff0548e",
+  "merged_from_run": "run-27"
+}

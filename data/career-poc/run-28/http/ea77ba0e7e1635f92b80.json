@@ -1,0 +1,16 @@
+{
+  "url": "http://www.erdboerse-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:24.042036+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.erdboerse-karlsruhe.de/robots.txt",
+  "bytes": 178,
+  "state": "http_error",
+  "elapsed_seconds": 0.95,
+  "sha256": "2e04a18ff185ba5b16f762a0538339bc4049aceaef9738edd43af77d2ceb788b",
+  "capture": "ea77ba0e7e1635f92b80"
+}

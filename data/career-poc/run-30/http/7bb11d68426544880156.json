@@ -1,0 +1,17 @@
+{
+  "url": "https://halter.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:28:08.363346+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107622,
+  "state": "http_error",
+  "elapsed_seconds": 0.919,
+  "sha256": "1a31424dd102e8868eab7bbe124eef4fef8e8656dc9babfd58318fbacba3e885",
+  "capture": "7bb11d68426544880156",
+  "merged_from_run": "run-28"
+}

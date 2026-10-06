@@ -1,0 +1,17 @@
+{
+  "url": "https://dorfjungs.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:16:13.552853+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "W/\"27b1-exrTRM93BhzRRYq9gOxsbdmFVZM\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10161,
+  "state": "ok",
+  "elapsed_seconds": 1.387,
+  "sha256": "e08c89c0443657a68712600ec7206df90a2ec1f48493b82e66303c5bf12c4e22",
+  "capture": "984b681191c2b5c320b8",
+  "merged_from_run": "run-28"
+}

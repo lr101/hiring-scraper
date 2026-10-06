@@ -1,0 +1,17 @@
+{
+  "url": "https://www.werum.com/",
+  "checked_at": "2026-10-05T23:23:14.826007+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.koerber-pharma.com/en/solutions/software/",
+  "bytes": 169,
+  "state": "http_error",
+  "elapsed_seconds": 0.696,
+  "sha256": "981f416b4d1dabc1df80dccce3a4998f2f730b6e9ae1809745f9b5d9fa778d53",
+  "capture": "f6de86606a4223704e11",
+  "merged_from_run": "run-28"
+}

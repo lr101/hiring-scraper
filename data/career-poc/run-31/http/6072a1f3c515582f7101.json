@@ -1,0 +1,17 @@
+{
+  "url": "https://schmal-fotografie.jimdofree.com/robots.txt",
+  "checked_at": "2026-10-05T23:27:49.416025+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 233,
+  "state": "ok",
+  "elapsed_seconds": 0.821,
+  "sha256": "29dc3df61d37e9a51188e218bff794aa2998e8b65e4b4a49928839f8480c3b30",
+  "capture": "6072a1f3c515582f7101",
+  "merged_from_run": "run-28"
+}

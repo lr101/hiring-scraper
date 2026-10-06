@@ -1,0 +1,17 @@
+{
+  "url": "https://md-productions.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:01:08.990692+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 408,
+  "state": "ok",
+  "elapsed_seconds": 1.298,
+  "sha256": "5f1a0e6df034239990b1342219c7a7a2bf97f74deb892d66bed67ac9686a5f71",
+  "capture": "310b06ebb250f31d9408",
+  "merged_from_run": "run-27"
+}

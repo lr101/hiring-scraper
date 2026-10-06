@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vega.com/",
+  "checked_at": "2026-10-05T22:51:17.119212+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83061,
+  "state": "ok",
+  "elapsed_seconds": 1.413,
+  "sha256": "ce9c9adf8e8e80568a9e1e83703efef69537291b20090351424bda3587d54822",
+  "capture": "69f65552f6f56d19a555",
+  "merged_from_run": "run-27"
+}

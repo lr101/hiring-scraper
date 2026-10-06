@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gawa-gmbh.de/careers",
+  "checked_at": "2026-10-05T23:17:03.169866+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45017,
+  "state": "http_error",
+  "elapsed_seconds": 0.779,
+  "sha256": "b01de4ed00d7edb9377b6f5d5bd7a75281a02796a158862e7e0f8831ea2051b8",
+  "capture": "e7027d17f773246dddff"
+}

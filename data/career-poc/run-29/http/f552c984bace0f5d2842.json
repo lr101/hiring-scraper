@@ -1,0 +1,17 @@
+{
+  "url": "https://www.andreasfriedrich.org/careers",
+  "checked_at": "2026-10-05T22:49:13.317937+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.andreasfriedrich.org/careers/",
+  "bytes": 324,
+  "state": "http_error",
+  "elapsed_seconds": 1.109,
+  "sha256": "1a8daba80938f2f365f962213982eda1faed9386f647a5e03822d58a69833f68",
+  "capture": "f552c984bace0f5d2842",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://schnittmuskel.de/",
+  "checked_at": "2026-10-05T23:14:52.366283+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.schnittmuskel.de/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.954,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "c96786b6fac6e5ce758b"
+}

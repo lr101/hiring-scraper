@@ -1,0 +1,16 @@
+{
+  "url": "https://bachert-glocken.de/karriere",
+  "checked_at": "2026-10-05T23:28:32.798623+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62569,
+  "state": "http_error",
+  "elapsed_seconds": 1.079,
+  "sha256": "792562d5246e99389d151a3c795f8830c32120b3f7ca4fcdc49ab2d1398f9c0b",
+  "capture": "b5daf4429a53a825274a"
+}

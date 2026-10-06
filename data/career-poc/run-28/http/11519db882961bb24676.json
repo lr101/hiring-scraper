@@ -1,0 +1,16 @@
+{
+  "url": "https://bibo-tragwerksplanung.de/stellenangebot.html",
+  "checked_at": "2026-10-05T23:26:59.836190+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"70ab-649e66447d980\"",
+  "last_modified": "Tue, 03 Feb 2026 07:28:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 28843,
+  "state": "ok",
+  "elapsed_seconds": 0.975,
+  "sha256": "12aa532245c4ff56c534acf423f966d5949680388dbcb23543fde65a66af99c4",
+  "capture": "11519db882961bb24676"
+}

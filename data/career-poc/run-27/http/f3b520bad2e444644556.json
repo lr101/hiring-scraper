@@ -1,0 +1,16 @@
+{
+  "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+  "checked_at": "2026-10-05T22:47:51.679284+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47141,
+  "state": "ok",
+  "elapsed_seconds": 1.035,
+  "sha256": "304070dc75485bdd3f1d8da53d4f1f34209945a4f7018dd5d067b9345304f726",
+  "capture": "f3b520bad2e444644556"
+}

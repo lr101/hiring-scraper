@@ -1,0 +1,16 @@
+{
+  "url": "https://www.solexperts.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:18:28.653632+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14696,
+  "state": "http_error",
+  "elapsed_seconds": 0.982,
+  "sha256": "8982995ad9ad2a2b64e0e384072b5ba9729c1b3c5369d93d0c037b1c8d966a40",
+  "capture": "1dc9967b29643f0d2bb2"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://isomedia.de/",
+  "checked_at": "2026-10-05T22:34:33.482776+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 24421,
+  "state": "ok",
+  "elapsed_seconds": 1.26,
+  "sha256": "90fb636ddaf696dc425ce64e47d807af4a81b235b477492bc293b73b578ea943",
+  "capture": "8ff2e0c49493fa58b3b7"
+}

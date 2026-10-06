@@ -1,0 +1,17 @@
+{
+  "url": "https://www.echt-thea.de/jobs",
+  "checked_at": "2026-10-05T23:08:33.200223+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "http_error",
+  "elapsed_seconds": 1.187,
+  "sha256": "bcee97704b4ff51a7b6c6546ca59a61cb896b99bf456b666a825877154e76c97",
+  "capture": "30569674b1a3bdf472f4",
+  "merged_from_run": "run-27"
+}

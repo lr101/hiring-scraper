@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dekra-arbeit.de/jobs-ohne-ausbildung",
+  "checked_at": "2026-10-05T22:31:24.503746+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"WXhSfyUvxe\"",
+  "last_modified": "Mon, 05 Oct 2026 22:31:25 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 396746,
+  "state": "ok",
+  "elapsed_seconds": 0.648,
+  "sha256": "597852fdfc94bf17a18225cb1b589371b591eec8392257d65dd15985fb79dc2a",
+  "capture": "dd2e54dc29357d9bf3e4",
+  "merged_from_run": "run-26"
+}

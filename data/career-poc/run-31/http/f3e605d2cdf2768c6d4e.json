@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kuhn-edeka.de/karriere/berufserfahrene/",
+  "checked_at": "2026-10-05T23:37:22.835036+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 785389,
+  "state": "ok",
+  "elapsed_seconds": 2.909,
+  "sha256": "3368631b1347d2b15673a63086d98a6ebbd001821aff69ed33e2d9f7c95f598a",
+  "capture": "f3e605d2cdf2768c6d4e",
+  "merged_from_run": "run-28"
+}

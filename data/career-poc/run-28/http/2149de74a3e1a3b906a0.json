@@ -1,0 +1,16 @@
+{
+  "url": "https://www.diebergerdesigner.de/karriere",
+  "checked_at": "2026-10-05T23:44:26.931625+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 990,
+  "state": "http_error",
+  "elapsed_seconds": 0.977,
+  "sha256": "0dde8c26c85e3fdbef9b24cc0255e5007a15737e7243087b313d933d84871d18",
+  "capture": "2149de74a3e1a3b906a0"
+}

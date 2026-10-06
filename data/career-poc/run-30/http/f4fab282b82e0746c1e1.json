@@ -1,0 +1,17 @@
+{
+  "url": "https://comcon-wening.de/ueber-uns/karriere/",
+  "checked_at": "2026-10-05T23:16:39.948458+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"127fd-643529554b600\"",
+  "last_modified": "Tue, 11 Nov 2025 14:37:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 75773,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "152eb1dd9e18b2b9572ca78ea94aa8f246d2c358767be6aa2f68aa8303a05b28",
+  "capture": "f4fab282b82e0746c1e1",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://boka-sanitaer.de/portfolio-sitemap.xml",
+  "checked_at": "2026-10-05T23:33:32.541672+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1641,
+  "state": "ok",
+  "elapsed_seconds": 0.977,
+  "sha256": "7d55e8e08d65830b70a50b35227a2a530a43e1660dfb0b9124f61d1441566a2a",
+  "capture": "e975a9e83df4c7d41d5a"
+}

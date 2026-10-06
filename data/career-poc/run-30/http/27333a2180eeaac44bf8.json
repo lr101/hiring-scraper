@@ -1,0 +1,17 @@
+{
+  "url": "https://innenausbau-kuppinger.de/careers",
+  "checked_at": "2026-10-05T23:30:01.083292+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58088,
+  "state": "http_error",
+  "elapsed_seconds": 1.006,
+  "sha256": "711a3edc804120fe8ac2663bab3cdf3a2117259a68b8c62ec92dd36cfdbfb32f",
+  "capture": "27333a2180eeaac44bf8",
+  "merged_from_run": "run-28"
+}

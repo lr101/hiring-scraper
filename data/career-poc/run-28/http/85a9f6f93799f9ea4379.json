@@ -1,0 +1,16 @@
+{
+  "url": "https://martin-busam.de/karriere",
+  "checked_at": "2026-10-05T23:19:04.926158+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48807,
+  "state": "http_error",
+  "elapsed_seconds": 1.045,
+  "sha256": "0986a01252a55cc86c92d227168ce7a8146dc3f5ac3c26bcbd563c446c8bb360",
+  "capture": "85a9f6f93799f9ea4379"
+}

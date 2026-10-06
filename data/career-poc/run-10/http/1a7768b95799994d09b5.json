@@ -1,0 +1,13 @@
+{
+  "url": "https://www.inovex.de/de/karriere/angebote-fuer-schuelerinnen/",
+  "checked_at": "2026-10-05T14:05:22.065122+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 187976,
+  "state": "ok",
+  "elapsed_seconds": 1.077,
+  "sha256": "0f895a0a24b2aff365a3c7a43711e08a0995ce6556eda97dfee7a8e1645b3729",
+  "capture": "1a7768b95799994d09b5"
+}

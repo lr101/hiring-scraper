@@ -1,0 +1,17 @@
+{
+  "url": "https://www.qwertiko.de/jobs/junior-linux-administrator-all/",
+  "checked_at": "2026-10-05T22:17:58.539225+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167784,
+  "state": "ok",
+  "elapsed_seconds": 1.064,
+  "sha256": "31f7ea8c32eb209a2a621d603abbc6bdabeaf2e0ad50a692525f70b754650a55",
+  "capture": "caeb366c265bd37a1092",
+  "merged_from_run": "run-25"
+}

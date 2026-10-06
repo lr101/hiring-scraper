@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hunkler.de/kontakt.html",
+  "checked_at": "2026-10-05T23:19:21.564775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27834,
+  "state": "ok",
+  "elapsed_seconds": 1.059,
+  "sha256": "17a9ccb17afcf24ce5de96cba1e437570f0a27ec36fb772dbb1948496ddfa186",
+  "capture": "86c6be9d0d4565256dc9"
+}

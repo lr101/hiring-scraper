@@ -1,0 +1,16 @@
+{
+  "url": "https://www.concordia.de/unternehmen/vertriebsdirektionen/karlsruhe/",
+  "checked_at": "2026-10-05T23:26:05.709578+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78740,
+  "state": "ok",
+  "elapsed_seconds": 0.742,
+  "sha256": "1dfa9db8bb19c6d76b19ee607cdf6807902895e6473abf58639aa14479523f71",
+  "capture": "1d38574b2698ca82e268"
+}

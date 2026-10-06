@@ -1,0 +1,17 @@
+{
+  "url": "https://mhg.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:30:35.095846+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1940,
+  "state": "ok",
+  "elapsed_seconds": 1.772,
+  "sha256": "b300dcc0bf719a73732ee30020bfbeb04837be30450ac81d6217b3e577c96d2c",
+  "capture": "2cab7c6fb6ab89c58983",
+  "merged_from_run": "run-28"
+}

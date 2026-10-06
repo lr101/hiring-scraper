@@ -1,0 +1,16 @@
+{
+  "url": "https://inktec-megastore.de/jobs",
+  "checked_at": "2026-10-05T23:40:23.818531+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 125191,
+  "state": "http_error",
+  "elapsed_seconds": 0.978,
+  "sha256": "fe9d8a4ef42bdccf78cd2db4b8dd895313ca188d9439ed57828043d962f76263",
+  "capture": "9923bf008ead08a3ed5a"
+}

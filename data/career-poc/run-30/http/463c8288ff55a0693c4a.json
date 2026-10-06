@@ -1,0 +1,17 @@
+{
+  "url": "https://www.merkle-steuerberater.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:26:58.845356+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1221,
+  "state": "ok",
+  "elapsed_seconds": 1.328,
+  "sha256": "9353fde17695a0865ea9d503d88b4f4ff0163c06341ca2064ae3b9aba368c757",
+  "capture": "463c8288ff55a0693c4a",
+  "merged_from_run": "run-28"
+}

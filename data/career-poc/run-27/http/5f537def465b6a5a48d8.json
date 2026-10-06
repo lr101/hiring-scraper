@@ -1,0 +1,16 @@
+{
+  "url": "https://asta-hka.de/robots.txt",
+  "checked_at": "2026-10-05T22:53:07.102384+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 150,
+  "state": "ok",
+  "elapsed_seconds": 2.98,
+  "sha256": "8082971cb776163e2f4d75b569751d12cda86dc1b95b111c1dc139364b907b65",
+  "capture": "5f537def465b6a5a48d8"
+}

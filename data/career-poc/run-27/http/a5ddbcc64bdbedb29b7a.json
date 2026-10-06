@@ -1,0 +1,16 @@
+{
+  "url": "https://greenplaces.de/karriere",
+  "checked_at": "2026-10-05T22:37:58.793900+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100961,
+  "state": "http_error",
+  "elapsed_seconds": 1.476,
+  "sha256": "850eb001edd67ed145ce5aa9728838962503224f5aa89f9175ca62e911d830d0",
+  "capture": "a5ddbcc64bdbedb29b7a"
+}

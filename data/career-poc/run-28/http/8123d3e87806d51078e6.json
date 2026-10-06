@@ -1,0 +1,16 @@
+{
+  "url": "https://www.swhs.de/2022/02/stellenausschreibung-kundendienstmitarbeiter-in-335/",
+  "checked_at": "2026-10-05T23:45:19.183330+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44593,
+  "state": "ok",
+  "elapsed_seconds": 1.395,
+  "sha256": "8e4bfef3d96b14d8ad41bcbbcf5aaaccfa7ee6279c8975b62c8fef03c3e58a09",
+  "capture": "8123d3e87806d51078e6"
+}

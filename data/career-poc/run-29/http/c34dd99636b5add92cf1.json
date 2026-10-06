@@ -1,0 +1,17 @@
+{
+  "url": "https://immego-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:39:10.381595+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2118,
+  "state": "http_error",
+  "elapsed_seconds": 0.98,
+  "sha256": "5244cdbc4a34537ff8dbacf4bb337759465ebcd9e9344431576f3b1d2561e6a0",
+  "capture": "c34dd99636b5add92cf1",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zenkner-sanitaer.com/jobs",
+  "checked_at": "2026-10-05T23:29:19.618946+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25789,
+  "state": "http_error",
+  "elapsed_seconds": 1.087,
+  "sha256": "73ac25d321cde396b0af31c8605257b73f8dace93b7627bbab1ae30a9d9ceebd",
+  "capture": "4ea516d304ce8bde02d5"
+}

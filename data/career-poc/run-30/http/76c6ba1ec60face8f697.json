@@ -1,0 +1,17 @@
+{
+  "url": "https://www.telefonseelsorge-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:47:24.843149+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"17c-4daba4dce98c0\"",
+  "last_modified": "Fri, 19 Apr 2013 17:46:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 380,
+  "state": "ok",
+  "elapsed_seconds": 0.173,
+  "sha256": "fe42b877f94674a759532c02383adaf44d275cb6bb5845bcede937754d014434",
+  "capture": "76c6ba1ec60face8f697",
+  "merged_from_run": "run-27"
+}

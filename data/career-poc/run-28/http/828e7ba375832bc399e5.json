@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.ratiodata.de/job/?vacancieid=2026-046",
+  "checked_at": "2026-10-05T23:30:06.734169+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1293152,
+  "state": "ok",
+  "elapsed_seconds": 1.803,
+  "sha256": "3c18d61b67b5b732c5bc294f2592c07426d5f7ddb2d59465dfdec4b9db6ba362",
+  "capture": "828e7ba375832bc399e5"
+}

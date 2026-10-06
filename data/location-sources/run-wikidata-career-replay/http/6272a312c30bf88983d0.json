@@ -1,0 +1,14 @@
+{
+  "url": "https://www.volksbank-pur.de/",
+  "checked_at": "2026-10-05T14:49:11.655702+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "location": "/index.html",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.354,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "6272a312c30bf88983d0",
+  "reused_from": "data/location-sources/run-wikidata-career/http/6272a312c30bf88983d0.json"
+}

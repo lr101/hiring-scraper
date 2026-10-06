@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kbs.de/robots.txt",
+  "checked_at": "2026-10-05T23:10:01.098632+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 298,
+  "state": "ok",
+  "elapsed_seconds": 0.286,
+  "sha256": "0a6534aca1b08d007596f71fc346492d98cda23b0288a46bc4ec42867eba61d7",
+  "capture": "285d74ed9879996a15da"
+}

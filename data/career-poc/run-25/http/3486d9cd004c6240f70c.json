@@ -1,0 +1,16 @@
+{
+  "url": "https://jobwall.de/robots.txt",
+  "checked_at": "2026-10-05T22:10:20.916368+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://bonding.de/",
+  "bytes": 304,
+  "state": "http_error",
+  "elapsed_seconds": 0.063,
+  "sha256": "e476f95f5555b1c74787f840991b07917ecf0af655cca5fa74f4e05dc2e6a32b",
+  "capture": "3486d9cd004c6240f70c"
+}

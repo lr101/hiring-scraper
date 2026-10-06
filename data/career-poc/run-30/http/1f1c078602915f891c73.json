@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mall.info/robots.txt",
+  "checked_at": "2026-10-05T23:42:17.986271+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 481,
+  "state": "ok",
+  "elapsed_seconds": 0.533,
+  "sha256": "456d210c51e0c077d8cfa53c2ed7881b542a3c4d0819d82f9a305287e0ef0bde",
+  "capture": "1f1c078602915f891c73",
+  "merged_from_run": "run-28"
+}

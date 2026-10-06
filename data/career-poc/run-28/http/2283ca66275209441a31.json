@@ -1,0 +1,16 @@
+{
+  "url": "https://www.geyer-gmbh.de/de/karriere/duales-studium.php",
+  "checked_at": "2026-10-05T23:46:52.476719+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86564,
+  "state": "ok",
+  "elapsed_seconds": 0.94,
+  "sha256": "bd76fcafc63eb29c378e8fd8e0c3a88a0221fea78e0c851b023e5066059eaa24",
+  "capture": "2283ca66275209441a31"
+}

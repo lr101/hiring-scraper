@@ -1,0 +1,13 @@
+{
+  "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+  "checked_at": "2026-10-05T14:49:02.338337+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 46384,
+  "state": "ok",
+  "elapsed_seconds": 1.303,
+  "sha256": "ed5be4dc43ecd9354a94c9dab2b0b2d7f605f8cb2592a7b4c4dc7df33857df9e",
+  "capture": "961b35904f837e874b70"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://bisonpliance.com/karriere/",
+  "checked_at": "2026-10-05T23:26:33.035543+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"11574-1791173200;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 102443,
+  "state": "ok",
+  "elapsed_seconds": 0.955,
+  "sha256": "80448a4a4e26a14ef84af7091f9dd2390e0af668c118be25f566e98384d7a558",
+  "capture": "9f62cc768f0d62fe5e4c"
+}

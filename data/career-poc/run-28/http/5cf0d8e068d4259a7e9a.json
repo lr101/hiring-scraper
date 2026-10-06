@@ -1,0 +1,16 @@
+{
+  "url": "https://www.initse.com/ende/header-meta/careers/professionals/",
+  "checked_at": "2026-10-05T23:19:42.659138+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 151769,
+  "state": "ok",
+  "elapsed_seconds": 1.27,
+  "sha256": "58593e96ca3887c6d223beb9281419c2c6b21d700afae2d84b8ced5e796aabdb",
+  "capture": "5cf0d8e068d4259a7e9a"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://service.bnn.de/karriere/karriere-praktikum-bewerben",
+  "checked_at": "2026-10-05T22:09:25.682464+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 246417,
+  "state": "ok",
+  "elapsed_seconds": 1.657,
+  "sha256": "2bd33a4fee49ca70d22d3193de77cb3dcb324436fa3a375b724563bde07032c5",
+  "capture": "87167f4e8a8a32b7c2ac",
+  "merged_from_run": "run-25"
+}

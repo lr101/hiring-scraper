@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bub-consulting-karlsruhe.de/careers",
+  "checked_at": "2026-10-05T22:47:58.549195+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17680,
+  "state": "http_error",
+  "elapsed_seconds": 1.1,
+  "sha256": "624adf9fb4057c0e97d5da8a618e6909464bf718a4e0645a109a32fc22cb71e3",
+  "capture": "c25c0598df6901b3859a"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sanieren-dekorieren-karlsruhe.de/arbeiten/stellenangebote",
+  "checked_at": "2026-10-05T23:19:07.119097+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22009,
+  "state": "ok",
+  "elapsed_seconds": 0.863,
+  "sha256": "48688ae2d362be6b4e39c7bdd9ba808f57f626e6c020fc33c538fbbc3e65dccb",
+  "capture": "3210c41643857b50e3da",
+  "merged_from_run": "run-28"
+}

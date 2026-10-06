@@ -1,0 +1,17 @@
+{
+  "url": "https://lau-partner.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:50.245304+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"b4-64af07c404042\"",
+  "last_modified": "Mon, 16 Feb 2026 12:56:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 180,
+  "state": "ok",
+  "elapsed_seconds": 0.352,
+  "sha256": "8d976709798506a7d03e3592f4e47c1acf4f4156f6994c834c47e0eec1aa42bf",
+  "capture": "98dda1aef75c2423efde",
+  "merged_from_run": "run-28"
+}

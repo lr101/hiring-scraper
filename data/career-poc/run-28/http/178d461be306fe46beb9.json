@@ -1,0 +1,16 @@
+{
+  "url": "https://gehlen-verpackungen.de/",
+  "checked_at": "2026-10-05T23:33:35.717406+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 170513,
+  "state": "ok",
+  "elapsed_seconds": 0.727,
+  "sha256": "81cb4137a18639946da633192d45b8b10071ee36e4912c3a80963e7d83244e3d",
+  "capture": "178d461be306fe46beb9"
+}

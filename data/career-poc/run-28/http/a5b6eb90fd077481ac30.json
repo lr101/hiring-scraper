@@ -1,0 +1,16 @@
+{
+  "url": "https://www.guthmann-gmbh.com/careers",
+  "checked_at": "2026-10-05T23:43:34.734507+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10497,
+  "state": "http_error",
+  "elapsed_seconds": 1.042,
+  "sha256": "d9372092de63e42ae51ef83b72136ae359097d6034b65613700d9a550ef0f8aa",
+  "capture": "a5b6eb90fd077481ac30"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://suedwest.ngg.net/presse/pressemeldungen/kein-angebot-der-arbeitgeber-in-der-mineralbrunnenindustrie",
+  "checked_at": "2026-10-05T22:12:16.227204+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77821,
+  "state": "ok",
+  "elapsed_seconds": 2.604,
+  "sha256": "09f6fa16444de3e91d4d6602ddd96ba193a8f16503777bc83459214d996bb01f",
+  "capture": "12314ed6986c186e0533"
+}

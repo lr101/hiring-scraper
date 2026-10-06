@@ -1,0 +1,16 @@
+{
+  "url": "https://www.weber-edv.net/jobs",
+  "checked_at": "2026-10-05T23:30:19.369445+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23897,
+  "state": "http_error",
+  "elapsed_seconds": 1.004,
+  "sha256": "7975233a326a56ab760853341681306c3a5e5b2808e572e320b9a4b503d0b062",
+  "capture": "e9ac6552f09b7ec65e64"
+}

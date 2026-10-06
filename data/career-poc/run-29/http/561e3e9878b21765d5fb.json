@@ -1,0 +1,17 @@
+{
+  "url": "https://www.evkila.de/",
+  "checked_at": "2026-10-05T23:43:33.212157+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77233,
+  "state": "ok",
+  "elapsed_seconds": 0.653,
+  "sha256": "a28963f2e62c8fd13f79c96e9d351e06d2ba7a61ae9654e633c5545947c84d9c",
+  "capture": "561e3e9878b21765d5fb",
+  "merged_from_run": "run-28"
+}

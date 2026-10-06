@@ -1,0 +1,16 @@
+{
+  "url": "https://www.systec-solutions.com/robots.txt",
+  "checked_at": "2026-10-05T23:23:13.531164+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 08 Jun 2026 10:32:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 459,
+  "state": "ok",
+  "elapsed_seconds": 0.262,
+  "sha256": "6b5c2e340b70d0be0243f9658f8c589aebaa8ce37ed9771a4920cebbde4b1cf2",
+  "capture": "41955b99ed96ab65ff2d"
+}

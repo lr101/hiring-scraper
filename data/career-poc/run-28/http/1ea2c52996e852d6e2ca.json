@@ -1,0 +1,16 @@
+{
+  "url": "https://megerle.info/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:42:57.395564+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 399,
+  "state": "ok",
+  "elapsed_seconds": 0.964,
+  "sha256": "dc89ec69b0add190c6c2bd027a2510564623604a20ac6b1897dff423ddcaf95f",
+  "capture": "1ea2c52996e852d6e2ca"
+}

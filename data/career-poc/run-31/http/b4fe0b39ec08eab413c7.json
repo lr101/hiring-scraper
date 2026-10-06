@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fotofoxx.com/robots.txt",
+  "checked_at": "2026-10-05T23:22:02.083417+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1ea-8crfRiMPnjRJddrQWePXeZPTQk4\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 490,
+  "state": "ok",
+  "elapsed_seconds": 0.183,
+  "sha256": "4bb9cb464b13fc5ab9b09bc4e46e03e314cde62f977786453e3a1090b16b9bd3",
+  "capture": "b4fe0b39ec08eab413c7",
+  "merged_from_run": "run-28"
+}

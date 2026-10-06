@@ -1,0 +1,16 @@
+{
+  "url": "https://lohi-bw.de/",
+  "checked_at": "2026-10-06T07:07:06.939545+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 297626,
+  "state": "ok",
+  "elapsed_seconds": 1.546,
+  "sha256": "4090ba7be23f31a17afe805c2179ee70967da97999f4fa7d3b7243320db3df78",
+  "capture": "89a5464bd9bd231333ba"
+}

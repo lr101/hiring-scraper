@@ -1,0 +1,13 @@
+{
+  "url": "https://www.schoeps.de/",
+  "checked_at": "2026-10-05T14:47:21.757676+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "location": "https://schoeps.de/",
+  "bytes": 628,
+  "state": "http_error",
+  "elapsed_seconds": 0.679,
+  "sha256": "64f428bd689b1bba284e2e0ca9644cbaf5b6deaad0a2000cc17c260c37c6d726",
+  "capture": "cde753d78219188fb342"
+}

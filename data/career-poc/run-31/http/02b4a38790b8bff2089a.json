@@ -1,0 +1,17 @@
+{
+  "url": "https://www.digitales-bauen.de/",
+  "checked_at": "2026-10-05T22:35:23.961362+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://digitales-bauen.com/",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 0.927,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "02b4a38790b8bff2089a",
+  "merged_from_run": "run-27"
+}

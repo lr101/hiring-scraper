@@ -1,0 +1,17 @@
+{
+  "url": "https://laborvolkmann.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:30.790556+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1088,
+  "state": "ok",
+  "elapsed_seconds": 0.737,
+  "sha256": "0f8ab5f2c97a74f60009708d77bb6bcbfc271832c291d59fe9804cad11e0cfda",
+  "capture": "fd1addb8cd45157eafc4",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://drive.google.com/robots.txt",
+  "checked_at": "2026-10-05T23:04:33.893382+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 600,
+  "state": "ok",
+  "elapsed_seconds": 0.211,
+  "sha256": "87cecc58fb663a3f8650a3a88eb59c1ecaae20d063dcd6d50ab39f73167d4af4",
+  "capture": "55af42cab738b13d1290"
+}

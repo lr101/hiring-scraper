@@ -1,0 +1,16 @@
+{
+  "url": "https://gomomentus.com/careers",
+  "checked_at": "2026-10-05T22:08:25.491819+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:20:52 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 144260,
+  "state": "ok",
+  "elapsed_seconds": 1.548,
+  "sha256": "5eb2bcae31e264a6d285cf94aed12f83d043562858a46df690a950c8e7a9d00b",
+  "capture": "3df4fe02718324706a08"
+}

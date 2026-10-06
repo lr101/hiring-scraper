@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe.de/stadt-rathaus/karriere-ausbildung",
+  "checked_at": "2026-10-05T23:19:15.264286+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 671238,
+  "state": "ok",
+  "elapsed_seconds": 3.681,
+  "sha256": "9be9eaa4ce1c17400a5ccc44dd7dcc90a8f3425cdd5cf44509cc2fe496b32dbc",
+  "capture": "75810a33d39983601e6c",
+  "merged_from_run": "run-28"
+}

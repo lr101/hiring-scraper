@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gregor-kern.de/",
+  "checked_at": "2026-10-05T22:15:32.902860+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"863878227\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 215812,
+  "state": "ok",
+  "elapsed_seconds": 0.154,
+  "sha256": "b2d0f8a509b2375ccef18ecbddb8258938af314e0614b6171ca3700551995eb9",
+  "capture": "5c28e52957421bd6dbe5"
+}

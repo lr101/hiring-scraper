@@ -1,0 +1,17 @@
+{
+  "url": "https://www.twk-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:39:44.763910+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1285,
+  "state": "http_error",
+  "elapsed_seconds": 0.973,
+  "sha256": "2d781355e6754bead57f78d34bb6d38258c32391bbb43629d3ef5124fe4b1259",
+  "capture": "272ff7495174fbe719ec",
+  "merged_from_run": "run-28"
+}

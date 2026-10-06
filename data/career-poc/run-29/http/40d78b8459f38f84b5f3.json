@@ -1,0 +1,17 @@
+{
+  "url": "http://www.hww.eu/robots.txt",
+  "checked_at": "2026-10-05T22:38:36.024433+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.hww.eu/robots.txt",
+  "bytes": 237,
+  "state": "http_error",
+  "elapsed_seconds": 0.029,
+  "sha256": "a91aab0efe328076bed6ea121e4e93991cf70e0dd907b86918c9635951ddb519",
+  "capture": "40d78b8459f38f84b5f3",
+  "merged_from_run": "run-27"
+}

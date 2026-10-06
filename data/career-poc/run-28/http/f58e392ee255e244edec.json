@@ -1,0 +1,16 @@
+{
+  "url": "https://www.praxis-cosmetic.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:35:56.595013+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 416,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "c7386cd1b2e00a884d227ac7815cac78e4ecf57ee8db87a8d36678e738d8fddb",
+  "capture": "f58e392ee255e244edec"
+}

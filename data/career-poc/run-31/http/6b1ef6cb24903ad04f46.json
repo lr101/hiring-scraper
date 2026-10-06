@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mercedes-benz-techinnovation.com/careers",
+  "checked_at": "2026-10-05T23:22:16.086237+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7312,
+  "state": "http_error",
+  "elapsed_seconds": 1.011,
+  "sha256": "f68fd5bf13afe171b9372a7f6bb75d5fae05a50f3b47831c6de811efdebad64e",
+  "capture": "6b1ef6cb24903ad04f46",
+  "merged_from_run": "run-28"
+}

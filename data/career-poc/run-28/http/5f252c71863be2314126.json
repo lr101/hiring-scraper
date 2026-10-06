@@ -1,0 +1,16 @@
+{
+  "url": "https://arin-ka.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:45:53.274814+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 450,
+  "state": "ok",
+  "elapsed_seconds": 0.982,
+  "sha256": "a48f201f8d44dbc013ec1e724e9300e2d0c61c06b354d1d5fae369616ab5fb73",
+  "capture": "5f252c71863be2314126"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kulturevaluation-wegner.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:15:42.656279+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 628,
+  "state": "ok",
+  "elapsed_seconds": 1.843,
+  "sha256": "7b116a43a023e25692bf8f0ff9d9a32252db8c2f767aeb090299f244c751d3d8",
+  "capture": "c2dc9487b2fa44d2462f",
+  "merged_from_run": "run-28"
+}

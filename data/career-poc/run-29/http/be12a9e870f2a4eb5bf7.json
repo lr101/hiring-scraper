@@ -1,0 +1,17 @@
+{
+  "url": "https://icf.church/cdn-cgi/l/email-protection",
+  "checked_at": "2026-10-05T23:20:53.802107+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4804,
+  "state": "http_error",
+  "elapsed_seconds": 0.954,
+  "sha256": "29f5e68f17f646a75a4763c6d511ec19d0b7b742b3c63a8ffa5f20d9a29f4eb9",
+  "capture": "be12a9e870f2a4eb5bf7",
+  "merged_from_run": "run-28"
+}

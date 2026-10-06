@@ -1,0 +1,17 @@
+{
+  "url": "https://gfk-ingenieure.de/job/teamleitung-planung-50hz-ola-all-genders/",
+  "checked_at": "2026-10-05T23:32:09.553934+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 216201,
+  "state": "ok",
+  "elapsed_seconds": 4.936,
+  "sha256": "562ee57faafdda149d926f42053ed6af49ba846bab982ffce1d4724864267769",
+  "capture": "b8838ea1f4545fb10cac",
+  "merged_from_run": "run-28"
+}

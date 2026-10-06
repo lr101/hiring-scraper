@@ -1,0 +1,16 @@
+{
+  "url": "https://www.slanted.de/karriere",
+  "checked_at": "2026-10-05T23:29:57.705868+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 189723,
+  "state": "http_error",
+  "elapsed_seconds": 0.722,
+  "sha256": "c04ed13059e0cdcf14fbdded692d09c0de0dbd1fea6b7f772c1ec0e83c73d038",
+  "capture": "6631e875d6a444e1d161"
+}

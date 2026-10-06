@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.solute.de/stellenangebote.html?reset_search=1",
+  "checked_at": "2026-10-05T23:25:15.387550+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45530,
+  "state": "ok",
+  "elapsed_seconds": 0.98,
+  "sha256": "dca4de2a2a12def3a88b43bc9d23bb05e5e4af43792c601ceb96c2b93556a6d2",
+  "capture": "3e91ea28fa251fd591c1"
+}

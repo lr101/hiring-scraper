@@ -1,0 +1,17 @@
+{
+  "url": "https://atelier-schaukasten.de/jobs",
+  "checked_at": "2026-10-05T23:32:59.216845+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58496,
+  "state": "http_error",
+  "elapsed_seconds": 1.07,
+  "sha256": "9637030eb666ed9d3571e737205deaa848d18e34d91f5b4e3a80b69437b63278",
+  "capture": "588c9a4801d997537836",
+  "merged_from_run": "run-28"
+}

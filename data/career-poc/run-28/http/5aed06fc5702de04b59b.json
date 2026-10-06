@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hwk.com/warum/",
+  "checked_at": "2026-10-05T23:36:24.389052+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1867434,
+  "state": "ok",
+  "elapsed_seconds": 1.874,
+  "sha256": "45876b5d967f2cfaad1da3a9951a2ecefa1515a5cc5b279b4dc44472b4c70af2",
+  "capture": "5aed06fc5702de04b59b"
+}

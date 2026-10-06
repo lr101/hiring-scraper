@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zoll.de/DE/Karriere/karriere_node.html",
+  "checked_at": "2026-10-05T22:30:01.141302+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123659,
+  "state": "ok",
+  "elapsed_seconds": 1.334,
+  "sha256": "a48324267d88b7ee95fce976179af9731be134d2beac217d87a323e25e5682f9",
+  "capture": "db1db5af3eb954e761e1"
+}

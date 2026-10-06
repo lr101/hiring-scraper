@@ -1,0 +1,17 @@
+{
+  "url": "https://www.flexlog.de/de/jobs/",
+  "checked_at": "2026-10-05T23:31:24.358367+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1lag042\"",
+  "last_modified": "Mon, 14 Sep 2026 14:11:14 GMT",
+  "retry_after": null,
+  "location": "/karriere/",
+  "bytes": 149,
+  "state": "http_error",
+  "elapsed_seconds": 0.883,
+  "sha256": "64bd4bdb9e7cb871a20ad2a0c8cdfd286379e4bd34722cdc9c7cdf5d850def05",
+  "capture": "58625346bfcea173d6aa",
+  "merged_from_run": "run-28"
+}

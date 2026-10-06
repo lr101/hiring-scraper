@@ -1,0 +1,16 @@
+{
+  "url": "https://unsere-standorte.socotec.de/careers",
+  "checked_at": "2026-10-05T22:18:54.944944+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6603,
+  "state": "http_error",
+  "elapsed_seconds": 1.17,
+  "sha256": "8cbc10ee9755ef972000f666711a5c4d0e025d3cedf53079ba3bfd8f2b19a968",
+  "capture": "9d3eaeb8d51b23833edd"
+}

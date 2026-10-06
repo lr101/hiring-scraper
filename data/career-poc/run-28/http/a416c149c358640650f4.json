@@ -1,0 +1,16 @@
+{
+  "url": "https://neumeister-gmbh.de/",
+  "checked_at": "2026-10-05T23:43:57.228869+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23398,
+  "state": "ok",
+  "elapsed_seconds": 1.135,
+  "sha256": "b8c0029e6049cc5f6bbfd8aad0a879dcdd693c9cccdbfce0ed126ce1355fe154",
+  "capture": "a416c149c358640650f4"
+}

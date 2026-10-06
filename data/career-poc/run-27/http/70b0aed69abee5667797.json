@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe.bewerbung.dvvbw.de/robots.txt",
+  "checked_at": "2026-10-05T22:48:11.819082+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"6107ed59c0b6b8966a581639bb025e24\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 42,
+  "state": "ok",
+  "elapsed_seconds": 0.186,
+  "sha256": "6107ed59c0b6b8966a581639bb025e248f9eeb274ebc5383a7b6cd453ad59ccc",
+  "capture": "70b0aed69abee5667797"
+}

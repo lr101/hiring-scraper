@@ -1,0 +1,17 @@
+{
+  "url": "https://www.usu.com/fr/carriere/jobs",
+  "checked_at": "2026-10-05T22:17:35.345168+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:11:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 218107,
+  "state": "ok",
+  "elapsed_seconds": 1.454,
+  "sha256": "8de1eac09bae121087ed10e2f4a7a756c3655289f30e5797cd8a1ea9a4dbca75",
+  "capture": "9a158e5edfddabfae32b",
+  "merged_from_run": "run-25"
+}

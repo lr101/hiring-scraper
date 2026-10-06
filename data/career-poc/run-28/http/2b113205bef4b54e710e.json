@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bpm-zeitarbeit.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:16:09.061253+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44419,
+  "state": "http_error",
+  "elapsed_seconds": 0.984,
+  "sha256": "41ed9c3df5b2ba71b18e1713575f47f5d5a98cb0811d929cbea7a6ff0c5858e4",
+  "capture": "2b113205bef4b54e710e"
+}

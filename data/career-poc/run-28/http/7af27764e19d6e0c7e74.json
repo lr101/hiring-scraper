@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sht-rudolph.de/category/jobs/?s=",
+  "checked_at": "2026-10-05T23:31:02.915129+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76072,
+  "state": "ok",
+  "elapsed_seconds": 1.754,
+  "sha256": "2ebc817805a043a62b2020ab259c85be51a6f7006259271bd9a02b8be33b2782",
+  "capture": "7af27764e19d6e0c7e74"
+}

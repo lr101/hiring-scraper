@@ -1,0 +1,17 @@
+{
+  "url": "https://www.burst-zick.de/karriere/",
+  "checked_at": "2026-10-05T23:35:06.429369+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 258558,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "57fbe7ab21ec32189300a015edffc4e7557b493158811fa2868a578efe4ede0e",
+  "capture": "537c5a19a9a83834a5e4",
+  "merged_from_run": "run-28"
+}

@@ -6,6 +6,8 @@ import logging
 import os
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from uuid import uuid4
 from datetime import timedelta, timezone
 from pathlib import Path
@@ -34,11 +36,15 @@ REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS
 MAX_PAGES = min(12, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "6"))))
 MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
 MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "24"))))
+MAX_CRAWL_WORKER_LIMIT = 32
+MAX_CRAWL_WORKERS = min(MAX_CRAWL_WORKER_LIMIT,
+                        max(1, int(os.getenv("CAREER_DISCOVERY_WORKERS", "4"))))
 TIMEOUT_SECONDS = max(5, float(os.getenv("CAREER_DISCOVERY_TIMEOUT_SECONDS", "15")))
 CAPTURE_DIR = Path(os.getenv("CAREER_DISCOVERY_CAPTURE_DIR", "/tmp/hiring-scraper-discovery-captures"))
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public career discovery)")
 FEED_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
 _ORIGIN_PACER = OriginPacer()
+_SQLITE_FINALIZE_LOCK = Lock()
 
 _CAREER_STATUS = {
     "career_content_found": "career_page_found",
@@ -197,6 +203,12 @@ def _campaign_attempt(session, item_id: int, run_id: int):
         return (job, item) if job is not None and job.status == "cancelled" and \
             item.status == "running" and item.discovery_run_id == run_id else None
     return job, item
+
+
+def _campaign_attempt_is_live(item_id: int, run_id: int) -> bool:
+    with SessionLocal() as session:
+        attempt = _campaign_attempt(session, item_id, run_id)
+        return attempt is not None and attempt[0] is not None and attempt[0].status != "cancelled"
 
 
 def _discard_cancelled_campaign_attempt(company: Company, run: DiscoveryRun,
@@ -657,44 +669,42 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
         job.progress_updated_at = now
 
 
-def process_once(*, location_jobs_only: bool = False) -> bool:
+def _prepare_cycle() -> tuple[int, str] | None:
     try:
         schedule_due_locations()
         _complete_due_empty_jobs()
     except Exception:
         LOG.exception("could not materialize scheduled location discovery jobs")
-    location_attempt = _claim_location_company_search()
-    if location_attempt is not None:
-        location_job_id, attempt_token = location_attempt
-        try:
-            with SessionLocal() as session:
-                job = session.get(DiscoveryJob, location_job_id)
-                if job is None:
-                    return True
-                scope = (job.latitude, job.longitude, job.radius_km * 1000)
-            def report_progress(message: str, **counts) -> None:
-                _update_location_search_progress(location_job_id, attempt_token, message, **counts)
+    return _claim_location_company_search()
 
-            candidates = fetch_location_companies(*scope, progress_callback=report_progress)
-            _persist_location_companies(location_job_id, attempt_token, candidates)
-            LOG.info("location company search id=%s companies=%s homepages=%s",
-                     location_job_id, len(candidates),
-                     sum(bool(row.get("website_url")) for row in candidates))
-        except Exception as error:
-            LOG.exception("location company and homepage search failed id=%s", location_job_id)
-            _fail_location_company_search(location_job_id, attempt_token, error)
+
+def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
+    location_job_id, attempt_token = location_attempt
+    try:
+        with SessionLocal() as session:
+            job = session.get(DiscoveryJob, location_job_id)
+            if job is None:
+                return
+            scope = (job.latitude, job.longitude, job.radius_km * 1000)
+
+        def report_progress(message: str, **counts) -> None:
+            _update_location_search_progress(location_job_id, attempt_token, message, **counts)
+
+        candidates = fetch_location_companies(*scope, progress_callback=report_progress)
+        _persist_location_companies(location_job_id, attempt_token, candidates)
+        LOG.info("location company search id=%s companies=%s homepages=%s",
+                 location_job_id, len(candidates),
+                 sum(bool(row.get("website_url")) for row in candidates))
+    except Exception as error:
+        LOG.exception("location company and homepage search failed id=%s", location_job_id)
+        _fail_location_company_search(location_job_id, attempt_token, error)
+
+
+def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> bool:
+    company_id, run_id, item_id, _job_id = claim
+    if item_id is not None and not _campaign_attempt_is_live(item_id, run_id):
+        _finish_campaign_company(item_id, run_id)
         return True
-    campaign = _claim_campaign_company()
-    if campaign is not None:
-        company_id, run_id, item_id, _job_id = campaign
-    else:
-        if location_jobs_only:
-            return False
-        claimed = _claim_due_company()
-        if claimed is None:
-            return False
-        company_id, run_id = claimed
-        item_id = None
 
     with SessionLocal() as session:
         company = session.get(Company, company_id)
@@ -704,25 +714,97 @@ def process_once(*, location_jobs_only: bool = False) -> bool:
                 if company is not None and company.website_url else None)
     if seed is None:
         error = ValueError("Company no longer has a website URL")
-        _record_failure(company_id, run_id, error, campaign_item_id=item_id)
-        if item_id is not None:
-            _finish_campaign_company(item_id, run_id, error=error)
+
+        def record_missing_website() -> None:
+            _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+            if item_id is not None:
+                _finish_campaign_company(item_id, run_id, error=error)
+
+        if engine.dialect.name == "sqlite":
+            with _SQLITE_FINALIZE_LOCK:
+                record_missing_website()
+        else:
+            record_missing_website()
         return True
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
         client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
                         max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
         result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
-        jobs = _persist_discovery(company_id, run_id, result, campaign_item_id=item_id)
-        if item_id is not None:
-            _finish_campaign_company(item_id, run_id, jobs_found=jobs or 0)
+
+        def persist_result() -> int | None:
+            jobs = _persist_discovery(company_id, run_id, result, campaign_item_id=item_id)
+            if item_id is not None:
+                _finish_campaign_company(item_id, run_id, jobs_found=jobs or 0)
+            return jobs
+
+        if engine.dialect.name == "sqlite":
+            with _SQLITE_FINALIZE_LOCK:
+                jobs = persist_result()
+        else:
+            jobs = persist_result()
         LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
                  company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
     except Exception as error:
         LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
-        _record_failure(company_id, run_id, error, campaign_item_id=item_id)
-        if item_id is not None:
-            _finish_campaign_company(item_id, run_id, error=error)
+
+        def record_failure() -> None:
+            _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+            if item_id is not None:
+                _finish_campaign_company(item_id, run_id, error=error)
+
+        if engine.dialect.name == "sqlite":
+            with _SQLITE_FINALIZE_LOCK:
+                record_failure()
+        else:
+            record_failure()
+    return True
+
+
+def process_once(*, location_jobs_only: bool = False) -> bool:
+    location_attempt = _prepare_cycle()
+    if location_attempt is not None:
+        _process_location_company_search(location_attempt)
+        return True
+    campaign = _claim_campaign_company()
+    if campaign is not None:
+        return _process_claimed_company(campaign)
+    if location_jobs_only:
+        return False
+    claimed = _claim_due_company()
+    return _process_claimed_company((*claimed, None, None)) if claimed is not None else False
+
+
+def process_batch(*, location_jobs_only: bool = False,
+                  max_workers: int = MAX_CRAWL_WORKERS) -> bool:
+    """Claim a bounded batch serially, then crawl distinct companies concurrently."""
+    location_attempt = _prepare_cycle()
+    if location_attempt is not None:
+        _process_location_company_search(location_attempt)
+        return True
+
+    worker_count = min(MAX_CRAWL_WORKER_LIMIT, max(1, int(max_workers)))
+    claims = []
+    for _ in range(worker_count):
+        claim = _claim_campaign_company()
+        if claim is not None:
+            claims.append(claim)
+            continue
+        if location_jobs_only:
+            break
+        due_company = _claim_due_company()
+        if due_company is None:
+            break
+        claims.append((*due_company, None, None))
+
+    if not claims:
+        return False
+    if len(claims) == 1:
+        return _process_claimed_company(claims[0])
+    with ThreadPoolExecutor(max_workers=len(claims), thread_name_prefix="career-discovery") as pool:
+        futures = [pool.submit(_process_claimed_company, claim) for claim in claims]
+        for future in futures:
+            future.result()
     return True
 
 
@@ -737,10 +819,10 @@ def main() -> None:
     if args.once:
         process_once(location_jobs_only=args.location_jobs_only)
         return
-    LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s location_jobs_only=%s",
-             INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, args.location_jobs_only)
+    LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s workers=%s location_jobs_only=%s",
+             INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, MAX_CRAWL_WORKERS, args.location_jobs_only)
     while True:
-        if not process_once(location_jobs_only=args.location_jobs_only):
+        if not process_batch(location_jobs_only=args.location_jobs_only):
             time.sleep(POLL_SECONDS)
 
 

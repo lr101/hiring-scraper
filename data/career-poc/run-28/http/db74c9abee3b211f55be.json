@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.elosmedtech.com/jobs",
+  "checked_at": "2026-10-05T23:39:52.902093+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"e6bf48527d74e16640f908f5eef9ecf3\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 156931,
+  "state": "ok",
+  "elapsed_seconds": 1.011,
+  "sha256": "e6bf48527d74e16640f908f5eef9ecf385dd41205403c53ae265be8a22c0f926",
+  "capture": "db74c9abee3b211f55be"
+}

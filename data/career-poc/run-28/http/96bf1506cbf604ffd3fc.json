@@ -1,0 +1,16 @@
+{
+  "url": "https://q-cnc.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:15.077215+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 269,
+  "state": "ok",
+  "elapsed_seconds": 1.46,
+  "sha256": "ecc489612c2d05e4ad1e7077d7b6212be28830c78c65ee3d994651c3c73ea2d8",
+  "capture": "96bf1506cbf604ffd3fc"
+}

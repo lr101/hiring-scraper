@@ -1,0 +1,17 @@
+{
+  "url": "http://www.eura-personal.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:20.656696+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://eurajobs.de/robots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.765,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "b5a5318a1e77b282c305",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+  "checked_at": "2026-10-05T20:42:08.120686+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53272,
+  "state": "ok",
+  "elapsed_seconds": 1.081,
+  "sha256": "b946d9417acb15e2c5a062289eb013e01108cc4c01e9e6b447b7536968a46179",
+  "capture": "3532ac284364bf66eacf",
+  "reused_from": "data/career-poc/run-18/http/3532ac284364bf66eacf.json"
+}

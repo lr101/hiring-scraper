@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wolff-mueller.de/karriere/personaldienstleister",
+  "checked_at": "2026-10-05T23:19:16.349110+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60268,
+  "state": "ok",
+  "elapsed_seconds": 0.971,
+  "sha256": "55f1955962dfc8bf1f6a53a5462fce40229d53f6fb6b51a51dedbc6b3293930d",
+  "capture": "c055150150279589f348",
+  "merged_from_run": "run-28"
+}

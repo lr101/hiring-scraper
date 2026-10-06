@@ -1,0 +1,16 @@
+{
+  "url": "https://mg-ie.de/stellenangebote/c-qml-entwickler/",
+  "checked_at": "2026-10-05T23:39:43.948902+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111734,
+  "state": "ok",
+  "elapsed_seconds": 1.975,
+  "sha256": "88bb9dee7cb44f664085cc5a87d3386016cbaf9d128b722db03e90446e87dd4a",
+  "capture": "3badb2d1b3b1bd682730"
+}

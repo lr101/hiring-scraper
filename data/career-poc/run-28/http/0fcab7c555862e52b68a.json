@@ -1,0 +1,16 @@
+{
+  "url": "https://rundumwohnen.de/",
+  "checked_at": "2026-10-05T23:33:12.151070+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47153,
+  "state": "ok",
+  "elapsed_seconds": 0.509,
+  "sha256": "1d4ae71936a1225e893bcd8894dd8acd12a3588a540cf6de635060c21fc72298",
+  "capture": "0fcab7c555862e52b68a"
+}

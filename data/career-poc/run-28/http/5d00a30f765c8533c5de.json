@@ -1,0 +1,16 @@
+{
+  "url": "https://www.weber-edv.net/sitemap.xml",
+  "checked_at": "2026-10-05T23:30:16.433178+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1317,
+  "state": "ok",
+  "elapsed_seconds": 0.971,
+  "sha256": "fedca1ac9ec5c4a6819a1a7c5613105eefb646b2769fb7bfa403d78380fc3251",
+  "capture": "5d00a30f765c8533c5de"
+}

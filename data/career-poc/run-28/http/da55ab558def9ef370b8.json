@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ww-cs.de/",
+  "checked_at": "2026-10-05T23:37:36.974006+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:38:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 370289,
+  "state": "ok",
+  "elapsed_seconds": 0.918,
+  "sha256": "ecc65a6f2a3080c0b952d128c103f3432624d7883f97f932724fad89ae36a746",
+  "capture": "da55ab558def9ef370b8"
+}

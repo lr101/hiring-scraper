@@ -1,0 +1,17 @@
+{
+  "url": "https://jci.wd5.myworkdayjobs.com/en-US/JCI/login",
+  "checked_at": "2026-10-05T23:42:05.873011+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106508,
+  "state": "ok",
+  "elapsed_seconds": 1.12,
+  "sha256": "79ad028d9c6aba2a12ac3113399f10935ea1c470e9e3ac6043f3ec015fbe2ea6",
+  "capture": "cd5610cef6f36b1be7d2",
+  "merged_from_run": "run-28"
+}

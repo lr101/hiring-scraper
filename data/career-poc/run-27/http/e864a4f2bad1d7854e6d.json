@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.diva-e.com/category/sales/273ea8c2-10d9-4dc1-ad0b-12e722022731",
+  "checked_at": "2026-10-05T22:49:32.414564+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://karriere.diva-e.com/sales-business-development",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 1.071,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "e864a4f2bad1d7854e6d"
+}

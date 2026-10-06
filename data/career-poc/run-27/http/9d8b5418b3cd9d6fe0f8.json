@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hecopa-gmbh.de/robots.txt",
+  "checked_at": "2026-10-05T22:36:58.654751+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107,
+  "state": "ok",
+  "elapsed_seconds": 0.205,
+  "sha256": "c2caadb7a66bd25dfda4317ace46990a008823ef984820bebc658d49a603354f",
+  "capture": "9d8b5418b3cd9d6fe0f8"
+}

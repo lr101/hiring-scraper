@@ -1,0 +1,17 @@
+{
+  "url": "https://kongeos.xyz/jobboerse/",
+  "checked_at": "2026-10-05T22:28:54.030588+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87168,
+  "state": "ok",
+  "elapsed_seconds": 1.271,
+  "sha256": "7d064d56071be0fe3ada67fa46c04f8c34ce60437a813ef4eebf7d8389353475",
+  "capture": "d94d57860c4dae8234ce",
+  "merged_from_run": "run-26"
+}

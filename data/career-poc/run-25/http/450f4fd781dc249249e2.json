@@ -1,0 +1,16 @@
+{
+  "url": "https://synergie.de/",
+  "checked_at": "2026-10-05T22:15:58.913380+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 303204,
+  "state": "ok",
+  "elapsed_seconds": 1.868,
+  "sha256": "bbb8f4d404c04269a6a41e34678a5df72693b0ff909bdce0930f5cbed86a1c31",
+  "capture": "450f4fd781dc249249e2"
+}

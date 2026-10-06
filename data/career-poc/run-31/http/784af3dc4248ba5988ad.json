@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bgw-online.de/",
+  "checked_at": "2026-10-05T22:20:08.173307+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 142717,
+  "state": "ok",
+  "elapsed_seconds": 1.402,
+  "sha256": "a9c444b4aae0c02a0bc2a5fdbe9c349bec0fd9e58b81ae96d6c2290e4589bc2e",
+  "capture": "784af3dc4248ba5988ad",
+  "merged_from_run": "run-25"
+}

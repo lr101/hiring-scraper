@@ -1,0 +1,16 @@
+{
+  "url": "https://career.bee360.com/apply.html?job=praktikum",
+  "checked_at": "2026-10-05T23:23:51.174268+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/apply?job=praktikum",
+  "bytes": 15,
+  "state": "http_error",
+  "elapsed_seconds": 0.956,
+  "sha256": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+  "capture": "1f371af1770f6eee15fc"
+}

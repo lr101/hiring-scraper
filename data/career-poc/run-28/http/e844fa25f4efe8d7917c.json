@@ -1,0 +1,16 @@
+{
+  "url": "https://gingerhpc.at/bewerbung/",
+  "checked_at": "2026-10-05T23:27:21.442582+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:47:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 268855,
+  "state": "ok",
+  "elapsed_seconds": 0.907,
+  "sha256": "a95715d3fc22486a29df35531a0f7058bff28c4aa52d8a8704543bdc56b211a2",
+  "capture": "e844fa25f4efe8d7917c"
+}

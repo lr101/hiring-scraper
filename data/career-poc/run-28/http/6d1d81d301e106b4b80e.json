@@ -1,0 +1,16 @@
+{
+  "url": "https://service.bund.de/IMPORTE/Stellenangebote/editor/BVA-THW/2026/10/6659356",
+  "checked_at": "2026-10-05T23:32:46.418655+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:32:47 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 25171,
+  "state": "ok",
+  "elapsed_seconds": 1.006,
+  "sha256": "6e767d9f196232b28bdb42b9889b9f73329f917ecd4acc25b8fae914711be520",
+  "capture": "6d1d81d301e106b4b80e"
+}

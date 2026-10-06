@@ -1,0 +1,16 @@
+{
+  "url": "https://www.md-bw.de/",
+  "checked_at": "2026-10-05T23:02:43.593623+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 177861,
+  "state": "ok",
+  "elapsed_seconds": 0.37,
+  "sha256": "2cb093863627c5d433ddc474e3d05dd84ff87986ee072c453b00371e9ed5451b",
+  "capture": "a9f52e4d5b9b297e8be5"
+}

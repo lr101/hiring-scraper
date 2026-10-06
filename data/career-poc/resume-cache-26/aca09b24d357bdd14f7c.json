@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fsmi.org/karriere/",
+  "checked_at": "2026-10-05T22:22:52.856552+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40839,
+  "state": "http_error",
+  "elapsed_seconds": 1.303,
+  "sha256": "1435a202c2560f02be029882624224dbc7d3264ef39a2a1dcc255d44421842c5",
+  "capture": "aca09b24d357bdd14f7c"
+}

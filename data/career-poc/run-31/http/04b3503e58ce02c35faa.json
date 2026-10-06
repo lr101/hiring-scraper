@@ -1,0 +1,17 @@
+{
+  "url": "https://stellenmarkt.faz.net/karriere-lounge/bewerbung/",
+  "checked_at": "2026-10-05T23:11:03.271833+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171242,
+  "state": "ok",
+  "elapsed_seconds": 2.339,
+  "sha256": "212c84f78af277d55da8ee1ad412ef7bae0af7d8b8de5f89e050adfdf2df7ead",
+  "capture": "04b3503e58ce02c35faa",
+  "merged_from_run": "run-27"
+}

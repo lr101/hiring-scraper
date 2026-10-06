@@ -1,0 +1,16 @@
+{
+  "url": "https://stachurski.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:38:40.305048+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40962,
+  "state": "http_error",
+  "elapsed_seconds": 1.041,
+  "sha256": "62ebd03d4f7905c3b1c90ecb095a1fcdfc4640de14ca0247ba4ec2f16e0be6d6",
+  "capture": "4525875d2a77283d9d57"
+}

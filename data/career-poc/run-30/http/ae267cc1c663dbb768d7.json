@@ -1,0 +1,17 @@
+{
+  "url": "https://honold.de/karriere",
+  "checked_at": "2026-10-05T23:11:19.895772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:11:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1576,
+  "state": "http_error",
+  "elapsed_seconds": 1.194,
+  "sha256": "4129006c6ccd453b9aa83664fe4024db8ea5d672222a1d03e01388e9960d06b8",
+  "capture": "ae267cc1c663dbb768d7",
+  "merged_from_run": "run-27"
+}

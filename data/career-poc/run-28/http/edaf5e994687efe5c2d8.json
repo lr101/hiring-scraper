@@ -1,0 +1,16 @@
+{
+  "url": "https://full-smile.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:26.065579+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 441,
+  "state": "ok",
+  "elapsed_seconds": 1.375,
+  "sha256": "1c19788f8372c1b2f0ba0d2eaec26c0fd2df56b76e41f033347f7ba09fae5470",
+  "capture": "edaf5e994687efe5c2d8"
+}

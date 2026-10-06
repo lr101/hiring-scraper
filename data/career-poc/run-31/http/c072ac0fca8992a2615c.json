@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kuhn-edeka.de/karriere/praktikum/",
+  "checked_at": "2026-10-05T23:37:13.769774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 785618,
+  "state": "ok",
+  "elapsed_seconds": 2.518,
+  "sha256": "d38c0b29ab1827f9f0fdff76b4293692fbb28d9e90ff811a8a4356ef714f52f1",
+  "capture": "c072ac0fca8992a2615c",
+  "merged_from_run": "run-28"
+}

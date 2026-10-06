@@ -1,0 +1,16 @@
+{
+  "url": "https://www.careerservice.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T23:23:09.629295+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"24-619703381b353\"",
+  "last_modified": "Mon, 27 May 2024 14:19:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 36,
+  "state": "ok",
+  "elapsed_seconds": 0.907,
+  "sha256": "f97b220684d7f1406e1d322bf27ff758e19de7fdcecfbc8e73739188cd421fcd",
+  "capture": "ad5f612e368cc7747041"
+}

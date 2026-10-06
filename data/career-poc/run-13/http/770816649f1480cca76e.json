@@ -1,0 +1,14 @@
+{
+  "url": "https://www.codewrights.de/de/arbeitgeber/praktikumsplatz-fuer-schueler-m-w-d",
+  "checked_at": "2026-10-05T14:16:54.007586+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 13142,
+  "state": "ok",
+  "elapsed_seconds": 1.116,
+  "sha256": "ba28697e387d0fe53471534548f2b9a7e0eb9d50b6e572e2c1be19ece19c62e5",
+  "capture": "770816649f1480cca76e",
+  "reused_from": "data/career-poc/run-12/http/770816649f1480cca76e.json"
+}

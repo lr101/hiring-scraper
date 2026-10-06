@@ -1,0 +1,16 @@
+{
+  "url": "https://bdarchitekten.com/de/buero/stellenausschreibungen.php?we_objectID=380",
+  "checked_at": "2026-10-05T22:47:39.504799+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1781,
+  "state": "ok",
+  "elapsed_seconds": 1.129,
+  "sha256": "257b041e0dabf51f7c250590411032d75901bf584d02f764c9c5509b04857054",
+  "capture": "28b29e1c96438b386fac"
+}

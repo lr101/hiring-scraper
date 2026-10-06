@@ -1,0 +1,17 @@
+{
+  "url": "https://studiob60.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:21.916124+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.hinte-media.com/",
+  "bytes": 299,
+  "state": "http_error",
+  "elapsed_seconds": 0.18,
+  "sha256": "3322b14b05281ff8b0c7b6b6ceadb3838909091e891ef2759566b67e7118baa1",
+  "capture": "1beb3dc1c313673aa2e7",
+  "merged_from_run": "run-28"
+}

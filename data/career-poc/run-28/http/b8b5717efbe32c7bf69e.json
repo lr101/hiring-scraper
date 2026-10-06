@@ -1,0 +1,16 @@
+{
+  "url": "https://gc-fliesen-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:45:18.484140+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 229993,
+  "state": "http_error",
+  "elapsed_seconds": 1.329,
+  "sha256": "ce850e57a63d20cf86256c6e7efc3d2c05f81664bf3b41d01ee79a3be4caf1b6",
+  "capture": "b8b5717efbe32c7bf69e"
+}

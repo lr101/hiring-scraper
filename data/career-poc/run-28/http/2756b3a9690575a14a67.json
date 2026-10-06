@@ -1,0 +1,16 @@
+{
+  "url": "https://herrmann-kutscher.de/karriere",
+  "checked_at": "2026-10-05T23:40:10.716516+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 155791,
+  "state": "http_error",
+  "elapsed_seconds": 1.933,
+  "sha256": "135a2df67e3f1f4019cb24163f61f3d7ec24be6e55afa1744aef1112d7064642",
+  "capture": "2756b3a9690575a14a67"
+}

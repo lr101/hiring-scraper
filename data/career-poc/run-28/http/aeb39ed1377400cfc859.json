@@ -1,0 +1,16 @@
+{
+  "url": "https://metallbau-model.de/careers",
+  "checked_at": "2026-10-05T23:43:30.727310+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83298,
+  "state": "http_error",
+  "elapsed_seconds": 0.962,
+  "sha256": "9618524c98b850258942c39324eb3d0ba16679ba9645ee9ed631758082c9530a",
+  "capture": "aeb39ed1377400cfc859"
+}

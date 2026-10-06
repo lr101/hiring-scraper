@@ -1,0 +1,16 @@
+{
+  "url": "https://stellenangebote.bgv.de/go/Berufserfahrene/9374301/",
+  "checked_at": "2026-10-06T07:06:17.699210+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107150,
+  "state": "ok",
+  "elapsed_seconds": 1.193,
+  "sha256": "8453121ce23077870ef7dc4b3d1f311c09968cc2b6d3ddd226a87320a6b35512",
+  "capture": "163c9d5296705c84fd0a"
+}

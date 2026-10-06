@@ -1,0 +1,13 @@
+{
+  "url": "https://consult.ptvgroup.com/",
+  "checked_at": "2026-10-05T14:47:33.412405+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "location": "https://consult.ptvgroup.com/en",
+  "bytes": 370,
+  "state": "http_error",
+  "elapsed_seconds": 1.089,
+  "sha256": "be398d627291c2c535ab988ad315480905e5b1bd2a0110bc1b4a5858c2a5314d",
+  "capture": "02b2c267285538c35b2b"
+}

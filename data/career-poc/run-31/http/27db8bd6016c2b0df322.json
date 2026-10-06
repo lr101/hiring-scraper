@@ -1,0 +1,17 @@
+{
+  "url": "https://fruitfuloffice.de/blog/jobs/auslieferfaher-frankfurt-ffo-jobs/",
+  "checked_at": "2026-10-05T23:20:09.460926+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:03:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 110241,
+  "state": "ok",
+  "elapsed_seconds": 0.959,
+  "sha256": "1ca78f18978c17315f76dbd27ced1e7358dabcbba3128d68b631bbd520688597",
+  "capture": "27db8bd6016c2b0df322",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.weisenburger.de/robots.txt",
+  "checked_at": "2026-10-05T22:51:08.986355+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 166,
+  "state": "ok",
+  "elapsed_seconds": 0.483,
+  "sha256": "54a66f75bc1b08de5d6ebe202b247d081638c27b4fdc846dcd5995cf5a687a3b",
+  "capture": "938b2cb013626dfa89aa"
+}

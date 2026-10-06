@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dplangmbh.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:48:40.969800+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2368,
+  "state": "http_error",
+  "elapsed_seconds": 1.108,
+  "sha256": "2bea2167deae83bb7cba83b611ead61d3c44030af479431007279c26bd18f883",
+  "capture": "2b22a3554455553cc38f"
+}

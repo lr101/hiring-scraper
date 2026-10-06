@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zg-raiffeisen.de/standorte/standort/karlsruhe/zg-raiffeisen-energie-niederlassung-karlsruhe",
+  "checked_at": "2026-10-05T23:36:43.567843+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.zg-raiffeisen.de/standorte#!/l/karlsruhe/esso-strasse-16/3422219",
+  "bytes": 324,
+  "state": "http_error",
+  "elapsed_seconds": 0.753,
+  "sha256": "ae23fc2ceca9e9e488cec8114f640b10a377ce27eebbd6b6e361e88eb2ef9837",
+  "capture": "613e7f1340d80864cda0",
+  "merged_from_run": "run-28"
+}

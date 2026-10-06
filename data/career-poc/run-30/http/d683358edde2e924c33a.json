@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mkm.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:22.883782+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"9fc-62be73025097c;62be730274b9f",
+  "last_modified": "Fri, 17 Jan 2025 13:50:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2556,
+  "state": "ok",
+  "elapsed_seconds": 0.335,
+  "sha256": "de88576d6ff97b511eb33f8b2d6c09d5d9747c20a9bef6b4ee1eed42971eff91",
+  "capture": "d683358edde2e924c33a",
+  "merged_from_run": "run-25"
+}

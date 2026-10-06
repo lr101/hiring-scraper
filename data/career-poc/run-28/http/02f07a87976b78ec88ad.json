@@ -1,0 +1,16 @@
+{
+  "url": "https://www.seica.com/",
+  "checked_at": "2026-10-05T23:35:12.397022+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 188231,
+  "state": "ok",
+  "elapsed_seconds": 2.205,
+  "sha256": "07724fbbc3e11283d309f93598384d051b2e997acc0ebfe325a6b8f1fdae43c9",
+  "capture": "02f07a87976b78ec88ad"
+}

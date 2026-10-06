@@ -1,0 +1,17 @@
+{
+  "url": "https://www.analytica-gmbh.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:55.952770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"328-5c540de45a417\"",
+  "last_modified": "Mon, 21 Jun 2021 06:34:41 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 808,
+  "state": "http_error",
+  "elapsed_seconds": 0.999,
+  "sha256": "b9347f234dc3c8d56e015e86d88a1400415db8f7a5ad91f02b6a2323c10a4187",
+  "capture": "2313b5a6651cb9b56048",
+  "merged_from_run": "run-28"
+}

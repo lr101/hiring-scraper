@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bridging-it.de/karriere/initiativ-bewerben.html",
+  "checked_at": "2026-10-05T22:17:46.456603+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"4757-65263ee167302\"",
+  "last_modified": "Fri, 22 May 2026 08:36:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 18263,
+  "state": "ok",
+  "elapsed_seconds": 1.091,
+  "sha256": "766d2ef8d41a7958ebfbff659690bed6cdc0ace670eaa09fc281c12109377c96",
+  "capture": "ff58f2e4ab5268859d9e"
+}

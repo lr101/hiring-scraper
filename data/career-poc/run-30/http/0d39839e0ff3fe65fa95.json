@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ndt-global.com/careers/",
+  "checked_at": "2026-10-05T23:40:29.147640+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"96a59c0beafb8ddb1991b48ecbc31fac\"",
+  "last_modified": "Tue, 22 Sep 2026 14:20:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 243184,
+  "state": "ok",
+  "elapsed_seconds": 1.063,
+  "sha256": "fa62535e1dba7851571e01b6d660566a957472cb416020115f8e1b72075114e4",
+  "capture": "0d39839e0ff3fe65fa95",
+  "merged_from_run": "run-28"
+}

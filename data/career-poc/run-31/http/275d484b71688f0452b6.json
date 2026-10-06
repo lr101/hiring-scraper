@@ -1,0 +1,17 @@
+{
+  "url": "http://wbw-fortbildung.de",
+  "checked_at": "2026-10-05T23:03:22.039303+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://wasserundboden.kea-bw.de/",
+  "bytes": 281,
+  "state": "http_error",
+  "elapsed_seconds": 0.116,
+  "sha256": "7da65e1d233810ee2138b7f91c2f495a9f11045d10b4a7f97134aad272d5e7a5",
+  "capture": "275d484b71688f0452b6",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fdp-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:16:22.841058+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/consent?dest=%2F",
+  "bytes": 314,
+  "state": "http_error",
+  "elapsed_seconds": 1.076,
+  "sha256": "5bb4e722453424120b0e45c558d2528306b5a1696cc0f30031b1128733880b1d",
+  "capture": "e0b78b6aa4ee0200d05d",
+  "merged_from_run": "run-28"
+}

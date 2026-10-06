@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nowak-partner.de/home",
+  "checked_at": "2026-10-05T22:58:40.342834+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 59582,
+  "state": "ok",
+  "elapsed_seconds": 1.754,
+  "sha256": "8ee72a4572cbd6368344ef6d0dbec9193e3d274e5fa166a5b2d93d290b8f39b9",
+  "capture": "6f17a0ec3ca93de0b997",
+  "merged_from_run": "run-27"
+}

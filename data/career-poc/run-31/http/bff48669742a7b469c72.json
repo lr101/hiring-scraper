@@ -1,0 +1,17 @@
+{
+  "url": "https://www.artus-gruppe.com/karriere",
+  "checked_at": "2026-10-05T23:34:49.771158+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 390140,
+  "state": "ok",
+  "elapsed_seconds": 1.626,
+  "sha256": "066dc185d67326eada18cf7f0649a7cc8bfe48a0f6489f2855b1edd2d4caec4b",
+  "capture": "bff48669742a7b469c72",
+  "merged_from_run": "run-28"
+}

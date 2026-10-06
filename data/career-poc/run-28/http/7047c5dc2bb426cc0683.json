@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jungheinrich.de/karriere/jobs?fcid=2155334887126",
+  "checked_at": "2026-10-05T23:36:52.152235+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 316273,
+  "state": "ok",
+  "elapsed_seconds": 0.862,
+  "sha256": "59eb0647b70cedd71aba1d34835fc8004ffc97b79f8443a8ee87ce6003a8f2ce",
+  "capture": "7047c5dc2bb426cc0683"
+}

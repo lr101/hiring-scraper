@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arcadis.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:19:51.987327+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3000001,
+  "state": "body_too_large",
+  "elapsed_seconds": 0.629,
+  "sha256": "1b1fcf355ab38f9178383914a38dd4466b37d70a8386ce33b834e522fd79c26c",
+  "capture": "42b5fa87aa98713323ab"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kvbw.de/",
+  "checked_at": "2026-10-05T22:48:57.455988+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.kvbw.de/pb/,Lde/1975826.html",
+  "bytes": 288,
+  "state": "http_error",
+  "elapsed_seconds": 1.114,
+  "sha256": "b4c2ab2306085f9224585ec1450b243ed98465f6780ed2a25af7f6b2f5b41520",
+  "capture": "b0c2ae6bb90d2a217f22"
+}

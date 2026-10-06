@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hausverwaltung-liede.de/",
+  "checked_at": "2026-10-05T23:21:22.066979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:37:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 98481,
+  "state": "ok",
+  "elapsed_seconds": 0.3,
+  "sha256": "5577faaf74badb326333b7e55325704fd21fd053f2489f5a0c77a52e2c4ed063",
+  "capture": "1e94a70f428e1d4f0612"
+}

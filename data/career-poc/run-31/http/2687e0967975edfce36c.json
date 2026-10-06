@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cyberforum.de/jobboerse",
+  "checked_at": "2026-10-05T23:14:23.742945+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5541,
+  "state": "http_error",
+  "elapsed_seconds": 0.589,
+  "sha256": "ba3f227beb6107a202a7ad059c392848dfb74b65d8380c9dada7da17b2b97376",
+  "capture": "2687e0967975edfce36c",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mf-gebaeudetechnik.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:05.094895+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2724,
+  "state": "http_error",
+  "elapsed_seconds": 2.464,
+  "sha256": "bdd2d4e9f3849e5f7f6bb8829c388e878580f5f8a181dc6cb8ebc2bb2c10de7a",
+  "capture": "6b691b658de417de7b71",
+  "merged_from_run": "run-28"
+}

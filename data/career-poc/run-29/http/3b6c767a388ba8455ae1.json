@@ -1,0 +1,11 @@
+{
+  "url": "https://www.sgfa.eu/robots.txt",
+  "checked_at": "2026-10-05T22:55:32.532583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "[Errno -3] Temporary failure in name resolution",
+  "elapsed_seconds": 0.029,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "3b6c767a388ba8455ae1",
+  "merged_from_run": "run-27"
+}

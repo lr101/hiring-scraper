@@ -1,0 +1,17 @@
+{
+  "url": "https://baden.dlrg.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:04.468221+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 209,
+  "state": "ok",
+  "elapsed_seconds": 0.161,
+  "sha256": "4b98a8404dcf33cd417ef94ec187f5780b25af2c04ffca0017683d763a5142f3",
+  "capture": "6f806fb340f329927d27",
+  "merged_from_run": "run-28"
+}

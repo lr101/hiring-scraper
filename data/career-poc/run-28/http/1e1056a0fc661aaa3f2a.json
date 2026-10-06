@@ -1,0 +1,16 @@
+{
+  "url": "https://gartenwerk-erb.de/careers",
+  "checked_at": "2026-10-05T23:46:39.841997+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86483,
+  "state": "http_error",
+  "elapsed_seconds": 0.92,
+  "sha256": "b08e968db89c07a017f7f517b1a3979ac0cc5f445fe205d64c317dba27b99584",
+  "capture": "1e1056a0fc661aaa3f2a"
+}

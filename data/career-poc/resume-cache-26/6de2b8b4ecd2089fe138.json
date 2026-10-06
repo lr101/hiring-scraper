@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bd-kanzlei.de/bewerbung/",
+  "checked_at": "2026-10-05T22:28:26.331248+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5097,
+  "state": "ok",
+  "elapsed_seconds": 1.091,
+  "sha256": "9ab2f8b362078c49b307970e9eb4e1502c120f1da603eb69b195f5be988c87f1",
+  "capture": "6de2b8b4ecd2089fe138"
+}

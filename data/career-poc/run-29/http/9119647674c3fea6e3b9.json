@@ -1,0 +1,17 @@
+{
+  "url": "https://www.voellinger-partner.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:41.450775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123,
+  "state": "ok",
+  "elapsed_seconds": 0.716,
+  "sha256": "1d5217c4150f4580a2a70027038e859d410bb0a4ec84505dd5f6622df3c8c614",
+  "capture": "9119647674c3fea6e3b9",
+  "merged_from_run": "run-28"
+}

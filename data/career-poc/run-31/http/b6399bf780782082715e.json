@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nock-gmbh.de/Jobs.html",
+  "checked_at": "2026-10-05T23:11:08.310325+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"5b7e4fe0-1bff\"",
+  "last_modified": "Thu, 23 Aug 2018 06:10:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 7167,
+  "state": "ok",
+  "elapsed_seconds": 1.093,
+  "sha256": "24fa88478606204f4c1689daaaf0a129bfcaefe88d8a42c6a11ff4a95cf82c85",
+  "capture": "b6399bf780782082715e",
+  "merged_from_run": "run-27"
+}

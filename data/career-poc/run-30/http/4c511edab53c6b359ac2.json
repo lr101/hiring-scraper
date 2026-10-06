@@ -1,0 +1,17 @@
+{
+  "url": "https://crossing-gmbh.de/karriere",
+  "checked_at": "2026-10-05T23:43:09.426910+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84575,
+  "state": "http_error",
+  "elapsed_seconds": 1.481,
+  "sha256": "4b73c5b528b9b096040679d17735964bf95c8d49d34418467b22a2507ebcf199",
+  "capture": "4c511edab53c6b359ac2",
+  "merged_from_run": "run-28"
+}

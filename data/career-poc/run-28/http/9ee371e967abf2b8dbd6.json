@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cab.de/en/company/about-us/",
+  "checked_at": "2026-10-05T23:22:29.411304+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76216,
+  "state": "ok",
+  "elapsed_seconds": 0.958,
+  "sha256": "89fca67f4649cbb5a56e105fb4403e8fa6f93625dff5702d4272ce42ae070bfd",
+  "capture": "9ee371e967abf2b8dbd6"
+}

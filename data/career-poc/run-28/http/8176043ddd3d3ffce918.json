@@ -1,0 +1,16 @@
+{
+  "url": "https://maus-gmbh.de/de/offene-stellen/",
+  "checked_at": "2026-10-05T23:36:46.202701+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40880,
+  "state": "ok",
+  "elapsed_seconds": 0.852,
+  "sha256": "7a6c62fb7e45a841d3e9e09b8e5171fb14b63c4bfba5523a0d7c093cfb513092",
+  "capture": "8176043ddd3d3ffce918"
+}

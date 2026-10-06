@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dis-ag.com/de-de",
+  "checked_at": "2026-10-05T22:08:32.532327+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"6D5DBDB84603FD9E4FAC2A6FBE864374\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 510958,
+  "state": "ok",
+  "elapsed_seconds": 1.158,
+  "sha256": "83e7eb5f8f13707341c76f0f77bd0d2d4ce3ef2247e7c8c4d067c0774209abee",
+  "capture": "65a5998b88b7217801b9"
+}

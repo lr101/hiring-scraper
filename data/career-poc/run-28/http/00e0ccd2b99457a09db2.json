@@ -1,0 +1,16 @@
+{
+  "url": "https://www.millestelle.group/karriere/",
+  "checked_at": "2026-10-05T23:37:35.328352+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1795,
+  "state": "http_error",
+  "elapsed_seconds": 1.08,
+  "sha256": "260ab63a194c286e43874934dab310676a1eddd4df9eccb46f09aa0ceca14f91",
+  "capture": "00e0ccd2b99457a09db2"
+}

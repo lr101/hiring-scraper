@@ -1,0 +1,10 @@
+{
+  "name": "osm-radius-15km",
+  "url": "https://overpass-api.de/api/interpreter",
+  "method": "POST",
+  "checked_at": "2026-10-05T14:41:31.725151+00:00",
+  "status": 200,
+  "content_type": "application/json",
+  "bytes": 1016743,
+  "sha256": "2a3c72051991129f2681ca1e53b29c5181393049b75a9d66af8c5d1aa0ad76e5"
+}

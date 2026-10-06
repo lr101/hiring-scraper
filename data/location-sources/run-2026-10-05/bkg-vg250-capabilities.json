@@ -1,0 +1,10 @@
+{
+  "name": "bkg-vg250-capabilities",
+  "url": "https://sgx.geodatenzentrum.de/wfs_vg250?service=WFS&request=GetCapabilities&version=2.0.0",
+  "method": "GET",
+  "checked_at": "2026-10-05T14:42:03.646112+00:00",
+  "status": 200,
+  "content_type": "application/xml",
+  "bytes": 108706,
+  "sha256": "eb48654e9e8a64c31a18fbea596a5669a37acad4048b29c7661d5d4fb414179a"
+}

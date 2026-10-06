@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vega.com/karriere/komm-zu-vega",
+  "checked_at": "2026-10-05T22:51:22.286922+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64055,
+  "state": "ok",
+  "elapsed_seconds": 1.671,
+  "sha256": "94684f947edb1ee123dcb8e9ea6cb775e893bfa1bd6a65eb73924bfed0e9f3f6",
+  "capture": "b62754c96666e5ac9ba1"
+}

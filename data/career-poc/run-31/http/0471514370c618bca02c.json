@@ -1,0 +1,17 @@
+{
+  "url": "https://www.usu.com/robots.txt",
+  "checked_at": "2026-10-05T22:17:30.911729+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"2d0875ec8ece26c94873f98feb2da64c\"",
+  "last_modified": "Sat, 04 Jul 2026 11:11:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 631,
+  "state": "ok",
+  "elapsed_seconds": 0.287,
+  "sha256": "bc8984f76e63cf013d8010c736df6cfc23326b259e51c76194019c43ce5a6679",
+  "capture": "0471514370c618bca02c",
+  "merged_from_run": "run-25"
+}

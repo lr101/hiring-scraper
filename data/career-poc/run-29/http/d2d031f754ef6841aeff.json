@@ -1,0 +1,17 @@
+{
+  "url": "https://boards-api.greenhouse.io/v1/boards/mailmediaportal/jobs?content=true",
+  "checked_at": "2026-10-05T22:58:17.738642+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/json",
+  "etag": "W/\"d99e67543b4aca246398626e416fa73a\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 75306,
+  "state": "ok",
+  "elapsed_seconds": 0.24,
+  "sha256": "d99e67543b4aca246398626e416fa73adb80938a193abeb8a85fdc0710cc8e3c",
+  "capture": "d2d031f754ef6841aeff",
+  "merged_from_run": "run-27"
+}

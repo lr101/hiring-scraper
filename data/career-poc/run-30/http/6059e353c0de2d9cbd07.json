@@ -1,0 +1,17 @@
+{
+  "url": "https://ares-bauelemente.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:30:32.948030+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 410,
+  "state": "ok",
+  "elapsed_seconds": 0.924,
+  "sha256": "1eb73dcc134cbd663fd88449949401bbf02744e354d7b3fc9c8a7c6022602596",
+  "capture": "6059e353c0de2d9cbd07",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://gfk-ingenieure.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:43.979700+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 221,
+  "state": "ok",
+  "elapsed_seconds": 7.172,
+  "sha256": "a5a59790c1046559d081142e8cb3f6c8876524214a7733863aa9950806a97172",
+  "capture": "35b927bd1c60fb13d7d2",
+  "merged_from_run": "run-28"
+}

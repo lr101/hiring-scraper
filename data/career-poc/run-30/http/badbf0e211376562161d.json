@@ -1,0 +1,17 @@
+{
+  "url": "https://hd-zahntechnik.com/job/azubi-zahntechniker-in-ausbildung/",
+  "checked_at": "2026-10-05T23:32:00.505249+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111187,
+  "state": "ok",
+  "elapsed_seconds": 1.018,
+  "sha256": "ca70161850866409dafd1040395581a4a6c310290219013de6a5f1b0948e6959",
+  "capture": "badbf0e211376562161d",
+  "merged_from_run": "run-28"
+}

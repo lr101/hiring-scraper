@@ -1,0 +1,17 @@
+{
+  "url": "https://www.initse.com/ende/header-meta/careers/young-scholars/",
+  "checked_at": "2026-10-05T23:19:44.003089+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 159260,
+  "state": "ok",
+  "elapsed_seconds": 0.832,
+  "sha256": "6cd2ec207ce97c2cdbd8fb68b35eeca3f3f645ea46b6ebf0d332367b1380dd7c",
+  "capture": "f4f50bd5464c26e7fab2",
+  "merged_from_run": "run-28"
+}

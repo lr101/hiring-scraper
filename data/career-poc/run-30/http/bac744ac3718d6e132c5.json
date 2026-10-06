@@ -1,0 +1,17 @@
+{
+  "url": "https://entegrasolutions.com/robots.txt",
+  "checked_at": "2026-10-05T23:40:30.270643+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:40:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 194,
+  "state": "ok",
+  "elapsed_seconds": 0.62,
+  "sha256": "236ff353755db995dcf6f01502c6ac413bf2005e638c9afc5f22b4dc3082d7c6",
+  "capture": "bac744ac3718d6e132c5",
+  "merged_from_run": "run-28"
+}

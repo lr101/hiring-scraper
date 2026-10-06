@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.atruvia.de/ausbildung/",
+  "checked_at": "2026-10-05T23:25:20.418504+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1283775,
+  "state": "ok",
+  "elapsed_seconds": 0.824,
+  "sha256": "f979244f7802739b3b3e3704eebe5a3c72a59b9eedbd8a1c0bebb4b761f1bb73",
+  "capture": "6fb2601879f2ea547e52"
+}

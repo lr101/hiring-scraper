@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ab-fotodesign.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:14.087442+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ab-fotodesign.de/robots.txt",
+  "bytes": 283,
+  "state": "http_error",
+  "elapsed_seconds": 0.143,
+  "sha256": "c582984d647f49b507e369f2205ff1ca364488456d1ed30f451ee34615e741ad",
+  "capture": "ee15cacc8697389fa70b",
+  "merged_from_run": "run-28"
+}

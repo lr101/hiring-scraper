@@ -1,0 +1,17 @@
+{
+  "url": "https://www.heimstiftung-karlsruhe.de/jobs-und-mitarbeit/mitarbeit/",
+  "checked_at": "2026-10-05T22:34:57.841505+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"e5ed137984b66f5b8394877eb7529712\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112065,
+  "state": "ok",
+  "elapsed_seconds": 1.294,
+  "sha256": "c5cb54921a7d92448938067d7338443d5cbdc080529d24cc2be956a280cdc79e",
+  "capture": "9bae3125034dee282fb9",
+  "merged_from_run": "run-27"
+}

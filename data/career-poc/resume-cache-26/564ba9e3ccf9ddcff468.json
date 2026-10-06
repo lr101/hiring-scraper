@@ -1,0 +1,16 @@
+{
+  "url": "https://beamtenberatung-plus.de/",
+  "checked_at": "2026-10-05T22:23:23.661914+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:39:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 534108,
+  "state": "ok",
+  "elapsed_seconds": 1.167,
+  "sha256": "9909386a037be4bbcdfde29b9448cf6f57a99c0d18f4ec90a4e61403b34aeb71",
+  "capture": "564ba9e3ccf9ddcff468"
+}

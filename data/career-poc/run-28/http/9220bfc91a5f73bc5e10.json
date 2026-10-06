@@ -1,0 +1,16 @@
+{
+  "url": "https://www.litho-type.de/karriere",
+  "checked_at": "2026-10-05T23:21:25.275171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1271,
+  "state": "http_error",
+  "elapsed_seconds": 1.002,
+  "sha256": "5b91dd665bf31140958c0a1a6a3de0e34b41b9ef560eb7cdcb8fd255b5266604",
+  "capture": "9220bfc91a5f73bc5e10"
+}

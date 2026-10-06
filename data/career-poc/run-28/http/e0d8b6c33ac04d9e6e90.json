@@ -1,0 +1,10 @@
+{
+  "url": "https://www.aw-meisterklempnerei.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:46.989302+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [Errno 111] Connection refused>",
+  "elapsed_seconds": 0.591,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "e0d8b6c33ac04d9e6e90"
+}

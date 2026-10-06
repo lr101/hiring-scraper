@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kopp-schlosserei.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:12.986270+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103,
+  "state": "ok",
+  "elapsed_seconds": 0.955,
+  "sha256": "fd3ce1933ef669d3d63795143ce5111d039694a7ded5e478f197302a71b72db8",
+  "capture": "6db390bfa59147757490",
+  "merged_from_run": "run-28"
+}

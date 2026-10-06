@@ -1,0 +1,16 @@
+{
+  "url": "https://imagroup.com/food/",
+  "checked_at": "2026-10-05T23:40:17.445331+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"6866b-65d1f39f6d13c\"",
+  "last_modified": "Mon, 05 Oct 2026 22:15:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 427627,
+  "state": "ok",
+  "elapsed_seconds": 0.29,
+  "sha256": "2ab4a39c9714c65137e2bb88ae90bd19ac5d042fe7c8f25b7c699ee478aaa955",
+  "capture": "4310efbc4137c7a8e397"
+}

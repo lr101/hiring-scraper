@@ -1,0 +1,17 @@
+{
+  "url": "https://www.isdfeniqs.com/robots.txt",
+  "checked_at": "2026-10-05T23:21:48.512402+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "W/\"6a-19f8e2d14f8\"",
+  "last_modified": "Thu, 23 Jul 2026 08:52:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 106,
+  "state": "ok",
+  "elapsed_seconds": 0.22,
+  "sha256": "cb0b387bd0564fcd1f9600ea0999f9daa5a1959a25994657d1ac780ee5f7de4a",
+  "capture": "0db9a5a4fe4aced6b006",
+  "merged_from_run": "run-28"
+}

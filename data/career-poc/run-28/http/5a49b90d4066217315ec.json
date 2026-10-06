@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buedenbender-hausbau.de/unternehmen/fachberater/karlsruhe/",
+  "checked_at": "2026-10-05T23:34:09.861396+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.buedenbender-hausbau.de/unternehmen/fachberater/karlsruhe",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 1.13,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "5a49b90d4066217315ec"
+}

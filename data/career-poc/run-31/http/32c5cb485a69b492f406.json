@@ -1,0 +1,17 @@
+{
+  "url": "https://hoelzergmbh.de/",
+  "checked_at": "2026-10-05T23:32:29.771934+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 157410,
+  "state": "ok",
+  "elapsed_seconds": 1.074,
+  "sha256": "1297273163d23a83882bd50154a38c51dd6998ecd72720c5f21f87aef88780a0",
+  "capture": "32c5cb485a69b492f406",
+  "merged_from_run": "run-28"
+}

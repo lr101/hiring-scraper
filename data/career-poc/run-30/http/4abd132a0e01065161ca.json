@@ -1,0 +1,17 @@
+{
+  "url": "https://steuerberater-nowatzki.de/jobs",
+  "checked_at": "2026-10-05T23:16:40.101106+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25175,
+  "state": "http_error",
+  "elapsed_seconds": 0.942,
+  "sha256": "c5c8bba7578b4832421791de1734ab169646efa9f52d3b4e5e3b1ddfe0902426",
+  "capture": "4abd132a0e01065161ca",
+  "merged_from_run": "run-28"
+}

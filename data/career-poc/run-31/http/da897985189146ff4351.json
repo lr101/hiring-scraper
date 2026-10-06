@@ -1,0 +1,17 @@
+{
+  "url": "https://www.revalizesoftware.com/pro-file",
+  "checked_at": "2026-10-05T23:03:05.643969+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1410,
+  "state": "http_error",
+  "elapsed_seconds": 0.167,
+  "sha256": "dd3aaf85bd8809d4782fe15df37741812dbfab918875b00056181fb2d04a4de2",
+  "capture": "da897985189146ff4351",
+  "merged_from_run": "run-27"
+}

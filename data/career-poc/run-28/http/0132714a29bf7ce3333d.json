@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zwischenlager.net/robots.txt",
+  "checked_at": "2026-10-05T23:27:28.640137+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Mon, 22 Feb 2016 12:22:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 322,
+  "state": "ok",
+  "elapsed_seconds": 0.141,
+  "sha256": "5281adc2c6c348daa1ef292a165a8299c15bcae3fd534678fadbdadea0879e56",
+  "capture": "0132714a29bf7ce3333d"
+}

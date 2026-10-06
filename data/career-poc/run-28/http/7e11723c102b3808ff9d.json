@@ -1,0 +1,16 @@
+{
+  "url": "https://www.worka.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:58.622508+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 11 Sep 2018 12:58:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 532,
+  "state": "ok",
+  "elapsed_seconds": 0.328,
+  "sha256": "949eacdee163d88d8575ba73f8a10237651d2eba356fc2c39dce6c878e338c04",
+  "capture": "7e11723c102b3808ff9d"
+}

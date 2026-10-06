@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mdbm-baumanagement.de/?sitemap=pages&type=1533906435&cHash=b326d240cedda4056ebe968e79c9e8ae",
+  "checked_at": "2026-10-05T22:34:22.357162+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": "\"4f48f193a58e2d06f1dd4e3cb10f0aa7\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11327,
+  "state": "ok",
+  "elapsed_seconds": 2.545,
+  "sha256": "4b1c04fea173e05dc3dc814268a2b77864fb95b2f5d912b47ef6603fddd069d0",
+  "capture": "ff5a151ce759c6307edc"
+}

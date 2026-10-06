@@ -1,0 +1,17 @@
+{
+  "url": "https://immego-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:39:09.599236+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109,
+  "state": "ok",
+  "elapsed_seconds": 0.78,
+  "sha256": "33f57ce73974cb669d46fcc9027a02c65647fc797b4cb9c86f503eea5ff11a62",
+  "capture": "a7979904e849a6e90014",
+  "merged_from_run": "run-28"
+}

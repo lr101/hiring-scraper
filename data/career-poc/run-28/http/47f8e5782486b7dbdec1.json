@@ -1,0 +1,16 @@
+{
+  "url": "https://genericde.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:34:07.909208+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"8ab900b96e1a2bb6b0f2395e83ab0cfe\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3425,
+  "state": "ok",
+  "elapsed_seconds": 1.041,
+  "sha256": "f12bdb3d915c54c4f6f50032ce71774cebaefd581c52833db1bec01773c95da8",
+  "capture": "47f8e5782486b7dbdec1"
+}

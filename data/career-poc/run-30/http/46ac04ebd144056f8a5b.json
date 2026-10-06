@@ -1,0 +1,17 @@
+{
+  "url": "https://www.isb.net/robots.txt",
+  "checked_at": "2026-10-05T23:43:46.912060+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 213,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "9e180875983454ab301e4e61efe346490d46291a5352b078ee27feb7045af68f",
+  "capture": "46ac04ebd144056f8a5b",
+  "merged_from_run": "run-28"
+}

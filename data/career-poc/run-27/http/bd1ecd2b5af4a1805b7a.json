@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gpabw.de/robots.txt",
+  "checked_at": "2026-10-05T22:52:44.158078+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Thu, 02 Jul 2026 09:15:29 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 908,
+  "state": "ok",
+  "elapsed_seconds": 0.129,
+  "sha256": "371edee2151772403e816bdb1337f9c6b1eff60305eb4624f395c6116c7ed318",
+  "capture": "bd1ecd2b5af4a1805b7a"
+}

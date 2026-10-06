@@ -1,0 +1,17 @@
+{
+  "url": "https://www.laks-bw.de/aktuell/stellenausschreibung-kulturmanager-in-im-kulturzentrum-tempel",
+  "checked_at": "2026-10-05T23:14:53.497453+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13446,
+  "state": "ok",
+  "elapsed_seconds": 1.029,
+  "sha256": "ee01989c616a5a0555b0324695aa61a409a73d9897c49723628ca33317d79c6a",
+  "capture": "2b2f7f01c5345fc1a765",
+  "merged_from_run": "run-28"
+}

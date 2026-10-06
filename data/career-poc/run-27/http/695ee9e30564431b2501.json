@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stulz.com/robots.txt",
+  "checked_at": "2026-10-05T22:53:01.656239+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1193,
+  "state": "ok",
+  "elapsed_seconds": 0.117,
+  "sha256": "7d72caf6da9c85194879ae51fc27fe9d33fbcf672ed4a860977645059dd904ed",
+  "capture": "695ee9e30564431b2501"
+}

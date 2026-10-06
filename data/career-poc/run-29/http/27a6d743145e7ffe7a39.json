@@ -1,0 +1,17 @@
+{
+  "url": "https://www.atslifesciences.com/robots.txt",
+  "checked_at": "2026-10-05T23:39:50.084036+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1393,
+  "state": "ok",
+  "elapsed_seconds": 0.831,
+  "sha256": "eab5b06730da9ebb2bc3eba4bf125130bd15ec31cfbea60ccc54e43accea3322",
+  "capture": "27a6d743145e7ffe7a39",
+  "merged_from_run": "run-28"
+}

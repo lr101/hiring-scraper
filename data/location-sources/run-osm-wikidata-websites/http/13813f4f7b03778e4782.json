@@ -1,0 +1,16 @@
+{
+  "url": "https://debeka.wd3.myworkdayjobs.com/de-DE/Karriere/introduceYourself?locations=6d3f426ee66710171856a10c73dc0000",
+  "checked_at": "2026-10-06T07:06:26.234015+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7600,
+  "state": "ok",
+  "elapsed_seconds": 1.48,
+  "sha256": "de4d2e59a055004212917e901b7b422daf01e147630cecdbbf1149b7b20f87b0",
+  "capture": "13813f4f7b03778e4782"
+}

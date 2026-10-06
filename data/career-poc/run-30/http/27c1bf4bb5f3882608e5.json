@@ -1,0 +1,17 @@
+{
+  "url": "https://www.powmio.com/jobs",
+  "checked_at": "2026-10-05T23:16:02.446014+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.powmio.com/jobs/",
+  "bytes": 236,
+  "state": "http_error",
+  "elapsed_seconds": 0.96,
+  "sha256": "adadbadf27568679f38e7cc486c4a4ec9ce64b55e52fef5abe363070a5830adb",
+  "capture": "27c1bf4bb5f3882608e5",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.visteon.com:443/robots.txt",
+  "checked_at": "2026-10-05T23:30:30.903086+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"4ca3efdb11267f06ed0e654eba01edb9\"",
+  "last_modified": "Mon, 21 Sep 2026 16:48:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 207,
+  "state": "ok",
+  "elapsed_seconds": 0.122,
+  "sha256": "de73d32142f114b8d18bbfd7fa5779ccee5f7a1753873402cfdab59444834ccd",
+  "capture": "483ff63ca55f57baabd9"
+}

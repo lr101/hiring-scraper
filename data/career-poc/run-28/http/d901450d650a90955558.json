@@ -1,0 +1,16 @@
+{
+  "url": "https://synergie.de/en/bewerber/aktuelle-stellen/",
+  "checked_at": "2026-10-05T23:25:22.868398+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 440261,
+  "state": "ok",
+  "elapsed_seconds": 1.198,
+  "sha256": "44707e5a13e1e998557d5678fec4181e510a29bcec45705a77f58a4afa59a4c6",
+  "capture": "d901450d650a90955558"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kulturevaluation-wegner.de/robots.txt",
+  "checked_at": "2026-10-05T23:15:37.644663+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 131,
+  "state": "ok",
+  "elapsed_seconds": 2.029,
+  "sha256": "b68f46848d262f8980dc0439ca6e26eb7ecb8ed431afb44454f41a673c07fc10",
+  "capture": "6bbc23a56cd733422e68"
+}

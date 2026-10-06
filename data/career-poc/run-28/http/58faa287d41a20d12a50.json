@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gartenbauschulz.de/jobs-und-ausbildung",
+  "checked_at": "2026-10-05T23:37:20.984064+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50566,
+  "state": "ok",
+  "elapsed_seconds": 0.888,
+  "sha256": "dc2745fff1c5a01a5d0566a39bf3e3cb65c833b6c043c8c71fd3757b25ee7c73",
+  "capture": "58faa287d41a20d12a50"
+}

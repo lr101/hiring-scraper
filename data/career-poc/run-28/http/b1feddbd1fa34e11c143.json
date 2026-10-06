@@ -1,0 +1,16 @@
+{
+  "url": "https://www.erdgas-suedwest.de/ueber-uns/karriere",
+  "checked_at": "2026-10-05T23:37:41.997153+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40129,
+  "state": "ok",
+  "elapsed_seconds": 1.164,
+  "sha256": "1e8080e9189e3df7bad5bbea3a14139274aab23573459106e3992a06ba2bac7f",
+  "capture": "b1feddbd1fa34e11c143"
+}

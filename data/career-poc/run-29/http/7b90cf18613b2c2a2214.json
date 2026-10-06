@@ -1,0 +1,17 @@
+{
+  "url": "https://online.adp.com/olp/olplanding.html?APPID=WFNPORTAL&TYPE=33554433&REALMOID=06-dc2a3c54-b061-101f-ae21-844af8f80cb3&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-s1g4NLITwMGQ9xlFt4r8kYIk4t5NPKCijaqKghFq4qewQ%252fEhDZqTOIIkUChAf1rcQv9Ba4pqIDEXrOjnm5SM724tyA2niR6t&TARGET=-SM-https%253a%252f%252fworkforcenow%252eadp%252ecom%252frobots%252etxt",
+  "checked_at": "2026-10-05T23:40:30.908802+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "W/\"14ec-65d1e6517f472\"",
+  "last_modified": "Mon, 05 Oct 2026 21:16:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 5356,
+  "state": "ok",
+  "elapsed_seconds": 0.97,
+  "sha256": "71e37a4a28a6c98b61f8bfb3a4af995a01ecd2d1427aa4c7ebedae19ec01ac03",
+  "capture": "7b90cf18613b2c2a2214",
+  "merged_from_run": "run-28"
+}

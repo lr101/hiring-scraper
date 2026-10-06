@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sweco-gmbh.de/karriere/offene-stellen/",
+  "checked_at": "2026-10-05T22:42:33.562548+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"897943-1791186748;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 142319,
+  "state": "ok",
+  "elapsed_seconds": 1.139,
+  "sha256": "7098edb0c5e38f226cc1998c93186fe1f3e6da646b4b940831c906cb8cb11d18",
+  "capture": "139dabd6d3c2086fb8c6"
+}

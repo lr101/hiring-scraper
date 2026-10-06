@@ -1,0 +1,16 @@
+{
+  "url": "https://www.papershift.com/jobs",
+  "checked_at": "2026-10-05T23:32:22.045262+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:59:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 73337,
+  "state": "ok",
+  "elapsed_seconds": 0.906,
+  "sha256": "15e2803671acb5c5cd33e499afc0a88775b9302d134fc757a92f4b8ae63323c7",
+  "capture": "4cfe02b4649282830df1"
+}

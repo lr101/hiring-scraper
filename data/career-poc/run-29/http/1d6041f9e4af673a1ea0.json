@@ -1,0 +1,17 @@
+{
+  "url": "https://www.polyrack.com/robots.txt",
+  "checked_at": "2026-10-05T23:23:49.184639+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 09:10:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 765,
+  "state": "ok",
+  "elapsed_seconds": 0.929,
+  "sha256": "4eecfe7c815c25ed35a97691e220ada6db8542c0048aecee49458fd5b2a6bbb3",
+  "capture": "1d6041f9e4af673a1ea0",
+  "merged_from_run": "run-28"
+}

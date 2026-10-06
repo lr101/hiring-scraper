@@ -1,0 +1,16 @@
+{
+  "url": "https://www.connect-personal.de/robots.txt",
+  "checked_at": "2026-10-05T23:16:38.109511+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 259,
+  "state": "ok",
+  "elapsed_seconds": 2.67,
+  "sha256": "671794a45f976f7528e9e04c190ba14e0c8055426394f3420c3a068653b6f499",
+  "capture": "588843fb7cd1c73b6835"
+}

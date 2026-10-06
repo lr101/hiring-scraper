@@ -1,0 +1,16 @@
+{
+  "url": "https://www.igbau.de/robots.txt",
+  "checked_at": "2026-10-06T07:07:19.447484+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://igbau.de/robots.txt",
+  "bytes": 235,
+  "state": "http_error",
+  "elapsed_seconds": 0.313,
+  "sha256": "bc7550f0e0f278389afad83d73846ac9b7cb35f6d2190f559efb9065c89b7277",
+  "capture": "e1c09cdcc684051789fd"
+}

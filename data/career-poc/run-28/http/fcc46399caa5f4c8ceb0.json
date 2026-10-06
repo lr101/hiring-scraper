@@ -1,0 +1,16 @@
+{
+  "url": "https://rpk.baden-wuerttemberg.de/service/seiten/stellenangebote/",
+  "checked_at": "2026-10-05T23:21:43.417525+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 126130,
+  "state": "ok",
+  "elapsed_seconds": 0.731,
+  "sha256": "3022b208c409ab7f69da1201a5e2d1874938195581b738b44d28b91839a2130f",
+  "capture": "fcc46399caa5f4c8ceb0"
+}

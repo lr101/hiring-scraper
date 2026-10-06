@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jungheinrich.de/standorte/gabelstapler-karlsruhe-14626",
+  "checked_at": "2026-10-05T23:36:48.776486+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 486675,
+  "state": "ok",
+  "elapsed_seconds": 1.251,
+  "sha256": "691cab606f8bb2200d92f0d3690f12c6e8784bb98a89dcbeba7c7434265d4f87",
+  "capture": "5c7e68b07b1e2c113f59"
+}

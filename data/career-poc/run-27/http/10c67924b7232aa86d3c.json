@@ -1,0 +1,16 @@
+{
+  "url": "https://www.designoffices.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:54:25.865039+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"0ab736e25e22c123fae1462b82b343f8\"",
+  "last_modified": "Wed, 30 Sep 2026 16:01:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2303,
+  "state": "http_error",
+  "elapsed_seconds": 1.15,
+  "sha256": "05022146940879fc83c7dc71ce5cdebaaf529ea462ac07a5ff0d5719b907000b",
+  "capture": "10c67924b7232aa86d3c"
+}

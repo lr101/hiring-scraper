@@ -1,0 +1,17 @@
+{
+  "url": "https://karriereregion.tv/robots.txt",
+  "checked_at": "2026-10-05T23:22:15.152658+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Fri, 27 May 2022 12:11:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 145,
+  "state": "ok",
+  "elapsed_seconds": 0.839,
+  "sha256": "d5aa0edd95fe9b991f77601992de252792800e1ba09779c10115b36c3c3ad7c9",
+  "capture": "0c095b61407588f99f14",
+  "merged_from_run": "run-28"
+}

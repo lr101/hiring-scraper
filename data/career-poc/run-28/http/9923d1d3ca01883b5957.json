@@ -1,0 +1,16 @@
+{
+  "url": "https://www.strippel-blech.de/Stellenangebote.html",
+  "checked_at": "2026-10-05T23:22:22.187605+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"3529-65c105ea009e5\"",
+  "last_modified": "Tue, 22 Sep 2026 11:07:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 13609,
+  "state": "ok",
+  "elapsed_seconds": 0.932,
+  "sha256": "aad451d53d4d957bf993078dd2dda1ff0c9326a5e4680c1afa41f97e5821aef3",
+  "capture": "9923d1d3ca01883b5957"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.service-bw.de/jobs",
+  "checked_at": "2026-10-05T22:38:42.567104+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"ab766-7YPgQVYz6P4SBl2+meB5IylVktQ\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 702310,
+  "state": "ok",
+  "elapsed_seconds": 1.236,
+  "sha256": "a9655be62868a129ba41c02a282bdf77058b1e49cb267b8f41b4deab2895ee17",
+  "capture": "39457fb5d8cef487724e",
+  "merged_from_run": "run-27"
+}

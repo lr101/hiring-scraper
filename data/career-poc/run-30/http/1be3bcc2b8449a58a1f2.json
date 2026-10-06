@@ -1,0 +1,17 @@
+{
+  "url": "https://bonding.de/jobs",
+  "checked_at": "2026-10-05T22:10:19.664393+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://jobwall.de",
+  "bytes": 302,
+  "state": "http_error",
+  "elapsed_seconds": 1.06,
+  "sha256": "132e9e37f5b3306fdf6ccb8a66695e773e5a67bab7f540a4ec250bca268a97a1",
+  "capture": "1be3bcc2b8449a58a1f2",
+  "merged_from_run": "run-25"
+}

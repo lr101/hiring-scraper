@@ -1,0 +1,17 @@
+{
+  "url": "https://visteon-panorama.darwinbox.com/user/adfs/login/ssotype/saml/authsourceid/a68e34ab82e509",
+  "checked_at": "2026-10-05T23:30:26.630641+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://login.microsoftonline.com/7a147aaf-01ec-498c-80a1-e34a8c63c548/saml2?SAMLRequest=pVLBbtswDP0VQ3fbsmzHjpAEyBoMC9BtQZP2sMtAy3QjwJI8UW67v5%2FjbFgHbL3sJOCJj%2B89kisC0w9yO4azvcNvI1KIXkxvSc4fazZ6Kx2QJmnBIMmg5HH78VaKhMvBu%2BCU69krytsMIEIftLMs2u%2FW7Oui5FWTFzUsC4WtEF0ueN3wLud5yTOoqmYx4UtschY9oKeJuWZTo4lONOLeUgAbJoiLRZzxmJcnkcucS1F9YdFuSqMthJl1DmEgmaa9e9Q2MVp5R64LzvbaYqKcSSvIigqgi3mGKi6WtYprDlmMeQG1WuSqLOr0klGwaPsryI2zNBr0R%2FRPWuH93e1vqSdNAZ2NB7DOg4GkBf%2BsbeNeZj1oO0qNa8cek%2BE8zK1Tur4iBkUzCov6YqCpBZZ8yaLDz6G%2F07bV9vHteTfXIpIfTqdDfPh8PLHN6tJfzvPzm%2F%2B0ajBACwH%2B4nSVvtZZXe%2Fs0%2BRwvzu4Xqvv0XvnDYR%2FB8iSbEZ0G3dzqRwtDah0p7GdVtD37vnGIwRcs%2BBHZOnmKvrnPW9%2BAA%3D%3D&RelayState=https%3A%2F%2Fvisteon-panorama.darwinbox.com%2Fuser%2Fadfs%2Flogin%2Fssotype%2Fsaml%2Fauthsourceid%2Fa68e34ab82e509&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=fNzamfQHTU8AjrHTdzeCbAuD%2BEjDX1%2FufO83sG2yBkDVWeal7LNWepsb53Vh3SbaUOgr8G07fcsMrfNETYuWAd1tQbMRuy8ANuQ5KutYxDcCHCp2mLxhZbW7R335Sy44AcedHO5YO%2BjLYMdj51NYjxGFX7%2FFTci1NKcXkQHRMT9PNyiwD%2F6P3TIdcYhonbwEOrt1uHTNEUm%2FT3Zt4oK8sh7MFIsACUk%2B%2BchD5UNgKLEKDZamrHlnBKGtKFSt7vwLm3%2BgIyyUS0yXrsgQDYho2wtilxL8BVzRiU8IenRRUNAJCqxGNso3FpzdygCLPKiZpwsb5SHjfVj90iKXSQA9YRvuQSZIxWcXGcjdldM6WiQ3yn5Wx44bDwHWmQ4B2oIjFYB7seM5a44pIK9CooXn6mgXnfbVYyaYAiZ3QP39hH64p8EgQY1uIDtt1tT9gWdOz6uJ2flLGKBZXQl96O2nGTpivpwivtIjwW74vwVvuAWyuTRlkFsE68BbDJGarWT8",
+  "bytes": 86144,
+  "state": "http_error",
+  "elapsed_seconds": 1.199,
+  "sha256": "fb7aa758a8d61c55c3ff0c1a3cd584f5537f4ee5aebdab19cc40242f0d56c80c",
+  "capture": "82334439a45940ecbdc0",
+  "merged_from_run": "run-28"
+}

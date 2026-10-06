@@ -1,0 +1,17 @@
+{
+  "url": "https://www.systec-solutions.com/de/unternehmen/uebersicht",
+  "checked_at": "2026-10-05T23:23:17.601437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114098,
+  "state": "ok",
+  "elapsed_seconds": 1.167,
+  "sha256": "31c4a2aa570647122614e656d38e5cbf33284ed9459911b860665c0deb2c1574",
+  "capture": "95aab9e43c582fc54883",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.netzstrategen.com/robots.txt",
+  "checked_at": "2026-10-05T23:15:44.537155+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://netzstrategen.com/robots.txt",
+  "bytes": 17,
+  "state": "http_error",
+  "elapsed_seconds": 0.278,
+  "sha256": "d18ed36671b8618520016c81125aa889a5b800872038c5e009ef49cd305088cd",
+  "capture": "b34db941277e39fa296b"
+}

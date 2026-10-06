@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.key-work.de/robots.txt",
+  "checked_at": "2026-10-05T22:29:03.897253+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 95,
+  "state": "ok",
+  "elapsed_seconds": 0.147,
+  "sha256": "74c7ec6dd44eac28b8d93fb8854492c3f025d0b712ed8c0f25636ccdc6081423",
+  "capture": "7fc4812dbf4f0a19488d",
+  "merged_from_run": "run-26"
+}

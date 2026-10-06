@@ -1,0 +1,16 @@
+{
+  "url": "https://max-simmel.de/jobs",
+  "checked_at": "2026-10-05T23:42:59.499375+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61175,
+  "state": "http_error",
+  "elapsed_seconds": 1.048,
+  "sha256": "157d2b041fb16300742fe541ff87449e55f68d7bb4690838dacb3289e9b92143",
+  "capture": "462f00cb09f324569a28"
+}

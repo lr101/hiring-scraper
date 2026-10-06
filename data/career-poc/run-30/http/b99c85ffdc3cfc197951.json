@@ -1,0 +1,17 @@
+{
+  "url": "https://www.visuelo.de/wp-sitemap-posts-project-1.xml",
+  "checked_at": "2026-10-05T23:33:04.840094+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 517,
+  "state": "ok",
+  "elapsed_seconds": 1.078,
+  "sha256": "2829ffe9ab860b55e890e37e8a5ea092b7c924df6794be14758a81681070434f",
+  "capture": "b99c85ffdc3cfc197951",
+  "merged_from_run": "run-28"
+}

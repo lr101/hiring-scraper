@@ -1,0 +1,17 @@
+{
+  "url": "https://www.connexity.com/robots.txt",
+  "checked_at": "2026-10-05T23:28:13.001253+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"6a5b5c87-44\"",
+  "last_modified": "Sat, 18 Jul 2026 10:59:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 68,
+  "state": "ok",
+  "elapsed_seconds": 0.529,
+  "sha256": "ef127babfea42b5cb48642def40049741f5e837fda24f0fc7f5f893a7b5f836e",
+  "capture": "5e826d13fbae084e18d1",
+  "merged_from_run": "run-28"
+}

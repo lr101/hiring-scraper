@@ -1,0 +1,17 @@
+{
+  "url": "https://www.concordia.de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:26:06.486807+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89452,
+  "state": "ok",
+  "elapsed_seconds": 0.958,
+  "sha256": "a818aa5df3aa72cc47d75b3972d5fc10cb168e87679d7dfa1e5f66de5995f264",
+  "capture": "0c6fa3ed3af28f052c25",
+  "merged_from_run": "run-28"
+}

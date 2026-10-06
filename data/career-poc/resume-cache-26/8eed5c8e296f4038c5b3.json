@@ -1,0 +1,16 @@
+{
+  "url": "https://tpi-online.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T22:16:19.513251+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 16653,
+  "state": "ok",
+  "elapsed_seconds": 1.197,
+  "sha256": "876dc0b03401ab51ef7364e93c28f9bb85ffa5dddf102a4e833eee4b3fe6ac17",
+  "capture": "8eed5c8e296f4038c5b3"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe.stadtmobil.de/robots.txt",
+  "checked_at": "2026-10-05T22:54:27.098929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 28 Sep 2026 11:36:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 652,
+  "state": "ok",
+  "elapsed_seconds": 0.126,
+  "sha256": "fcdf3a7f5650d1d6362515e9d4af0ec0bf4219612dc3c21c4b0e236a0271f094",
+  "capture": "141571288b0d0e5e2205"
+}

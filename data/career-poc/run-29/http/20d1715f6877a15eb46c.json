@@ -1,0 +1,17 @@
+{
+  "url": "https://www.powerprojekt.de/careers",
+  "checked_at": "2026-10-05T23:32:12.903493+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 282,
+  "state": "http_error",
+  "elapsed_seconds": 1.032,
+  "sha256": "c27de1c31b6e05802886c5cdb06e59aa850353589c85fa1c19758665a922ed9a",
+  "capture": "20d1715f6877a15eb46c",
+  "merged_from_run": "run-28"
+}

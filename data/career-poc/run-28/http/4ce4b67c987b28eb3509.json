@@ -1,0 +1,16 @@
+{
+  "url": "https://spvgg-durlach-aue.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:55.661214+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 178,
+  "state": "ok",
+  "elapsed_seconds": 2.734,
+  "sha256": "4e46fbaa3008d11d9894fcdc5df5750badbc1d441851e3134a1794c8947c9cb8",
+  "capture": "4ce4b67c987b28eb3509"
+}

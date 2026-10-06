@@ -1,0 +1,17 @@
+{
+  "url": "https://www.foxysoft.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:41.902334+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Mon, 04 Jun 2018 13:31:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 23,
+  "state": "ok",
+  "elapsed_seconds": 0.804,
+  "sha256": "3a125e84a637dc3f5442bb6949fa200056f37db4627b4c2a3addc55bbb89b703",
+  "capture": "640bad844e174b349ef9",
+  "merged_from_run": "run-28"
+}

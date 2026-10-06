@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nacona.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:15:30.318634+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1460,
+  "state": "ok",
+  "elapsed_seconds": 0.407,
+  "sha256": "4a51b37af91022c58b7709f01ede6872f4c00e871abfcca10e39ea4aa022bf85",
+  "capture": "400d47cb98c665d83b4b",
+  "merged_from_run": "run-28"
+}

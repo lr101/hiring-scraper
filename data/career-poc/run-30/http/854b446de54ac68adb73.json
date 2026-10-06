@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arnold-bauing.de/careers",
+  "checked_at": "2026-10-05T23:33:39.824327+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2205,
+  "state": "http_error",
+  "elapsed_seconds": 1.003,
+  "sha256": "5b38819d1e4b49a0702b32dbff7650129d0cb939b638e8360f6789259053d2e9",
+  "capture": "854b446de54ac68adb73",
+  "merged_from_run": "run-28"
+}

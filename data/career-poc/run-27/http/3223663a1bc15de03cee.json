@@ -1,0 +1,16 @@
+{
+  "url": "https://www.randstad.de/standorte/randstad-karlsruhe_3565/",
+  "checked_at": "2026-10-05T22:41:27.686299+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"4b5bd880e18f489ef199bfb568a58316\"",
+  "last_modified": "Mon, 05 Oct 2026 15:58:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 177885,
+  "state": "ok",
+  "elapsed_seconds": 1.254,
+  "sha256": "b8db2f71731ef12e7ce4f3b7520119e71eda5b14cd995954a273f34feb7525f7",
+  "capture": "3223663a1bc15de03cee"
+}

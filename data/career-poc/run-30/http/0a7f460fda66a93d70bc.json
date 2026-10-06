@@ -1,0 +1,17 @@
+{
+  "url": "https://tristar-technik.de/robots.txt",
+  "checked_at": "2026-10-05T23:39:08.437132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 393,
+  "state": "ok",
+  "elapsed_seconds": 4.406,
+  "sha256": "016b2dc5359ea181c1d52ebf3fe3804f395d5c8a5066dfb67ba63979f6b2707b",
+  "capture": "0a7f460fda66a93d70bc",
+  "merged_from_run": "run-28"
+}

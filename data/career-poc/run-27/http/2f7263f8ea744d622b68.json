@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rechtsanwalt-schimanek.de/careers",
+  "checked_at": "2026-10-05T22:52:17.610843+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 39036,
+  "state": "http_error",
+  "elapsed_seconds": 1.18,
+  "sha256": "4b4cb16e63b1a1190c0e343369e5e46d58e0896f1c71642608f723b7ff19f077",
+  "capture": "2f7263f8ea744d622b68"
+}

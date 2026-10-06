@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aquitus.de/",
+  "checked_at": "2026-10-05T22:57:31.729282+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://aquitus.de/",
+  "bytes": 227,
+  "state": "http_error",
+  "elapsed_seconds": 0.793,
+  "sha256": "3443db434a5b7373bc2d3f2221b6ff6aac3b33abe135845eef8445800df04e8a",
+  "capture": "cc9f616f2b9010a0c216"
+}

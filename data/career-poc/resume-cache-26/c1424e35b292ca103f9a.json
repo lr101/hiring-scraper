@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schullv.de/jobs",
+  "checked_at": "2026-10-05T22:20:40.969234+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"7f984251caa49981cad3d5116c195a69\"",
+  "last_modified": "Mon, 05 Oct 2026 15:46:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 27887,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "8cf8db991d6001eab586f17744ac126bc735d1ce03db6add6f8fa74958379ad2",
+  "capture": "c1424e35b292ca103f9a"
+}

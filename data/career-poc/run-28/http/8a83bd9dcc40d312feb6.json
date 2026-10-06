@@ -1,0 +1,16 @@
+{
+  "url": "https://gfk-ingenieure.de/",
+  "checked_at": "2026-10-05T23:31:51.152535+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 128580,
+  "state": "ok",
+  "elapsed_seconds": 2.699,
+  "sha256": "ab9fac669ef5739691ae440b11aa09d5cbcebad4571521a2d4551e891c066d71",
+  "capture": "8a83bd9dcc40d312feb6"
+}

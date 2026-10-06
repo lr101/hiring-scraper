@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lohmeyer.de/",
+  "checked_at": "2026-10-05T23:34:36.316204+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:34:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 58075,
+  "state": "ok",
+  "elapsed_seconds": 1.034,
+  "sha256": "b04d855e24b628b83a3c05019261b0279009aa33ba6fbced86ecfe3edbea2397",
+  "capture": "87665353734b7756072d",
+  "merged_from_run": "run-28"
+}

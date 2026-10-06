@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitsagentur.de/jobsuche/suche?angebotsart=1&kundennummer=LjGSI4V1PREcCOvqVrZG1HnQADv3pHEymQLAzGPznY0%3D__del__smetex+GmbH",
+  "checked_at": "2026-10-05T23:25:46.804878+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/jobsuche/suche?angebotsart=1&kundennummer=LjGSI4V1PREcCOvqVrZG1HnQADv3pHEymQLAzGPznY0%3D__del__smetex%20GmbH&suchbereich=jobs",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.434,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "29b122e8fc667bf56403"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.eurobaustoff.com/robots.txt",
+  "checked_at": "2026-10-05T23:27:46.193887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 12:52:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 692,
+  "state": "ok",
+  "elapsed_seconds": 0.157,
+  "sha256": "2e655f15e8504e0001d7941cc2ad80b7029c761fe40c31742ae7ef14d01b87cb",
+  "capture": "cd7f914a006030f7ed82"
+}

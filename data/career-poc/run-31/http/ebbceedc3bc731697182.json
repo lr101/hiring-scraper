@@ -1,0 +1,17 @@
+{
+  "url": "https://malerbetrieb-busch.de/careers",
+  "checked_at": "2026-10-05T23:38:08.109982+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43183,
+  "state": "http_error",
+  "elapsed_seconds": 1.963,
+  "sha256": "635003aa324d152c80626b1a842e60e0f3dcc474f3fdec8ac756964ddd94ed18",
+  "capture": "ebbceedc3bc731697182",
+  "merged_from_run": "run-28"
+}

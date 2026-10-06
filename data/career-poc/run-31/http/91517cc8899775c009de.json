@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bm-bahndienste.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:59.025752+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"6abe1b47-42\"",
+  "last_modified": "Thu, 01 Oct 2026 08:35:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 66,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "20f645feb38552fb3065dbb14c0a7fb519094611f11e6646b6444fb80c9a9325",
+  "capture": "91517cc8899775c009de",
+  "merged_from_run": "run-28"
+}

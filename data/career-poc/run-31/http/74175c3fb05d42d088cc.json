@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inovex.de/de/karriere/stellenangebote/initiativbewerbung/",
+  "checked_at": "2026-10-05T22:38:59.780061+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:39:02 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 178051,
+  "state": "ok",
+  "elapsed_seconds": 2.988,
+  "sha256": "4b2fdf77f2dfc701e1bde43d7d311e5d8ebe9707b77907ca79dc6ea3be1ceed1",
+  "capture": "74175c3fb05d42d088cc",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://mittelbaden.verdi.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:07.299087+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"67e67dc8-25e\"",
+  "last_modified": "Fri, 28 Mar 2025 10:45:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 606,
+  "state": "ok",
+  "elapsed_seconds": 0.158,
+  "sha256": "9edd3c1e81a18ddd7df9ff910b2320ef89c23d09f36e715295f2b4b1d9af4659",
+  "capture": "b0a2d9593e5034ecc045",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://buchmann-elektro.de/jobs-sitemap.xml",
+  "checked_at": "2026-10-05T23:46:41.762061+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 876,
+  "state": "ok",
+  "elapsed_seconds": 1.669,
+  "sha256": "cf19b828cf288f6f4d3a7c69099cb8ed3383b351a54e7c543f1021d103be3ea3",
+  "capture": "f20c5e92d26f0dacd19d"
+}

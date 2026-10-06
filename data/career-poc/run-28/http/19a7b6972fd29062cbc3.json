@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoelscher-wasserbau.de/de/",
+  "checked_at": "2026-10-05T23:43:04.143429+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133391,
+  "state": "ok",
+  "elapsed_seconds": 1.606,
+  "sha256": "b0b35e0ed902a6d9c1268c70e8c639bd852300a0e803f1898c127d04ee2d5639",
+  "capture": "19a7b6972fd29062cbc3"
+}

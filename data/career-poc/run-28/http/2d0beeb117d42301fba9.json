@@ -1,0 +1,16 @@
+{
+  "url": "https://auto-boehler.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:53.189405+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"172-59f8de8243a55\"",
+  "last_modified": "Thu, 27 Feb 2020 12:31:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 370,
+  "state": "ok",
+  "elapsed_seconds": 0.733,
+  "sha256": "b819a5d2cef247a99e5b99f32042e0fe55688b238fdfea916a425675badd0241",
+  "capture": "2d0beeb117d42301fba9"
+}

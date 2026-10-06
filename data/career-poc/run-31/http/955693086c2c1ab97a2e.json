@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ferrotec.net/",
+  "checked_at": "2026-10-05T23:38:50.078950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6a99328a-93b4\"",
+  "last_modified": "Thu, 03 Sep 2026 08:40:42 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 37812,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "d5fb1760cc1e2fae58a3c07332ea99993bfb2d83c85e45b4e907551beccc8cdd",
+  "capture": "955693086c2c1ab97a2e",
+  "merged_from_run": "run-28"
+}

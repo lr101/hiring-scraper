@@ -1,0 +1,17 @@
+{
+  "url": "https://www.burkardsteuerberater.de/karriere/",
+  "checked_at": "2026-10-05T23:29:22.975654+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 07:21:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 78431,
+  "state": "ok",
+  "elapsed_seconds": 0.825,
+  "sha256": "9778cf0a2383461b88079dab2f9d125e5055450ab68deca55c00e691593e7c88",
+  "capture": "c9f7b4551768d72f101e",
+  "merged_from_run": "run-28"
+}

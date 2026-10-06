@@ -1,0 +1,16 @@
+{
+  "url": "https://icf.church/karlsruhe/robots.txt",
+  "checked_at": "2026-10-05T23:20:48.412638+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://icf.church/robots.txt",
+  "bytes": 369,
+  "state": "http_error",
+  "elapsed_seconds": 0.157,
+  "sha256": "728ebe689ff34416fbb92b71a7a18b4152584d452b53661652bc6506769a9a48",
+  "capture": "3571383170111d50a483"
+}

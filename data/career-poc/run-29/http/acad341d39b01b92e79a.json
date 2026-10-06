@@ -1,0 +1,17 @@
+{
+  "url": "https://www.swhs.de/2022/02/323-323/",
+  "checked_at": "2026-10-05T23:45:17.649218+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43891,
+  "state": "ok",
+  "elapsed_seconds": 1.528,
+  "sha256": "581eef0530f1313c98efd4c7b48c2447effcfa741b8e5af6b2b3fbae9ed2e812",
+  "capture": "acad341d39b01b92e79a",
+  "merged_from_run": "run-28"
+}

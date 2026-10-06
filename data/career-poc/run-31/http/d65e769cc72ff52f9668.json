@@ -1,0 +1,17 @@
+{
+  "url": "https://bodelschwingh.de/karriere",
+  "checked_at": "2026-10-05T22:40:55.275250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 120395,
+  "state": "http_error",
+  "elapsed_seconds": 1.78,
+  "sha256": "39b51f03ba29f40514136133999fed2e8bfac4233383b90ef4e1d870806557da",
+  "capture": "d65e769cc72ff52f9668",
+  "merged_from_run": "run-27"
+}

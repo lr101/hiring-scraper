@@ -1,0 +1,16 @@
+{
+  "url": "https://martin-busam.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:59.742046+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116,
+  "state": "ok",
+  "elapsed_seconds": 0.145,
+  "sha256": "a9a4da93d95e75ea17039b05339ea86eaddecfdb501b18cb72d441656b34d433",
+  "capture": "01c89f2e788aa14c8bc0"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kfz-zeltmann.de/karriere/online-bewerbung?tx_powermail_pi1%5Bfield%5D%5Bbewerbungals%5D=Disponent+%28m%2Fw%2Fd%29&cHash=4a6996aec732faa13b0846643567a813",
+  "checked_at": "2026-10-05T23:39:33.334278+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20500,
+  "state": "ok",
+  "elapsed_seconds": 1.04,
+  "sha256": "a8bb36c7c072c67727449c7753312affd5b7615e2ac7baa76d167c92846db2ff",
+  "capture": "6ea7b8a7714fd46b3a81"
+}

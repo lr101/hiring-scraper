@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cnt.com/cnt-ag/karriere/",
+  "checked_at": "2026-10-05T22:49:20.416808+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6ac38d2d-1c5f1\"",
+  "last_modified": "Mon, 05 Oct 2026 11:42:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 116209,
+  "state": "ok",
+  "elapsed_seconds": 1.071,
+  "sha256": "d4735ad6133efad54bfc4594807013d566aca21f56490c5fafcdbbcc33a0fe21",
+  "capture": "7d9a559e264717a1befb",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drk.de/mitwirken/karriere/erzieher-drk/",
+  "checked_at": "2026-10-06T07:07:30.521060+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"6be1e0a313bc528318c94aab0aa6e5f7\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 229956,
+  "state": "ok",
+  "elapsed_seconds": 1.2,
+  "sha256": "2d07221513c1e6265d3c9f7debe06915d5ee1855e6f65890e53d1442934679be",
+  "capture": "926ff8c4aab324de85a3"
+}

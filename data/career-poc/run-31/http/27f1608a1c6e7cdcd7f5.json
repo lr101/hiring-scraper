@@ -1,0 +1,17 @@
+{
+  "url": "https://abrechnung.immo/careers",
+  "checked_at": "2026-10-05T23:35:36.246787+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1271,
+  "state": "http_error",
+  "elapsed_seconds": 1.02,
+  "sha256": "5b91dd665bf31140958c0a1a6a3de0e34b41b9ef560eb7cdcb8fd255b5266604",
+  "capture": "27f1608a1c6e7cdcd7f5",
+  "merged_from_run": "run-28"
+}

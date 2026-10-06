@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kfz-zeltmann.de/karriere/kraftfahrer-fernverkehr",
+  "checked_at": "2026-10-05T23:39:36.358657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 41303,
+  "state": "ok",
+  "elapsed_seconds": 0.924,
+  "sha256": "f192ddcf48a64770a392f54b96e0651c77d93fe1acf7e30bea650661eee4e81a",
+  "capture": "1696726bf3ace86a80d8"
+}

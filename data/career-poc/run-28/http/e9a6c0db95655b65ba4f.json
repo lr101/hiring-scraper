@@ -1,0 +1,16 @@
+{
+  "url": "https://langendorf-metall-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:15:19.519703+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127,
+  "state": "ok",
+  "elapsed_seconds": 3.426,
+  "sha256": "b486a57a8c5074f374b7462a9f7adb4f90b041f2d5a6377ab5cb6aff5c4fa49a",
+  "capture": "e9a6c0db95655b65ba4f"
+}

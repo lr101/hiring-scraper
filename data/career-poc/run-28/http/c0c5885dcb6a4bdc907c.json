@@ -1,0 +1,16 @@
+{
+  "url": "https://lrarchitekten.de/image-sitemap-1.xml",
+  "checked_at": "2026-10-05T23:17:36.545973+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 146829,
+  "state": "ok",
+  "elapsed_seconds": 1.028,
+  "sha256": "c9cf841a8ab7d9abd3e4bbcf52e27be61498ca99d619e7d638fbf0d9ce20ba34",
+  "capture": "c0c5885dcb6a4bdc907c"
+}

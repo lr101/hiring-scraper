@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gtu-gruppe.de/karriere",
+  "checked_at": "2026-10-05T23:32:37.513875+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28914,
+  "state": "ok",
+  "elapsed_seconds": 0.979,
+  "sha256": "715b3af78fa6b2dde473b4d4ab78ed8cd793b3cb0ef4585291b4e94e981dc130",
+  "capture": "f27e1ccf0cdf6ed27984"
+}

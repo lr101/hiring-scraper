@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zzdrivetech.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:30:45.980240+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3209,
+  "state": "ok",
+  "elapsed_seconds": 0.677,
+  "sha256": "cf07d147a416d2c6d50e57a7950cacd5e0a685d5ade42f3b606e6547a7eaf178",
+  "capture": "0a16226d07295b3517a7"
+}

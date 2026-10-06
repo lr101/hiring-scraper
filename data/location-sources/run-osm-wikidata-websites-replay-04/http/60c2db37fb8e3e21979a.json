@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tk.de/stellenangebote/Teamleitung-Data-Platform-m-w-d-TK25678",
+  "checked_at": "2026-10-06T07:06:45.404331+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94783,
+  "state": "ok",
+  "elapsed_seconds": 1.189,
+  "sha256": "0d6dd66075a2fe1615a5cd9dbca320b7624f2bb2dbdf58ec69ce31064f1bd54c",
+  "capture": "60c2db37fb8e3e21979a",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/60c2db37fb8e3e21979a.json"
+}

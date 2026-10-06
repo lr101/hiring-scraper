@@ -1,0 +1,17 @@
+{
+  "url": "https://gft-trockenbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:48.147513+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 175,
+  "state": "ok",
+  "elapsed_seconds": 1.289,
+  "sha256": "277432bdf1cbac54eb28eafe7c605b384f20dfe4f695c9c09421b827dff3e194",
+  "capture": "12a0b0eb12e507af15b6",
+  "merged_from_run": "run-28"
+}

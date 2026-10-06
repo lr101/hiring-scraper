@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buedenbender-hausbau.de/unternehmen/karriere",
+  "checked_at": "2026-10-05T23:34:13.006535+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 16:54:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 463708,
+  "state": "ok",
+  "elapsed_seconds": 0.881,
+  "sha256": "638d4eef0966573d3ce3c286aa02da4e86ace6da6dc469608c58d5498e15972d",
+  "capture": "912c3e0bf0104c76bc44"
+}

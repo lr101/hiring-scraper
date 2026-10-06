@@ -1,0 +1,16 @@
+{
+  "url": "https://www.helvetia.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:40.424657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/x-robots;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Wed, 08 Jul 2026 14:49:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 704,
+  "state": "ok",
+  "elapsed_seconds": 0.517,
+  "sha256": "d4ee5d857075cc7d51f56a14e4cf0f036db9a05cf9cc952471b5c4fd21d5d5a9",
+  "capture": "4f6823e95c369c9f57f1"
+}

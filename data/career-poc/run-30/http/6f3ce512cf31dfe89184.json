@@ -1,0 +1,17 @@
+{
+  "url": "https://www.suedwest-datenschutz.com/unternehmen/karriere/",
+  "checked_at": "2026-10-05T22:44:16.524426+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132126,
+  "state": "ok",
+  "elapsed_seconds": 2.331,
+  "sha256": "ec60c5eb22439ec77767320abdb2cdc2df7433bd901d6e37df59ba8c2134e79a",
+  "capture": "6f3ce512cf31dfe89184",
+  "merged_from_run": "run-27"
+}

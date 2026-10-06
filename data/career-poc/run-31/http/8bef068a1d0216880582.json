@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kfz-zeltmann.de/",
+  "checked_at": "2026-10-05T23:39:31.104580+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76146,
+  "state": "ok",
+  "elapsed_seconds": 1.099,
+  "sha256": "9f5244c7768e43ae7d9f86ad81d5c7421714fb1393f52d5734adae9f9f37589a",
+  "capture": "8bef068a1d0216880582",
+  "merged_from_run": "run-28"
+}

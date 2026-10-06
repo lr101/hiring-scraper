@@ -1,0 +1,17 @@
+{
+  "url": "https://www.generali.de/karriere/studierende",
+  "checked_at": "2026-10-05T23:22:39.814593+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 252301,
+  "state": "ok",
+  "elapsed_seconds": 2.006,
+  "sha256": "12be8a342ac671c8596b8fb2fea480cf840402bc6c60cd368323f5ab5084d7f0",
+  "capture": "bb290f403f57b8c55ddf",
+  "merged_from_run": "run-28"
+}

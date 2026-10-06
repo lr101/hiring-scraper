@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cjd.de/de/verbuende/cjd-sachsen-thueringen/angebote-vor-ort-sachsen-thueringen",
+  "checked_at": "2026-10-05T22:35:58.062440+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 201865,
+  "state": "ok",
+  "elapsed_seconds": 2.736,
+  "sha256": "7045aa9fbce8c07f6a3379a516810ba9e9e0498b2ad1b5525803cb95c730ee68",
+  "capture": "e6aecb32572cebd50a15"
+}

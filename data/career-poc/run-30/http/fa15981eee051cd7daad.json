@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pbw.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:56.174037+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29970,
+  "state": "http_error",
+  "elapsed_seconds": 0.154,
+  "sha256": "9a3d41a135617a5c7b4075df5dac2c84257c383d79cc1c97fcc8842df4e596da",
+  "capture": "fa15981eee051cd7daad",
+  "merged_from_run": "run-25"
+}

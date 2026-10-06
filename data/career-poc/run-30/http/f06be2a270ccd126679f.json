@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cik-solutions.com/jobs/",
+  "checked_at": "2026-10-05T23:23:13.641011+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57979,
+  "state": "ok",
+  "elapsed_seconds": 0.908,
+  "sha256": "233bb856410e61e9fdc98542fa60bb011661f70f90a5a260e215e98eb4dc8681",
+  "capture": "f06be2a270ccd126679f",
+  "merged_from_run": "run-28"
+}

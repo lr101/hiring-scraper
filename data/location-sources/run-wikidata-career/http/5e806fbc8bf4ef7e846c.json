@@ -1,0 +1,13 @@
+{
+  "url": "https://www.physikinstrumente.com/en/",
+  "checked_at": "2026-10-05T14:48:24.004076+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 1393207,
+  "state": "ok",
+  "elapsed_seconds": 1.125,
+  "sha256": "0c1f584fe61520d467b919fe17b980eb00295f1f3975fdb1b280caa248c8df26",
+  "capture": "5e806fbc8bf4ef7e846c"
+}

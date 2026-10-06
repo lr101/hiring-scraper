@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hauptfleisch.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:32.126110+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 177,
+  "state": "ok",
+  "elapsed_seconds": 1.72,
+  "sha256": "74ee845ccd29165166c85f601bb5bcde5c92b90273de2782cfa050e5acb90a62",
+  "capture": "1510ee155c60e3cf89fb"
+}

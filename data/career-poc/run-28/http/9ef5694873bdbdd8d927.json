@@ -1,0 +1,16 @@
+{
+  "url": "https://www.the-maked-team.com/",
+  "checked_at": "2026-10-05T23:34:49.327618+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 11:35:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 97739,
+  "state": "ok",
+  "elapsed_seconds": 1.026,
+  "sha256": "c61a46bd923ff4aa975ecd0b41270703056d30328d89bd50f5b7f9312c6667b2",
+  "capture": "9ef5694873bdbdd8d927"
+}

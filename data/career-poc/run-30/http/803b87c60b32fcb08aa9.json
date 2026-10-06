@@ -1,0 +1,17 @@
+{
+  "url": "https://cloudflight.wd103.myworkdayjobs.com/robots.txt",
+  "checked_at": "2026-10-05T23:19:55.345885+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 155,
+  "state": "ok",
+  "elapsed_seconds": 0.618,
+  "sha256": "a20d9841a92c0e6c4a891f8b92a3af5577a782aef9c02970a7ba6aa756cf72bb",
+  "capture": "803b87c60b32fcb08aa9",
+  "merged_from_run": "run-28"
+}

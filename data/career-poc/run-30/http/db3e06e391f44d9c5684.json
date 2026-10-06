@@ -1,0 +1,17 @@
+{
+  "url": "https://schilling-peters.de/rechtsanwaelte/",
+  "checked_at": "2026-10-05T23:41:13.248054+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43129,
+  "state": "ok",
+  "elapsed_seconds": 1.217,
+  "sha256": "566bbf8a9eb403c56ba36d18903a710a2502e544601e62d2b25624590c685465",
+  "capture": "db3e06e391f44d9c5684",
+  "merged_from_run": "run-28"
+}

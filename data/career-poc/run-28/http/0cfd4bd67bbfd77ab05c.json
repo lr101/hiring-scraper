@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.johnsoncontrols.com/job-search?production_JCI_jobs%5BrefinementList%5D%5Bparent_category%5D%5B0%5D=Sales",
+  "checked_at": "2026-10-05T23:42:08.924418+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74512,
+  "state": "ok",
+  "elapsed_seconds": 1.09,
+  "sha256": "e77404ae9c7b9c57eb4d272b49152b9c8570395ea1f5eaa04beb21a5e1028836",
+  "capture": "0cfd4bd67bbfd77ab05c"
+}

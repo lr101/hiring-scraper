@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.pse.kit.edu/en/jobPublication/notFound/167609",
+  "checked_at": "2026-10-05T23:03:31.248795+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4792,
+  "state": "http_error",
+  "elapsed_seconds": 1.131,
+  "sha256": "fc06d47a2c20efdb5016816639f46945558fb79f91f65dd464498e5720ebaca8",
+  "capture": "2a4ae5298a7201bdaa66"
+}

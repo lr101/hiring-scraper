@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schreinerei-brugger-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:24:25.958206+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28886,
+  "state": "ok",
+  "elapsed_seconds": 0.65,
+  "sha256": "df2239a710f9701cca01c98cc531ee0b1de84044aa0dd25b3f09f5f43ce1d022",
+  "capture": "b79f6febc4c50b292659"
+}

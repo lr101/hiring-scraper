@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rene-miceli.de/",
+  "checked_at": "2026-10-05T23:41:13.206752+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:04:08 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 205932,
+  "state": "ok",
+  "elapsed_seconds": 0.2,
+  "sha256": "31dd098ab05cc3499e045a7c566763358649590e30ee0507760009b70a500e84",
+  "capture": "d083bf173e387f700409"
+}

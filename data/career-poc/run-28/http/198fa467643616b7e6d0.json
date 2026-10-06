@@ -1,0 +1,16 @@
+{
+  "url": "https://www.muffenrohr.de/karriere/a/karriere",
+  "checked_at": "2026-10-05T23:31:34.316764+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 231192,
+  "state": "ok",
+  "elapsed_seconds": 1.551,
+  "sha256": "ac6b4359a0ba8be8c1b2da5dfafb8ac8d89dc9adda7c7c50c20b66f7857ccc2a",
+  "capture": "198fa467643616b7e6d0"
+}

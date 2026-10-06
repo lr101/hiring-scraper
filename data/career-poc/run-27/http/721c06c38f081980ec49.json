@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kvbw.de/robots.txt",
+  "checked_at": "2026-10-05T22:48:57.259951+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"77-571e6e4bc7482\"",
+  "last_modified": "Thu, 26 Jul 2018 13:22:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 119,
+  "state": "ok",
+  "elapsed_seconds": 0.195,
+  "sha256": "9cada369bccb31591ffe2b59c56b26eec919b83113b827901ad48feaf5cad1fa",
+  "capture": "721c06c38f081980ec49"
+}

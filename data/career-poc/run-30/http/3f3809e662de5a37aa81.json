@@ -1,0 +1,17 @@
+{
+  "url": "https://akd-karlsruhe.de/",
+  "checked_at": "2026-10-05T22:43:57.148556+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"15a2617da703aea776d2f1202e36b818\"",
+  "last_modified": "Mon, 05 Oct 2026 22:43:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 120461,
+  "state": "ok",
+  "elapsed_seconds": 0.435,
+  "sha256": "f65e2c4526bbdd6e001ef8addac7d43d07b4203ec428d6bac35fe4d6f5997bd0",
+  "capture": "3f3809e662de5a37aa81",
+  "merged_from_run": "run-27"
+}

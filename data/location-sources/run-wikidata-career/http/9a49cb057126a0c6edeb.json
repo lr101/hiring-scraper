@@ -1,0 +1,13 @@
+{
+  "url": "https://www.caemmerer-lenz.de/",
+  "checked_at": "2026-10-05T14:49:00.827099+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 303819,
+  "state": "ok",
+  "elapsed_seconds": 1.442,
+  "sha256": "8e1208dcd248e46a64ddec9a1c974e1692e278135821737919911f069b0c2bf4",
+  "capture": "9a49cb057126a0c6edeb"
+}

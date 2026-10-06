@@ -1,0 +1,16 @@
+{
+  "url": "https://diconium.com/en/career",
+  "checked_at": "2026-10-05T23:20:04.550485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 11:27:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 196729,
+  "state": "ok",
+  "elapsed_seconds": 0.688,
+  "sha256": "82c9741682d9a137f9bc2cb747cdb405bf5274f807aec4532d94381e954d14e1",
+  "capture": "a77abf6b7779daf74643"
+}

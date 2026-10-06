@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vermessung-kudoke.de/",
+  "checked_at": "2026-10-05T23:40:53.236154+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "W/\"a3c7d2698ba553c33534192d31b851ac\"",
+  "last_modified": "Wed, 23 Apr 2025 12:56:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 94436,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "57a6839a3c19ee20dfa2219b71e627b8df599b2af2e36c5766b447ba500d3582",
+  "capture": "d241ca015a1ab3296e77",
+  "merged_from_run": "run-28"
+}

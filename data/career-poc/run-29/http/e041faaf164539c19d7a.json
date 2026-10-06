@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.interhyp.de/kundenservice-vertrieb",
+  "checked_at": "2026-10-05T22:39:12.387445+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1762629,
+  "state": "ok",
+  "elapsed_seconds": 1.45,
+  "sha256": "b519309b60fe2c8a3b5b4fbce8ace8f5bb5158e074d0f7228727a215999f902e",
+  "capture": "e041faaf164539c19d7a",
+  "merged_from_run": "run-27"
+}

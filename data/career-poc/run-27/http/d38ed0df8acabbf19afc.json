@@ -1,0 +1,16 @@
+{
+  "url": "https://www.badischer-landesverein.de/",
+  "checked_at": "2026-10-05T22:48:27.023752+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://b-lv.de/",
+  "bytes": 264,
+  "state": "http_error",
+  "elapsed_seconds": 0.718,
+  "sha256": "9862cff703a988510e268b07430e3334876511bbce7b41c648c87c7fef45f76c",
+  "capture": "d38ed0df8acabbf19afc"
+}

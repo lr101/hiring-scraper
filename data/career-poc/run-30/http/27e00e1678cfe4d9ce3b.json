@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steuerberater-bahm.de/",
+  "checked_at": "2026-10-05T23:27:56.252004+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 41357,
+  "state": "ok",
+  "elapsed_seconds": 1.068,
+  "sha256": "594ab6c1b4858effe2083975438c9d9f5161fe907f1c614815bb5a568b522478",
+  "capture": "27e00e1678cfe4d9ce3b",
+  "merged_from_run": "run-28"
+}

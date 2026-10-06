@@ -1,0 +1,17 @@
+{
+  "url": "https://www.laks-bw.de/aktuell/stellenausschreibung-tollhaus",
+  "checked_at": "2026-10-05T23:14:49.650248+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15874,
+  "state": "ok",
+  "elapsed_seconds": 0.743,
+  "sha256": "09f10b8d22dc8ecbaf5939e612879b4a538847ebe112ee689e664b2fb0ec4aba",
+  "capture": "78d1010eb83e4d085ecc",
+  "merged_from_run": "run-28"
+}

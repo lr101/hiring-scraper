@@ -1,0 +1,17 @@
+{
+  "url": "https://gruenekarlsruhe.de/careers",
+  "checked_at": "2026-10-05T22:36:26.466475+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26860,
+  "state": "http_error",
+  "elapsed_seconds": 1.841,
+  "sha256": "eb107d0fa436c1184b538ff15c2ef1b67d835ae9ed950b83ec14c83b54628137",
+  "capture": "1af7beeb57355e96b888",
+  "merged_from_run": "run-27"
+}

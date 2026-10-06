@@ -1,0 +1,16 @@
+{
+  "url": "https://www.werktag-ka.de/",
+  "checked_at": "2026-10-05T22:55:26.429058+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 19319,
+  "state": "ok",
+  "elapsed_seconds": 1.153,
+  "sha256": "53e8f7318220316671122143f3788474df1adc0bdb5b1f31000af7259772045a",
+  "capture": "6aeb83c86c629aa0596b"
+}

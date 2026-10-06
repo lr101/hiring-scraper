@@ -1,0 +1,16 @@
+{
+  "url": "https://www.daum-partner.de/mandanten_info/news/august_2026/arbeitgeberleistungen_zur_fussball_wm/",
+  "checked_at": "2026-10-05T22:29:43.484731+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6aba322e-235c0\"",
+  "last_modified": "Mon, 28 Sep 2026 09:23:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 144832,
+  "state": "ok",
+  "elapsed_seconds": 1.247,
+  "sha256": "4c50cb93d0c427180a3b4f73acbea9d037a36bb575cfbcef0d1980e4b93a652c",
+  "capture": "773b839c888b93bbc395"
+}

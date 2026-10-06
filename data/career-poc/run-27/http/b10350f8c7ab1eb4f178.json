@@ -1,0 +1,16 @@
+{
+  "url": "https://www.synyx.de/",
+  "checked_at": "2026-10-05T22:53:50.897180+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 92960,
+  "state": "ok",
+  "elapsed_seconds": 1.132,
+  "sha256": "5241ab6f545f69012b22ba94f705788f3cf1afe29bf44fdea4208544bbd0521d",
+  "capture": "b10350f8c7ab1eb4f178"
+}

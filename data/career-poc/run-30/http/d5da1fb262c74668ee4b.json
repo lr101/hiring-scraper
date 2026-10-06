@@ -1,0 +1,17 @@
+{
+  "url": "https://erhardt-galabau.de/landschaftsgaertner-karlsruhe/stellenangebote",
+  "checked_at": "2026-10-05T23:30:20.557706+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://erhardt-galabau.de/landschaftsgaertner-karlsruhe/stellenangebote/",
+  "bytes": 281,
+  "state": "http_error",
+  "elapsed_seconds": 0.714,
+  "sha256": "934c5f5dc5d60ad06785fb57b53b0d4f0bb39a03d931b6a4ed31a1033c486b5b",
+  "capture": "d5da1fb262c74668ee4b",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brauhaus-kuehler-krug.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:33.918113+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.brauhaus-karlsruhe.com/robots.txt",
+  "bytes": 293,
+  "state": "http_error",
+  "elapsed_seconds": 0.21,
+  "sha256": "12d23c53a728b76cee49eb843cc4895cee22078085ef5604b171a2741d7b2749",
+  "capture": "be83ec9bdd4313fb7d33",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://virtual7.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:48.536770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66,
+  "state": "ok",
+  "elapsed_seconds": 0.113,
+  "sha256": "d5b06537ab6c6673b805fc4f05fa71b9adf186ce647ba8ca00c653ac5ab68455",
+  "capture": "5f05d470ff17290e773d",
+  "merged_from_run": "run-28"
+}

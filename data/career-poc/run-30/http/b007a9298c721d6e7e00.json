@@ -1,0 +1,17 @@
+{
+  "url": "https://tzw.de/en/careers/vacancies/detail/fuer-studierende",
+  "checked_at": "2026-10-05T23:28:19.035209+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"38a98406c08eaa2fc41ce6d84a2436a9\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67953,
+  "state": "ok",
+  "elapsed_seconds": 4.14,
+  "sha256": "4174ff35d84eb95957d54ca47ac671ac1fe4a49183a3c9f49bdd76ecc0124ce5",
+  "capture": "b007a9298c721d6e7e00",
+  "merged_from_run": "run-28"
+}

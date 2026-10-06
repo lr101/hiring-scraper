@@ -1,0 +1,17 @@
+{
+  "url": "https://vickysteve-schneiderei.de/",
+  "checked_at": "2026-10-05T22:43:15.984215+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1791231872-0\"",
+  "last_modified": "Mon, 05 Oct 2026 20:24:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 207297,
+  "state": "ok",
+  "elapsed_seconds": 1.214,
+  "sha256": "901be6aaf736b78df1d965df5c406a5e3fbe1dcf6e8494baed683afdc8f18461",
+  "capture": "d088fc2af0306f761660",
+  "merged_from_run": "run-27"
+}

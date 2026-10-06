@@ -1,0 +1,16 @@
+{
+  "url": "https://kanzlei-vieten.de/sitemap-home.xml",
+  "checked_at": "2026-10-05T23:20:29.131805+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 710,
+  "state": "ok",
+  "elapsed_seconds": 1.217,
+  "sha256": "4da51e14e006653a4001c6955b49b98f3630f4399b2aab031a10a84ed41ecf4f",
+  "capture": "289847312e0fbc6c6439"
+}

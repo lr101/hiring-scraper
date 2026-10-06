@@ -1,0 +1,17 @@
+{
+  "url": "https://www.martin-anwaelte.de/job/junganwaltin-m-w-d/",
+  "checked_at": "2026-10-05T23:21:15.929285+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"3eca9d3dadcd4ddb686b383c7d6160af\"",
+  "last_modified": "Mon, 05 Oct 2026 23:21:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 239634,
+  "state": "ok",
+  "elapsed_seconds": 1.992,
+  "sha256": "35da3adeecd0774a0542be8575231cd2b8a57da0f9a463865b3c0c01fae0d853",
+  "capture": "7b36e84d38a929dc0bad",
+  "merged_from_run": "run-28"
+}

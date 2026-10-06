@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wohlfarth-pflasterbau.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:19:07.271568+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 543,
+  "state": "ok",
+  "elapsed_seconds": 2.491,
+  "sha256": "afad63b6a85623454fc8f9221a42f1afe81ff29694e389bbe2f4db64b102f7fc",
+  "capture": "e3e3dc3e929ad1412d44"
+}

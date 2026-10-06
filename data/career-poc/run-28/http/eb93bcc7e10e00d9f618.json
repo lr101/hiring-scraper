@@ -1,0 +1,16 @@
+{
+  "url": "https://www.teamviewer.com/de/global/company/careers/",
+  "checked_at": "2026-10-05T23:31:12.955051+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:16:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 435063,
+  "state": "ok",
+  "elapsed_seconds": 0.892,
+  "sha256": "51386b1847cf4ffe483de67d491c53b645f137b0657bb72684bcc472e1838dbe",
+  "capture": "eb93bcc7e10e00d9f618"
+}

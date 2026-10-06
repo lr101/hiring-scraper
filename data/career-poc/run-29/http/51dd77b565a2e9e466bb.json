@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bundesfreiwilligendienst.de/service/fuer-sie-vor-ort/kalender-detail?tx_calendarize_calendar%5Baction%5D=detail&tx_calendarize_calendar%5Bcontroller%5D=Calendar&tx_calendarize_calendar%5Bindex%5D=1394&cHash=6b1d94ff5f1d4954e8a5eaafa64cd953",
+  "checked_at": "2026-10-05T23:44:33.479504+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100921,
+  "state": "ok",
+  "elapsed_seconds": 2.31,
+  "sha256": "5ac2ddc118e95849134161711cbc35ee51634831051fefd9c6130bc6b64a56ee",
+  "capture": "51dd77b565a2e9e466bb",
+  "merged_from_run": "run-28"
+}

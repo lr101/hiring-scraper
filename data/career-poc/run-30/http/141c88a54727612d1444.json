@@ -1,0 +1,17 @@
+{
+  "url": "https://mhp-kanzlei.de/arbeiten-bei-mhp/dein-start-bei-uns/",
+  "checked_at": "2026-10-05T23:17:05.935539+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 865600,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "d846e6345c89835f9d122ed76318cf14ce254f903141c8a9f213bf923e5b7872",
+  "capture": "141c88a54727612d1444",
+  "merged_from_run": "run-28"
+}

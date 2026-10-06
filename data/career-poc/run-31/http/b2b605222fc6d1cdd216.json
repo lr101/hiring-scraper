@@ -1,0 +1,17 @@
+{
+  "url": "https://digitalpowersystems.eu/robots.txt",
+  "checked_at": "2026-10-05T23:06:10.358563+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 478,
+  "state": "ok",
+  "elapsed_seconds": 0.235,
+  "sha256": "7578dfe3e37a2731356ee988430c7edeafd31f36a158a9f5560b3bbd450abfeb",
+  "capture": "b2b605222fc6d1cdd216",
+  "merged_from_run": "run-27"
+}

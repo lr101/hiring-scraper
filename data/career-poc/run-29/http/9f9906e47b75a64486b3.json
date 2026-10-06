@@ -1,0 +1,17 @@
+{
+  "url": "https://jegle.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:12.127084+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:34:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.921,
+  "sha256": "63c6ba3044ebf37a553ad5a369d47907c11a3dd823381164b441298fd5cbc26e",
+  "capture": "9f9906e47b75a64486b3",
+  "merged_from_run": "run-28"
+}

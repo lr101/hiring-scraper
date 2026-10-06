@@ -1,0 +1,16 @@
+{
+  "url": "https://www.imk-aaf.kit.edu/deutsch/Stellenangebote.php",
+  "checked_at": "2026-10-05T23:41:18.419960+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.imkaaf.kit.edu/deutsch/Stellenangebote.php",
+  "bytes": 417,
+  "state": "http_error",
+  "elapsed_seconds": 0.165,
+  "sha256": "63e772e57f8dd683b5ca2301b5c9fccdbd9f0d8699925bc27c6a69b8d7b08306",
+  "capture": "49c36a2143e63cdade43"
+}

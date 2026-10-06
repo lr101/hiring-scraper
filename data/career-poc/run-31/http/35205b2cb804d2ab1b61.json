@@ -1,0 +1,17 @@
+{
+  "url": "https://www.elektroschmitt-durlach.de/jobs",
+  "checked_at": "2026-10-05T23:32:08.683928+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 16476,
+  "state": "http_error",
+  "elapsed_seconds": 0.965,
+  "sha256": "75d8d832aa21cf47a72fe5d97dcf749b1196e470a13177eb5bea1149feeac395",
+  "capture": "35205b2cb804d2ab1b61",
+  "merged_from_run": "run-28"
+}

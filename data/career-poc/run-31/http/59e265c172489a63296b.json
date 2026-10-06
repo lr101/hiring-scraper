@@ -1,0 +1,17 @@
+{
+  "url": "https://www.abm-projekt.de/dynamic-referenzen_p_6fcc75e7_b565_488e_9822_25738137fbec_0_5000-sitemap.xml",
+  "checked_at": "2026-10-05T23:27:19.144132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "W/\"581-Wwj8Tw6jgQqtJVgw6SquKxl477I\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1409,
+  "state": "ok",
+  "elapsed_seconds": 1.247,
+  "sha256": "e278ca31658963c1fa0d6eacb6fc94bc68eae637b89dcd1a065f9a04e0dd8d47",
+  "capture": "59e265c172489a63296b",
+  "merged_from_run": "run-28"
+}

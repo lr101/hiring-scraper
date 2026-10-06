@@ -1,0 +1,16 @@
+{
+  "url": "https://joa-architektur.de/jobs",
+  "checked_at": "2026-10-05T22:23:00.897779+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 8868,
+  "state": "ok",
+  "elapsed_seconds": 1.388,
+  "sha256": "626156f11e6ce5110efea890692d4eef3ca6f74a3db2513b5918a8750648ba00",
+  "capture": "21727935da2e73cd4be4"
+}

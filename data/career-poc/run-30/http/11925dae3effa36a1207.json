@@ -1,0 +1,17 @@
+{
+  "url": "https://firmenkunden.vividabkk.de/robots.txt",
+  "checked_at": "2026-10-05T22:54:42.083855+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78,
+  "state": "ok",
+  "elapsed_seconds": 0.137,
+  "sha256": "0dc23bc0d77693d6d43a4eadebcc24631aedaa04a53b9f30ff1983cd0377e1ad",
+  "capture": "11925dae3effa36a1207",
+  "merged_from_run": "run-27"
+}

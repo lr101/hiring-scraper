@@ -1,0 +1,16 @@
+{
+  "url": "https://raumobil.com/careers",
+  "checked_at": "2026-10-05T23:29:17.529078+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"6ab52f2d-4e1e\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 19998,
+  "state": "http_error",
+  "elapsed_seconds": 0.975,
+  "sha256": "d1e6ebf506023d3e142efcf899fe10a8a75b0912a569aca5a8a0c235b50121d7",
+  "capture": "1f3d1038c1d8a4ac9116"
+}

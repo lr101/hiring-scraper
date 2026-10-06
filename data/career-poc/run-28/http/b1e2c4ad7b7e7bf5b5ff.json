@@ -1,0 +1,16 @@
+{
+  "url": "https://holler-druck.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:02.562421+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.holler-druck.de/robots.txt",
+  "bytes": 352,
+  "state": "http_error",
+  "elapsed_seconds": 0.222,
+  "sha256": "20403cd6473cf474c035dd54acff091ab87ad9ceea015fe75db6a507846ba974",
+  "capture": "b1e2c4ad7b7e7bf5b5ff"
+}

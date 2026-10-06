@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mach.kit.edu/sitemap.xml",
+  "checked_at": "2026-10-05T22:31:13.082681+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 347,
+  "state": "http_error",
+  "elapsed_seconds": 1.072,
+  "sha256": "c39d49f1cf61b350ca97a63a6d94b06ba4589c08e174499fda456f0844f5524a",
+  "capture": "8b93c1818e66573215a6",
+  "merged_from_run": "run-26"
+}

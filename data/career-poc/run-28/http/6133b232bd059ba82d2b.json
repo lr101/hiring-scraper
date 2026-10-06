@@ -1,0 +1,16 @@
+{
+  "url": "https://ratzel-stb.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:36.736914+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2416,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "f30af9aab52c4015b5f409a57a7e35ea67a0aa8dceadf0cf395e65b5827f2f6b",
+  "capture": "6133b232bd059ba82d2b"
+}

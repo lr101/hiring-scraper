@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mercedes-benz-techinnovation.com/robots.txt",
+  "checked_at": "2026-10-05T23:22:11.714202+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 147,
+  "state": "ok",
+  "elapsed_seconds": 2.047,
+  "sha256": "9aef2dd0d4622a365d36478ccd02638efa85176a69c36025ed0210adb26557c7",
+  "capture": "35914f6e44ae5a455ca0",
+  "merged_from_run": "run-28"
+}

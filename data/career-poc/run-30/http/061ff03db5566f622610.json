@@ -1,0 +1,17 @@
+{
+  "url": "https://jobdb.softgarden.de/robots.txt",
+  "checked_at": "2026-10-05T22:09:05.536133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74,
+  "state": "http_error",
+  "elapsed_seconds": 0.141,
+  "sha256": "bb360e3bd146832dfcc20ba9e597a4cfac178c53317c4f9344a00d877770d06b",
+  "capture": "061ff03db5566f622610",
+  "merged_from_run": "run-25"
+}

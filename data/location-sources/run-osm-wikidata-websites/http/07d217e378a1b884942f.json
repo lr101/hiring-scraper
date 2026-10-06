@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bamf.de/DE/Karriere/Stellenausschreibungen/stellenausschreibungen-node.html?gts=1929782_Stellenangebote%253DDatumBewerbungsfrist_dt%252Basc",
+  "checked_at": "2026-10-06T07:05:49.590316+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 06 Oct 2026 07:05:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 67539,
+  "state": "ok",
+  "elapsed_seconds": 1.387,
+  "sha256": "f30b6bd9867a00d4efadb9f4ebedb274daf5711b97e2cf849e3eb51d48b0bf60",
+  "capture": "07d217e378a1b884942f"
+}

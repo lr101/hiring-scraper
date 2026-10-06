@@ -1,0 +1,17 @@
+{
+  "url": "https://www.biffar.de/studiosuche/studio-karlsruhe/",
+  "checked_at": "2026-10-05T23:30:01.031555+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 136743,
+  "state": "ok",
+  "elapsed_seconds": 2.397,
+  "sha256": "562c798b6bcd1d9b679b458a90f4de4683befbfad56440f17f21b769c5dbec71",
+  "capture": "e577d6624b9c2bdbb70f",
+  "merged_from_run": "run-28"
+}

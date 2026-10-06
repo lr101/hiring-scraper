@@ -1,0 +1,16 @@
+{
+  "url": "https://www.weisenburger.de/karriere-bei-weisenburger/studierende",
+  "checked_at": "2026-10-05T22:51:15.595465+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91543,
+  "state": "ok",
+  "elapsed_seconds": 1.281,
+  "sha256": "94cd762b5e7d2717a68a9aaa9d297edba51372348264ebe51535e7bec3a18e78",
+  "capture": "0e936e8a0d4525a2259b"
+}

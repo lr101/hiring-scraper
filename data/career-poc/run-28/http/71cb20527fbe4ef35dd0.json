@@ -1,0 +1,16 @@
+{
+  "url": "https://exgenio.com/robots.txt",
+  "checked_at": "2026-10-05T23:14:28.410255+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 172,
+  "state": "ok",
+  "elapsed_seconds": 0.984,
+  "sha256": "7aa5e57ef3eed4c972480872f684e7901f4e6b4b891ec65ad8bcc41d50bcc456",
+  "capture": "71cb20527fbe4ef35dd0"
+}

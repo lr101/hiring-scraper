@@ -1,0 +1,17 @@
+{
+  "url": "https://bonding.de/robots.txt",
+  "checked_at": "2026-10-05T22:10:13.611563+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"8204f934a49c8b57ec1a4af46e6958b6\"",
+  "last_modified": "Sat, 03 Oct 2026 17:32:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 85,
+  "state": "ok",
+  "elapsed_seconds": 0.19,
+  "sha256": "93e0b51e9f0cc47823b342b9ad4c05b4abb57ca265437c4435f618e016293e4b",
+  "capture": "06a410662fb041d1d077",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,42 @@
+{
+  "companies": 1102,
+  "statuses": {
+    "career_content_found": 339,
+    "unresolved": 647,
+    "jobs_extracted": 85,
+    "jobs_feed_found": 28,
+    "ats_identified": 3
+  },
+  "unique_requests_or_reused_captures": 6860,
+  "new_requests": 6989,
+  "reused_captures": 73,
+  "http_statuses": {
+    "200": 4117,
+    "404": 1484,
+    "301": 786,
+    "307": 31,
+    "302": 138,
+    "403": 28,
+    "303": 49,
+    "network_error": 151,
+    "308": 31,
+    "410": 7,
+    "500": 22,
+    "400": 4,
+    "429": 2,
+    "247": 4,
+    "401": 1,
+    "503": 4,
+    "300": 1
+  },
+  "by_cohort": {
+    "karlsruhe_osm_15km_2251": {
+      "career_content_found": 339,
+      "unresolved": 647,
+      "jobs_extracted": 85,
+      "jobs_feed_found": 28,
+      "ats_identified": 3
+    }
+  },
+  "finished_at": "2026-10-05T23:47:33.424868+00:00"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://netzstrategen.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:15:46.875219+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"10f92-1a10c36bc66\"",
+  "last_modified": "Mon, 05 Oct 2026 13:17:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 69522,
+  "state": "http_error",
+  "elapsed_seconds": 0.935,
+  "sha256": "0bf4f28b085d6f20436166968126289961b406a623f02590bba27ccbb66b7f70",
+  "capture": "7faca4085b7f0c9d7983"
+}

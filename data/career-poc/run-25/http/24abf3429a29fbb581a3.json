@@ -1,0 +1,16 @@
+{
+  "url": "https://kit-gruenderschmiede.de/en/jobs/",
+  "checked_at": "2026-10-05T22:13:17.216658+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:46:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 90663,
+  "state": "ok",
+  "elapsed_seconds": 1.084,
+  "sha256": "2b0963b5136b3ff27d5a2f52f0fed3beb59b786402e303fec44e05c39764cc38",
+  "capture": "24abf3429a29fbb581a3"
+}

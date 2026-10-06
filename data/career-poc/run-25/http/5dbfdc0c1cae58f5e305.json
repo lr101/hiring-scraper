@@ -1,0 +1,16 @@
+{
+  "url": "https://fix-perso.de/",
+  "checked_at": "2026-10-05T22:20:16.504252+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 175492,
+  "state": "ok",
+  "elapsed_seconds": 1.381,
+  "sha256": "1b4851f55f6ff1f3bba67d681facac9b8e2fbbfb17e64200c8908af70a31eca7",
+  "capture": "5dbfdc0c1cae58f5e305"
+}

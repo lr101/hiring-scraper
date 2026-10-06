@@ -1,0 +1,17 @@
+{
+  "url": "https://www.glasschmid.de/karriere",
+  "checked_at": "2026-10-05T23:34:08.157233+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 148590,
+  "state": "http_error",
+  "elapsed_seconds": 1.206,
+  "sha256": "6e8816d85122afb86c36db38c07aa4e0b7fe30eaa0ddb3f5a6e6b2dfdb48f83a",
+  "capture": "aa7b2d80c22a6b06e4d2",
+  "merged_from_run": "run-28"
+}

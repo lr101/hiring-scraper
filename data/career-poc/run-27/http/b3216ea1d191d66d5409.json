@@ -1,0 +1,16 @@
+{
+  "url": "https://www.heimstiftung-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:34:52.116357+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85,
+  "state": "ok",
+  "elapsed_seconds": 0.299,
+  "sha256": "c7851af287e1e868936e482542836dd1cebf393e44b6b91af6c5e8f7d54ba1d1",
+  "capture": "b3216ea1d191d66d5409"
+}

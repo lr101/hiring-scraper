@@ -1,0 +1,16 @@
+{
+  "url": "https://datenberg.eu/",
+  "checked_at": "2026-10-05T20:42:33.355993+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 97591,
+  "state": "ok",
+  "elapsed_seconds": 1.171,
+  "sha256": "75981c81edf6081d495a9514b6c8615e7fb7cdb1756c0167321e92a27cda9102",
+  "capture": "3a3727e0ed043f47d863"
+}

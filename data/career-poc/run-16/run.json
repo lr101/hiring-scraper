@@ -1,0 +1,24 @@
+{
+  "started_at": "2026-10-05T20:51:25.154628+00:00",
+  "arguments": {
+    "seeds": "data/career-poc/seeds-ionos-homepage-followup.json",
+    "out": "data/career-poc/run-16",
+    "cache_from": "data/career-poc/run-14/http",
+    "max_pages": 6,
+    "max_depth": 3,
+    "timeout": 12.0,
+    "delay": 1.0,
+    "max_requests": 100
+  },
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "source_sha256": {
+    "/workspace/hiring-scraper/hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "/workspace/hiring-scraper/hiring_scraper/__main__.py": "3db595be1093e576747b35fb692f1b4aca037baf3cf1709ba9bf5a75d1da2ef8",
+    "/workspace/hiring-scraper/hiring_scraper/ats.py": "71a3dc863c390208cf3a708d89303ee7ae161cb919eac5b321b75b057236bf9b",
+    "/workspace/hiring-scraper/hiring_scraper/discovery.py": "06bd567787a0079c11ade4ce705acf17a40137474a3ed0fb7aebbfa1de4b4151",
+    "/workspace/hiring-scraper/hiring_scraper/geography.py": "6164e30f5d1068cf6b521b72bc67bf13a2a2bc177363b282966e072c122f455b",
+    "/workspace/hiring-scraper/hiring_scraper/http.py": "f289c800cd3b3a236521022b6d877862b122870208b60fab369747c5f29cd452",
+    "/workspace/hiring-scraper/hiring_scraper/pages.py": "e5ced6bb7ad1a7cf67260a2782db1d5261616efe960274c97c62b72bd06719f5"
+  },
+  "git_dirty": true
+}

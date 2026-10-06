@@ -1,0 +1,16 @@
+{
+  "url": "https://www.plasma-spenden.de/karriere",
+  "checked_at": "2026-10-05T23:01:21.132870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 12657,
+  "state": "http_error",
+  "elapsed_seconds": 1.414,
+  "sha256": "fb753a4661b052a36e881b4105153ed5374aaab98f32b6b38108fa58a7aadd96",
+  "capture": "9161b83f8754bdf470f0"
+}

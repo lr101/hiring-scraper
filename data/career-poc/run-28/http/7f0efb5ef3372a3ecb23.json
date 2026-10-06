@@ -1,0 +1,16 @@
+{
+  "url": "http://www.stutensee.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:48.649780+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"c4-5f78cbae0f33c\"",
+  "last_modified": "Thu, 23 Mar 2023 08:04:46 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 196,
+  "state": "ok",
+  "elapsed_seconds": 0.021,
+  "sha256": "6626dc33e120aa2bb687fc9684659534449538c3501694e54dc5d3ce3ce2e4d9",
+  "capture": "7f0efb5ef3372a3ecb23"
+}

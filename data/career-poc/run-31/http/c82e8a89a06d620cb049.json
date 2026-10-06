@@ -1,0 +1,17 @@
+{
+  "url": "https://www.afs-strahltechnik.de/karriere",
+  "checked_at": "2026-10-05T23:35:38.489989+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "http_error",
+  "elapsed_seconds": 1.053,
+  "sha256": "17d05f3690a3362969e54430da8bd05b924ac04af4a42f1c604885ad837dce70",
+  "capture": "c82e8a89a06d620cb049",
+  "merged_from_run": "run-28"
+}

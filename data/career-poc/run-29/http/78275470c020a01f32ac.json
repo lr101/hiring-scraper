@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lebenshilfe-karlsruhe.de/mitmachen/stellen.html",
+  "checked_at": "2026-10-05T23:15:03.280723+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22855,
+  "state": "ok",
+  "elapsed_seconds": 0.507,
+  "sha256": "b97abdb0c96c8453ee14efe8f30a5f2795825a0fbc7818f7b0211f2eda9b217a",
+  "capture": "78275470c020a01f32ac",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://volkswohnung.de/",
+  "checked_at": "2026-10-05T22:07:26.218040+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 367389,
+  "state": "ok",
+  "elapsed_seconds": 0.808,
+  "sha256": "16b4b786661a6ae980d65f753c79d5ecf1491e078d8bdf46ec82245b11f8d13a",
+  "capture": "d2efb0eecdb6d6ce8717"
+}

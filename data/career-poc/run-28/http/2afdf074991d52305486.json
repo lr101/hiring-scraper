@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schlosserei-wahlich.de/karriere",
+  "checked_at": "2026-10-05T23:31:26.120441+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://www.schlosserei-wahlich.de/karriere/",
+  "bytes": 169,
+  "state": "http_error",
+  "elapsed_seconds": 0.968,
+  "sha256": "ab0b5865418c3dab41c1ca6419ad844ebda0066db2f5cb40d77c4daca71b0e48",
+  "capture": "2afdf074991d52305486"
+}

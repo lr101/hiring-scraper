@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.smartrecruiters.com/Tipico/744000153411220-backend-developer-m-f-x-?oga=true&trid=ad8b6b6a-016d-479c-815c-9be7447c167a",
+  "checked_at": "2026-10-05T23:32:49.474677+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://jobs.smartrecruiters.com/oneclick-ui/company/Tipico/publication/b2494ebd-ed03-46e4-a9f8-ecc8bb4314d8?dcr_ci=Tipico&sid=ad8b6b6a-016d-479c-815c-9be7447c167a",
+  "bytes": 185,
+  "state": "http_error",
+  "elapsed_seconds": 0.979,
+  "sha256": "984712c0cc64e3320bc65ea7ac85c99659d160fb484b9e8e47b3111ab532222b",
+  "capture": "78134c92040b068cb6bf"
+}

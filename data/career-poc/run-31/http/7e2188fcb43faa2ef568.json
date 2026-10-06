@@ -1,0 +1,17 @@
+{
+  "url": "https://www.conemis.com/career/senior-solution-consultant-m-f-d",
+  "checked_at": "2026-10-05T22:34:32.162629+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 17:30:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 24326,
+  "state": "ok",
+  "elapsed_seconds": 1.097,
+  "sha256": "27da53122f0e1eb1c908da3f68090057eb16a5053578d5747da06555e7a0bda9",
+  "capture": "7e2188fcb43faa2ef568",
+  "merged_from_run": "run-27"
+}

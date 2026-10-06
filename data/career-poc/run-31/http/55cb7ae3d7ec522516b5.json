@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mihm-vogt.de/careers",
+  "checked_at": "2026-10-05T23:40:31.992972+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 204168,
+  "state": "http_error",
+  "elapsed_seconds": 0.987,
+  "sha256": "fec38c84e38a0d990d602fd77ad8270459319b311a9421615ddaa215fd4b9e6b",
+  "capture": "55cb7ae3d7ec522516b5",
+  "merged_from_run": "run-28"
+}

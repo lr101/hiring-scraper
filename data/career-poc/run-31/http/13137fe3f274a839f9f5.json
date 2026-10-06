@@ -1,0 +1,17 @@
+{
+  "url": "https://www.badischer-sportbund.de/jobs",
+  "checked_at": "2026-10-05T23:26:57.350758+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 258018,
+  "state": "http_error",
+  "elapsed_seconds": 1.017,
+  "sha256": "484eb0b538f4e30dae09fab809a710e3e00bab9a989e112386c275e5531ca5ec",
+  "capture": "13137fe3f274a839f9f5",
+  "merged_from_run": "run-28"
+}

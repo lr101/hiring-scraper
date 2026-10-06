@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lbs.de/unternehmen/karriere/karriere-lbs-saar",
+  "checked_at": "2026-10-05T23:14:35.070943+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"vlaqpbzyor62yx\"",
+  "last_modified": "Tue, 30 Sep 2025 11:07:16 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 284030,
+  "state": "ok",
+  "elapsed_seconds": 0.343,
+  "sha256": "13d5c35fd8f3f8e7991e1d6df0b6b061b4c4c7ed66b9ef10b9d30f65c15af20b",
+  "capture": "eb4cb2de4f5fb985e794"
+}

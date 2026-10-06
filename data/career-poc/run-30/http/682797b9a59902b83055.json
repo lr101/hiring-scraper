@@ -1,0 +1,17 @@
+{
+  "url": "https://careers.ptvgroup.com/en/jobs/jobalert-eng.html",
+  "checked_at": "2026-10-05T23:15:11.438890+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57407,
+  "state": "ok",
+  "elapsed_seconds": 0.912,
+  "sha256": "a03f8b2a9e4081cf252e6dfa6046a032b084301a4767360fcf82d3da943e5e0f",
+  "capture": "682797b9a59902b83055",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://abrechnung.immo/robots.txt",
+  "checked_at": "2026-10-05T23:35:32.999737+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6c-659b90e7a6f83\"",
+  "last_modified": "Sun, 23 Aug 2026 16:06:46 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 108,
+  "state": "ok",
+  "elapsed_seconds": 0.303,
+  "sha256": "6bc0837f2a0606c39a911074fa62515ac08c9932693295b55d266928eba4cd32",
+  "capture": "cd84ee7212f4fe09685e"
+}

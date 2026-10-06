@@ -1,0 +1,16 @@
+{
+  "url": "https://xdsb.de/datenschutz/",
+  "checked_at": "2026-10-05T23:33:34.773989+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 14:18:52 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 52465,
+  "state": "ok",
+  "elapsed_seconds": 0.618,
+  "sha256": "f98849bc4c1a8d793c7acb545270461c8f92d251ef61139e9afe31e81a8bbd58",
+  "capture": "33481a6fe6ffd464a00b"
+}

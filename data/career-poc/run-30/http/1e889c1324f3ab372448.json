@@ -1,0 +1,17 @@
+{
+  "url": "https://buchmann-elektro.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:46:40.437975+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 538,
+  "state": "ok",
+  "elapsed_seconds": 1.322,
+  "sha256": "8fcc0e485a98463e8088e190c8e955e281e37513a8fdf14772a0fcc62fdab1f6",
+  "capture": "1e889c1324f3ab372448",
+  "merged_from_run": "run-28"
+}

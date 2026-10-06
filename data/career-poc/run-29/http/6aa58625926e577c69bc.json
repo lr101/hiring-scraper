@@ -1,0 +1,17 @@
+{
+  "url": "https://www.computermiete.de/",
+  "checked_at": "2026-10-05T23:18:59.032740+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:03:31 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 269900,
+  "state": "ok",
+  "elapsed_seconds": 0.756,
+  "sha256": "692144e4a59ad65b3b728c8560e90bc4db7e2e02e9a1081304f3df11a48643be",
+  "capture": "6aa58625926e577c69bc",
+  "merged_from_run": "run-28"
+}

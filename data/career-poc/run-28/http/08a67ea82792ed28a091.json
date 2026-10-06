@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sicherheit-ms.de/",
+  "checked_at": "2026-10-05T23:39:47.915628+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"761582916\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65017,
+  "state": "ok",
+  "elapsed_seconds": 1.001,
+  "sha256": "8824ee45a3dfd9553aca3503673bdbad6b4db6dc16356b6def0cadc197f8eab2",
+  "capture": "08a67ea82792ed28a091"
+}

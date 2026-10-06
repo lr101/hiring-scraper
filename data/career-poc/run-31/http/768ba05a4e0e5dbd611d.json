@@ -1,0 +1,17 @@
+{
+  "url": "https://www.iosb.fraunhofer.de/de/jobs-karriere.html",
+  "checked_at": "2026-10-05T23:15:16.780341+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118888,
+  "state": "ok",
+  "elapsed_seconds": 0.734,
+  "sha256": "d8195d8ac947d9f9af644c9d4442a04cd069180e6d551270a3a709090339d797",
+  "capture": "768ba05a4e0e5dbd611d",
+  "merged_from_run": "run-28"
+}

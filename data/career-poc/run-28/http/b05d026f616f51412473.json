@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hug-ka.de/login.html",
+  "checked_at": "2026-10-05T23:18:26.028256+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98266,
+  "state": "ok",
+  "elapsed_seconds": 1.21,
+  "sha256": "bdbe8b884af10e18c712e180156054ffaab40a4b98bf7178874a770f1e4f973b",
+  "capture": "b05d026f616f51412473"
+}

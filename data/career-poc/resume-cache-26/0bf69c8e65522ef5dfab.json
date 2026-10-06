@@ -1,0 +1,16 @@
+{
+  "url": "https://bewerberportal.landbw.de/robots.txt",
+  "checked_at": "2026-10-05T22:05:37.077285+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"ad57-5d3a8e80d1902\"",
+  "last_modified": "Tue, 21 Dec 2021 14:34:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 44375,
+  "state": "http_error",
+  "elapsed_seconds": 0.189,
+  "sha256": "dcbd311431f5e95e18db7b1ec1266f662391dfe2e5b351e3374d09aec7f8ba56",
+  "capture": "0bf69c8e65522ef5dfab"
+}

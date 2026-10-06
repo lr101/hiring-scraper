@@ -1,0 +1,17 @@
+{
+  "url": "https://www.initse.com/ende/header-meta/careers/job-offers/",
+  "checked_at": "2026-10-05T23:19:40.733172+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.initse.com/ende/jobs/",
+  "bytes": 241,
+  "state": "http_error",
+  "elapsed_seconds": 0.693,
+  "sha256": "a13771211375db0779f956606a67eb9a75869be34e8a052462c45fd52b539192",
+  "capture": "8fa063910bde80611726",
+  "merged_from_run": "run-28"
+}

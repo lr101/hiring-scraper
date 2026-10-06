@@ -1,0 +1,16 @@
+{
+  "url": "https://www.erdgas-suedwest.de/",
+  "checked_at": "2026-10-05T23:37:41.012556+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63263,
+  "state": "ok",
+  "elapsed_seconds": 0.944,
+  "sha256": "733b677d3fed0eac8f114184370c8cfac377b2a33369ce34a0bf4ae1771432d2",
+  "capture": "b1fc0fbc22632fc415d7"
+}

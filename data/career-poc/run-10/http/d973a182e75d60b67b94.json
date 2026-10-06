@@ -1,0 +1,13 @@
+{
+  "url": "https://www.unic.com/de/jobs/digital-analyst",
+  "checked_at": "2026-10-05T14:04:56.759180+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 283850,
+  "state": "ok",
+  "elapsed_seconds": 1.369,
+  "sha256": "252143581176ac3c500ef1f007c393e6c222738c83d5a366684ac4fdb50e0762",
+  "capture": "d973a182e75d60b67b94"
+}

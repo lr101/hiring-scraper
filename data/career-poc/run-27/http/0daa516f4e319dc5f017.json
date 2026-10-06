@@ -1,0 +1,16 @@
+{
+  "url": "https://goldener-zirkel.com/",
+  "checked_at": "2026-10-05T23:09:24.374389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106968,
+  "state": "ok",
+  "elapsed_seconds": 1.762,
+  "sha256": "78657d9421cf5a56ff23a1cfe1eebb60a7616357b7fa1a0447011ec08f27318b",
+  "capture": "0daa516f4e319dc5f017"
+}

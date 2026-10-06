@@ -1,0 +1,17 @@
+{
+  "url": "https://www.secorvo.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:47:19.995434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"6ac3b9ca-1db9d\"",
+  "last_modified": "Mon, 05 Oct 2026 14:52:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 121757,
+  "state": "ok",
+  "elapsed_seconds": 1.102,
+  "sha256": "a1b14ef27f89a598cb9e1cc835dea505a144a05a07313f83029204ba39e64546",
+  "capture": "e3716968476d62aeef0e",
+  "merged_from_run": "run-27"
+}

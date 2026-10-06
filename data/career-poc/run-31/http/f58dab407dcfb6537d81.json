@@ -1,0 +1,17 @@
+{
+  "url": "https://www.baeder-singer.de/robots.txt",
+  "checked_at": "2026-10-05T23:39:34.241434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"d743b470da2fdd1:0\"",
+  "last_modified": "Wed, 19 Aug 2026 12:58:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2966,
+  "state": "ok",
+  "elapsed_seconds": 0.222,
+  "sha256": "4070e5d12c5b149485a45402d612d8b39190d73c5d527e82e0414c18a0914799",
+  "capture": "f58dab407dcfb6537d81",
+  "merged_from_run": "run-28"
+}

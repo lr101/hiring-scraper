@@ -1,0 +1,17 @@
+{
+  "url": "https://www.felzmann.dental/robots.txt",
+  "checked_at": "2026-10-05T23:25:08.338387+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171,
+  "state": "ok",
+  "elapsed_seconds": 1.171,
+  "sha256": "d16fbe166335828be685f46e8a53de09209e5693b34470e5dceee8bca91e4cf4",
+  "capture": "454342395183961c9b36",
+  "merged_from_run": "run-28"
+}

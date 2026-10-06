@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kvbw.de/pb/,Lde/1975826.html",
+  "checked_at": "2026-10-05T22:48:58.571689+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48728,
+  "state": "ok",
+  "elapsed_seconds": 1.379,
+  "sha256": "bbab8286b5dd516201448045d83d126efd4557ea31fbaff6c50b5fe41c8ce868",
+  "capture": "6517d77c79e50aa80f51",
+  "merged_from_run": "run-27"
+}

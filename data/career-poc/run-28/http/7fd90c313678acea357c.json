@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rmgmbh.de/karriere",
+  "checked_at": "2026-10-05T23:34:25.074777+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"cb84-647db4fd3970d;63114b34dd8af",
+  "last_modified": "Thu, 08 Jan 2026 07:25:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 52100,
+  "state": "http_error",
+  "elapsed_seconds": 0.97,
+  "sha256": "082b53d19dc698ac8fd3a3238ec6b58752a09f769ee97949c5dfd81eecbdff91",
+  "capture": "7fd90c313678acea357c"
+}

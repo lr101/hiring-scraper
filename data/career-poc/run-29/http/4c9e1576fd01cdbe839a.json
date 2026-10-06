@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aok.de/karriere/",
+  "checked_at": "2026-10-05T22:21:02.827850+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"3e925-65d1ad879374e\"",
+  "last_modified": "Mon, 05 Oct 2026 17:02:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 256293,
+  "state": "ok",
+  "elapsed_seconds": 1.068,
+  "sha256": "fce42d3f20891d76f1fc84fe23f64706362fdd81fe733136cb69bc0e058081e2",
+  "capture": "4c9e1576fd01cdbe839a",
+  "merged_from_run": "run-25"
+}

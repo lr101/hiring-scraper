@@ -1,0 +1,17 @@
+{
+  "url": "https://schilling-peters.de/karriere",
+  "checked_at": "2026-10-05T23:41:14.493984+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40709,
+  "state": "ok",
+  "elapsed_seconds": 0.877,
+  "sha256": "146a71087b8c4d0073130762c8d635ba765aba55b330b51ef7baf2f0be05eb0d",
+  "capture": "b1ca59b8bc4de99d9a16",
+  "merged_from_run": "run-28"
+}

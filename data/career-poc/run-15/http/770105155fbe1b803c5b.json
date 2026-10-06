@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+  "checked_at": "2026-10-05T20:46:56.078644+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 33948,
+  "state": "ok",
+  "elapsed_seconds": 1.505,
+  "sha256": "ef28714185baaf883d547f62ff56e28085930a958f7324619cb9b62b6889bb4c",
+  "capture": "770105155fbe1b803c5b"
+}

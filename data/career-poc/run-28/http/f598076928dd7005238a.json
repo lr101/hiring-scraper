@@ -1,0 +1,16 @@
+{
+  "url": "https://letsdev.de/jobs/?show=permanent&job=web-backend-developer",
+  "checked_at": "2026-10-05T23:16:42.954670+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67724,
+  "state": "ok",
+  "elapsed_seconds": 1.067,
+  "sha256": "da4087b84c30703e7f6a4309a766759afb689f7336e60a766841759e35ddb13f",
+  "capture": "f598076928dd7005238a"
+}

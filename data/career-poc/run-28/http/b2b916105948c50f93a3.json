@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.arcadis.com/robots.txt",
+  "checked_at": "2026-10-05T23:19:51.412365+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 662,
+  "state": "ok",
+  "elapsed_seconds": 0.573,
+  "sha256": "2d0c13a78c7a7b6b626c59860cc45bc8e027d1c84bf127b96b7a3780e5cd52d7",
+  "capture": "b2b916105948c50f93a3"
+}

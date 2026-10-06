@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fima.kit.edu/forbidden.php",
+  "checked_at": "2026-10-05T22:23:41.057064+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27193,
+  "state": "ok",
+  "elapsed_seconds": 1.133,
+  "sha256": "2bef9ed29f564fa09a77f516a02b19ddbea0f3cc106337883bcf9a13b553572a",
+  "capture": "84adf5582b735082282e",
+  "merged_from_run": "run-25"
+}

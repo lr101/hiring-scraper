@@ -1,0 +1,17 @@
+{
+  "url": "https://www.birkle-gmbh.de/",
+  "checked_at": "2026-10-05T23:25:22.186405+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 707269,
+  "state": "ok",
+  "elapsed_seconds": 2.112,
+  "sha256": "ebcd30d50a382bf7dfbcbc35acc033311d18de06d5989853f74ab0b0743afd00",
+  "capture": "3467e5084d03629f1917",
+  "merged_from_run": "run-28"
+}

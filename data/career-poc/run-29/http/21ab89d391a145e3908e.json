@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.atruvia.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:18.709651+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87,
+  "state": "ok",
+  "elapsed_seconds": 0.191,
+  "sha256": "b32b82abc849e5a04bd0b994d67c89d4ca267d0a858004a157e12cc7794c25d6",
+  "capture": "21ab89d391a145e3908e",
+  "merged_from_run": "run-28"
+}

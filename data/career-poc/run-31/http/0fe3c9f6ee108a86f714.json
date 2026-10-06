@@ -1,0 +1,17 @@
+{
+  "url": "https://roesberg-engineering-gmbh.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:36:58.359446+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"c43561c191372cd6eebf103b60db60e8\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61396,
+  "state": "ok",
+  "elapsed_seconds": 0.785,
+  "sha256": "eda6f42f0ee9739992368d1d5573407f5e74244e0f8cb879324aa89af0ee8370",
+  "capture": "0fe3c9f6ee108a86f714",
+  "merged_from_run": "run-28"
+}

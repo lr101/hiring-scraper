@@ -1,0 +1,16 @@
+{
+  "url": "https://max-simmel.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:47.035156+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 5.457,
+  "sha256": "e6ef5ae3a528365a1fe3e89746fc7fc9eadfcdeee38c171aeccb7f7beef8f782",
+  "capture": "10eed7ac367545746da7"
+}

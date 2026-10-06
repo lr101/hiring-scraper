@@ -1,0 +1,17 @@
+{
+  "url": "https://emons-career.com/emons-as-an-employer",
+  "checked_at": "2026-10-05T23:16:50.035157+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"396ec-fqy3TJ3ZJw18uEQ4aADly5lELTw\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 235244,
+  "state": "ok",
+  "elapsed_seconds": 0.88,
+  "sha256": "611f6f4cacbd1e869ce32870078d34b47a41198a593bfaf7f1566ff83b6162a0",
+  "capture": "03a437ccfab2a61556cb",
+  "merged_from_run": "run-28"
+}

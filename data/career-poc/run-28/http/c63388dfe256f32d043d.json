@@ -1,0 +1,16 @@
+{
+  "url": "https://www.iscar.de/robots.txt",
+  "checked_at": "2026-10-05T23:41:41.074508+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"ba152798c1ddd1:0\"",
+  "last_modified": "Mon, 27 Jul 2026 05:55:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 834,
+  "state": "ok",
+  "elapsed_seconds": 0.702,
+  "sha256": "5c6829abcc0417a1f661aa7a96fd2846d25e6b5d4c4edc1c45aca1a364500320",
+  "capture": "c63388dfe256f32d043d"
+}

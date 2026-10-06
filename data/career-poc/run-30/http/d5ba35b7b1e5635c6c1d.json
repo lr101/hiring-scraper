@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe-erleben.de/ktg/jobs",
+  "checked_at": "2026-10-05T22:08:10.647810+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 236973,
+  "state": "ok",
+  "elapsed_seconds": 1.227,
+  "sha256": "3d1163625dbab2a65b3e3246f172129a073bcce0bdb605319abc31346cdb54cf",
+  "capture": "d5ba35b7b1e5635c6c1d",
+  "merged_from_run": "run-25"
+}

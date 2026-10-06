@@ -1,0 +1,16 @@
+{
+  "url": "https://careers.geaerospace.com/global/en/home",
+  "checked_at": "2026-10-05T23:38:30.523417+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123438,
+  "state": "ok",
+  "elapsed_seconds": 1.78,
+  "sha256": "3854957d1e799c9748ad5bd4ea08bf76420733c4ada71f9d17ab17b04208b79a",
+  "capture": "58d5d3d0ff522cf6e029"
+}

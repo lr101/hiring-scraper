@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kanzlei-rastaetter.de/de/",
+  "checked_at": "2026-10-05T23:25:50.224701+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 208708,
+  "state": "ok",
+  "elapsed_seconds": 1.102,
+  "sha256": "ad0613fbf5ce17d38aa337c16da7f2a9a0ae83347a352ee55a2515f27608a97e",
+  "capture": "a9aa221ccc4cef24740a",
+  "merged_from_run": "run-28"
+}

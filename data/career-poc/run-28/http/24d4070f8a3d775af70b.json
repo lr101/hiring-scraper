@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rbs-wave.de/karriere/arbeitswelt/",
+  "checked_at": "2026-10-05T23:36:53.954023+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 276105,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "7459c96b1ccb58ccbcdfcb12a8ee0de49cc3b4804dd67f7b3b33c1ee21a4e845",
+  "capture": "24d4070f8a3d775af70b"
+}

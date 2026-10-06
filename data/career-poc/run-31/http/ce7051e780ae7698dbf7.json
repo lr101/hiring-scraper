@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.koerber.com/job/Porto-SAP-FICO-Professional-%28mfd%29-OneFinance/1403012433/",
+  "checked_at": "2026-10-05T23:22:38.463547+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103499,
+  "state": "ok",
+  "elapsed_seconds": 0.857,
+  "sha256": "d21f001d33e5bf9ce53aaed3c506beb88f6d998cc7c56dace750ef6c70a553e0",
+  "capture": "ce7051e780ae7698dbf7",
+  "merged_from_run": "run-28"
+}

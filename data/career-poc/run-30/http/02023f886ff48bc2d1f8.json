@@ -1,0 +1,17 @@
+{
+  "url": "https://alterschlachthof-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:52.273738+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"b4-567da38af52ae\"",
+  "last_modified": "Tue, 20 Mar 2018 16:03:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 180,
+  "state": "ok",
+  "elapsed_seconds": 0.179,
+  "sha256": "1dd59b0e59fc30918c6a9698322171a1a294b7101eb2e2d0c7ea6f66600a9103",
+  "capture": "02023f886ff48bc2d1f8",
+  "merged_from_run": "run-28"
+}

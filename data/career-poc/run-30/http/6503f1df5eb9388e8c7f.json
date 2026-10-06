@@ -1,0 +1,17 @@
+{
+  "url": "https://itunes.apple.com/robots.txt",
+  "checked_at": "2026-10-05T22:06:51.178746+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"1bf-65ca759136100\"",
+  "last_modified": "Tue, 29 Sep 2026 23:14:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 447,
+  "state": "ok",
+  "elapsed_seconds": 0.293,
+  "sha256": "ba1a38fb1c1a6f0aca23275aa99f00556060edf060f1ed52a6694bd82b91a663",
+  "capture": "6503f1df5eb9388e8c7f",
+  "merged_from_run": "run-25"
+}

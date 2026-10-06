@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tomkohler.de/3d-flip-book-sitemap.xml",
+  "checked_at": "2026-10-05T22:13:03.644079+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 739,
+  "state": "ok",
+  "elapsed_seconds": 1.398,
+  "sha256": "6d3588aebd4006741a78dace434c69982e47dd48b8c75c81759005f10fd73124",
+  "capture": "bc195de8cb18a4b5d519",
+  "merged_from_run": "run-25"
+}

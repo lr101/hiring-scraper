@@ -1,0 +1,16 @@
+{
+  "url": "https://www.taxi-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:01.348111+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 293,
+  "state": "ok",
+  "elapsed_seconds": 2.113,
+  "sha256": "01dcc433e110ec81c333ff06927467ffe7f6a327426d1840ae9a2452c2faf038",
+  "capture": "470d267cfc5dbdc68527"
+}

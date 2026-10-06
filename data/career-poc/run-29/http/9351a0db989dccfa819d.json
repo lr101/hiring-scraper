@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tal-oil.com/careers",
+  "checked_at": "2026-10-05T23:34:24.030151+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74581,
+  "state": "http_error",
+  "elapsed_seconds": 1.704,
+  "sha256": "ec6ecaa1a2bf12d1cee4025e483fe6c8932cad7ebfdce645b623872390d7926f",
+  "capture": "9351a0db989dccfa819d",
+  "merged_from_run": "run-28"
+}

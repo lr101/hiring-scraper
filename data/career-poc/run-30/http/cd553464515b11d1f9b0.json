@@ -1,0 +1,17 @@
+{
+  "url": "https://consumer.ftc.gov/jobs-and-making-money/jobs",
+  "checked_at": "2026-10-05T23:20:20.955129+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1791242421\"",
+  "last_modified": "Mon, 05 Oct 2026 23:20:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 495960,
+  "state": "ok",
+  "elapsed_seconds": 3.542,
+  "sha256": "776377fea82573152cb8707af4e1ab21d945d44a622817b7dc9088998faf490b",
+  "capture": "cd553464515b11d1f9b0",
+  "merged_from_run": "run-28"
+}

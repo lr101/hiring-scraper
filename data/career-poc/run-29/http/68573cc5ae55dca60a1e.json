@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nacona.de/karriere",
+  "checked_at": "2026-10-05T23:15:32.681167+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89976,
+  "state": "http_error",
+  "elapsed_seconds": 2.085,
+  "sha256": "26ec02cec54a07cfa26e631fa0ee7a6c7f64ccd5120635f8e9eb2f5201e940f8",
+  "capture": "68573cc5ae55dca60a1e",
+  "merged_from_run": "run-28"
+}

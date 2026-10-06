@@ -1,0 +1,17 @@
+{
+  "url": "https://bolzhauser.com/robots.txt",
+  "checked_at": "2026-10-05T22:10:54.472260+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"18-60e5ebf47ef6f\"",
+  "last_modified": "Sun, 07 Jan 2024 17:52:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 24,
+  "state": "ok",
+  "elapsed_seconds": 0.196,
+  "sha256": "c70abcf98d7c268caa7a66739104962b1f5304d39762201e1074cacfcaba3134",
+  "capture": "7dce5203503daec890f5",
+  "merged_from_run": "run-25"
+}

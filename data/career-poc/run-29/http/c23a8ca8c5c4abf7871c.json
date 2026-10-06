@@ -1,0 +1,17 @@
+{
+  "url": "https://job-futuromat.iab.de/",
+  "checked_at": "2026-10-05T23:16:02.501389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6a7c636e-59bb\"",
+  "last_modified": "Wed, 12 Aug 2026 12:13:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22971,
+  "state": "ok",
+  "elapsed_seconds": 1.01,
+  "sha256": "1a043ccc0e8b43b22bec7b69e0376ef4425fdc4fa622a046f4e37330f65ad1bb",
+  "capture": "c23a8ca8c5c4abf7871c",
+  "merged_from_run": "run-28"
+}

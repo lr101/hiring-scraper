@@ -1,0 +1,17 @@
+{
+  "url": "https://wurzelwerk-beratung.de/careers",
+  "checked_at": "2026-10-05T23:24:50.324772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 72297,
+  "state": "http_error",
+  "elapsed_seconds": 0.957,
+  "sha256": "b0241e2ee8cec9578a910600e694731764654366ca266c346bec9bc151c7caba",
+  "capture": "3282c7c39ef48f99d5a5",
+  "merged_from_run": "run-28"
+}

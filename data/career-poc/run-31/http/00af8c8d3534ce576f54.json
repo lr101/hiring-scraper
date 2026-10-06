@@ -1,0 +1,17 @@
+{
+  "url": "https://www.makoujewelry.de/careers",
+  "checked_at": "2026-10-05T22:42:45.342588+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"page_cache:42572611752:NotFoundController:b025518b4d6efbf7e9e92495d545c325:8367400e15376fad687e69e456752d38\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 272257,
+  "state": "http_error",
+  "elapsed_seconds": 1.321,
+  "sha256": "46bb9af35e7063932e822ddbe7ede0493d64e40081567ddaf44fc0110d55f04e",
+  "capture": "00af8c8d3534ce576f54",
+  "merged_from_run": "run-27"
+}

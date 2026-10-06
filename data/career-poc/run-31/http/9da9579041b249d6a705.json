@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schaefer-wunsch.de/wp-content/uploads/2026/08/Join-us-scaled.webp",
+  "checked_at": "2026-10-05T23:21:44.021231+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "image/webp",
+  "etag": null,
+  "last_modified": "Tue, 04 Aug 2026 13:23:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1008294,
+  "state": "ok",
+  "elapsed_seconds": 0.686,
+  "sha256": "0fabbe2c95e186cc1a44b8caba84fa228d05a834b80f2d12026391b29d3d3ba2",
+  "capture": "9da9579041b249d6a705",
+  "merged_from_run": "run-28"
+}

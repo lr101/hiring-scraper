@@ -1,0 +1,16 @@
+{
+  "url": "https://rpk.baden-wuerttemberg.de/das-regierungspraesidium-als-arbeitgeber/",
+  "checked_at": "2026-10-05T22:05:38.374446+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 113711,
+  "state": "ok",
+  "elapsed_seconds": 0.794,
+  "sha256": "dfb1f7ea2588997ada942adb2cfb10607d25bce5dc85021bcbb9891ee6583954",
+  "capture": "965b98f881444f8028ee"
+}

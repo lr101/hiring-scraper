@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arbeitsagentur.de/jobsuche/suche?kundennummer=4XhfL1awi1DKgA-zLCwBylOwc6jG5nZjTbrzmIX6VJM%3D__del__Draht%20Walput%20GmbH%20%26%20Co.%20KG%20Montage%20von%20Toren%20%26%20Z%C3%A4unen&angebotsart=1&id=10000-1197090594-S&suchbereich=jobs",
+  "checked_at": "2026-10-05T23:36:33.337870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 140227,
+  "state": "ok",
+  "elapsed_seconds": 1.168,
+  "sha256": "5d7cab755bcea4265c7e35abff7b34fef7cec2f5e67289a2cd3d2f08078882c3",
+  "capture": "d61e9ce072439b6a5e07",
+  "merged_from_run": "run-28"
+}

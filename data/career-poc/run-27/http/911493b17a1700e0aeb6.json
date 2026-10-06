@@ -1,0 +1,16 @@
+{
+  "url": "http://bartsch.law/robots.txt",
+  "checked_at": "2026-10-05T22:39:50.201159+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 115,
+  "state": "ok",
+  "elapsed_seconds": 1.788,
+  "sha256": "edb3aedde8570825ecbf2a867aa421014cded269896a54c4c5ecd8e3a0ba9a98",
+  "capture": "911493b17a1700e0aeb6"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.phytonics.com/",
+  "checked_at": "2026-10-05T23:23:01.420900+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 298546,
+  "state": "ok",
+  "elapsed_seconds": 1.153,
+  "sha256": "068cbd160c6688386e9a75461b50218e797248dd54cf3b9589d3c1c7ddf9cc4c",
+  "capture": "7f6d5df655ce588d8145"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wisag.de/karriere/stellenmarkt/detail/job/422331/",
+  "checked_at": "2026-10-05T23:25:33.500223+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 247,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "http_error",
+  "elapsed_seconds": 0.974,
+  "sha256": "4c8e4fd8ac0ea4821e7b92e93887ccc4a9a8fe381f22f72cda3f5169bf1c07ee",
+  "capture": "18ee5ca52aea3b125505"
+}

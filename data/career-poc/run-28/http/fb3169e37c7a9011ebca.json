@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lohmeyer.de/en/about-us/vacancies/studentische-hilfskraft/",
+  "checked_at": "2026-10-05T23:34:39.444149+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:25:25 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 53562,
+  "state": "ok",
+  "elapsed_seconds": 0.913,
+  "sha256": "e74409b8cd07cb0dd1fe54f5db1a5a1d57ff2d552757fc656789629870ee048d",
+  "capture": "fb3169e37c7a9011ebca"
+}

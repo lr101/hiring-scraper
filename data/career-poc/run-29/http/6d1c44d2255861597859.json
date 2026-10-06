@@ -1,0 +1,17 @@
+{
+  "url": "https://www.baeder-singer.de/karriere",
+  "checked_at": "2026-10-05T23:39:37.536536+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 410,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17447,
+  "state": "http_error",
+  "elapsed_seconds": 1.355,
+  "sha256": "622813adcf524b22fcfb36229541a5d4f0193fef9672b8564c931093a9bf7682",
+  "capture": "6d1c44d2255861597859",
+  "merged_from_run": "run-28"
+}

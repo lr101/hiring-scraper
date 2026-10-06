@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fensterfolien-karlsruhe.com/careers",
+  "checked_at": "2026-10-05T23:36:27.379909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 16148,
+  "state": "http_error",
+  "elapsed_seconds": 1.015,
+  "sha256": "710ea24e7935f6f8dc3c24fdf77f6da2ed9b1245c5335f90516206a85f1d292e",
+  "capture": "c82d0607cfc76bf008e5",
+  "merged_from_run": "run-28"
+}

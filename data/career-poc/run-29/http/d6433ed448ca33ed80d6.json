@@ -1,0 +1,17 @@
+{
+  "url": "https://www.de.endress.com/robots.txt",
+  "checked_at": "2026-10-05T22:46:45.602669+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23085,
+  "state": "ok",
+  "elapsed_seconds": 0.17,
+  "sha256": "328e2334393fe54dce4330c70085a098d4160211e0592a7fc37136ae0333c444",
+  "capture": "d6433ed448ca33ed80d6",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.unic.com/de/jobs/unsere-kultur",
+  "checked_at": "2026-10-05T22:20:56.187988+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"igu677winn5w6a\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 276036,
+  "state": "ok",
+  "elapsed_seconds": 1.414,
+  "sha256": "839623084b5ef9adc520a3967df6529835e8cb32d43d53863228cea67f48a892",
+  "capture": "b7db27172bb34bd01212"
+}

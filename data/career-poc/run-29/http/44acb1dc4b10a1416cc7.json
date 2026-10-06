@@ -1,0 +1,17 @@
+{
+  "url": "https://www.leverkus.de/jobs/",
+  "checked_at": "2026-10-05T23:33:27.266441+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 04:34:48 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 95911,
+  "state": "ok",
+  "elapsed_seconds": 0.947,
+  "sha256": "0394897dcd5faa3706c41e9e6ec38dffe35eeaa8aca82067dca14b77c5108c14",
+  "capture": "44acb1dc4b10a1416cc7",
+  "merged_from_run": "run-28"
+}

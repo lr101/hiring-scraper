@@ -1,0 +1,17 @@
+{
+  "url": "https://digitalpowersystems.eu/career/register",
+  "checked_at": "2026-10-05T23:06:17.436793+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7823,
+  "state": "ok",
+  "elapsed_seconds": 1.04,
+  "sha256": "12262e3129d59d46611b8e1bd4743df90b43c9e7ad721d44a6b28831b71b2721",
+  "capture": "0df9543a17c51fdfb387",
+  "merged_from_run": "run-27"
+}

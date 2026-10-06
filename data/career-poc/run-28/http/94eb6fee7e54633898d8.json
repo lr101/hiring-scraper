@@ -1,0 +1,16 @@
+{
+  "url": "https://appsphere.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:35:47.736350+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://appsphere.com/sitemap_index.xml",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.368,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "94eb6fee7e54633898d8"
+}

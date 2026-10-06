@@ -1,0 +1,17 @@
+{
+  "url": "https://tngtech.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:32:43.405815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"31a6457ddcb0a9c68570c560bb0b08c7\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47385,
+  "state": "ok",
+  "elapsed_seconds": 0.154,
+  "sha256": "562de018afb8baae3ff5df56391205cc69bfe89794c47f59467418b8e023b527",
+  "capture": "7b2f1348813fe5c98a03",
+  "merged_from_run": "run-28"
+}

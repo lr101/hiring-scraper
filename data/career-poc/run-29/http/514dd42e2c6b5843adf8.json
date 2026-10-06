@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ideal-sicherheit.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:39.505559+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76,
+  "state": "ok",
+  "elapsed_seconds": 0.55,
+  "sha256": "fc6d528ddf4b43626cc7c886ce83fe594391acddf81c7501be4a7cf4d6dea77a",
+  "capture": "514dd42e2c6b5843adf8",
+  "merged_from_run": "run-28"
+}

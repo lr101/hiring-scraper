@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wolff-mueller.de/karriere/nachwuchskraefte",
+  "checked_at": "2026-10-05T23:19:16.152350+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85814,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "bac2be132880daa9eacde04ebfc5a86aea1600bd7fffd9bdfe2c55c42a8be18a",
+  "capture": "0d64d2358564faf35447"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://cb-praesentwerbung.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:52.942698+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"66d96d4e-f7\"",
+  "last_modified": "Thu, 05 Sep 2024 08:35:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 247,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "3793370a0173ba049a2601ef2e2a9fc51226eb6a96be8ea5728a0ee382560918",
+  "capture": "8bb2a48b0adf378202c2"
+}

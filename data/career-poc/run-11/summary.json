@@ -1,0 +1,50 @@
+{
+  "companies": 25,
+  "statuses": {
+    "unresolved": 9,
+    "career_content_found": 8,
+    "jobs_feed_found": 8
+  },
+  "unique_requests_or_reused_captures": 150,
+  "new_requests": 3,
+  "reused_captures": 147,
+  "http_statuses": {
+    "200": 100,
+    "301": 25,
+    "404": 11,
+    "302": 5,
+    "network_error": 3,
+    "307": 4,
+    "429": 1,
+    "403": 1
+  },
+  "by_cohort": {
+    "additional_greenhouse_controls": {
+      "career_content_found": 1,
+      "jobs_feed_found": 1
+    },
+    "direct_board_control": {
+      "unresolved": 1
+    },
+    "original_osm_12": {
+      "unresolved": 6,
+      "career_content_found": 5,
+      "jobs_feed_found": 1
+    },
+    "selected_ats_controls": {
+      "unresolved": 2,
+      "jobs_feed_found": 2
+    },
+    "selected_greenhouse_homepages": {
+      "jobs_feed_found": 1
+    },
+    "selected_karlsruhe": {
+      "jobs_feed_found": 2,
+      "career_content_found": 2
+    },
+    "selected_lever_homepages": {
+      "jobs_feed_found": 1
+    }
+  },
+  "finished_at": "2026-10-05T14:09:35.070971+00:00"
+}

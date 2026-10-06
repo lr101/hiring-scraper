@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hilzinger.de/jobs-kategorien/lahr/",
+  "checked_at": "2026-10-05T23:35:30.933986+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37174,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "7b1c8e938d5339461c89aa13df42570a75b098108877146a2b09e87b2d76b0e8",
+  "capture": "0c6acb1367833e0d3e07"
+}

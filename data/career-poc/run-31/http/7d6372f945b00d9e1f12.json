@@ -1,0 +1,17 @@
+{
+  "url": "https://www.harrer-ing.net/robots.txt",
+  "checked_at": "2026-10-05T23:21:23.555630+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 176,
+  "state": "ok",
+  "elapsed_seconds": 1.769,
+  "sha256": "eb05ed06b0098a544502fa387b7dee05c06e6d7d87c4b206fd1fcab0fb93b415",
+  "capture": "7d6372f945b00d9e1f12",
+  "merged_from_run": "run-28"
+}

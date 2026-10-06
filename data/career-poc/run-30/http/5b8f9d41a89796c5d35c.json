@@ -1,0 +1,17 @@
+{
+  "url": "https://persolog.com/careers",
+  "checked_at": "2026-10-05T23:45:06.597458+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 255858,
+  "state": "http_error",
+  "elapsed_seconds": 1.57,
+  "sha256": "50ec769b4b032f27b4507947243efc7b4d0d5335345a07f21628dc131b023294",
+  "capture": "5b8f9d41a89796c5d35c",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.deluxe-gebaeudemanagement.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:12.376052+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1971,
+  "state": "http_error",
+  "elapsed_seconds": 0.764,
+  "sha256": "5d648126c7c5f67e58f33d578e3265e3efd5a7c97b1dd61c55f6715731a69d1b",
+  "capture": "14985c0af3227e913591",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://schreinerei-glaserei-potaczek.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:33:21.463295+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106014,
+  "state": "http_error",
+  "elapsed_seconds": 0.973,
+  "sha256": "f1c33cdd3997715ad9a82a1730824d30bf79084c5860b2297c58554127e317b5",
+  "capture": "196437275609b50f4607",
+  "merged_from_run": "run-28"
+}

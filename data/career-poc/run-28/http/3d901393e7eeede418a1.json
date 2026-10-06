@@ -1,0 +1,16 @@
+{
+  "url": "http://www.karriere-schmitt.de/",
+  "checked_at": "2026-10-05T23:19:42.471600+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.karriere-schmitt.de/",
+  "bytes": 280,
+  "state": "http_error",
+  "elapsed_seconds": 0.85,
+  "sha256": "eaab9e5258c4af4da170dc460d0ebde09b899779709915ab3fb968f9efadc4a4",
+  "capture": "3d901393e7eeede418a1"
+}

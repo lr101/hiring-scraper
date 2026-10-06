@@ -1,0 +1,16 @@
+{
+  "url": "https://digitalpowersystems.eu/career/login",
+  "checked_at": "2026-10-05T23:06:15.087184+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5378,
+  "state": "ok",
+  "elapsed_seconds": 1.102,
+  "sha256": "5fa0493d274fd849a8c1127025d9542429e1386000b4f6e82bed33a03914a808",
+  "capture": "ddb58cd7c24d1e129ceb"
+}

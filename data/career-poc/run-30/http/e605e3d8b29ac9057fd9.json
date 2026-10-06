@@ -1,0 +1,17 @@
+{
+  "url": "https://www.docpharm.de/careers",
+  "checked_at": "2026-10-05T23:33:47.726937+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 73612,
+  "state": "http_error",
+  "elapsed_seconds": 1.554,
+  "sha256": "b87bae957fdb57ec6cc548233c4c274a999c0a934764052e4286033b44c49871",
+  "capture": "e605e3d8b29ac9057fd9",
+  "merged_from_run": "run-28"
+}

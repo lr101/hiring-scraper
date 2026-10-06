@@ -1,0 +1,17 @@
+{
+  "url": "https://zwilicht.com/jobs",
+  "checked_at": "2026-10-05T23:16:21.739561+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37025,
+  "state": "http_error",
+  "elapsed_seconds": 0.966,
+  "sha256": "d66e78d70b637fb7c0bfac7e558e8369b039304ded8a0ece6eece9e69f819a5c",
+  "capture": "0defaa9c0b98ebfab23b",
+  "merged_from_run": "run-28"
+}

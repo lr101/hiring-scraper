@@ -1,0 +1,17 @@
+{
+  "url": "https://navigate.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T20:41:30.497594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 638,
+  "state": "ok",
+  "elapsed_seconds": 1.425,
+  "sha256": "f824655480667a3e74c30ea2c2f0b31f27e025fc6afbabaddd64305d6cb402d6",
+  "capture": "e3581fb5aa5839899c9e",
+  "reused_from": "data/career-poc/run-18/http/e3581fb5aa5839899c9e.json"
+}

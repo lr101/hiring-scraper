@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hww.eu/de/ueber-uns/standorte/karlsruhe",
+  "checked_at": "2026-10-05T22:38:34.244738+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133613,
+  "state": "http_error",
+  "elapsed_seconds": 1.779,
+  "sha256": "b8e49beac13e3ecffeb5131a0439da40b235fadc69adeb3738edbbe3912cb94b",
+  "capture": "7e3276f47cefcc2676ad",
+  "merged_from_run": "run-27"
+}

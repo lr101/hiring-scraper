@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schick-architektur.de/jobs",
+  "checked_at": "2026-10-05T23:09:22.342018+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:09:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1411,
+  "state": "http_error",
+  "elapsed_seconds": 1.381,
+  "sha256": "135f5217d4b32a0e24a0495a054f9eda9533145943c9b7a1bc2ccfa599ddfc03",
+  "capture": "0233d04fc61eb2b3de65",
+  "merged_from_run": "run-27"
+}

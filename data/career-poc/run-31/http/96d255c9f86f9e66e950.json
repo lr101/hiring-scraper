@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vhs-karlsruhe.de/ueber-uns/offene-stellen",
+  "checked_at": "2026-10-05T23:15:43.072034+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 134315,
+  "state": "ok",
+  "elapsed_seconds": 0.741,
+  "sha256": "102c03a69e400eae30d288d1dae2523e1f5923dfa2029b956baed9d1a9f3f95a",
+  "capture": "96d255c9f86f9e66e950",
+  "merged_from_run": "run-28"
+}

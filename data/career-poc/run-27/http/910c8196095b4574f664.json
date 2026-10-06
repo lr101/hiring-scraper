@@ -1,0 +1,16 @@
+{
+  "url": "https://www.awo-karlsruhe.de/stellenangebote/bewerbungstipps/",
+  "checked_at": "2026-10-05T22:36:34.668029+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 16:18:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 268129,
+  "state": "ok",
+  "elapsed_seconds": 1.135,
+  "sha256": "c7c216271e1d5552a5fd6f14ebb0dc3fbe5fed2fe789f29f964c0717b56030fc",
+  "capture": "910c8196095b4574f664"
+}

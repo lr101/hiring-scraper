@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ihk.de/blueprint/servlet/resource/blob/2444712/4c546159139f97ed0f3b6c4fd62d31da/robots-data.txt?shortUrl=%2Frobots.txt",
+  "checked_at": "2026-10-05T22:06:00.645186+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"4c546159139f97ed0f3b6c4fd62d31da\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6799,
+  "state": "ok",
+  "elapsed_seconds": 1.322,
+  "sha256": "f194e163508b55cfd110e05ade8ff4ed1045ed144dd46a10d71265f3e5d42ec5",
+  "capture": "f3f7351df2b1e61ed25d",
+  "merged_from_run": "run-25"
+}

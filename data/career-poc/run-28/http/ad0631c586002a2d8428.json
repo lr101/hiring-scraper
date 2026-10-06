@@ -1,0 +1,16 @@
+{
+  "url": "https://www.merlin-zwo.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:36:00.077646+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1535,
+  "state": "ok",
+  "elapsed_seconds": 1.033,
+  "sha256": "e8aee41ccf4d086ac05ee568eaee06ecf52344f5cb3dd02ccbf96fc01e675ab5",
+  "capture": "ad0631c586002a2d8428"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://typeform.com/",
+  "checked_at": "2026-10-05T22:58:50.651328+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.typeform.com/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.338,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "41465e65c4061e52e0a0",
+  "merged_from_run": "run-27"
+}

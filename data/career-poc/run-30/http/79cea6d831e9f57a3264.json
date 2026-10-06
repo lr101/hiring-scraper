@@ -1,0 +1,17 @@
+{
+  "url": "https://diqa.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:36.887406+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.diqa.de/robots.txt",
+  "bytes": 278,
+  "state": "http_error",
+  "elapsed_seconds": 0.189,
+  "sha256": "43730b06d85cb44f83819cff0a9764381253b34ef80f87834da7a5d129d4fc79",
+  "capture": "79cea6d831e9f57a3264",
+  "merged_from_run": "run-28"
+}

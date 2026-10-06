@@ -1,0 +1,17 @@
+{
+  "url": "https://www.visuelo.de/karriere",
+  "checked_at": "2026-10-05T23:33:05.920878+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 301799,
+  "state": "http_error",
+  "elapsed_seconds": 1.059,
+  "sha256": "79141e37df3cb2cca960e1f3983e65bf6243f13e0dd80473a715ebb3e025af07",
+  "capture": "3bcc36b423b3fc84c403",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.erstehilfe.de/jobs",
+  "checked_at": "2026-10-05T22:40:14.821246+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1c8b918c4a93730ed40041e66aeed541\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44038,
+  "state": "ok",
+  "elapsed_seconds": 1.298,
+  "sha256": "f45df97f996808ba79d18db5cddeeb4517582fe0510c958d5e77169c7237a6ab",
+  "capture": "1c35dc930dcce877801e",
+  "merged_from_run": "run-27"
+}

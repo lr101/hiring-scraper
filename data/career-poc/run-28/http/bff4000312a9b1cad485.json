@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aikyou.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:45.160437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132120,
+  "state": "http_error",
+  "elapsed_seconds": 1.379,
+  "sha256": "8604f7173d718856289f3ea27f1db15e608f5aec980cf912b601d259160810fe",
+  "capture": "bff4000312a9b1cad485"
+}

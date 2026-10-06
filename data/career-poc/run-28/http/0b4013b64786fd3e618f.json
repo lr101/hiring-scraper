@@ -1,0 +1,16 @@
+{
+  "url": "https://saxsoft.de/karriere",
+  "checked_at": "2026-10-05T23:25:42.352812+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 153329,
+  "state": "http_error",
+  "elapsed_seconds": 2.747,
+  "sha256": "714cd83aa3f216721af7b80795100e70276a0bf3b7de71917c71420bb2993225",
+  "capture": "0b4013b64786fd3e618f"
+}

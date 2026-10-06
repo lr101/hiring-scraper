@@ -1,0 +1,17 @@
+{
+  "url": "https://zimmergroupb2c.b2clogin.com/robots.txt",
+  "checked_at": "2026-10-05T23:38:26.341035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103,
+  "state": "http_error",
+  "elapsed_seconds": 0.945,
+  "sha256": "90b2d35cd5e08370ed20db81197dd9da1a4dbb421f71293fd5733ea49eb7b3e1",
+  "capture": "e1c0500b24225750907f",
+  "merged_from_run": "run-28"
+}

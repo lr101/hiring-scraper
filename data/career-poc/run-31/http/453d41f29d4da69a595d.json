@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schnittmuskel.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:14:53.803644+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"page_cache:55996350538:SitemapIndexController:fff97c25afaad3e670e3fc7dc622eac1\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 900,
+  "state": "ok",
+  "elapsed_seconds": 0.752,
+  "sha256": "722be01ec88059380e7ed5edf8ccabf99dd5460c3cb79ef89362da7a578d6417",
+  "capture": "453d41f29d4da69a595d",
+  "merged_from_run": "run-28"
+}

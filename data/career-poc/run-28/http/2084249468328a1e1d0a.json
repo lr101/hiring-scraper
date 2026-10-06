@@ -1,0 +1,16 @@
+{
+  "url": "https://www.delta-leonis.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:47.174587+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"1f9-6569229ca873d\"",
+  "last_modified": "Tue, 14 Jul 2026 13:27:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 505,
+  "state": "ok",
+  "elapsed_seconds": 0.935,
+  "sha256": "9dddc8eb1f2a46e8056ba2a1715847e6130113d99f7639c365ad329d1da09464",
+  "capture": "2084249468328a1e1d0a"
+}

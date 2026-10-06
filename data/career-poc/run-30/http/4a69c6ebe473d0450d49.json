@@ -1,0 +1,17 @@
+{
+  "url": "https://tantzky.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:50.079324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"36a-65cc5bf5b2c40\"",
+  "last_modified": "Thu, 01 Oct 2026 11:30:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 874,
+  "state": "ok",
+  "elapsed_seconds": 0.097,
+  "sha256": "f2c82d86fb1618931da464487b7cb81bfa769d5dd4669786bb65096a6d3d9173",
+  "capture": "4a69c6ebe473d0450d49",
+  "merged_from_run": "run-28"
+}

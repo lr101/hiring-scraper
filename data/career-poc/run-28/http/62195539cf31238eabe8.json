@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bedios.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:44:46.520210+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 401,
+  "state": "ok",
+  "elapsed_seconds": 0.857,
+  "sha256": "576f04169c7e48085d68138bdbf13fdade6533332292c6f5f76d450232b53f57",
+  "capture": "62195539cf31238eabe8"
+}

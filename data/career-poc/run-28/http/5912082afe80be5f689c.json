@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mc-building.de/jobs/",
+  "checked_at": "2026-10-05T23:45:33.028887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 69366,
+  "state": "ok",
+  "elapsed_seconds": 0.916,
+  "sha256": "9c737d585f68eb6f5cad5831c62de666487efc8bb9b1625ba3c0a9ef02c1ab5c",
+  "capture": "5912082afe80be5f689c"
+}

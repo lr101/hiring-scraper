@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ibg.kit.edu/ibg1/",
+  "checked_at": "2026-10-05T23:42:14.525345+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28520,
+  "state": "ok",
+  "elapsed_seconds": 1.012,
+  "sha256": "b639b37011c6b97a7793155c9db6d068e01b65bd3b04a46ec674746e898413f8",
+  "capture": "ea702920ac153cf44db8",
+  "merged_from_run": "run-28"
+}

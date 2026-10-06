@@ -1,0 +1,17 @@
+{
+  "url": "https://www.akademie-bw.de/",
+  "checked_at": "2026-10-05T22:15:37.751907+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44203,
+  "state": "ok",
+  "elapsed_seconds": 1.138,
+  "sha256": "0107c99146b02b554e3ff662a2d64cb1cf763f6e13f5050af53f8d2bcf528ea5",
+  "capture": "ae19cd89c837a391811a",
+  "merged_from_run": "run-25"
+}

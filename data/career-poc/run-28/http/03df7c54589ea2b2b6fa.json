@@ -1,0 +1,16 @@
+{
+  "url": "https://www.butz-buerker.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:24:16.602529+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1756,
+  "state": "ok",
+  "elapsed_seconds": 2.025,
+  "sha256": "cc9a700f93207881bc377ca8b89cae2f567930bbe3514f3243f6c4c7b4107e3b",
+  "capture": "03df7c54589ea2b2b6fa"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://jegle.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:34:17.053858+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:34:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 999,
+  "state": "ok",
+  "elapsed_seconds": 1.056,
+  "sha256": "2945a218fb357d2a98b46fc6bc29558fcf060c7607dca596eb529470a14fb5bb",
+  "capture": "8772f77cd6b84e55e5a4"
+}

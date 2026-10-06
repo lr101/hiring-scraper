@@ -1,0 +1,16 @@
+{
+  "url": "https://fluechtlingshilfe-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:15:35.099982+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 320,
+  "state": "http_error",
+  "elapsed_seconds": 0.918,
+  "sha256": "ca7c24ca854b265e49a446299e8fab2455702cd34825dc3c99a8c1ec624b36fb",
+  "capture": "208f06c48fad045bbd15"
+}

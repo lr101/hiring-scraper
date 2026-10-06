@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ccs-service.com/robots.txt",
+  "checked_at": "2026-10-05T23:27:57.402112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ccs-service.de/robots.txt",
+  "bytes": 281,
+  "state": "http_error",
+  "elapsed_seconds": 0.831,
+  "sha256": "57f176e7582d352e4cb1d4a75afebaffc5b1f60989324450247db7708ca8051f",
+  "capture": "21a8504e43fc197d1c77",
+  "merged_from_run": "run-28"
+}

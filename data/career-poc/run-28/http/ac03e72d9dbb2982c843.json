@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ingenieurteamgmbh.de/careers",
+  "checked_at": "2026-10-05T23:25:42.307108+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26878,
+  "state": "http_error",
+  "elapsed_seconds": 1.002,
+  "sha256": "df872137c65e6245b8ebd84eb4963ea0a926590225b0e2544c93c80a107d4408",
+  "capture": "ac03e72d9dbb2982c843"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://cenacom.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:26:21.594600+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://cenacom.com/wp-sitemap.xml",
+  "bytes": 795,
+  "state": "http_error",
+  "elapsed_seconds": 0.3,
+  "sha256": "e8b101a7c7f64aad528cc734513cbeb02243c0af37930dc0f3239749cff184b6",
+  "capture": "64ba31bf2cc2734d4c2b",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,10 @@
+{
+  "status": 500,
+  "content_type": "text/plain;charset=utf-8",
+  "error": "HTTP Error 500: Internal Server Error",
+  "name": "wikidata-karlsruhe-25km-grouped",
+  "url": "https://query.wikidata.org/sparql?query=PREFIX+bd%3A+%3Chttp%3A%2F%2Fwww.bigdata.com%2Frdf%23%3E%0APREFIX+wd%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0APREFIX+wdt%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.opengis.net%2Font%2Fgeosparql%23%3E%0ASELECT+%3Fcompany+%28SAMPLE%28%3Flabel%29+AS+%3Flabel%29+%28GROUP_CONCAT%28DISTINCT+STR%28%3Fwebsite%29%3B+separator%3D%22+%7C+%22%29+AS+%3Fwebsites%29+%28SAMPLE%28%3Fhq%29+AS+%3Fhq%29+%28MIN%28%3Fdistance%29+AS+%3Fdistance%29+%28GROUP_CONCAT%28DISTINCT+STR%28%3FtypeLabel%29%3B+separator%3D%22+%7C+%22%29+AS+%3Ftypes%29+WHERE+%7B%0A+SERVICE+wikibase%3Aaround+%7B%0A+++%3Fhq+wdt%3AP625+%3Fcoord+.%0A+++bd%3AserviceParam+wikibase%3Acenter+%22Point%288.4037+49.0069%29%22%5E%5Egeo%3AwktLiteral+.%0A+++bd%3AserviceParam+wikibase%3Aradius+%2225%22+.%0A+++bd%3AserviceParam+wikibase%3Adistance+%3Fdistance+.%0A+%7D%0A+%3Fcompany+wdt%3AP17+wd%3AQ183+%3B+wdt%3AP159+%3Fhq+%3B+wdt%3AP856+%3Fwebsite+.%0A+OPTIONAL+%7B+%3Fcompany+rdfs%3Alabel+%3Flabel+.+FILTER%28LANG%28%3Flabel%29%3D%22de%22%29+%7D%0A+OPTIONAL+%7B+%3Fcompany+wdt%3AP31+%3Ftype+.+%3Ftype+rdfs%3Alabel+%3FtypeLabel+.+FILTER%28LANG%28%3FtypeLabel%29%3D%22de%22%29+%7D%0A%7D+GROUP+BY+%3Fcompany+ORDER+BY+%3Fdistance+LIMIT+300&format=json",
+  "checked_at": "2026-10-05T14:45:00.945669+00:00",
+  "bytes": 108052,
+  "sha256": "0e5fcb23711086acca639bb2be56e8c7be75f09c473094ed64a1aab0252de120"
+}

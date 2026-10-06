@@ -1,0 +1,16 @@
+{
+  "url": "https://app.hrlab.de/robots.txt",
+  "checked_at": "2026-10-05T22:09:38.447813+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6abfe0cb-ca\"",
+  "last_modified": "Fri, 02 Oct 2026 16:50:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 202,
+  "state": "ok",
+  "elapsed_seconds": 0.183,
+  "sha256": "17fb1dc3361b057783040fa7f58d72f18707170866d370bd3db6e547bee09058",
+  "capture": "924dc9a3064e93d02629"
+}

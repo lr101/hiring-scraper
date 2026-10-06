@@ -1,0 +1,16 @@
+{
+  "url": "https://www.atelierhaus-neue-schule.de/robots.txt",
+  "checked_at": "2026-10-05T23:16:50.974120+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 131,
+  "state": "ok",
+  "elapsed_seconds": 1.205,
+  "sha256": "124cdfa38c4bddd7838cc6e159a2ad3299ff5a51ee7afe7d32167c3367097d3b",
+  "capture": "bdf49c47d9ae48ddc31d"
+}

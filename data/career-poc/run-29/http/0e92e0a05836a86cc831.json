@@ -1,0 +1,17 @@
+{
+  "url": "https://www.slanted.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:29:53.153204+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2892,
+  "state": "ok",
+  "elapsed_seconds": 1.501,
+  "sha256": "cdd4ebd52ffc52e0a21667c9447356219fd8878302a4912806b0a5cb8edcb4b4",
+  "capture": "0e92e0a05836a86cc831",
+  "merged_from_run": "run-28"
+}

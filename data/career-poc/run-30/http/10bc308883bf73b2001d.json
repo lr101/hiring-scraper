@@ -1,0 +1,17 @@
+{
+  "url": "http://metallbau-model.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:26.584783+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://metallbau-model.de/robots.txt",
+  "bytes": 285,
+  "state": "http_error",
+  "elapsed_seconds": 0.217,
+  "sha256": "00023825f6d89bc904b356e37884c26852234d7d72150cfbd664ab09fbb88269",
+  "capture": "10bc308883bf73b2001d",
+  "merged_from_run": "run-28"
+}

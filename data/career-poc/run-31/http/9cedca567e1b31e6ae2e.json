@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sv-blankenloch.de/karriere",
+  "checked_at": "2026-10-05T23:37:32.141187+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:37:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1542,
+  "state": "http_error",
+  "elapsed_seconds": 0.984,
+  "sha256": "a2554a81f0a81edd0a1f73f8d89c00a4b2126f5dd57b3ebbf0164bba48b8e691",
+  "capture": "9cedca567e1b31e6ae2e",
+  "merged_from_run": "run-28"
+}

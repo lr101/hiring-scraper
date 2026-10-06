@@ -1,0 +1,11 @@
+{
+  "url": "https://www.hess-installateur.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:09.337476+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.hess-installateur.de'. (_ssl.c:992)>",
+  "elapsed_seconds": 0.228,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "74865e694a4e6b4ff9a9",
+  "merged_from_run": "run-28"
+}

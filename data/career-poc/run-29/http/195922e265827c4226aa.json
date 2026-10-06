@@ -1,0 +1,17 @@
+{
+  "url": "https://kraenzle-fischerwasels.de/robots.txt",
+  "checked_at": "2026-10-05T22:22:42.577940+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://kfwmarchitekten.de/robots.txt",
+  "bytes": 285,
+  "state": "http_error",
+  "elapsed_seconds": 0.211,
+  "sha256": "2c2b56cada0fcea99d78bf425fecf62e97bcbb63bd0d897bac3a1a5998cb530c",
+  "capture": "195922e265827c4226aa",
+  "merged_from_run": "run-25"
+}

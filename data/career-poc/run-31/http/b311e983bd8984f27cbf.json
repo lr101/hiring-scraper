@@ -1,0 +1,17 @@
+{
+  "url": "https://www.iamt.kit.edu/64.php",
+  "checked_at": "2026-10-05T23:41:54.072973+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/index.php#",
+  "bytes": 1,
+  "state": "http_error",
+  "elapsed_seconds": 1.012,
+  "sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068",
+  "capture": "b311e983bd8984f27cbf",
+  "merged_from_run": "run-28"
+}

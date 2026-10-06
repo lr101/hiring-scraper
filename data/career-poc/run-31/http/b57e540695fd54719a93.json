@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kek-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:05:43.597942+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"16a-658c6b3f1c880\"",
+  "last_modified": "Tue, 11 Aug 2026 14:58:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 362,
+  "state": "ok",
+  "elapsed_seconds": 0.143,
+  "sha256": "a2624b3b30c4ea47069014a73b7adff6f5caae2ede836b3a807abeec1f6dbcdc",
+  "capture": "b57e540695fd54719a93",
+  "merged_from_run": "run-25"
+}

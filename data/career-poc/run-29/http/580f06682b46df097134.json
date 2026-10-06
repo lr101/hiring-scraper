@@ -1,0 +1,17 @@
+{
+  "url": "https://avk.net/robots.txt",
+  "checked_at": "2026-10-05T23:32:36.895415+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"57-519a44a187100\"",
+  "last_modified": "Mon, 29 Jun 2015 08:58:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 87,
+  "state": "ok",
+  "elapsed_seconds": 0.542,
+  "sha256": "b0a1a800ebf180cf90c242c07fd6e3310eeb3d96e46bf5c9ee7c7df1c60a14e3",
+  "capture": "580f06682b46df097134",
+  "merged_from_run": "run-28"
+}

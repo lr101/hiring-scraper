@@ -1,0 +1,17 @@
+{
+  "url": "https://www.trueb-fensterbau.de/",
+  "checked_at": "2026-10-05T23:37:31.721886+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 8436,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "32e54adb351687f9c066c637c22ba62e650458b54921ac674c41b687ab4ea262",
+  "capture": "f07e01f6414c42fe6410",
+  "merged_from_run": "run-28"
+}

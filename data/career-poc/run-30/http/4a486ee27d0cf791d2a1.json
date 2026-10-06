@@ -1,0 +1,17 @@
+{
+  "url": "https://high-stake.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:05:07.242510+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "W/\"4b0-1912683f5a0\"",
+  "last_modified": "Tue, 06 Aug 2024 07:07:48 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1200,
+  "state": "ok",
+  "elapsed_seconds": 1.118,
+  "sha256": "f46da74f71bbbbdde08f519af771017310697acda98c443a867f8abcbf7db3cc",
+  "capture": "4a486ee27d0cf791d2a1",
+  "merged_from_run": "run-27"
+}

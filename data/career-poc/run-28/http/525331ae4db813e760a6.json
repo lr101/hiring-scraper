@@ -1,0 +1,16 @@
+{
+  "url": "https://trockenmacher.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:28.909181+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"186e-65d1fe12e8b0d\"",
+  "last_modified": "Mon, 05 Oct 2026 23:02:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 6254,
+  "state": "ok",
+  "elapsed_seconds": 0.996,
+  "sha256": "becb05dc5b2e5ab075e0fa79182d7a51bb6ecf1941c54211748ded44f0b97817",
+  "capture": "525331ae4db813e760a6"
+}

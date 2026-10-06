@@ -1,0 +1,17 @@
+{
+  "url": "https://dienetzwerft.de/",
+  "checked_at": "2026-10-05T23:41:45.666608+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 236156,
+  "state": "ok",
+  "elapsed_seconds": 1.494,
+  "sha256": "72fdba83c92863e97fa329286021bccc556a5adf8ef622a4d249504fcfe35b7c",
+  "capture": "d61ec8db44c27bde16eb",
+  "merged_from_run": "run-28"
+}

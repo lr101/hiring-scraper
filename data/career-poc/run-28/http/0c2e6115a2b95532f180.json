@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zimmerei-ratzel.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:16.611269+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://zimmerei-ratzel.de/robots.txt",
+  "bytes": 245,
+  "state": "http_error",
+  "elapsed_seconds": 0.567,
+  "sha256": "288f1b5bfc4044fc58b38f65083787a88c5e0b868c20cce3015b87a8ebb09cfa",
+  "capture": "0c2e6115a2b95532f180"
+}

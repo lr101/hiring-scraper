@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wandatelier.com/robots.txt",
+  "checked_at": "2026-10-05T22:43:08.682122+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1ed-BUIdKOOHKs/5PcY6Z6WOulmBEaQ\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 493,
+  "state": "ok",
+  "elapsed_seconds": 0.191,
+  "sha256": "76fb916949a414c7cadecae3f21067d523bb8ff17785c4a67d408568739a84a5",
+  "capture": "e65c4589dea4ea49030c"
+}

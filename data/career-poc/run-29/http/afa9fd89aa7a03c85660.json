@@ -1,0 +1,17 @@
+{
+  "url": "https://abbund-center.de/",
+  "checked_at": "2026-10-05T23:39:59.197881+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 161300,
+  "state": "ok",
+  "elapsed_seconds": 0.204,
+  "sha256": "f4ea1e09a37856d3d619f0be4bdb48dd9852ee11835611c39cdfaab7bced59a7",
+  "capture": "afa9fd89aa7a03c85660",
+  "merged_from_run": "run-28"
+}

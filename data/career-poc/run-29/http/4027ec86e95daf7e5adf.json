@@ -1,0 +1,17 @@
+{
+  "url": "http://www.cosgeo.de",
+  "checked_at": "2026-10-05T23:36:43.306651+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"5f2-5fd26164c447c\"",
+  "last_modified": "Fri, 02 Jun 2023 14:08:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1522,
+  "state": "ok",
+  "elapsed_seconds": 0.26,
+  "sha256": "201e2046e5dc12cd227770810bccf07590bb4fcc54dfbb8f5838b1bd2aa7dc7c",
+  "capture": "4027ec86e95daf7e5adf",
+  "merged_from_run": "run-28"
+}

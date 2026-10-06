@@ -1,0 +1,14 @@
+{
+  "url": "http://wooga.com/robots.txt",
+  "checked_at": "2026-10-05T09:12:47.836230+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "location": "https://wooga.com/robots.txt",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 0.06,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "4941a888c257484c3cc8",
+  "reused_from": "data/career-poc/run-09/http/4941a888c257484c3cc8.json"
+}

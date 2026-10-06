@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bad-dach.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:28.122708+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 728,
+  "state": "ok",
+  "elapsed_seconds": 0.914,
+  "sha256": "87a9d85cc45bbbdabdf0f5c6da32df971653e56825c82b0863cfe8d4193f83ae",
+  "capture": "82e1ae9bfc61ffd84a0e",
+  "merged_from_run": "run-28"
+}

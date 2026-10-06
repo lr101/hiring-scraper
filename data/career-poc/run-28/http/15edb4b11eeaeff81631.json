@@ -1,0 +1,16 @@
+{
+  "url": "https://mapstar.io/robots.txt",
+  "checked_at": "2026-10-05T23:16:22.788434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"81-1790915678;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 0.069,
+  "sha256": "0493b87d37508336d29fcd415fbfebe7e5556cf298e55d48d02e7e5d8f1c42f8",
+  "capture": "15edb4b11eeaeff81631"
+}

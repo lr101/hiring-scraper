@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diebauingenieure.com/robots.txt",
+  "checked_at": "2026-10-05T23:28:06.818112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"7b-602f2dd5a6227\"",
+  "last_modified": "Tue, 15 Aug 2023 09:32:59 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 123,
+  "state": "ok",
+  "elapsed_seconds": 1.03,
+  "sha256": "5aca61aa078bfe744d412ba92f5ff161ba0748be785c1c9ce6d41ddf742f16db",
+  "capture": "499bdb42be23e95fc2e2",
+  "merged_from_run": "run-28"
+}

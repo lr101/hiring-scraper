@@ -1,0 +1,17 @@
+{
+  "url": "http://griesemann.ps-ats.com/robots.txt",
+  "checked_at": "2026-10-05T23:29:46.021206+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://griesemann.ps-ats.com/robots.txt",
+  "bytes": 163,
+  "state": "http_error",
+  "elapsed_seconds": 0.865,
+  "sha256": "247b746abfba2eb90aa9491560e6787af2dd9cfff6fa9c7f4ea4a658c09d1beb",
+  "capture": "fa6214c3a58821239ae9",
+  "merged_from_run": "run-28"
+}

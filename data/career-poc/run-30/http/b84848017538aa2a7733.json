@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hief-heinzmann.de/karriere/stellenangebote/initiativbewerbung-neue-mitarbeiter-in-allen-bereichen",
+  "checked_at": "2026-10-05T23:28:17.577227+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 220429,
+  "state": "ok",
+  "elapsed_seconds": 0.866,
+  "sha256": "274f81ea5ee0c0a29f62dd7e79ff2ed8e4dfa8bd117781dbcd438e8a244f4a09",
+  "capture": "b84848017538aa2a7733",
+  "merged_from_run": "run-28"
+}

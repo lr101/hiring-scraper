@@ -1,0 +1,17 @@
+{
+  "url": "https://goerisch.de/karriere",
+  "checked_at": "2026-10-05T23:34:45.238571+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49354,
+  "state": "http_error",
+  "elapsed_seconds": 1.382,
+  "sha256": "0a04865d6f0f0343de786c154e4afde565a5ed08151644a81acd1ee724e084f1",
+  "capture": "5c3f8bda870fccb32598",
+  "merged_from_run": "run-28"
+}

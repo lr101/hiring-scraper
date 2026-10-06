@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arag-partner.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:38.348967+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"15b-65c4bdb9adea2\"",
+  "last_modified": "Fri, 25 Sep 2026 10:05:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 347,
+  "state": "ok",
+  "elapsed_seconds": 0.664,
+  "sha256": "d3f6692c580fcb800ec23040ee868482919f3504ce59ff8cbb0f29f814824c5f",
+  "capture": "44dccbd9451a42007154",
+  "merged_from_run": "run-28"
+}

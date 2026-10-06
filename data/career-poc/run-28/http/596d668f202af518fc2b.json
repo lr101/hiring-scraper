@@ -1,0 +1,16 @@
+{
+  "url": "https://bit-karriere.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:39.152139+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 26 Sep 2023 08:21:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 77,
+  "state": "ok",
+  "elapsed_seconds": 0.582,
+  "sha256": "40947d8ecb61990aa3e9d9945052b9e0bfbe0329cad9f90ae04e32e4f21d0c0b",
+  "capture": "596d668f202af518fc2b"
+}

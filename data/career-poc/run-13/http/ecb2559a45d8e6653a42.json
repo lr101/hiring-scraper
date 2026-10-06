@@ -1,0 +1,14 @@
+{
+  "url": "https://www.cinemo.com/",
+  "checked_at": "2026-10-05T09:08:12.010543+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 127520,
+  "state": "ok",
+  "elapsed_seconds": 1.231,
+  "sha256": "5359ce9c4b1489e2f3a0f5ea42607e7113a9ff895d351f5b7aded2d1c359d8c1",
+  "capture": "ecb2559a45d8e6653a42",
+  "reused_from": "data/career-poc/run-12/http/ecb2559a45d8e6653a42.json"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vidia-kliniken.de/medizin-pflege/pflege-therapie/pflege-in-den-vidia-kliniken/stellenangebote/jobs-karriere/pflege-assistenz",
+  "checked_at": "2026-10-05T23:12:41.325742+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.vidia-kliniken.de/jobs-karriere/pflege-assistenz/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.645,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "b23daa7ff86e5c810c02"
+}

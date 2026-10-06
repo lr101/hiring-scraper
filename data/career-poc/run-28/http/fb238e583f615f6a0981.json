@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aat-gmbh.de/",
+  "checked_at": "2026-10-05T23:31:56.571170+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 241954,
+  "state": "ok",
+  "elapsed_seconds": 1.767,
+  "sha256": "2570dbbddd7026405a905e07df4aefeb6d5e03a713f552e55f99dd0f09e5c8df",
+  "capture": "fb238e583f615f6a0981"
+}

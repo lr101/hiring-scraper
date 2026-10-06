@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe.impacthub.net/wp-sitemap-posts-jobs-1.xml",
+  "checked_at": "2026-10-05T22:11:19.169228+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 314,
+  "state": "ok",
+  "elapsed_seconds": 1.259,
+  "sha256": "ca5887e1bfe96939d7998331b0df492b9540cee0cb9e4380a378ad8764cb6cb6",
+  "capture": "deefaa82d0a96ff404e0"
+}

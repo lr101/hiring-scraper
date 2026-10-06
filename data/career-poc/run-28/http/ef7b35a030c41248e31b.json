@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bau4.de/robots.txt",
+  "checked_at": "2026-10-05T23:16:14.055321+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77,
+  "state": "ok",
+  "elapsed_seconds": 0.653,
+  "sha256": "48af73c6e162bdb0eb69d3e9fde76c75052ef841be007c728cf0a3be836ec44f",
+  "capture": "ef7b35a030c41248e31b"
+}

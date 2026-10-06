@@ -1,0 +1,16 @@
+{
+  "url": "https://www.koerber-pharma.com/robots.txt",
+  "checked_at": "2026-10-05T23:23:15.524021+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"f0ba705e02bcc3d80e82c5d937bc1d38\"",
+  "last_modified": "Fri, 02 Oct 2026 10:14:46 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2185,
+  "state": "http_error",
+  "elapsed_seconds": 1.029,
+  "sha256": "0767d6109e79d0ca9a871c3e911e7d75523a5c798cdcf81712a1516d0b5bf98b",
+  "capture": "0f650a250afb68d522d6"
+}

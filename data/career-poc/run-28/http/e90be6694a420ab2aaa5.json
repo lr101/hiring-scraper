@@ -1,0 +1,16 @@
+{
+  "url": "https://www.worka.de/jobs",
+  "checked_at": "2026-10-05T23:31:04.515864+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17344,
+  "state": "http_error",
+  "elapsed_seconds": 0.976,
+  "sha256": "72b8778ae0771af54cf20a9b048658774809ff389753ccfe32e63b4f4db80098",
+  "capture": "e90be6694a420ab2aaa5"
+}

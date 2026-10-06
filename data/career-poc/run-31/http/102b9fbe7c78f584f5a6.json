@@ -1,0 +1,17 @@
+{
+  "url": "https://smandra-mpu.de/",
+  "checked_at": "2026-10-05T23:00:00.749472+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167350,
+  "state": "ok",
+  "elapsed_seconds": 1.857,
+  "sha256": "0738663bf20a1e69b7353a03674537e9012a3ac0b0fd4860f00d6ff42e7df432",
+  "capture": "102b9fbe7c78f584f5a6",
+  "merged_from_run": "run-27"
+}

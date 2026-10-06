@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ksc.de/robots.txt",
+  "checked_at": "2026-10-05T22:57:15.913569+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 23 Jan 2023 12:51:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 32,
+  "state": "ok",
+  "elapsed_seconds": 0.118,
+  "sha256": "5dbd3297c854afc93626c560b2b0639a1c74c3d39f00e79e1b80728e18898a31",
+  "capture": "a30797c67ebdd633f9f5",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steuerkanzlei-woitzik.de/jobs",
+  "checked_at": "2026-10-05T23:21:02.329152+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:21:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 6621,
+  "state": "http_error",
+  "elapsed_seconds": 1.118,
+  "sha256": "40fda87bcc63dc69f207e3cd7bea6175eab020a40ac3aa6522889c0c98bf78dd",
+  "capture": "1c6c644757870adf3049",
+  "merged_from_run": "run-28"
+}

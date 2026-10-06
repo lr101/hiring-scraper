@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.renesas.com/altium-careers",
+  "checked_at": "2026-10-05T22:27:49.421583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93082,
+  "state": "ok",
+  "elapsed_seconds": 1.251,
+  "sha256": "54329975b2ceb560310f8e4d1321b8f540df2aa72f6a4a272b23aa5ea67b1457",
+  "capture": "4efa2754bd31f6bb04e1"
+}

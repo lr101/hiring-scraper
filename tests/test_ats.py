@@ -9,7 +9,7 @@ class ProviderTests(unittest.TestCase):
             with self.subTest(url=url):
                 result=identify(url)
                 self.assertIsNotNone(result)
-                self.assertEqual(result['feed_url'], 'https://boards-api.greenhouse.io/v1/boards/acme/jobs')
+                self.assertEqual(result['feed_url'], 'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true')
                 self.assertEqual(result['provider'], 'greenhouse')
 
     def test_lever_europe_and_personio_keep_region(self):
@@ -38,8 +38,60 @@ class ProviderTests(unittest.TestCase):
         body=json.dumps({'jobs':[{'id':123,'title':'Developer','absolute_url':'https://acme.test/job/123','location':{'name':'Karlsruhe'}}],'meta':{'total':1}}).encode()
         result=parse_feed('greenhouse',body,'https://job-boards.greenhouse.io/acme')
         self.assertIsNotNone(result)
-        self.assertEqual(result['jobs'],[{'id':'123','title':'Developer','url':'https://acme.test/job/123','location':'Karlsruhe'}])
+        self.assertEqual(result['jobs'],[{
+            'id':'123','title':'Developer','url':'https://acme.test/job/123',
+            'location':'Karlsruhe','locations':[{'label':'Karlsruhe'}],
+        }])
         self.assertTrue(result['complete'])
+
+    def test_greenhouse_eu_embed_script_identifies_board_tenant(self):
+        result=identify('https://boards.eu.greenhouse.io/embed/job_board/js?for=mailmediaportal')
+        self.assertEqual(result,{
+            'provider':'greenhouse',
+            'tenant':'mailmediaportal',
+            'board_url':'https://job-boards.greenhouse.io/mailmediaportal',
+            'feed_url':'https://boards-api.greenhouse.io/v1/boards/mailmediaportal/jobs?content=true',
+        })
+
+    def test_greenhouse_eu_job_board_link_identifies_board_tenant(self):
+        result=identify('https://job-boards.eu.greenhouse.io/ionos/jobs/4979230101')
+        self.assertEqual(result,{
+            'provider':'greenhouse',
+            'tenant':'ionos',
+            'board_url':'https://job-boards.eu.greenhouse.io/ionos',
+            'feed_url':'https://boards-api.greenhouse.io/v1/boards/ionos/jobs?content=true',
+        })
+
+    def test_german_company_hosted_greenhouse_application_is_recognized(self):
+        result=identify('https://www.mail-and-media.com/jobs/bewerbung/?gh_jid=4928092101')
+        self.assertEqual(result['provider'],'greenhouse')
+        self.assertIsNone(result['tenant'])
+        self.assertIsNone(result['feed_url'])
+
+    def test_greenhouse_parser_preserves_requisition_and_office_locations(self):
+        body=json.dumps({'jobs':[{
+            'id':4928092101,'requisition_id':'363','title':'Kubernetes Platform Engineer (w/m/d)',
+            'absolute_url':'https://www.mail-and-media.com/jobs/bewerbung?gh_jid=4928092101',
+            'location':{'name':'Karlsruhe, Munich, Berlin'},
+            'offices':[{'name':'Karlsruhe'},{'name':'Munich'},{'name':'Berlin'}],
+        }]}).encode()
+        result=parse_feed('greenhouse',body,'https://job-boards.greenhouse.io/mailmediaportal')
+        job=result['jobs'][0]
+        self.assertEqual(job['raw_metadata']['requisition_id'],'363')
+        self.assertEqual(job['locations'],[
+            {'label':'Karlsruhe'},{'label':'Munich'},{'label':'Berlin'},
+        ])
+
+    def test_greenhouse_german_postcode_address_exposes_city_for_location_filter(self):
+        body=json.dumps({'jobs':[{
+            'id':4789623101,'requisition_id':'1434','title':'AI Developer',
+            'absolute_url':'https://job-boards.eu.greenhouse.io/ionos/jobs/4789623101',
+            'location':{'name':'Hinterm Hauptbahnhof 3-5, 76137 Karlsruhe'},
+            'offices':[{'id':4014500101,'name':'IONOS S.R.L.','location':None}],
+        }]}).encode()
+        job=parse_feed('greenhouse',body,'https://job-boards.eu.greenhouse.io/ionos')['jobs'][0]
+        self.assertEqual(job['location'],'Hinterm Hauptbahnhof 3-5, 76137 Karlsruhe')
+        self.assertIn({'label':'Karlsruhe'},job['locations'])
 
     def test_lever_page_at_limit_is_explicitly_incomplete(self):
         body=json.dumps([{'id':str(i),'text':'Engineer','hostedUrl':f'https://jobs.lever.co/acme/{i}','categories':{'location':'Berlin'}} for i in range(100)]).encode()
@@ -57,6 +109,24 @@ class ProviderTests(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result['jobs'][0]['location'],'Berlin')
 
+    def test_schema_org_datafeed_normalizes_nested_job_postings(self):
+        body=json.dumps({'@context':'https://schema.org','@type':'DataFeed','numberOfItems':1,'dataFeedElement':[
+            {'@type':'DataFeedItem','item':{'@type':'JobPosting','title':'SAP Administrator','url':'https://careers.acme.de/jobs/42',
+                'datePosted':'2026-09-10','identifier':{'@type':'PropertyValue','value':42},
+                'jobLocation':{'@type':'Place','address':{'@type':'PostalAddress','addressLocality':'Karlsruhe','addressCountry':'Deutschland'}}}}
+        ]}).encode()
+        result=parse_feed('schema_org',body,'https://careers.acme.de/jobs.feed.json')
+        self.assertEqual(result['jobs'],[{'id':'42','title':'SAP Administrator','url':'https://careers.acme.de/jobs/42','location':'Karlsruhe','date_posted':'2026-09-10'}])
+        self.assertTrue(result['complete'])
+
+    def test_schema_org_datafeed_accepts_a_single_feed_element(self):
+        body=json.dumps({'@context':'https://schema.org','@type':'DataFeed','numberOfItems':1,
+            'dataFeedElement':{'@type':'JobPosting','title':'Engineer','url':'https://careers.acme.de/jobs/1',
+                'identifier':'job-1','jobLocation':{'address':{'addressLocality':'Karlsruhe'}}}}).encode()
+        result=parse_feed('schema_org',body,'https://careers.acme.de/jobs.feed.json')
+        self.assertEqual(result['jobs'][0]['id'],'job-1')
+        self.assertTrue(result['complete'])
+
     def test_bad_schema_is_not_reported_as_zero_jobs(self):
         for provider,body in [('greenhouse',b'{"error":"bad"}'),('personio',b'<html></html>'),('lever',b'{}'),('ashby',b'{"success":false}')]:
             with self.subTest(provider=provider):
@@ -65,14 +135,17 @@ class ProviderTests(unittest.TestCase):
     def test_vendor_assets_are_not_employer_boards(self):
         for url in ['https://performancemanager5.successfactors.eu/verp/vmod_v1/ui/extlib/jquery.js',
                     'https://career5.successfactors.eu/',
-                    'https://acme.softgarden.io/assets/app.js']:
+                    'https://acme.softgarden.io/assets/app.js',
+                    'https://certificate.softgarden.io/acme',
+                    'https://acme.softgarden.io/imprint',
+                    'https://acme.softgarden.io/data-security']:
             with self.subTest(url=url): self.assertIsNone(identify(url))
 
     def test_company_hosted_greenhouse_api_reference_identifies_board(self):
         result=identify('https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true')
         self.assertIsNotNone(result)
         self.assertEqual(result['tenant'],'acme')
-        self.assertEqual(result['feed_url'],'https://boards-api.greenhouse.io/v1/boards/acme/jobs')
+        self.assertEqual(result['feed_url'],'https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true')
 
     def test_ashby_tenant_can_contain_a_dot(self):
         result=identify('https://jobs.ashbyhq.com/ecosia.org')

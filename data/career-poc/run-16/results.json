@@ -1,0 +1,440 @@
+[
+  {
+    "name": "IONOS",
+    "website": "https://www.ionos.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12324666851",
+    "original_website": "https://www.ionos.de/",
+    "osm_source_id": "node/12324666851",
+    "distance_m": 1621.3,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.ionos.de/",
+        "url": "https://www.ionos.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "d6a55f0b24a0f29faa48",
+        "redirect_chain": [
+          "https://www.ionos.de/"
+        ],
+        "title": "IONOS | Von Website bis Cloud » Digital an Ihrer Seite",
+        "headings": "Der KI Telefonassistent geht ans Telefon wie ein Mensch. Der KI Telefonassistent ist immer erreichbar. Digital an Ihrer Seite. Domain. Website. Cloud. Einfach wie nie dank KI. Kein verpasster Anruf. Kein verlorener Auftrag. Zum Online-Erfolg mit Ihrer Profi-Website und smarten KI-Tools. Mit IONOS setzen Sie auf den Marktführer. Gemeinsam mit unseren Kunden auf Wachstumskurs. Führende Marken und Pa",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.ionos.de/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ionos.de/unternehmen",
+            "label": "Über IONOS",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/",
+        "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "parent": "https://www.ionos.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "694ad8a833c820c79527",
+        "redirect_chain": [
+          "https://jobs.ionos.de/",
+          "https://jobs.ionos.de/karriere/",
+          "https://jobs.ionos.de/karriere/wer-wir-sind"
+        ],
+        "title": "Wer wir sind - IONOS Karriere",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/about-us",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/datenschutz",
+            "label": "Datenschutz",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+            "label": "Ihre Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/career/about-us",
+        "url": "https://jobs.ionos.de/career/about-us",
+        "parent": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "6a9c6452daafd28484be",
+        "redirect_chain": [
+          "https://jobs.ionos.de/career/about-us"
+        ],
+        "title": "About us - IONOS Career",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.ionos.de/career/all-jobs",
+            "label": "All jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/your-career",
+            "label": "Your career",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/privacy-policy",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/locations/berlin",
+            "label": "Locations",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/",
+            "label": "View United Internet Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/departments/customer-care",
+            "label": "Departments",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/karriere/datenschutz",
+        "url": "https://jobs.ionos.de/karriere/datenschutz",
+        "parent": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "20137e3d2e2b3730a211",
+        "redirect_chain": [
+          "https://jobs.ionos.de/karriere/datenschutz"
+        ],
+        "title": "Datenschutz - IONOS Karriere",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+            "label": "Wer wir sind",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/privacy-policy",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+            "label": "Ihre Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ionos-group.com/brands.html",
+            "label": "Verbundunternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/karriere/ihre-karriere",
+        "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+        "parent": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "ec76e806b394e8071659",
+        "redirect_chain": [
+          "https://jobs.ionos.de/karriere/ihre-karriere"
+        ],
+        "title": "Ihre Karriere - IONOS Karriere",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/your-career",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/datenschutz",
+            "label": "Datenschutz",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+            "label": "Wer wir sind",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4996389101-werkstudent-wmd-sales-controlling",
+            "label": "Werkstudent (w/m/d) Sales Controlling",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4996634101-procurement-manager-wmd-marketing",
+            "label": "Procurement Manager (w/m/d) Marketing",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4593665101-teleconseiller-fhd-retention-france",
+            "label": "Téléconseiller (f/h/d) Rétention - France",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4706357101-staff-storage-reliability-engineer-wmd",
+            "label": "Staff Storage Reliability Engineer (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4974251101-senior-cyber-security-engineer-fmd-cloud",
+            "label": "Senior Cyber Security Engineer (f/m/d) Cloud",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+        "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+        "parent": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "16b0d97f63736016bcbe",
+        "redirect_chain": [
+          "https://jobs.ionos.de/karriere/jobs/alle-jobs"
+        ],
+        "title": "Jobs - IONOS Karriere",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/all-jobs",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/datenschutz",
+            "label": "Datenschutz",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+            "label": "Wer wir sind",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+            "label": "Ihre Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs?new-search=1",
+            "label": "Filter zurücksetzen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4979230101-volljurist-wmd",
+            "label": "Volljurist (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4989654101-staff-cyber-security-wmd",
+            "label": "Staff Cyber Security (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4989699101-staff-cyber-security-wmd",
+            "label": "Staff Cyber Security (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4905094101-group-accountant-and-tax-wmd",
+            "label": "Group Accountant and Tax (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 38,
+      "duplicate_redirects_skipped": 0
+    }
+  }
+]

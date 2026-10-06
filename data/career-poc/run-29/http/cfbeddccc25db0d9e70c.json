@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.grenke.com/de",
+  "checked_at": "2026-10-05T23:16:11.781455+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83106,
+  "state": "ok",
+  "elapsed_seconds": 1.025,
+  "sha256": "8026bccd2e91fc831bfff2dafceec88ec5632e289a36bfaca732b77ad4f2aaf4",
+  "capture": "cfbeddccc25db0d9e70c",
+  "merged_from_run": "run-28"
+}

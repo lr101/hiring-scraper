@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schmidt-eger.de/",
+  "checked_at": "2026-10-05T23:31:05.795229+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 189419,
+  "state": "ok",
+  "elapsed_seconds": 1.125,
+  "sha256": "7934b6e16319e9ef8b3cfd97326457b565c1af0e1f1ab6f98e8162aad1b34003",
+  "capture": "645c3efa07213011092e",
+  "merged_from_run": "run-28"
+}

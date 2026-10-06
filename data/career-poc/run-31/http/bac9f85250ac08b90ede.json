@@ -1,0 +1,17 @@
+{
+  "url": "https://rechtsanwaelte-kuhn.de/jobs",
+  "checked_at": "2026-10-05T22:32:22.567254+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47424,
+  "state": "http_error",
+  "elapsed_seconds": 1.544,
+  "sha256": "0d83bbedabb8e40530be2983d5fd8caf73f6803e1742feac31e2acb898422038",
+  "capture": "bac9f85250ac08b90ede",
+  "merged_from_run": "run-26"
+}

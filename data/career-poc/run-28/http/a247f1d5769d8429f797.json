@@ -1,0 +1,16 @@
+{
+  "url": "https://rohstoff-recycling-kuehn.de/jobs",
+  "checked_at": "2026-10-05T23:46:47.586058+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119529,
+  "state": "http_error",
+  "elapsed_seconds": 1.245,
+  "sha256": "f1a519f24c1da0c6c46cc7ee51017a16cf709988da00c2713e032d505507ec07",
+  "capture": "a247f1d5769d8429f797"
+}

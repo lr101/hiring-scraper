@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stadtkirche-karlsruhe.de/wer-wir-sind/pfarramt/",
+  "checked_at": "2026-10-05T22:06:37.620009+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://citykirche-karlsruhe.de/wer-wir-sind/pfarramt/",
+  "bytes": 278,
+  "state": "http_error",
+  "elapsed_seconds": 0.442,
+  "sha256": "f4b43ed647810d85b6936ee6e44caab5729f8c519aba970812c4e049cbe36db3",
+  "capture": "08564df69fb8080f4120"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://malerbetrieb-busch.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:00.145026+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 257,
+  "state": "ok",
+  "elapsed_seconds": 1.323,
+  "sha256": "e8f8a1d829a2ba7337042b13ca0cb52b12a86119d03b324744fd2c77bc0a5d88",
+  "capture": "ae351a6b3fc4143df301",
+  "merged_from_run": "run-28"
+}

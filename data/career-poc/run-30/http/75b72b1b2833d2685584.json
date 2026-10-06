@@ -1,0 +1,17 @@
+{
+  "url": "https://hdjr-karlsruhe.justiz-bw.de/jobs",
+  "checked_at": "2026-10-05T23:17:56.933787+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 397,
+  "state": "http_error",
+  "elapsed_seconds": 1.01,
+  "sha256": "7dfcb32d82bbbfe0addcd34c8a071e2925eae38bf5750e76f2d0e2e747f03279",
+  "capture": "75b72b1b2833d2685584",
+  "merged_from_run": "run-28"
+}

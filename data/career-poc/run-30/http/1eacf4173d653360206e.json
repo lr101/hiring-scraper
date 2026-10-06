@@ -1,0 +1,17 @@
+{
+  "url": "https://kenforx.com/",
+  "checked_at": "2026-10-05T23:17:25.053080+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121598,
+  "state": "ok",
+  "elapsed_seconds": 0.945,
+  "sha256": "6c5a43d01496f4d14aae3ef6559179d159baa53605c1ebb9ccb6708b49e6ecaa",
+  "capture": "1eacf4173d653360206e",
+  "merged_from_run": "run-28"
+}

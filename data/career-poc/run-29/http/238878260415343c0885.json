@@ -1,0 +1,17 @@
+{
+  "url": "https://gross-bau.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:34:19.871275+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "W/\"9fa-18ef0d87f40\"",
+  "last_modified": "Thu, 18 Apr 2024 10:55:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2554,
+  "state": "ok",
+  "elapsed_seconds": 0.095,
+  "sha256": "bff7252cd00f7f7472753c91dcb373f187994cccf1178b4b1ed610a8437d737a",
+  "capture": "238878260415343c0885",
+  "merged_from_run": "run-28"
+}

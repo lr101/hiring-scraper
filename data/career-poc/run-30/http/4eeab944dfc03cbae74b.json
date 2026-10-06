@@ -1,0 +1,17 @@
+{
+  "url": "https://www.datexgmbh.com/",
+  "checked_at": "2026-10-05T22:30:25.373229+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 346533,
+  "state": "ok",
+  "elapsed_seconds": 2.234,
+  "sha256": "71907a8cf33b6031e33516e75b1190951da6f8b4543033b95ab1aeb5e394ac72",
+  "capture": "4eeab944dfc03cbae74b",
+  "merged_from_run": "run-26"
+}

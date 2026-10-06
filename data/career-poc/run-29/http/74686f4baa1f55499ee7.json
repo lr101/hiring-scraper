@@ -1,0 +1,17 @@
+{
+  "url": "https://ks-kassen.de/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:30:47.564112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:17:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 230086,
+  "state": "ok",
+  "elapsed_seconds": 0.964,
+  "sha256": "657b1c98c8a89e883f925abd8bafd3565ae3fbb785668aa2889d8e12f22e6f01",
+  "capture": "74686f4baa1f55499ee7",
+  "merged_from_run": "run-28"
+}

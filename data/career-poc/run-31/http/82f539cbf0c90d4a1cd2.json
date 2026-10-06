@@ -1,0 +1,17 @@
+{
+  "url": "https://www.health-and-beauty.com/careers",
+  "checked_at": "2026-10-05T23:37:56.008840+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47702,
+  "state": "http_error",
+  "elapsed_seconds": 1.725,
+  "sha256": "51ab7c4a2c8eb9f4e600146eef5113b5a6f55ae8bc449dfc807786f02aa1412c",
+  "capture": "82f539cbf0c90d4a1cd2",
+  "merged_from_run": "run-28"
+}

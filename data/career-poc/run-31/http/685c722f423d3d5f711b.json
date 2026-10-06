@@ -1,0 +1,17 @@
+{
+  "url": "https://www.asb-ka.de/jobs-und-ausbildung/stellenangebote?ccm_paging_p=1&ccm_order_by=j.jobTitle&ccm_order_by_direction=desc",
+  "checked_at": "2026-10-05T23:30:49.994694+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89590,
+  "state": "ok",
+  "elapsed_seconds": 0.901,
+  "sha256": "9e61cd56d6b88eb0130e4266f89b516e5efe02b83d93774e91738119697fee8f",
+  "capture": "685c722f423d3d5f711b",
+  "merged_from_run": "run-28"
+}

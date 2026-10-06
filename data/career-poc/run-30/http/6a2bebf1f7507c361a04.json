@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hirschreisen.de/",
+  "checked_at": "2026-10-05T22:23:06.568703+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 191548,
+  "state": "ok",
+  "elapsed_seconds": 1.506,
+  "sha256": "146c4935ec4f85f218eb7b59813d228e32b3e274233b57a1f7ae44543b628ab4",
+  "capture": "6a2bebf1f7507c361a04",
+  "merged_from_run": "run-25"
+}

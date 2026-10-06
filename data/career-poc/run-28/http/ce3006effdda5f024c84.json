@@ -1,0 +1,16 @@
+{
+  "url": "https://service.bund.de/IMPORTE/Stellenangebote/editor/BVA-AVB/2026/08/6589355",
+  "checked_at": "2026-10-05T23:32:44.413589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:32:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 23673,
+  "state": "ok",
+  "elapsed_seconds": 0.983,
+  "sha256": "c2993b6dee27f8918b619c3e78cbfff880d39983d1c11b43e942ba7b11a1b6cf",
+  "capture": "ce3006effdda5f024c84"
+}

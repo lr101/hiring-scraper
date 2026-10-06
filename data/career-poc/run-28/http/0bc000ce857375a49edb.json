@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tup.com/karriere-bei-tup/stellenangebote/?tax_post_tag=alle-offenen-stellen&unfilter=1",
+  "checked_at": "2026-10-05T23:38:47.209679+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 328214,
+  "state": "ok",
+  "elapsed_seconds": 1.76,
+  "sha256": "ebdf8dd54d874fbe8f80f7ce7148485405411130111e1664bc91976c0be5f658",
+  "capture": "0bc000ce857375a49edb"
+}

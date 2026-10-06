@@ -1,0 +1,17 @@
+{
+  "url": "https://www.papershift.com/blog/digitale-personalakte-2027",
+  "checked_at": "2026-10-05T23:32:22.968345+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:55:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 150498,
+  "state": "ok",
+  "elapsed_seconds": 0.987,
+  "sha256": "df76073be132e988de22d2f914359b9c2efd022cd8f07179b0c6e921f0c0cf78",
+  "capture": "815473b73f6d3fc99b7e",
+  "merged_from_run": "run-28"
+}

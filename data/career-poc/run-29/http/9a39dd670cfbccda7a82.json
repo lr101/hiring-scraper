@@ -1,0 +1,17 @@
+{
+  "url": "https://goodspaces.de/karlsruhe/steamwork",
+  "checked_at": "2026-10-05T22:51:24.244203+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 630500,
+  "state": "ok",
+  "elapsed_seconds": 1.225,
+  "sha256": "9d3dcd08e092df5d63d7440a92677a31afb88ea2391892928745c787930e1e65",
+  "capture": "9a39dd670cfbccda7a82",
+  "merged_from_run": "run-27"
+}

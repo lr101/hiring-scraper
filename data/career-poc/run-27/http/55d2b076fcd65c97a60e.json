@@ -1,0 +1,16 @@
+{
+  "url": "https://residenztreuhand.de/karriere",
+  "checked_at": "2026-10-05T23:11:31.680785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14646,
+  "state": "http_error",
+  "elapsed_seconds": 1.177,
+  "sha256": "3793c97eda6aa30a780bb72a359d9898b3522ba4e8a77b9d4409315470eea4c6",
+  "capture": "55d2b076fcd65c97a60e"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.glasschmid.de/testimonials-sitemap.xml",
+  "checked_at": "2026-10-05T23:34:07.582091+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 619,
+  "state": "ok",
+  "elapsed_seconds": 0.573,
+  "sha256": "9512219f65f06d9ceeb99752d576e2e54a7b8bf602b34749ebf6bde5a27c149d",
+  "capture": "aebc4305b1339b15367f",
+  "merged_from_run": "run-28"
+}

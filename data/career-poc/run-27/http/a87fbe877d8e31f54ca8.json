@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gut-gruppe.de/unternehmen/keilhauer/karriere/stellenangebote",
+  "checked_at": "2026-10-05T22:59:46.302287+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1791241187\"",
+  "last_modified": "Mon, 05 Oct 2026 22:59:47 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 96908,
+  "state": "ok",
+  "elapsed_seconds": 1.599,
+  "sha256": "df6d882dfb497361a9ed61d68cbd36ca7748025d9f1b9733520d8e145389ccfe",
+  "capture": "a87fbe877d8e31f54ca8"
+}

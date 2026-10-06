@@ -1,0 +1,16 @@
+{
+  "url": "https://www.BAMF.de/robots.txt",
+  "checked_at": "2026-10-06T07:05:42.002212+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51265,
+  "state": "http_error",
+  "elapsed_seconds": 1.104,
+  "sha256": "635dfda46bc81ce495ffeded96f560cf1dd7aba9518821dd685fa56f245ec20d",
+  "capture": "b01495cacf12bbef342f"
+}

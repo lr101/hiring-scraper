@@ -1,0 +1,17 @@
+{
+  "url": "https://ski-club-ettlingen.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:37:53.953716+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1933,
+  "state": "ok",
+  "elapsed_seconds": 1.286,
+  "sha256": "6422e2daccaf0b786cb52e553ed12157dd3058bcd3a538631e4d0df709b544d3",
+  "capture": "232007006aa7c35bba06",
+  "merged_from_run": "run-28"
+}

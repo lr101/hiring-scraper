@@ -1,0 +1,17 @@
+{
+  "url": "https://bikeswithoutborders.blogspot.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:15:27.834875+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/atom+xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17558,
+  "state": "ok",
+  "elapsed_seconds": 1.076,
+  "sha256": "37855cce06225ab83b079326c785855383e3f46efa78bc694f32ef7ab3bf953f",
+  "capture": "0dd6f12be31b25177531",
+  "merged_from_run": "run-28"
+}

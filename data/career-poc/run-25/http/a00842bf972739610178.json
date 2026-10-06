@@ -1,0 +1,16 @@
+{
+  "url": "https://suedwest.ngg.net/robots.txt",
+  "checked_at": "2026-10-05T22:12:09.351461+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 73097,
+  "state": "http_error",
+  "elapsed_seconds": 0.652,
+  "sha256": "6f4dbb732d3f80ca7aab8eca1141e2355264742c1d142f36bfa78706728f18eb",
+  "capture": "a00842bf972739610178"
+}

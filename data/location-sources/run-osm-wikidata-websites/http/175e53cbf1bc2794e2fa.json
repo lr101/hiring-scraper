@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rheinhafen.de/robots.txt",
+  "checked_at": "2026-10-06T07:05:51.008601+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 10 Jun 2024 12:52:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 651,
+  "state": "ok",
+  "elapsed_seconds": 0.377,
+  "sha256": "5cfdfd2fdaec755a0e79bde88d72c10df5e03e82455cb4c53a521157e084c234",
+  "capture": "175e53cbf1bc2794e2fa"
+}

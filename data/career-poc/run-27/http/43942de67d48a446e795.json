@@ -1,0 +1,16 @@
+{
+  "url": "https://www.forterro.com/de/unternehmen/karriere",
+  "checked_at": "2026-10-05T22:53:36.760582+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"2qh3w47hyba7xl\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 477611,
+  "state": "ok",
+  "elapsed_seconds": 1.448,
+  "sha256": "16d0835b47b8d4637d89a6809fb7cc527cc725a1958dc6a37d204c8a62d49017",
+  "capture": "43942de67d48a446e795"
+}

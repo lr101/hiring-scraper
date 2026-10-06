@@ -1,0 +1,17 @@
+{
+  "url": "https://www.boagroup.com/careers-for-starters",
+  "checked_at": "2026-10-05T23:40:27.152532+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.boagroup.com/careers-for-starters/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.499,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "9d61308daa080c9e27ff",
+  "merged_from_run": "run-28"
+}

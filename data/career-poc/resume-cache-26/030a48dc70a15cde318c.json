@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hirschreisen.de/careers",
+  "checked_at": "2026-10-05T22:23:13.567546+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 134120,
+  "state": "http_error",
+  "elapsed_seconds": 1.15,
+  "sha256": "6acba56d813e91b27f4f2783579a312ffe9d3937600409c0dfae488dfdba760c",
+  "capture": "030a48dc70a15cde318c"
+}

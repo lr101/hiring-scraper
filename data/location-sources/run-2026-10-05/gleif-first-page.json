@@ -1,0 +1,12 @@
+{
+  "url": "https://api.gleif.org/api/v1/lei-records?page%5Bsize%5D=2",
+  "checked_at": "2026-10-05T15:02:44.373014+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://api.gleif.org/api/v1/lei-records?page%5Bsize%5D=2",
+  "content_type": "application/vnd.api+json",
+  "bytes": 5086,
+  "truncated": false,
+  "elapsed_seconds": 0.23,
+  "sha256": "eb6070ff518eeec2670cc7a2b551185081436513f64531ecdbec9b693c9da467"
+}

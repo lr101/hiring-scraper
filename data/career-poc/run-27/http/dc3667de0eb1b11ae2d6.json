@@ -1,0 +1,16 @@
+{
+  "url": "https://version1.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:02:20.809074+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 950,
+  "state": "ok",
+  "elapsed_seconds": 2.014,
+  "sha256": "d3193362ed800a4203cc2598bd34f7e4973ed7c3cdc99b4970a1dde0e888579b",
+  "capture": "dc3667de0eb1b11ae2d6"
+}

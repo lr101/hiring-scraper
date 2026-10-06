@@ -1,0 +1,16 @@
+{
+  "url": "https://www.we-move-everyone.com/apply/jobs",
+  "checked_at": "2026-10-05T22:45:06.704570+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"945ee2439cc4d5e4c9618ecfe32ccfff\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77830,
+  "state": "ok",
+  "elapsed_seconds": 1.924,
+  "sha256": "ec5beda441c370e09cdf2da7663b766a372d15d94b297bd3435a9b082a855ad8",
+  "capture": "9f900af241d28d332c88"
+}

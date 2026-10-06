@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.ukbw.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:31.220873+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 382,
+  "state": "ok",
+  "elapsed_seconds": 0.364,
+  "sha256": "17496a553829c818bd78243e164289d8194e1936fae2ef2e33b5bdd0f549b304",
+  "capture": "c9d1f3ae35580628afbc",
+  "merged_from_run": "run-28"
+}

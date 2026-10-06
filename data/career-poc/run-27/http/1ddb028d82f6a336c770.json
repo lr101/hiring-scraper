@@ -1,0 +1,16 @@
+{
+  "url": "https://knubben-lunker.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:52:02.688467+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50130,
+  "state": "ok",
+  "elapsed_seconds": 1.321,
+  "sha256": "ad27d2229c012f3f5565cc7571281fe18161f05e2b40ba382d6b06884f243e14",
+  "capture": "1ddb028d82f6a336c770"
+}

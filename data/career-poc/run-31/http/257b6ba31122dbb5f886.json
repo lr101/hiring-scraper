@@ -1,0 +1,17 @@
+{
+  "url": "https://jobapplication.hrworks.de/robots.txt",
+  "checked_at": "2026-10-05T22:57:18.589400+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26,
+  "state": "ok",
+  "elapsed_seconds": 0.14,
+  "sha256": "182b4c4bc1a8afa21782fd941b170e55d05ab1b6c025df648fc650157d38282d",
+  "capture": "257b6ba31122dbb5f886",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.merkle-steuerberater.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:52.665100+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 128,
+  "state": "ok",
+  "elapsed_seconds": 2.292,
+  "sha256": "00bce5faa8936783a58f9d8916559cb88d25bdf567035f164e1f337bda329cdc",
+  "capture": "21882744f645eccf61cf"
+}

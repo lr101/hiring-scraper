@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fsmi.org/robots.txt",
+  "checked_at": "2026-10-05T22:22:49.161819+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"674755d8-12e\"",
+  "last_modified": "Wed, 27 Nov 2024 17:24:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 302,
+  "state": "ok",
+  "elapsed_seconds": 0.236,
+  "sha256": "3379a95db6a62db8a5678dcfb10951856adc123acbe351577cc1c0d8d88ff268",
+  "capture": "17405c36b8d617c22c10",
+  "reused_from": "data/career-poc/resume-cache-26/17405c36b8d617c22c10.json"
+}

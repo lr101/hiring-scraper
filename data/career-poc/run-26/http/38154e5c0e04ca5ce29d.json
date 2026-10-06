@@ -1,0 +1,16 @@
+{
+  "url": "https://www.scc.kit.edu/forschung/18648.php",
+  "checked_at": "2026-10-05T22:28:11.351353+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 188185,
+  "state": "ok",
+  "elapsed_seconds": 0.142,
+  "sha256": "837fff49764fe9b4037a3b2571596f5ba74f2056fdd8f45deecef4be0c613620",
+  "capture": "38154e5c0e04ca5ce29d"
+}

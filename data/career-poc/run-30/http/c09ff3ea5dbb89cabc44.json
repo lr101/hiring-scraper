@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karriere.polyrack.com/jobs",
+  "checked_at": "2026-10-05T23:23:55.217107+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Sun, 04 Oct 2026 07:04:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 27373,
+  "state": "ok",
+  "elapsed_seconds": 0.869,
+  "sha256": "5eb91fde87ae37c72a9cce60a265dfe4f67d82550d6d4d7610a5a00a7b92dd78",
+  "capture": "c09ff3ea5dbb89cabc44",
+  "merged_from_run": "run-28"
+}

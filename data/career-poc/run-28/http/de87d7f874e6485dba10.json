@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bfb-ka.de/de/jobs/de/jobs/",
+  "checked_at": "2026-10-05T23:22:58.455991+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 601,
+  "state": "http_error",
+  "elapsed_seconds": 0.892,
+  "sha256": "e3a1783fe697f2b13807e497d9f91dcf017c479031d9b49bbc47a5ae546974a6",
+  "capture": "de87d7f874e6485dba10"
+}

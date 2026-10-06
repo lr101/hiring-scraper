@@ -1,0 +1,36 @@
+{
+  "started_at": "2026-10-05T22:05:30.742520+00:00",
+  "finished_at": "2026-10-05T23:47:33.424868+00:00",
+  "input_runs": [
+    "/workspace/hiring-scraper/data/career-poc/run-25",
+    "/workspace/hiring-scraper/data/career-poc/run-26",
+    "/workspace/hiring-scraper/data/career-poc/run-27",
+    "/workspace/hiring-scraper/data/career-poc/run-28"
+  ],
+  "source_scope": "/workspace/hiring-scraper/data/career-poc/karlsruhe-osm-2251-scope.json",
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "git_dirty": true,
+  "source_sha256": {
+    "experiments/finalize_karlsruhe_discovery.py": "4ff5cb892df50a3c58cf881eece800f890d1769a3a299de05ecefb1b79891604",
+    "hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "hiring_scraper/__main__.py": "adaecd448af283b14765c8106d26cd3b0523399c1ea2ba58321df175a91543a2",
+    "hiring_scraper/app/__init__.py": "5af31d9285efd16e37b80473a545aa31522675ce148e8911bf32496f1ff2c097",
+    "hiring_scraper/app/api.py": "1a4d74fb1b3daea4b08f466701afe73faecdbe59852b1b1884aa87d29b02326d",
+    "hiring_scraper/app/database.py": "060802c7fda363da0829f72c92b7236fa4d9547aa977539bfa8bcda5ff161357",
+    "hiring_scraper/app/discovery_worker.py": "e614ba3ce39f07146fb3c6e8357508f4e2686723a98fb00e14752f093e605f5c",
+    "hiring_scraper/app/migrations/env.py": "8f6eb86105847a01be1d49780bfa712226f7784854b2f6aadd4de6774eca21b9",
+    "hiring_scraper/app/migrations/versions/0001_initial.py": "34e2d79135328111f9a5062225e65234d20382834308831f4bcdbf6d593b9494",
+    "hiring_scraper/app/migrations/versions/0002_feed_rescans.py": "810148092df0a4be4001cacd05afe07b55ae6c1c5e10bb51c5ee382fadf9104d",
+    "hiring_scraper/app/migrations/versions/0003_domain_match_evidence.py": "e669daa92dd944a1573176849d1e8f8c682649965b8f1702ae87c3dc27820f72",
+    "hiring_scraper/app/migrations/versions/0004_company_discovery_schedule.py": "f8e9d9eeba61fd6b21c98839d2db056461eb44dbb890449a9f26160ff2d49531",
+    "hiring_scraper/app/models.py": "c909fa5b2dc3058ef09b56829570c8838299ae1140d3b53af3d9e691a5f48009",
+    "hiring_scraper/app/seed.py": "b4be35fb432f5c97de468e7baef71e5ab5c1b0d9ca5de0ac884fd61bd0135253",
+    "hiring_scraper/app/worker.py": "79545b7e2d0fa3ae3a79ca0ac87e2360287bb8a02da988d5e56ecd13cefdd674",
+    "hiring_scraper/ats.py": "737d202b091ab6ebf9b545b1e5a90714c28f4e4046607c4c6d734812d0cfe31d",
+    "hiring_scraper/discovery.py": "75811781f4e3f354182b8f4a0fa7c1170dfebfc0e8bd45e6bc90b5baa29a230b",
+    "hiring_scraper/geography.py": "6164e30f5d1068cf6b521b72bc67bf13a2a2bc177363b282966e072c122f455b",
+    "hiring_scraper/html_jobs.py": "bd26a0923c9cb2ed64a73b9299a806847b2a06ec75c0a9567a3666c800522362",
+    "hiring_scraper/http.py": "28ec79a7b292bf4481d511f7c1f7aaa701b8c0cd96d0e2246ad2436b7dfe2b14",
+    "hiring_scraper/pages.py": "c31ec92f9f382682ae6dcf0bbf903b83e6c52b1f67d1dbffa35677ae5e76f535"
+  }
+}

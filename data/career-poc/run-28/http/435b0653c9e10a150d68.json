@@ -1,0 +1,16 @@
+{
+  "url": "https://www.boagroup.com/robots.txt",
+  "checked_at": "2026-10-05T23:40:22.505463+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 229,
+  "state": "ok",
+  "elapsed_seconds": 0.166,
+  "sha256": "27ba6cb51876503f344931043a6cfe3b634d9d3255ab69f15d81a73c44c76811",
+  "capture": "435b0653c9e10a150d68"
+}

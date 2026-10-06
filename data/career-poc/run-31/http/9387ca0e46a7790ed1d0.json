@@ -1,0 +1,17 @@
+{
+  "url": "https://www.flexlog.de/",
+  "checked_at": "2026-10-05T23:31:22.205505+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1lag042\"",
+  "last_modified": "Mon, 14 Sep 2026 14:11:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 144703,
+  "state": "ok",
+  "elapsed_seconds": 2.139,
+  "sha256": "d7f8c7cfcdb93686fcc2a3005b7d92ccbe9d89ae2e072227f6d2f799717c09b3",
+  "capture": "9387ca0e46a7790ed1d0",
+  "merged_from_run": "run-28"
+}

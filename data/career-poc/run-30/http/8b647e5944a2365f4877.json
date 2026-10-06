@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sw-ka.de/de/beratung/weitere-beratungsstellen/service-buero/",
+  "checked_at": "2026-10-05T22:45:52.418250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": "10800",
+  "location": null,
+  "bytes": 102362,
+  "state": "ok",
+  "elapsed_seconds": 1.169,
+  "sha256": "c3829b6b374d15957010d038dec730540a0ca40bda5a0b81921dcf62a14d2311",
+  "capture": "8b647e5944a2365f4877",
+  "merged_from_run": "run-27"
+}

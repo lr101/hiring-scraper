@@ -1,0 +1,17 @@
+{
+  "url": "https://www.landkreis-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:37.581294+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"5d93743c-b4\"",
+  "last_modified": "Tue, 01 Oct 2019 15:43:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 180,
+  "state": "ok",
+  "elapsed_seconds": 0.734,
+  "sha256": "42af01f8e2e380435769e48a56acc109c9fbc79b0a35563575a939f7cd1a8566",
+  "capture": "0e3b4ef165d7c348cc9b",
+  "merged_from_run": "run-28"
+}

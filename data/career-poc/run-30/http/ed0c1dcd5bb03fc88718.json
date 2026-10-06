@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enqs.de/",
+  "checked_at": "2026-10-05T23:06:55.511160+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 70176,
+  "state": "ok",
+  "elapsed_seconds": 2.14,
+  "sha256": "748fb92753f64bdd4528898dd5fe17510d93a4a90be68b98eade2e95f7709d45",
+  "capture": "ed0c1dcd5bb03fc88718",
+  "merged_from_run": "run-27"
+}

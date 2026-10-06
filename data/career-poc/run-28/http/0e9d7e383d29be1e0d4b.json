@@ -1,0 +1,16 @@
+{
+  "url": "https://tantzky.de/unternehmen/tantzky-karriere",
+  "checked_at": "2026-10-05T23:33:52.692232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:33:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 70279,
+  "state": "ok",
+  "elapsed_seconds": 0.877,
+  "sha256": "e391a636517af01e6321defafd5804c15f6f671d9af132775fed94d07aa78faa",
+  "capture": "0e9d7e383d29be1e0d4b"
+}

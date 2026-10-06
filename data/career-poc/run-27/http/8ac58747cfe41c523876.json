@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jkip.kit.edu/",
+  "checked_at": "2026-10-05T22:52:08.109111+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 38676,
+  "state": "ok",
+  "elapsed_seconds": 1.102,
+  "sha256": "7d87b49f1809fd9e8930af0d39f0baa944e0f47099bba2c93e5e32476f1530e6",
+  "capture": "8ac58747cfe41c523876"
+}

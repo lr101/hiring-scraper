@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bluehands.de/karriere/",
+  "checked_at": "2026-10-05T22:22:13.078471+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30437,
+  "state": "http_error",
+  "elapsed_seconds": 1.157,
+  "sha256": "4f093843e63a6d7749eb423df2f0f6a6227976b4b2a1bdcafbb310e3895cf971",
+  "capture": "2f96332fea56d8ba7fce"
+}

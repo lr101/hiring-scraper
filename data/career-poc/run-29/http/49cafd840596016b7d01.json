@@ -1,0 +1,17 @@
+{
+  "url": "https://www.weststadtmakler.de/jobs",
+  "checked_at": "2026-10-05T23:16:56.332730+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.weststadtmakler.de/404.html",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 1.038,
+  "sha256": "98dcfb1ce5782892bddd4588c9e8cae410dbfd58297d7c22d2133f3ae97d313d",
+  "capture": "49cafd840596016b7d01",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.itep.kit.edu/",
+  "checked_at": "2026-10-05T23:41:50.054334+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53491,
+  "state": "ok",
+  "elapsed_seconds": 1.022,
+  "sha256": "4c7a46d34737d059527469e8cb15c5cb6d323fe68b8716a8f21de37ce10aeb0d",
+  "capture": "18a6df6cc3e268c67b2c",
+  "merged_from_run": "run-28"
+}

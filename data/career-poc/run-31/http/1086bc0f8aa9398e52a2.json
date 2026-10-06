@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mosaik-online.eu/robots.txt",
+  "checked_at": "2026-10-05T23:27:42.025619+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 0.125,
+  "sha256": "4cebc2ea4518222ea01feb21eb1485a378329e475cd5532a35af81ad3d714715",
+  "capture": "1086bc0f8aa9398e52a2",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.de.endress.com/jobs",
+  "checked_at": "2026-10-05T22:46:50.349486+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1900,
+  "state": "ok",
+  "elapsed_seconds": 1.126,
+  "sha256": "64443e8f7abd4cfbd0dc2798802fcf4003530f46f443827c33d91546ea34db1d",
+  "capture": "a848703bdee4da94d167"
+}

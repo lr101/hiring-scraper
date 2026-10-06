@@ -1,0 +1,16 @@
+{
+  "url": "https://die-podologen-karlsruhe.info/karriere",
+  "checked_at": "2026-10-05T22:56:55.068667+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1445,
+  "state": "http_error",
+  "elapsed_seconds": 1.148,
+  "sha256": "ceec23cc8f0ba8c4501818e04ac0a30bb738415ed3ee870a183137ec8ed28ef8",
+  "capture": "aee00d0b50414945e08a"
+}

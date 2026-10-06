@@ -1,0 +1,16 @@
+{
+  "url": "https://perfekt-futur.de/",
+  "checked_at": "2026-10-05T23:16:57.524197+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:07:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 32125,
+  "state": "ok",
+  "elapsed_seconds": 1.103,
+  "sha256": "05861d8adcf401356ca7cc744a82c178e42d2ba5ae66ccef1578c98441b4e667",
+  "capture": "17fc2677c553de281cf5"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.stratec.com/career/romania/jobs",
+  "checked_at": "2026-10-05T23:23:41.049306+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37881,
+  "state": "ok",
+  "elapsed_seconds": 0.922,
+  "sha256": "585975c1090b9ed44fe542fc62c7056f6f049fb9ca49e6c785ec93ffda5e8729",
+  "capture": "e8273c22dee39a3807e1",
+  "merged_from_run": "run-28"
+}

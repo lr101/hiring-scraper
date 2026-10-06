@@ -1,0 +1,16 @@
+{
+  "url": "https://lauinger-verlag.de/robots.txt",
+  "checked_at": "2026-10-05T22:41:35.564170+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 401,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 421,
+  "state": "http_error",
+  "elapsed_seconds": 0.123,
+  "sha256": "d0db99e7a4533883ddfef42e654b38b538281743582875a1165cb74988fe2739",
+  "capture": "3c0704f0822a2a83a406"
+}

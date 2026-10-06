@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steuerkanzlei-ziegler.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:18.368566+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25,
+  "state": "ok",
+  "elapsed_seconds": 0.924,
+  "sha256": "1cbdbc6504be7abe1267d01d7f565bfcfe5851ba3f6a3754d1d61c8f8a2c6aa3",
+  "capture": "89c7176b7d67c52cd74e",
+  "merged_from_run": "run-28"
+}

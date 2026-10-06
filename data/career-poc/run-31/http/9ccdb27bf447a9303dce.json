@@ -1,0 +1,17 @@
+{
+  "url": "https://planb-karlsruhe.de/",
+  "checked_at": "2026-10-05T22:43:01.244533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11869,
+  "state": "ok",
+  "elapsed_seconds": 2.181,
+  "sha256": "f965a43cf38d3415b357f76b3abcf8ef98b60c096b341e2c459de950519aab3f",
+  "capture": "9ccdb27bf447a9303dce",
+  "merged_from_run": "run-27"
+}

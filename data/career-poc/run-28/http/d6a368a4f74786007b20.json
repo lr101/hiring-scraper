@@ -1,0 +1,16 @@
+{
+  "url": "https://martin-faass-grabmale.de/",
+  "checked_at": "2026-10-05T23:42:43.792518+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11931,
+  "state": "ok",
+  "elapsed_seconds": 1.032,
+  "sha256": "4293a7e10f07f63b4087eb269f5b61cf331d6c09f150c2b1c92dfa0cbf5a02f7",
+  "capture": "d6a368a4f74786007b20"
+}

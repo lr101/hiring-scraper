@@ -1,0 +1,17 @@
+{
+  "url": "https://www.md-bw.de/karriere/stellenangebote/stellenangebot/arzt2232-1-14",
+  "checked_at": "2026-10-05T23:02:49.303975+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110328,
+  "state": "ok",
+  "elapsed_seconds": 1.454,
+  "sha256": "6910bbf6735b2ae76b6b9d16098ae71a72662089b71429ec63de818f6d8f92d4",
+  "capture": "1c33f642ffee7ebabc75",
+  "merged_from_run": "run-27"
+}

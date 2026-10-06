@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ww-ag.com/robots.txt",
+  "checked_at": "2026-10-05T23:24:38.109662+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57,
+  "state": "ok",
+  "elapsed_seconds": 0.837,
+  "sha256": "fe96fa676486eae9d8144798779eacbc5002eb873b2684242b6ffd4cb8dfb73c",
+  "capture": "8fbc28139d79c5bbdd76",
+  "merged_from_run": "run-28"
+}

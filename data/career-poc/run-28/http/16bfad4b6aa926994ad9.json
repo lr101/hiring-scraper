@@ -1,0 +1,16 @@
+{
+  "url": "https://embedded.avnet.com/redirecting-to-tria/",
+  "checked_at": "2026-10-05T23:47:08.233812+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1536,
+  "state": "ok",
+  "elapsed_seconds": 1.031,
+  "sha256": "37d3284723a30cb6315f3c33d4bedc35aa205e75228131c969872c3b077674be",
+  "capture": "16bfad4b6aa926994ad9"
+}

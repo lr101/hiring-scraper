@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nero.com/eng/",
+  "checked_at": "2026-10-05T22:19:31.512592+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 152475,
+  "state": "ok",
+  "elapsed_seconds": 1.213,
+  "sha256": "dd92baaeb41132404b977fd9d012df15e8ae946785bdca896a793ca696baf870",
+  "capture": "3bf6a9135759359f3c1a",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://enabl-tech.de/",
+  "checked_at": "2026-10-05T23:19:24.593552+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.enabl-tech.de/",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 0.242,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "03a58e19605f95daccb2",
+  "merged_from_run": "run-28"
+}

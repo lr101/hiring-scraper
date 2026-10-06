@@ -1,0 +1,16 @@
+{
+  "url": "https://www.msg.group/de/karriere/blog/",
+  "checked_at": "2026-10-05T23:21:08.704126+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 628836,
+  "state": "ok",
+  "elapsed_seconds": 0.603,
+  "sha256": "b6e085ff73ded1a4aac2166a51bfe15ff2eb54cc6adef495af4fef52400899c2",
+  "capture": "9e2602fef487e3bbb6bb"
+}

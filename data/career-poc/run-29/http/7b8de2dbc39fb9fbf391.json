@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lgl-bw.de/robots.txt",
+  "checked_at": "2026-10-05T22:51:53.399368+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3522,
+  "state": "http_error",
+  "elapsed_seconds": 0.161,
+  "sha256": "290b0fde9738792c08546059bd7b87e45889f3ac1768eb00e2c5ca4fb0152f75",
+  "capture": "7b8de2dbc39fb9fbf391",
+  "merged_from_run": "run-27"
+}

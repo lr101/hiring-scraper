@@ -1,0 +1,17 @@
+{
+  "url": "https://www.msg.group/de/karriere/",
+  "checked_at": "2026-10-05T23:21:07.497835+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 683461,
+  "state": "ok",
+  "elapsed_seconds": 0.966,
+  "sha256": "128631597f99ace95dd7f8da7a6d424e4597cde6c3e9d1dbb2d19d9d96c1dccd",
+  "capture": "aa3b375dea4f8ed22e9e",
+  "merged_from_run": "run-28"
+}

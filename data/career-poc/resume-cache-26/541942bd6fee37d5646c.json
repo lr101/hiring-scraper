@@ -1,0 +1,16 @@
+{
+  "url": "https://beruf-und-familie.blogspot.com/robots.txt",
+  "checked_at": "2026-10-05T22:09:11.367555+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 14:23:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 172,
+  "state": "ok",
+  "elapsed_seconds": 0.31,
+  "sha256": "3d2e40e12a56d302a7621b7a0f7ba4ec5f1c52262c6dd0091bbd56aab61b863d",
+  "capture": "541942bd6fee37d5646c"
+}

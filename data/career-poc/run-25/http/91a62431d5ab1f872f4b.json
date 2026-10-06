@@ -1,0 +1,16 @@
+{
+  "url": "https://ungerboeck.com/",
+  "checked_at": "2026-10-05T22:08:23.581379+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://gomomentus.com/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.915,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "91a62431d5ab1f872f4b"
+}

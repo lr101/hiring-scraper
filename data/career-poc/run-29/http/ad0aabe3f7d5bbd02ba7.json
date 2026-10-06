@@ -1,0 +1,17 @@
+{
+  "url": "https://punkt.de/de/stellenangebote/arbeiten-bei-punktde.html",
+  "checked_at": "2026-10-05T23:19:31.957073+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109655,
+  "state": "ok",
+  "elapsed_seconds": 0.962,
+  "sha256": "f225852bd83501389db07860bb0edcaff2426b6a70a1030ab1dd75505ea2b54e",
+  "capture": "ad0aabe3f7d5bbd02ba7",
+  "merged_from_run": "run-28"
+}

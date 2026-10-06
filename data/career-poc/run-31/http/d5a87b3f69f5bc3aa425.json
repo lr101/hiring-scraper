@@ -1,0 +1,17 @@
+{
+  "url": "https://www.immo-frick.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:56:43.578837+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"95d-658c56033e264\"",
+  "last_modified": "Tue, 11 Aug 2026 13:23:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2397,
+  "state": "ok",
+  "elapsed_seconds": 1.093,
+  "sha256": "1ae5d35686b95be6849e77960661a5d587c41f5340f8a54ee827032c77380953",
+  "capture": "d5a87b3f69f5bc3aa425",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ehase-elektrotechnik.de/",
+  "checked_at": "2026-10-05T23:14:27.361268+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 220799,
+  "state": "ok",
+  "elapsed_seconds": 2.062,
+  "sha256": "f4a2e92d661a051829adb2c4619f62bf69db7c2c7c0d9cb42454a5710c1cb58a",
+  "capture": "1a2d1fcea5d2d4cf151d",
+  "merged_from_run": "run-28"
+}

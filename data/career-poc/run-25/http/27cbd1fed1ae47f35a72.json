@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drk-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T22:21:32.521217+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83585,
+  "state": "http_error",
+  "elapsed_seconds": 1.296,
+  "sha256": "e2a993ece3e8939aa7f0f57c1628a5cc7bbb0a65df74088eb02e88f501a4e50b",
+  "capture": "27cbd1fed1ae47f35a72"
+}

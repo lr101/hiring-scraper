@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tipico-careers.com/en/jobs/job/backend-developer-m-f-x-vienna-b2494ebd-ed03-46e4-a9f8-ecc8bb4314d8/",
+  "checked_at": "2026-10-05T23:32:48.468732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53422,
+  "state": "ok",
+  "elapsed_seconds": 0.966,
+  "sha256": "95831b1f1f28dc6a73057a337a95d39271fa20ac122e6f5f80a7942b3ffce2bf",
+  "capture": "917d9e961a43b90a469b",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,14 @@
+{
+  "url": "https://packmatic.io/",
+  "checked_at": "2026-10-05T13:31:22.017056+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 108964,
+  "state": "ok",
+  "elapsed_seconds": 1.127,
+  "sha256": "bb67f97982f27456591a2acaf6d5c7ec9001227a50f2643632707b180e859200",
+  "capture": "d952640b9565c8925c02",
+  "reused_from": "data/career-poc/run-12/http/d952640b9565c8925c02.json"
+}

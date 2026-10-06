@@ -1,0 +1,14 @@
+{
+  "url": "https://produktivkeller.com/robots.txt",
+  "checked_at": "2026-10-05T14:47:43.102357+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "location": null,
+  "bytes": 14566,
+  "state": "ok",
+  "elapsed_seconds": 0.133,
+  "sha256": "51ae9b24fd5f2785e077760bb17efcbaf75287750beaba25b049a0a3bb9f92a3",
+  "capture": "169bdd36d1b5094f1def",
+  "reused_from": "data/location-sources/run-wikidata-career/http/169bdd36d1b5094f1def.json"
+}

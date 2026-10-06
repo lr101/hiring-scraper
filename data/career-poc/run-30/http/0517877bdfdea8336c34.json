@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diva-e.com/de/services/dxp/karriereportal/",
+  "checked_at": "2026-10-05T22:49:31.044215+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 314747,
+  "state": "ok",
+  "elapsed_seconds": 0.614,
+  "sha256": "f0e125918d260aa82f84c38dd308f91ae41acbcbede1c91cfd79503490a56c9c",
+  "capture": "0517877bdfdea8336c34",
+  "merged_from_run": "run-27"
+}

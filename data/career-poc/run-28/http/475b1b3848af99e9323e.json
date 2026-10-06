@@ -1,0 +1,16 @@
+{
+  "url": "https://www.itscope.com/robots.txt",
+  "checked_at": "2026-10-05T23:16:14.847464+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"669781b3-bb\"",
+  "last_modified": "Wed, 17 Jul 2024 08:32:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.393,
+  "sha256": "7e0568177366d1a36b2ea4cfdfae7dccb8610e95b490c2dce332b7cb418c7cc7",
+  "capture": "475b1b3848af99e9323e"
+}

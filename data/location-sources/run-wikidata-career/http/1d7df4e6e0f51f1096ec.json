@@ -1,0 +1,13 @@
+{
+  "url": "https://careers.ptvgroup.com/",
+  "checked_at": "2026-10-05T14:47:36.907649+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "location": "https://careers.ptvgroup.com/en",
+  "bytes": 370,
+  "state": "http_error",
+  "elapsed_seconds": 1.07,
+  "sha256": "03bb530fa29e0bf6426c7bc09cd7798444128789795d94e797a36c5e4c1e456a",
+  "capture": "1d7df4e6e0f51f1096ec"
+}

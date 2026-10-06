@@ -1,0 +1,17 @@
+{
+  "url": "https://weber-parkettboden.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:14.982192+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 122,
+  "state": "ok",
+  "elapsed_seconds": 6.604,
+  "sha256": "660aad603fdcb56ae829d88887c05039ae605faa9b364aeaa0ff53ba12df35f4",
+  "capture": "81a39941fbd61526dea6",
+  "merged_from_run": "run-28"
+}

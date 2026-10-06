@@ -1,0 +1,16 @@
+{
+  "url": "https://cloudflight.wd103.myworkdayjobs.com/en-GB/external_career_site",
+  "checked_at": "2026-10-05T23:19:55.965590+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6821,
+  "state": "ok",
+  "elapsed_seconds": 1.208,
+  "sha256": "48aa237e967d8aafab148608db4d757ee1202efb95f3a0b0145d11ff94f31043",
+  "capture": "228fb2f2617d73624529"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lernhilfefabian.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:41.274344+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 102,
+  "state": "ok",
+  "elapsed_seconds": 0.626,
+  "sha256": "09c8e12d23cb2d99301420e5be23faebe30ebfdd059fcca80b387bb0fbc2020b",
+  "capture": "ac4a618b74b85f491196",
+  "merged_from_run": "run-28"
+}

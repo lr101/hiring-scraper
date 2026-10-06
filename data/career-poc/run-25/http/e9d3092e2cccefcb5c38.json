@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hogapage.de/jobs/job",
+  "checked_at": "2026-10-05T22:20:38.872119+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109218,
+  "state": "ok",
+  "elapsed_seconds": 0.412,
+  "sha256": "85eb3d2611236d72d81802e08f162ca3c2efde04a5e501dacb7713aa55165b98",
+  "capture": "e9d3092e2cccefcb5c38"
+}

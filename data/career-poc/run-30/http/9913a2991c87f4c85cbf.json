@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tngtech.com/",
+  "checked_at": "2026-10-05T23:32:42.386204+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"689b857fad81502949a89f17889f5057\"",
+  "last_modified": "Mon, 05 Oct 2026 08:38:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 60126,
+  "state": "ok",
+  "elapsed_seconds": 1.009,
+  "sha256": "d81eee939efc4893e01ad5c111d745cd5360ee6f47c7eb84d41fb921337460ea",
+  "capture": "9913a2991c87f4c85cbf",
+  "merged_from_run": "run-28"
+}

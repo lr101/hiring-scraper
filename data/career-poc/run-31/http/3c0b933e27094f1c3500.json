@@ -1,0 +1,17 @@
+{
+  "url": "https://job.arnotec.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:57.749547+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6a792087-4d\"",
+  "last_modified": "Mon, 10 Aug 2026 00:51:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 77,
+  "state": "ok",
+  "elapsed_seconds": 0.121,
+  "sha256": "d26acdae71e4117a27fea123afbf174e2997d5acc4ba9c387d7f3d4cb35bdb44",
+  "capture": "3c0b933e27094f1c3500",
+  "merged_from_run": "run-28"
+}

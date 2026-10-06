@@ -1,0 +1,17 @@
+{
+  "url": "https://www.abilis.de/robots.txt",
+  "checked_at": "2026-10-05T23:39:52.333566+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"219-60d005e35a900\"",
+  "last_modified": "Thu, 21 Dec 2023 07:51:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 537,
+  "state": "ok",
+  "elapsed_seconds": 0.587,
+  "sha256": "a801880d13449165aa67f987a6de01037ce7e7b3706bb7fe8b0c112d0ac1776d",
+  "capture": "958d253b0216061154a0",
+  "merged_from_run": "run-28"
+}

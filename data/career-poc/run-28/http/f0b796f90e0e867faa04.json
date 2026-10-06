@@ -1,0 +1,16 @@
+{
+  "url": "https://www.psk-lions.de/news/artikel/job-not-done.html",
+  "checked_at": "2026-10-05T23:15:43.365127+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51143,
+  "state": "ok",
+  "elapsed_seconds": 1.14,
+  "sha256": "907c987bda8a404ad9f1c1cee3a1a94abef0cade6b4820e04afca3a638ad6a36",
+  "capture": "f0b796f90e0e867faa04"
+}

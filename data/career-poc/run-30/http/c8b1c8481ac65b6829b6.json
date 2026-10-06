@@ -1,0 +1,17 @@
+{
+  "url": "https://www.miedel-dirr.de/careers",
+  "checked_at": "2026-10-05T23:28:24.260913+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37956,
+  "state": "http_error",
+  "elapsed_seconds": 1.092,
+  "sha256": "2e873da75eacd18a115e812a8c2ac492fa3fde946dd24d5c871b06409f10b612",
+  "capture": "c8b1c8481ac65b6829b6",
+  "merged_from_run": "run-28"
+}

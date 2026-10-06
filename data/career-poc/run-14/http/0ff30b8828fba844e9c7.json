@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student",
+  "checked_at": "2026-10-05T20:42:22.288957+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57502,
+  "state": "ok",
+  "elapsed_seconds": 2.218,
+  "sha256": "553c2cf47334f6930ea7698ad703078bcc98623b033c5cce2cb98503b8b399c7",
+  "capture": "0ff30b8828fba844e9c7"
+}

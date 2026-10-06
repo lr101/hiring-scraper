@@ -1,0 +1,17 @@
+{
+  "url": "https://podcasts.apple.com/de/podcast/ramona-perfetti-sichtbarkeit-als-karriere-booster/id1304257352?i=1000502548472",
+  "checked_at": "2026-10-05T22:43:26.452534+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2446,
+  "state": "http_error",
+  "elapsed_seconds": 1.205,
+  "sha256": "81a9657988d821b9324ad73de92aa7e2cd292520d516fad75ae3ab3f3a9bdb32",
+  "capture": "66cb9fae0c464aeafd0b",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://lutzbeck.de/robots.txt",
+  "checked_at": "2026-10-05T23:02:29.131594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 115,
+  "state": "ok",
+  "elapsed_seconds": 1.786,
+  "sha256": "dca0fc17cb163a5c62fc1103c94192e417d5d02ae56b6a91fa3055610b98a138",
+  "capture": "e9eb3290c43ff5467902"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://roth-kaelte.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:25:41.349031+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 9180,
+  "state": "ok",
+  "elapsed_seconds": 0.987,
+  "sha256": "97ed2db6c6948ecd9fc001105ac7ec6267e11b65773be5c7b20d3c212cab9693",
+  "capture": "ac55eb72abc77ba0c082"
+}

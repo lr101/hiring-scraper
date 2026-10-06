@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vidia-kliniken.de/ueber-uns/verwaltung-und-dienstleistungen",
+  "checked_at": "2026-10-05T23:12:36.163450+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1268161,
+  "state": "ok",
+  "elapsed_seconds": 3.169,
+  "sha256": "42765bb486319d22d855d2a0699563a7147848ea9fef02a60a871bd354639014",
+  "capture": "8bd9dca8360c8118afd7"
+}

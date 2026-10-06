@@ -1,0 +1,17 @@
+{
+  "url": "https://career.bee360.com/careers.html",
+  "checked_at": "2026-10-05T23:23:45.129944+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/careers",
+  "bytes": 15,
+  "state": "http_error",
+  "elapsed_seconds": 1.037,
+  "sha256": "7c040f8633b8823d72ed63da9b3b2dfe9846e912c66a64c9433ec9c4815d76c2",
+  "capture": "3ddde8522ed0c8a9895b",
+  "merged_from_run": "run-28"
+}

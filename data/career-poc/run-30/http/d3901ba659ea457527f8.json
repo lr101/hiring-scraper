@@ -1,0 +1,17 @@
+{
+  "url": "https://www.offene-werkstatt-ka.de/",
+  "checked_at": "2026-10-05T23:22:04.499578+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89627,
+  "state": "ok",
+  "elapsed_seconds": 1.103,
+  "sha256": "ab7929e42a0d337d435f5f65a8fbcbf6ace944e0636f4ddb2603f9332e33dc0a",
+  "capture": "d3901ba659ea457527f8",
+  "merged_from_run": "run-28"
+}

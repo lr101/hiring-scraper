@@ -22,13 +22,16 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class OriginPacer:
-    """Share a minimum request-start interval across clients in one worker process."""
+    """Pace requests per origin without making unrelated origins wait on each other."""
     def __init__(self):
         self.last: dict[tuple[str, str], float] = {}
-        self.lock = Lock()
+        self._locks_guard = Lock()
+        self._origin_locks: dict[tuple[str, str], Lock] = {}
 
     def wait(self, origin: tuple[str, str], delay: float) -> None:
-        with self.lock:
+        with self._locks_guard:
+            origin_lock = self._origin_locks.setdefault(origin, Lock())
+        with origin_lock:
             now = time.monotonic()
             wait = delay - (now - self.last.get(origin, 0.0))
             if wait > 0:

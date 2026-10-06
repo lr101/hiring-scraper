@@ -1,0 +1,16 @@
+{
+  "url": "https://www.keppel-anderer.de/",
+  "checked_at": "2026-10-05T23:18:41.681096+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 313767,
+  "state": "ok",
+  "elapsed_seconds": 4.293,
+  "sha256": "c628935c934dcacf362b362a35ffc1891f1862fcf3d5e7a30f6b099d0f696060",
+  "capture": "ff100c44d8c154fead6f"
+}

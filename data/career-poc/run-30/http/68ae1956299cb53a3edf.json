@@ -1,0 +1,17 @@
+{
+  "url": "https://www.alfatraining.de/unternehmen/jobs-dozierende",
+  "checked_at": "2026-10-05T22:05:54.900491+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91047,
+  "state": "ok",
+  "elapsed_seconds": 1.1,
+  "sha256": "3cd547cc17cae3f427bb306495202e77a04ddfa10e91022eb2aa132bfec39734",
+  "capture": "68ae1956299cb53a3edf",
+  "merged_from_run": "run-25"
+}

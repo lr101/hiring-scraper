@@ -1,0 +1,17 @@
+{
+  "url": "https://www.beckers-rechtspsychologie.de/robots.txt",
+  "checked_at": "2026-10-05T22:32:07.110255+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64,
+  "state": "ok",
+  "elapsed_seconds": 0.164,
+  "sha256": "c7e4996ae7f3357279931db359ddb5abaaa43519f63a5c61925424029bd3c4a7",
+  "capture": "22cf04351dd305663566",
+  "merged_from_run": "run-26"
+}

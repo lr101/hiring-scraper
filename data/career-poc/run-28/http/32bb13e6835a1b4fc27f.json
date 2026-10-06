@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zeppelin-rental.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:16.939736+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"1791242373\"",
+  "last_modified": "Mon, 05 Oct 2026 23:19:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1794,
+  "state": "ok",
+  "elapsed_seconds": 0.91,
+  "sha256": "9730024b2148737f780059fe4da047034312d87f3a3dc4748be250549d566b0a",
+  "capture": "32bb13e6835a1b4fc27f"
+}

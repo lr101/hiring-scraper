@@ -1,0 +1,16 @@
+{
+  "url": "https://scheffler-haustechnik.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:43:14.204651+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"a33-6044635b719d4\"",
+  "last_modified": "Fri, 01 Sep 2023 06:24:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2611,
+  "state": "ok",
+  "elapsed_seconds": 0.933,
+  "sha256": "29579f49156c647614a8c7fa5110d699b5cdd006ff38b4419245406a5472f0cc",
+  "capture": "aaface6fc71f039360b6"
+}

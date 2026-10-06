@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tk.de/karriere",
+  "checked_at": "2026-10-05T22:29:14.857677+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Wed, 01 Apr 2026 14:18:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 93761,
+  "state": "ok",
+  "elapsed_seconds": 1.185,
+  "sha256": "42010e45c997c8903db225d7522ee63d8eeb39d7a9d5bdfbbb1aad13551aad11",
+  "capture": "e32dcd27e81086f56955",
+  "merged_from_run": "run-26"
+}

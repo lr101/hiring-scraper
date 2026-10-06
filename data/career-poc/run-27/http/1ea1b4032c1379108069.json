@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.1und1.de/finanz-jobs",
+  "checked_at": "2026-10-05T22:59:01.118591+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48805,
+  "state": "ok",
+  "elapsed_seconds": 2.485,
+  "sha256": "ed82c071b7d96565e269ed11a364fc846fcda8cd9817ac3817dd5fc99bcb9e2f",
+  "capture": "1ea1b4032c1379108069"
+}

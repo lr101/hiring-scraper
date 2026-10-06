@@ -1,0 +1,17 @@
+{
+  "url": "https://baidenger-finanzberatung.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:17:18.178059+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": "\"a4a2d2e1135baa4e483fb110162cb669\"",
+  "last_modified": "Mon, 05 Oct 2026 23:17:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 11712,
+  "state": "ok",
+  "elapsed_seconds": 6.673,
+  "sha256": "577529df49ecffd5a9d3cd5a9df65fe97ae9a2f86030791d958a9f16861cb874",
+  "capture": "0c88b32aee7ac9d89632",
+  "merged_from_run": "run-28"
+}

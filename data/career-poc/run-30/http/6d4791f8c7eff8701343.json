@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mbbm-ind.com/robots.txt",
+  "checked_at": "2026-10-05T23:21:54.887921+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Wed, 30 Sep 2026 11:16:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2388,
+  "state": "ok",
+  "elapsed_seconds": 0.173,
+  "sha256": "b0b0aabec53e8024c37f64aa79e4d94e5d67d897ffbf46511518908b1e0cf07c",
+  "capture": "6d4791f8c7eff8701343",
+  "merged_from_run": "run-28"
+}

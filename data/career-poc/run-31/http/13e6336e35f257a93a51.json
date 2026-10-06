@@ -1,0 +1,17 @@
+{
+  "url": "https://maler-doldt.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:28:50.355403+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"44e-6457fe30c9c92\"",
+  "last_modified": "Tue, 09 Dec 2025 07:30:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1102,
+  "state": "ok",
+  "elapsed_seconds": 0.727,
+  "sha256": "7d52f4a0191d6695a0f3b99b11f46dd9c8c5a5941daef174dabf5a4fbd56b476",
+  "capture": "13e6336e35f257a93a51",
+  "merged_from_run": "run-28"
+}

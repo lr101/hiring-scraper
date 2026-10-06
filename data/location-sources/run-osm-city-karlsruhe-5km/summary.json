@@ -1,0 +1,36 @@
+{
+  "scope": {
+    "kind": "city_radius",
+    "city": "Karlsruhe",
+    "center_lat": 49.0068705,
+    "center_lon": 8.4034195,
+    "radius_m": 5000,
+    "geocode": {
+      "city": "Karlsruhe",
+      "state": "Baden-Württemberg",
+      "lat": 49.0068705,
+      "lon": 8.4034195,
+      "display_name": "Karlsruhe, Baden-Württemberg, Deutschland",
+      "osm_type": "relation",
+      "osm_id": 62518
+    }
+  },
+  "source": "OpenStreetMap via Overpass API",
+  "request": {
+    "status": 504,
+    "final_url": "https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%5Btimeout%3A60%5D%3B%0A%28%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Boffice%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bcraft%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bindustrial%5D%3B%0A%29%3B%0Aout+center+tags%3B",
+    "content_type": "text/html; charset=utf-8",
+    "bytes": 695,
+    "sha256": "9e8d149c02b9ab7719f9e6cfdf696730c39abead6f27e39eb13793b7d2adbb82",
+    "elapsed_seconds": 7.36,
+    "truncated": false,
+    "error": null
+  },
+  "query_sha256": "a9d65327957f03f0cfaf69009d691d152be3e2fb66f4d28aa083c5b347785ed8",
+  "complete": false,
+  "overpass_remark": null,
+  "parse_error": null,
+  "candidates": 0,
+  "with_website": 0,
+  "distinct_website_hosts": 0
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://reif.app/apps/sparta/public/detail.php?preset=internet_lang&job=1RLM7Z292l",
+  "checked_at": "2026-10-05T23:36:17.869145+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11335,
+  "state": "ok",
+  "elapsed_seconds": 1.001,
+  "sha256": "44d7da5ca8d5884754dcc55659ef1a551144bac4b33496a77ec6a1f23b2f3016",
+  "capture": "a05628a253b19e30df77",
+  "merged_from_run": "run-28"
+}

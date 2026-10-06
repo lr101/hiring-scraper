@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bafa-gmbh.de/karriere",
+  "checked_at": "2026-10-05T23:36:58.081843+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196,
+  "state": "http_error",
+  "elapsed_seconds": 0.991,
+  "sha256": "80c3fe2ae1062abf56456f52518bd670f9ec3917b7f85e152b347ac6b6faf880",
+  "capture": "321425347093d1c13915"
+}

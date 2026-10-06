@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brecht-galabau.de/jobs",
+  "checked_at": "2026-10-05T23:43:16.203845+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14478,
+  "state": "http_error",
+  "elapsed_seconds": 0.981,
+  "sha256": "1973aa2b195e778e35cea6679aaaf47b58604659fc47f6a1bba0e3c413c7bf46",
+  "capture": "1a9c5b35aba2a2adcbfe",
+  "merged_from_run": "run-28"
+}

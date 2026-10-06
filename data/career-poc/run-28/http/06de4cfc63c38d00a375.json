@@ -1,0 +1,16 @@
+{
+  "url": "https://www.abd-dreherei.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:42:53.802965+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 376,
+  "state": "ok",
+  "elapsed_seconds": 1.15,
+  "sha256": "cac70581d7a7d041218bdd78d33d861c35280699ce618d8434ec14523153dcf5",
+  "capture": "06de4cfc63c38d00a375"
+}

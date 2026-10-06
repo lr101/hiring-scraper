@@ -1,0 +1,16 @@
+{
+  "url": "https://www.codewerk.de/job/office-management-m-w-d/",
+  "checked_at": "2026-10-05T23:30:42.079022+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:09:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 430906,
+  "state": "ok",
+  "elapsed_seconds": 0.92,
+  "sha256": "4e0ed1289f83d1c946ee843755c01ae5e7e7fe66846224e3087c98dc37529d05",
+  "capture": "121c39e4ad6556832f4f"
+}

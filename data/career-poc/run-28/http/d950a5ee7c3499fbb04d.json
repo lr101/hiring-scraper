@@ -1,0 +1,16 @@
+{
+  "url": "https://xdsb.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:26.344902+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"91-60f32ee6e1d7e\"",
+  "last_modified": "Thu, 18 Jan 2024 07:01:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 145,
+  "state": "ok",
+  "elapsed_seconds": 0.834,
+  "sha256": "c2ac048efd7f4534ad18e6150478f65ac7b71c7255fa488740df2931c447cbf1",
+  "capture": "d950a5ee7c3499fbb04d"
+}

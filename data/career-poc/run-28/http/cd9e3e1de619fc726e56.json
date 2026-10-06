@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitsagentur.de/karriere-und-weiterbildung",
+  "checked_at": "2026-10-05T23:16:03.516415+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"xgohs50qfo1zs1\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93225,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "0a66545a2a93bf8f7d09cf3548fbf35df65b8150280ec70e28a4b42684346fc1",
+  "capture": "cd9e3e1de619fc726e56"
+}

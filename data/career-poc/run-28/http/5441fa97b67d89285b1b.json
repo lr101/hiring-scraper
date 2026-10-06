@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drhaasters.net/",
+  "checked_at": "2026-10-05T23:24:32.764016+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 141397,
+  "state": "ok",
+  "elapsed_seconds": 1.15,
+  "sha256": "7440cae12b06d0e230e5974e0113cf56a291fb67a7321be76c7648f274ea5bbc",
+  "capture": "5441fa97b67d89285b1b"
+}

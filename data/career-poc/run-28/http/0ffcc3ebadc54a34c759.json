@@ -1,0 +1,16 @@
+{
+  "url": "https://www.altus-re.de/jobs-sitemap.xml",
+  "checked_at": "2026-10-05T23:26:59.860888+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 762,
+  "state": "ok",
+  "elapsed_seconds": 1.158,
+  "sha256": "dff06c5c666b95ce3e5cea2f0c267a4056b8b8ba8e7cb4aab09b047671c57d73",
+  "capture": "0ffcc3ebadc54a34c759"
+}

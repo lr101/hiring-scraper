@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hitex.com/",
+  "checked_at": "2026-10-05T23:35:33.418878+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98060,
+  "state": "ok",
+  "elapsed_seconds": 1.09,
+  "sha256": "77a2ad3284a95cfe377258bb145c7de9c4248118c4caea67201cd2c1ba0543b3",
+  "capture": "66b0141815680d2188a5"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bell.de/jobs",
+  "checked_at": "2026-10-05T23:34:26.201749+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 88534,
+  "state": "ok",
+  "elapsed_seconds": 1.051,
+  "sha256": "9735ecc755558e41742fa3ac3222a330da900dff1408bf2e470cd1c9ea5330a8",
+  "capture": "d65586bf950b79d2f456",
+  "merged_from_run": "run-28"
+}

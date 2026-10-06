@@ -1,0 +1,16 @@
+{
+  "url": "https://www.makoujewelry.de/",
+  "checked_at": "2026-10-05T22:42:39.847425+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"page_cache:42572611752:IndexController:8a2686dea8fb0f787270a228123be69a:fb99753d816b039d7e57d6d41415cffb\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 341499,
+  "state": "ok",
+  "elapsed_seconds": 0.465,
+  "sha256": "eb24b3ca1118238128a042c7b968e064c006b4bff486caf38fca846961609284",
+  "capture": "45620d5af68f6a60832b"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pse.kit.edu/english/karriere/121.php",
+  "checked_at": "2026-10-05T23:41:52.855803+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.kit.edu/karriere/stellenangebote.php",
+  "bytes": 381,
+  "state": "http_error",
+  "elapsed_seconds": 0.982,
+  "sha256": "31a900bfe15849a5716ce90ab26d0465ae3793c789825aa614615aa429086eda",
+  "capture": "3d9d42015ece0db77f17",
+  "merged_from_run": "run-28"
+}

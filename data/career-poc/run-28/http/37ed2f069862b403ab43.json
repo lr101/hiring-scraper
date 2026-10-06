@@ -1,0 +1,16 @@
+{
+  "url": "https://www.raumkontakt.de/robots.txt",
+  "checked_at": "2026-10-05T23:15:12.397796+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 151,
+  "state": "ok",
+  "elapsed_seconds": 1.054,
+  "sha256": "f51a66fc1ffda64744be59a273e26d90841debfd9b402eb3f46c069b6a5696d4",
+  "capture": "37ed2f069862b403ab43"
+}

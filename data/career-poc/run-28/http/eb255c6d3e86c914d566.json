@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ihk-biz.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:26:05.099905+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60981,
+  "state": "ok",
+  "elapsed_seconds": 0.901,
+  "sha256": "d44ada954cd4b5daf207e35fa51d02cf26984f987d7ced966f8e4ecedec50523",
+  "capture": "eb255c6d3e86c914d566"
+}

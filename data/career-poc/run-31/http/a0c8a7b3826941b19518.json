@@ -1,0 +1,17 @@
+{
+  "url": "https://www.itb.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:19:15.878421+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1552,
+  "state": "ok",
+  "elapsed_seconds": 1.754,
+  "sha256": "343333791b5b9cccba01d6610c8ca6958b4b8a071f8724065fb6c8fa90a12386",
+  "capture": "a0c8a7b3826941b19518",
+  "merged_from_run": "run-28"
+}

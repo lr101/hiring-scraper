@@ -1,0 +1,16 @@
+{
+  "url": "https://punkt.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:29.049241+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 0.865,
+  "sha256": "f31175ea030de08c9cc2111c9647276d0123eae9ae076d17ea6cc4d0dca0c306",
+  "capture": "a712bab101f43c3a56ad"
+}

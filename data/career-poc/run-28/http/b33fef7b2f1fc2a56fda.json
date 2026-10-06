@@ -1,0 +1,16 @@
+{
+  "url": "https://www.swhs.de/",
+  "checked_at": "2026-10-05T23:45:13.989929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 46530,
+  "state": "ok",
+  "elapsed_seconds": 1.896,
+  "sha256": "489b208fe1bf436d8c8817264775a4eb23f2a900926eae9c98152fd29f586d33",
+  "capture": "b33fef7b2f1fc2a56fda"
+}

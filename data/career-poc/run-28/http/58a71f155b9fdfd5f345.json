@@ -1,0 +1,16 @@
+{
+  "url": "https://www.coface.de/ueber-uns/karriere",
+  "checked_at": "2026-10-05T23:21:46.050808+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123846,
+  "state": "ok",
+  "elapsed_seconds": 0.716,
+  "sha256": "f60f1fc125883f7c05160213cc5dda8be9a79d494f91f4bcf8ab6463b3e5f8f1",
+  "capture": "58a71f155b9fdfd5f345"
+}

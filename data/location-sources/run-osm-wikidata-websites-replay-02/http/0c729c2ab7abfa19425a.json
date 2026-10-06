@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bgv.de/privatkunden/",
+  "checked_at": "2026-10-06T07:06:15.297381+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171523,
+  "state": "ok",
+  "elapsed_seconds": 1.135,
+  "sha256": "0c3cc1ba9333c4104a36a4fe6d5d3e3c3d2a5e6680dc1ce72868085606ddc6b0",
+  "capture": "0c729c2ab7abfa19425a",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/0c729c2ab7abfa19425a.json"
+}

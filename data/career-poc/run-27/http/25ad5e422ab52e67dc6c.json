@@ -1,0 +1,16 @@
+{
+  "url": "https://www.adesso.de/de/",
+  "checked_at": "2026-10-05T22:47:48.827925+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86030,
+  "state": "ok",
+  "elapsed_seconds": 1.108,
+  "sha256": "f04def39bd33b3a0f6373e46f857975a79b9ea176fb3bb82ee3046d4a3102605",
+  "capture": "25ad5e422ab52e67dc6c"
+}

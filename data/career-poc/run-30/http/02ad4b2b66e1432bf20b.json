@@ -1,0 +1,17 @@
+{
+  "url": "https://mahler-transporte.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:00.090711+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 0.467,
+  "sha256": "7c86aa9a4629ad809e2e3c112851b8e2372318acce78cdff1ae9e37fa2b1b827",
+  "capture": "02ad4b2b66e1432bf20b",
+  "merged_from_run": "run-28"
+}

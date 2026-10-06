@@ -1,0 +1,14 @@
+{
+  "url": "https://www.moninger.de/",
+  "checked_at": "2026-10-05T14:48:51.319112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 1717,
+  "state": "ok",
+  "elapsed_seconds": 1.344,
+  "sha256": "e88788f0f5cba62c24c8e6d785191a43f018185aec121bb55a9478127f0cc366",
+  "capture": "50551297bafcf937ea7b",
+  "reused_from": "data/location-sources/run-wikidata-career/http/50551297bafcf937ea7b.json"
+}

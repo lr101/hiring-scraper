@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ludwigcenter.de/",
+  "checked_at": "2026-10-05T23:31:37.327171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1yezvdnnlk12s5\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50324,
+  "state": "ok",
+  "elapsed_seconds": 1.09,
+  "sha256": "b4c2fe1faeecd81bc491458b5de751669fa6cd1a8f5830e6a920573a400c7b62",
+  "capture": "0a3d530ef042467ba1b3",
+  "merged_from_run": "run-28"
+}

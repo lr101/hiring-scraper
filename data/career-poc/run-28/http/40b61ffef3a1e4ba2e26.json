@@ -1,0 +1,16 @@
+{
+  "url": "https://hbhmw.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:38:46.555486+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1802,
+  "state": "http_error",
+  "elapsed_seconds": 0.873,
+  "sha256": "2612921e647dd7e290f0a2b1086e795800001f9c8c721103350eb3b64eef2356",
+  "capture": "40b61ffef3a1e4ba2e26"
+}

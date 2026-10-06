@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.strabag.com/de/aktuelles",
+  "checked_at": "2026-10-05T23:32:29.271549+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63573,
+  "state": "ok",
+  "elapsed_seconds": 1.043,
+  "sha256": "82eb37860e3583e4a0f942bfd6920df9a68261bfc9ed5214f45a4545718709dd",
+  "capture": "be9881847b63cb1c8520"
+}

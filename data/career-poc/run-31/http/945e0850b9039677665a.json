@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vhs-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:15:47.035306+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 249221,
+  "state": "http_error",
+  "elapsed_seconds": 0.982,
+  "sha256": "e234e5ed0477a8ac4cf868285fb855b96acf67d1cb96fffb292c207c6d32d998",
+  "capture": "945e0850b9039677665a",
+  "merged_from_run": "run-28"
+}

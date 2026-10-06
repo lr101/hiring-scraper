@@ -1,0 +1,17 @@
+{
+  "url": "https://www.immobilien-derr.de/robots.txt",
+  "checked_at": "2026-10-05T22:30:09.425942+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"-314076009\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 0.35,
+  "sha256": "3f3af7941f06b16c874bd9b6384f33b0bf82d7fb8e87abbaaa21ed435f4dd285",
+  "capture": "64fee29cb38c24d0c3ce",
+  "merged_from_run": "run-26"
+}

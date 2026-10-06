@@ -1,0 +1,16 @@
+{
+  "url": "https://www.roeser-international.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T22:14:21.502369+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2395,
+  "state": "ok",
+  "elapsed_seconds": 1.473,
+  "sha256": "fc3bd3445213389e3b1a314f10a5148385ef0dbd8ea8a285ba3bc084cb037202",
+  "capture": "978bb618967a39efd2f9"
+}

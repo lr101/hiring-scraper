@@ -1,0 +1,16 @@
+{
+  "url": "https://schweikert-schilling.de/",
+  "checked_at": "2026-10-05T22:36:49.430017+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 173641,
+  "state": "ok",
+  "elapsed_seconds": 0.861,
+  "sha256": "1f3eb538db2a828fda71ad6e6b93883db0c693d42e9bfc98290131679203762a",
+  "capture": "db3edcf184329f85f357"
+}

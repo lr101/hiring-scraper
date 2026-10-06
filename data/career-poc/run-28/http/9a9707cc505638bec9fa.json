@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ww-ag.com/de/karriere",
+  "checked_at": "2026-10-05T23:24:38.948563+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127792,
+  "state": "ok",
+  "elapsed_seconds": 1.058,
+  "sha256": "d70950151a82ea3a2d8f6fcd79ed63fe547d9cbc3206af5192effd2baf2c2647",
+  "capture": "9a9707cc505638bec9fa"
+}

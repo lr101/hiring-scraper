@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bd-kanzlei.de/karriere/rechtsanwalt-in-karlsruhe/",
+  "checked_at": "2026-10-05T22:28:28.566230+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"9e00334b-6095-65cb946b42282\"",
+  "last_modified": "Wed, 30 Sep 2026 20:38:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 24725,
+  "state": "ok",
+  "elapsed_seconds": 1.074,
+  "sha256": "37e83058e7a69445d8375e242c84baec24c902c8390841cb958d1e205d939c27",
+  "capture": "91da5855199a70f18dc3",
+  "merged_from_run": "run-26"
+}

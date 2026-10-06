@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe-event.de/jobs",
+  "checked_at": "2026-10-05T22:08:06.449877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10672,
+  "state": "http_error",
+  "elapsed_seconds": 1.285,
+  "sha256": "45e5b2486b97806c8a4f97bd3c773e51462f51103aa7b3499014980ab2263581",
+  "capture": "82e4dcab30b52c6d566d"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.disy.net/en/career/jobs/",
+  "checked_at": "2026-10-05T23:03:14.637600+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28767,
+  "state": "ok",
+  "elapsed_seconds": 1.322,
+  "sha256": "3968241cc0dde046844da21cbfd0afc99a5f6e0e366d69558b398753872d0a9c",
+  "capture": "8be5c1d94ec76ad765d9"
+}

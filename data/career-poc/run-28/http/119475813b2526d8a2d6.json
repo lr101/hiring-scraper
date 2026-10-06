@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.bremerbau.de/",
+  "checked_at": "2026-10-05T23:17:45.726058+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129115,
+  "state": "ok",
+  "elapsed_seconds": 1.141,
+  "sha256": "77a1c1605d6fd605b128470d35d893cbe279e19807a77bcfa3211ed54d277a01",
+  "capture": "119475813b2526d8a2d6"
+}

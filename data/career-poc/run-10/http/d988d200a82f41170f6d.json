@@ -1,0 +1,13 @@
+{
+  "url": "https://www.unic.com/de/jobs/system-engineer",
+  "checked_at": "2026-10-05T14:04:58.162526+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 282189,
+  "state": "ok",
+  "elapsed_seconds": 1.414,
+  "sha256": "c7563c6558fd7cf67aff069f82d8e3ac9efba5b4916247a1782a2a199c220298",
+  "capture": "d988d200a82f41170f6d"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nexnoa.com/de/jobs/lebensmitteltechnologin-lebensmitteltechnologe/",
+  "checked_at": "2026-10-05T23:29:26.450596+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110387,
+  "state": "ok",
+  "elapsed_seconds": 2.275,
+  "sha256": "fcacceb278efd4a03504b0877ec45a4794ef8d93089cffb1f6eb0da01e1a5f72",
+  "capture": "0dc1a2dcb8fdefe6fde9",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.malteser-bw.de/robots.txt",
+  "checked_at": "2026-10-05T22:46:57.542958+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"dd5qdbx8pzwg17f-gzip\"",
+  "last_modified": "Tue, 30 Sep 2025 01:06:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1563,
+  "state": "ok",
+  "elapsed_seconds": 0.089,
+  "sha256": "80d583dca5db8e7eaffaef098cae611c0961842905e219c1f56d57ffb333a434",
+  "capture": "591a1d1bb41e3d14a63a"
+}

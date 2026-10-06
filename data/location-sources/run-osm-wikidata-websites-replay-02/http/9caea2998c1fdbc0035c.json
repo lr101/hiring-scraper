@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drk.de/mitwirken/karriere/altenpflege-drk/",
+  "checked_at": "2026-10-06T07:07:33.157822+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"396c8427ddd607b045acb686a8296fac\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 229160,
+  "state": "ok",
+  "elapsed_seconds": 1.236,
+  "sha256": "51c6dda2416708e655d31056e27f44331df504e5d0af710393c2ee4ae82b2449",
+  "capture": "9caea2998c1fdbc0035c",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/9caea2998c1fdbc0035c.json"
+}

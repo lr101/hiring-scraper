@@ -1,0 +1,16 @@
+{
+  "url": "https://www.altium.com/robots.txt",
+  "checked_at": "2026-10-05T22:24:32.564921+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"1791204387\"",
+  "last_modified": "Mon, 05 Oct 2026 12:46:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 4866,
+  "state": "ok",
+  "elapsed_seconds": 0.089,
+  "sha256": "874ae91cfb67820b754fdf20a0b3b894d51cd40eaf383df2f3a5c5412a67055c",
+  "capture": "de053dcf1810cf072358"
+}

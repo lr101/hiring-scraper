@@ -1,0 +1,17 @@
+{
+  "url": "https://svt-sanierung.de/",
+  "checked_at": "2026-10-05T23:38:30.997149+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 122667,
+  "state": "ok",
+  "elapsed_seconds": 4.029,
+  "sha256": "2aecd5052fc419c9cd0239075c5717829e46f3b0416ef6e2118391dd37ff0a70",
+  "capture": "5046ac711a7002ae5347",
+  "merged_from_run": "run-28"
+}

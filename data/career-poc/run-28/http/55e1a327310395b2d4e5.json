@@ -1,0 +1,16 @@
+{
+  "url": "https://metz-stukkateurmeisterbetrieb.de/startseite.html",
+  "checked_at": "2026-10-05T23:44:27.066719+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17483,
+  "state": "ok",
+  "elapsed_seconds": 1.667,
+  "sha256": "bbb2e532d982433090556f68d335aca51635e5e92a29534d07abaa183fb527b0",
+  "capture": "55e1a327310395b2d4e5"
+}

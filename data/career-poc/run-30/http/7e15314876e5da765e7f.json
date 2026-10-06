@@ -1,0 +1,17 @@
+{
+  "url": "http://www.nfdi.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:41.328877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"e-5bea85dcc3340\"",
+  "last_modified": "Mon, 29 Mar 2021 08:07:01 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 14,
+  "state": "ok",
+  "elapsed_seconds": 0.28,
+  "sha256": "fd89345af6aca5dab85f2aa6a830e270a362b1fa6b5f19607ddd773a081ed651",
+  "capture": "7e15314876e5da765e7f",
+  "merged_from_run": "run-28"
+}

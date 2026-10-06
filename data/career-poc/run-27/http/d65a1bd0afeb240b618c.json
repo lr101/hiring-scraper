@@ -1,0 +1,16 @@
+{
+  "url": "https://cci-dialog.de/stellenmarkt/",
+  "checked_at": "2026-10-05T22:52:59.933889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 170445,
+  "state": "ok",
+  "elapsed_seconds": 1.667,
+  "sha256": "74b3c3e60e1704ef1fc324d75211d61855ecc05d0a63b61b182240384a340e84",
+  "capture": "d65a1bd0afeb240b618c"
+}

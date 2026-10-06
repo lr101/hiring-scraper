@@ -1,0 +1,16 @@
+{
+  "url": "https://trautmann-bauunternehmen.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:24.776419+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Wed, 16 Oct 2024 12:27:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 130,
+  "state": "ok",
+  "elapsed_seconds": 0.115,
+  "sha256": "4e9d8859429854596f01ea756c63f4d73c2995015238957904ae55d2e2e9f1e8",
+  "capture": "fb8f6ed4b1dff898c827"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.frischewelt.net/karriere",
+  "checked_at": "2026-10-05T23:14:44.824740+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 283422,
+  "state": "http_error",
+  "elapsed_seconds": 0.165,
+  "sha256": "212764459fb8d0af9ad79857ae87c9515e35f468fd22292d633f448db2a22337",
+  "capture": "4b68186b11fa10f00771"
+}

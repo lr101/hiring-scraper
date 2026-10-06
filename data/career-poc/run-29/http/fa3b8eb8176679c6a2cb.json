@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dpa.com/de/kontakt/redaktion/",
+  "checked_at": "2026-10-05T22:39:40.728320+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/de/kontakt/redaktion",
+  "bytes": 21,
+  "state": "http_error",
+  "elapsed_seconds": 1.13,
+  "sha256": "8af7ed83380acb4aaaebb44cfc19bd704765f60ad726777194ae6303d918c522",
+  "capture": "fa3b8eb8176679c6a2cb",
+  "merged_from_run": "run-27"
+}

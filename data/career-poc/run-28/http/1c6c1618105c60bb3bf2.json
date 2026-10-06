@@ -1,0 +1,16 @@
+{
+  "url": "https://www.enviolet.com/robots.txt",
+  "checked_at": "2026-10-05T23:18:57.596594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 667,
+  "state": "ok",
+  "elapsed_seconds": 0.281,
+  "sha256": "03db033c146318734f655b07c1ed84a0e57a17ae16b75f25ec300b45325cb7cf",
+  "capture": "1c6c1618105c60bb3bf2"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://appsphere.com/",
+  "checked_at": "2026-10-05T23:35:44.100826+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:54:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 123150,
+  "state": "ok",
+  "elapsed_seconds": 0.638,
+  "sha256": "7366e9af77612bb85a36ff1dd0298b8f67ad50b823dca6d87ceabe8ea4200eae",
+  "capture": "ee1648eef49be07a8aa0",
+  "merged_from_run": "run-28"
+}

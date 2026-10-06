@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bgbw.landbw.de/pb/,Lde/Startseite/Jobs+_+Karriere/Gehalt+und+Benefits",
+  "checked_at": "2026-10-05T22:06:30.938889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 70198,
+  "state": "ok",
+  "elapsed_seconds": 1.149,
+  "sha256": "ebcdbce3d19ed36b1591ed17a5b3a36b159841fd27b73f8741771b5ad8dc4bc5",
+  "capture": "98e0dccfcf6ebf87939e"
+}

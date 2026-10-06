@@ -1,0 +1,16 @@
+{
+  "url": "https://www.assecosolutions.com/jobs/",
+  "checked_at": "2026-10-05T23:32:55.447821+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:32:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 258898,
+  "state": "ok",
+  "elapsed_seconds": 1.858,
+  "sha256": "dfa6e24c653b25525d8565965a49ce2bde8640235aa7f650dd5737627027cca5",
+  "capture": "7557053ea66222a83ff0"
+}

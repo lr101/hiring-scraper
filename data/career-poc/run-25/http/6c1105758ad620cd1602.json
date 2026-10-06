@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bkk-verbundplus.de/unternehmen/karriere/ausbildung-und-duales-studium/",
+  "checked_at": "2026-10-05T22:21:17.963801+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 230839,
+  "state": "ok",
+  "elapsed_seconds": 0.319,
+  "sha256": "3fb0f00c847a90f59ebd61aeb7b2568d68e9dbf95ae6aa106a2f3d88eb7660cc",
+  "capture": "6c1105758ad620cd1602"
+}

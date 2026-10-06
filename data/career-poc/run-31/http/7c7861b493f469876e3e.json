@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arbeitsrecht-karlsruhe.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T22:54:06.091435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5971,
+  "state": "ok",
+  "elapsed_seconds": 3.497,
+  "sha256": "196f9623ce6c65f02e73c9552ae16555e4aac254ed04191c3e7b3919e7226168",
+  "capture": "7c7861b493f469876e3e",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://ritterweiss.de/job/rechtsanwalt-m-w-d/",
+  "checked_at": "2026-10-05T23:40:57.677747+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 138176,
+  "state": "ok",
+  "elapsed_seconds": 0.898,
+  "sha256": "aded45779f125671d7b990c707a3a6d1bf18a55b0670a20c127052b6faeab1e6",
+  "capture": "5209751262f09b1559bb",
+  "merged_from_run": "run-28"
+}

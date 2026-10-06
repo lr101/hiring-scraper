@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cas.de/sitemap/page-de.xml",
+  "checked_at": "2026-10-05T23:22:16.069923+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29996,
+  "state": "ok",
+  "elapsed_seconds": 1.01,
+  "sha256": "446786a86f5b3aba0e73ca97b158539cf0c1e9e9039572e710b191f4265fbe15",
+  "capture": "6a0be0dd2abef44e77ed",
+  "merged_from_run": "run-28"
+}

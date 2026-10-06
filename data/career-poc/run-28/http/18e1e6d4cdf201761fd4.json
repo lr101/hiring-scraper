@@ -1,0 +1,16 @@
+{
+  "url": "https://synergie.de/fr/bewerber/karriere-intern/",
+  "checked_at": "2026-10-05T23:25:25.332596+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 240825,
+  "state": "ok",
+  "elapsed_seconds": 0.914,
+  "sha256": "cea4f0a5fce82ea7198014693083f6cfc3e00ee6840e9ecc6fb74038e4f08b6b",
+  "capture": "18e1e6d4cdf201761fd4"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://raumfabrik-durlach.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:29.013812+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 122,
+  "state": "ok",
+  "elapsed_seconds": 0.931,
+  "sha256": "3cf006e9d567cd5377f39c0afb93193edc199f3a27fc5288bd364d6c7421d24a",
+  "capture": "b49e78939e97f44b4029"
+}

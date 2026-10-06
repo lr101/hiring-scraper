@@ -1,0 +1,17 @@
+{
+  "url": "https://audials.com/",
+  "checked_at": "2026-10-05T22:15:30.077450+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html",
+  "etag": "W/\"6a98b880-34\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52,
+  "state": "http_error",
+  "elapsed_seconds": 1.401,
+  "sha256": "889403e5cfbb7981f7a26aced0d7492524e5397d6996f7fccd67562d2a4a71a3",
+  "capture": "5c6fb2372d01d5e8b335",
+  "merged_from_run": "run-25"
+}

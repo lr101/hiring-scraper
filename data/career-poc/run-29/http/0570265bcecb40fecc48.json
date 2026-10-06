@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ab-fotodesign.de/",
+  "checked_at": "2026-10-05T23:43:15.160789+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ab-fotodesign.de/",
+  "bytes": 273,
+  "state": "http_error",
+  "elapsed_seconds": 0.961,
+  "sha256": "2319737656e8264f11b71d2f2df4f15c779628d99476e5599814ba1ae5740655",
+  "capture": "0570265bcecb40fecc48",
+  "merged_from_run": "run-28"
+}

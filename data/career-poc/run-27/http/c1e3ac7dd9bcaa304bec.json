@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vividabkk.de/de/ausbildung-karriere/ausbildung-und-studium",
+  "checked_at": "2026-10-05T22:54:45.860003+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 207134,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "60a09e2764804a8af4f8317735ccda8585ce1ba27410e55c3b775a891eafde68",
+  "capture": "c1e3ac7dd9bcaa304bec"
+}

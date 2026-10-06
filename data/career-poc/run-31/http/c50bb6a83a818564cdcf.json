@@ -1,0 +1,17 @@
+{
+  "url": "https://energy4u.org/",
+  "checked_at": "2026-10-05T23:23:07.730016+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 521888,
+  "state": "ok",
+  "elapsed_seconds": 0.782,
+  "sha256": "da9a1a1cb012a002e8260241713b57501e0bfa65f46366fd3db30484f92cfdb9",
+  "capture": "c50bb6a83a818564cdcf",
+  "merged_from_run": "run-28"
+}

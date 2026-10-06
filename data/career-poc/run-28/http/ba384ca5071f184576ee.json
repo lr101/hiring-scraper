@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kte-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:07.180690+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 18 Aug 2026 12:48:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 28,
+  "state": "ok",
+  "elapsed_seconds": 0.207,
+  "sha256": "ba9b490217e9adcca2cb3db7a56196e525c789f2900ef9609790d7640fe8c992",
+  "capture": "ba384ca5071f184576ee"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.swhs.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:45:24.671875+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 623,
+  "state": "ok",
+  "elapsed_seconds": 2.094,
+  "sha256": "d074ce538f728d506b3d7e03dd782cb3dfe838fced5d532af26f1b8b8a5d94ba",
+  "capture": "ae5b856f27aab3a11d35"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.forterro.com/robots.txt",
+  "checked_at": "2026-10-05T22:53:36.534544+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6p0hvn7pb21x\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 69,
+  "state": "ok",
+  "elapsed_seconds": 0.224,
+  "sha256": "19251ea7c5516efab8ca7b711487ac8bf0b6cfbb90a8576e318835f895c353a3",
+  "capture": "dcd31f63fd63df08e3ad",
+  "merged_from_run": "run-27"
+}

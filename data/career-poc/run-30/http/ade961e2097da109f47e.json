@@ -1,0 +1,17 @@
+{
+  "url": "https://www.socotec.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:51.465657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 382,
+  "state": "http_error",
+  "elapsed_seconds": 0.144,
+  "sha256": "4d23396d710e0bbcaa590a07efcdb0c6d245a78ccf4838625d67300854a764d1",
+  "capture": "ade961e2097da109f47e",
+  "merged_from_run": "run-25"
+}

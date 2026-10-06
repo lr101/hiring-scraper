@@ -1,0 +1,17 @@
+{
+  "url": "https://www.busch-schlosserei.de/careers",
+  "checked_at": "2026-10-05T23:44:19.683346+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 34325,
+  "state": "http_error",
+  "elapsed_seconds": 0.979,
+  "sha256": "fe9028e5a16943baa7e5c37b347d559b8af6f00eef434555b720c45206f891cb",
+  "capture": "1c66462e5790bac937d8",
+  "merged_from_run": "run-28"
+}

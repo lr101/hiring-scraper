@@ -1,0 +1,16 @@
+{
+  "url": "https://lutzbeck.de/karriere",
+  "checked_at": "2026-10-05T23:02:38.615699+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 137566,
+  "state": "http_error",
+  "elapsed_seconds": 1.777,
+  "sha256": "95af12523ecce5c6bd4aa1a40045bee82b7ea2636c47d831a2d50653de1b9c99",
+  "capture": "ca6ab7accd8c1009510f"
+}

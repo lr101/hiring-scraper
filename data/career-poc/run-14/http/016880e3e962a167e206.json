@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils",
+  "checked_at": "2026-10-05T20:42:20.626099+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 46429,
+  "state": "ok",
+  "elapsed_seconds": 1.651,
+  "sha256": "1da9b9bbfaf4da1c5a2874dabdd7aa9474e1d93dbc2b0a02b301af14d33fc494",
+  "capture": "016880e3e962a167e206"
+}

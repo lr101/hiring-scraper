@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ff-studio.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:27:51.290961+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"1f5d-5edfb2633a682\"",
+  "last_modified": "Mon, 21 Nov 2022 13:36:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 8029,
+  "state": "ok",
+  "elapsed_seconds": 0.907,
+  "sha256": "2b37b6071c5358769c164afc43bc66a3a2b453a8114fbfdcfafb6fbec5eed13a",
+  "capture": "045dd6c3e9fba9470448",
+  "merged_from_run": "run-28"
+}

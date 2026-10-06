@@ -1,0 +1,16 @@
+{
+  "url": "https://debeka.wd3.myworkdayjobs.com/de-DE/Karriere?locations=6d3f426ee66710171856a10c73dc0000",
+  "checked_at": "2026-10-06T07:06:23.349880+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7665,
+  "state": "ok",
+  "elapsed_seconds": 1.395,
+  "sha256": "03127df275004814d6a7f00e8bf55d11acb93b88d721a7a11ad9875d6436f035",
+  "capture": "d83e76a5c21903f7a585"
+}

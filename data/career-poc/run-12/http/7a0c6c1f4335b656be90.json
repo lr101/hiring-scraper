@@ -1,0 +1,13 @@
+{
+  "url": "https://technidata-it.softgarden.io/apply-choice?jobDbId=64121193&jobDbId=64121193",
+  "checked_at": "2026-10-05T14:17:01.604540+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "location": "https://technidata-it.softgarden.io/apply-choice?jobDbId=64121193&jobDbId=64121193&l=en",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.139,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "7a0c6c1f4335b656be90"
+}

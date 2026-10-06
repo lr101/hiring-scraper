@@ -1,0 +1,17 @@
+{
+  "url": "https://ginex-espressomaschinen.de/maintenance?redirectTo=frontend.home.page",
+  "checked_at": "2026-10-05T23:43:15.323454+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 503,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": "3600",
+  "location": null,
+  "bytes": 90342,
+  "state": "http_error",
+  "elapsed_seconds": 1.222,
+  "sha256": "0a7ea967429610bef81051768e34b11590df8967b959994dae75009e5b93527f",
+  "capture": "ca08073a039ca0fa02c6",
+  "merged_from_run": "run-28"
+}

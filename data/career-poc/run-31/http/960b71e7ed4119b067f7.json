@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aok.de/fk/",
+  "checked_at": "2026-10-05T22:21:00.480807+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 136833,
+  "state": "ok",
+  "elapsed_seconds": 2.27,
+  "sha256": "43faf83b6a20e14609f5391cb5d8119e10bcf594b35a87dd6537561067d93ee8",
+  "capture": "960b71e7ed4119b067f7",
+  "merged_from_run": "run-25"
+}

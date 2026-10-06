@@ -1,0 +1,16 @@
+{
+  "url": "https://www.for.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T22:15:23.174250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"c4-3f153540f4b40\"",
+  "last_modified": "Wed, 02 Mar 2005 12:05:25 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 196,
+  "state": "ok",
+  "elapsed_seconds": 0.144,
+  "sha256": "8c1d04fde818cda591c876a43c33b1d6b40eb828e01834cbb5bdb324c18988ac",
+  "capture": "c6925b6337044d694a55"
+}

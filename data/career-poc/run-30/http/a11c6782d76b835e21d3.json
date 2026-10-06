@@ -1,0 +1,17 @@
+{
+  "url": "http://leipziger-logistik.com/robots.txt",
+  "checked_at": "2026-10-05T23:38:04.818741+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://leipziger-logistik.com/robots.txt",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 0.027,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "a11c6782d76b835e21d3",
+  "merged_from_run": "run-28"
+}

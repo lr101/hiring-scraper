@@ -1,0 +1,17 @@
+{
+  "url": "https://www.smart-energy.ag/",
+  "checked_at": "2026-10-05T23:35:15.355897+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 168241,
+  "state": "ok",
+  "elapsed_seconds": 1.113,
+  "sha256": "9eb1eded5c110962bd145f92d38dd56e6b0d1d512459da46da6da53242299e89",
+  "capture": "dfd656103a34d60eed3d",
+  "merged_from_run": "run-28"
+}

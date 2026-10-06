@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.debeka.de/",
+  "checked_at": "2026-10-06T07:06:21.958128+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "\"093a4e-2dd73ab5de99\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 189960,
+  "state": "ok",
+  "elapsed_seconds": 1.158,
+  "sha256": "0ba01bbd1652f152b0a6d65ea3ba283a301073cdd18b518f410428ff5e7b3f4e",
+  "capture": "fdb49312547c6bdfc102",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/fdb49312547c6bdfc102.json"
+}

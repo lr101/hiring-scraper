@@ -1,0 +1,16 @@
+{
+  "url": "https://www.knowtion.de/karriere/",
+  "checked_at": "2026-10-05T23:29:45.714684+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 490300,
+  "state": "ok",
+  "elapsed_seconds": 2.886,
+  "sha256": "dae7cca8a0be292e890d53161b7a83eba8bdb276eb57fb27849e78c5ea2f9d45",
+  "capture": "d009f538a57515902f84"
+}

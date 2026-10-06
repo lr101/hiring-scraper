@@ -1,0 +1,16 @@
+{
+  "url": "https://rossmannundpartner.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:17:23.042368+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3912,
+  "state": "ok",
+  "elapsed_seconds": 0.704,
+  "sha256": "bbf5b5f9595bf83c8f6cfa74289fdfc0a8530a27d52025c3bf005c1eae570658",
+  "capture": "47b62a4bbc960e08a8d4"
+}

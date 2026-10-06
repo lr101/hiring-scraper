@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bau4.de/home.html",
+  "checked_at": "2026-10-05T23:16:15.699590+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17159,
+  "state": "ok",
+  "elapsed_seconds": 1.245,
+  "sha256": "d13e3dac7d4c4d5468977ee757c4855183f039246eb2038eb36a002fdb633403",
+  "capture": "c231c92ddf517f45ddeb"
+}

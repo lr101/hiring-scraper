@@ -1,0 +1,16 @@
+{
+  "url": "https://www.seydell-garten.de/careers",
+  "checked_at": "2026-10-05T23:23:00.967027+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15379,
+  "state": "http_error",
+  "elapsed_seconds": 1.673,
+  "sha256": "9b1a7dfce604cb7728e765217f0f89cf3631aef554f553dd9d4131f04d3d554c",
+  "capture": "b6c137130f2cfb9d0940"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.netcup.com/en/jobs",
+  "checked_at": "2026-10-05T23:21:31.646085+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 632630,
+  "state": "ok",
+  "elapsed_seconds": 0.818,
+  "sha256": "130f389d7f69b1434b3beef226f3514d48d7c3fe88a01417a9a1ea1c20465174",
+  "capture": "ff16a8355ccd51a14c8f"
+}

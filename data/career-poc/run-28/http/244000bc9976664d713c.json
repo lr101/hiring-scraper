@@ -1,0 +1,16 @@
+{
+  "url": "https://schmidtstallateur.de/",
+  "checked_at": "2026-10-05T23:40:48.700501+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 252073,
+  "state": "ok",
+  "elapsed_seconds": 1.635,
+  "sha256": "0031bf05b1c2c038a277175d29a6b90683a95e810f2f046c34dc83b6aec312df",
+  "capture": "244000bc9976664d713c"
+}

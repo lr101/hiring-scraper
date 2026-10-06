@@ -1,0 +1,17 @@
+{
+  "url": "https://www.yellowmap.com/",
+  "checked_at": "2026-10-05T23:22:47.988050+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 55866,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "2300ecd8b485c470e780b265282b174ba5a2e58266a4cdd2aa9d14478c26b1a5",
+  "capture": "123ca1b1965597542490",
+  "merged_from_run": "run-28"
+}

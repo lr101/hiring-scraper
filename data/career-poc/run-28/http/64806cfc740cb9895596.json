@@ -1,0 +1,16 @@
+{
+  "url": "https://www.smetex.de/",
+  "checked_at": "2026-10-05T23:25:45.073940+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 72729,
+  "state": "ok",
+  "elapsed_seconds": 0.695,
+  "sha256": "90b7aeaf10adfcb434a99cd2783f904f88248d6b5d235da9dbb9725dcce9c8bd",
+  "capture": "64806cfc740cb9895596"
+}

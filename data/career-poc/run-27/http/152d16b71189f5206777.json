@@ -1,0 +1,16 @@
+{
+  "url": "https://www.khw-immobilien.de/jobs",
+  "checked_at": "2026-10-05T22:40:05.106849+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21387,
+  "state": "http_error",
+  "elapsed_seconds": 1.187,
+  "sha256": "d5a063d98c722f2c650a7189e238b04c61e137785348223d63ffc9cb30bbd743",
+  "capture": "152d16b71189f5206777"
+}

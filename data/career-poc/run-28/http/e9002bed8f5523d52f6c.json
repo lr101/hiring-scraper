@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gartenbauschulz.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:19.458967+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 92,
+  "state": "ok",
+  "elapsed_seconds": 0.289,
+  "sha256": "1bf7a197c03c4dcd368bf1e28dee3ba132b6a61c81abda973378142226d57b49",
+  "capture": "e9002bed8f5523d52f6c"
+}

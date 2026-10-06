@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hettbohr.de/stellenangebote/",
+  "checked_at": "2026-10-05T23:22:49.008500+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 170337,
+  "state": "ok",
+  "elapsed_seconds": 1.04,
+  "sha256": "9dcd5c6992487bf3a5a7fd54e37c44e52fac9a11fba43848ebb5b46b681ad6a8",
+  "capture": "94d466dce45aa8e99f11"
+}

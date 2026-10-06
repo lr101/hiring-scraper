@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brennecke-rechtsanwaelte.de/karriere",
+  "checked_at": "2026-10-05T22:56:15.766713+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21611,
+  "state": "http_error",
+  "elapsed_seconds": 1.123,
+  "sha256": "f0a49dd6634b9ca1a8bdd98f8d87cb123f63f9f5e046fb1968afcbc354dc4147",
+  "capture": "d3a4c15eaee060598d22",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.reichert-elektro.de/",
+  "checked_at": "2026-10-05T22:21:41.596885+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 81976,
+  "state": "ok",
+  "elapsed_seconds": 4.105,
+  "sha256": "27db28edce6b9f751d1c0a478e752c397d1b79fb592800d73149e27cba3b5d0f",
+  "capture": "3240753fcfbc06567863"
+}

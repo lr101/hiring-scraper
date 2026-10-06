@@ -1,0 +1,17 @@
+{
+  "url": "https://igienair.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:23.317434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 325,
+  "state": "ok",
+  "elapsed_seconds": 1.241,
+  "sha256": "fce99cd5435e6ef897035d370bec35e78e25ffd26114ce067ae653a156dcde52",
+  "capture": "d14262db79660756a1cb",
+  "merged_from_run": "run-28"
+}

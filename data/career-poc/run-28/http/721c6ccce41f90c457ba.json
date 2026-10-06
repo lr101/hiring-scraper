@@ -1,0 +1,16 @@
+{
+  "url": "https://www.itb.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:06.952315+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 469,
+  "state": "ok",
+  "elapsed_seconds": 1.789,
+  "sha256": "8cfb7f1fcc6ae33c68551007077f7f8f9e56984f29eb68b2008018735b8671a3",
+  "capture": "721c6ccce41f90c457ba"
+}

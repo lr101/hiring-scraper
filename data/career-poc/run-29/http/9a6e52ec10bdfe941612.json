@@ -1,0 +1,17 @@
+{
+  "url": "https://www.singliesel.de/sitemap/salesChannel-d06e1e96cb9048e5b42f1ff2da385bbe-2fbb5fe2e29a4d70aa5854ce7ce3e20b/d06e1e96cb9048e5b42f1ff2da385bbe-c2c1177e64774e06b95187617db3b0c4-sitemap-www-singliesel-de-1.xml.gz",
+  "checked_at": "2026-10-05T22:13:35.963520+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/x-gzip",
+  "etag": "\"5969-65d1f317d6e63\"",
+  "last_modified": "Mon, 05 Oct 2026 22:13:35 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22889,
+  "state": "ok",
+  "elapsed_seconds": 1.126,
+  "sha256": "4bff8b380938ea0a92250fc3921b64d8ca365b624f5841975f0372f01fb4606f",
+  "capture": "9a6e52ec10bdfe941612",
+  "merged_from_run": "run-25"
+}

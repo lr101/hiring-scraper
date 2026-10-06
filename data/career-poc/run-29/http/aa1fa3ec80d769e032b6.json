@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vins-catering.de/careers",
+  "checked_at": "2026-10-05T23:41:27.452529+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 147334,
+  "state": "http_error",
+  "elapsed_seconds": 2.051,
+  "sha256": "bc16de7f171e315b4971ae4668f450742713ef6630b8ca73559f7138d350d308",
+  "capture": "aa1fa3ec80d769e032b6",
+  "merged_from_run": "run-28"
+}

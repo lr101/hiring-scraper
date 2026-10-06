@@ -1,0 +1,17 @@
+{
+  "url": "https://gartenwerk-erb.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:29.488365+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196,
+  "state": "ok",
+  "elapsed_seconds": 3.265,
+  "sha256": "47564ff37aaa6d1b574cc9dc8df2127b28bc2dd96009bc9765a84d8c2492c209",
+  "capture": "e29ffc3c50c831d81c0c",
+  "merged_from_run": "run-28"
+}

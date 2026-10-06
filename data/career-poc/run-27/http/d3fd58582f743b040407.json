@@ -1,0 +1,16 @@
+{
+  "url": "https://pathtozero.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:08:05.002693+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 649,
+  "state": "ok",
+  "elapsed_seconds": 1.316,
+  "sha256": "6579cfc5c1badb7dff1eb325c9febeee80af4221fc668cc32290dedaf4770d57",
+  "capture": "d3fd58582f743b040407"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schreinerei-kastner.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:45:41.707265+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "\"1791162738\"",
+  "last_modified": "Mon, 05 Oct 2026 01:12:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 951,
+  "state": "ok",
+  "elapsed_seconds": 0.975,
+  "sha256": "d97d37d3bf9175506ffa32146e00349e8a84a3415ac6adfc4ec948f237604e4e",
+  "capture": "3a17d1248d4c23db449a",
+  "merged_from_run": "run-28"
+}

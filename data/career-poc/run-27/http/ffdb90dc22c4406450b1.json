@@ -1,0 +1,16 @@
+{
+  "url": "https://rechtsanwalt-schimanek.de/",
+  "checked_at": "2026-10-05T22:52:14.027712+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://www.rechtsanwalt-schimanek.de",
+  "bytes": 390,
+  "state": "http_error",
+  "elapsed_seconds": 0.968,
+  "sha256": "93cd8681a93db12992fc1a708e24c9f6966542b149543e00ff9d92f7cc05a79e",
+  "capture": "ffdb90dc22c4406450b1"
+}

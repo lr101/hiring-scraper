@@ -1,0 +1,17 @@
+{
+  "url": "https://www.epr-reinholz.de/careers",
+  "checked_at": "2026-10-05T23:33:54.062838+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40015,
+  "state": "http_error",
+  "elapsed_seconds": 0.196,
+  "sha256": "6ff7a678d1cddf53542a6749075927490213117a34cfa84235560cac1936e42d",
+  "capture": "7f9ec83dfec73f5ae17c",
+  "merged_from_run": "run-28"
+}

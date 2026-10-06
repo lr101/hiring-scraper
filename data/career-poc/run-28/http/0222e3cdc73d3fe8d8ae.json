@@ -1,0 +1,16 @@
+{
+  "url": "https://www.remex.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:12.801814+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 188,
+  "state": "http_error",
+  "elapsed_seconds": 0.857,
+  "sha256": "35c2e51439c1a0595a4a4359df17a3ea174e4e1d98777f6f8bfea578a574f08b",
+  "capture": "0222e3cdc73d3fe8d8ae"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "http://eurajobs.de/de/standorte/standorte_bruchsal.php",
+  "checked_at": "2026-10-05T23:45:19.407912+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://eurajobs.de/de/standorte/standorte_bruchsal.php",
+  "bytes": 303,
+  "state": "http_error",
+  "elapsed_seconds": 0.082,
+  "sha256": "9ee5c5dbc54a3df4979815ba79cf74606d20c2b5a37f1173fc3997df0c8165dc",
+  "capture": "10e2be1cdeec6eb22731"
+}

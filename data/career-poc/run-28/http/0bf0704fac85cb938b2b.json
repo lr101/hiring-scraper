@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mosaik-online.eu/sitemap.xml",
+  "checked_at": "2026-10-05T23:27:43.314863+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.mosaik-online.eu/wp-sitemap.xml",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.904,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "0bf0704fac85cb938b2b"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.scriptor-brennerei.de/careers",
+  "checked_at": "2026-10-05T23:17:53.187511+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 179964,
+  "state": "http_error",
+  "elapsed_seconds": 0.902,
+  "sha256": "4dd0835104ffeb380e929557a3cc00b93772ba2838b65d81c577dc7ba223338a",
+  "capture": "6a8d5883cdaad4ab09e0",
+  "merged_from_run": "run-28"
+}

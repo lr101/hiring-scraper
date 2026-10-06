@@ -1,0 +1,17 @@
+{
+  "url": "https://bibo-tragwerksplanung.de/",
+  "checked_at": "2026-10-05T23:26:59.586867+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"11ed7-6494d4e67d140\"",
+  "last_modified": "Mon, 26 Jan 2026 16:50:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 73431,
+  "state": "ok",
+  "elapsed_seconds": 0.224,
+  "sha256": "2bf50456371c66bb016baebed4a27e2a8e0608222da673fe53ed938b480c960b",
+  "capture": "c57f2ece5642fcf19c01",
+  "merged_from_run": "run-28"
+}

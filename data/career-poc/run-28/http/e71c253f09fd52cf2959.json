@@ -1,0 +1,16 @@
+{
+  "url": "https://tzw.de/",
+  "checked_at": "2026-10-05T23:28:15.333860+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"9368a62151a778400a43012e3dc47b3c\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119674,
+  "state": "ok",
+  "elapsed_seconds": 0.639,
+  "sha256": "e478b0bf686c15966a84a91a0fc64394cb8f89c3f03a7f46cf93377aa159f77d",
+  "capture": "e71c253f09fd52cf2959"
+}

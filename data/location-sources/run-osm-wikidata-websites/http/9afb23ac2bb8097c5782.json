@@ -1,0 +1,16 @@
+{
+  "url": "https://igbau.de/Aktuelle-Informationen-zur-Kuendigung-von-Seiten-der-Arbeitgeber-des-Rahmentarifvertrages-im-Gebaeudereinigerhandwerk.html",
+  "checked_at": "2026-10-06T07:07:24.515999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"3b4d-593d4d1a2a3c0\"",
+  "last_modified": "Tue, 01 Oct 2019 08:05:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 15181,
+  "state": "ok",
+  "elapsed_seconds": 1.06,
+  "sha256": "0af8702c43398a4c3e0c519cc47fb9e15947d025ef4d39b101f571920d565680",
+  "capture": "9afb23ac2bb8097c5782"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.scriptrunner.com/company/career",
+  "checked_at": "2026-10-05T23:36:11.615767+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 18:01:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 65670,
+  "state": "ok",
+  "elapsed_seconds": 0.881,
+  "sha256": "ac814edddd76fa2493cd884f5d71bd401a5ce54a101f131b69b44c8ebed89969",
+  "capture": "00309fc0b7eaf2b245eb",
+  "merged_from_run": "run-28"
+}

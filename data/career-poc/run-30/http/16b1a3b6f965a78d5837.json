@@ -1,0 +1,17 @@
+{
+  "url": "https://lantzerath-group.career.softgarden.de/jobs.feed.json",
+  "checked_at": "2026-10-05T23:36:45.467889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/json; charset=utf-8",
+  "etag": "W/\"275bf-x9NfXqRhYfRwCMithyjht7GN4kM\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 161215,
+  "state": "ok",
+  "elapsed_seconds": 0.909,
+  "sha256": "fea67f6886e01c66bad81d4314d4ca0ad3c52c337bfad3e860ae1fbbad154325",
+  "capture": "16b1a3b6f965a78d5837",
+  "merged_from_run": "run-28"
+}

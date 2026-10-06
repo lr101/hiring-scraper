@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sanieren-dekorieren-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:19:05.897939+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 19683,
+  "state": "ok",
+  "elapsed_seconds": 1.21,
+  "sha256": "05b467e2a66780ee9a963f7ece28d869c5821dae90ba8fcc8ddb0ae4cda396e9",
+  "capture": "dc269fb3aacbf8d967cc"
+}

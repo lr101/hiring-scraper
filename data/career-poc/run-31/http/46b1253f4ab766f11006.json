@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kleingarten-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:33:58.331792+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:34:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 164610,
+  "state": "ok",
+  "elapsed_seconds": 1.742,
+  "sha256": "7f6584139f7905a4c292270aef5eedf40020e0b96320b7ecbf7705ae214353f4",
+  "capture": "46b1253f4ab766f11006",
+  "merged_from_run": "run-28"
+}

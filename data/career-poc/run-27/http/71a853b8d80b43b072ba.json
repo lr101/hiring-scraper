@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fliesen-glauner.de/",
+  "checked_at": "2026-10-05T22:47:31.196842+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6e92f-657bbfcb9d1cc\"",
+  "last_modified": "Wed, 29 Jul 2026 08:46:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 452911,
+  "state": "ok",
+  "elapsed_seconds": 1.142,
+  "sha256": "6b84281ce3084f6d4c1cf83c98abfe48b21d7b38ebbc035b7c9f92b0821697b1",
+  "capture": "71a853b8d80b43b072ba"
+}

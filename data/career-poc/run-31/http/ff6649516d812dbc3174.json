@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ensecur.de/robots.txt",
+  "checked_at": "2026-10-05T22:10:00.863002+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6a9f0e5e-58b\"",
+  "last_modified": "Mon, 07 Sep 2026 19:19:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1419,
+  "state": "ok",
+  "elapsed_seconds": 0.29,
+  "sha256": "e06967cee66aad81493a202953210a23afda8863ad7c50db2a487c7603ab00cb",
+  "capture": "ff6649516d812dbc3174",
+  "merged_from_run": "run-25"
+}

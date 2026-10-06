@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kleingarten-bawue.de/careers",
+  "checked_at": "2026-10-05T23:32:52.477994+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:32:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1090,
+  "state": "http_error",
+  "elapsed_seconds": 0.971,
+  "sha256": "4d950f5ac8a40f52044063f422b4d749601be4ff0f5c01864ff7e8bb3cfed1f1",
+  "capture": "2f2c2b95d1727e2ce306"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://knubben-lunker.de/careers",
+  "checked_at": "2026-10-05T22:52:05.305682+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"dc4c683ebedfb88e6fa98cc8740cd290\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111291,
+  "state": "http_error",
+  "elapsed_seconds": 1.274,
+  "sha256": "a7d077664bde5ab172e9e8aceb101ff5f45792a1965b0f76d8715d4cd22960b7",
+  "capture": "2ad8097f7ea16eb718ee",
+  "merged_from_run": "run-27"
+}

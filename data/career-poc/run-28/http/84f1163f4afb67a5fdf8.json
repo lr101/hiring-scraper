@@ -1,0 +1,16 @@
+{
+  "url": "https://sv-karlsruhe-beiertheim.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:57.945948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127,
+  "state": "ok",
+  "elapsed_seconds": 1.053,
+  "sha256": "396174b276dfbd43c0c00b0e60f46c4e468acafb6b0893d668e1b56b7cfd367b",
+  "capture": "84f1163f4afb67a5fdf8"
+}

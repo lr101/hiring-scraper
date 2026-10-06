@@ -1,0 +1,17 @@
+{
+  "url": "https://klingelnberg.com/karriere/schueler",
+  "checked_at": "2026-10-05T23:42:37.687818+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86640,
+  "state": "ok",
+  "elapsed_seconds": 0.87,
+  "sha256": "45878cdcf094a6e649754484c7ab2ca6faedc07eaa046ac170eb2838573f7e4f",
+  "capture": "96fa9308bb1359e7ccb9",
+  "merged_from_run": "run-28"
+}

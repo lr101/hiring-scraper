@@ -1,0 +1,17 @@
+{
+  "url": "https://www.suedwest-datenschutz.com/lag-berlin-brandenburg-weiterleitung-betrieblicher-informationen-an-privates-e-mail-account-bevorstehender-arbeitgeberwechsel/",
+  "checked_at": "2026-10-05T22:44:25.300668+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110465,
+  "state": "ok",
+  "elapsed_seconds": 2.358,
+  "sha256": "3c7286cc66babbd8be45229cddbc8d5a247fc0326727d5c51a19d731c05bca63",
+  "capture": "3e479ea4f8d10ade604b",
+  "merged_from_run": "run-27"
+}

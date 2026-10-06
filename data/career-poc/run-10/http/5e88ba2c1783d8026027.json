@@ -1,0 +1,13 @@
+{
+  "url": "https://komm-one.bewerbung.dvvbw.de/robots.txt",
+  "checked_at": "2026-10-05T14:05:04.126276+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "location": null,
+  "bytes": 305,
+  "state": "ok",
+  "elapsed_seconds": 0.154,
+  "sha256": "25c1bf0198104df8a4c6d9a2350f6ebfed7805229215f2a0fa7d3f10d1c22fd1",
+  "capture": "5e88ba2c1783d8026027"
+}

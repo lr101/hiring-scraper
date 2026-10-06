@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lernhilfefabian.de/karriere",
+  "checked_at": "2026-10-05T23:43:43.860780+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28283,
+  "state": "http_error",
+  "elapsed_seconds": 1.048,
+  "sha256": "83a1ea9c190fbfeeb3fe9ad40ae9db4ce963f95052f571dbae21081502e9b39b",
+  "capture": "c47d38d035f88a91dd6c"
+}

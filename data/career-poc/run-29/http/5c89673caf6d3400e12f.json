@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cas.de/news/cas-software-zaehlt-zu-deutschlands-top-it-arbeitgebern/",
+  "checked_at": "2026-10-05T23:22:18.991178+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 18406,
+  "state": "ok",
+  "elapsed_seconds": 0.993,
+  "sha256": "e5db83eec4238f7f643e5d14c7209a716cfa30436bc287649219e6bc413d7fa2",
+  "capture": "5c89673caf6d3400e12f",
+  "merged_from_run": "run-28"
+}

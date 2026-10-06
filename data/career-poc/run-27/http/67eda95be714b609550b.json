@@ -1,0 +1,16 @@
+{
+  "url": "https://www.landesarchiv-bw.de/de/landesarchiv/karriere/stellenausschreibungen",
+  "checked_at": "2026-10-05T23:02:54.162266+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/de/landesarchiv/karriere/stellenausschreibungen/78073",
+  "bytes": 462,
+  "state": "http_error",
+  "elapsed_seconds": 1.414,
+  "sha256": "a4ad90ece4022e71bb1077c5f2ed9c3b724447a2f864c8dcbfe7ebec43dd1e1a",
+  "capture": "67eda95be714b609550b"
+}

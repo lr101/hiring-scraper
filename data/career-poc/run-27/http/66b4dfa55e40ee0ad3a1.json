@@ -1,0 +1,17 @@
+{
+  "url": "https://www.alfatraining.de/robots.txt",
+  "checked_at": "2026-10-05T22:05:52.338622+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 281,
+  "state": "ok",
+  "elapsed_seconds": 0.21,
+  "sha256": "9deb0650b6e7484178bf8f0861a8f7be094ab8cbeef66d721d32bdeea7fe7edc",
+  "capture": "66b4dfa55e40ee0ad3a1",
+  "reused_from": "data/career-poc/resume-cache-26/66b4dfa55e40ee0ad3a1.json"
+}

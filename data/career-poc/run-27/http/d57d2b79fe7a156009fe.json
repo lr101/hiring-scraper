@@ -1,0 +1,16 @@
+{
+  "url": "https://rechnungshof-baden-wuerttemberg.onlyfy.jobs/application/de/apply/qrc3bet23pmrs4i9gj5ivhxc6gtq54",
+  "checked_at": "2026-10-05T22:59:29.995592+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 75875,
+  "state": "ok",
+  "elapsed_seconds": 1.492,
+  "sha256": "fb461028e3dd1883825a02acac7a90481453537d54e8838fb45ce9a5b3eb421b",
+  "capture": "d57d2b79fe7a156009fe"
+}

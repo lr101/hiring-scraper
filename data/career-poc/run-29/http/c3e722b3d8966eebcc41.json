@@ -1,0 +1,17 @@
+{
+  "url": "https://www.verskap.de/",
+  "checked_at": "2026-10-05T23:15:20.441388+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 16175,
+  "state": "ok",
+  "elapsed_seconds": 0.993,
+  "sha256": "3e9e63067af421560f7d10494e0b6411ce3890cb6fa9debcfe387d85dab92969",
+  "capture": "c3e722b3d8966eebcc41",
+  "merged_from_run": "run-28"
+}

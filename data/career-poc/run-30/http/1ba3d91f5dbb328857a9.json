@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vincentsystems.de/karriere",
+  "checked_at": "2026-10-05T23:22:48.849972+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "W/\"772f63f1b41ec87d525293bab5f30b4b\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 828593,
+  "state": "ok",
+  "elapsed_seconds": 1.23,
+  "sha256": "3494384286ed5f898516f85da973a2341766485ee6b859154e9c5de8e7d0457e",
+  "capture": "1ba3d91f5dbb328857a9",
+  "merged_from_run": "run-28"
+}

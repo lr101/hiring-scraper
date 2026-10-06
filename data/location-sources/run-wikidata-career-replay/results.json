@@ -1,0 +1,3069 @@
+[
+  {
+    "name": "Schoeps",
+    "website": "https://www.schoeps.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q138363",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.schoeps.de/",
+        "url": "https://schoeps.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "c1f9452a854600cc62b8",
+        "redirect_chain": [
+          "https://www.schoeps.de/",
+          "https://schoeps.de/"
+        ],
+        "title": "Home | SCHOEPS Mikrofone",
+        "headings": "Kontaktieren Sie uns jetzt",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://schoeps.de/ueber-uns/jobs-praktika.html",
+            "label": "Jobs & Praktika",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns.html",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang.html",
+            "label": "Firmenrundgang",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmengeschichte.html",
+            "label": "Firmengeschichte",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/produktgeschichte.html",
+            "label": "Produktgeschichte",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/pressemitteilungen.html",
+            "label": "Pressemitteilungen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-1956.html",
+            "label": "Firmenrundgang 1956",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-2007.html",
+            "label": "Firmenrundgang 2007",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-2023.html",
+            "label": "Firmenrundgang 2023",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://schoeps.de/ueber-uns/jobs-praktika.html",
+        "url": "https://schoeps.de/ueber-uns/jobs-praktika.html",
+        "parent": "https://schoeps.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "a7ebeb825d384f12bc1e",
+        "redirect_chain": [
+          "https://schoeps.de/ueber-uns/jobs-praktika.html"
+        ],
+        "title": "Jobs & Praktika | SCHOEPS Mikrofone",
+        "headings": "Jobs & Praktika SCHOEPS als Arbeitgeber Aktuelle Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://schoeps.de/en/about-schoeps/jobs-internships.html",
+            "label": "en",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns.html",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang.html",
+            "label": "Firmenrundgang",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmengeschichte.html",
+            "label": "Firmengeschichte",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/produktgeschichte.html",
+            "label": "Produktgeschichte",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/pressemitteilungen.html",
+            "label": "Pressemitteilungen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-1956.html",
+            "label": "Firmenrundgang 1956",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-2007.html",
+            "label": "Firmenrundgang 2007",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/ueber-uns/firmenrundgang/firmenrundgang-2023.html",
+            "label": "Firmenrundgang 2023",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://schoeps.de/en/about-schoeps/jobs-internships.html",
+        "url": "https://schoeps.de/en/about-schoeps/jobs-internships.html",
+        "parent": "https://schoeps.de/ueber-uns/jobs-praktika.html",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "232e4ce2b4f04951e478",
+        "redirect_chain": [
+          "https://schoeps.de/en/about-schoeps/jobs-internships.html"
+        ],
+        "title": "Jobs & Internships | SCHOEPS Microphones",
+        "headings": "Jobs & Interships SCHOEPS as employer recent job offers",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://schoeps.de/ueber-uns/jobs-praktika.html",
+            "label": "de",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps.html",
+            "label": "About Schoeps",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/factory-tour.html",
+            "label": "Factory tour",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/product-history.html",
+            "label": "PRODUCT HISTORY",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/company-history.html",
+            "label": "Company History",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/factory-tour/factory-tour-1956.html",
+            "label": "Factory tour 1956",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/factory-tour/factory-tour-2023.html",
+            "label": "FACTORY TOUR 2023",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://schoeps.de/en/about-schoeps/factory-tour/tour-of-the-company-2007.html",
+            "label": "Tour of the company 2007",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://schoeps.de/sitemap.xml",
+        "url": "https://schoeps.de/sitemap.xml",
+        "parent": "https://schoeps.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml;charset=utf-8",
+        "capture": "5c794ff88b7150d6bd39",
+        "redirect_chain": [
+          "https://schoeps.de/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://schoeps.de/sitemap.xml?sitemap=distributors&cHash=d0bac549a6e36a7db171b4853e99dfc6",
+        "url": "https://schoeps.de/sitemap.xml?sitemap=distributors&cHash=d0bac549a6e36a7db171b4853e99dfc6",
+        "parent": "https://schoeps.de/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml;charset=utf-8",
+        "capture": "a0626579fc357c8a94f7",
+        "redirect_chain": [
+          "https://schoeps.de/sitemap.xml?sitemap=distributors&cHash=d0bac549a6e36a7db171b4853e99dfc6"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://schoeps.de/sitemap.xml?sitemap=press&cHash=dab22b2961d7fd0511b127e6226e58a9",
+        "url": "https://schoeps.de/sitemap.xml?sitemap=press&cHash=dab22b2961d7fd0511b127e6226e58a9",
+        "parent": "https://schoeps.de/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml;charset=utf-8",
+        "capture": "6ae840aaf6472a5ab83f",
+        "redirect_chain": [
+          "https://schoeps.de/sitemap.xml?sitemap=press&cHash=dab22b2961d7fd0511b127e6226e58a9"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 3,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "PTV Transport Consult GmbH",
+    "website": "https://consult.ptvgroup.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q122305380",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://consult.ptvgroup.com/",
+        "url": "https://consult.ptvgroup.com/en",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "75ddbbbb2f06f222a11d",
+        "redirect_chain": [
+          "https://consult.ptvgroup.com/",
+          "https://consult.ptvgroup.com/en"
+        ],
+        "title": "Germany's leading transportation consultancy | PTV Transport Consult",
+        "headings": "PTV Transport Consult Discover PTV Transport Consult PTV Transport Consult honored as top consulting company Our Competences",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://consult.ptvgroup.com/en/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "parent": "https://consult.ptvgroup.com/en",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "a231a12cf27b64842ab7",
+        "redirect_chain": [
+          "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting"
+        ],
+        "title": "Start your consulting career",
+        "headings": "Breadcrumb Start your Consulting career at PTV Transport Consult Why Consulting at PTV Transport Consult How we work Your Benefits What makes you stand out More Information Ready to take the next step in your consulting career?",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/team",
+            "label": "Learn more",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories",
+            "label": "Job Categories",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Apply now",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/career-development",
+            "label": "Career Development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/sales",
+            "label": "Sales",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/karriereentwicklung",
+            "label": "Learn more",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/software-development",
+            "label": "Software development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=1&filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://consult.ptvgroup.com/en/",
+            "label": "Learn more about PTV Transport Consult",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvgroup.com/en/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/team",
+            "label": "Our Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.ptvgroup.com/",
+        "url": "https://careers.ptvgroup.com/en",
+        "parent": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "98a4e0d9af156918f79c",
+        "redirect_chain": [
+          "https://careers.ptvgroup.com/",
+          "https://careers.ptvgroup.com/en"
+        ],
+        "title": "Move the World as Part of Our Team | PTV Group Careers",
+        "headings": "Let's shape the future of mobility together Your start at PTV Group About us",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories",
+            "label": "View all",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/career-development",
+            "label": "Career Development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/sales",
+            "label": "Sales",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+            "label": "Consulting",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/software-development",
+            "label": "Software development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=1&filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvgroup.com/en/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/team",
+            "label": "Our Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/team",
+        "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/team",
+        "parent": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "2015c83a9f15f967aacc",
+        "redirect_chain": [
+          "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/team"
+        ],
+        "title": "Unser Team | PTV Group Careers",
+        "headings": "Pfadnavigation Lerne unser Team kennen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/werte",
+            "label": "Werte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/standorte",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/onboarding",
+            "label": "Onboarding",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/arbeiten-bei-ptv-group/karriereentwicklung",
+            "label": "Karriereentwicklung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/jobs/?filter%5Bclient_id%5D%5B%5D=1&filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/team",
+            "label": "English",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories",
+        "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories",
+        "parent": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "6672a20f136dc72e9f02",
+        "redirect_chain": [
+          "https://careers.ptvgroup.com/en/entry-opportunities/job-categories"
+        ],
+        "title": "Job Categories",
+        "headings": "Breadcrumb Job Categories at PTV Development, Sales and Consulting Other Job Cateogires",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/career-development",
+            "label": "Career Development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/sales",
+            "label": "Sales",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+            "label": "Consulting",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/software-development",
+            "label": "Software development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=1&filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvgroup.com/en/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/team",
+            "label": "Our Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=2",
+        "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=2",
+        "parent": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "00085a174c52f4ec6a48",
+        "redirect_chain": [
+          "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=2"
+        ],
+        "title": "Move the World as Part of Our Team | PTV Group Careersareers",
+        "headings": "Current Vacant Positions Necessary cookies Web statistics Social Networks & Embeds Necessary cookies Web statistics",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://careers.ptvgroup.com/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/de/jobs",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/jobalert-eng.html",
+            "label": "to jobalertto jobalert",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories",
+            "label": "View all",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/working-at-ptv-group/career-development",
+            "label": "Career Development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/sales",
+            "label": "Sales",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/consulting",
+            "label": "Consulting",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/entry-opportunities/job-categories/software-development",
+            "label": "Software development",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/Interviewerin-fuer-Fahrgasterhebungen-mwd-de-j427.html",
+            "label": "Interviewer*in für Fahrgasterhebungen (m/w/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/Systemtechnikerin-Leitstellensysteme-mwd-de-j2654.html",
+            "label": "Systemtechniker*in Leitstellensysteme (m/w/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://careers.ptvgroup.com/en/jobs/?filter%5Bclient_id%5D%5B%5D=1&filter%5Bclient_id%5D%5B%5D=2",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 33,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Produktivkeller Studios",
+    "website": "https://produktivkeller.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q123340200",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://produktivkeller.com/",
+        "url": "https://produktivkeller.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "robots_unavailable",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "SciMo GmbH",
+    "website": "https://sci-mo.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q124411839",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://sci-mo.de/",
+        "url": "https://sci-mo.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "740c778d11d55c1dd9ff",
+        "redirect_chain": [
+          "https://sci-mo.de/"
+        ],
+        "title": "SciMo – Science for Motion",
+        "headings": "/// High Performance Electric Drive Systems High Performance Motors Custom Inverter Solutions High Torque Aviation Motors /// News /// Team /// Commitment to Quality",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://sci-mo.de/sitemap.xml",
+        "url": "https://sci-mo.de/wp-sitemap.xml",
+        "parent": "https://sci-mo.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "0763671773a5798e8d68",
+        "redirect_chain": [
+          "https://sci-mo.de/sitemap.xml",
+          "https://sci-mo.de/wp-sitemap.xml"
+        ],
+        "classification": "invalid_sitemap"
+      },
+      {
+        "requested_url": "https://sci-mo.de/karriere",
+        "url": "https://sci-mo.de/karriere",
+        "parent": "https://sci-mo.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "ad6b715c085d36d6445a",
+        "redirect_chain": [
+          "https://sci-mo.de/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://sci-mo.de/careers",
+        "url": "https://sci-mo.de/careers",
+        "parent": "https://sci-mo.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "32962e8ab3a192a9ecac",
+        "redirect_chain": [
+          "https://sci-mo.de/careers"
+        ]
+      },
+      {
+        "requested_url": "https://sci-mo.de/jobs",
+        "url": "https://sci-mo.de/jobs",
+        "parent": "https://sci-mo.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "d8e52c5c0d09523f3800",
+        "redirect_chain": [
+          "https://sci-mo.de/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "BOKELA GmbH",
+    "website": "https://www.bokela.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q125392132",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.bokela.com/",
+        "url": "https://www.bokela.com/en/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "02593cdc0290b5535dba",
+        "redirect_chain": [
+          "https://www.bokela.com/",
+          "https://www.bokela.com/en/"
+        ],
+        "title": "Filter Technologies for Solid-Liquid-Separation - BOKELA",
+        "headings": "Tailings Filtration Efficient filtration of tailings with BoVac Disc filters The Filtration People We produced something for you. Filter Revamping Optimization & upgrading of operating disc, drum & pan filters. The Filtration People Future-oriented, efficient development - down to the very last technical detail. Separating solid and liquid. Unifying people and technology. News from the world of Fi",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.bokela.com/en/en/career",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.bokela.com/en/en/about-bokela",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.bokela.com/en/en/bokipedia-list",
+            "label": "Things to know about solid-liquid separation",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.bokela.com/en/en/archive/bokela-at-dig-deep-the-mining-podcast-about-tailings-filtration",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.bokela.com/en/en/career",
+        "url": "https://www.bokela.com/en/en/career",
+        "parent": "https://www.bokela.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "07c909faab12d395a7b6",
+        "redirect_chain": [
+          "https://www.bokela.com/en/en/career"
+        ]
+      },
+      {
+        "requested_url": "https://www.bokela.com/sitemap.xml",
+        "url": "https://www.bokela.com/en/sitemap.xml",
+        "parent": "https://www.bokela.com/en/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "464bc225be6e8bd89bb5",
+        "redirect_chain": [
+          "https://www.bokela.com/sitemap.xml",
+          "https://www.bokela.com/en/sitemap.xml"
+        ]
+      },
+      {
+        "requested_url": "https://www.bokela.com/karriere",
+        "url": "https://www.bokela.com/en/karriere",
+        "parent": "https://www.bokela.com/en/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "54d75f8e69e851b548c5",
+        "redirect_chain": [
+          "https://www.bokela.com/karriere",
+          "https://www.bokela.com/en/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://www.bokela.com/careers",
+        "url": "https://www.bokela.com/en/careers",
+        "parent": "https://www.bokela.com/en/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "10401617f63f2ce86d75",
+        "redirect_chain": [
+          "https://www.bokela.com/careers",
+          "https://www.bokela.com/en/careers"
+        ]
+      },
+      {
+        "requested_url": "https://www.bokela.com/jobs",
+        "url": "https://www.bokela.com/en/jobs",
+        "parent": "https://www.bokela.com/en/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "853c228e486341e85648",
+        "redirect_chain": [
+          "https://www.bokela.com/jobs",
+          "https://www.bokela.com/en/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "CAS Software AG",
+    "website": "https://www.cas-software.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q30252828",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.cas-software.com/",
+        "url": "https://www.cas-software.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "2ea98331432dc8e5071f",
+        "redirect_chain": [
+          "https://www.cas-software.com/"
+        ],
+        "title": "",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://www.cas-software.com/sitemap.xml",
+        "url": "https://www.cas-software.com/sitemap.xml",
+        "parent": "https://www.cas-software.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "5e273c569663e9d1f37c",
+        "redirect_chain": [
+          "https://www.cas-software.com/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://www.cas-software.com/sitemap/page-en.xml",
+        "url": "https://www.cas-software.com/sitemap/page-en.xml",
+        "parent": "https://www.cas-software.com/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "743f2a776995e4d12512",
+        "redirect_chain": [
+          "https://www.cas-software.com/sitemap/page-en.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://www.cas-software.com/sitemap/post-en.xml",
+        "url": "https://www.cas-software.com/sitemap/post-en.xml",
+        "parent": "https://www.cas-software.com/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "989bdd9c13d3d1044883",
+        "redirect_chain": [
+          "https://www.cas-software.com/sitemap/post-en.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://www.cas-software.com/karriere",
+        "url": "https://www.cas-software.com/karriere",
+        "parent": "https://www.cas-software.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "21be30bea7e2acdd82ef",
+        "redirect_chain": [
+          "https://www.cas-software.com/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://www.cas-software.com/careers",
+        "url": "https://www.cas-software.com/careers",
+        "parent": "https://www.cas-software.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "81bd1b7ff26d69d1df28",
+        "redirect_chain": [
+          "https://www.cas-software.com/careers"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 1,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Physik Instrumente (PI)",
+    "website": "https://www.physikinstrumente.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q47423134",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.physikinstrumente.com/",
+        "url": "https://www.physikinstrumente.com/en/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "5e806fbc8bf4ef7e846c",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/",
+          "https://www.physikinstrumente.com/en/"
+        ],
+        "title": "PI (Physik Instrumente) – Solutions for Precision Motion and Positioning",
+        "headings": "Physik Instrumente (PI) – Solutions for Precision Motion and Positioning PI Blog Trade Fairs & Events IEEE IUS 2026 Semicon West electronica",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers",
+            "label": "CareersWe like and look for people who share the same vision and dynamics we do. People who want to make a difference and have ambitious obj",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+            "label": "Our Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+            "label": "Eschbach",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+            "label": "Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+            "label": "Lederhose",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Jobs at PI",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student Internships",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.physikinstrumente.com/en/about/careers",
+        "url": "https://www.physikinstrumente.com/en/about/careers",
+        "parent": "https://www.physikinstrumente.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "d44c1df55ae26ce93bf0",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/en/about/careers"
+        ],
+        "title": "Careers | PI (Physik Instrumente)",
+        "headings": "Careers at PI Your Job Application Process at PI We Are Looking For You at PI You Are Worth it - Our Employee Benefits at PI Discover Our PI Locations in Germany Questions & Answers How do I apply with PI and who can I ask when I have further questions? What does PI expect when it asks for full application documents? Does PI offer vacation jobs, internships or final dissertation work? May I just s",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.de/de/ueber-pi/karriere",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+            "label": "Eschbach",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+            "label": "Our Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+            "label": "Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+            "label": "Lederhose",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Find Your Dream Job Now!",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student Internships",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+        "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+        "parent": "https://www.physikinstrumente.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "f34fbba7e5cf07fb4e84",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/en/about/careers/benefits"
+        ],
+        "title": "Benefits",
+        "headings": "Our Commitment to Your Potential: Our Employee Benefits Our Benefits Our Working Culture",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+            "label": "Eschbach",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+            "label": "Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+            "label": "Lederhose",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Jobs at PI Do you want to take the next step into your professional future? If so, you should take a good look at the job vacancies in our j",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.de/de/ueber-pi/karriere/benefits",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student Internships",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+        "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+        "parent": "https://www.physikinstrumente.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "1b3c50ec7b1f383b59c5",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/en/about/careers/eschbach"
+        ],
+        "title": "Eschbach",
+        "headings": "Automation Performance Worldwide. Made in Eschbach. Innovation at Its Very Best. We Are Redefining Automation Performance. Nicely situated. Welcome to PI miCos in Eschbach! Your Entry Opportunities at PI miCos Impressions of the Location Eschbach",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+            "label": "Our Benefits Because You're Worth It. Our Benefits for PI Employees: We are very much aware that our most important capital is not in the ba",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+            "label": "Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+            "label": "Lederhose",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Apply now",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.de/de/ueber-pi/karriere/eschbach",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "StudentsYou have the opportunity at PI miCos to familiarize yourself with the professional world as a student in an exciting and modern work",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student InternshipsYour future is also our future! We can shape and form the future together with high-tech and your training as ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young ProfessionalsHave you have just graduated or do you have professional experience already. Are you ready for the next ste",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+        "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+        "parent": "https://www.physikinstrumente.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "2c9dbcb78e9693aacdc8",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/en/about/careers/karlsruhe"
+        ],
+        "title": "Karlsruhe",
+        "headings": "The Power is in Karlsruhe. Discover Our Headquarters. Technology Center. Karlsruhe and PI. Fits Perfectly. Full of Life. Living and Working in Karlsruhe. Your Entry Opportunities at PI Impressions of HQ Karlsruhe",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+            "label": "Our Benefits Because You're Worth It. Our Benefits for PI Employees: We are very much aware that our most important capital is not in the ba",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+            "label": "Eschbach",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+            "label": "Lederhose",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Apply now",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.de/de/ueber-pi/karriere/karlsruhe",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "StudentsAt PI, you have the opportunity to get to know the professional world in an exciting and modern working environment. As a student, y",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student Internships",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/experienced-young-professionals",
+            "label": "Experienced & Young ProfessionalsOff on new missions! Let us find a new vision. And turn it boldly into reality. Join us and be curious to d",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+        "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+        "parent": "https://www.physikinstrumente.com/en/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "70bd723adba331ad7048",
+        "redirect_chain": [
+          "https://www.physikinstrumente.com/en/about/careers/lederhose"
+        ],
+        "title": "Lederhose",
+        "headings": "Location in Lederhose Our Competence Center in Lederhose. Even for Room for the Future. Lederhose and PI Ceramic. Where the Future Is at Home. Your Entry Opportunities at PI Ceramic Impressions of the Location Lederhose",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+            "label": "Our Benefits Because You're Worth It. Our Benefits for PI Employees: We are very much aware that our most important capital is not in the ba",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach",
+            "label": "Eschbach",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe",
+            "label": "Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/jobs-at-pi",
+            "label": "Apply now",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.de/de/ueber-pi/karriere/lederhose",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/students",
+            "label": "StudentsAt PI Ceramic, you have the opportunity to get to know the professional world in an exciting and modern working environment. As a st",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/karlsruhe/students",
+            "label": "Students",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/trainees-student-internships",
+            "label": "Trainees & Student Internships",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/eschbach/experienced-young-professionals",
+            "label": "Experienced & Young Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.physikinstrumente.com/en/about/careers/lederhose/experienced-young-professionals",
+            "label": "Experienced & Young ProfessionalsOff on new missions! Let us find a new vision and turn it boldly into reality. Join us and be curious to di",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 61,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Storch und Beller",
+    "website": "https://storch-beller.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q50038790",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://storch-beller.de/",
+        "url": "https://storch-beller.de/startseite/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "d258090f6681cb359d3d",
+        "redirect_chain": [
+          "https://storch-beller.de/",
+          "https://storch-beller.de/startseite/"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Rehatechnik, Kinderreha, Sonderbau, Orthopädietechnik, Medizintechnik, Schuhtechnik, Homecare, Sanitätshaus Karlsruhe und Umgebung",
+        "headings": "Bei uns steht der Mensch im Mittelpunkt Schauen Sie bei uns vorbei! Gemeinsam finden wir eine Lösung. Handarbeit aus der Werkstatt Unsere ausgebildeten Fachkräfte beraten Sie individuell. Ihr Partner bei Skoliose Gerne unterstützen wir Sie und Ihre Familie das richtige Behandlungskonzept zu finden. Zum Co-med Online-Shop Ihr Gesundheitspartner ganz in Ihrer Nähe Wir verwenden Cookies Datenschutzei",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/?type=36",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/benefits/",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+            "label": "Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/",
+            "label": "Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/?type=36",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/?type=36",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://storch-beller.de/startseite/karriere/",
+        "url": "https://storch-beller.de/startseite/karriere/",
+        "parent": "https://storch-beller.de/startseite/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "4d946ec47220e20b3afe",
+        "redirect_chain": [
+          "https://storch-beller.de/startseite/karriere/"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Karriere",
+        "headings": "Karriere bei Storch und Beller Karriere bei Storch und Beller Initiativ-Bewerbungen richten Sie bitte an: Wir verwenden Cookies Datenschutzeinstellungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/?type=36",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/benefits/",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+            "label": "Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/",
+            "label": "Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/?type=36",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/?type=36",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/?type=36",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://storch-beller.de/startseite/karriere/jobs/",
+        "url": "https://storch-beller.de/startseite/karriere/jobs/",
+        "parent": "https://storch-beller.de/startseite/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "b0748d577f418671513a",
+        "redirect_chain": [
+          "https://storch-beller.de/startseite/karriere/jobs/"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Jobs",
+        "headings": "Jobs bei Storch und Beller Initiativ-Bewerbungen richten Sie bitte an: Wir verwenden Cookies Datenschutzeinstellungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/?type=36",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/benefits/",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+            "label": "Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bereichsleitung-fachhandel-mwd/",
+            "label": "Bereichsleitung Fachhandel (m/w/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/wundexperte-icwstomafachkraft-mwd/",
+            "label": "Wundexperte ICW / Stomafachkraft, Enzkreis",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/mitarbeiter-mwd-lagerlogistik-karlsruhe/",
+            "label": "Mitarbeiter (m/w/d) Lager/Logistik, Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/technischer-hilfsarbeiter-mwd-karlsruhe/",
+            "label": "Technischer Hilfsarbeiter (m/w/d), Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/orthopaedieschuhtechniker-mwd-karlsruhe/",
+            "label": "Orthopädieschuhtechniker (m/w/d), Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/zweiradtechnikerkfz-mechaniker-mwd-freiburg/",
+            "label": "Zweiradtechniker / KFZ-Mechaniker (m/w/d), Freiburg",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/mitarbeiter-mwd-wiederaufbereitunglager-karlsruhe/",
+            "label": "Mitarbeiter (m/w/d) Wiederaufbereitung/Lager, Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://storch-beller.de/startseite/karriere/?type=36",
+        "url": "https://storch-beller.de/startseite/karriere/?type=36",
+        "parent": "https://storch-beller.de/startseite/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "fdce02a2148a972a6d25",
+        "redirect_chain": [
+          "https://storch-beller.de/startseite/karriere/?type=36"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Karriere",
+        "headings": "Karriere bei Storch und Beller Karriere bei Storch und Beller Initiativ-Bewerbungen richten Sie bitte an: Wir verwenden Cookies Datenschutzeinstellungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/benefits/",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+            "label": "Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/",
+            "label": "Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/?type=36",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/?type=36",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/?type=36",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://storch-beller.de/startseite/karriere/benefits/",
+        "url": "https://storch-beller.de/startseite/karriere/benefits/",
+        "parent": "https://storch-beller.de/startseite/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "df6c1f2050e226014cc4",
+        "redirect_chain": [
+          "https://storch-beller.de/startseite/karriere/benefits/"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Benefits",
+        "headings": "Entdecken Sie die Storch und Beller Zusatzleistungen Dienstradleasing Mitarbeiter werben Mitarbeiter Gleitzeit Unterstützung bei Firmencups Betriebsarzt Privatnutzung von Firmen-KFZ Interne Job-/Standortwechsel möglich Betriebliche Altersvorsorge Kostenlose Getränke Attraktive Konditionen Schulungen Firmenfeier Initiativ-Bewerbungen richten Sie bitte an: Wir verwenden Cookies Datenschutzeinstellun",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/?type=36",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+            "label": "Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/",
+            "label": "Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/?type=36",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/?type=36",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/?type=36",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+        "url": "https://storch-beller.de/startseite/karriere/ausbildung/",
+        "parent": "https://storch-beller.de/startseite/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "689b5f72c3cc9ad325e9",
+        "redirect_chain": [
+          "https://storch-beller.de/startseite/karriere/ausbildung/"
+        ],
+        "title": "Sanitätshaus Storch und Beller - Ausbildung",
+        "headings": "Ausbildung bei Storch und Beller Ausbildungsberufe bei Storch und Beller Bewirb' dich jetzt für 2026! Bildungspartnerschaft Wir verwenden Cookies Datenschutzeinstellungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://storch-beller.de/startseite/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/?type=36",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/benefits/",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/karriere/bewerber-formular/",
+            "label": "Bewerber-Formular",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/",
+            "label": "Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/news/?type=36",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/links/?type=36",
+            "label": "Links",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://storch-beller.de/startseite/unternehmen/ueberstorchundbeller/?type=36",
+            "label": "Über Storch und Beller",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 27,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Hatz-Moninger Brauhaus",
+    "website": "https://www.moninger.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q1589080",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.moninger.de/",
+        "url": "https://www.moninger.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "50551297bafcf937ea7b",
+        "redirect_chain": [
+          "https://www.moninger.de/"
+        ],
+        "title": "Moninger - Home",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://www.moninger.de/sitemap.xml",
+        "url": "https://www.moninger.de/sitemap.xml",
+        "parent": "https://www.moninger.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml;charset=utf-8",
+        "capture": "408b402f61359cb4fb5c",
+        "redirect_chain": [
+          "https://www.moninger.de/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://www.moninger.de/karriere",
+        "url": "https://www.moninger.de/karriere",
+        "parent": "https://www.moninger.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "01f34a75ec629211e8d4",
+        "redirect_chain": [
+          "https://www.moninger.de/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://www.moninger.de/careers",
+        "url": "https://www.moninger.de/careers",
+        "parent": "https://www.moninger.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "742e9df552e8abb9862f",
+        "redirect_chain": [
+          "https://www.moninger.de/careers"
+        ]
+      },
+      {
+        "requested_url": "https://www.moninger.de/jobs",
+        "url": "https://www.moninger.de/jobs/",
+        "parent": "https://www.moninger.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "b0e58b83a17bc02f577d",
+        "redirect_chain": [
+          "https://www.moninger.de/jobs",
+          "https://www.moninger.de/jobs/"
+        ],
+        "title": "Moninger - Jobs",
+        "headings": "",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.moninger.de/jobs/?of-age=true",
+            "label": "Klar",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 1
+    }
+  },
+  {
+    "name": "Caemmerer Lenz",
+    "website": "https://www.caemmerer-lenz.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q34561210",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/",
+        "url": "https://www.caemmerer-lenz.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "9a49cb057126a0c6edeb",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/"
+        ],
+        "title": "Caemmerer Lenz",
+        "headings": "SEIT MEHR ALS 75 JAHREN: VERLÄSSLICHKEIT, ERFAHRUNG UND WEITBLICK. Weitere Entscheidung des BGH zum Bauträgerrecht Erfolg vor dem Bundesverwaltungsgericht – eine klare Ansage zur Wirkung neuer EuGH-Rechtsprechung Wir stellen ein! Caemmerer Lenz unterstützt die NVS Natur Stiftung Südpfalz Überwachug des Arbeitsorts mit Teams – rechtliche Stolperfallen für Arbeitgeber Rechtkonformer Einsatz von KI-A",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber",
+            "label": "Überwachug des Arbeitsorts mit Teams – rechtliche Stolperfallen für Arbeitgeber",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber/",
+            "label": "weiterlesen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-area=unternehmen-und-unternehmer",
+            "label": "Unternehmen und Unternehmer",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/rechtkonformer-einsatz-von-ki-im-unternehmen/",
+            "label": "Rechtkonformer Einsatz von KI-Anwendungen im Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/kommunalbuergschaften-und-beihilferecht-fuer-staedte-und-gemeinden-fuer-banken-und-unternehmen",
+            "label": "Kommunalbürgschaften und Beihilferecht. Für Städte und Gemeinden, für Banken und Unternehmen",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+        "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+        "parent": "https://www.caemmerer-lenz.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "961b35904f837e874b70",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/karriere-ausbildung/"
+        ],
+        "title": "Karriere/Ausbildung – Caemmerer Lenz",
+        "headings": "Karriere/Ausbildung Ausbildung zur/zum Rechtsanwaltsfachangestellten Referendarinnen und Referendare Rechtsanwältinnen und Rechtsanwälte Initiativbewerbung",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/sekretaerin-m-w-d-caemmererlenz-1/",
+            "label": "KARRIERE Anwaltsassistenz (m/w/d) @CaemmererLenz Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-anwaelte/",
+            "label": "Auf unserer speziellen Karriereseite finden Sie weitere Informationen Anwälte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-referendare/",
+            "label": "Weitere Informationen haben wir für Sie auf einer eigenen Seite zusammengestellt. Referendariat",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-auszubildende/",
+            "label": "Informieren Sie sich bitte auf unserer speziellen Seite Ausbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/rechtsanwaeltin-rechtsanwalt-m-w-d-oeffentliches-recht/",
+            "label": "Stellenanzeige – Rechtsanwältin/Rechtsanwalt (m/w/d) Öffentliches Recht Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/rechtsanwalt-rechtsanwaeltin-w-m-d-bau-und-architektenrecht/",
+            "label": "Stellenanzeige – Rechtsanwalt / Rechtsanwältin (w/m/d) Bau- und Architektenrecht Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/stellenanzeige-rechtsanwalt-rechtsanwaeltin-im-familienrecht-w-m-d/",
+            "label": "Stellenanzeige – Rechtsanwalt/Rechtsanwältin im Familienrecht (w/m/d) Karlsruhe",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber",
+        "url": "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber/",
+        "parent": "https://www.caemmerer-lenz.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "9f8779f48377bd31160f",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber",
+          "https://www.caemmerer-lenz.de/aktuelles-publikationen/ueberwachug-des-arbeitsorts-mit-teams-rechtliche-stolperfallen-fuer-arbeitgeber/"
+        ],
+        "title": "Überwachug des Arbeitsorts mit Teams – rechtliche Stolperfallen für Arbeitgeber – Caemmerer Lenz",
+        "headings": "Überwachug des Arbeitsorts mit Teams – rechtliche Stolperfallen für Arbeitgeber Ab Dezember 2025 bietet Microsoft Teams eine neue Funktion: Der Arbeitsort wird automatisch erkannt, sobald sich Beschäftigte ins Unternehmens-WLAN einloggen. Was zunächst nach einer praktischen Arbeitshilfe klingt, birgt erhebliche arbeits- und datenschutzrechtliche Risiken für Arbeitgeber – von Mitbestimmungspflichte",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/karriere-ausbildung/sekretaerin-m-w-d-caemmererlenz-1/",
+        "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/sekretaerin-m-w-d-caemmererlenz-1/",
+        "parent": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "81c7c28dd451cc24067c",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/karriere-ausbildung/sekretaerin-m-w-d-caemmererlenz-1/"
+        ],
+        "title": "KARRIERE Anwaltsassistenz / Rechtsanwaltsfachangestellte/-r (m/w/d) @CaemmererLenz – Caemmerer Lenz",
+        "headings": "KARRIERE Anwaltsassistenz / Rechtsanwaltsfachangestellte/-r (m/w/d) @CaemmererLenz Sie suchen eine spannende Herausforderung an einem modernen Arbeitsplatz? Ihre Aufgaben: Ihr Profil: Wir bieten mehr als nur einen Job! Kontakt:",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-anwaelte/",
+        "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-anwaelte/",
+        "parent": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "e19c9a0a20590cbeb1b1",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-anwaelte/"
+        ],
+        "title": "Rechtsanwalt/Rechtsanwältin bei Caemmerer Lenz – Caemmerer Lenz",
+        "headings": "Rechtsanwalt/Rechtsanwältin bei Caemmerer Lenz Karriere bei Caemmerer Lenz – Unsere Stärken sind Ihre Chancen Sie werden jederzeit unterstützt Sie kommen fachlich voran Sie bewegen sich in einem lebendigen Umfeld Sie können Beruf und Familie vereinbaren Sie nutzen unsere Netzwerke Sie haben die Chance, Partner/in zu werden Sie möchten sich bewerben? Rechtsanwalt/Rechtsanwältin im Familienrecht (w/",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/stellenanzeige-rechtsanwalt-rechtsanwaeltin-im-familienrecht-w-m-d/",
+            "label": "hier",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-referendare/",
+        "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-referendare/",
+        "parent": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "14624c2cadcc761825dc",
+        "redirect_chain": [
+          "https://www.caemmerer-lenz.de/karriere-ausbildung/karriere-und-ausbildung-fuer-referendare/"
+        ],
+        "title": "Talentförderung bei Caemmerer Lenz – Caemmerer Lenz",
+        "headings": "Talentförderung bei Caemmerer Lenz DESHALB BILDEN WIR AUS SO BILDEN WIR AUS Eigenständig Vielseitig Flexibel IHRE BENEFITS",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/uber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.caemmerer-lenz.de/anwaelte/?team-city=karlsruhe",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 9,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Volksbank pur",
+    "website": "https://www.volksbank-karlsruhe.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q1633965",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city",
+    "pages": [
+      {
+        "requested_url": "https://www.volksbank-karlsruhe.de/",
+        "url": "https://www.volksbank-pur.de/index.html",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "b2499bec4a5dc06817b5",
+        "redirect_chain": [
+          "https://www.volksbank-karlsruhe.de/",
+          "https://www.volksbank-pur.de/",
+          "https://www.volksbank-pur.de/index.html"
+        ],
+        "title": "persönlich und regional - Volksbank pur",
+        "headings": "5. Artenschutzlauf Volksbank pur Lauf im Zoologischen Stadtgarten Karlsruhe, 7,6 km (4 Runden a 1,9 km) am Sonntag, 22. November 2026 in Karlsruhe Direkt online abschließen: Girokonto eröffnen Depotkonto einrichten Kreditkarte bestellen Kredit aufnehmen Unsere aktuellen Themen und Angebote GenoxGaming-Series Neue Wege für Ihre Altersvorsorge Dein Plus für die Urlaubskasse! Gewinnen. Sparen. Helfen",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/karriere-pur.html",
+            "label": "Mehr erfahren",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.volksbank-pur.de/meine-bank/karriere/karriere-pur.html",
+        "url": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+        "parent": "https://www.volksbank-pur.de/index.html",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "85bf2f5401fd692930b6",
+        "redirect_chain": [
+          "https://www.volksbank-pur.de/meine-bank/karriere/karriere-pur.html",
+          "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html"
+        ],
+        "title": "Karriere - Volksbank pur",
+        "headings": "Wir nur mit dir - ein Job für dich und deine Region Wir suchen dich! Einsteiger und Berufserfahrene Berufserfahrene Ausbildung Duales Studium Praktikum Starte mit uns in die Zukunft Benefits für unsere Mitarbeitenden Wir sind pur - persönlich und regional mit zahlreichen Benefits für die Mitarbeitenden Vergütung Gesundheit Familien Service Vergünstigungen Erholung Sonderzahlungen Leasingangebote W",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "helix",
+            "tenant": "volksbank-karlsruhe",
+            "board_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "feed_url": null,
+            "evidence_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "label": "Unsere Stellenangebote",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere.html",
+            "label": "KarriereKarriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+            "label": "PraktikumPraktikum",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/ausbildung.html",
+            "label": "AusbildungAusbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/duales-studium.html",
+            "label": "Duales StudiumDuales Studium",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/berufserfahrene.html",
+            "label": "BerufserfahreneBerufserfahrene",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/bewerbungsprozess.html",
+            "label": "BewerbungsprozessBewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/arbeitgeber-genossenschaftsbank.html",
+            "label": "Arbeitgeber GenossenschaftsbankArbeitgeber Genossenschaftsbank",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/ueber-uns.html",
+            "label": "Über unsÜber uns",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+        "url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+        "parent": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+        "method": "ats_evidence",
+        "depth": 2,
+        "fetch_state": "robots_unavailable",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      },
+      {
+        "requested_url": "https://www.volksbank-pur.de/meine-bank/karriere.html",
+        "url": "https://www.volksbank-pur.de/meine-bank/karriere.html",
+        "parent": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "154a99645ccee394ecce",
+        "redirect_chain": [
+          "https://www.volksbank-pur.de/meine-bank/karriere.html"
+        ],
+        "title": "Karriere - Volksbank pur",
+        "headings": "Wir nur mit dir - ein Job für dich und deine Region Wir suchen dich! Einsteiger und Berufserfahrene Berufserfahrene Ausbildung Duales Studium Praktikum Starte mit uns in die Zukunft Benefits für unsere Mitarbeitenden Wir sind pur - persönlich und regional mit zahlreichen Benefits für die Mitarbeitenden Vergütung Gesundheit Familien Service Vergünstigungen Erholung Sonderzahlungen Leasingangebote W",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "helix",
+            "tenant": "volksbank-karlsruhe",
+            "board_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "feed_url": null,
+            "evidence_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+            "label": "Unsere Stellenangebote",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+            "label": "PraktikumPraktikum",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+            "label": "ÜbersichtÜbersicht",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/ausbildung.html",
+            "label": "AusbildungAusbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/duales-studium.html",
+            "label": "Duales StudiumDuales Studium",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/berufserfahrene.html",
+            "label": "BerufserfahreneBerufserfahrene",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/bewerbungsprozess.html",
+            "label": "BewerbungsprozessBewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/arbeitgeber-genossenschaftsbank.html",
+            "label": "Arbeitgeber GenossenschaftsbankArbeitgeber Genossenschaftsbank",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/ueber-uns.html",
+            "label": "Über unsÜber uns",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+        "url": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+        "parent": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "7d9196c015f7b109ab60",
+        "redirect_chain": [
+          "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html"
+        ],
+        "title": "Praktikum - Volksbank pur",
+        "headings": "Praktikum (m/w/d) ab 01.01.2026 Deine Vorteile Einblick ins Berufsleben der Bankenwelt Von Fachleuten lernen Herausfinden, ob du bei uns beruflich durchstarten möchtest Praktikum für Schülerinnen und Schüler Unsere Auszeichnungen und Bewertungen Praktikum für Studentinnen und Studenten",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "helix",
+            "tenant": "volksbank-karlsruhe",
+            "board_url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+            "feed_url": null,
+            "evidence_url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+            "evidence_kind": "link"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+            "label": "Jetzt bewerben",
+            "score": 100,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere.html",
+            "label": "KarriereKarriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+            "label": "ÜbersichtÜbersicht",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/ausbildung.html",
+            "label": "AusbildungAusbildung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/duales-studium.html",
+            "label": "Duales StudiumDuales Studium",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/berufserfahrene.html",
+            "label": "BerufserfahreneBerufserfahrene",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/bewerbungsprozess.html",
+            "label": "BewerbungsprozessBewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/karriere/arbeitgeber-genossenschaftsbank.html",
+            "label": "Arbeitgeber GenossenschaftsbankArbeitgeber Genossenschaftsbank",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.volksbank-pur.de/meine-bank/ueber-uns.html",
+            "label": "Über unsÜber uns",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+        "url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+        "parent": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+        "method": "ats_evidence",
+        "depth": 3,
+        "fetch_state": "robots_unavailable",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      }
+    ],
+    "boards": [
+      {
+        "provider": "helix",
+        "tenant": "volksbank-karlsruhe",
+        "board_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+        "feed_url": null,
+        "evidence_url": "https://volksbank-karlsruhe.helixjobs.com/extern",
+        "evidence_kind": "link",
+        "discovered_on": "https://www.volksbank-pur.de/meine-bank/karriere/uebersicht.html",
+        "job_count": null,
+        "feed_state": "not_supported",
+        "complete": false,
+        "jobs": []
+      },
+      {
+        "provider": "helix",
+        "tenant": "volksbank-karlsruhe",
+        "board_url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+        "feed_url": null,
+        "evidence_url": "https://volksbank-karlsruhe.helixjobs.com/_/joblist?place=&as=Praktikum",
+        "evidence_kind": "link",
+        "discovered_on": "https://www.volksbank-pur.de/meine-bank/karriere/praktikum.html",
+        "job_count": null,
+        "feed_state": "not_supported",
+        "complete": false,
+        "jobs": []
+      }
+    ],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 20,
+      "duplicate_redirects_skipped": 0
+    }
+  }
+]

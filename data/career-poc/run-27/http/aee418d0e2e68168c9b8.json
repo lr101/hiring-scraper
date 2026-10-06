@@ -1,0 +1,16 @@
+{
+  "url": "https://lbp-patent.de/ausbildung-zum-patentanwalt/",
+  "checked_at": "2026-10-05T23:13:06.134770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53160,
+  "state": "ok",
+  "elapsed_seconds": 3.644,
+  "sha256": "736e5a3c5e9d8c026a3053ed7aba952a30d8adc7b61f8a666a5e26e7ab34a74a",
+  "capture": "aee418d0e2e68168c9b8"
+}

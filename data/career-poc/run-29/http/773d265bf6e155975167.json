@@ -1,0 +1,17 @@
+{
+  "url": "https://www.secorvo.de/unternehmen/stellenangebote.md",
+  "checked_at": "2026-10-05T22:47:21.132530+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/markdown; charset=utf-8",
+  "etag": "\"6ab50db8-24ad\"",
+  "last_modified": "Thu, 24 Sep 2026 11:47:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 9389,
+  "state": "ok",
+  "elapsed_seconds": 1.062,
+  "sha256": "1e8c52b5c4d601b03ae4ca28c8f48470c1c57973e06554d36b6ef4515268adbb",
+  "capture": "773d265bf6e155975167",
+  "merged_from_run": "run-27"
+}

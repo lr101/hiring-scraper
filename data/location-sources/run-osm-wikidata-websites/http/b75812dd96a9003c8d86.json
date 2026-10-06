@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kkh.de/karriere/stellenangebote",
+  "checked_at": "2026-10-06T07:06:34.227439+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"1a089-65d269041aae6\"",
+  "last_modified": "Tue, 06 Oct 2026 07:01:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 106633,
+  "state": "ok",
+  "elapsed_seconds": 1.118,
+  "sha256": "92800c55c3458395048667b5b9cd7f66975c0aee23cb5b4fdc9dd733484d5a30",
+  "capture": "b75812dd96a9003c8d86"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://unsere-standorte.socotec.de/robots.txt",
+  "checked_at": "2026-10-05T22:18:49.751739+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96,
+  "state": "ok",
+  "elapsed_seconds": 0.439,
+  "sha256": "c54c3011c96123b3e7b9feece87e561a29eec9437a5560747b6c43d3ae2afc38",
+  "capture": "fe7146e06ce937ca845c",
+  "merged_from_run": "run-25"
+}

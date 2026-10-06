@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brinkmann-pflegevermittlung.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:12.574464+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"ae-65c0cef1ce6d1\"",
+  "last_modified": "Tue, 22 Sep 2026 07:01:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 174,
+  "state": "ok",
+  "elapsed_seconds": 0.568,
+  "sha256": "5d44c6c85b03cf1db8ebcb111837d2f8bbeab5834b160e39722702f8cdc8de1c",
+  "capture": "ce76ec6adc0822a5a9f2",
+  "merged_from_run": "run-28"
+}

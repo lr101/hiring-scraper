@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mueller-hof.de/robots.txt",
+  "checked_at": "2026-10-05T23:10:36.521378+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 227,
+  "state": "ok",
+  "elapsed_seconds": 3.487,
+  "sha256": "efd9834df56f4fd4fe261898b0bf23d3a64419f66f3ea79d398068d7e9233d35",
+  "capture": "c749e8893988b4c3e513"
+}

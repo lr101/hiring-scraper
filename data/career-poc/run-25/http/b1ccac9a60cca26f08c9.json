@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.vde.com/www8/oauth2/authorization/azure",
+  "checked_at": "2026-10-05T22:13:54.600589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://login.microsoftonline.com/4348a3a5-ec37-426a-99b9-47e23a911b41/oauth2/v2.0/authorize?response_type=code&client_id=134ec522-d72e-4ef5-bcfb-4771961ebb6c&scope=openid%20profile&state=WXL0XG0ka4jEN_DnqyStjKdQFPdVNNn_NBgIZbhDx2g%3D&redirect_uri=https://karriere.vde.com/login/oauth2/code/azure&nonce=kIcrh7ZUacWp78F5Dksk_VIpMhRzpQKGiapsU5dk4ug",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.097,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "b1ccac9a60cca26f08c9"
+}

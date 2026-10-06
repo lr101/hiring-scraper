@@ -1,0 +1,17 @@
+{
+  "url": "https://appsphere-karriere.de/",
+  "checked_at": "2026-10-05T23:35:46.252613+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:54:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 100777,
+  "state": "ok",
+  "elapsed_seconds": 0.488,
+  "sha256": "1b9599f4c8a3ef3347b659bc5586dbbeb3c12aa2596bcb8b2e00b19304078dea",
+  "capture": "63179e45d27980177625",
+  "merged_from_run": "run-28"
+}

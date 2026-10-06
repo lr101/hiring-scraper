@@ -1,0 +1,17 @@
+{
+  "url": "https://www.daferner-gmbh.de/karriere",
+  "checked_at": "2026-10-05T23:43:39.942574+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62843,
+  "state": "http_error",
+  "elapsed_seconds": 1.296,
+  "sha256": "2e4f2095ac010e7567f3a0a220ab6c1a52b2f130f8900b2819dfa55a4f55ca43",
+  "capture": "07d696c3155d2a844cd1",
+  "merged_from_run": "run-28"
+}

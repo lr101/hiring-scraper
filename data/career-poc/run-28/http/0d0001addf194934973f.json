@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitsagentur.de/vor-ort/familienkasse/familienkasse-baden-wuerttemberg-west-karlsruhe.html",
+  "checked_at": "2026-10-05T23:15:58.362307+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"fu6byeg5qq2esw\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112741,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "6ab8a3575e716b05527b5bc5d85d5c88f1502d1212bc454cf9d41e74b39bd2ef",
+  "capture": "0d0001addf194934973f"
+}

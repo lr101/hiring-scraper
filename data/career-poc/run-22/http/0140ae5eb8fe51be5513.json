@@ -1,0 +1,17 @@
+{
+  "url": "https://www.qwertiko.de/robots.txt",
+  "checked_at": "2026-10-05T20:41:12.036422+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 251,
+  "state": "ok",
+  "elapsed_seconds": 0.128,
+  "sha256": "97239e7782794c7fe2d4030f3bb5b3752a38b14b1180750513917691efde1d6a",
+  "capture": "0140ae5eb8fe51be5513",
+  "reused_from": "data/career-poc/run-20/http/0140ae5eb8fe51be5513.json"
+}

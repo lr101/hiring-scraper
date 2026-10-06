@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.diakonie-kork.de/robots.txt",
+  "checked_at": "2026-10-05T22:50:47.576205+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"6abcf3b1-bb\"",
+  "last_modified": "Wed, 30 Sep 2026 11:34:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.217,
+  "sha256": "316a66543c2e463b08ae279e9917a61eb306bab36d293dd31385018338e28086",
+  "capture": "1d541e74b1569951114b"
+}

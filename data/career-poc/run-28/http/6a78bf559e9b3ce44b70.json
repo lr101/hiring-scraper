@@ -1,0 +1,16 @@
+{
+  "url": "http://www.nfdi.de/jobs/",
+  "checked_at": "2026-10-05T23:22:43.377539+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162835,
+  "state": "ok",
+  "elapsed_seconds": 1.181,
+  "sha256": "384374bc91a3aaaa19073b8b8906900dea8650d4c4ac1ca57d2007e3ee59085b",
+  "capture": "6a78bf559e9b3ce44b70"
+}

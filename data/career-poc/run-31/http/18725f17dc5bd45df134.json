@@ -1,0 +1,17 @@
+{
+  "url": "https://www.reif-sanitaer-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:26:33.906694+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:26:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1914,
+  "state": "ok",
+  "elapsed_seconds": 0.839,
+  "sha256": "0d4376fef3cad010e086b851c7dfeda49b06733ffd89f5c19d49f18ada4df080",
+  "capture": "18725f17dc5bd45df134",
+  "merged_from_run": "run-28"
+}

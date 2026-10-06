@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-10-05T21:41:30.309141+00:00",
+  "arguments": {
+    "seeds": "data/career-poc/seeds-karlsruhe-it-followup-20.json",
+    "out": "data/career-poc/run-21",
+    "cache_from": "data/career-poc/run-20/http",
+    "max_pages": 6,
+    "max_depth": 3,
+    "timeout": 12,
+    "delay": 0.0,
+    "max_requests": 300
+  },
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "source_sha256": {
+    "/workspace/hiring-scraper/hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "/workspace/hiring-scraper/hiring_scraper/__main__.py": "3db595be1093e576747b35fb692f1b4aca037baf3cf1709ba9bf5a75d1da2ef8",
+    "/workspace/hiring-scraper/hiring_scraper/ats.py": "737d202b091ab6ebf9b545b1e5a90714c28f4e4046607c4c6d734812d0cfe31d",
+    "/workspace/hiring-scraper/hiring_scraper/discovery.py": "dbb5df4b70fe7041cea04e43171fc3234cd495b6766baaec6b4eb50962cac1b2",
+    "/workspace/hiring-scraper/hiring_scraper/geography.py": "6164e30f5d1068cf6b521b72bc67bf13a2a2bc177363b282966e072c122f455b",
+    "/workspace/hiring-scraper/hiring_scraper/html_jobs.py": "adfac22a3acfecc543e4e8ffb85bb49fe530ddff832038aa4206bef6c8f6d3e5",
+    "/workspace/hiring-scraper/hiring_scraper/http.py": "f289c800cd3b3a236521022b6d877862b122870208b60fab369747c5f29cd452",
+    "/workspace/hiring-scraper/hiring_scraper/pages.py": "65b864d364a4794f5e68b1696756314cb56e63f4cc38b9434cf3a9687a66bb1f"
+  },
+  "git_dirty": true
+}

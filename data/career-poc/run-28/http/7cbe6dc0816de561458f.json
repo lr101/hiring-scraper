@@ -1,0 +1,16 @@
+{
+  "url": "https://andreasfretz.de/karriere",
+  "checked_at": "2026-10-05T23:39:19.092745+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132861,
+  "state": "http_error",
+  "elapsed_seconds": 1.22,
+  "sha256": "2d9bafd352b1a6496de6b5683cc097abd67643d9e0c903dd80f8e033997d3ee4",
+  "capture": "7cbe6dc0816de561458f"
+}

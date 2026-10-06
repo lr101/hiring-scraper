@@ -1,0 +1,16 @@
+{
+  "url": "https://www.seica.com/work-with-us-form/",
+  "checked_at": "2026-10-05T23:35:14.624638+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 180409,
+  "state": "ok",
+  "elapsed_seconds": 1.32,
+  "sha256": "e383b5b3945282126a5fbf234f0e34fdb585b3532fcfeed221c0c27c3da31091",
+  "capture": "887b227064d0c81995fc"
+}

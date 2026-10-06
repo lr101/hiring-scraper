@@ -1,0 +1,16 @@
+{
+  "url": "https://bodelschwingh.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T22:40:51.139947+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 369,
+  "state": "ok",
+  "elapsed_seconds": 1.393,
+  "sha256": "f07be9f05761e20dcd83ffd01e9e2ef146d18368a8aa349dca7a453f0233070b",
+  "capture": "b8f42dac8d8516093a4c"
+}

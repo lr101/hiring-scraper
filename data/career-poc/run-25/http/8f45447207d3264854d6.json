@@ -1,0 +1,16 @@
+{
+  "url": "https://staatsanwaltschaft-karlsruhe.justiz-bw.de/careers",
+  "checked_at": "2026-10-05T22:06:14.333386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 414,
+  "state": "http_error",
+  "elapsed_seconds": 1.109,
+  "sha256": "af752255ae8788a1cd862a695d86c7ae2d696fff3f9ba29434ca88e08e528ec8",
+  "capture": "8f45447207d3264854d6"
+}

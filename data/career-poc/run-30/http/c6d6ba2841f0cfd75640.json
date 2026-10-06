@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lbs.de/unternehmen/karriere/karriere-lbs-sued",
+  "checked_at": "2026-10-05T23:14:32.763469+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"wcdcq9rd706d60\"",
+  "last_modified": "Tue, 30 Sep 2025 13:54:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 297261,
+  "state": "ok",
+  "elapsed_seconds": 0.905,
+  "sha256": "1801921e0dade3b4b18c51c373f75f55e9ad18bed95a8fd05c81a44ae478fe3d",
+  "capture": "c6d6ba2841f0cfd75640",
+  "merged_from_run": "run-28"
+}

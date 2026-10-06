@@ -1,0 +1,17 @@
+{
+  "url": "https://www.interpneu.de/unternehmen/karriere-und-ausbildung/stellenangebote",
+  "checked_at": "2026-10-05T23:35:05.424646+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 232559,
+  "state": "ok",
+  "elapsed_seconds": 1.777,
+  "sha256": "b488bc9107d781be650ca00e81ad7d4a00d1f67abc0e7e44c2272ed6cba00cbd",
+  "capture": "e50a838981eb205366da",
+  "merged_from_run": "run-28"
+}

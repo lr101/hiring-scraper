@@ -1,0 +1,16 @@
+{
+  "url": "https://mueller-maler-ausbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:28.999706+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 404,
+  "state": "ok",
+  "elapsed_seconds": 0.543,
+  "sha256": "209d95fefaf705bd84b3c1dff8260f5f7f96ce30fbcacc2868d26911b30b2f7a",
+  "capture": "468fcf8f61da5bfa7571"
+}

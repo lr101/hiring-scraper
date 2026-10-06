@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rene-miceli.de/careers",
+  "checked_at": "2026-10-05T23:41:18.786715+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109340,
+  "state": "http_error",
+  "elapsed_seconds": 2.052,
+  "sha256": "8fdbabc88f3fb42061976c166c5bc68415f470b566df9cf703a07af6d8a21486",
+  "capture": "163a45a32ef5c038fdaf"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://4wt-ing.com/careers",
+  "checked_at": "2026-10-05T23:44:21.705448+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://4wt-ing.com/",
+  "bytes": 138,
+  "state": "http_error",
+  "elapsed_seconds": 0.122,
+  "sha256": "753e0dd54f28c4f7009b9c0b18a68aed175416bd8b7d134858264586eaac56f0",
+  "capture": "d6bba52af8c79891b1a0",
+  "merged_from_run": "run-28"
+}

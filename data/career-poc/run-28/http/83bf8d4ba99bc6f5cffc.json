@@ -1,0 +1,16 @@
+{
+  "url": "https://www.scholppkran.de/",
+  "checked_at": "2026-10-05T23:35:10.633785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 691299,
+  "state": "ok",
+  "elapsed_seconds": 1.197,
+  "sha256": "ce60f65cfb433f15f4b5b764266928a3325d406a1de90263836564990452541c",
+  "capture": "83bf8d4ba99bc6f5cffc"
+}

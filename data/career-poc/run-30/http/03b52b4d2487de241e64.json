@@ -1,0 +1,17 @@
+{
+  "url": "https://nees-bauen.de/",
+  "checked_at": "2026-10-05T23:44:41.426195+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 128062,
+  "state": "ok",
+  "elapsed_seconds": 3.343,
+  "sha256": "439c844c5534d820f4b26ba29cebc072710ab9f6a1214e10b8165f57fe717e14",
+  "capture": "03b52b4d2487de241e64",
+  "merged_from_run": "run-28"
+}

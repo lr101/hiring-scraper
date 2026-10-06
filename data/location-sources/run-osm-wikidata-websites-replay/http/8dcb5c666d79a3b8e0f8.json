@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tk.de/stellenangebote/Teamleitung-Cloud-Platform-m-w-d-TK25676",
+  "checked_at": "2026-10-06T07:06:46.656999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94631,
+  "state": "ok",
+  "elapsed_seconds": 1.156,
+  "sha256": "a71f4c8d6432b1a347539dd1f69f4d8959c1ceed3c7e4c08caeb53c37c767129",
+  "capture": "8dcb5c666d79a3b8e0f8",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/8dcb5c666d79a3b8e0f8.json"
+}

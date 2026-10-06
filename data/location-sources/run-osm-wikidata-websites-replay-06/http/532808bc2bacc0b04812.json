@@ -1,0 +1,17 @@
+{
+  "url": "https://igbau.de/Karriere.html",
+  "checked_at": "2026-10-06T07:07:21.207750+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"734b-65cc5e9609e80\"",
+  "last_modified": "Thu, 01 Oct 2026 11:42:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 29515,
+  "state": "ok",
+  "elapsed_seconds": 1.063,
+  "sha256": "d9c51dc9989ebd3e9492fcfcfc5f96ed407e184efe2b90b43ccd17e10d846a34",
+  "capture": "532808bc2bacc0b04812",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/532808bc2bacc0b04812.json"
+}

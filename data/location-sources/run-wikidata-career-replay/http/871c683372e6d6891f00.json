@@ -1,0 +1,14 @@
+{
+  "url": "https://www.schoeps.de/robots.txt",
+  "checked_at": "2026-10-05T14:47:20.947804+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "location": "https://schoeps.de/robots.txt",
+  "bytes": 638,
+  "state": "http_error",
+  "elapsed_seconds": 0.368,
+  "sha256": "30f6f32b502763fc034c7b47faf2a3bc8bc808a255da440a367d0e7c602d60d6",
+  "capture": "871c683372e6d6891f00",
+  "reused_from": "data/location-sources/run-wikidata-career/http/871c683372e6d6891f00.json"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hwk-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:07:01.063307+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 361,
+  "state": "ok",
+  "elapsed_seconds": 0.362,
+  "sha256": "c1dd01902720061bc70a83d12c9b602bf91866d6a060200ca894ecdb152c86ef",
+  "capture": "33a6ca63b033f579fde9",
+  "merged_from_run": "run-25"
+}

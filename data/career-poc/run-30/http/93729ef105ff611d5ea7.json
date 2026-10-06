@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sweco-gmbh.de/robots.txt",
+  "checked_at": "2026-10-05T22:42:32.063317+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"898017-1791186849;;;\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1232,
+  "state": "ok",
+  "elapsed_seconds": 0.214,
+  "sha256": "1ece41efb7e530bddc18d372823cc2c113782d16fb515c0f6c79ef7881a0b361",
+  "capture": "93729ef105ff611d5ea7",
+  "merged_from_run": "run-27"
+}

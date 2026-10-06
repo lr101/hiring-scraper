@@ -1,0 +1,16 @@
+{
+  "url": "https://konecranes.careers/",
+  "checked_at": "2026-10-05T23:24:43.955892+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 576480,
+  "state": "ok",
+  "elapsed_seconds": 1.283,
+  "sha256": "357a8d8dc2c257bac2e4a9db90e76be2f8b60b7d752adaf6af249b0cef34f0e7",
+  "capture": "e06ead2395a2fe2e1aad"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://alemannen.de/careers",
+  "checked_at": "2026-10-05T22:11:13.503774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 39372,
+  "state": "http_error",
+  "elapsed_seconds": 1.828,
+  "sha256": "2db9e6ee0fa9a075fd4d6a8ef8f0fae3ace81f0014d1a8fd51223866f65ee1db",
+  "capture": "9941fc5893faaad7a917"
+}

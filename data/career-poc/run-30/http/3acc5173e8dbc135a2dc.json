@@ -1,0 +1,17 @@
+{
+  "url": "https://www.visteon.com/careers/life-at-visteon/default.aspx",
+  "checked_at": "2026-10-05T23:30:28.935365+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87662,
+  "state": "ok",
+  "elapsed_seconds": 0.974,
+  "sha256": "30dba64f1390f83322a028a289638b693ddd8a6fa3207b3920ec66cacb603eca",
+  "capture": "3acc5173e8dbc135a2dc",
+  "merged_from_run": "run-28"
+}

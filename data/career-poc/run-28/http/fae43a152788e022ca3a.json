@@ -1,0 +1,16 @@
+{
+  "url": "https://www.biochem.de/job/auszubildenden-m-w-d-chemielaborant/",
+  "checked_at": "2026-10-05T23:28:46.010550+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 79023,
+  "state": "ok",
+  "elapsed_seconds": 1.166,
+  "sha256": "7f6850236af6f87d988a25edde172c2429db8557729cb22a01a6ae71cb499392",
+  "capture": "fae43a152788e022ca3a"
+}

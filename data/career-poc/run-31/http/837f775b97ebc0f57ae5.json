@@ -1,0 +1,17 @@
+{
+  "url": "https://www.spectra-gmbh.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:39:05.569454+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1215,
+  "state": "ok",
+  "elapsed_seconds": 0.877,
+  "sha256": "3ef5bb2c742e53d736633257d428783580c58ceaf33521f3b054cb1ffd73195c",
+  "capture": "837f775b97ebc0f57ae5",
+  "merged_from_run": "run-28"
+}

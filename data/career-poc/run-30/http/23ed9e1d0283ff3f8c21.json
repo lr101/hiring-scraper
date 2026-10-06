@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.renesas.com/job/senior-staff-software-engineer-platform-in-katowice-poland-jid-4711",
+  "checked_at": "2026-10-05T22:27:53.178884+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57871,
+  "state": "ok",
+  "elapsed_seconds": 1.22,
+  "sha256": "681db3088fc2bf8bb7347da6d34c536d4f34ab914273f45e0963f9abd478fdde",
+  "capture": "23ed9e1d0283ff3f8c21",
+  "merged_from_run": "run-26"
+}

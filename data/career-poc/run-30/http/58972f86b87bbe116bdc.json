@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aspion.de/jobs/",
+  "checked_at": "2026-10-05T23:20:15.532348+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:19:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 302408,
+  "state": "ok",
+  "elapsed_seconds": 0.926,
+  "sha256": "ffd7c5cd87a0b061c800f616ae807814109cf513043b6c4048a33bbf75e1a5d8",
+  "capture": "58972f86b87bbe116bdc",
+  "merged_from_run": "run-28"
+}

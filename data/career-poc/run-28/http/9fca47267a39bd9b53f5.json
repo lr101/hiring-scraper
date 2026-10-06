@@ -1,0 +1,16 @@
+{
+  "url": "https://ekiegg.de/",
+  "checked_at": "2026-10-05T23:38:01.518149+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23054,
+  "state": "ok",
+  "elapsed_seconds": 0.998,
+  "sha256": "6db846bab04428f7fa2a25f7da531db7e7b36044b169afa0e12597d1aab890ff",
+  "capture": "9fca47267a39bd9b53f5"
+}

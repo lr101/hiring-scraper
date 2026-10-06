@@ -1,0 +1,17 @@
+{
+  "url": "https://bisonpliance.com/robots.txt",
+  "checked_at": "2026-10-05T23:26:31.415241+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1431,
+  "state": "ok",
+  "elapsed_seconds": 0.33,
+  "sha256": "05d81db522943b9e7843c5eb14253e9d4659d20b7a8f773136fe080c8911c81f",
+  "capture": "e1d90307689a2d63be1b",
+  "merged_from_run": "run-28"
+}

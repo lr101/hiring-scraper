@@ -1,0 +1,16 @@
+{
+  "url": "https://www.andrena.de/",
+  "checked_at": "2026-10-05T23:24:03.319939+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245541,
+  "state": "ok",
+  "elapsed_seconds": 1.217,
+  "sha256": "2f9cf3ca33f0665de6359a75b6c94fe72388c2e109129106888f0d8eb8701055",
+  "capture": "5a10cbae4faa0c09b2b0"
+}

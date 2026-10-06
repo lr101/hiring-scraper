@@ -1,0 +1,16 @@
+{
+  "url": "https://ratzel-stb.de/jobs",
+  "checked_at": "2026-10-05T23:43:39.768759+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67778,
+  "state": "http_error",
+  "elapsed_seconds": 0.989,
+  "sha256": "e21c10fb3a062eb274385e71abcc3745ad82a4a9904ed4c4a608cf247a76b149",
+  "capture": "31f40948adcfd659e36c"
+}

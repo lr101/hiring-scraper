@@ -1,0 +1,17 @@
+{
+  "url": "http://www.stutensee.de/rathaus/ansprech/ap_spoec.html",
+  "checked_at": "2026-10-05T23:45:48.671548+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "application/json; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1564,
+  "state": "http_error",
+  "elapsed_seconds": 1.022,
+  "sha256": "35c1a22109a539219437c764e29d74d6d8619b72126d73b2c62451d0f9669af9",
+  "capture": "fc5a1a08f773d35f2d2f",
+  "merged_from_run": "run-28"
+}

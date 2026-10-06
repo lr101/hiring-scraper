@@ -1,0 +1,10 @@
+{
+  "url": "https://krusig.derobots.txt",
+  "checked_at": "2026-10-05T23:38:13.847197+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "[Errno -2] Name or service not known",
+  "elapsed_seconds": 0.027,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "c13e8393772f8b50aa13"
+}

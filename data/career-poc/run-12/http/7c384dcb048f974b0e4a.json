@@ -1,0 +1,13 @@
+{
+  "url": "https://technidata-it.career.softgarden.de/application/?jobId=64121193",
+  "checked_at": "2026-10-05T14:17:03.964084+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "location": "https://karriere.technidata.de/application/?jobId=64121193",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 1.094,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "7c384dcb048f974b0e4a"
+}

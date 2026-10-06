@@ -1,0 +1,17 @@
+{
+  "url": "https://karlsruhe.stadtmobil.de/privatkunden/aktuelle-jobs/",
+  "checked_at": "2026-10-05T22:54:31.063805+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22842,
+  "state": "ok",
+  "elapsed_seconds": 1.474,
+  "sha256": "e9d1751ce385f198b2cdf39e4caa8bf3778ef8351e686ba3d41608b3b4c72a04",
+  "capture": "a9c4b379eb6e1830fcad",
+  "reused_from": "data/career-poc/run-27/http/a9c4b379eb6e1830fcad.json"
+}

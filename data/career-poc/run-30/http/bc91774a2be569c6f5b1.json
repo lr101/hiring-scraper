@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diqa.de/de/Hauptseite",
+  "checked_at": "2026-10-05T23:31:38.222435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 26 May 2025 16:39:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 54674,
+  "state": "ok",
+  "elapsed_seconds": 0.846,
+  "sha256": "adefe700fcc32f9d9a684e522be7c25496158458e4d7dd1e9dfb6d22880fb48d",
+  "capture": "bc91774a2be569c6f5b1",
+  "merged_from_run": "run-28"
+}

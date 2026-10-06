@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ame-zeitarbeit.de/niederlassungen/",
+  "checked_at": "2026-10-05T22:10:51.584441+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ame-zeitarbeit.de/niederlassungen",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 1.271,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "edd72dcdda8b30683976",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.therapiezentrum-spross.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:33.437360+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 130,
+  "state": "ok",
+  "elapsed_seconds": 2.482,
+  "sha256": "745c3fb147dd1354af1aa35764a5e459a6593de1ab324cd1efacbbc7878e5e7c",
+  "capture": "7730ed43396bbed810ef",
+  "merged_from_run": "run-28"
+}

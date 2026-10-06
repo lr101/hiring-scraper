@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fabry-holzbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:10.068010+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"e-626f5889b8340\"",
+  "last_modified": "Fri, 15 Nov 2024 15:51:01 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 14,
+  "state": "ok",
+  "elapsed_seconds": 0.362,
+  "sha256": "fd89345af6aca5dab85f2aa6a830e270a362b1fa6b5f19607ddd773a081ed651",
+  "capture": "3ea6620b398de1b71022"
+}

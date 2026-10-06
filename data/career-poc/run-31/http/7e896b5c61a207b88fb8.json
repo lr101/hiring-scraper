@@ -1,0 +1,17 @@
+{
+  "url": "https://www.firststop.de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:36:18.918908+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107975,
+  "state": "ok",
+  "elapsed_seconds": 1.034,
+  "sha256": "6ebe9730a58fa578bbb5f45d363c0ded8f7b30d932decb3e6ec4c413c92c5638",
+  "capture": "7e896b5c61a207b88fb8",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://joos-gruppe.de/karriere/",
+  "checked_at": "2026-10-05T23:36:32.752185+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89478,
+  "state": "ok",
+  "elapsed_seconds": 0.754,
+  "sha256": "1893dac98efc6f1baedd9c5739994c7182d80063176097634160c74864996852",
+  "capture": "1ab9a0cadc6b7d212a0e"
+}

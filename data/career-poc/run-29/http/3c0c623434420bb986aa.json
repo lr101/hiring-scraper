@@ -1,0 +1,17 @@
+{
+  "url": "https://gc-fliesen-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:45:08.430549+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 274906,
+  "state": "ok",
+  "elapsed_seconds": 1.82,
+  "sha256": "422afaf61d0aadb486b02690e4a83294c646a809f77364395c2301edbc05e0f0",
+  "capture": "3c0c623434420bb986aa",
+  "merged_from_run": "run-28"
+}

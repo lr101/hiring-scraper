@@ -1,0 +1,17 @@
+{
+  "url": "https://augenzentrum-eckert.de/robots.txt",
+  "checked_at": "2026-10-05T22:17:18.794316+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"7d-57cea7a8ff700\"",
+  "last_modified": "Thu, 13 Dec 2018 17:16:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 125,
+  "state": "ok",
+  "elapsed_seconds": 0.174,
+  "sha256": "404ac4c175fa1682ffabffc6860743a4368b9fd1eb4117fe5bc82a5db3ae0e11",
+  "capture": "0f5294da50f1ae4ad1d5",
+  "merged_from_run": "run-25"
+}

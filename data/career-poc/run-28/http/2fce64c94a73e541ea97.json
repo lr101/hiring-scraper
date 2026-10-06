@@ -1,0 +1,16 @@
+{
+  "url": "https://www.haus-garten-montage.de/stelle-1.html",
+  "checked_at": "2026-10-05T23:43:41.138320+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29212,
+  "state": "ok",
+  "elapsed_seconds": 1.077,
+  "sha256": "a20195fc42e5bed38aa9285f306dfef0ed257faca47fd87e8c0e824ae2c68233",
+  "capture": "2fce64c94a73e541ea97"
+}

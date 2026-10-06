@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mikrotribologiecentrum.de/karriere",
+  "checked_at": "2026-10-05T23:19:31.964517+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11321,
+  "state": "http_error",
+  "elapsed_seconds": 0.985,
+  "sha256": "277377c73be0751deaf0f4f96124fa189285e04044b0b73b8cd5a50204e297a4",
+  "capture": "e394dadffca0defc277d"
+}

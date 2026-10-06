@@ -1,0 +1,14 @@
+{
+  "url": "https://www.ecosia.org/about/careers/",
+  "checked_at": "2026-10-05T09:08:58.361303+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "location": null,
+  "bytes": 79982,
+  "state": "ok",
+  "elapsed_seconds": 1.092,
+  "sha256": "e353103f175cab5034f713d9b12d96473a6a0302642a962f2b9856101a70f9e2",
+  "capture": "6e918fd16a9bf42f5029",
+  "reused_from": "data/career-poc/run-12/http/6e918fd16a9bf42f5029.json"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://fix-perso.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T22:20:22.009865+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 442,
+  "state": "ok",
+  "elapsed_seconds": 1.347,
+  "sha256": "4905afb067700f063986a74c7ef9bdb8458f5478b7edfda094137efa06a1bb43",
+  "capture": "0b628d08e5af46ed9e2c",
+  "merged_from_run": "run-25"
+}

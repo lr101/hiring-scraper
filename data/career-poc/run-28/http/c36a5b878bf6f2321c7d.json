@@ -1,0 +1,16 @@
+{
+  "url": "https://www.grether-delp.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:55.119148+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2699,
+  "state": "http_error",
+  "elapsed_seconds": 1.714,
+  "sha256": "bbb446ef0ff14c445d20efd37d37e4802d3b0b2182dbf1ca6a0a4197843a4994",
+  "capture": "c36a5b878bf6f2321c7d"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://ka.schulamt-bw.de/,Lde/Startseite/Service/Stellenangebote",
+  "checked_at": "2026-10-05T22:08:17.485961+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45425,
+  "state": "ok",
+  "elapsed_seconds": 1.138,
+  "sha256": "b9f94812665a5db89156c0d2739aa64cd78859d1b305e6cb504af4af57ad3f5f",
+  "capture": "fe52d56f09d920f0257a",
+  "merged_from_run": "run-25"
+}

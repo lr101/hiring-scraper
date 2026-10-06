@@ -1,0 +1,16 @@
+{
+  "url": "https://abas-erp.com/robots.txt",
+  "checked_at": "2026-10-05T22:53:33.679147+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"ariedan1i31t\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65,
+  "state": "ok",
+  "elapsed_seconds": 0.241,
+  "sha256": "1d9e9fcb289d770bcb0135cf872725fa8ede6bb5ce4f8888ff8faf5cca36e047",
+  "capture": "778a308d1fa468913961"
+}

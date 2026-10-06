@@ -1,0 +1,17 @@
+{
+  "url": "https://wildwasser-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T22:41:23.605192+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100974,
+  "state": "http_error",
+  "elapsed_seconds": 1.613,
+  "sha256": "656720111e3b586a422e4f4298a6dc55ca6c1bf56268532d63e4e2db24a37645",
+  "capture": "363ef95ffa1c839a932c",
+  "merged_from_run": "run-27"
+}

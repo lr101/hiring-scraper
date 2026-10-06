@@ -1,0 +1,29 @@
+{
+  "started_at": "2026-10-06T07:25:02.477331+00:00",
+  "arguments": {
+    "seeds": "data/location-sources/run-osm-wikidata-websites/seeds.json",
+    "out": "data/location-sources/run-osm-wikidata-websites-replay-07",
+    "cache_from": "data/location-sources/run-osm-wikidata-websites/http",
+    "offline_only": true,
+    "max_pages": 6,
+    "max_depth": 3,
+    "timeout": 12,
+    "delay": 0.0,
+    "max_requests": 2000,
+    "workers": 1,
+    "checkpoint_every": 5
+  },
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "source_sha256": {
+    "/workspace/hiring-scraper/hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "/workspace/hiring-scraper/hiring_scraper/__main__.py": "fcdb3c390b769dab71e5fee0890f17683b395a58a01c989e7848a0a21b71c4c5",
+    "/workspace/hiring-scraper/hiring_scraper/ats.py": "737d202b091ab6ebf9b545b1e5a90714c28f4e4046607c4c6d734812d0cfe31d",
+    "/workspace/hiring-scraper/hiring_scraper/discovery.py": "831e8640f0784e25aaf7d344b9df8534400c1dfd01af7ab61603ce3de83722ba",
+    "/workspace/hiring-scraper/hiring_scraper/geography.py": "6164e30f5d1068cf6b521b72bc67bf13a2a2bc177363b282966e072c122f455b",
+    "/workspace/hiring-scraper/hiring_scraper/html_jobs.py": "1666799ec51b1eb5fe13d5c2006abf18d077dd6aac6936322b62a86e95789a17",
+    "/workspace/hiring-scraper/hiring_scraper/http.py": "fc3ec4bcd3ee4bc9c7b49879e1d4ec30b7789c93c37fcc0186c6c927b19ad4c5",
+    "/workspace/hiring-scraper/hiring_scraper/osm_websites.py": "f215d5e6a2910fc25263e728018498eaf97db5a9e72fb1425cc33a171120cf66",
+    "/workspace/hiring-scraper/hiring_scraper/pages.py": "c31ec92f9f382682ae6dcf0bbf903b83e6c52b1f67d1dbffa35677ae5e76f535"
+  },
+  "git_dirty": true
+}

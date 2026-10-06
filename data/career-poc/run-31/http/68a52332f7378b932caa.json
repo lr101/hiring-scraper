@@ -1,0 +1,17 @@
+{
+  "url": "https://naehkurs-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:58:33.315870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"1a1b-65b4981d4759f\"",
+  "last_modified": "Sat, 12 Sep 2026 13:52:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 6683,
+  "state": "ok",
+  "elapsed_seconds": 1.048,
+  "sha256": "ca7e80300ac884cec337414ec79a177f37de73ff2587ba1921b08977422282d8",
+  "capture": "68a52332f7378b932caa",
+  "merged_from_run": "run-27"
+}

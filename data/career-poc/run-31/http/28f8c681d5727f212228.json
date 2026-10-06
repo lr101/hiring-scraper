@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mh-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:15:57.889989+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48594,
+  "state": "ok",
+  "elapsed_seconds": 0.996,
+  "sha256": "bedcabf80c52852b2a187634c2122ac30cf59f490eee7d8e962231a61f3d2233",
+  "capture": "28f8c681d5727f212228",
+  "merged_from_run": "run-28"
+}

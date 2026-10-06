@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rosen-group.com/robots.txt",
+  "checked_at": "2026-10-05T23:38:19.035461+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1603,
+  "state": "ok",
+  "elapsed_seconds": 0.111,
+  "sha256": "f708a8c99a07edf4e5a9c5b26fe1250fe003c27614d521db125a66d532f58ac4",
+  "capture": "3239097a46053194d931"
+}

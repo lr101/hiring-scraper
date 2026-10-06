@@ -1,0 +1,16 @@
+{
+  "url": "https://agentur.barmenia.de/alexandra_pilyus",
+  "checked_at": "2026-10-05T23:42:37.688130+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"fd120932c255452ffcb0d02525c2e10e\"-gzip",
+  "last_modified": "Fri, 02 Oct 2026 08:42:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 319863,
+  "state": "ok",
+  "elapsed_seconds": 1.1,
+  "sha256": "111a406be250c31b641a8fa984026165d8466b655fde55224e3dcb1b6402a526",
+  "capture": "53589078111d9b3ae3da"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lbs.de/standorte/karlsruhe-sw_bw_070300_1095i",
+  "checked_at": "2026-10-05T23:14:29.473675+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"7ub1bavu786vtg\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 321489,
+  "state": "ok",
+  "elapsed_seconds": 1.595,
+  "sha256": "e89a38abf5977f0c33898994226f709de7d18f32f1b7fa23322e531ba6e57956",
+  "capture": "d4118f742fc36b495a60",
+  "merged_from_run": "run-28"
+}

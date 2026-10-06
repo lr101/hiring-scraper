@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tipico-careers.com/en/jobs/job/head-of-payments-m-f-x-st-julian-s-16bf68ae-f251-40cb-bb21-f69a7b849ba1/",
+  "checked_at": "2026-10-05T23:32:52.420248+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58200,
+  "state": "ok",
+  "elapsed_seconds": 0.155,
+  "sha256": "73361a59f1a9e4d9771d3dda7822a1fa2f09e6860dae183683aa8f5aa4d5377b",
+  "capture": "aa97fd2fe8ecfcf0144e"
+}

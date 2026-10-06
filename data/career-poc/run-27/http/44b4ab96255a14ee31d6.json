@@ -1,0 +1,16 @@
+{
+  "url": "https://www.engelvoelkers.com/de/de/shops/karlsruhe-commercial",
+  "checked_at": "2026-10-05T22:50:17.805133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 858288,
+  "state": "ok",
+  "elapsed_seconds": 1.133,
+  "sha256": "cff2d156b53c3fdce3403f3906b03da4b32d48a2984a40ca10b3955ab7c2d02a",
+  "capture": "44b4ab96255a14ee31d6"
+}

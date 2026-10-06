@@ -1,0 +1,17 @@
+{
+  "url": "https://petrakuch.de/careers",
+  "checked_at": "2026-10-05T22:15:56.013840+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26279,
+  "state": "http_error",
+  "elapsed_seconds": 1.209,
+  "sha256": "18c199a9c569a0a68261291c5bf4f6770b6ee3e391aaebd82d0b1e53159b9dc7",
+  "capture": "4c7decfaaa0729b47a0f",
+  "merged_from_run": "run-25"
+}

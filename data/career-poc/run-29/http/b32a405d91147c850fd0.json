@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bell.de/jobs/vertriebsleiter-m-w-d-bonn",
+  "checked_at": "2026-10-05T23:34:29.190260+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52556,
+  "state": "ok",
+  "elapsed_seconds": 0.965,
+  "sha256": "fa2161263119e9fdf3c964f02d27f91ab446817536cfede23c953149c7882d21",
+  "capture": "b32a405d91147c850fd0",
+  "merged_from_run": "run-28"
+}

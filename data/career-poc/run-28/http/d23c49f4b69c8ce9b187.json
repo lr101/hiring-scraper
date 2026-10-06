@@ -1,0 +1,16 @@
+{
+  "url": "http://www.ibs-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:16:32.031155+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ibs-ka.de/robots.txt",
+  "bytes": 167,
+  "state": "http_error",
+  "elapsed_seconds": 0.747,
+  "sha256": "446a6087825fa73eadb045e5a2e9e2adf7df241b571228187728191d961dda1f",
+  "capture": "d23c49f4b69c8ce9b187"
+}

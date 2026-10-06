@@ -1,0 +1,17 @@
+{
+  "url": "https://www.escde.net/robots.txt",
+  "checked_at": "2026-10-05T23:20:33.951556+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1504,
+  "state": "ok",
+  "elapsed_seconds": 0.15,
+  "sha256": "17f2e0deea0e29f3970a017efb7e465177c27a0560966ce547a59e5eef1ba8fd",
+  "capture": "46af65a9445f4b57b691",
+  "merged_from_run": "run-28"
+}

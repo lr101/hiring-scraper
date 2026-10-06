@@ -1,0 +1,17 @@
+{
+  "url": "https://www.careerservice.kit.edu/de/team/",
+  "checked_at": "2026-10-05T22:13:22.328973+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65719,
+  "state": "ok",
+  "elapsed_seconds": 0.159,
+  "sha256": "b69fdf0b6c9a3b12f421e278f1ce0d00158a6027447d7a6b663c731420c2df3f",
+  "capture": "efb96819eeb0210c5df8",
+  "reused_from": "data/career-poc/run-25/http/efb96819eeb0210c5df8.json"
+}

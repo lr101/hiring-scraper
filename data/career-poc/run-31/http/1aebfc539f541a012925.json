@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diva-e.com/robots.txt",
+  "checked_at": "2026-10-05T22:49:25.920272+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"c70990ac83b167f7590ede0ca9969492-ssl\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68,
+  "state": "ok",
+  "elapsed_seconds": 0.275,
+  "sha256": "268693be3eef0540e6aa11582025b6b69e6c13f5686e5a35ed2d8bd04e0f696c",
+  "capture": "1aebfc539f541a012925",
+  "merged_from_run": "run-27"
+}

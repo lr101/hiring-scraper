@@ -1,0 +1,17 @@
+{
+  "url": "https://bakerhicks.com/robots.txt",
+  "checked_at": "2026-10-05T23:23:34.940893+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 309,
+  "state": "ok",
+  "elapsed_seconds": 1.136,
+  "sha256": "3c8d22b83deaf1e4a73e72debd6b6134d04e5b02d3a6d294dd2060625d0b2501",
+  "capture": "0c1a91cf30e07e8212b9",
+  "merged_from_run": "run-28"
+}

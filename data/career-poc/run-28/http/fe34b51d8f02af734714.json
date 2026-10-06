@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schwimmschule-koehler.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:26.272528+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6990,
+  "state": "ok",
+  "elapsed_seconds": 1.014,
+  "sha256": "e340c313962a972388a5a4e3ec67d51717e3f6376d8f13cbde8293ef873a0777",
+  "capture": "fe34b51d8f02af734714"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.stark-deutschland.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:37.017113+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"44-5e38373906aff\"",
+  "last_modified": "Mon, 11 Jul 2022 08:36:42 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 68,
+  "state": "ok",
+  "elapsed_seconds": 0.14,
+  "sha256": "f846585f5e636d909811dae534241f46d43ef53f33ed5e51be9a2764d3694786",
+  "capture": "db5f14552c3cd06fff14",
+  "merged_from_run": "run-28"
+}

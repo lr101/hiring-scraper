@@ -1,0 +1,16 @@
+{
+  "url": "https://www.solute.de/eng/careers/your-start-and-benefits.php",
+  "checked_at": "2026-10-05T23:25:16.660231+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 410337,
+  "state": "ok",
+  "elapsed_seconds": 0.997,
+  "sha256": "e18247df8e0a5321286f59f2389ea6a9172d2d90cb4c1f96758b41b3aa4f6d8a",
+  "capture": "68f8955a73b9f6abed98"
+}

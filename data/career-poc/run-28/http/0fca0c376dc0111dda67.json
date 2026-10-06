@@ -1,0 +1,16 @@
+{
+  "url": "https://virtual7jobs.recruitee.com/robots.txt",
+  "checked_at": "2026-10-05T23:30:50.795486+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 88,
+  "state": "ok",
+  "elapsed_seconds": 0.718,
+  "sha256": "581b3645c0ff4c4ba86f228a603b523a4f5d204a2187fae18ff4d420491f317d",
+  "capture": "0fca0c376dc0111dda67"
+}

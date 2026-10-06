@@ -1,0 +1,17 @@
+{
+  "url": "https://www.timo-rehorn.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:43:53.487021+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"321-4fd387ffb1580\"",
+  "last_modified": "Wed, 02 Jul 2014 16:36:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 801,
+  "state": "ok",
+  "elapsed_seconds": 0.525,
+  "sha256": "fffe8aa7c290e2aa8257b6a90e88834fe80a9452d3528717a664962c407047a8",
+  "capture": "9a93220621f89f2ff1aa",
+  "merged_from_run": "run-28"
+}

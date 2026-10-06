@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ametek.de/customerror",
+  "checked_at": "2026-10-05T23:20:59.322847+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64662,
+  "state": "ok",
+  "elapsed_seconds": 1.344,
+  "sha256": "4dad786b3020600b0565eacb9aa8914df1ed029240459a867c7ed514bdfc7771",
+  "capture": "d89a0ed7d34df119e984"
+}

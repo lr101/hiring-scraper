@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diefuehrungsakademie.de/karriere",
+  "checked_at": "2026-10-05T22:21:25.288949+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 38230,
+  "state": "http_error",
+  "elapsed_seconds": 1.186,
+  "sha256": "68c7ed11c33a7d2c1424b4b25f76f898a00e6d10f2532030b9ecfd78a95f8b17",
+  "capture": "1728ee9de4945c770d43",
+  "merged_from_run": "run-25"
+}

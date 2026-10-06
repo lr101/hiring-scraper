@@ -1,0 +1,16 @@
+{
+  "url": "http://www.rheinhafen.de/rheinhaefen-karlsruhe/",
+  "checked_at": "2026-10-06T07:05:53.320250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.rheinhafen.de/rheinhaefen-karlsruhe/",
+  "bytes": 363,
+  "state": "http_error",
+  "elapsed_seconds": 1.022,
+  "sha256": "ba6a6b1f583d9a1b222baa37022f9c1a3aa23ed8b2a8bd1556ed80fb2c884cf3",
+  "capture": "daf370ed30fb1c106faf"
+}

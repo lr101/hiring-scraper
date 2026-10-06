@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.interhyp.de/category/hr/b75232ea-caa3-4aee-aed3-675ec75c2cd0",
+  "checked_at": "2026-10-05T22:39:08.678537+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://jobs.interhyp.de/human-resources",
+  "bytes": 166,
+  "state": "http_error",
+  "elapsed_seconds": 1.109,
+  "sha256": "87a9323ac85ce28867d5d7ce590c8f29b8d1a999961fca71bb33adef48683691",
+  "capture": "1f354ad44980c6bd8dcb",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://2027.kreativdesignka.de/karriere",
+  "checked_at": "2026-10-05T23:39:38.229162+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68670,
+  "state": "http_error",
+  "elapsed_seconds": 1.006,
+  "sha256": "d15f3967048661cac3181747283a13dbec6fbea55a930388cd9d686bb812a9f6",
+  "capture": "fd82e147953bc3e2bef1",
+  "merged_from_run": "run-28"
+}

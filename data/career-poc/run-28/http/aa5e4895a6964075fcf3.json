@@ -1,0 +1,16 @@
+{
+  "url": "https://bodylife-medien.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:36:19.005226+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Monday, 05-Oct-2026 23:36:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 48019,
+  "state": "ok",
+  "elapsed_seconds": 1.077,
+  "sha256": "cbf17ffee106fbf64f7414ee9088271cd8a9460c77ee1e65e88b29579f9ec505",
+  "capture": "aa5e4895a6964075fcf3"
+}

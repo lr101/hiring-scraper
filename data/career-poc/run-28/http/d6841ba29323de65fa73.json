@@ -1,0 +1,16 @@
+{
+  "url": "https://www.iqmt.kit.edu/jobs",
+  "checked_at": "2026-10-05T23:42:02.128896+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 347,
+  "state": "http_error",
+  "elapsed_seconds": 0.992,
+  "sha256": "ba7db9bb6587a02f1505ca450ec9cea074f3695e0097ff30dbc6a78383a70884",
+  "capture": "d6841ba29323de65fa73"
+}

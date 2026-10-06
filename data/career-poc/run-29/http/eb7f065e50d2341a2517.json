@@ -1,0 +1,17 @@
+{
+  "url": "https://www.glashalm.de/careers",
+  "checked_at": "2026-10-05T23:45:09.502351+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4366,
+  "state": "http_error",
+  "elapsed_seconds": 1.034,
+  "sha256": "572cd84c2ee8477ea7a2e62694893db2dfb9d730ba1271380145eba6eda6b6cf",
+  "capture": "eb7f065e50d2341a2517",
+  "merged_from_run": "run-28"
+}

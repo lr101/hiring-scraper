@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zahnarztpraxis-ettlingen.de/zmf-zfa-ettlingen-karlsruhe/",
+  "checked_at": "2026-10-05T23:35:55.987785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 21 Sep 2026 17:06:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 90758,
+  "state": "ok",
+  "elapsed_seconds": 0.959,
+  "sha256": "6019c4c07cc33d6ae3a4cb610965a164f5c991be2c776264a0c57bbe4b406846",
+  "capture": "098d6cb0e26669e848b2"
+}

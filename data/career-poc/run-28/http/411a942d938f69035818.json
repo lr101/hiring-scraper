@@ -1,0 +1,16 @@
+{
+  "url": "https://communal-fm.de/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:24:21.463488+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 16:41:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 141899,
+  "state": "ok",
+  "elapsed_seconds": 0.897,
+  "sha256": "0485ec1abf0706be4dd9410c4a424ca462a96444a628f796c10b3109183247fd",
+  "capture": "411a942d938f69035818"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fs-fmc.kit.edu/karriere",
+  "checked_at": "2026-10-05T22:35:15.682389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 18875,
+  "state": "http_error",
+  "elapsed_seconds": 1.891,
+  "sha256": "3a657113aec25e5cabc96e042b49782a7709492b9902cd55ffb9f07fa86fb53a",
+  "capture": "bc43d1b7e6c7d9a0b140"
+}

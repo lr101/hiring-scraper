@@ -1,0 +1,16 @@
+{
+  "url": "https://www.independentdays-filmfest.com/robots.txt",
+  "checked_at": "2026-10-05T23:15:52.187678+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 234,
+  "state": "ok",
+  "elapsed_seconds": 1.051,
+  "sha256": "186ef52dc60389f5a890450498f5beddde212ac5dffabd0ce7687a3fbe0ab624",
+  "capture": "1d4d71d134cb1cf236b5"
+}

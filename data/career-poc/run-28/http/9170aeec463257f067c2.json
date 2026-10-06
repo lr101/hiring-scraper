@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hinte-messe.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:50.707055+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123,
+  "state": "ok",
+  "elapsed_seconds": 0.388,
+  "sha256": "dcee92982c9159189cf4df4ffabab6626a476b94ddf9dde571ee7c5668b8064b",
+  "capture": "9170aeec463257f067c2"
+}

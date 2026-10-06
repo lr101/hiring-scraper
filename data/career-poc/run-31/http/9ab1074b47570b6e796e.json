@@ -1,0 +1,17 @@
+{
+  "url": "https://chatyourjob.com/robots.txt",
+  "checked_at": "2026-10-05T22:31:23.095423+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:31:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 24,
+  "state": "ok",
+  "elapsed_seconds": 0.208,
+  "sha256": "e5c4b84484ee4216e9373be99380320c25dd94805f99f0a805846f087636553f",
+  "capture": "9ab1074b47570b6e796e",
+  "merged_from_run": "run-26"
+}

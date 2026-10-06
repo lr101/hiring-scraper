@@ -1,0 +1,16 @@
+{
+  "url": "https://gamerbraeu.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:42:54.902171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 527,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "eb32dd13a3180a78a850d3100f11383ebcaa4302c5c68f3e93825793cd166afd",
+  "capture": "b94e1ecb1a7ccd59af62"
+}

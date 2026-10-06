@@ -1,0 +1,17 @@
+{
+  "url": "https://www.granget.de/kontakt/",
+  "checked_at": "2026-10-05T22:24:10.314084+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 70773,
+  "state": "ok",
+  "elapsed_seconds": 4.34,
+  "sha256": "16e7269c8147ce7cfba699ce47a29198cb4ecd06506ee615edabee0ee7ab44a7",
+  "capture": "e8a9ae8d949a19f55d4f",
+  "merged_from_run": "run-25"
+}

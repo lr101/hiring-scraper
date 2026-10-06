@@ -1,0 +1,16 @@
+{
+  "url": "https://tramm.info/robots.txt",
+  "checked_at": "2026-10-05T23:13:22.156260+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 208,
+  "state": "http_error",
+  "elapsed_seconds": 0.155,
+  "sha256": "e10aa5cfb3a2675cfb50f056b3c0b1b08e96f4ed5da21c4a7744773374e35fbe",
+  "capture": "13359e8ff53ee24bb432"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://amnesty-karlsruhe.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:16:30.006703+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2914,
+  "state": "ok",
+  "elapsed_seconds": 1.019,
+  "sha256": "c4de936e1d689b0695ca6a70d4c2c1299a86284e819e36114ff8dd54632f4c74",
+  "capture": "ce51245fccd4bf848d6e"
+}

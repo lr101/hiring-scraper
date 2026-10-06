@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mrh-trowe.com/service/jobs/",
+  "checked_at": "2026-10-05T23:26:42.795442+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://jobs.mrh-trowe.com/",
+  "bytes": 275,
+  "state": "http_error",
+  "elapsed_seconds": 0.842,
+  "sha256": "945f00441d82ae6a2a017e086e8c83478977fe8adfcb32a8f34b3c358c84d4d7",
+  "capture": "fa5369f7b386989176a7",
+  "merged_from_run": "run-28"
+}

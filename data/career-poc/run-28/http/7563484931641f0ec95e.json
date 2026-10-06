@@ -1,0 +1,16 @@
+{
+  "url": "https://ekistuwei.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:22.283831+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1206-65c9b34283340\"",
+  "last_modified": "Tue, 29 Sep 2026 08:45:25 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 4614,
+  "state": "ok",
+  "elapsed_seconds": 0.117,
+  "sha256": "df7ab292ef3b2e3f2a7f8319622556d2480d7376f10bbf7b90d52e22e2b51fd5",
+  "capture": "7563484931641f0ec95e"
+}

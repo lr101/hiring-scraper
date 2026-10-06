@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inovex.de/de/karriere/stellenangebote/office-manager-in-muenchen/",
+  "checked_at": "2026-10-05T22:38:50.473145+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:38:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 190680,
+  "state": "ok",
+  "elapsed_seconds": 3.155,
+  "sha256": "95162fb82ef8b80e543985646879c1ab7c17adef3725cb12d883e20b8800445c",
+  "capture": "44f74e618bac300d81fb",
+  "merged_from_run": "run-27"
+}

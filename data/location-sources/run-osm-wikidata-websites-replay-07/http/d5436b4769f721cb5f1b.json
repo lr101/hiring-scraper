@@ -1,0 +1,17 @@
+{
+  "url": "https://lohi-bw.de/robots.txt",
+  "checked_at": "2026-10-06T07:07:05.244843+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 0.668,
+  "sha256": "452e738d981ca8843800c4ba77eb33e35bbb67c1832edb96fe233c53b2f9b008",
+  "capture": "d5436b4769f721cb5f1b",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/d5436b4769f721cb5f1b.json"
+}

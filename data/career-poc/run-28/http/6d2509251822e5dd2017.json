@@ -1,0 +1,16 @@
+{
+  "url": "https://www.oxaion.de/index.php?id=1&type=841133",
+  "checked_at": "2026-10-05T23:40:08.467742+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91083,
+  "state": "http_error",
+  "elapsed_seconds": 1.326,
+  "sha256": "410360c57fbfa1e8459f1226b58d2d307fc394ab1080bd06658901b1480da528",
+  "capture": "6d2509251822e5dd2017"
+}

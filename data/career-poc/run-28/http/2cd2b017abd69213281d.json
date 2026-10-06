@@ -1,0 +1,16 @@
+{
+  "url": "https://techniwaterjet.eu/karriere",
+  "checked_at": "2026-10-05T23:19:22.574734+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 503,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": "600",
+  "location": null,
+  "bytes": 2500,
+  "state": "http_error",
+  "elapsed_seconds": 1.041,
+  "sha256": "eb86ae9c3a2b6f0d0e0d3578e708c1993f0388ff606b07b925c1cc80a0c9fb20",
+  "capture": "2cd2b017abd69213281d"
+}

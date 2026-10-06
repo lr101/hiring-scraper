@@ -1,0 +1,17 @@
+{
+  "url": "https://stellenangebote.bgv.de/go/Alle-Stellenangebote/9374201/",
+  "checked_at": "2026-10-05T23:00:41.864969+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110048,
+  "state": "ok",
+  "elapsed_seconds": 0.958,
+  "sha256": "cbfc8d5c22747cc562a8e25502f703ebefbeb6849e9e107f8b92729c12d11a76",
+  "capture": "cc1f52fd189e1000f418",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.labor-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:33.776673+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://labor-karlsruhe.de/robots.txt",
+  "bytes": 181,
+  "state": "http_error",
+  "elapsed_seconds": 0.099,
+  "sha256": "b1ad1dd0851fe22c36ebed3660701486f87aab25fa9ca1f8206d214bbdcb3b58",
+  "capture": "366ba184fcd33c95195d",
+  "merged_from_run": "run-28"
+}

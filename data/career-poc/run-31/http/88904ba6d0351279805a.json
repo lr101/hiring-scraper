@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enqs.de/karriere/",
+  "checked_at": "2026-10-05T23:06:57.665480+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 99356,
+  "state": "ok",
+  "elapsed_seconds": 2.179,
+  "sha256": "7f919610681176728f973c7c06359cd312c60779e3b73abd180850f465a08522",
+  "capture": "88904ba6d0351279805a",
+  "merged_from_run": "run-27"
+}

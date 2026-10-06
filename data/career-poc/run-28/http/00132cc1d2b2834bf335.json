@@ -1,0 +1,16 @@
+{
+  "url": "https://entruempelx.de/karriere",
+  "checked_at": "2026-10-05T23:45:41.637369+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85028,
+  "state": "ok",
+  "elapsed_seconds": 1.02,
+  "sha256": "11651d567f8af776d09d41df3916a6321ce7a428d3af13096c665b9a6a13e13f",
+  "capture": "00132cc1d2b2834bf335"
+}

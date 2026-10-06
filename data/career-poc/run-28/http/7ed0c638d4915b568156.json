@@ -1,0 +1,10 @@
+{
+  "url": "https://www.bienen-junge.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:29.071669+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:992)>",
+  "elapsed_seconds": 1.005,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "7ed0c638d4915b568156"
+}

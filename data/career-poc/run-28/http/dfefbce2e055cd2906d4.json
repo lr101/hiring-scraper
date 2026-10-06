@@ -1,0 +1,16 @@
+{
+  "url": "https://ies.iar.kit.edu/stellen.php",
+  "checked_at": "2026-10-05T23:15:18.388124+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30000,
+  "state": "ok",
+  "elapsed_seconds": 1.096,
+  "sha256": "6bfcd4f20d56e23401c41842494f32997575b72fb16d1da8132b16bc2c6b39c6",
+  "capture": "dfefbce2e055cd2906d4"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.immobilien-guenter.de/ueber-uns/karriere/",
+  "checked_at": "2026-10-05T23:36:04.658389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162323,
+  "state": "ok",
+  "elapsed_seconds": 2.19,
+  "sha256": "9964d747758e8dc3650e831e7cd55d28c4c2d32da7c204c5fe1b597c390dc03f",
+  "capture": "638e8c74f6a595981f9c"
+}

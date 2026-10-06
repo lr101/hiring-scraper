@@ -1,0 +1,16 @@
+{
+  "url": "https://www.euratax.de/",
+  "checked_at": "2026-10-05T22:55:12.827896+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Thu, 01 Oct 2026 22:37:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 50057,
+  "state": "ok",
+  "elapsed_seconds": 1.125,
+  "sha256": "3f45638efb308164353ee391999a19b7c0db1930dfef1d68e2e975d078ec621c",
+  "capture": "56e7531c64cbdfce81a9"
+}

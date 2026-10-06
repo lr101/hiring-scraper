@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ipg-automotive.com/robots.txt",
+  "checked_at": "2026-10-05T23:17:31.059146+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 579,
+  "state": "ok",
+  "elapsed_seconds": 0.444,
+  "sha256": "b24555e7ecb267360a95afb5b7dcadee49a8be7d0c13890f06eeac97db33fbdd",
+  "capture": "a90510df689ba2dbf825"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.johannis-paulus-ka.de/robots.txt",
+  "checked_at": "2026-10-05T22:30:16.556596+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"e6-579823c5fc22b\"",
+  "last_modified": "Wed, 31 Oct 2018 08:39:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 230,
+  "state": "ok",
+  "elapsed_seconds": 0.132,
+  "sha256": "b32b1762bb8a97d296e6262b648d4ad43252757966da554a7bcf2b2159ebab2f",
+  "capture": "a55b5507378ee26d1a6f",
+  "merged_from_run": "run-26"
+}

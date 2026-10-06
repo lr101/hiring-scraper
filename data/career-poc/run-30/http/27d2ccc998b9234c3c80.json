@@ -1,0 +1,17 @@
+{
+  "url": "https://www.solexperts.com/de/karriere",
+  "checked_at": "2026-10-05T23:18:26.696018+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27890,
+  "state": "ok",
+  "elapsed_seconds": 0.937,
+  "sha256": "91423a28532541af16250ffebe11b0c7ce9c73982d8584f7edb4f0befc1a3b4d",
+  "capture": "27d2ccc998b9234c3c80",
+  "merged_from_run": "run-28"
+}

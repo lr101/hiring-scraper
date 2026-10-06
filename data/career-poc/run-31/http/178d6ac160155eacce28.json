@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sg-veneers.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:31:19.135993+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 153449,
+  "state": "ok",
+  "elapsed_seconds": 1.198,
+  "sha256": "53ef811323a5f3dde2b918e892e6d24290e10f1efcfcc6993225e7c69f810396",
+  "capture": "178d6ac160155eacce28",
+  "merged_from_run": "run-28"
+}

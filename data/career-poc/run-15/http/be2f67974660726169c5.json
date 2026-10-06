@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html",
+  "checked_at": "2026-10-05T20:46:57.588850+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 35998,
+  "state": "ok",
+  "elapsed_seconds": 2.1,
+  "sha256": "30fe977e5ef20b7effc3b270112965df68e5efd7ac1753ef713cb6299530c147",
+  "capture": "be2f67974660726169c5"
+}

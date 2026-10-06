@@ -1,0 +1,16 @@
+{
+  "url": "https://www.esg-kanzlei.de/karriere/aktuell-keine-offenen-stellen",
+  "checked_at": "2026-10-05T23:20:17.658060+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15507,
+  "state": "ok",
+  "elapsed_seconds": 0.991,
+  "sha256": "33986bc457191d3b331cfad5da27510c91c83204ac1cd622dd8e06c8402a4c16",
+  "capture": "a3fd01c2a364995716f0"
+}

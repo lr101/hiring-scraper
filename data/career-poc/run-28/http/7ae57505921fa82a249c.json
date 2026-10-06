@@ -1,0 +1,16 @@
+{
+  "url": "https://halter.de/karriere",
+  "checked_at": "2026-10-05T23:28:09.283070+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107613,
+  "state": "http_error",
+  "elapsed_seconds": 1.006,
+  "sha256": "8e2c194ad98ce5ef76c1ae3094a5cc5599b06a13f90e939ecce118c03eec84bd",
+  "capture": "7ae57505921fa82a249c"
+}

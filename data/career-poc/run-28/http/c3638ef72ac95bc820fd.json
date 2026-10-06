@@ -1,0 +1,16 @@
+{
+  "url": "https://www.maler-zorn.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:35.693794+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"4a-6459a3df4d6c0\"",
+  "last_modified": "Wed, 10 Dec 2025 14:57:07 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 74,
+  "state": "ok",
+  "elapsed_seconds": 1.004,
+  "sha256": "06dd8c0f5f11a6fa18fb1cfee29ae6a4aa18f2f50078e06bb56b68e8175e7e80",
+  "capture": "c3638ef72ac95bc820fd"
+}

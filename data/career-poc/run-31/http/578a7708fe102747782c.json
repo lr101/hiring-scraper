@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sprachmuehle.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:38:57.207652+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6327,
+  "state": "ok",
+  "elapsed_seconds": 0.969,
+  "sha256": "eed43549847afcad4c6c03af1919f48449c196feb4ae7db5f38561061ce308ea",
+  "capture": "578a7708fe102747782c",
+  "merged_from_run": "run-28"
+}

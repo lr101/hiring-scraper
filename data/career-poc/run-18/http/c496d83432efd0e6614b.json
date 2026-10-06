@@ -1,0 +1,17 @@
+{
+  "url": "https://drive.google.com/file/d/16ZpZz3oEPSD0cEwtXv-mKPBI3uUyR4d1/view?usp=sharing",
+  "checked_at": "2026-10-05T20:43:11.708772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86656,
+  "state": "ok",
+  "elapsed_seconds": 1.602,
+  "sha256": "f39ee81937b880e74a897dfa0eb641cfb9ca7fa8303159942c82a52fc27c48b4",
+  "capture": "c496d83432efd0e6614b",
+  "reused_from": "data/career-poc/run-14/http/c496d83432efd0e6614b.json"
+}

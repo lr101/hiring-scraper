@@ -1,0 +1,17 @@
+{
+  "url": "https://www.holzwerkstatt-geiger.de/news-lesen/stellenangebote.html",
+  "checked_at": "2026-10-05T23:46:27.454516+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13730,
+  "state": "ok",
+  "elapsed_seconds": 1.044,
+  "sha256": "67bad477bea54af1a1002e6d7ed849eb48aab400759f3cfe77062b825cd3b9cd",
+  "capture": "58c79ea994b26b8eb630",
+  "merged_from_run": "run-28"
+}

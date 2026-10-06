@@ -1,0 +1,17 @@
+{
+  "url": "https://www.obermeyer-group.com/robots.txt",
+  "checked_at": "2026-10-05T23:31:34.606985+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 222,
+  "state": "ok",
+  "elapsed_seconds": 1.208,
+  "sha256": "2f3b076569e0536db48c471a760ea92b030c078cfa1e80fd504f378e22377f2b",
+  "capture": "217206a703c1ea23668c",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://ovol-karriere.de/ovol-als-arbeitgeber",
+  "checked_at": "2026-10-05T23:26:28.131078+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43880,
+  "state": "ok",
+  "elapsed_seconds": 0.94,
+  "sha256": "e85239299e09741831e5a095916393f4157f71cc4b9f8f4962da2285b7bff23b",
+  "capture": "560521e35bc3a3b687fd"
+}

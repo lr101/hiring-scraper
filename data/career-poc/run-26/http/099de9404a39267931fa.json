@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitgeber-ranking.de/rankings/schueler",
+  "checked_at": "2026-10-05T22:30:05.199091+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"ec1b1ac5eae2c9dc7800714c5513460f\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 180723,
+  "state": "ok",
+  "elapsed_seconds": 1.323,
+  "sha256": "ec1b1ac5eae2c9dc7800714c5513460f432c4b00154a84131eaadcfaf603e6d9",
+  "capture": "099de9404a39267931fa"
+}

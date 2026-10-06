@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kopp-schlosserei.de/jobs",
+  "checked_at": "2026-10-05T23:34:17.960809+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26525,
+  "state": "http_error",
+  "elapsed_seconds": 0.994,
+  "sha256": "b3f25158b6b582c9fe31628e4bcb70b147524148476e846e46e515d45ed27680",
+  "capture": "92fc53674687bd998b40"
+}

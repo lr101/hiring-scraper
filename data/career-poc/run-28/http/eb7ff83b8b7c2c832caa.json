@@ -1,0 +1,16 @@
+{
+  "url": "https://rechtsanwalt-stutensee.de/jobs",
+  "checked_at": "2026-10-05T23:38:38.446757+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.rechtsanwalt-stutensee.de/jobs",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 0.213,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "eb7ff83b8b7c2c832caa"
+}

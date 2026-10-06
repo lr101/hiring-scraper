@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ascent.de/ag/karriere/vorteile",
+  "checked_at": "2026-10-05T23:29:08.617432+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40995,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "eeb1fea29bfd9970ba3482404f82e7ceb4cb1c7022ea8f5c26456fbd080f5138",
+  "capture": "804867b4a3f86e1f2a87"
+}

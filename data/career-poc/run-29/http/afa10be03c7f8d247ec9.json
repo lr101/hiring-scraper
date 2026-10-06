@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe.de/robots/www.karlsruhe.de.txt",
+  "checked_at": "2026-10-05T22:07:10.183717+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 574203,
+  "state": "http_error",
+  "elapsed_seconds": 1.226,
+  "sha256": "adb3e17e5a6dc2b5fa5666bf22a7a0e0cf8bdbfd080e398d51734ce6a1c70e09",
+  "capture": "afa10be03c7f8d247ec9",
+  "merged_from_run": "run-25"
+}

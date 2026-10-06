@@ -1,0 +1,16 @@
+{
+  "url": "https://honold.de/karriere/job-rechtsanwalt-karlsruhe",
+  "checked_at": "2026-10-05T23:11:17.546500+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:11:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 39607,
+  "state": "ok",
+  "elapsed_seconds": 1.247,
+  "sha256": "e6a6e3a7ef758056f8da96008fe8581507768d85ae1539575b1e762858a0cce5",
+  "capture": "b7234734928753677b7f"
+}

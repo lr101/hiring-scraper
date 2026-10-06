@@ -1,0 +1,17 @@
+{
+  "url": "https://www.riess.de/careers",
+  "checked_at": "2026-10-05T23:43:28.955455+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 31354,
+  "state": "http_error",
+  "elapsed_seconds": 1.002,
+  "sha256": "1c6a10f91dcf830dd859da116f9d4eed9c3382705815b970ab449c5eb2465930",
+  "capture": "1c6d7dcda3849377137f",
+  "merged_from_run": "run-28"
+}

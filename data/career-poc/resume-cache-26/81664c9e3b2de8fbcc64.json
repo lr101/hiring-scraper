@@ -1,0 +1,16 @@
+{
+  "url": "https://www.datexgmbh.com/robots.txt",
+  "checked_at": "2026-10-05T22:30:24.662375+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 175,
+  "state": "ok",
+  "elapsed_seconds": 0.709,
+  "sha256": "9f1c6984133f1b2fbe4186c4a22b0b3a534fb9bad28878c2fa5d8d3af3992fbf",
+  "capture": "81664c9e3b2de8fbcc64"
+}

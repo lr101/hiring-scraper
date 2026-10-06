@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mueller-klima.de/",
+  "checked_at": "2026-10-05T23:25:28.426138+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112273,
+  "state": "ok",
+  "elapsed_seconds": 1.153,
+  "sha256": "fa900c2fd84036cae97a47ff7511d3f8123c1132beb31c132b34baef5bd3ea39",
+  "capture": "fc30aaa2cc4881eaf999"
+}

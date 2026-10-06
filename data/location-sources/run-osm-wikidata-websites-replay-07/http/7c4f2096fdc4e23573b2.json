@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drk.de/",
+  "checked_at": "2026-10-06T07:07:27.012734+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 375175,
+  "state": "ok",
+  "elapsed_seconds": 2.038,
+  "sha256": "5d1651942cf16d1c93fb6d6d007512e0c3a88819bbd9889226cb566e6c283215",
+  "capture": "7c4f2096fdc4e23573b2",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/7c4f2096fdc4e23573b2.json"
+}

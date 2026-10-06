@@ -1,0 +1,10 @@
+{
+  "name": "ba-baden-wuerttemberg",
+  "url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?wo=Baden-W%C3%BCrttemberg&angebotsart=1&pav=false&page=1&size=25",
+  "method": "GET",
+  "checked_at": "2026-10-05T14:42:03.245036+00:00",
+  "status": 200,
+  "content_type": "application/json",
+  "bytes": 62886,
+  "sha256": "143dd098ac7601d12c345c7eaba3456454063d96437bdccf3128e99b6703fa58"
+}

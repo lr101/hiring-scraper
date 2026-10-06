@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hettbohr.de/stellenangebote/baumaschinenfuehrer-m-w-d.php",
+  "checked_at": "2026-10-05T23:22:52.111801+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 145632,
+  "state": "ok",
+  "elapsed_seconds": 0.941,
+  "sha256": "7a14c42614b12925d9c71083da811031ff5e7feb53fc3839a07576b764cdb2b9",
+  "capture": "adb1ffecca3fc94a1075"
+}

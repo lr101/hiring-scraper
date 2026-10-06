@@ -1,0 +1,17 @@
+{
+  "url": "https://www.1und1.de/",
+  "checked_at": "2026-10-05T22:58:55.643947+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 365780,
+  "state": "ok",
+  "elapsed_seconds": 1.261,
+  "sha256": "37ed5de9c77c71e3b4eb29727f4c1261c55ed33dc342540bdb55d49a9fcf086a",
+  "capture": "86da991e408923f83892",
+  "merged_from_run": "run-27"
+}

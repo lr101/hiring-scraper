@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bund-mittlerer-oberrhein.de/robots.txt",
+  "checked_at": "2026-10-05T22:19:46.536243+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Wed, 13 Mar 2024 17:39:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 253,
+  "state": "ok",
+  "elapsed_seconds": 0.137,
+  "sha256": "9fe5e63dbabddfae71f7fa594517d7e875f920bb102fb9f487b8848122bfdff9",
+  "capture": "b2ce7180c634f6c1fe68"
+}

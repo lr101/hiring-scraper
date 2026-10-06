@@ -1,0 +1,17 @@
+{
+  "url": "https://e2-karlsruhe.de/jobs",
+  "checked_at": "2026-10-05T23:38:30.142699+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32057,
+  "state": "http_error",
+  "elapsed_seconds": 1.292,
+  "sha256": "401c22c5ae074f6c7e2dfb1946e693ef5db709abd047790f26ac4f549bc335ce",
+  "capture": "df57a4cc9b8b5ac9e2e4",
+  "merged_from_run": "run-28"
+}

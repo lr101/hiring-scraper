@@ -1,0 +1,17 @@
+{
+  "url": "https://www.buedenbender-hausbau.de/standorte/vertriebsbuero-karlsruhe",
+  "checked_at": "2026-10-05T23:34:12.003852+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:24:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 503272,
+  "state": "ok",
+  "elapsed_seconds": 0.898,
+  "sha256": "9863c37ca44a29a6c815d20e384dfca1d6f5c606030ea559d204a319f29428ca",
+  "capture": "341e734df2b75b21df78",
+  "merged_from_run": "run-28"
+}

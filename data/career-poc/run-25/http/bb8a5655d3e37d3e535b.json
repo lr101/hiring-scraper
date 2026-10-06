@@ -1,0 +1,16 @@
+{
+  "url": "https://kanzleihmk.de/karriere",
+  "checked_at": "2026-10-05T22:16:50.672533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 42437,
+  "state": "http_error",
+  "elapsed_seconds": 1.654,
+  "sha256": "1e37d1aa70861e8c25cf810a5621e60daf0b85323a6fae19b6e50eb2f8dafc4b",
+  "capture": "bb8a5655d3e37d3e535b"
+}

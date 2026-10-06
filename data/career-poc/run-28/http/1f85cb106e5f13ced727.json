@@ -1,0 +1,16 @@
+{
+  "url": "https://innoenergy.com/sitemap.xml?sitemap=post-sitemap.xml",
+  "checked_at": "2026-10-05T23:23:56.366381+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 249418,
+  "state": "ok",
+  "elapsed_seconds": 3.437,
+  "sha256": "127797cf0aff893d625f9d9f0c3ae0044ae2a0d919101ecb0044f8dac9d61724",
+  "capture": "1f85cb106e5f13ced727"
+}

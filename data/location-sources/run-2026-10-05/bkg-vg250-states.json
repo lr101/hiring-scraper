@@ -1,0 +1,9 @@
+{
+  "status": 200,
+  "content_type": "application/json;charset=UTF-8",
+  "name": "bkg-vg250-states",
+  "url": "https://sgx.geodatenzentrum.de/wfs_vg250?service=WFS&version=2.0.0&request=GetFeature&typeNames=vg250%3Avg250_lan&count=16&outputFormat=application%2Fjson&srsName=EPSG%3A4326",
+  "checked_at": "2026-10-05T14:44:29.702852+00:00",
+  "bytes": 2658506,
+  "sha256": "1d44a46fccf5266c96283234b0103c93efc5aa3b6ee526faa1dac98a0a525b7e"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://willert-ib.de/",
+  "checked_at": "2026-10-05T23:25:58.412823+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"a8d2-64c61a3701fa9\"",
+  "last_modified": "Fri, 06 Mar 2026 21:21:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 43218,
+  "state": "ok",
+  "elapsed_seconds": 1.012,
+  "sha256": "8e5649760c305d91bebbe08961a5459308792e5ea1999e85b74deee066a13c95",
+  "capture": "024be0b4a49e205a7b76",
+  "merged_from_run": "run-28"
+}

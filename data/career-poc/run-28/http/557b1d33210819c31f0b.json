@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dvag-karriere.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:17.515174+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": "\"8a-5d346ab613800\"",
+  "last_modified": "Thu, 16 Dec 2021 17:22:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 138,
+  "state": "ok",
+  "elapsed_seconds": 0.682,
+  "sha256": "4ec4a31b2fcb833ecd942f066b8433730d7bd9abb8ab59e2e286de8659592b42",
+  "capture": "557b1d33210819c31f0b"
+}

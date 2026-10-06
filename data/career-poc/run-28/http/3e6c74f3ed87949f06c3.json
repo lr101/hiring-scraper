@@ -1,0 +1,16 @@
+{
+  "url": "https://verlagvonloeper.ariadne.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:53.795307+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 338,
+  "state": "ok",
+  "elapsed_seconds": 1.0,
+  "sha256": "41ee682a5c6f8f01f00ceedc5a3823ac0e4b83ed399709874c86c31dd51f4771",
+  "capture": "3e6c74f3ed87949f06c3"
+}

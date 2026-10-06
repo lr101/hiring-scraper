@@ -1,0 +1,17 @@
+{
+  "url": "https://www.miro-ka.de/karriere/stellenangebote/details/mitarbeiter-verladelogistik-im-4-schichtbetrieb-m-wd?id=3051",
+  "checked_at": "2026-10-05T23:38:17.333529+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85192,
+  "state": "ok",
+  "elapsed_seconds": 1.255,
+  "sha256": "ce5974a68351ae553ec3ad51ba86c34a30c5d36800b86f9eb4abaa7d52f644e7",
+  "capture": "a6085870711181970cc6",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://diconium.wd3.myworkdayjobs.com/robots.txt",
+  "checked_at": "2026-10-05T23:20:03.037276+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 366,
+  "state": "ok",
+  "elapsed_seconds": 0.199,
+  "sha256": "1d03f4ef51cdba6d567852cff2a520e614b1c55d72d76336184775f72e9ef428",
+  "capture": "ef5fe48a2be047faec9d",
+  "merged_from_run": "run-28"
+}

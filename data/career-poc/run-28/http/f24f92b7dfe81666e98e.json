@@ -1,0 +1,16 @@
+{
+  "url": "https://ds-concepts.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:50.599049+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"30-59ee8898e2a82\"",
+  "last_modified": "Wed, 19 Feb 2020 07:14:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 48,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "fd063ea3454c0e06d2175352341d927ac093eb5303120d2045777804b90b1977",
+  "capture": "f24f92b7dfe81666e98e"
+}

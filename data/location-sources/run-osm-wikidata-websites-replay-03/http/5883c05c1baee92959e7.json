@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bamf.de/robots.txt",
+  "checked_at": "2026-10-06T07:05:40.578939+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50956,
+  "state": "http_error",
+  "elapsed_seconds": 0.332,
+  "sha256": "320010624cdefc26fef1ed260d647b597c58aa76a8509debf8923a8d973b2530",
+  "capture": "5883c05c1baee92959e7",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/5883c05c1baee92959e7.json"
+}

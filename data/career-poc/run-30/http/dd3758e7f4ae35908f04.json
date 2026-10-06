@@ -1,0 +1,17 @@
+{
+  "url": "https://igienair.de/jobs/",
+  "checked_at": "2026-10-05T23:36:25.380384+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66330,
+  "state": "ok",
+  "elapsed_seconds": 0.96,
+  "sha256": "684e85fe1191c2d21135c7b4ae22e282d63cd548943ab4f856cc42897fe4f9b4",
+  "capture": "dd3758e7f4ae35908f04",
+  "merged_from_run": "run-28"
+}

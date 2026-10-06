@@ -1,0 +1,17 @@
+{
+  "url": "https://awesome-it.de/de/karriere",
+  "checked_at": "2026-10-05T22:23:55.930081+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96068,
+  "state": "http_error",
+  "elapsed_seconds": 1.149,
+  "sha256": "051f70a073040a2f0c0478c3c68cf9016bcd54f54b023b56758d2b1baab58028",
+  "capture": "2829779aeb4d93db6f07",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://mdkbw.de/",
+  "checked_at": "2026-10-05T23:02:42.657051+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.md-bw.de/",
+  "bytes": 269,
+  "state": "http_error",
+  "elapsed_seconds": 0.935,
+  "sha256": "c49765c90e6d3a400c0ad0058e77801f53c54616891a27dc89b5dc012fa0db04",
+  "capture": "12f3ca13521632eaa95d"
+}

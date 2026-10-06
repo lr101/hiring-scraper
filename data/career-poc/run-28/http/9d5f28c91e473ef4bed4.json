@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dhu.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:07.874705+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"1791240338\"",
+  "last_modified": "Mon, 05 Oct 2026 22:45:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 110337,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "e168ee93be06d38606300aac364783f76de7b0da12a2a0b4d63b9e5e530cd0d8",
+  "capture": "9d5f28c91e473ef4bed4"
+}

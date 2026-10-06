@@ -1,0 +1,17 @@
+{
+  "url": "https://lbp-patent.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:13:15.544780+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 895,
+  "state": "ok",
+  "elapsed_seconds": 2.503,
+  "sha256": "aa1a305f9761c65b48e9ce6fed7ba06e38e005220067c701cd014c6bd0d7bd24",
+  "capture": "f121181606010b3399ae",
+  "merged_from_run": "run-27"
+}

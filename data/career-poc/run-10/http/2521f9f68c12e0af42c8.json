@@ -1,0 +1,13 @@
+{
+  "url": "https://jobs.exxeta.com/software-development",
+  "checked_at": "2026-10-05T14:05:26.566002+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "location": null,
+  "bytes": 1539154,
+  "state": "ok",
+  "elapsed_seconds": 0.446,
+  "sha256": "a01065f1412e4cfa53a0631cccbcca37d6d391ab0aaeb9b6d70770036b35f087",
+  "capture": "2521f9f68c12e0af42c8"
+}

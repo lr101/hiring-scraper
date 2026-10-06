@@ -1,0 +1,16 @@
+{
+  "url": "https://www.helvetia.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:43:42.408638+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62540,
+  "state": "http_error",
+  "elapsed_seconds": 0.872,
+  "sha256": "eb35bdc6d24c0e13f1df81129c0737bb6e76d76bc9ccfa54b30e159146eb9fd4",
+  "capture": "2ec4d8c7aa949e51d753"
+}

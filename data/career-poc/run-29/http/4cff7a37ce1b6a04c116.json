@@ -1,0 +1,17 @@
+{
+  "url": "https://tramm.info/",
+  "checked_at": "2026-10-05T23:13:22.312549+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6a38d4ab-6efa\"",
+  "last_modified": "Mon, 22 Jun 2026 06:22:35 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 28410,
+  "state": "ok",
+  "elapsed_seconds": 1.147,
+  "sha256": "6295dc02dc35cb4a31285daf9eaf877dff769994990d55f08da35e792a671526",
+  "capture": "4cff7a37ce1b6a04c116",
+  "merged_from_run": "run-27"
+}

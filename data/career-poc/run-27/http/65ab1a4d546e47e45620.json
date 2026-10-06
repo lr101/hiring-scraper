@@ -1,0 +1,16 @@
+{
+  "url": "https://www.siccasguitars.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:51:33.776033+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"page_cache:76540117325:SitemapIndexController:2726e19751b71df90d0e1f8a1a4523bf\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1304,
+  "state": "ok",
+  "elapsed_seconds": 1.162,
+  "sha256": "cf9ce353e568a1e337329ffa5f6fb47e7f55c3aba00bbff4fe070e419b9c645b",
+  "capture": "65ab1a4d546e47e45620"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://staatsanwaltschaft-karlsruhe.justiz-bw.de/pb/,Lde/Startseite",
+  "checked_at": "2026-10-05T22:06:09.635787+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94924,
+  "state": "ok",
+  "elapsed_seconds": 1.227,
+  "sha256": "b0f15bd8e1d466c1d831b90f382aa3f935009d03301b1c18c3508ee88aa178ea",
+  "capture": "2c45d3f583c32ccbec8b",
+  "merged_from_run": "run-25"
+}

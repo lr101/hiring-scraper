@@ -1,0 +1,17 @@
+{
+  "url": "https://zetcon.de/karriere/",
+  "checked_at": "2026-10-05T22:52:36.780722+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:27:01 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 122170,
+  "state": "ok",
+  "elapsed_seconds": 0.141,
+  "sha256": "ed0d43cc87a03751d15aef15227d6c3bf73a08e962860b3095fa8c2b2bdc02d6",
+  "capture": "f1cb9091df578a82c64c",
+  "merged_from_run": "run-27"
+}

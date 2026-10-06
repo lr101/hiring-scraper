@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dfs.de/homepage/en/media/press/2026/01-10-2026-setting-a-course-for-the-future-around-200-new-recruits-start-their-careers-at-dfs/",
+  "checked_at": "2026-10-05T23:17:30.441239+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:17:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 63620,
+  "state": "ok",
+  "elapsed_seconds": 0.179,
+  "sha256": "6d7de324c919088deab40069b432bdad971b541b83c9e5b18d2a3e1497542e0b",
+  "capture": "476faf1db23d7d25904c"
+}

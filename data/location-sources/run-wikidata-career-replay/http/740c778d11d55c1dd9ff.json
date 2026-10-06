@@ -1,0 +1,14 @@
+{
+  "url": "https://sci-mo.de/",
+  "checked_at": "2026-10-05T14:47:44.385195+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 146977,
+  "state": "ok",
+  "elapsed_seconds": 2.531,
+  "sha256": "6fffa45a0c7fb2e770cd6e08f64987d91633b6c5c91582f67d366efce8823125",
+  "capture": "740c778d11d55c1dd9ff",
+  "reused_from": "data/location-sources/run-wikidata-career/http/740c778d11d55c1dd9ff.json"
+}
