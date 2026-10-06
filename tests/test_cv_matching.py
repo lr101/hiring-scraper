@@ -211,6 +211,44 @@ class CvMatchingTests(unittest.TestCase):
         self.assertLessEqual(len(extracted), 240001)
         self.assertLessEqual(max(chunks), 120000)
 
+    def test_client_fluency_context_does_not_require_candidate_cefr(self):
+        result = match_job({'title': 'Project Coordinator',
+                            'description': 'German C1 fluency is common among our clients. Coordinate projects. ' * 12}, CV)
+        self.assertTrue(result['eligible'])
+        self.assertEqual(result['conflicts'], [])
+        required = match_job({'title': 'Project Coordinator',
+                              'description': 'Fluent German C1 required to coordinate projects. ' * 12}, CV)
+        self.assertFalse(required['eligible'])
+
+    def test_comma_and_but_separate_optional_from_required_clauses(self):
+        for text, expected in (
+            ('German C1 preferred, English C1 required.', {'English': 'C1'}),
+            ('Deutsch C1 wünschenswert, Englisch C1 erforderlich.', {'English': 'C1'}),
+            ('German C1 preferred but English C1 required.', {'English': 'C1'}),
+        ):
+            with self.subTest(text=text):
+                enriched = enrich_job({'title': 'Project Coordinator', 'description': text})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']}, expected)
+        experience = enrich_job({'title': 'Project Coordinator', 'description':
+                                 '2 years experience preferred, at least 5 years experience required.'})
+        self.assertEqual(experience['experience_years']['value'], 5)
+        qualifications = enrich_job({'title': 'Project Coordinator', 'description':
+                                     'Scrum preferred, PMP certification required.'})
+        self.assertEqual({row['value'] for row in qualifications['requirements']}, {'PMP', 'certification'})
+
+    def test_received_training_is_incidental_while_delivered_training_is_role_evidence(self):
+        profile = {'desired_roles': ['Learning and development'], 'skills': ['Training and development']}
+        benefit = match_job({'title': 'Learning and Development Coordinator',
+                             'description': 'You receive training and development as part of our perks. ' * 12}, profile)
+        duty = match_job({'title': 'Learning and Development Coordinator',
+                          'description': 'You deliver training and development programs to employees. ' * 12}, profile)
+        self.assertEqual(benefit['fit_tier'], 'possible')
+        self.assertEqual(duty['fit_tier'], 'recommended')
+        excel = match_job({'title': 'Project Coordinator',
+                           'description': 'You receive Excel training as part of our perks. ' * 12},
+                          {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
+        self.assertEqual(excel['fit_tier'], 'possible')
+
 
 if __name__ == '__main__':
     unittest.main()

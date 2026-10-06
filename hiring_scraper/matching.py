@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 
-VERSION = 'rules-v3'
+VERSION = 'rules-v4'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -84,7 +84,7 @@ ROLE_GROUPS = [
 ]
 OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschenswert|bevorzugt|von vorteil|a plus|not required|nicht erforderlich', re.I)
 REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|voraussetzung|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
-NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|wir bieten|unser unternehmen|unsere firma|seit \d{4})\b', re.I)
+NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
 CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
 
 
@@ -113,7 +113,7 @@ def _evidence(value, text, match, source):
 
 def _mention_kind(text: str, match, source: str) -> str:
     if source == 'title':
-        return 'mentioned'
+        return 'title'
     left = max(text.rfind('.', 0, match.start()), text.rfind(';', 0, match.start())) + 1
     ends = [position for position in (text.find('.', match.end()), text.find(';', match.end())) if position >= 0]
     sentence = text[left:min(ends) if ends else len(text)]
@@ -152,7 +152,7 @@ def _sentences(text: str) -> list[str]:
 
 def _requirement_clauses(sentence: str) -> list[str]:
     """Keep shared wording together, but separate independently qualified clauses."""
-    parts = re.split(r'\b(?:and|und)\b', sentence, flags=re.I)
+    parts = re.split(r'\b(?:and|und|but|aber|jedoch)\b|,\s*', sentence, flags=re.I)
     clauses = []
     current = parts[0].strip()
     for part in parts[1:]:
@@ -188,7 +188,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
         'French': re.compile(r'\b(?:french|französisch(?:kenntnisse)?)\b', re.I),
         'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnisse)?)\b', re.I),
     }
-    fluency = re.compile(r'fluent|fluency|fließend|fliessend|verhandlungssicher', re.I)
+    fluency = re.compile(r'\b(?:fluent|fließende[nrsm]?|fliessende[nrsm]?|verhandlungssichere[nrsm]?)\s+(?:german|deutsch(?:kenntnisse)?|english|englisch(?:kenntnisse)?|french|französisch(?:kenntnisse)?|spanish|spanisch(?:kenntnisse)?)\b', re.I)
     qualification = re.compile(r'\b(?:PMP|PRINCE2|Scrum|degree|abschluss|certification|zertifizier(?:ung|t)|medical devices?|medizintechnik|PV|photovoltaik|photovoltaics?|solar|electrical|elektrotechnik|construction|bauwesen|bauleitung)\b', re.I)
     for source, text in texts:
         if source == 'title':
@@ -255,15 +255,15 @@ def enrich_job(job: dict) -> dict:
             for alias in aliases:
                 for match in _pattern(alias).finditer(text):
                     kind = _mention_kind(text, match, source)
-                    rank = {'incidental': 0, 'optional': 1, 'mentioned': 2}[kind]
+                    rank = {'incidental': 0, 'title': 1, 'optional': 2, 'mentioned': 3}[kind]
                     if rank > best_rank:
                         evidence = {**_evidence(name, text, match, source), 'name': name, 'kind': kind}
                         best_rank = rank
-                    if best_rank == 2:
+                    if best_rank == 3:
                         break
-                if best_rank == 2:
+                if best_rank == 3:
                     break
-            if best_rank == 2:
+            if best_rank == 3:
                 break
         if evidence:
             skills.append(evidence)
@@ -410,6 +410,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     substantive_matches = []
     incidental_matches = []
     optional_matches = []
+    title_matches = []
     job_evidence = {row['name']: row for row in enriched['skills']}
     job_evidence.update({row['name']: row for row in custom_evidence})
     weighted_matches = 0.0
@@ -421,6 +422,10 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
             academic_matches.append((skill, context))
         if kind == 'incidental':
             incidental_matches.append(skill)
+        elif kind == 'title':
+            title_matches.append(skill)
+            if not roles and not secondary_roles:
+                weighted_matches += .4 * (.5 if context in {'academic', 'research'} else 1)
         elif kind == 'optional':
             optional_matches.append(skill)
             weighted_matches += .25 * (.5 if context in {'academic', 'research'} else 1)
@@ -437,6 +442,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
             reasons.append('Optional skills mentioned: ' + ', '.join(optional_matches))
         if incidental_matches:
             reasons.append('Incidental mentions: ' + ', '.join(incidental_matches))
+        if title_matches:
+            reasons.append('Title mentions: ' + ', '.join(title_matches))
         reasons.extend(f'{skill} evidence is {context} or project based' for skill, context in academic_matches)
     if roles:
         reasons.extend('Role matches ' + role for role in roles)
