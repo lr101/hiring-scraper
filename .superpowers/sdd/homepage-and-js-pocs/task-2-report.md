@@ -198,16 +198,11 @@ Full-suite verification was:
 Output: `Ran 154 tests in 1.411s` / `OK`.
 
 That 154-test result was run in the shared worktree, which also contains the
-previously authorized, uncommitted application-stack files. The committed
-archive contains 79 tracked tests. Its clean-archive discovery run passed:
-
-```bash
-task_archive_dir=$(mktemp -d /tmp/hiring-scraper-clean-suite.XXXXXX)
-git archive --format=tar c9c51de5 | tar -xf - -C "$task_archive_dir"
-(cd "$task_archive_dir" && /workspace/hiring-scraper/.venv/bin/python -m unittest discover -s tests)
-```
-
-Output: `Ran 79 tests in 0.050s` / `OK`.
+previously authorized, uncommitted application-stack files. A prior archive
+run reported 79 passing tests, but used the shared virtualenv's editable
+finder, which could import those uncommitted app modules. That result is
+withdrawn as clean-archive evidence; the isolated 78-test run below disables
+site initialization and excludes the separately preserved app-worker test.
 
 Finally, the committed replay was verified from a clean `git archive` of
 `1c072adc`, passing the local capture directory explicitly:
