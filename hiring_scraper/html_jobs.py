@@ -7,7 +7,7 @@ import re
 import unicodedata
 from datetime import date
 from html.parser import HTMLParser
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
@@ -44,6 +44,9 @@ _CITY_PATTERN = re.compile(r"\b(" + "|".join(re.escape(city) for city in sorted(
 _DISPLAY_NONE = re.compile(r"(?:^|;)display:none(?:!important)?(?:;|$)")
 _VISIBILITY_HIDDEN = re.compile(r"(?:^|;)visibility:hidden(?:!important)?(?:;|$)")
 _DISPLAY_BLOCK = re.compile(r"(?:^|;)display:block(?:!important)?(?:;|$)")
+_INACTIVE_CARD_STATE = re.compile(r"closed|inactive|archiv|expired|filled|template|draft|disabled", re.I)
+_CLOSED_CARD_TEXT = re.compile(r"(?:position|job|stelle).{0,16}(?:closed|filled)|(?:closed|filled).{0,16}(?:position|job|stelle)", re.I)
+_INITIATIVE_APPLICATION = re.compile(r"\binitiativ(?:bewerbung|application)\b", re.I)
 
 
 def _element_hidden(tag: str, attrs: dict[str, str]) -> bool:
@@ -154,8 +157,10 @@ def _location_name(value) -> str | None:
     return "; ".join(names) or None
 
 
-def _stable_id(title: str, url: str) -> str:
-    return hashlib.sha1((title.casefold().strip() + "\n" + urlsplit(url).path.casefold()).encode()).hexdigest()[:20]
+def _stable_id(title: str, url: str, *, destination_identity: bool = False) -> str:
+    value = (_normalized_destination(url) if destination_identity else
+             title.casefold().strip() + "\n" + urlsplit(url).path.casefold())
+    return hashlib.sha1(value.encode()).hexdigest()[:20]
 
 
 def _absolute_http(url: str, base: str) -> str | None:
@@ -168,6 +173,29 @@ def _absolute_http(url: str, base: str) -> str | None:
         return None
     return target if (parts.scheme in {"http", "https"} and parts.hostname and
                       not parts.username and not parts.password) else None
+
+
+def _normalized_destination(url: str) -> str:
+    """Return a stable HTTP destination identity, preserving meaningful query IDs."""
+    parts = urlsplit(url)
+    query = urlencode(sorted(parse_qsl(parts.query, keep_blank_values=True)))
+    return urlunsplit((parts.scheme.casefold(), parts.netloc.casefold(), parts.path or "/", query, ""))
+
+
+def _same_origin(left: str, right: str) -> bool:
+    left_parts, right_parts = urlsplit(left), urlsplit(right)
+    return (left_parts.scheme.casefold(), left_parts.netloc.casefold()) == (
+        right_parts.scheme.casefold(), right_parts.netloc.casefold()
+    )
+
+
+def _inactive_framework_row(row: dict) -> bool:
+    if any(row.get(key) is False for key in ("active", "enabled", "published")):
+        return True
+    if any(bool(row.get(key)) for key in ("template", "isTemplate", "archived", "closed", "disabled")):
+        return True
+    state = " ".join(str(row.get(key, "")) for key in ("status", "state", "availability"))
+    return bool(_INACTIVE_CARD_STATE.search(state))
 
 
 def _arrangement(text: str) -> tuple[str | None, str | None]:
@@ -256,7 +284,7 @@ def _job(title: str, url: str, method: str, text: str = "", *, description: str 
         info["description"] = description[:12000]
     if extras:
         info["raw_metadata"].update(extras)
-    info.update({"id": _stable_id(title, url), "title": title, "url": url,
+    info.update({"id": _stable_id(title, url, destination_identity=method == "structured_job_card"), "title": title, "url": url,
                  "location": info.get("location") or "; ".join(item["label"] for item in info["locations"])})
     return info
 
@@ -399,14 +427,23 @@ def _job_link_title(anchor: _Element) -> str:
     return _clean_text(anchor.text()).strip()
 
 
-def _structured_job_cards(nodes: list[_Element], page_url: str) -> list[dict]:
+def _structured_job_cards(nodes: list[_Element], page_url: str) -> tuple[list[dict], list[dict]]:
     """Read explicit, server-rendered vacancy cards whose detail URLs use a query string."""
-    jobs = []
+    jobs, candidates = [], []
     for card in nodes:
         if card.tag != "a" or card.attrs.get("data-guide-id", "").casefold() != "joblist-card":
             continue
+        state = " ".join(card.attrs.get(key, "") for key in ("data-status", "data-state", "status"))
+        classes = set(card.attrs.get("class", "").casefold().split())
+        if (card.hidden or card.attrs.get("aria-disabled", "").casefold() == "true" or
+                "disabled" in card.attrs or "disabled" in classes or "template" in classes or
+                _INACTIVE_CARD_STATE.search(state)):
+            continue
+        context = card.text()
+        if _CLOSED_CARD_TEXT.search(context):
+            continue
         target = _absolute_http(card.attrs.get("href"), page_url)
-        if not target:
+        if not target or not _same_origin(target, page_url):
             continue
         title_node = next((child for child in card.walk()
                            if child.attrs.get("data-guide-id", "").casefold() == "joblist-card-title"), None)
@@ -420,10 +457,14 @@ def _structured_job_cards(nodes: list[_Element], page_url: str) -> list[dict]:
         tags_node = next((child for child in card.walk()
                           if child.attrs.get("data-guide-id", "").casefold() == "joblist-card-tags"), None)
         employment_type = _employment(tags_node.text()) if tags_node else None
-        context = card.text()
+        if _INITIATIVE_APPLICATION.search(title):
+            candidates.append({"title": title, "url": target,
+                               "method": "structured_job_card", "confidence": "unconfirmed_role"})
+            continue
         jobs.append(_job(title, target, "structured_job_card", context, location=location,
-                         employment_type=employment_type, application_email=_application_email(context)))
-    return jobs
+                         employment_type=employment_type, application_email=_application_email(context),
+                         extras={"posting_identity": _normalized_destination(target)}))
+    return jobs, candidates
 
 
 def html_job_key(job: dict) -> tuple[str, ...]:
@@ -436,6 +477,8 @@ def html_job_key(job: dict) -> tuple[str, ...]:
         path = parsed.path.rstrip("/")
     except ValueError:
         parsed, path = None, ""
+    if method == "structured_job_card":
+        return "destination", _normalized_destination(url)
     if (parsed and method in {"html_job_link", "html_job_detail"} and _DETAIL_ROUTE.search(path)):
         return "url", (parsed.hostname or "").casefold(), path.casefold()
     title = re.sub(r"\W+", " ", (job.get("title") or "").casefold()).strip()
@@ -580,25 +623,20 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
                 if not isinstance(rows, list):
                     continue
                 for row in rows:
-                    if not isinstance(row, dict):
+                    if not isinstance(row, dict) or _inactive_framework_row(row):
                         continue
                     role_title = _plain(row.get("title") or row.get("name") or row.get("jobTitle"))
                     role_url = row.get("url") or row.get("absolute_url") or row.get("jobUrl") or row.get("applyUrl")
-                    if not role_title or not isinstance(role_url, str):
+                    if not _candidate_title(role_title or "") or not isinstance(role_url, str):
                         continue
                     absolute = _absolute_http(role_url, page_url)
-                    if absolute:
-                        row_employment = row.get("employmentType")
-                        if isinstance(row_employment, list):
-                            row_employment = ", ".join(str(value) for value in row_employment)
-                        normalized_employment = _employment(str(row_employment)) if row_employment else None
-                        job = _job(role_title, absolute, "embedded_json", _plain(row.get("description")) or "",
-                                   location=_location_name(row.get("jobLocation")) or _plain(row.get("location")),
-                                   description=_plain(row.get("description")),
-                                   employment_type=normalized_employment)
-                        jobs.append(job)
+                    if absolute and _same_origin(absolute, page_url):
+                        role_candidates.append({"title": role_title, "url": absolute,
+                                                "method": "embedded_json", "confidence": "unconfirmed_role"})
 
-    jobs.extend(_structured_job_cards(nodes, page_url))
+    structured_jobs, structured_candidates = _structured_job_cards(nodes, page_url)
+    jobs.extend(structured_jobs)
+    role_candidates.extend(structured_candidates)
 
     anchors = [node for node in nodes if node.tag == "a" and node.attrs.get("href")]
     for anchor in anchors:

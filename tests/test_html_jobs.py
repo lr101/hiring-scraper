@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 from hiring_scraper.ats import parse_feed
 from hiring_scraper.app.models import JobFeed
 from hiring_scraper.app.worker import _request
-from hiring_scraper.html_jobs import _merge, extract_html_jobs
+from hiring_scraper.html_jobs import _merge, extract_html_jobs, html_job_key
 
 
 class HtmlJobExtractionTests(unittest.TestCase):
@@ -158,19 +158,29 @@ class HtmlJobExtractionTests(unittest.TestCase):
                          'Praktika, Abschlussarbeiten & Werkstudententätigkeit')
         self.assertEqual(result['role_candidates'][0]['confidence'], 'unconfirmed_role')
 
-    def test_embedded_framework_job_array_is_parsed_without_running_javascript(self):
+    def test_embedded_framework_job_array_is_kept_as_an_unconfirmed_role(self):
         payload = {'props': {'pageProps': {'jobs': [{
             'id': 'job-9', 'title': 'Cloud Engineer', 'url': '/careers/cloud-engineer',
             'location': 'Berlin', 'employmentType': 'FULL_TIME',
         }]}}}
         body = ('<html><body><h1>Careers</h1><script id="__NEXT_DATA__" type="application/json">' +
                 json.dumps(payload) + '</script></body></html>').encode()
-        result = parse_feed('html_jobs', body, 'https://example.test/careers/')
-        self.assertEqual(result['jobs'][0]['title'], 'Cloud Engineer')
-        self.assertEqual(result['jobs'][0]['url'], 'https://example.test/careers/cloud-engineer')
-        self.assertEqual(result['jobs'][0]['location'], 'Berlin')
-        self.assertEqual(result['jobs'][0]['employment_type'], 'full-time')
-        self.assertEqual(result['jobs'][0]['raw_metadata']['extraction_method'], 'embedded_json')
+        result = extract_html_jobs(body, 'https://example.test/careers/')
+        self.assertEqual(result['jobs'], [])
+        self.assertEqual(result['role_candidates'], [{
+            'title': 'Cloud Engineer', 'url': 'https://example.test/careers/cloud-engineer',
+            'method': 'embedded_json', 'confidence': 'unconfirmed_role',
+        }])
+
+    def test_generic_closed_or_template_framework_rows_are_rejected(self):
+        payload = {'props': {'pageProps': {'jobs': [
+            {'title': 'Closed Cloud Engineer', 'url': '/careers/closed', 'status': 'closed'},
+            {'title': 'Template Developer', 'url': '/careers/template', 'template': True},
+        ]}}}
+        body = '<script id="__NEXT_DATA__" type="application/json">' + json.dumps(payload) + '</script>'
+        result = extract_html_jobs(body, 'https://example.test/careers/')
+        self.assertEqual(result['jobs'], [])
+        self.assertEqual(result['role_candidates'], [])
 
     def test_extracts_explicit_server_rendered_job_cards_with_query_detail_urls(self):
         body = b'''<html><body><h1>Open jobs</h1>
@@ -187,14 +197,51 @@ class HtmlJobExtractionTests(unittest.TestCase):
         self.assertEqual(job['employment_type'], 'full-time')
         self.assertEqual(job['raw_metadata']['extraction_method'], 'structured_job_card')
 
-    def test_explicit_job_card_keeps_an_active_initiative_posting(self):
+    def test_explicit_job_card_keeps_an_initiative_posting_unconfirmed(self):
         body = b'''<html><body><a data-guide-id="joblist-card" href="/en?id=41247d"><div
           data-guide-id="joblist-card-title">Initiativbewerbung (m/w/d)</div><div
           data-guide-id="joblist-card-location">Karlsruhe</div><div
           data-guide-id="joblist-card-tags">Full time</div><p>Ausbildung is one option.</p></a></body></html>'''
         result = extract_html_jobs(body, 'https://jobs.example/en')
-        self.assertEqual([job['title'] for job in result['jobs']], ['Initiativbewerbung (m/w/d)'])
-        self.assertEqual(result['jobs'][0]['employment_type'], 'full-time')
+        self.assertEqual(result['jobs'], [])
+        self.assertEqual(result['role_candidates'], [{
+            'title': 'Initiativbewerbung (m/w/d)', 'url': 'https://jobs.example/en?id=41247d',
+            'method': 'structured_job_card', 'confidence': 'unconfirmed_role',
+        }])
+
+    def test_structured_cards_reject_hidden_disabled_closed_and_template_rows(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="/en?id=hidden" hidden><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=disabled" aria-disabled="true"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=closed" data-status="closed"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=filled"><div data-guide-id="joblist-card-title">Cloud Engineer</div><span>Position closed</span></a>
+          <a data-guide-id="joblist-card" href="/en?id=template" class="template"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual(result['jobs'], [])
+        self.assertEqual(result['role_candidates'], [])
+
+    def test_structured_cards_require_a_same_origin_destination(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="https://other.example/en?id=one"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="https://user:pass@jobs.example/en?id=two"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="javascript:alert(1)"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual(result['jobs'], [])
+
+    def test_structured_cards_use_query_identity_and_deduplicate_repeated_destination(self):
+        body = b'''<html><body>
+          <a data-guide-id="joblist-card" href="/en?id=one"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=two"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+          <a data-guide-id="joblist-card" href="/en?id=one"><div data-guide-id="joblist-card-title">Cloud Engineer</div></a>
+        </body></html>'''
+        result = extract_html_jobs(body, 'https://jobs.example/en')
+        self.assertEqual([job['url'] for job in result['jobs']], [
+            'https://jobs.example/en?id=one', 'https://jobs.example/en?id=two',
+        ])
+        self.assertNotEqual(result['jobs'][0]['id'], result['jobs'][1]['id'])
+        self.assertNotEqual(html_job_key(result['jobs'][0]), html_job_key(result['jobs'][1]))
 
     def test_schema_org_role_itemlist_is_kept_as_unconfirmed_not_active_job(self):
         body = b'''<html><body><h1>Join the team</h1><h2>Which roles suit you?</h2>

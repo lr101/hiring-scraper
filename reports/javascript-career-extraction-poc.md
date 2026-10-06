@@ -2,10 +2,11 @@
 
 The saved-capture PoC found one safe incremental path: explicit, server-rendered
 job cards from a framework-backed board. The default worker still does not run
-JavaScript or make a new request. `extract_html_jobs` now recognizes only an
-anchor marked `data-guide-id="joblist-card"`, reads its nested title, location,
-and tag fields, and retains its same-page query-string detail URL. Ordinary
-anchors and framework scripts continue through the existing conservative paths.
+JavaScript or make a new request. `extract_html_jobs` recognizes only a
+same-origin anchor marked `data-guide-id="joblist-card"`, rejects hidden,
+disabled, closed, and template cards, and preserves its normalized query-string
+detail identity. Ordinary anchors and framework scripts continue through the
+existing conservative paths.
 
 ## Repeatable command
 
@@ -13,34 +14,44 @@ anchors and framework scripts continue through the existing conservative paths.
 .venv/bin/python experiments/javascript_career_extraction_poc.py --run-dir data/career-poc/run-31 --sample-size 250
 ```
 
-The command selects one context per capture from career/job-like successful HTML
-pages without an ATS marker or `JobPosting`; it orders them by
-`SHA-256(page URL + newline + capture ID)` and takes the first 250. It reads
-only those 250 bodies after scanning lightweight capture metadata.
+The command writes the compact replay artifact at
+`data/career-poc/js-extraction-poc-2026-10/replay.json`. It selects one context
+per capture from saved page metadata for career/job-like successful HTML pages
+without an ATS marker and with `jobposting_count=0`; it orders them by
+`SHA-256(page URL + newline + capture ID)` and takes the first 250. It loads
+only those 250 bodies.
 
 ## Results
 
-`run-31` contains 1,728 captures matching the sample eligibility rule. The
+`run-31` contains 1,775 captures matching the metadata eligibility rule. The
 250-capture slice contained 7 `__NEXT_DATA__`, 2 Next Flight, 9 Nuxt, 70
-API/GraphQL/JSON-looking reference, and 71 job-term-in-script markers. Markers
-were leads, not jobs: the existing static JSON-state parser recovered zero
-`embedded_json` jobs in the slice.
+API/GraphQL/JSON-looking references, and 72 job-term-in-script markers. Markers
+were leads, not jobs: generic framework JSON recovered zero active jobs and
+zero unconfirmed candidates in this slice. Generic state arrays are retained as
+unconfirmed candidates only when they are same-origin and neither closed nor
+template data; only JSON-LD `JobPosting` remains an active JSON job contract.
 
 The one useful framework-bearing lead was Wibu Systems:
 
 | Source | Saved capture / bot access | Existing result | New result | Increment |
 | --- | --- | ---: | ---: | ---: |
-| `https://jobs.wibu.com/en` | capture `cf39ff8b1927aa89fb50`; 200 HTML, 472,810 bytes; `robots.txt` capture `b96ca803147990271f9f` was 200 `text/plain` | 2 synthetic role headings | 10 explicit current cards | 8 unique postings |
+| `https://jobs.wibu.com/en` | capture `cf39ff8b1927aa89fb50`; 200 HTML, 472,810 bytes; `robots.txt` capture `b96ca803147990271f9f` was 200 `text/plain` | 2 synthetic role headings | 9 active cards plus 1 unconfirmed initiative route | 9 new stable detail identities; 7 roles without a prior title hint |
 
 The capture is linked to the employer's `https://www.wibu.com/` site and the
-existing `trusted_html_jobs` check returns `first_party`. All ten rows have a
-distinct `?id=` detail identity, a non-placeholder title, and the card's
-explicit Karlsruhe location. The saved card list has no closed/no-open-jobs
-signal. The two earlier student headings match two card titles and are
-suppressed by the structured-card parser, so the deduplicated increment is
-eight. `Initiativbewerbung (m/w/d)` is retained because it is a separately
-identified, active card; its type comes from the explicit `Full time` tag,
-rather than incidental text in the card description.
+existing `trusted_html_jobs` check returns `first_party`. The active rows have
+distinct normalized `?id=` destination identities, non-placeholder titles, and
+the card's explicit Karlsruhe location. The saved card list has no
+closed/no-open-jobs signal. The two earlier student headings overlap two card
+titles and are suppressed only as synthetic hints; they are not used as posting
+identity. Therefore all nine card URLs are new stable detail identities; seven
+have no prior title/location role hint and two replace synthetic heading hints.
+If a downstream display intentionally title-deduplicates them, that is a
+separate seven-role presentation metric, not posting identity deduplication.
+`Initiativbewerbung (m/w/d)`
+is an unsolicited application route and is retained only as an unconfirmed
+role candidate. The replay artifact records every active Wibu row, its identity
+key, source access metadata, trust result, baseline count, title overlap, and
+new-row count.
 
 ## Exclusions and competing approaches
 
