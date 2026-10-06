@@ -283,6 +283,35 @@ class CvMatchingTests(unittest.TestCase):
         self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
                          {'German': 'C1', 'English': 'C1'})
 
+    def test_benefit_boundary_preserves_shared_required_language_list(self):
+        for wording in (
+            'We provide you with onboarding support, but German and English C1 required.',
+            'You receive onboarding support but German and English C1 required.',
+            'Wir bieten Unterstützung, aber Deutsch und Englisch C1 erforderlich.',
+        ):
+            with self.subTest(wording=wording):
+                job = {'title': 'Project Coordinator', 'description': wording}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1', 'English': 'C1'})
+                result = match_job(job, CV, enriched)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('German C1' in gap for gap in result['conflicts']))
+
+    def test_preference_boundary_preserves_shared_required_language_list(self):
+        for wording in (
+            'French A2 preferred, German and English C1 required.',
+            'Französisch A2 wünschenswert, Deutsch und Englisch C1 erforderlich.',
+        ):
+            with self.subTest(wording=wording):
+                job = {'title': 'Project Coordinator', 'description': wording}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1', 'English': 'C1'})
+                result = match_job(job, CV, enriched)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('German C1' in gap for gap in result['conflicts']))
+
 
 if __name__ == '__main__':
     unittest.main()

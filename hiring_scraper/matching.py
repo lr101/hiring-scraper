@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 
-VERSION = 'rules-v5'
+VERSION = 'rules-v6'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -152,21 +152,27 @@ def _sentences(text: str) -> list[str]:
 
 def _requirement_clauses(sentence: str) -> list[str]:
     """Keep shared wording together, but separate independently qualified clauses."""
-    parts = [part.strip() for part in re.split(r'\b(?:and|und|but|aber|jedoch)\b|,\s*', sentence, flags=re.I) if part.strip()]
-    if not parts:
-        return []
-    clauses = []
-    current = parts[0]
-    for part in parts[1:]:
-        current_scoped = OPTIONAL.search(current) or REQUIREMENT.search(current) or NON_REQUIREMENT.search(current)
-        part_scoped = OPTIONAL.search(part) or REQUIREMENT.search(part) or NON_REQUIREMENT.search(part)
-        if current_scoped and part_scoped:
-            clauses.append(current)
-            current = part
-        else:
-            current += ' and ' + part
-    clauses.append(current)
-    return clauses
+    def split_scoped(text: str, separator: str) -> list[str]:
+        parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
+        if not parts:
+            return []
+        clauses = []
+        current = parts[0]
+        for part in parts[1:]:
+            current_scoped = OPTIONAL.search(current) or REQUIREMENT.search(current) or NON_REQUIREMENT.search(current)
+            part_scoped = OPTIONAL.search(part) or REQUIREMENT.search(part) or NON_REQUIREMENT.search(part)
+            if current_scoped and part_scoped:
+                clauses.append(current)
+                current = part
+            else:
+                current += ' and ' + part
+        clauses.append(current)
+        return clauses
+
+    # Resolve clause boundaries before splitting coordinated lists: their trailing
+    # qualifier must stay with the whole list when deciding the outer scope.
+    clauses = split_scoped(sentence, r'\b(?:but|aber|jedoch)\b|,\s*')
+    return [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
 
 
 def _required_context(sentence: str, *, explicit: bool = False) -> bool:
