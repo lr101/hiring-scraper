@@ -1,0 +1,16 @@
+{
+  "url": "https://kr3m.com/",
+  "checked_at": "2026-10-06T08:50:34.407500+00:00",
+  "user_agent": "HiringScraper/0.2 (homepage evidence study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110731,
+  "state": "ok",
+  "elapsed_seconds": 1.428,
+  "sha256": "341453861632569048a22bf1f91ea62a196e5b8d606cc946f1b734a10d07ada4",
+  "capture": "edc5bce3a0f72e270380"
+}

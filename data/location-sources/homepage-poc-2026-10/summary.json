@@ -1,0 +1,29 @@
+{
+  "observed_at": "2026-10-06T08:50:00+00:00",
+  "cohort": {
+    "candidate_count": 2251,
+    "without_osm_website": 645
+  },
+  "cached_methods": {
+    "baseline_selected_domains": 13,
+    "wikidata_direct_coordinate_matches": 0,
+    "ba_exact_name_matches": 0,
+    "ted_exact_name_matches": 0,
+    "email_domain_suggestions": 40,
+    "email_domain_selected": 7,
+    "combined_selected_domains": 20
+  },
+  "email_http_validation": {
+    "candidate_count": 9,
+    "request_count": 23,
+    "http_200": 13,
+    "redirects": 6,
+    "http_404": 1,
+    "network_or_tls_or_dns_failures": 3,
+    "strict_candidates_with_identity_corroborated_html": 6,
+    "strict_candidates_unavailable_at_robots_check": 1,
+    "observed_identity_false_positives": 0,
+    "policy": "12 second timeout; one second per origin; 45 request cap; robots checked per hop; no retries, proxy, authentication, or challenge handling"
+  },
+  "suggestions_csv": "data/location-sources/homepage-poc-2026-10/suggestions.csv"
+}

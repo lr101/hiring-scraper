@@ -1,0 +1,16 @@
+{
+  "url": "https://schrifthof.de/robots.txt",
+  "checked_at": "2026-10-06T08:50:35.836521+00:00",
+  "user_agent": "HiringScraper/0.2 (homepage evidence study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 195,
+  "state": "ok",
+  "elapsed_seconds": 0.344,
+  "sha256": "617b40a4e52fc66f052b0e059fd270e2cc2963b150b227bf4bd568caea63bc39",
+  "capture": "4302cb553a8a9f5af698"
+}
