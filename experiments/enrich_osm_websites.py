@@ -22,6 +22,7 @@ DEFAULT_CANDIDATES = ROOT / "fixtures/karlsruhe-osm-candidates.csv"
 DEFAULT_OSM = ROOT / "data/location-sources/run-2026-10-05/osm-radius-15km.body"
 DEFAULT_CACHE = ROOT / "data/location-sources/run-2026-10-05/wikidata-osm-website-entities.json"
 DEFAULT_SUGGESTIONS = ROOT / "data/location-sources/run-2026-10-05/wikidata-osm-website-suggestions.csv"
+DEFAULT_EMAIL_VERIFICATIONS = ROOT / "data/location-sources/homepage-poc-2026-10/email-domain-verifications.json"
 
 
 def read_candidates(path: Path) -> list[dict]:
@@ -60,11 +61,20 @@ def load_or_fetch_entities(qids: list[str], cache_path: Path) -> dict:
     return entities
 
 
+def load_email_verifications(path: Path | None) -> list[dict]:
+    """Load source-keyed public-page identity checks; absent evidence is not approval."""
+    if path is None or not path.exists():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    values = payload.get("verifications", payload) if isinstance(payload, dict) else payload
+    return [value for value in values if isinstance(value, dict)] if isinstance(values, list) else []
+
+
 def write_suggestions(path: Path, suggestions: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     columns = ["source_id", "company_name", "entity_id", "entity_name", "relation", "website_url",
-               "website_claim_rank",
-               "identity_score", "eligible_for_enrichment", "ineligible_reason", "method", "evidence_url",
+               "website_claim_rank", "identity_score", "eligible_for_enrichment", "ineligible_reason",
+               "email_verification_state", "verification_evidence_url", "method", "evidence_url",
                "osm_source_url"]
     with path.open("w", newline="", encoding="utf-8") as file:
         writer = csv.DictWriter(file, fieldnames=columns, lineterminator="\n")
@@ -91,8 +101,11 @@ def build_enrichment(existing: dict, suggestions: list[dict], observed_at: str) 
             "relation": suggestion["relation"],
             "identity_score": suggestion["identity_score"],
             "evidence_urls": list(dict.fromkeys(
-                url for url in (suggestion.get("evidence_url"), suggestion.get("osm_source_url")) if url)),
+                url for url in (suggestion.get("evidence_url"), suggestion.get("osm_source_url"),
+                                suggestion.get("verification_evidence_url")) if url)),
         }
+        if suggestion.get("email_verification_state"):
+            resolution["email_verification_state"] = suggestion["email_verification_state"]
         if suggestion.get("website_claim_rank"):
             resolution["website_claim_rank"] = suggestion["website_claim_rank"]
         if suggestion.get("entity_id"):
@@ -170,6 +183,7 @@ def merge_career_poc_results(existing: dict, candidates: list[dict], suggestions
 
 
 def run(candidates_path: Path, osm_path: Path, cache_path: Path, suggestions_path: Path,
+        email_verifications_path: Path | None = DEFAULT_EMAIL_VERIFICATIONS,
         enrichment_in: Path | None = None, enrichment_out: Path | None = None,
         career_run: Path | None = None) -> dict:
     candidates = read_candidates(candidates_path)
@@ -177,7 +191,8 @@ def run(candidates_path: Path, osm_path: Path, cache_path: Path, suggestions_pat
     qids = referenced_entity_ids(osm)
     entities = load_or_fetch_entities(qids, cache_path)
     suggestions = resolve_osm_websites(candidates, osm, entities)
-    suggestions.extend(resolve_osm_email_websites(candidates))
+    email_verifications = load_email_verifications(email_verifications_path)
+    suggestions.extend(resolve_osm_email_websites(candidates, email_verifications))
     write_suggestions(suggestions_path, suggestions)
     selected = select_website_enrichments(suggestions)
     summary = {
@@ -187,6 +202,7 @@ def run(candidates_path: Path, osm_path: Path, cache_path: Path, suggestions_pat
         "referenced_wikidata_entities": len(qids),
         "official_website_suggestions": len(suggestions),
         "email_domain_suggestions": sum(item["relation"] == "osm_email_tag" for item in suggestions),
+        "email_domain_identity_verifications": len(email_verifications),
         "eligible_candidates": len(selected),
         "eligible_by_relation": {relation: sum(item["relation"] == relation for item in selected.values())
                                   for relation in ("entity", "brand", "operator", "osm_url_tag",
@@ -218,6 +234,8 @@ def main() -> None:
     parser.add_argument("--osm", type=Path, default=DEFAULT_OSM)
     parser.add_argument("--entity-cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--suggestions", type=Path, default=DEFAULT_SUGGESTIONS)
+    parser.add_argument("--email-verifications", type=Path, default=DEFAULT_EMAIL_VERIFICATIONS,
+                        help="JSON source-keyed public-page identity checks for email-domain leads")
     parser.add_argument("--enrichment-in", type=Path)
     parser.add_argument("--enrichment-out", type=Path)
     parser.add_argument("--career-run", type=Path,
@@ -228,6 +246,7 @@ def main() -> None:
     if args.career_run and not args.enrichment_out:
         parser.error("--career-run requires --enrichment-in and --enrichment-out")
     print(json.dumps(run(args.candidates, args.osm, args.entity_cache, args.suggestions,
+                         args.email_verifications,
                          args.enrichment_in, args.enrichment_out, args.career_run),
                      indent=2, ensure_ascii=False))
 

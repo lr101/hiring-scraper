@@ -11,7 +11,7 @@ from hiring_scraper.osm_websites import (
 
 
 class OSMWebsiteResolutionTests(unittest.TestCase):
-    def test_direct_osm_email_domain_with_name_overlap_is_an_eligible_homepage_lead(self):
+    def test_direct_osm_email_domain_without_verification_stays_a_suggestion(self):
         candidates = [{
             'source_id': 'node/20', 'name': 'kr3m media GmbH', 'website': '',
             'email': 'info@kr3m.com',
@@ -22,7 +22,60 @@ class OSMWebsiteResolutionTests(unittest.TestCase):
         self.assertEqual(rows[0]['website_url'], 'https://kr3m.com/')
         self.assertEqual(rows[0]['relation'], 'osm_email_tag')
         self.assertEqual(rows[0]['method'], 'osm_email_domain_name_match')
-        self.assertTrue(rows[0]['eligible_for_enrichment'])
+        self.assertFalse(rows[0]['eligible_for_enrichment'])
+        self.assertEqual(rows[0]['ineligible_reason'], 'email_domain_identity_not_verified')
+
+    def test_corroborated_osm_email_domain_is_an_eligible_homepage_lead(self):
+        candidates = [{
+            'source_id': 'node/20', 'name': 'kr3m media GmbH', 'website': '',
+            'email': 'info@kr3m.com',
+        }]
+        verifications = [{
+            'source_id': 'node/20', 'website_url': 'https://kr3m.com/',
+            'identity_confirmed': True, 'evidence_url': 'https://kr3m.com/',
+        }]
+
+        row = resolve_osm_email_websites(candidates, verifications)[0]
+
+        self.assertTrue(row['eligible_for_enrichment'])
+        self.assertEqual(row['email_verification_state'], 'identity_confirmed')
+        self.assertEqual(row['verification_evidence_url'], 'https://kr3m.com/')
+
+    def test_contact_email_is_accepted_as_an_email_source(self):
+        candidates = [{
+            'source_id': 'node/25', 'name': 'kr3m media GmbH', 'website': '',
+            'contact:email': 'info@kr3m.com',
+        }]
+        verifications = [{
+            'source_id': 'node/25', 'website_url': 'https://kr3m.com/',
+            'identity_confirmed': True, 'evidence_url': 'https://kr3m.com/',
+        }]
+
+        row = resolve_osm_email_websites(candidates, verifications)[0]
+
+        self.assertTrue(row['eligible_for_enrichment'])
+
+    def test_private_email_domain_literals_are_never_eligible(self):
+        candidates = [{
+            'source_id': 'node/26', 'name': 'Private Host', 'website': '',
+            'email': 'info@127.0.0.1; ops@[fd00::1]; service@office.internal; test@www.example',
+        }]
+        verifications = [
+            {'source_id': 'node/26', 'website_url': 'https://127.0.0.1/',
+             'identity_confirmed': True, 'evidence_url': 'https://127.0.0.1/'},
+            {'source_id': 'node/26', 'website_url': 'https://[fd00::1]/',
+             'identity_confirmed': True, 'evidence_url': 'https://[fd00::1]/'},
+            {'source_id': 'node/26', 'website_url': 'https://office.internal/',
+             'identity_confirmed': True, 'evidence_url': 'https://office.internal/'},
+            {'source_id': 'node/26', 'website_url': 'https://www.example/',
+             'identity_confirmed': True, 'evidence_url': 'https://www.example/'},
+        ]
+
+        rows = resolve_osm_email_websites(candidates, verifications)
+
+        self.assertEqual(len(rows), 4)
+        self.assertTrue(all(not row['eligible_for_enrichment'] for row in rows))
+        self.assertEqual({row['ineligible_reason'] for row in rows}, {'non_public_email_domain'})
 
     def test_partially_matching_email_domain_is_retained_for_review_but_not_auto_enriched(self):
         candidates = [{

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import ipaddress
 import re
 import unicodedata
 from urllib.parse import urlencode, urlsplit
@@ -27,6 +28,11 @@ _FREE_EMAIL_DOMAINS = {
 }
 _EMAIL = re.compile(r"(?<![\w.+-])[^\s@,;<>]+@([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
                     r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+)(?![\w.-])", re.IGNORECASE)
+_EMAIL_DOMAIN_LITERAL = re.compile(r"(?<![\w.+-])[^\s@,;<>]+@\[(?:ipv6:)?([0-9a-f:.]+)\]",
+                                    re.IGNORECASE)
+_NON_PUBLIC_HOST_SUFFIXES = (".internal", ".invalid", ".local", ".localhost", ".test", ".example",
+                             ".home.arpa")
+_NON_PUBLIC_HOSTS = {"localhost", "localhost.localdomain", "localdomain", "ip6-localhost", "ip6-loopback"}
 
 
 def _source_id(element: dict) -> str:
@@ -95,6 +101,11 @@ def _domain(url: object) -> str | None:
     return (urlsplit(safe_url).hostname or "").casefold().removeprefix("www.") if safe_url else None
 
 
+def _hostname(url: object) -> str | None:
+    safe_url = _web_url(url)
+    return (urlsplit(safe_url).hostname or "").casefold() if safe_url else None
+
+
 def _email_domains(value: object) -> list[str]:
     if not isinstance(value, str):
         return []
@@ -103,7 +114,51 @@ def _email_domains(value: object) -> list[str]:
         domain = match.group(1).casefold().rstrip(".")
         if domain not in domains:
             domains.append(domain)
+    for match in _EMAIL_DOMAIN_LITERAL.finditer(value):
+        domain = match.group(1).casefold()
+        if domain not in domains:
+            domains.append(domain)
     return domains
+
+
+def _email_website_url(domain: str) -> str:
+    try:
+        ipaddress.ip_address(domain)
+    except ValueError:
+        return f"https://{domain}/"
+    return f"https://[{domain}]/" if ":" in domain else f"https://{domain}/"
+
+
+def _is_public_hostname(hostname: str | None) -> bool:
+    """Reject literal, local and IANA-reserved names before enrichment."""
+    host = (hostname or "").casefold().rstrip(".")
+    if not host:
+        return False
+    try:
+        ipaddress.ip_address(host)
+        return False
+    except ValueError:
+        pass
+    return host not in _NON_PUBLIC_HOSTS and not host.endswith(_NON_PUBLIC_HOST_SUFFIXES)
+
+
+def _email_verifications(items: object) -> dict[tuple[str, str], dict]:
+    """Index source-keyed, auditable manual/public-page verification evidence."""
+    if isinstance(items, dict):
+        iterable = items.values()
+    elif isinstance(items, list):
+        iterable = items
+    else:
+        return {}
+    indexed = {}
+    for item in iterable:
+        if not isinstance(item, dict):
+            continue
+        source_id = str(item.get("source_id") or "")
+        domain = _domain(item.get("website_url"))
+        if source_id and domain:
+            indexed[(source_id, domain)] = item
+    return indexed
 
 
 def _non_german_country_domain(url: str) -> bool:
@@ -247,30 +302,45 @@ def resolve_osm_websites(candidates: list[dict], osm_response: dict, entities: d
     return output
 
 
-def resolve_osm_email_websites(candidates: list[dict]) -> list[dict]:
+def resolve_osm_email_websites(candidates: list[dict], verification_evidence: object = None) -> list[dict]:
     """Suggest homepage roots from direct OSM email tags.
 
     A non-free email domain is useful same-record evidence but does not itself
     prove that the domain serves a public homepage.  Automatic enrichment is
-    therefore limited to a complete candidate/domain token match.  Every other
-    email-derived value is retained as a reviewable suggestion with an explicit
-    reason.
+    therefore limited to a complete candidate/domain token match *and* a
+    source-keyed, public-page identity verification. Every other email-derived
+    value is retained as a reviewable suggestion with an explicit reason.
     """
     mapped_domains = {_domain(candidate.get("website")) for candidate in candidates
                       if candidate.get("website")}
     mapped_domains.discard(None)
+    verifications = _email_verifications(verification_evidence)
     output = []
     for candidate in candidates:
         if (candidate.get("website") or "").strip():
             continue
         source_id = str(candidate.get("source_id") or
                         f"{candidate.get('osm_type')}/{candidate.get('osm_id')}")
-        for domain in _email_domains(candidate.get("email")):
-            website_url = f"https://{domain}/"
+        email_values = (candidate.get("email"), candidate.get("contact:email"))
+        domains = []
+        for value in email_values:
+            for domain in _email_domains(value):
+                if domain not in domains:
+                    domains.append(domain)
+        for domain in domains:
+            website_url = _email_website_url(domain)
             score = _identity_score(candidate.get("name", ""), [], website_url)
             free_provider = domain in _FREE_EMAIL_DOMAINS
             already_mapped_domain = domain in mapped_domains
-            eligible = bool(score >= 0.8 and not free_provider and not already_mapped_domain)
+            public_domain = _is_public_hostname(_hostname(website_url))
+            verification = verifications.get((source_id, domain), {})
+            verified = bool(verification.get("identity_confirmed") is True and
+                            _web_url(verification.get("evidence_url")) and
+                            _is_public_hostname(_hostname(verification.get("evidence_url"))))
+            verification_state = ("identity_confirmed" if verified else
+                                  str(verification.get("access_state") or "not_checked"))
+            eligible = bool(score >= 0.8 and public_domain and not free_provider and
+                            not already_mapped_domain and verified)
             row = {
                 "source_id": source_id,
                 "osm_source_url": f"https://www.openstreetmap.org/{source_id}",
@@ -283,13 +353,19 @@ def resolve_osm_email_websites(candidates: list[dict]) -> list[dict]:
                 "eligible_for_enrichment": eligible,
                 "evidence_url": f"https://www.openstreetmap.org/{source_id}",
                 "method": "osm_email_domain_name_match",
+                "email_verification_state": verification_state,
+                "verification_evidence_url": verification.get("evidence_url") or "",
             }
-            if free_provider:
+            if not public_domain:
+                row["ineligible_reason"] = "non_public_email_domain"
+            elif free_provider:
                 row["ineligible_reason"] = "free_email_provider"
             elif already_mapped_domain:
                 row["ineligible_reason"] = "website_domain_already_mapped_in_osm"
             elif score < 0.8:
                 row["ineligible_reason"] = "email_domain_does_not_identify_candidate"
+            elif not verified:
+                row["ineligible_reason"] = "email_domain_identity_not_verified"
             output.append(row)
     return output
 
