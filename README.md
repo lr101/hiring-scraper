@@ -121,3 +121,17 @@ python3 -m hiring_scraper --seeds data/career-poc/seeds-full-validation.json --o
 For broader checks, `--workers 4` runs several companies concurrently while sharing a per-origin one-second pacer and one total live-request budget. It checkpoints results during the run; the default is one worker.
 
 Runs require a new output directory. The input seed lists and result manifests make the scope visible. Body captures stay local and are omitted from Git; reuse them with `--cache-from` for deterministic parsing experiments.
+
+## Profile matching PoC
+
+Open **Your profile** to enter skills and preferred roles or suggest skills from pasted CV text. Review the suggestions before saving; CV text is not persisted or sent to an external AI provider. Select a saved profile in the jobs view to rank and filter results. Scores measure skill/role overlap; job details show source excerpts, preference conflicts and information gaps. Incomplete jobs stay included by default. The location-plus-remote rule still applies.
+
+Job enrichment runs during imports and both crawl workers. A separate bounded detail worker can improve sparse descriptions using verified structured data or scoped role HTML:
+
+```bash
+python -m hiring_scraper.app.enrichment --fetch-details --limit 20
+# Optional deployment service; runs in the existing API image:
+docker compose --profile enrichment up -d
+```
+
+See the [evaluation and repeatable PoC](reports/profile-matching-poc.md) for coverage, matching limitations, deployment commands and next steps. Profiles currently belong to the shared app workspace; multi-user ownership and PDF/DOCX import are not implemented.

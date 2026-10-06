@@ -191,6 +191,7 @@ class Job(Base):
     date_posted: Mapped[str | None] = mapped_column(String(80))
     salary: Mapped[str | None] = mapped_column(String(500))
     raw_metadata: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    enrichment: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
@@ -223,6 +224,16 @@ class LocationCache(Base):
     query_key: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
     results: Mapped[list[dict]] = mapped_column(JSON, nullable=False)
     cached_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class ScanRun(Base):

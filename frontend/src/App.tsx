@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import DetailPage from './DetailPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
+import ProfilesPage from './ProfilesPage'
+import type { Enrichment, ProfileMatch } from './JobEvidence'
 
 type Location = {
   label: string
@@ -76,6 +78,8 @@ type Job = {
   description_preview?: string
   description?: string | null
   raw_metadata: Record<string, unknown>
+  enrichment: Enrichment
+  profile_match?: ProfileMatch
   match_kind?: 'remote' | 'in_area'
 }
 
@@ -194,6 +198,10 @@ function DirectoryPage() {
     ? params.get('job_sort') as JobSort : 'relevance')
   const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['remote', 'hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
+  const [profiles, setProfiles] = useState<{id: number; name: string}[]>([])
+  const [profileId, setProfileId] = useState(params.get('profile_id') ?? '')
+  const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
+  const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
   const [tab, setTab] = useState<'companies' | 'jobs'>(params.get('view') === 'jobs' ? 'jobs' : 'companies')
   const [companies, setCompanies] = useState<Company[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
@@ -203,6 +211,15 @@ function DirectoryPage() {
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }).then(async response => {
+      if (!response.ok) throw new Error('Could not load saved profiles.')
+      const data = await response.json(); setProfiles(data.items)
+    }).catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
+    return () => controller.abort()
+  }, [])
 
   const locationParams = useMemo(() => new URLSearchParams({
     latitude: String(location.latitude), longitude: String(location.longitude), radius_km: String(radius),
@@ -300,6 +317,11 @@ function DirectoryPage() {
     jobParams.set('offset', String(tab === 'jobs' ? offset : 0))
     jobParams.set('limit', String(PAGE_SIZE))
     jobParams.set('sort', jobSort)
+    if (profileId) {
+      jobParams.set('profile_id', profileId)
+      jobParams.set('min_match_score', minimumScore)
+      jobParams.set('include_unknown', String(includeUnknown))
+    }
     if (jobWorkStyle !== 'all') jobParams.set('work_style', jobWorkStyle)
     if (query.trim()) {
       companyParams.set('query', query.trim())
@@ -327,7 +349,7 @@ function DirectoryPage() {
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, locationParams, offset, query, tab])
+  }, [companyFilter, companySort, jobSort, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -355,8 +377,15 @@ function DirectoryPage() {
     else url.searchParams.delete('job_work_style')
     if (tab !== 'companies') url.searchParams.set('view', tab)
     else url.searchParams.delete('view')
+    if (profileId) {
+      url.searchParams.set('profile_id', profileId)
+      url.searchParams.set('min_match_score', minimumScore)
+      url.searchParams.set('include_unknown', String(includeUnknown))
+    } else {
+      url.searchParams.delete('profile_id'); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
+    }
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, radius, query, selectedLocationKey, tab])
+  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown])
 
   function selectLocation(key: string) {
     const option = locationOptions.find(item => item.key === key)
@@ -487,6 +516,18 @@ function DirectoryPage() {
                   </select>
                 </label>
               </> : <>
+                <label className="discovery-filter"><span>Match to</span>
+                  <select aria-label="Match jobs to a profile" value={profileId} onChange={event => { setProfileId(event.target.value); setOffset(0) }}>
+                    <option value="">All jobs</option>{profiles.map(profile => <option value={profile.id} key={profile.id}>{profile.name}</option>)}
+                  </select>
+                </label>
+                {profileId && <>
+                  <label className="discovery-filter"><span>Overlap</span><select value={minimumScore} onChange={event => { setMinimumScore(event.target.value); setOffset(0) }}>
+                    <option value="0">Any overlap</option><option value="30">Some overlap (30+)</option><option value="65">Strong overlap (65+)</option>
+                  </select></label>
+                  <label className="unknown-filter"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setOffset(0) }} />Include jobs needing more information</label>
+                </>}
+                <a className="page-link" href="/profile">Edit profile</a>
                 <label className="discovery-filter"><span>Work style</span>
                   <select aria-label="Filter jobs by work style" value={jobWorkStyle}
                     onChange={event => { setJobWorkStyle(event.target.value as JobWorkStyleFilter); setOffset(0) }}>
@@ -529,9 +570,9 @@ function DirectoryPage() {
           ) : (
             <div className="table-scroll">
               <table className="jobs-table">
-                <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th><th>POSTED</th><th /></tr></thead>
+                <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th>{profileId && <th>PROFILE MATCH</th>}<th>POSTED</th><th /></tr></thead>
                 <tbody>
-                  {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}` }} className="click-row">
+                  {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}${profileId ? `?profile_id=${profileId}` : ''}` }} className="click-row">
                     <td><div className="role-cell"><strong>{job.title}</strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
                     <td><span className="job-company">{job.company_name}</span>
                       {job.company_website ? <a className="job-domain" href={job.company_website} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{job.company_domain || hostLabel(job.company_website)}</a> : <small className="job-domain">Company website not listed</small>}
@@ -539,6 +580,10 @@ function DirectoryPage() {
                     </td>
                     <td><span className="location-chip"><Icon name="pin" size={13} />{job.location_text || 'Location not listed'}</span></td>
                     <td><span className={`arrangement-chip ${job.is_remote ? 'arrangement-remote' : ''}`}>{job.is_remote ? 'Remote' : job.work_arrangement === 'hybrid' ? 'Hybrid' : job.work_arrangement === 'onsite' ? 'On-site' : 'In area'}</span></td>
+                    {profileId && <td className="match-cell"><strong>{job.profile_match?.score}/100</strong><small>{job.profile_match?.label}</small>
+                      <small>{job.profile_match?.matched_skills.slice(0, 3).join(', ') || 'No skill overlap found'}</small>
+                      {job.profile_match?.uncertain && <small>Information incomplete</small>}
+                    </td>}
                     <td><span className="posted-date">{dateLabel(job.date_posted)}</span></td>
                     <td className="row-arrow"><Icon name="chevron" size={17} /></td>
                   </tr>)}
@@ -567,6 +612,7 @@ function EmptyState({ title, body }: { title: string; body: string }) {
 
 function App() {
   const path = window.location.pathname
+  if (path === '/profile' || path === '/profile/') return <ProfilesPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />

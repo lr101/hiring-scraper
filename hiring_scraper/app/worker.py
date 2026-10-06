@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 from sqlalchemy import select, or_
 
+from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.models import Job, JobFeed, JobLocation, ScanRun, utcnow
 from hiring_scraper.ats import parse_feed
@@ -202,6 +203,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
                 old_locations = []
             else:
                 old_locations = list(job.locations)
+            data = preserve_verified_detail(job, data)
             job.title = data["title"]
             job.url = data["url"]
             job.description = data.get("description")
@@ -215,6 +217,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             job.date_posted = data.get("date_posted")
             job.salary = data.get("salary")
             job.raw_metadata = data.get("raw_metadata") or {}
+            refresh_enrichment(job)
             job.last_seen_at = now
             job.is_active = True
             job.missing_complete_scans = 0

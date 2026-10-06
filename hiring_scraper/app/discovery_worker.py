@@ -15,6 +15,7 @@ from pathlib import Path
 from sqlalchemy import or_, select
 from sqlalchemy.orm import selectinload
 
+from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, company_ids_in_radius, create_discovery_job,
@@ -151,6 +152,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
             old_locations = []
         else:
             old_locations = list(job.locations)
+        data = preserve_verified_detail(job, data)
         job.title, job.url = title, url
         job.description = data.get("description")
         job.location_text = data.get("location") or None
@@ -159,6 +161,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
         for field in ("employment_type", "schedule", "department", "seniority", "date_posted", "salary"):
             setattr(job, field, data.get(field))
         job.raw_metadata = data.get("raw_metadata") or {}
+        refresh_enrichment(job)
         job.last_seen_at = now
         job.is_active = True
         job.missing_complete_scans = 0

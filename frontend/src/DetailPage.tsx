@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
+import JobEvidence from './JobEvidence'
+import type { Enrichment, ProfileMatch } from './JobEvidence'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -21,6 +23,7 @@ type Job = {
   employment_type: string | null; schedule: string | null; department: string | null
   seniority: string | null; date_posted: string | null; first_seen_at: string
   salary: string | null; description: string | null; is_active: boolean
+  enrichment: Enrichment; profile_match?: ProfileMatch
   raw_metadata: Record<string, unknown>
 }
 
@@ -43,7 +46,8 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
     let cancelled = false
     setLoading(true)
     setError('')
-    fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}`))
+    const profileId = new URLSearchParams(window.location.search).get('profile_id')
+    fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}${kind === 'job' && profileId ? `?profile_id=${encodeURIComponent(profileId)}` : ''}`))
       .then(async response => {
         const payload = await response.json()
         if (!response.ok) throw new Error(payload.detail ?? `Could not load ${kind} details.`)
@@ -58,7 +62,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
   return <div className="app-shell">
     <SiteHeader active="directory" />
     <main className="content detail-page">
-      <a className="back-link" href={kind === 'company' ? '/' : '/?view=jobs'}>← Back to companies and jobs</a>
+      <a className="back-link" href={kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← Back to companies and jobs</a>
       {loading ? <div className="loading-state"><span className="spinner" /> Loading details…</div>
           : error ? <div className="error-banner" role="alert">{error}<a href="/">Return to companies and jobs</a></div>
           : kind === 'company' && record ? <CompanyPage company={record as Company} />
@@ -164,6 +168,7 @@ function JobPage({ job }: { job: Job }) {
       </div>
       {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
     </section>
+    {job.enrichment && <JobEvidence enrichment={job.enrichment} match={job.profile_match} />}
   </>
 }
 

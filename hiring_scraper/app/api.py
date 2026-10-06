@@ -1,4 +1,4 @@
-"""Read-only HTTP API for nearby employer candidates and jobs."""
+"""HTTP API for nearby companies, job discovery, and profile matching."""
 from __future__ import annotations
 
 import json
@@ -6,7 +6,7 @@ import os
 import threading
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select, text, update
 from sqlalchemy.orm import Session, joinedload, selectinload
 
-from hiring_scraper.app.database import IS_SQLITE, engine, get_session
+from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
     Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobFeed, JobLocation,
     LocationCache, utcnow,
@@ -26,6 +26,9 @@ from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json,
 )
 from hiring_scraper.geography import haversine_m, normalize_german_state
+from hiring_scraper.app.enrichment import current_enrichment, job_input
+from hiring_scraper.app.profiles import router as profiles_router, require_profile
+from hiring_scraper.matching import match_job
 
 
 KARLSRUHE = {"label": "Karlsruhe, Baden-Württemberg, Deutschland", "city": "Karlsruhe",
@@ -220,6 +223,7 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
             "salary": job.salary, "first_seen_at": job.first_seen_at.isoformat(),
             "last_seen_at": job.last_seen_at.isoformat(), "is_active": job.is_active,
             "raw_metadata": job.raw_metadata}
+    data["enrichment"] = current_enrichment(job)
     if include_description:
         data["description"] = job.description
     else:
@@ -227,18 +231,21 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
     return data
 
 
-app = FastAPI(title="Hiring Discovery API", version="0.2.0",
-              description="Read-only company and job discovery for German locations")
+app = FastAPI(title="Hiring Discovery API", version="0.3.0",
+              description="Company discovery, jobs and profile matching for German locations")
 default_origins = "http://localhost:5173,http://127.0.0.1:5173"
 cors_origins = [origin.strip() for origin in os.getenv("CORS_ORIGINS", default_origins).split(",") if origin.strip()]
 app.add_middleware(CORSMiddleware, allow_origins=cors_origins,
-                   allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["*"])
+                   allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"], allow_headers=["*"])
 
 
 @app.on_event("startup")
 def initialize_sqlite() -> None:
     if IS_SQLITE:
-        Base.metadata.create_all(engine)
+        initialize_sqlite_schema(engine)
+
+
+app.include_router(profiles_router)
 
 
 @app.get("/health/ready")
@@ -493,6 +500,30 @@ def _job_area_clause():
     return text("EXISTS (SELECT 1 FROM job_locations jl WHERE jl.job_id = jobs.id AND (ST_DWithin(jl.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false) OR (CAST(:place AS text) IS NOT NULL AND lower(btrim(split_part(jl.label, ',', 1))) = lower(CAST(:place AS text)))))")
 
 
+def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
+               profile, min_match_score, include_unknown):
+    matching = _sort_jobs(_deduplicate_jobs(jobs), sort)
+    matches = {}
+    if profile is not None:
+        for job in matching:
+            matches[job.id] = match_job(job_input(job), profile.preferences, current_enrichment(job))
+        matching = [job for job in matching if matches[job.id]['eligible'] and
+                    matches[job.id]['score'] >= min_match_score and
+                    (include_unknown or not matches[job.id]['uncertain'])]
+        if sort == 'relevance':
+            matching.sort(key=lambda job: (-matches[job.id]['score'], matches[job.id]['uncertain'],
+                                          job.title.casefold(), job.id))
+    items = [_job_json(job) for job in matching[offset:offset + limit]]
+    for item in items:
+        item['match_kind'] = 'remote' if item['is_remote'] or item['work_arrangement'] == 'remote' else 'in_area'
+        if profile is not None:
+            item['profile_match'] = matches[item['id']]
+    return {'items': items, 'total': len(matching), 'offset': offset, 'limit': limit,
+            'location': {'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km},
+            'profile_id': profile.id if profile is not None else None,
+            'rule': 'work location within radius OR explicitly remote'}
+
+
 @app.get("/api/v1/jobs")
 def list_jobs(latitude: float = Query(49.0068705, ge=-90, le=90),
               longitude: float = Query(8.4034195, ge=-180, le=180),
@@ -503,7 +534,13 @@ def list_jobs(latitude: float = Query(49.0068705, ge=-90, le=90),
               offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le=100),
               work_style: Literal['all','remote','hybrid','onsite'] = 'all',
               sort: Literal['relevance','newest','title','company'] = 'relevance',
-              session: Session = Depends(get_session)) -> dict[str, Any]:
+              session: Session = Depends(get_session),
+              profile_id: Annotated[int | None, Query(ge=1)] = None,
+              min_match_score: Annotated[int, Query(ge=0, le=100)] = 0,
+              include_unknown: bool = True) -> dict[str, Any]:
+    profile = require_profile(profile_id, session) if profile_id is not None else None
+    if profile is None and min_match_score:
+        raise HTTPException(status_code=422, detail="Select a profile to filter by match score")
     statement = select(Job).join(Job.feed).join(JobFeed.company).options(
         joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations))
     filters = [Job.is_active.is_(True)]
@@ -524,15 +561,8 @@ def list_jobs(latitude: float = Query(49.0068705, ge=-90, le=90),
         rows = session.scalars(statement.where(*filters).order_by(Job.id.asc())
                                .params(longitude=longitude, latitude=latitude, radius_m=radius_m,
                                        place=place.strip() if place else None)).unique().all()
-        matching = _deduplicate_jobs(rows)
-        matching = _sort_jobs(matching, sort)
-        total = len(matching)
-        items = [_job_json(job) for job in matching[offset:offset + limit]]
-        for item in items:
-            item["match_kind"] = "remote" if item["is_remote"] or item["work_arrangement"] == "remote" else "in_area"
-        return {"items": items, "total": total, "offset": offset, "limit": limit,
-                "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km},
-                "rule": "work location within radius OR explicitly remote"}
+        return _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
+                          profile, min_match_score, include_unknown)
 
     statement = statement.where(*filters).order_by(Job.is_remote.desc(), Job.title.asc())
     all_jobs = session.scalars(statement.order_by(Job.id.asc())).unique().all()
@@ -547,25 +577,23 @@ def list_jobs(latitude: float = Query(49.0068705, ge=-90, le=90),
                                               for location in job.locations)
         if job.is_remote or job.work_arrangement == 'remote' or local_match:
             matching.append(job)
-    matching = _deduplicate_jobs(matching)
-    matching = _sort_jobs(matching, sort)
-    total = len(matching)
-    items = [_job_json(job) for job in matching[offset:offset + limit]]
-    for item in items:
-        item["match_kind"] = "remote" if item["is_remote"] or item["work_arrangement"] == "remote" else "in_area"
-    return {"items": items, "total": total, "offset": offset, "limit": limit,
-            "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km},
-            "rule": "work location within radius OR explicitly remote"}
+    return _jobs_page(matching, sort, offset, limit, latitude, longitude, radius_km,
+                      profile, min_match_score, include_unknown)
 
 
 @app.get("/api/v1/jobs/{job_id}")
-def get_job(job_id: int, session: Session = Depends(get_session)) -> dict[str, Any]:
+def get_job(job_id: int, session: Session = Depends(get_session),
+            profile_id: Annotated[int | None, Query(ge=1)] = None) -> dict[str, Any]:
     statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
                                     selectinload(Job.locations)).where(Job.id == job_id)
     job = session.scalars(statement).unique().first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return _job_json(job, include_description=True)
+    data = _job_json(job, include_description=True)
+    if profile_id is not None:
+        profile = require_profile(profile_id, session)
+        data['profile_match'] = match_job(job_input(job), profile.preferences, data['enrichment'])
+    return data
 
 
 @app.get("/api/v1/companies/{company_id}")

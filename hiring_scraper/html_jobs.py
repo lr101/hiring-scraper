@@ -327,7 +327,8 @@ def _schema_posting(posting: dict, page_url: str) -> dict | None:
                location=_location_name(posting.get("jobLocation")),
                employment_type=_employment(str(posting.get("employmentType"))) if posting.get("employmentType") else None,
                description=_plain(posting.get("description")), date_posted=posting.get("datePosted"),
-               extras={**({"schema_identifier": str(identifier)} if identifier else {}),
+               extras={**{key: posting[key] for key in ("skills", "qualifications", "experienceRequirements", "educationRequirements") if key in posting},
+                       **({"schema_identifier": str(identifier)} if identifier else {}),
                        **({"hiring_organization": organization} if organization else {})})
     if identifier:
         job["id"] = str(identifier)

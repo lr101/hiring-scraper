@@ -101,6 +101,21 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
 
+  job-enrichment-worker:
+    profiles: ["enrichment"]
+    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
+      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.3 (public job-detail enrichment)}"
+    command: ["python", "-m", "hiring_scraper.app.enrichment", "--fetch-details", "--watch", "--limit", "20"]
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   web:
     image: ${HIRING_WEB_IMAGE:-hiring-scraper-web:dev}
     build:

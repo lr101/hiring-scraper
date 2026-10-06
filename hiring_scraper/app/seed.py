@@ -11,7 +11,8 @@ from urllib.parse import urlsplit
 
 from sqlalchemy import func, select
 
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine
+from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
+from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, JobLocation, LocationCache
 
 
@@ -71,7 +72,7 @@ def _job_locations(job: dict) -> list[dict]:
 
 def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
     if IS_SQLITE:
-        Base.metadata.create_all(engine)
+        initialize_sqlite_schema(engine)
     with company_path.open(newline="", encoding="utf-8") as file:
         candidates = list(csv.DictReader(file))
     enrichment = json.loads(career_path.read_text(encoding="utf-8"))
@@ -182,6 +183,7 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                                   title=job_data["title"], url=job_data["url"],
                                   first_seen_at=jobs_observed_at, last_seen_at=jobs_observed_at)
                         session.add(job)
+                    job_data = preserve_verified_detail(job, job_data)
                     job.title = job_data["title"]
                     job.url = job_data["url"]
                     job.description = job_data.get("description")
@@ -195,6 +197,7 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     job.date_posted = job_data.get("date_posted")
                     job.salary = job_data.get("salary")
                     job.raw_metadata = job_data.get("raw_metadata", {})
+                    refresh_enrichment(job)
                     job.last_seen_at = jobs_observed_at
                     job.is_active = True
                     session.flush()

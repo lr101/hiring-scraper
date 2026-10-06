@@ -1,4 +1,4 @@
-type SiteHeaderProps = { active: 'directory' | 'locations' }
+type SiteHeaderProps = { active: 'directory' | 'locations' | 'profile' }
 
 export default function SiteHeader({ active }: SiteHeaderProps) {
   return <header className="topbar">
@@ -11,6 +11,7 @@ export default function SiteHeader({ active }: SiteHeaderProps) {
     <nav className="primary-nav" aria-label="Main navigation">
       <a href="/" className={active === 'directory' ? 'active' : ''}>Companies &amp; jobs</a>
       <a href="/locations" className={active === 'locations' ? 'active' : ''}>Search areas</a>
+      <a href="/profile" className={active === 'profile' ? 'active' : ''}>Your profile</a>
     </nav>
     <div className="topbar-right">
       <span className="snapshot-status"><span className="status-dot" /> Germany</span>

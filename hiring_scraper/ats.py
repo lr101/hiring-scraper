@@ -206,6 +206,7 @@ def parse_feed(provider, body, board_url):
                         'salary': json.dumps(posting.get('baseSalary'), ensure_ascii=False) if posting.get('baseSalary') else None,
                         'job_location_type': posting.get('jobLocationType'),
                         'valid_through': posting.get('validThrough'),
+                        **{key: posting[key] for key in ('skills', 'qualifications', 'experienceRequirements', 'educationRequirements') if key in posting},
                     })
                     if len(locations) > 1:
                         job['locations'] = [{'label': location} for location in locations]
