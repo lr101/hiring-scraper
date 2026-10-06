@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import ipaddress
 import re
+import socket
 import unicodedata
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
@@ -31,8 +32,9 @@ _EMAIL = re.compile(r"(?<![\w.+-])[^\s@,;<>]+@([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9
 _EMAIL_DOMAIN_LITERAL = re.compile(r"(?<![\w.+-])[^\s@,;<>]+@\[(?:ipv6:)?([0-9a-f:.]+)\]",
                                     re.IGNORECASE)
 _NON_PUBLIC_HOST_SUFFIXES = (".internal", ".invalid", ".local", ".localhost", ".test", ".example",
-                             ".home.arpa")
-_NON_PUBLIC_HOSTS = {"localhost", "localhost.localdomain", "localdomain", "ip6-localhost", "ip6-loopback"}
+                             ".home.arpa", ".example.com", ".example.net", ".example.org")
+_NON_PUBLIC_HOSTS = {"localhost", "localhost.localdomain", "localdomain", "ip6-localhost", "ip6-loopback",
+                     "example", "example.com", "example.net", "example.org"}
 
 
 def _source_id(element: dict) -> str:
@@ -45,10 +47,17 @@ def _web_url(value: object) -> str | None:
     value = value.strip()
     if not value:
         return None
-    if not urlsplit(value).scheme:
-        value = "https://" + value
-    parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password:
+    try:
+        parsed = urlsplit(value)
+        if not parsed.scheme:
+            parsed = urlsplit("https://" + value)
+            value = "https://" + value
+        hostname = parsed.hostname
+        username = parsed.username
+        password = parsed.password
+    except ValueError:
+        return None
+    if parsed.scheme not in {"http", "https"} or not hostname or username or password:
         return None
     return value
 
@@ -115,7 +124,10 @@ def _email_domains(value: object) -> list[str]:
         if domain not in domains:
             domains.append(domain)
     for match in _EMAIL_DOMAIN_LITERAL.finditer(value):
-        domain = match.group(1).casefold()
+        try:
+            domain = ipaddress.IPv6Address(match.group(1)).compressed.casefold()
+        except ipaddress.AddressValueError:
+            continue
         if domain not in domains:
             domains.append(domain)
     return domains
@@ -138,6 +150,11 @@ def _is_public_hostname(hostname: str | None) -> bool:
         ipaddress.ip_address(host)
         return False
     except ValueError:
+        pass
+    try:
+        socket.inet_aton(host)
+        return False
+    except OSError:
         pass
     return host not in _NON_PUBLIC_HOSTS and not host.endswith(_NON_PUBLIC_HOST_SUFFIXES)
 
