@@ -75,6 +75,10 @@ def parse_feed(provider, body, board_url):
     jobs = []
     complete = True
     try:
+        if provider == 'html_jobs':
+            from .html_jobs import extract_html_jobs
+            parsed = extract_html_jobs(body, board_url)
+            return {'jobs':parsed['jobs'],'complete':parsed['complete']}
         if provider == 'personio':
             root = ET.fromstring(body)
             if root.tag != 'workzag-jobs':
