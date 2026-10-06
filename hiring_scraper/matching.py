@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 
-VERSION = 'rules-v6'
+VERSION = 'rules-v7'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -86,6 +86,12 @@ OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschensw
 REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|voraussetzung|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
 NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
 CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
+LANGUAGE_PATTERNS = {
+    'German': re.compile(r'\b(?:german|deutsch(?:kenntnisse)?)\b', re.I),
+    'English': re.compile(r'\b(?:english|englisch(?:kenntnisse)?)\b', re.I),
+    'French': re.compile(r'\b(?:french|französisch(?:kenntnisse)?)\b', re.I),
+    'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnisse)?)\b', re.I),
+}
 
 
 def plain_text(value) -> str:
@@ -156,6 +162,15 @@ def _requirement_clauses(sentence: str) -> list[str]:
         parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
         if not parts:
             return []
+        # Group language-list members from their trailing qualifier before
+        # an earlier independent scope can absorb an unqualified member.
+        for index in range(len(parts) - 2, -1, -1):
+            member = re.sub(r'\b(?:A1|A2|B1|B2|C1|C2)\b', '', parts[index], flags=re.I).strip()
+            following = parts[index + 1]
+            following_scoped = OPTIONAL.search(following) or REQUIREMENT.search(following) or NON_REQUIREMENT.search(following)
+            if (any(pattern.fullmatch(member) for pattern in LANGUAGE_PATTERNS.values()) and
+                    following_scoped and any(pattern.search(following) for pattern in LANGUAGE_PATTERNS.values())):
+                parts[index:index + 2] = [parts[index] + ' and ' + following]
         clauses = []
         current = parts[0]
         for part in parts[1:]:
@@ -191,12 +206,6 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
         r'(?:(?:at least|minimum|min\.?|mindestens)\s*(\d{1,2})\s*(?:years?|jahren?)|'
         r'(\d{1,2})\+\s*years?|'
         r'(\d{1,2})\s*(?:years?|jahre?)\s+(?:of\s+)?[\w -]{0,55}?(?:experience|erfahrung))', re.I)
-    language_patterns = {
-        'German': re.compile(r'\b(?:german|deutsch(?:kenntnisse)?)\b', re.I),
-        'English': re.compile(r'\b(?:english|englisch(?:kenntnisse)?)\b', re.I),
-        'French': re.compile(r'\b(?:french|französisch(?:kenntnisse)?)\b', re.I),
-        'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnisse)?)\b', re.I),
-    }
     fluency_term = re.compile(r'\b(?:fluent|fluency|fließend\w*|fliessend\w*|verhandlungssicher\w*)\b', re.I)
     implicit_fluency = re.compile(r'\b(?:fluent|fließende[nrsm]?|fliessende[nrsm]?|verhandlungssichere[nrsm]?)\s+(?:german|deutsch(?:kenntnisse)?|english|englisch(?:kenntnisse)?|french|französisch(?:kenntnisse)?|spanish|spanisch(?:kenntnisse)?)\b', re.I)
     qualification = re.compile(r'\b(?:PMP|PRINCE2|Scrum|degree|abschluss|certification|zertifizier(?:ung|t)|medical devices?|medizintechnik|PV|photovoltaik|photovoltaics?|solar|electrical|elektrotechnik|construction|bauwesen|bauleitung)\b', re.I)
@@ -216,7 +225,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     minimum = bool(re.search(r'at least|minimum|min\.?|mindestens|\+\s*years?', exp.group(), re.I))
                     if experience is None and _required_context(clause, explicit=requirement_section or minimum):
                         experience = _evidence(int(next(group for group in exp.groups() if group)), clause, exp, source)
-                language_hits = sorted(((name, hit) for name, pattern in language_patterns.items()
+                language_hits = sorted(((name, hit) for name, pattern in LANGUAGE_PATTERNS.items()
                                         if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
                 levels = []
                 for index, (language, found) in enumerate(language_hits):

@@ -312,6 +312,49 @@ class CvMatchingTests(unittest.TestCase):
                 self.assertFalse(result['eligible'])
                 self.assertTrue(any('German C1' in gap for gap in result['conflicts']))
 
+    def test_and_boundary_preserves_shared_required_language_list(self):
+        for wording in (
+            'French A2 preferred and German and English C1 required.',
+            'We provide you with onboarding support and German and English C1 required.',
+            'Französisch A2 wünschenswert und Deutsch und Englisch C1 erforderlich.',
+            'Wir bieten Unterstützung und Deutsch und Englisch C1 erforderlich.',
+        ):
+            with self.subTest(wording=wording):
+                job = {'title': 'Project Coordinator', 'description': wording}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1', 'English': 'C1'})
+                result = match_job(job, CV, enriched)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('German C1' in gap for gap in result['conflicts']))
+
+    def test_shared_required_list_after_client_language_keeps_its_own_scope(self):
+        enriched = enrich_job({'title': 'Project Coordinator', 'description':
+                               'German C1 fluency is common among our clients and French and English C1 required.'})
+        self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                         {'French': 'C1', 'English': 'C1'})
+
+    def test_comma_language_list_after_independent_scope_keeps_shared_requirement(self):
+        for wording in (
+            'French A2 preferred, German, English C1 required.',
+            'We provide you with onboarding support, German, English C1 required.',
+        ):
+            with self.subTest(wording=wording):
+                enriched = enrich_job({'title': 'Project Coordinator', 'description': wording})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1', 'English': 'C1'})
+
+    def test_optional_language_list_does_not_inherit_preceding_required_fluency(self):
+        job = {'title': 'Project Coordinator', 'description':
+               'German fluency required and English and French A2 preferred.'}
+        enriched = enrich_job(job)
+        self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                         {'German': None})
+        result = match_job(job, CV, enriched)
+        self.assertTrue(result['eligible'])
+        self.assertTrue(any('German fluency' in gap for gap in result['unknowns']))
+        self.assertFalse(any('English fluency' in gap for gap in result['unknowns']))
+
 
 if __name__ == '__main__':
     unittest.main()
