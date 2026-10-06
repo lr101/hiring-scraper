@@ -59,7 +59,7 @@ Replay command and output artifact:
 
 Output: 1,775 metadata-selected eligible captures; exactly 250 bodies loaded;
 9 new active first-party Wibu destination identities, 2 synthetic-heading title
-overlaps/replacements, 7 roles without a prior title/location hint, and 1
+overlaps/replacements, 7 title-novel rows (title-only comparison), and 1
 unconfirmed initiative candidate.
 Artifact: `data/career-poc/js-extraction-poc-2026-10/replay.json`.
 
@@ -196,6 +196,18 @@ Full-suite verification was:
 ```
 
 Output: `Ran 154 tests in 1.411s` / `OK`.
+
+That 154-test result was run in the shared worktree, which also contains the
+previously authorized, uncommitted application-stack files. The committed
+archive contains 79 tracked tests. Its clean-archive discovery run passed:
+
+```bash
+task_archive_dir=$(mktemp -d /tmp/hiring-scraper-clean-suite.XXXXXX)
+git archive --format=tar c9c51de5 | tar -xf - -C "$task_archive_dir"
+(cd "$task_archive_dir" && /workspace/hiring-scraper/.venv/bin/python -m unittest discover -s tests)
+```
+
+Output: `Ran 79 tests in 0.050s` / `OK`.
 
 Finally, the committed replay was verified from a clean `git archive` of
 `1c072adc`, passing the local capture directory explicitly:
