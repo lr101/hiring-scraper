@@ -249,6 +249,40 @@ class CvMatchingTests(unittest.TestCase):
                           {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
         self.assertEqual(excel['fit_tier'], 'possible')
 
+    def test_explicit_vague_fluency_requirements_stay_review_gaps(self):
+        for wording in ('German fluency required.', 'Deutschkenntnisse fließend erforderlich.'):
+            with self.subTest(wording=wording):
+                result = match_job({'title': 'Project Coordinator',
+                                    'description': (wording + ' Coordinate projects. ') * 12}, CV)
+                self.assertTrue(result['eligible'])
+                self.assertTrue(any('German fluency' in gap for gap in result['unknowns']))
+
+    def test_benefit_clause_does_not_suppress_separate_required_language(self):
+        for wording in ('We provide you with onboarding support, but German C1 is required.',
+                        'You receive onboarding support, but German C1 is required.'):
+            with self.subTest(wording=wording):
+                result = match_job({'title': 'Project Coordinator',
+                                    'description': (wording + ' Coordinate projects. ') * 12}, CV)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('German C1' in gap for gap in result['conflicts']))
+
+    def test_custom_skill_title_does_not_corroborate_itself(self):
+        profile = {'desired_roles': ['Elixir Engineer'], 'skills': ['Elixir']}
+        benefit = match_job({'title': 'Elixir Engineer',
+                             'description': 'Modern office in the city center, with flexible hours. ' * 12}, profile)
+        duty = match_job({'title': 'Elixir Engineer',
+                          'description': 'You build services with Elixir. ' * 12}, profile)
+        self.assertEqual(benefit['fit_tier'], 'possible')
+        self.assertEqual(benefit['custom_skill_evidence'][0]['source'], 'title')
+        self.assertEqual(duty['fit_tier'], 'recommended')
+        self.assertEqual(duty['custom_skill_evidence'][0]['source'], 'description')
+
+    def test_shared_required_cefr_list_keeps_both_languages(self):
+        enriched = enrich_job({'title': 'Project Coordinator', 'description':
+                               'German and English C1 required. Coordinate projects. ' * 10})
+        self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                         {'German': 'C1', 'English': 'C1'})
+
 
 if __name__ == '__main__':
     unittest.main()

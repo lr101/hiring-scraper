@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 
-VERSION = 'rules-v4'
+VERSION = 'rules-v5'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -152,12 +152,15 @@ def _sentences(text: str) -> list[str]:
 
 def _requirement_clauses(sentence: str) -> list[str]:
     """Keep shared wording together, but separate independently qualified clauses."""
-    parts = re.split(r'\b(?:and|und|but|aber|jedoch)\b|,\s*', sentence, flags=re.I)
+    parts = [part.strip() for part in re.split(r'\b(?:and|und|but|aber|jedoch)\b|,\s*', sentence, flags=re.I) if part.strip()]
+    if not parts:
+        return []
     clauses = []
-    current = parts[0].strip()
+    current = parts[0]
     for part in parts[1:]:
-        part = part.strip()
-        if (OPTIONAL.search(current) or REQUIREMENT.search(current)) and (OPTIONAL.search(part) or REQUIREMENT.search(part)):
+        current_scoped = OPTIONAL.search(current) or REQUIREMENT.search(current) or NON_REQUIREMENT.search(current)
+        part_scoped = OPTIONAL.search(part) or REQUIREMENT.search(part) or NON_REQUIREMENT.search(part)
+        if current_scoped and part_scoped:
             clauses.append(current)
             current = part
         else:
@@ -188,7 +191,8 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
         'French': re.compile(r'\b(?:french|französisch(?:kenntnisse)?)\b', re.I),
         'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnisse)?)\b', re.I),
     }
-    fluency = re.compile(r'\b(?:fluent|fließende[nrsm]?|fliessende[nrsm]?|verhandlungssichere[nrsm]?)\s+(?:german|deutsch(?:kenntnisse)?|english|englisch(?:kenntnisse)?|french|französisch(?:kenntnisse)?|spanish|spanisch(?:kenntnisse)?)\b', re.I)
+    fluency_term = re.compile(r'\b(?:fluent|fluency|fließend\w*|fliessend\w*|verhandlungssicher\w*)\b', re.I)
+    implicit_fluency = re.compile(r'\b(?:fluent|fließende[nrsm]?|fliessende[nrsm]?|verhandlungssichere[nrsm]?)\s+(?:german|deutsch(?:kenntnisse)?|english|englisch(?:kenntnisse)?|french|französisch(?:kenntnisse)?|spanish|spanisch(?:kenntnisse)?)\b', re.I)
     qualification = re.compile(r'\b(?:PMP|PRINCE2|Scrum|degree|abschluss|certification|zertifizier(?:ung|t)|medical devices?|medizintechnik|PV|photovoltaik|photovoltaics?|solar|electrical|elektrotechnik|construction|bauwesen|bauleitung)\b', re.I)
     for source, text in texts:
         if source == 'title':
@@ -208,6 +212,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         experience = _evidence(int(next(group for group in exp.groups() if group)), clause, exp, source)
                 language_hits = sorted(((name, hit) for name, pattern in language_patterns.items()
                                         if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
+                levels = []
                 for index, (language, found) in enumerate(language_hits):
                     next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(clause)
                     previous_end = language_hits[index - 1][1].end() if index else 0
@@ -218,12 +223,19 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         level = None
                     if not level:
                         level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b\s*$', before[-15:], re.I)
-                    if not (level or fluency.search(clause)) or not _required_context(clause, explicit=requirement_section or bool(fluency.search(clause))):
+                    levels.append(level.group().upper() if level else None)
+                for index in range(len(language_hits) - 2, -1, -1):
+                    connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
+                    if not levels[index] and levels[index + 1] and re.fullmatch(r'\s*(?:and|und|or|oder|,)\s*', connector, re.I):
+                        levels[index] = levels[index + 1]
+                for index, (language, found) in enumerate(language_hits):
+                    level = levels[index]
+                    if not (level or fluency_term.search(clause)) or not _required_context(clause, explicit=requirement_section or bool(implicit_fluency.search(clause))):
                         continue
                     if any(row['value'] == language for row in languages):
                         continue
                     row = _evidence(language, clause, found, source)
-                    row['level'] = level.group().upper() if level else None
+                    row['level'] = level
                     row['kind'] = 'explicit_cefr' if level else 'fluency'
                     languages.append(row)
                 if _required_context(clause, explicit=requirement_section):
@@ -331,9 +343,9 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     profile_skills = normalize_skills(profile.get('skills', []))
     job_skills = [row['name'] for row in enriched['skills']]
     # Explicit user skills outside the small vocabulary still get literal matching.
-    text = plain_text(str(job.get('title') or '') + ' ' + str(job.get('description') or ''))
+    title = plain_text(job.get('title'))
     raw = job.get('raw_metadata') or {}
-    custom_texts = [('description', text)]
+    custom_texts = [('title', title), ('description', plain_text(job.get('description')))]
     for prefix, data in [('structured',raw), ('detail',raw.get('detail_requirements') or {})]:
         for key in ('skills','qualifications'):
             if data.get(key):
@@ -342,16 +354,24 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     custom_evidence = []
     for skill in profile_skills:
         if skill not in SKILLS:
+            best = None
+            best_rank = -1
             for source, evidence_text in custom_texts:
-                found = _pattern(skill).search(evidence_text)
-                if found:
-                    job_skills.append(skill)
-                    custom_evidence.append({**_evidence(skill,evidence_text,found,source), 'name':skill,
-                                            'kind': _mention_kind(evidence_text, found, source)})
+                for found in _pattern(skill).finditer(evidence_text):
+                    kind = _mention_kind(evidence_text, found, source)
+                    rank = {'incidental': 0, 'title': 1, 'optional': 2, 'mentioned': 3}[kind]
+                    if rank > best_rank:
+                        best = {**_evidence(skill, evidence_text, found, source), 'name': skill, 'kind': kind}
+                        best_rank = rank
+                    if best_rank == 3:
+                        break
+                if best_rank == 3:
                     break
+            if best:
+                job_skills.append(skill)
+                custom_evidence.append(best)
     matched = [name for name in profile_skills if name in job_skills]
     missing = [name for name in job_skills if name not in profile_skills]
-    title = plain_text(job.get('title'))
     roles = [role for role in profile.get('desired_roles', []) if _role_match(role, title)]
     secondary_roles = [role for role in profile.get('secondary_roles', []) if _role_match(role, title)]
     conflicts, unknowns, reasons = [], [], []
