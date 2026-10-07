@@ -55,11 +55,13 @@ def _remote_scope(job):
     for key in ('remote_country_codes', 'applicantLocationRequirements',
                 'applicant_location_requirements', 'remote_country'):
         values = raw.get(key)
-        if values:
-            values = values if isinstance(values, list) else [values]
-            codes = {code for item in values if (code := country_code(item))}
-            # Explicit unrecognized restrictions cannot be treated as absent scope.
-            return codes, not bool(codes)
+        # Producers use missing/null fields and empty country lists for absent scope.
+        # Other present values must parse, including falsey malformed objects/scalars.
+        if values is None or isinstance(values, list) and not values:
+            continue
+        values = values if isinstance(values, list) else [values]
+        codes = {code for item in values if (code := country_code(item))}
+        return codes, not bool(codes)
     if raw.get('remote_scope_source'):
         codes = {code for location in job.locations if (code := country_code(location.country_code))}
         for key in ('country_code', 'country', 'office_country_code'):

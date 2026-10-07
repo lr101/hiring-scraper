@@ -173,6 +173,26 @@ class ProfileBoardScopeTests(unittest.TestCase):
                 metadata={'applicantLocationRequirements':[restriction]})
         self.assertEqual(self.board(profile)['total'], 0)
 
+    def test_present_malformed_applicant_restrictions_do_not_become_absent_scope(self):
+        profile = self.profile(search_area=AREA)
+        for index, value in enumerate([{}, False, '', '   ', 0]):
+            self.job('malformed-'+str(index), remote=True, style='remote',
+                metadata={'applicantLocationRequirements':value})
+        self.assertEqual(self.board(profile)['total'], 0)
+        self.assertEqual(self.board(profile)['counts']['filtered']['remote_country'], 5)
+
+    def test_canonical_empty_remote_and_applicant_scope_remain_visible_unknown_leads(self):
+        profile = self.profile(search_area=AREA)
+        for index, metadata in enumerate([{}, {'remote_country_codes':[]}, {'remote_country_codes':None},
+                                          {'applicantLocationRequirements':None},
+                                          {'applicantLocationRequirements':[]} ]):
+            self.job('absent-'+str(index), remote=True, style='remote', metadata=metadata)
+        board = self.board(profile)
+        self.assertEqual(board['total'], 5)
+        for item in board['items']:
+            self.assertTrue(item['geography']['unknowns'])
+            self.assertEqual(item['profile_match']['fit_tier'], 'possible')
+
     def test_regional_full_homeoffice_office_country_does_not_prove_remote_permission(self):
         from hiring_scraper.app.regional import import_snapshot
         profile = self.profile(search_area=AREA)
