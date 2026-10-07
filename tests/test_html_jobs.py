@@ -6,6 +6,49 @@ from hiring_scraper.html_jobs import _merge, extract_html_jobs, html_job_key
 
 
 class HtmlJobExtractionTests(unittest.TestCase):
+    def test_department_navigation_is_not_a_job_and_keeps_real_sibling(self):
+        departments = ''.join('<div cc-gh-id="department-item" role="listitem"><a cc-t-item="careers_deparment"><h3>' + name + '</h3></a></div>' for name in ('Data &amp; Analytics', 'Engineering', 'Executive Leadership', 'General &amp; Administration'))
+        body = '<h2>Open positions</h2>' + departments
+        self.assertEqual(extract_html_jobs(body + '<h2>Our culture</h2>', 'https://example.test/careers/')['jobs'], [])
+        result = extract_html_jobs(body + '<section><h3>Data Analyst</h3><p>Build analytics workflows.</p></section>', 'https://example.test/careers/')
+        self.assertEqual([job['title'] for job in result['jobs']], ['Data Analyst'])
+
+    def test_confirmed_single_vacancy_scopes_description_and_deadline(self):
+        body = '<p>Previous staff biography and software engineer.</p><article class="vacancy"><a href="https://apply.example/job/7">Apply</a><h3>Application deadline</h3><p>6 October 2026</p><h1>Programme Assistant – absence cover</h1><p>EMBO is located on the international EMBL life sciences research campus in Heidelberg, Germany.</p><h2>Your role</h2><ul><li>Manage programme selection rounds.</li></ul><h2>You have</h2><p>Two years administrative experience.</p><h2>Why join us</h2><p>Employer branding unrelated to role.</p><h2>Meet staff members</h2><p>Meet Rosy, Programme Officer.</p></article>'
+        result = extract_html_jobs(body, 'https://example.test/vacancy/programme-assistant/')
+        self.assertEqual(len(result['jobs']), 1)
+        job = result['jobs'][0]
+        self.assertIn('Manage programme selection rounds.', job['description'])
+        self.assertIn('Two years administrative experience.', job['description'])
+        self.assertNotIn('biography', job['description'])
+        self.assertNotIn('Meet Rosy', job['description'])
+        self.assertNotIn('Employer branding', job['description'])
+        self.assertEqual(job['location'], 'Heidelberg')
+        self.assertEqual(job['raw_metadata']['validThrough'], '2026-10-06')
+        self.assertEqual(extract_html_jobs('<article><h1>Careers</h1><p>Meet our staff.</p></article>', 'https://example.test/vacancy/careers/')['jobs'], [])
+        self.assertEqual(extract_html_jobs('<h1>Personal Assistant</h1><p>Staff biography.</p>', 'https://example.test/vacancy/staff/')['jobs'], [])
+        self.assertEqual(extract_html_jobs('<article class="vacancy"><h1>About us</h1><a href="/apply">Apply</a><p>Our employer story.</p></article>', 'https://example.test/vacancy/about/')['jobs'], [])
+
+    def test_schema_preserves_applicant_scope_expiry_country_and_coordinates(self):
+        posting = {'@type': 'JobPosting', 'title': 'Engineer', 'url': 'https://example.test/jobs/1', 'jobLocationType': 'TELECOMMUTE', 'validThrough': '2026-10-06', 'applicantLocationRequirements': [{'@type': 'Country', 'name': 'Germany'}], 'jobLocation': {'address': {'addressLocality': 'Heidelberg', 'addressCountry': {'name': 'Germany'}}, 'geo': {'latitude': 49.4, 'longitude': 8.7}}}
+        for provider in ('html_jobs', 'schema_org'):
+            with self.subTest(provider=provider):
+                payload = ('<script type="application/ld+json">' + json.dumps(posting) + '</script>') if provider == 'html_jobs' else json.dumps({'@type': 'DataFeed', 'dataFeedElement': [posting]})
+                job = parse_feed(provider, payload, 'https://example.test/jobs/')['jobs'][0]
+                self.assertEqual(job['raw_metadata']['applicantLocationRequirements'], [{'@type': 'Country', 'name': 'Germany'}])
+                self.assertEqual(job['raw_metadata']['validThrough'], '2026-10-06')
+                self.assertEqual(job['locations'], [{'label': 'Heidelberg', 'country_code': 'DE', 'latitude': 49.4, 'longitude': 8.7, 'precision': 'source_coordinates'}])
+        posting['jobLocation'] = [{'address': 'malformed', 'geo': {'latitude': 'nan', 'longitude': 8}}, {'address': {'addressLocality': 'Berlin', 'addressCountry': ['bad']}, 'geo': {'latitude': True, 'longitude': 8}}]
+        posting['datePosted'] = {'bad': 'value'}
+        posting['@type'] = ['JobPosting', {'bad': 'type'}]
+        job = extract_html_jobs('<script type="application/ld+json">' + json.dumps(posting) + '</script>', 'https://example.test/jobs/')['jobs'][0]
+        self.assertEqual(job['locations'], [{'label': 'Berlin'}])
+        posting['@type'] = 'JobPosting'
+        posting['employmentType'] = ['FULL_TIME', {'bad': 'nested'}]
+        job = parse_feed('schema_org', json.dumps({'@type': 'DataFeed', 'dataFeedElement': [posting]}), 'https://example.test/jobs/')['jobs'][0]
+        self.assertNotIn('date_posted', job)
+        self.assertEqual(job['locations'], [{'label': 'Berlin'}])
+
     def test_extracts_job_links_and_card_metadata_from_static_career_html(self):
         body = b'''<!doctype html><html><head><title>Jobs</title></head><body>
           <h1>IT-Jobs in Karlsruhe</h1><h2>Aktuelle Jobs</h2>
@@ -44,6 +87,7 @@ class HtmlJobExtractionTests(unittest.TestCase):
         result = parse_feed('html_jobs', body, 'https://qwertiko.example/jobs/senior-linux-administrator/')
         self.assertEqual(result['jobs'][0]['title'], 'Senior Linux Administrator')
         self.assertIsNone(result['jobs'][0]['employment_type'])
+        self.assertEqual(result['jobs'][0]['description'], 'Operate Linux and Kubernetes systems for customers.')
 
     def test_reads_schema_org_jobposting_from_regular_career_page(self):
         posting = {

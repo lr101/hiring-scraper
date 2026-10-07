@@ -16,10 +16,10 @@ def _plain_text(value):
 
 def _arrangement(value):
     text = " ".join(str(value or "").strip().casefold().split())
-    if any(marker in text for marker in ("remote", "home office", "work from home", "telecommute")):
-        return "remote"
     if "hybrid" in text:
         return "hybrid"
+    if any(marker in text for marker in ("remote", "work from home", "telecommute")) and not re.search(r"remote (?:options?|available)", text):
+        return "remote"
     if any(marker in text for marker in ("on-site", "onsite", "on site", "office-based", "vor ort")):
         return "onsite"
     return None
@@ -155,6 +155,8 @@ def parse_feed(provider, body, board_url):
                        'url':board_url.rstrip('/')+'/job/'+job_id,
                        'location':location}
                 arrangement = _arrangement(location)
+                from .html_jobs import _country_code
+                country = _country_code(row.findtext('country')) or _country_code(re.sub(r'\s*\([^)]*\)\s*$', '', location))
                 _add_metadata(job, {
                     'department': row.findtext('department'),
                     'employment_type': row.findtext('employmentType') or row.findtext('recruitingCategory'),
@@ -165,6 +167,9 @@ def parse_feed(provider, body, board_url):
                     'work_arrangement': arrangement or ('onsite' if location else None),
                     'is_remote': arrangement == 'remote' if arrangement else None,
                     'keywords': row.findtext('keywords'),
+                    'office': location or None,
+                    'country': row.findtext('country'),
+                    'locations': [{'label': location, 'country_code': country}] if location and country else None,
                     'occupation': row.findtext('occupation'),
                     'recruiting_category': row.findtext('recruitingCategory'),
                 })
@@ -184,32 +189,26 @@ def parse_feed(provider, body, board_url):
                         raise ValueError('Expected JobPosting in DataFeed')
                     identifier = posting.get('identifier')
                     job_id = identifier.get('value') if isinstance(identifier, dict) else identifier
-                    places = posting.get('jobLocation', [])
-                    if not isinstance(places, list): places = [places]
-                    locations = []
-                    for place in places:
-                        address = place.get('address', {}) if isinstance(place, dict) else {}
-                        if not isinstance(address, dict): continue
-                        locality = address.get('addressLocality')
-                        region = address.get('addressRegion')
-                        country = address.get('addressCountry')
-                        location = next((x for x in (locality, region, country) if isinstance(x, str) and x.strip() and x.strip() != '-'), '')
-                        if location and location not in locations: locations.append(location)
+                    from .html_jobs import _schema_locations
+                    source_locations = _schema_locations(posting.get('jobLocation'))
+                    locations = [item['label'] for item in source_locations]
                     job = {'id':str(job_id or posting.get('url','')), 'title':posting.get('title'),
                            'url':posting.get('url'), 'location':'; '.join(locations)}
                     _add_metadata(job, {
-                        'date_posted': posting.get('datePosted'),
-                        'employment_type': ', '.join(posting['employmentType']) if isinstance(posting.get('employmentType'), list) else posting.get('employmentType'),
+                        'date_posted': _iso_date(posting.get('datePosted')),
+                        'employment_type': ', '.join(item for item in posting['employmentType'] if isinstance(item, str)) if isinstance(posting.get('employmentType'), list) else _plain_text(posting.get('employmentType')),
                         'description': _plain_text(posting.get('description')),
                         'work_arrangement': 'remote' if posting.get('jobLocationType') == 'TELECOMMUTE' else None,
                         'is_remote': True if posting.get('jobLocationType') == 'TELECOMMUTE' else None,
                         'salary': json.dumps(posting.get('baseSalary'), ensure_ascii=False) if posting.get('baseSalary') else None,
                         'job_location_type': posting.get('jobLocationType'),
+                        'validThrough': posting.get('validThrough'),
                         'valid_through': posting.get('validThrough'),
+                        'applicantLocationRequirements': posting.get('applicantLocationRequirements'),
                         **{key: posting[key] for key in ('skills', 'qualifications', 'experienceRequirements', 'educationRequirements') if key in posting},
                     })
-                    if len(locations) > 1:
-                        job['locations'] = [{'label': location} for location in locations]
+                    if source_locations:
+                        job['locations'] = source_locations
                     if not job['title'] or not job['id'] or not job['url'] or urlsplit(job['url']).scheme not in {'http', 'https'}:
                         raise ValueError('Invalid schema.org JobPosting')
                     jobs.append(job)
@@ -229,7 +228,9 @@ def parse_feed(provider, body, board_url):
                         name = office.get('name') if isinstance(office, dict) else None
                         if name and name.strip().casefold() not in seen_locations:
                             seen_locations.add(name.strip().casefold())
-                            locations.append({'label':name.strip()})
+                            from .html_jobs import _country_code
+                            country = _country_code(office.get('country_code') or office.get('country')) or _country_code(re.sub(r'\s*\([^)]*\)\s*$', '', name))
+                            locations.append({'label':name.strip(), **({'country_code': country} if country else {})})
                     # Some Greenhouse boards put a full street address in `location.name`
                     # while their office label is only a legal entity. Preserve the
                     # original text, and expose a German postcode locality separately
@@ -260,19 +261,30 @@ def parse_feed(provider, body, board_url):
                         if normalized_address not in seen_locations:
                             seen_locations.add(normalized_address)
                             locations.append({'label':address.strip()})
+                    from .html_jobs import _country_code
+                    remote_scope = []
+                    for source_location in address.split(';'):
+                        if _arrangement(source_location) != 'remote':
+                            continue
+                        code = _country_code(re.sub(r'\s*\([^)]*\)\s*$', '', source_location).strip())
+                        if code and code not in remote_scope:
+                            remote_scope.append(code)
+                    arrangement = _arrangement(address) or _arrangement(' '.join(item.get('name','') for item in offices if isinstance(item, dict)))
                     posting_meta = row.get('metadata') or []
                     meta_map = {str(item.get('name','')).casefold(): item.get('value')
                                 for item in posting_meta if isinstance(item, dict)}
                     _add_metadata(job, {
                         'department': ', '.join(item.get('name','') for item in departments if isinstance(item, dict) and item.get('name')),
-                        'work_arrangement': _arrangement(' '.join(item.get('name','') for item in offices if isinstance(item, dict))),
-                        'is_remote': True if _arrangement(' '.join(item.get('name','') for item in offices if isinstance(item, dict))) == 'remote' else None,
+                        'work_arrangement': arrangement,
+                        'is_remote': True if arrangement == 'remote' else None,
                         'description': _plain_text(row.get('content')),
                         'salary': next((str(value) for key,value in meta_map.items() if 'salary' in key or 'compensation' in key), None),
                         'updated_at': row.get('updated_at'),
                         'requisition_id': str(row['requisition_id']) if row.get('requisition_id') is not None else None,
                         'locations': locations or None,
                         'offices': offices,
+                        'remote_country_codes': remote_scope or None,
+                        'remote_scope_source': 'greenhouse_location' if remote_scope else None,
                     })
                 elif provider == 'lever':
                     categories = row.get('categories') or {}

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import unicodedata
 from datetime import date
@@ -19,7 +20,7 @@ _ARTICLE_ROUTE = re.compile(r"(?:^|/)(?:news|blog|press|aktuelles|stories|posts?
 _OPEN_SECTION = re.compile(r"^(?:open positions?|open job postings?|open roles?|offene stellen|aktuelle jobs|stellenangebote|vacatures)$", re.I)
 _STOP_SECTION = re.compile(r"^(?:our next open position|our office\b|unser büro\b|our team\b|benefits\b|faq\b|continue reading\b|contact\b|kontakt\b|about us\b)", re.I)
 _GENERIC_HEADINGS = {
-    "careers", "career", "jobs", "job", "offene stellen", "open positions",
+    "careers", "career", "jobs", "job", "about", "about us", "offene stellen", "open positions",
     "open job postings", "open roles", "aktuelle jobs", "stellenangebote",
     "unser büro", "our office", "our team", "benefits", "kontakt", "contact",
     "ausbildung", "duales studium", "students", "studierende",
@@ -140,7 +141,7 @@ def _plain(value) -> str | None:
 
 def _types(value) -> set[str]:
     types = value.get("@type", []) if isinstance(value, dict) else []
-    return {types} if isinstance(types, str) else set(types) if isinstance(types, list) else set()
+    return {types} if isinstance(types, str) else {item for item in types if isinstance(item, str)} if isinstance(types, list) else set()
 
 
 def _walk_json(value):
@@ -153,17 +154,58 @@ def _walk_json(value):
             yield from _walk_json(child)
 
 
+def _country_code(value) -> str | None:
+    if isinstance(value, dict):
+        value = value.get("name") or value.get("addressCountry")
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    countries = {"germany": "DE", "deutschland": "DE", "united kingdom": "GB", "uk": "GB",
+                 "ireland": "IE", "netherlands": "NL", "portugal": "PT", "spain": "ES",
+                 "france": "FR", "austria": "AT", "switzerland": "CH", "united states": "US"}
+    return value.upper() if len(value) == 2 and value.isalpha() else countries.get(value.casefold())
+
+
+def _coordinate(value, limit: int) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (str, int, float)):
+        return None
+    try:
+        number = float(value)
+    except (ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) and abs(number) <= limit else None
+
+
+def _schema_locations(value) -> list[dict]:
+    locations = []
+    for place in value if isinstance(value, list) else [value]:
+        if not isinstance(place, dict):
+            continue
+        address = place.get("address", place)
+        if not isinstance(address, dict):
+            continue
+        country_value = address.get("addressCountry")
+        country = _country_code(country_value)
+        label = next((item.strip() for item in (address.get("addressLocality"), address.get("addressRegion"),
+                                               country_value if isinstance(country_value, str) else country)
+                      if isinstance(item, str) and item.strip() and item.strip() != "-"), None)
+        if not label:
+            continue
+        location = {"label": label}
+        if country:
+            location["country_code"] = country
+        geo = place.get("geo")
+        if isinstance(geo, dict):
+            latitude, longitude = _coordinate(geo.get("latitude"), 90), _coordinate(geo.get("longitude"), 180)
+            if latitude is not None and longitude is not None:
+                location.update(latitude=latitude, longitude=longitude, precision="source_coordinates")
+        if location not in locations:
+            locations.append(location)
+    return locations
+
+
 def _location_name(value) -> str | None:
-    values = value if isinstance(value, list) else [value]
-    names = []
-    for place in values:
-        for node in _walk_json(place):
-            locality = node.get("addressLocality")
-            region = node.get("addressRegion")
-            name = locality or region
-            if isinstance(name, str) and name.strip() and name.strip() not in names:
-                names.append(name.strip())
-    return "; ".join(names) or None
+    return "; ".join(item["label"] for item in _schema_locations(value)) or None
 
 
 def _stable_id(title: str, url: str, *, destination_identity: bool = False) -> str:
@@ -209,10 +251,10 @@ def _inactive_framework_row(row: dict) -> bool:
 
 def _arrangement(text: str) -> tuple[str | None, str | None]:
     lowered = text.casefold()
-    if re.search(r"remote|fully distributed|home office", lowered):
-        return "remote", "remote"
     if re.search(r"hybrid|hybrides arbeiten", lowered):
         return "hybrid", None
+    if re.search(r"remote|fully distributed", lowered) and not re.search(r"remote (?:options?|available)", lowered):
+        return "remote", "remote"
     if re.search(r"vor[- ]ort|onsite|on-site|arbeitsort", lowered):
         return "onsite", None
     return None, None
@@ -254,6 +296,10 @@ def _locations(text: str) -> list[dict]:
         for city in _CITY_PATTERN.findall(match.group(1)):
             if city.casefold() not in {item["label"].casefold() for item in found}:
                 found.append({"label": city})
+    for match in re.finditer(r"\blocated\b[^.;\n]{0,100}\bin\s+(" + "|".join(re.escape(city) for city in _CITY_NAMES) + r")\b", text, re.I):
+        city = match.group(1)
+        if city.casefold() not in {item["label"].casefold() for item in found}:
+            found.append({"label": city})
     return found
 
 
@@ -287,7 +333,7 @@ def _job(title: str, url: str, method: str, text: str = "", *, description: str 
         info["locations"] = [{"label": place.strip()} for place in location.split(";") if place.strip()]
     if employment_type:
         info["employment_type"] = employment_type
-    if date_posted:
+    if isinstance(date_posted, str) and date_posted.strip():
         info["date_posted"] = date_posted[:10]
     if description:
         info["description"] = description[:12000]
@@ -327,9 +373,10 @@ def _schema_posting(posting: dict, page_url: str) -> dict | None:
                location=_location_name(posting.get("jobLocation")),
                employment_type=_employment(str(posting.get("employmentType"))) if posting.get("employmentType") else None,
                description=_plain(posting.get("description")), date_posted=posting.get("datePosted"),
-               extras={**{key: posting[key] for key in ("skills", "qualifications", "experienceRequirements", "educationRequirements") if key in posting},
+               extras={**{key: posting[key] for key in ("skills", "qualifications", "experienceRequirements", "educationRequirements", "applicantLocationRequirements", "validThrough") if key in posting},
                        **({"schema_identifier": str(identifier)} if identifier else {}),
                        **({"hiring_organization": organization} if organization else {})})
+    job["locations"] = _schema_locations(posting.get("jobLocation"))
     if identifier:
         job["id"] = str(identifier)
     if posting.get("jobLocationType") == "TELECOMMUTE":
@@ -522,6 +569,42 @@ def _ancestors(node: _Element):
         current = current.parent
 
 
+def _detail_description(heading: _Element) -> str | None:
+    # The nearest substantive ancestor bounds the role, keeping earlier biographies
+    # and neighboring columns out. Read only blocks after the confirmed title.
+    scope = next((parent for parent in _ancestors(heading)
+                  if parent.tag not in {"body", "html", "document"} and
+                  len(parent.text()) > len(heading.text()) + (16 if parent.tag in {"main", "article"} else 80)), None)
+    if scope is None:
+        return None
+    active, parts = False, []
+    for node in scope.walk():
+        if node is heading:
+            active = True
+            continue
+        if not active or node.hidden or node.tag not in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6"}:
+            continue
+        text = node.text()
+        if re.match(r"^(?:why join us|meet (?:EMBO )?staff|related (?:jobs|content)|other (?:jobs|vacancies))\b", text, re.I):
+            break
+        if node.tag == "h1":
+            break
+        if text:
+            parts.append(text)
+    return "\n\n".join(parts)[:12000] or None
+
+
+def _application_deadline(text: str) -> str | None:
+    match = re.search(r"application deadline\s*:?\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text, re.I)
+    if not match:
+        return None
+    from datetime import datetime
+    try:
+        return datetime.strptime(" ".join(match.groups()), "%d %B %Y").date().isoformat()
+    except ValueError:
+        return None
+
+
 def _heading_jobs(nodes: list[_Element], page_url: str) -> list[dict]:
     headings = [node for node in nodes if re.fullmatch(r"h[1-6]", node.tag) and node.text()]
     active = False
@@ -530,6 +613,9 @@ def _heading_jobs(nodes: list[_Element], page_url: str) -> list[dict]:
     found_in_section = False
     jobs = []
     for heading in headings:
+        if any(parent.attrs.get("cc-gh-id") == "department-item" or
+               parent.attrs.get("cc-t-item") == "careers_deparment" for parent in _ancestors(heading)):
+            continue
         title = heading.text().strip(" ·|–—-:")
         if _OPEN_SECTION.match(title):
             active, stopped = True, False
@@ -602,12 +688,7 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     role_candidates = []
     json_payloads = []
 
-    meta_description = None
     for node in nodes:
-        if node.tag == "meta":
-            marker = (node.attrs.get("name") or node.attrs.get("property") or "").casefold()
-            if marker in {"description", "og:description", "twitter:description"}:
-                meta_description = meta_description or _plain(node.attrs.get("content"))
         if node.tag != "script":
             continue
         script_type = node.attrs.get("type", "").casefold()
@@ -679,16 +760,23 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
 
     path = urlsplit(page_url).path
     if _DETAIL_ROUTE.search(path) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
-        h1_node = next((node for node in nodes if node.tag == "h1" and _candidate_title(node.text())), None)
+        h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
+        h1_node = h1_nodes[0] if len(h1_nodes) == 1 else None
         if h1_node:
-            h1 = h1_node.text()
-            detail_context = _context(h1_node, h1)
-            paragraphs = [node.text() for node in nodes if node.tag == "p" and len(node.text()) > 50]
-            description = meta_description or " ".join(paragraphs[:3]) or None
-            job_location = _leading_location(description) or _leading_location(detail_context)
-            job = _job(h1, page_url, "html_job_detail", detail_context, location=job_location,
-                       description=description, application_email=_application_email(visible_text))
-            jobs.append(job)
+            h1 = h1_node.text().strip(" ·|–—-:")
+            apply = any(re.search(r"^(?:apply|jetzt bewerben|bewerben|bewerbung)\b", node.text(), re.I) for node in anchors)
+            vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
+                                 for parent in _ancestors(h1_node))
+            confirmed = (_candidate_title(h1) or
+                         (apply or vacancy_marker) and 0 < len(h1) <= 150 and h1.casefold() not in _GENERIC_HEADINGS)
+            if confirmed:
+                detail_context = _detail_description(h1_node) or ""
+                job = _job(h1, page_url, "html_job_detail", detail_context, location=_leading_location(detail_context),
+                           description=detail_context or None, application_email=_application_email(detail_context))
+                deadline = _application_deadline(visible_text)
+                if deadline:
+                    job["raw_metadata"]["validThrough"] = deadline
+                jobs.append(job)
 
     if not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen|currently have no open positions", lower_text):
         linked_role_titles = {

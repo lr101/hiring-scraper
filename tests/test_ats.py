@@ -3,6 +3,33 @@ import unittest
 from hiring_scraper.ats import identify, parse_feed
 
 class ProviderTests(unittest.TestCase):
+    def test_remote_office_scope_is_preserved_without_hybrid_or_homeoffice_conflation(self):
+        for office, expected in [('Germany (Remote)', 'remote'), ('Germany (Hybrid, remote options)', 'hybrid'), ('Germany (home office available)', None)]:
+            with self.subTest(office=office):
+                row = {'id': 1, 'title': 'Engineer', 'absolute_url': 'https://example.test/jobs/1', 'location': {'name': office}, 'offices': [{'name': office, 'country': 'Germany'}]}
+                job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]
+                self.assertEqual(job.get('work_arrangement'), expected)
+                self.assertEqual(job['raw_metadata']['offices'], [{'name': office, 'country': 'Germany'}])
+                self.assertEqual(job['locations'][0]['country_code'], 'DE')
+
+    def test_greenhouse_explicit_remote_location_preserves_country_scope(self):
+        row = {'id': 1, 'title': 'Engineer', 'absolute_url': 'https://example.test/jobs/1', 'location': {'name': 'Germany (Remote); Netherlands (Remote)'}, 'offices': [{'name': 'United Kingdom (Remote)'}]}
+        job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]
+        self.assertEqual(job.get('raw_metadata', {}).get('remote_country_codes'), ['DE', 'NL'])
+        self.assertEqual(job['raw_metadata']['remote_scope_source'], 'greenhouse_location')
+        row['location']['name'] = 'Heidelberg (Hybrid)'
+        job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]
+        self.assertEqual(job['work_arrangement'], 'hybrid')
+        self.assertNotIn('remote_country_codes', job['raw_metadata'])
+
+    def test_personio_preserves_explicit_remote_office_country(self):
+        body = '<workzag-jobs><position><id>7</id><name>Engineer</name><office>Germany (Remote)</office><country>DE</country></position></workzag-jobs>'
+        job = parse_feed('personio', body, 'https://example.jobs.personio.com')['jobs'][0]
+        self.assertEqual(job.get('raw_metadata', {}).get('office'), 'Germany (Remote)')
+        self.assertEqual(job['raw_metadata']['country'], 'DE')
+        self.assertEqual(job['locations'], [{'label': 'Germany (Remote)', 'country_code': 'DE'}])
+        self.assertTrue(job['is_remote'])
+
     def test_greenhouse_board_and_company_embedded_widget(self):
         for url in ['https://job-boards.greenhouse.io/acme/jobs/123',
                     'https://boards.greenhouse.io/embed/job_board?for=acme']:
@@ -116,7 +143,7 @@ class ProviderTests(unittest.TestCase):
                 'jobLocation':{'@type':'Place','address':{'@type':'PostalAddress','addressLocality':'Karlsruhe','addressCountry':'Deutschland'}}}}
         ]}).encode()
         result=parse_feed('schema_org',body,'https://careers.acme.de/jobs.feed.json')
-        self.assertEqual(result['jobs'],[{'id':'42','title':'SAP Administrator','url':'https://careers.acme.de/jobs/42','location':'Karlsruhe','date_posted':'2026-09-10'}])
+        self.assertEqual(result['jobs'],[{'id':'42','title':'SAP Administrator','url':'https://careers.acme.de/jobs/42','location':'Karlsruhe','date_posted':'2026-09-10','locations':[{'label':'Karlsruhe','country_code':'DE'}]}])
         self.assertTrue(result['complete'])
 
     def test_schema_org_datafeed_accepts_a_single_feed_element(self):
