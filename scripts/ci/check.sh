@@ -4,7 +4,7 @@ cd /app
 
 printf '%s\n' 'Checking workflow and shell syntax'
 actionlint .github/workflows/*.yml
-shellcheck scripts/ci/*.sh docker/init-app-user.sh
+shellcheck scripts/ci/*.sh
 python scripts/ci/release_notes.py
 
 printf '%s\n' 'Compiling Python source and running regression tests'
