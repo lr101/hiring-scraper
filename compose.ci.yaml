@@ -13,9 +13,13 @@ services:
   smoke:
     image: ${HIRING_QUALITY_IMAGE:-hiring-scraper-checks:dev}
     command: ["python", "scripts/ci/smoke.py"]
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD}@db:5432/hiring
+    volumes:
+      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
     depends_on:
-      web:
+      app:
         condition: service_healthy
     init: true
+
+  app:
+    environment:
+      RUN_BACKGROUND_WORKERS: "false"

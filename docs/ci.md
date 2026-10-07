@@ -18,7 +18,7 @@ The value must be a positive whole number of seconds. It changes the stack start
 
 ## What the checks cover
 
-The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI and database setup scripts, all Python unittest suites, the frontend profile regression tests, and the TypeScript/Vite production build inside containers. Python unit tests exercise the SQLite application path. It also builds the production API/worker and web images, then starts an isolated PostgreSQL/PostGIS Compose stack to exercise migrations, repeatable fixture imports, API requests, and the production web server.
+The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI and database setup scripts, all Python unittest suites, the frontend profile regression checks, and the TypeScript/Vite production build inside containers. Python unit tests exercise the SQLite application path. It also builds the combined app image, then starts an isolated PostgreSQL/PostGIS Compose stack to exercise migrations, repeatable fixture imports, API requests, and the built frontend. The CI override disables background crawlers during the smoke run.
 
 Each invocation uses a unique Compose project and disposable database volume. Cleanup removes that run's containers, network, and volumes on success or failure; the deployment's `hiring_db` volume is separate. Build caches and local images remain available for subsequent runs. Logs are written to `.ci-results/`, which is ignored by Git. The workflow uploads only `.log` and `.txt` files from that directory, including logs from failed checks, with seven-day retention. Dotenv files, database contents, and private source captures are not included in artifacts. Docker build contexts exclude local `.env` files, private `data/`, and CV source files; the committed sanitized fixtures remain available to tests and seeds.
 
@@ -36,33 +36,31 @@ Actions are pinned to verified release commit hashes, with their versions record
 
 ## Published images
 
-After successful checks, the workflow builds and publishes these `linux/amd64` images to GHCR:
+After successful checks, the workflow builds and publishes one `linux/amd64` app image to GHCR:
 
 ```text
-ghcr.io/lr101/hiring-scraper/hiring-scraper-api
-ghcr.io/lr101/hiring-scraper/hiring-scraper-web
+ghcr.io/lr101/hiring-scraper/hiring-scraper
 ```
 
-The owner and repository are converted to lowercase. The API image also serves the workers. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Ensure repository Actions and package policies permit publishing. For an existing package, grant the repository Actions access in the package settings. Private package consumers need their own read access; public image pulls need no login.
+The image contains the API, both background workers, and the built frontend. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Ensure repository Actions and package policies permit publishing. For an existing package, grant the repository Actions access in the package settings. Private package consumers need their own read access; public image pulls need no login.
 
-| Trigger | Published tags on each image |
+| Trigger | Published tags |
 | --- | --- |
 | Push to `main` | Full commit SHA and `latest` |
 | Push tag `v1.2.3` | Full commit SHA, `v1.2.3`, and normalized `1.2.3` |
 | Push another `v*` tag | Full commit SHA and the sanitized Git tag; a normalized version is added when it is valid semver |
 | Pull request or manual dispatch | No publication |
 
-Release tags never move `latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). Images include OCI source and revision labels, and API/web publish builds use separate GitHub Actions cache scopes. The two images publish independently after the shared gate; a registry failure can leave only one published, so check both publish jobs before deploying a release.
+Release tags never move `latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). The image includes OCI source and revision labels.
 
-For deployments, prefer a full commit SHA or digest and set both image references in `.env`:
+For deployments, prefer a full commit SHA or digest and set this image reference in `.env`:
 
 ```dotenv
-HIRING_API_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-api:FULL_COMMIT_SHA
-HIRING_WEB_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-web:FULL_COMMIT_SHA
+HIRING_APP_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper:FULL_COMMIT_SHA
 ```
 
 ```bash
-docker compose pull
+docker compose pull app
 docker compose up -d --no-build
 ```
 

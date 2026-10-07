@@ -6,9 +6,7 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
   - package-ecosystem: docker
-    directories:
-      - /
-      - /frontend
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

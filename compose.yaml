@@ -17,76 +17,20 @@ services:
       retries: 20
       start_period: 10s
 
-  migrate:
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
+  app:
+    image: ${HIRING_APP_IMAGE:-hiring-scraper:local}
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: Dockerfile
+    volumes:
+      - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
+    ports:
+      - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:8000"
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/hiring
-    command: ["alembic", "upgrade", "head"]
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: "no"
-
-  seed:
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
-      CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
-    command: ["hiring-seed"]
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-    restart: "no"
-
-  api:
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
       NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
-    depends_on:
-      seed:
-        condition: service_completed_successfully
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-
-  worker:
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
-      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.2 (public job-feed refresh)}"
+      HIRING_USER_AGENT: ${HIRING_USER_AGENT:-HiringScraper/0.2 (public job discovery)}
       FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
       CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-1}
-    command: ["python", "-m", "hiring_scraper.app.worker"]
-    depends_on:
-      seed:
-        condition: service_completed_successfully
-    restart: unless-stopped
-
-  discovery-worker:
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
-      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.2 (public career discovery)}"
       CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
       CAREER_DISCOVERY_POLL_SECONDS: ${CAREER_DISCOVERY_POLL_SECONDS:-30}
       CAREER_DISCOVERY_DELAY_SECONDS: ${CAREER_DISCOVERY_DELAY_SECONDS:-1}
@@ -94,44 +38,17 @@ services:
       CAREER_DISCOVERY_MAX_PAGES: ${CAREER_DISCOVERY_MAX_PAGES:-6}
       CAREER_DISCOVERY_MAX_DEPTH: ${CAREER_DISCOVERY_MAX_DEPTH:-3}
       CAREER_DISCOVERY_MAX_REQUESTS: ${CAREER_DISCOVERY_MAX_REQUESTS:-24}
-      FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
-    command: ["python", "-m", "hiring_scraper.app.discovery_worker"]
+      RUN_BACKGROUND_WORKERS: ${RUN_BACKGROUND_WORKERS:-true}
     depends_on:
-      seed:
-        condition: service_completed_successfully
-    restart: unless-stopped
-
-  job-enrichment-worker:
-    profiles: ["enrichment"]
-    image: ${HIRING_API_IMAGE:-hiring-scraper-api:dev}
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    environment:
-      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD in .env}@db:5432/hiring
-      HIRING_USER_AGENT: "${HIRING_USER_AGENT:-HiringScraper/0.3 (public job-detail enrichment)}"
-    command: ["python", "-m", "hiring_scraper.app.enrichment", "--fetch-details", "--watch", "--limit", "20"]
-    depends_on:
-      seed:
-        condition: service_completed_successfully
-    restart: unless-stopped
-
-  web:
-    image: ${HIRING_WEB_IMAGE:-hiring-scraper-web:dev}
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "${HIRING_WEB_BIND:-0.0.0.0}:${HIRING_WEB_PORT:-8080}:80"
-    depends_on:
-      api:
+      db:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
-      interval: 20s
-      timeout: 3s
-      retries: 3
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
 volumes:
   hiring_db:
