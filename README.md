@@ -1,6 +1,6 @@
 # Radius
 
-Radius discovers employers and job openings in Germany. Local development uses SQLite; Compose runs PostgreSQL/PostGIS and imports the Karlsruhe sample on startup.
+Radius discovers employers and job openings in Germany. Local development uses SQLite; Compose runs PostgreSQL/PostGIS and starts with an empty database.
 
 ## Local development
 
@@ -25,7 +25,7 @@ Open <http://localhost:5173>.
 
 ## Compose deployment
 
-Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, seed data, and startup logic. On startup, the app prepares its database role, applies migrations, seeds an empty database, and serves the UI, API, and background workers. PostgreSQL data persists in a named volume.
+Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role, applies migrations, and serves the UI, API, and idle background workers without adding companies, feeds, or jobs. Open **Search areas** in the app and add a location to create the first discovery job. PostgreSQL data persists in a named volume.
 
 Copy `compose.yaml` and `.env.example` to the deployment host as `compose.yaml` and `.env`. Replace both placeholder passwords with different random hex values, then protect the file before starting:
 

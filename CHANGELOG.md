@@ -16,3 +16,11 @@ no historical releases have been reconstructed.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
 - Maintainer checklist for release preparation and GitHub repository settings.
 - MIT license for the software, with third-party data terms preserved.
+
+### Changed
+
+- Fresh Compose deployments start with an empty database; searches begin after a user adds a location in the app.
+
+### Fixed
+
+- Feed scans import the SQLAlchemy relationship loader used to load existing job locations.
