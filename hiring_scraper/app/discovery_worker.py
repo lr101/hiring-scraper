@@ -278,6 +278,16 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             key = (board["provider"], board["feed_url"])
             feed = feed_by_key.get(key)
             if feed is None:
+                if (board["provider"] == "recruitee" and session.scalar(
+                        select(Job.id).join(JobFeed).where(
+                            JobFeed.company_id == company_id, JobFeed.provider == "html_jobs",
+                            Job.is_active.is_(True)).limit(1)) is not None):
+                    # HTML and XML may describe the same jobs with different
+                    # public URLs. Preserve the existing rows until aliases are
+                    # verified; existing supported feeds still refresh normally.
+                    LOG.info("Deferred new Recruitee feed for company %s: active HTML jobs lack verified aliases (%s)",
+                             company_id, board["feed_url"])
+                    continue
                 feed = JobFeed(company_id=company_id, provider=board["provider"],
                                tenant=board.get("tenant"), board_url=board.get("board_url"),
                                feed_url=board["feed_url"], status="parsed", job_count=0,

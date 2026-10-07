@@ -177,11 +177,13 @@ class Client:
         p = urlsplit(url)
         host = p.hostname or ''
         token = r'[A-Za-z0-9][A-Za-z0-9_.-]*'
+        from .ats import _recruitee_host
         allowed = (
             host == 'boards-api.greenhouse.io' and re.fullmatch(r'/v1/boards/'+token+r'/jobs',p.path) or
             host in {'api.lever.co','api.eu.lever.co'} and re.fullmatch(r'/v0/postings/'+token,p.path) or
             host == 'api.ashbyhq.com' and re.fullmatch(r'/posting-api/job-board/'+token,p.path) or
-            re.fullmatch(r'[\w-]+\.jobs\.personio\.(de|com)',host) and p.path == '/xml'
+            re.fullmatch(r'[\w-]+\.jobs\.personio\.(de|com)',host) and p.path == '/xml' or
+            _recruitee_host(host) and p.path == '/api/feeds/offers.xml' and not p.query and not p.fragment
         )
         if p.scheme != 'https' or p.username or p.password or p.port not in (None,443) or not allowed:
             return {'url':url,'state':'unsupported_api'},b''
