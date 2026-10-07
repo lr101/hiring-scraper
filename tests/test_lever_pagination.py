@@ -114,6 +114,37 @@ class LeverFeedTests(unittest.TestCase):
                 self.assertFalse(metadata['pagination']['complete'])
                 self.assertIn('schema', metadata['pagination']['error'].casefold())
 
+    def test_malformed_nullable_category_fields_exclude_entire_continuation(self):
+        for field in ('department', 'team', 'commitment'):
+            for value in ({'unexpected': 'value'}, ['value'], 7, True, False, 0, [], {}):
+                with self.subTest(field=field, value=value):
+                    rows = json.loads(page(100, 2))
+                    rows[1]['categories'][field] = value
+                    metadata, _ = self.read(FeedClient({
+                        FEED: ok(page(0, 100)), FEED + '&skip=100': ok(json.dumps(rows).encode())}))
+                    jobs = metadata['parsed_feed']['jobs']
+                    self.assertEqual(len(jobs), 100)
+                    self.assertEqual(len({job['id'] for job in jobs}), 100)
+                    self.assertFalse(metadata['parsed_feed']['complete'])
+                    self.assertIn('schema', metadata['pagination']['error'].casefold())
+
+    def test_nullable_category_text_accepts_null_empty_and_strings(self):
+        for value in (None, '', 'Engineering'):
+            with self.subTest(value=value):
+                rows = json.loads(page(0, 1))
+                rows[0].update(descriptionPlain='Engineering job', createdAt=1704067200000,
+                               salaryRange={'min': 60000, 'max': 80000}, workplaceType='remote')
+                rows[0]['categories'].update(department=value, team=value, commitment=value)
+                metadata, _ = self.read(FeedClient({FEED: ok(json.dumps(rows).encode())}))
+                self.assertTrue(metadata['parsed_feed']['complete'])
+                job = metadata['parsed_feed']['jobs'][0]
+                self.assertEqual(job.get('department'), value or None)
+                self.assertEqual(job.get('employment_type'), value or None)
+                for field in ('description', 'department', 'employment_type', 'schedule',
+                              'seniority', 'date_posted', 'salary', 'work_arrangement'):
+                    self.assertTrue(job.get(field) is None or isinstance(job[field], str), field)
+                self.assertEqual(job['raw_metadata']['categories'], rows[0]['categories'])
+
     def test_absent_and_null_locations_normalize_to_empty_strings(self):
         rows = json.loads(page(100, 3))
         del rows[0]['categories']['location']
@@ -283,8 +314,8 @@ class LeverWorkerTests(unittest.TestCase):
 
     def assert_malformed_continuation_preserves_rows_and_closure_counters(self, field, value):
         rows = json.loads(page(100, 1))
-        if field == 'location':
-            rows[0]['categories']['location'] = value
+        if field in {'location', 'department', 'team', 'commitment'}:
+            rows[0]['categories'][field] = value
         else:
             rows[0][field] = value
         self.scan(FeedClient({FEED: ok(page(0, 100)),
@@ -312,6 +343,30 @@ class LeverWorkerTests(unittest.TestCase):
 
     def test_malformed_continuation_title_preserves_rows_and_closure_counters(self):
         self.assert_malformed_continuation_preserves_rows_and_closure_counters('text', {'unexpected': 'Engineer'})
+
+    def test_malformed_continuation_department_preserves_rows_and_closure_counters(self):
+        self.assert_malformed_continuation_preserves_rows_and_closure_counters('department', {'unexpected': 'value'})
+
+    def test_malformed_continuation_team_preserves_rows_and_closure_counters(self):
+        self.assert_malformed_continuation_preserves_rows_and_closure_counters('team', {'unexpected': 'value'})
+
+    def test_malformed_continuation_commitment_preserves_rows_and_closure_counters(self):
+        self.assert_malformed_continuation_preserves_rows_and_closure_counters('commitment', {'unexpected': 'value'})
+
+    def test_malformed_first_page_optional_string_preserves_existing_jobs(self):
+        rows = json.loads(page(0, 1))
+        rows[0]['categories']['department'] = {'unexpected': 'value'}
+        self.scan(FeedClient({FEED: ok(json.dumps(rows).encode())}))
+        with self.factory() as session:
+            feed = session.get(JobFeed, self.feed_id)
+            self.assertEqual(feed.status, 'schema_error')
+            self.assertEqual(feed.job_count, 1)
+            self.assertIn('department', feed.last_error)
+            self.assertEqual(len(session.scalars(select(Job)).all()), 1)
+            missing = session.get(Job, self.job_id)
+            self.assertEqual(missing.missing_complete_scans, 1)
+            self.assertTrue(missing.is_active)
+            self.assertIsNone(missing.closed_at)
 
     def test_null_location_persists_as_missing_location(self):
         rows = json.loads(page(0, 1))

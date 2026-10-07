@@ -87,6 +87,18 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
                     job['location'] = ''
                 elif not isinstance(job['location'], str):
                     raise ValueError('Expected a Lever job location string or null')
+                # Category fallbacks can hide falsy malformed values during
+                # parsing. Validate their source types before accepting a page.
+                categories = row.get('categories') or {}
+                for field in ('department', 'team', 'commitment'):
+                    value = categories.get(field)
+                    if value is not None and not isinstance(value, str):
+                        raise ValueError('Expected a Lever ' + field + ' string or null')
+                for field in ('description', 'department', 'employment_type', 'schedule',
+                              'seniority', 'date_posted', 'salary', 'work_arrangement'):
+                    value = job.get(field)
+                    if value is not None and not isinstance(value, str):
+                        raise ValueError('Expected a normalized Lever ' + field + ' string or null')
         except (ValueError, TypeError) as error:
             if page_index == 0:
                 # Consumers keep the existing schema-error handling for page one.
