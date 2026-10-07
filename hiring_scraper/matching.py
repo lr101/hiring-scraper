@@ -15,7 +15,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v10'
+VERSION = 'rules-v11'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -293,7 +293,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     if group:
                         row['alternative_group'] = group
                     languages.append(row)
-                if _required_context(clause, explicit=requirement_section or bool(APPLICANT_CUE.search(clause)) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I))):
+                if _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(APPLICANT_CUE.search(clause))) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I))):
                     rows = qualification_rows(clause, source)
                     professional = bool(TENURE.search(clause))
                     for name, aliases in SKILLS.items():

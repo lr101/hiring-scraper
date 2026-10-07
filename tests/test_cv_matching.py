@@ -550,6 +550,24 @@ class CvMatchingTests(unittest.TestCase):
                 self.assertTrue(result['eligible'])
                 self.assertNotEqual(result['fit_tier'], 'unlikely')
 
+    def test_completed_degree_fallback_preserves_explicit_non_applicant_scopes(self):
+        for heading in ('Preferred qualifications', 'Tasks', 'Benefits'):
+            with self.subTest(heading=heading):
+                job = {'title': 'Project Coordinator', 'description':
+                       'Qualifications:\n' + heading + ':\nAbgeschlossenes Studium der Elektrotechnik\nGerman C1\nTasks:\n'}
+                enriched = enrich_job(job)
+                result = match_job(job, CV, enriched)
+                self.assertEqual(enriched['languages'], [])
+                self.assertEqual(enriched['requirements'], [])
+                self.assertTrue(result['eligible'])
+
+    def test_neutral_completed_degree_fallback_still_starts_applicant_scope(self):
+        job = {'title': 'Project Coordinator', 'description':
+               'Abgeschlossenes Studium der Elektrotechnik\nGerman C1\nTasks:\n'}
+        enriched = enrich_job(job)
+        self.assertTrue(any(row['kind'] == 'education' for row in enriched['requirements']))
+        self.assertFalse(match_job(job, CV, enriched)['eligible'])
+
     def test_required_language_list_stops_at_explicit_contrast(self):
         for wording in (
             'Your qualifications: English C1, German C1, but French A2 preferred.',

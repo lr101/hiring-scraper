@@ -86,7 +86,7 @@ def scoped_sentences(text: str, *, structured: bool = False):
             scope = 'duties' if re.search(r'aufgaben|tasks|responsibilities|duties', sentence, re.I) else 'benefits'
         elif _OPTIONAL_HEADING.search(sentence):
             scope = 'optional'
-        elif re.match(r'^abgeschlossen\w*\b', sentence, re.I) and APPLICANT_CUE.search(sentence):
+        elif scope == 'neutral' and re.match(r'^abgeschlossen\w*\b', sentence, re.I) and APPLICANT_CUE.search(sentence):
             scope = 'requirements'
         yield sentence, scope
 
