@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sd-fotografie.de/noor-studio",
+  "checked_at": "2026-10-05T23:32:43.526733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "W/\"7c7f61879b86ae00890af57e867140ac\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2605516,
+  "state": "ok",
+  "elapsed_seconds": 3.303,
+  "sha256": "f1963ecaad46589b8559c537f32e3c240c11bd50b110be436fddd7d57b722049",
+  "capture": "1e5ff6648e379a38127d"
+}

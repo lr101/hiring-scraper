@@ -1,0 +1,17 @@
+{
+  "url": "https://heliopas.ai/robots.txt",
+  "checked_at": "2026-10-05T20:43:08.081647+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169,
+  "state": "ok",
+  "elapsed_seconds": 0.312,
+  "sha256": "d7ba44da193a4bf30d581ff96c43781ba0b3923191590f3911e8083131186d01",
+  "capture": "f306cde9b2b67285317a",
+  "reused_from": "data/career-poc/run-22/http/f306cde9b2b67285317a.json"
+}

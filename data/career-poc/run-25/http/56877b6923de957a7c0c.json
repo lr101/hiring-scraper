@@ -1,0 +1,16 @@
+{
+  "url": "https://www.unic.com/de",
+  "checked_at": "2026-10-05T22:20:48.065840+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"10hzoeso8hl8bfw\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 389191,
+  "state": "ok",
+  "elapsed_seconds": 1.641,
+  "sha256": "13cbe978ffea919c481b669eacc671c7256385a275dfcb25077d8d61fad9f16e",
+  "capture": "56877b6923de957a7c0c"
+}

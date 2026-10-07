@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lenkert-hoerrmann.de/karriere",
+  "checked_at": "2026-10-05T23:25:46.614395+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51235,
+  "state": "http_error",
+  "elapsed_seconds": 1.168,
+  "sha256": "fea80082ad32109a77501921136e2e4a50605830eed4653a94d2a2944f51d405",
+  "capture": "ddd3c5f2149c1f0fe535"
+}

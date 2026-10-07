@@ -1,0 +1,17 @@
+{
+  "url": "https://www.armbruster-fenster.de/karriere",
+  "checked_at": "2026-10-05T23:34:32.508822+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30554,
+  "state": "http_error",
+  "elapsed_seconds": 1.002,
+  "sha256": "de90fbd3899f3d4165a629eab48b5ce236b73e0d4dcf4111a42d223caefe7b2a",
+  "capture": "22fee6df4a3c10c49ee6",
+  "merged_from_run": "run-28"
+}

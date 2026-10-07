@@ -1,0 +1,14 @@
+{
+  "url": "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+  "checked_at": "2026-10-05T09:07:22.032929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "location": "https://www.grenke.com/de/karriere",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.129,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "6263832453c6a9bec5fa",
+  "reused_from": "data/career-poc/run-02/http/6263832453c6a9bec5fa.json"
+}

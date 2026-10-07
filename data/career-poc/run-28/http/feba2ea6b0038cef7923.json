@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vhh.de/gewerbe/vorsorge/betriebliche-altersvorsorge",
+  "checked_at": "2026-10-05T23:34:44.453611+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45963,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "0dba42b3b2d0b559cb0b674ad3429a692c0249edb337a88856b2d1f2823f2935",
+  "capture": "feba2ea6b0038cef7923"
+}

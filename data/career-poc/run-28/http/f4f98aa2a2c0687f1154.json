@@ -1,0 +1,16 @@
+{
+  "url": "https://vollack.de/",
+  "checked_at": "2026-10-05T23:33:48.204861+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90741,
+  "state": "ok",
+  "elapsed_seconds": 0.226,
+  "sha256": "399c08c9c123beb93aed08065c3d61d1ad6bb064067978da9cf8b40ea1b4db24",
+  "capture": "f4f98aa2a2c0687f1154"
+}

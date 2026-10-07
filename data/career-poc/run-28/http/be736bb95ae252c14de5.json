@@ -1,0 +1,16 @@
+{
+  "url": "https://exgenio.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:14:32.249766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 211754,
+  "state": "http_error",
+  "elapsed_seconds": 0.747,
+  "sha256": "d1f2587d64578dbceb1635087f4de94f2eef8d06ba87356709f73298ddedaef4",
+  "capture": "be736bb95ae252c14de5"
+}

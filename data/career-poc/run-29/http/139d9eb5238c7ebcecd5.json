@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bgw-online.de/bgw-online-de/themen/bgw-im-ueberblick/jobs-karriere",
+  "checked_at": "2026-10-05T22:20:09.630704+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90176,
+  "state": "ok",
+  "elapsed_seconds": 1.241,
+  "sha256": "cfda02c61dfbe6ef4010f271ca38f5c3e63c8ee79ec50021aff09dcb1782cfc0",
+  "capture": "139d9eb5238c7ebcecd5",
+  "merged_from_run": "run-25"
+}

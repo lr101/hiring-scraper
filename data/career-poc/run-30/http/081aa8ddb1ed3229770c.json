@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bios-bw.com/",
+  "checked_at": "2026-10-05T22:32:31.514686+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "W/\"851de47e61630b23f0f7de2e52ad3e50\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1011685,
+  "state": "ok",
+  "elapsed_seconds": 1.22,
+  "sha256": "679d2683a4b4294a3e0d69c42673a25d147c332459ce345c024b87a13e2f9b9c",
+  "capture": "081aa8ddb1ed3229770c",
+  "merged_from_run": "run-26"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.armbruster-fenster.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:28.264877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 161,
+  "state": "ok",
+  "elapsed_seconds": 0.965,
+  "sha256": "400d8c3ef071008c2eab5616a3c67e52fa81c33bf177f4f3dcdefef86e3b1dba",
+  "capture": "e4e29b6fc0f3f1cffb0a",
+  "merged_from_run": "run-28"
+}

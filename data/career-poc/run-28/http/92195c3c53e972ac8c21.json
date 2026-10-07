@@ -1,0 +1,16 @@
+{
+  "url": "https://www.techpark.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:39.444354+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29,
+  "state": "ok",
+  "elapsed_seconds": 0.257,
+  "sha256": "5bcf81380e4b54d411ff34f1273cdbf39af2181faf947ab09c9aeddf31035d2f",
+  "capture": "92195c3c53e972ac8c21"
+}

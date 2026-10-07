@@ -1,0 +1,17 @@
+{
+  "url": "https://starface.com/at/ueber-uns/karriere/",
+  "checked_at": "2026-10-05T22:13:29.652628+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 287665,
+  "state": "ok",
+  "elapsed_seconds": 1.74,
+  "sha256": "062dec3e918a46fce80faae363513319e5f2816ef1034153ff0d1e376f54d705",
+  "capture": "51edde2a1a89289a4975",
+  "merged_from_run": "run-25"
+}

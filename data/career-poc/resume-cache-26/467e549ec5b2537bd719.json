@@ -1,0 +1,16 @@
+{
+  "url": "https://www.iz.de/karriere/news/-mir-war-immer-egal-was-ich-verkaufe--aber-nicht-mit-wem-2000025938",
+  "checked_at": "2026-10-05T22:19:22.842217+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77846,
+  "state": "ok",
+  "elapsed_seconds": 1.529,
+  "sha256": "b05e068403c6a0eb230eb1304f1210ba493f767ef46bbc285f5c8ce6a73298c3",
+  "capture": "467e549ec5b2537bd719"
+}

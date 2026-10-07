@@ -1,0 +1,64 @@
+qid,name,website,coord_wkt,distance_km,location_evidence
+Q1371839,Ettlinger Tor,https://www.ettlinger-tor.de/,Point(8.40248 49.0065),0.099,entity P625 coordinate
+Q136750452,EML Speech Technology,https://www.eml.org/,Point(8.405023029 49.005923089),0.145,entity P625 coordinate
+Q2305644,Sozialgericht Karlsruhe,https://sozialgericht-karlsruhe.justiz-bw.de/,Point(8.40479 49.0082),0.165,entity P625 coordinate
+Q1381130,Evangelische Stadtkirche,https://www.stadtkirche-karlsruhe.de,Point(8.40444 49.0085),0.186,entity P625 coordinate
+Q112898975,Substage,https://substage.de/,Point(8.403074 49.005021),0.214,entity P625 coordinate
+Q1545745,Staatliches Museum für Naturkunde Karlsruhe,http://www.smnk.de/,Point(8.4003 49.0073),0.252,entity P625 coordinate
+Q28737826,"Staatliches Museum für Naturkunde, Bibliothek",http://www.smnk.de,Point(8.40023 49.00707),0.254,entity P625 coordinate
+Q2122838,Querfunk,https://querfunk.de/,Point(8.4072941 49.0070413),0.263,entity P625 coordinate
+Q123166219,Volkswohnung GmbH,https://volkswohnung.de/,Point(8.403904683 49.004529072),0.264,entity P625 coordinate
+Q84769515,,https://entropia.de/,Point(8.407438 49.0067),0.274,entity P625 coordinate
+Q1539952,Stadtbibliothek Karlsruhe,https://stadtbibliothek.karlsruhe.de/,Point(8.40034 49.0088),0.324,entity P625 coordinate
+Q133934693,Carl-Hofer-Schule,http://www.carl-hofer-schule.de,Point(8.4081133 49.0072349),0.324,entity P625 coordinate
+Q627815,Arbeitsgericht Karlsruhe,https://arbeitsgericht-karlsruhe.justiz-bw.de/,Point(8.4007 49.0092),0.337,entity P625 coordinate
+Q28738955,"Arbeitsgericht Karlsruhe, Bibliothek","http://www.arbg-karlsruhe.de/pb/,Lde/1207260",Point(8.40064 49.00918),0.338,entity P625 coordinate
+Q799084,Badische Landesbibliothek,https://www.blb-karlsruhe.de/,Point(8.39917 49.0078),0.345,entity P625 coordinate
+Q897256,Evangelische Landeskirche in Baden,https://www.ekiba.de/,Point(8.39897 49.007149),0.346,entity P625 coordinate
+Q33121946,Helmholtz Alliance for Astroparticle Physics,http://www.hap-astroparticle.org/,Point(8.399226 49.005856),0.346,entity P625 coordinate
+Q552309,Badisches Staatstheater Karlsruhe,http://www.staatstheater.karlsruhe.de/,Point(8.406086 49.004019),0.365,entity P625 coordinate
+Q28733469,Landeskirchliche Bibliothek,http://www.ekiba.de/html/content/landeskirchliche_bibliothek.html,Point(8.39864 49.00718),0.37,entity P625 coordinate
+Q115707656,Heinrich-Hübsch-Gewerbeschule,http://www.huebsch.karlsruhe.de,Point(8.4088796 49.0069281),0.378,entity P625 coordinate
+Q21040660,Stadtarchiv Karlsruhe,http://www.karlsruhe.de/b1/stadtgeschichte/stadtarchiv.de,Point(8.40910935 49.00731096),0.397,entity P625 coordinate
+Q106311465,IG Metall Karlsruhe,https://karlsruhe.igmetall.de/,Point(8.40355 49.00294),0.44,entity P625 coordinate
+Q111583945,Kammertheater Karlsruhe,https://kammertheater-karlsruhe.de/,Point(8.398281 49.008924),0.455,entity P625 coordinate
+Q50038680,Laserklinik Karlsruhe,http://www.laserklinik.de/,Point(8.39938 49.00998),0.465,entity P625 coordinate
+Q111388610,The Q - Quadro City Hotel,https://plazahotels.de/de/hotels/hotel-karlsruhe-city,Point(8.41023 49.00547),0.502,entity P625 coordinate
+Q2231851,Schauburg,https://schauburg.de/,Point(8.40792 49.0032),0.514,entity P625 coordinate
+Q28733701,Bibliothek des Bundesgerichtshofs,http://www.bundesgerichtshof.de/bibliothek,Point(8.39655 49.00715),0.522,entity P625 coordinate
+Q480795,Amtsgericht Karlsruhe,https://amtsgericht-karlsruhe.justiz-bw.de/,Point(8.40104 49.0114),0.537,entity P625 coordinate
+Q30343035,Institut für Angewandte Informatik und Formale Beschreibungsverfahren,http://www.aifb.kit.edu/,Point(8.410330555 49.009138888),0.544,entity P625 coordinate
+Q799153,Badischer Kunstverein,http://www.badischer-kunstverein.de,Point(8.399745 49.011122),0.551,entity P625 coordinate
+Q1313500,Vierordtbad,https://ka-vierordtbad.de/vierordtbad-start.html,Point(8.40272 49.0014),0.616,entity P625 coordinate
+Q658725,Staatliche Kunsthalle Karlsruhe,http://www.kunsthalle-karlsruhe.de,Point(8.4 49.0119),0.618,entity P625 coordinate
+Q28738937,"Staatliche Kunsthalle, Bibliothek",http://www.kunsthalle-karlsruhe.de,Point(8.39993 49.01207),0.637,entity P625 coordinate
+Q28739449,Bibliothek des Bundesverfassungsgerichts,https://www.bundesverfassungsgericht.de/DE/Das-Gericht/Bibliothek/bibliothek_node.html,Point(8.40168 49.01247),0.637,entity P625 coordinate
+Q629078,Arbeitsstelle Bertolt Brecht,https://abb.litwiss.kit.edu/,Point(8.407052 49.012196),0.638,entity P625 coordinate
+Q1698463,Kant-Gymnasium Karlsruhe,http://www.kantgymnasium.de,Point(8.41032 49.0107),0.642,entity P625 coordinate
+Q50842378,Die Kurbel,http://www.kurbel-karlsruhe.de,Point(8.39686 49.01056),0.644,entity P625 coordinate
+Q50842380,Kinemathek,http://www.kinemathek-karlsruhe.de,Point(8.39686 49.01056),0.644,entity P625 coordinate
+Q29426438,Universität Karlsruhe,http://www.uni-karlsruhe.de/,Point(8.411666666 49.009444444),0.646,entity P625 coordinate
+Q1409880,Feuerwehr Karlsruhe,http://www.feuerwehr-karlsruhe.de/,Point(8.39737 49.0027),0.657,entity P625 coordinate
+Q134355843,Ludwig-Erhard-Schule Karlsruhe,http://www.les-ka.de,Point(8.4111873 49.0103594),0.668,entity P625 coordinate
+Q22694419,Verkehrsmuseum Karlsruhe,https://www.karlsruhe.de/b1/kultur/kunst_ausstellungen/museen/verkehrsmuseum,Point(8.409027777 49.001972222),0.672,entity P625 coordinate
+Q1733921,Karlshochschule International University,http://www.karlshochschule.de/,Point(8.39444056 49.00655028),0.676,entity P625 coordinate
+Q28737478,"Karlsruher Institut für Technologie, KIT-Archiv",http://www.archiv.kit.edu/,Point(8.41215 49.00942),0.677,entity P625 coordinate
+Q56025,Bundesverfassungsgericht,https://www.bundesverfassungsgericht.de/,Point(8.401518847 49.012858812),0.681,entity P625 coordinate
+Q1534118,Goethe-Gymnasium Karlsruhe,http://www.goethe-gymnasium-karlsruhe.de/,Point(8.39611 49.0033),0.683,entity P625 coordinate
+Q28739026,"Karlshochschule International University, Bibliothek",http://www.bibliothek.karlshochschule.de,Point(8.39432 49.00666),0.685,entity P625 coordinate
+Q1633965,Volksbank pur,https://www.volksbank-karlsruhe.de/,Point(8.41322 49.006125),0.7,entity P625 coordinate
+Q1652311,Landgericht Karlsruhe,https://landgericht-karlsruhe.justiz-bw.de/,Point(8.39877 49.0124),0.709,entity P625 coordinate
+Q131154909,Badisches Landesmuseum 76/106,https://katalog.landesmuseum.de/object/C08A812D458551AE4BC9969CB34911FE-gefaess-mit-darstellung-des-aktaion-mythos,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131155057,Badisches Landesmuseum B 1,https://katalog.landesmuseum.de/object/090EB0B647E52275E2C2B188E1680A8A-bauchamphora-mythologische-szenen,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131160257,Badisches Landesmuseum 61/89,https://katalog.landesmuseum.de/object/11BB3F364668AFB28C5D0487545CAE0E-amphora-mit-darstellung-des-achill-und-des-memnon,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131160293,Badisches Landesmuseum B 2591,https://katalog.landesmuseum.de/object/AFF923EA452993A231932392BDC4774A-amphora-mit-darstellung-des-herakles-der-prometheus-befreit,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131160441,Badisches Landesmuseum 61/24,https://katalog.landesmuseum.de/object/0C0B80EC438140C1D2B4839B7B23FC39-amphora-mit-darstellungen-des-herakles-und-des-triton,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131160547,Badisches Landesmuseum 64/52,https://katalog.landesmuseum.de/object/3C3465CD409C7C18BDF311B93D09A064-bankhenkelamphora,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131160593,Badisches Landesmuseum 65/45,https://katalog.landesmuseum.de/object/4C4D1879419F5209F19F6A8D37114558-amphora-mit-darstellungen-der-athena-und-eines-ringkampfs,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131161306,Badisches Landesmuseum 67/90,https://katalog.landesmuseum.de/object/5601A04742FC6F9AE9BCBAA3EA2341BD-trinkschale-mit-darstellungen-einer-toepferei,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131164127,Badisches Landesmuseum 70/11,https://katalog.landesmuseum.de/object/BB5CD6324DE99FBA665C248671C1519A-schoepfgefaess-mit-darstellungen-des-theseus-und-des-minotauros,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131154156,Badisches Landesmuseum B 2588,https://katalog.landesmuseum.de/object/53AA56E8407C357FF0E4E1AF79CA8793-etruskisch-schwarzfigurige-kleeblattkanne-oinochoe-des-amphiaraos-malers,Point(8.404345 49.013498),0.735,entity P625 coordinate
+Q131154430,Badisches Landesmuseum B 4,https://katalog.landesmuseum.de/object/85F8A98D49C3F34E8668E5A11DE98E56-sog-unterweltsvase-volutenkrater-grabprunkgefaess-mythologische-szenen,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131154496,Badisches Landesmuseum B 901,https://katalog.landesmuseum.de/object/2041556546242E6030EFEA9202E45BCD-henkelgefaess,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q131154568,Badisches Landesmuseum B 5,https://katalog.landesmuseum.de/object/AD89854E40C364E98215BABF930A83CD-unteritalische-amphora-bzw-panathenaeische-amphora-spaetform-grabkultszenen,Point(8.404345 49.013498055),0.735,entity P625 coordinate
+Q2105885,Post Galerie,http://www.postgalerie.de,Point(8.39422 49.0093),0.741,entity P625 coordinate

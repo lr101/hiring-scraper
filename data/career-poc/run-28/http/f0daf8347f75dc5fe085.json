@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schukraft.de/karriere",
+  "checked_at": "2026-10-05T23:36:40.807926+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 329171,
+  "state": "http_error",
+  "elapsed_seconds": 2.649,
+  "sha256": "a067501b3c5e06a78f7a114c48900106796094face6e0ed2f98cb4246d41e3db",
+  "capture": "f0daf8347f75dc5fe085"
+}

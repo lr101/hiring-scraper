@@ -1,0 +1,16 @@
+{
+  "url": "https://talent.sage.hr/robots.txt",
+  "checked_at": "2026-10-05T23:39:31.179063+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Tue, 04 Aug 2026 15:35:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 255,
+  "state": "ok",
+  "elapsed_seconds": 0.915,
+  "sha256": "d4909d9fa29b7f0264269017fca595f5406df12f1e1d2db35522ad3f18e5304a",
+  "capture": "a1857f39075e35145c9f"
+}

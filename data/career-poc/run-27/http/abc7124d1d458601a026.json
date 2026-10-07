@@ -1,0 +1,16 @@
+{
+  "url": "https://www.elmar-interschick.de/jobs",
+  "checked_at": "2026-10-05T23:04:11.896040+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20313,
+  "state": "http_error",
+  "elapsed_seconds": 1.232,
+  "sha256": "b67487bff8216d3d0f80d7e153da6a920b71e649a47fa13103f54884efa3ce7a",
+  "capture": "abc7124d1d458601a026"
+}

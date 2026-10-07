@@ -1,0 +1,16 @@
+{
+  "url": "https://kammer-kirsch.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:01.117485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"page_cache:51670122653:RobotsController:86c610ce580bde04c1694e12dbd5f42c\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3632,
+  "state": "ok",
+  "elapsed_seconds": 0.925,
+  "sha256": "ad8208fd5b131e7adf6a4e072c0931a0134a488d23e48f71b4ee372bd5c4c807",
+  "capture": "e386ac4eeddabde93a31"
+}

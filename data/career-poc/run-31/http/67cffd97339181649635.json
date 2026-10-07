@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ganz-containerdienst.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:24.992610+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 185,
+  "state": "ok",
+  "elapsed_seconds": 1.516,
+  "sha256": "8614dfb76e75493dc3f593a28bb2c5ced3c1e99558bed6d92c2fe0709ee645e3",
+  "capture": "67cffd97339181649635",
+  "merged_from_run": "run-28"
+}

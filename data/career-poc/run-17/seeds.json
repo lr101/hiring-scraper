@@ -1,0 +1,12 @@
+[
+  {
+    "name": "IONOS",
+    "website": "https://www.ionos.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12324666851",
+    "original_website": "https://www.ionos.de/",
+    "osm_source_id": "node/12324666851",
+    "distance_m": 1621.3,
+    "osm_category": "it"
+  }
+]

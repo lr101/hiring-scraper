@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dis-ag.com/de-de/ueber-uns/interne-karriere",
+  "checked_at": "2026-10-05T22:08:40.187297+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"0BD6EA4D87F412B51B4965ECE74CFBC6\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 370849,
+  "state": "ok",
+  "elapsed_seconds": 2.644,
+  "sha256": "a226888c905ab986427dc6cd27709eafd7416b5ab915e839814e9d4f5b35fd5e",
+  "capture": "7c037c44eb15537ef4b1"
+}

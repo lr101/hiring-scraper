@@ -1,0 +1,17 @@
+{
+  "url": "https://icf-beratungszentrum.de/jobs",
+  "checked_at": "2026-10-05T23:21:11.598540+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 46316,
+  "state": "http_error",
+  "elapsed_seconds": 0.973,
+  "sha256": "db8fe10ff834b1421df5c213f2ffa798fc2fa49a5cbae88042c659473b2425ce",
+  "capture": "26821ec9167fa2154ca3",
+  "merged_from_run": "run-28"
+}

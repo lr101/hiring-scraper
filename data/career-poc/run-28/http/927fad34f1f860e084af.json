@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sg-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:02.974607+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"0-602787cf49a00\"",
+  "last_modified": "Wed, 09 Aug 2023 07:32:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 0,
+  "state": "ok",
+  "elapsed_seconds": 0.151,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "927fad34f1f860e084af"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kit.edu/karriere/stellenangebote.php",
+  "checked_at": "2026-10-05T23:41:30.265671+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57718,
+  "state": "ok",
+  "elapsed_seconds": 1.107,
+  "sha256": "a028f7262de8f9f40facb0a24852a1d928044414916a62343594b65c720534d2",
+  "capture": "398eddcdb373c2f7c498",
+  "merged_from_run": "run-28"
+}

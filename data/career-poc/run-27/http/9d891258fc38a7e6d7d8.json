@@ -1,0 +1,16 @@
+{
+  "url": "https://www.icentic.com/",
+  "checked_at": "2026-10-05T22:40:44.981915+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 228109,
+  "state": "ok",
+  "elapsed_seconds": 1.004,
+  "sha256": "1ef7936f394e84cd8516339689628934aa27a6fa148e195bd5a4c8cfa2d12da6",
+  "capture": "9d891258fc38a7e6d7d8"
+}

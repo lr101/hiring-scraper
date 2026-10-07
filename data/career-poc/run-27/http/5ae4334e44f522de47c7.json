@@ -1,0 +1,16 @@
+{
+  "url": "https://www.alfatraining.de/gefoerderte-weiterbildung",
+  "checked_at": "2026-10-05T23:05:50.615154+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/",
+  "bytes": 250,
+  "state": "http_error",
+  "elapsed_seconds": 1.145,
+  "sha256": "f7036dbf5a5b4f6c5cac06ed07b55d75d74739df6e392b9ff7a3f43b1d4fe0b4",
+  "capture": "5ae4334e44f522de47c7"
+}

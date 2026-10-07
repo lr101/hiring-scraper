@@ -1,0 +1,17 @@
+{
+  "url": "https://schmidtstallateur.de/karriere/",
+  "checked_at": "2026-10-05T23:40:51.489000+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 312327,
+  "state": "ok",
+  "elapsed_seconds": 0.645,
+  "sha256": "46495f21b455f67454f7cbff7667205f735d1109b8aca941ece1326453a12195",
+  "capture": "c4db4cc4faef84c53a4f",
+  "merged_from_run": "run-28"
+}

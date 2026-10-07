@@ -1,0 +1,17 @@
+{
+  "url": "https://www.baufi-gartner.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:35.123136+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100,
+  "state": "ok",
+  "elapsed_seconds": 0.843,
+  "sha256": "ffbda65f7de52b61777165fbd8dfa95356104b0694fb39a14b4d95292db9c947",
+  "capture": "5f815b898a420dac272f",
+  "merged_from_run": "run-28"
+}

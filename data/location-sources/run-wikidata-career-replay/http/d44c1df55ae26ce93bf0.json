@@ -1,0 +1,14 @@
+{
+  "url": "https://www.physikinstrumente.com/en/about/careers",
+  "checked_at": "2026-10-05T14:48:25.169226+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 1444275,
+  "state": "ok",
+  "elapsed_seconds": 1.163,
+  "sha256": "3e6abcec6d9c8b7f261032bb3a5c57c5b0ff55463cfc10ca8e3dda8f7caa3c66",
+  "capture": "d44c1df55ae26ce93bf0",
+  "reused_from": "data/location-sources/run-wikidata-career/http/d44c1df55ae26ce93bf0.json"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ga-tec.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:46.001401+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4465,
+  "state": "http_error",
+  "elapsed_seconds": 0.284,
+  "sha256": "ec0b75b209341e1bd341b842d4d6bb2401b047e0ad349b5f2f2304bb4a5ea4e3",
+  "capture": "73e2afd223b7143a9fd6"
+}

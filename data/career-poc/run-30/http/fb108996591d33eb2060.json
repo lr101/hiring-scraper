@@ -1,0 +1,17 @@
+{
+  "url": "https://rohstoff-recycling-kuehn.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:46:44.343800+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43020,
+  "state": "ok",
+  "elapsed_seconds": 0.951,
+  "sha256": "50ab9974135fe01745cd7760e8d8b1e3b147507eef05cbed0552eaed187b2f6c",
+  "capture": "fb108996591d33eb2060",
+  "merged_from_run": "run-28"
+}

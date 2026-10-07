@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drk.de/robots.txt",
+  "checked_at": "2026-10-06T07:07:26.790232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5925,
+  "state": "ok",
+  "elapsed_seconds": 0.221,
+  "sha256": "93e8af4f5e10e76cfe23536104f30225f4aaed52de1cf6980eb675df4dcbdd88",
+  "capture": "42f07b6d8fa210e69d2c"
+}

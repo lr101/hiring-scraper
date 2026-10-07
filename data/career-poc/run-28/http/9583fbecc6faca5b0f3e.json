@@ -1,0 +1,16 @@
+{
+  "url": "https://actemium.career.softgarden.de/",
+  "checked_at": "2026-10-05T23:35:31.152932+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 215385,
+  "state": "ok",
+  "elapsed_seconds": 0.94,
+  "sha256": "a7c1330b2ea6935d9dfd3ea0adfed4450961dc0c36daf15ff4168b60a96df979",
+  "capture": "9583fbecc6faca5b0f3e"
+}

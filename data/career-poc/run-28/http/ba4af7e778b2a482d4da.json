@@ -1,0 +1,16 @@
+{
+  "url": "https://www.connect-personal.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:16:45.402109+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 820,
+  "state": "ok",
+  "elapsed_seconds": 1.4,
+  "sha256": "efba775425906d39a2c6284fc63d219bdc412452df6c37e4127ce3967b8376eb",
+  "capture": "ba4af7e778b2a482d4da"
+}

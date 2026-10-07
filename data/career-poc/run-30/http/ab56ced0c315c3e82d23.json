@@ -1,0 +1,17 @@
+{
+  "url": "https://eventtechnik-gleich.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:38:18.546846+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 12414,
+  "state": "ok",
+  "elapsed_seconds": 0.997,
+  "sha256": "b1fb71b4564f22b1c9696dcffdcff13bb290f241d7973d8ca300a07e3122db31",
+  "capture": "ab56ced0c315c3e82d23",
+  "merged_from_run": "run-28"
+}

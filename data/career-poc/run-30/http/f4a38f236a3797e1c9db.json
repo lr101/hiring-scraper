@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hirschreisen.de/unternehmen/stellenangebote/",
+  "checked_at": "2026-10-05T22:23:08.150044+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 149187,
+  "state": "ok",
+  "elapsed_seconds": 1.138,
+  "sha256": "64403a7d5c82a977ee12f4bf3d39b4472a45674dcceebfa35ff2924651cd813d",
+  "capture": "f4a38f236a3797e1c9db",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://ka.schulamt-bw.de/,Lde/Startseite",
+  "checked_at": "2026-10-05T22:08:17.190449+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 86294,
+  "state": "ok",
+  "elapsed_seconds": 0.256,
+  "sha256": "8eb98b08f249ca1b8539377631427548063cf7d86d2a29523b51a6a9ca6b8d41",
+  "capture": "4e9679d222eda8bc1469"
+}

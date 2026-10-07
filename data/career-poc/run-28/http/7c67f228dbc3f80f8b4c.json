@@ -1,0 +1,16 @@
+{
+  "url": "https://www.erdgas-suedwest.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:40.360171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 235,
+  "state": "ok",
+  "elapsed_seconds": 0.65,
+  "sha256": "0e349d1f65d75b5294defe866cbd074d632692272650c3dad1f850d159195111",
+  "capture": "7c67f228dbc3f80f8b4c"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.k-quadrat.de/careers",
+  "checked_at": "2026-10-05T22:55:10.359325+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44534,
+  "state": "http_error",
+  "elapsed_seconds": 1.117,
+  "sha256": "95fc315d1aedc1115207e44e7bcb29f79ac2085057bd5686064bc8546c7151fb",
+  "capture": "6aa451b8ed4e4a38ff12",
+  "merged_from_run": "run-27"
+}

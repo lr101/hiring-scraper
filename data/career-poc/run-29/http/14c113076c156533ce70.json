@@ -1,0 +1,17 @@
+{
+  "url": "https://the-maked-team-gmbh-co-kg.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:34:51.346071+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"3cd2bce794a0dc3a23fd138d2129884c\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10615,
+  "state": "ok",
+  "elapsed_seconds": 0.188,
+  "sha256": "9db7a0834d6b2415a96c4f44c616cd2c00b2fe87385a10cc422f24e99c537be2",
+  "capture": "14c113076c156533ce70",
+  "merged_from_run": "run-28"
+}

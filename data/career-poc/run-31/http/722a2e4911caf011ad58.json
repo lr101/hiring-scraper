@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inros-lackner.de/karriere/stellenangebote",
+  "checked_at": "2026-10-05T23:31:09.569807+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30694,
+  "state": "ok",
+  "elapsed_seconds": 0.915,
+  "sha256": "59d38157c875f7f564c23bbb47c45fc77b0ad34be824f7c11ca114ae45af136b",
+  "capture": "722a2e4911caf011ad58",
+  "merged_from_run": "run-28"
+}

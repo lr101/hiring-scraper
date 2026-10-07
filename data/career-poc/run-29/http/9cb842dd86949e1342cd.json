@@ -1,0 +1,17 @@
+{
+  "url": "https://www.felzmann.dental/sitemap.xml",
+  "checked_at": "2026-10-05T23:25:10.768180+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1980,
+  "state": "ok",
+  "elapsed_seconds": 0.769,
+  "sha256": "0eee79248136de14bf96671098726402f648e2c54471d2ebc9c6bb5cfec8fee0",
+  "capture": "9cb842dd86949e1342cd",
+  "merged_from_run": "run-28"
+}

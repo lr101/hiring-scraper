@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wir-bewegen-alle.de/bewerben/jobs/job/triebfahrzeugfuehrerin-1",
+  "checked_at": "2026-10-05T22:45:09.033065+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"64d9818a867c6d871f0d569e864fe27f\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74310,
+  "state": "ok",
+  "elapsed_seconds": 1.314,
+  "sha256": "7410cd2c1fc214693fe07b6464c17683cc4e00bc14fdc44a4ffacad3d3eb9f4a",
+  "capture": "7753a1a3a522b7b0a935"
+}

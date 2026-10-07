@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zoll.de/DE/Service_II/ZollKarriereInfoseite/zollKarriereInfoseite_node.html",
+  "checked_at": "2026-10-05T22:30:06.563807+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 95537,
+  "state": "ok",
+  "elapsed_seconds": 0.332,
+  "sha256": "8401579c32ca6ae65c60708c3a3cebe312cd70512f878fe53a875f54e5f52060",
+  "capture": "2203cd65ed074c8cd018"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.raceresult.com/jobs",
+  "checked_at": "2026-10-05T23:39:30.149337+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29578,
+  "state": "ok",
+  "elapsed_seconds": 0.99,
+  "sha256": "38a1e0fb1a81e8f12125de67b08d02c28190e1f8c261fff479d94ac156ba125b",
+  "capture": "b037f0a194731d9212e0",
+  "merged_from_run": "run-28"
+}

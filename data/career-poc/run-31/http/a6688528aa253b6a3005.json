@@ -1,0 +1,17 @@
+{
+  "url": "https://ritterweiss.de/job/steuerfachangestellte-steuerfachwirte-m-w-d/",
+  "checked_at": "2026-10-05T23:40:58.623132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 139750,
+  "state": "ok",
+  "elapsed_seconds": 0.91,
+  "sha256": "e6b9ff8d3c9c3cf09fe676c775925e4f509232231e6bb7a16a0c80edf9fde214",
+  "capture": "a6688528aa253b6a3005",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rechtsanwaeltin-suess-stutensee.de/",
+  "checked_at": "2026-10-05T23:45:21.526070+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51857,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "e56e087b6771fdf3d8840c75f19d3698506ddd5da4a7ff56d1d1baf5164ade30",
+  "capture": "b9ffe1719be85a803961"
+}

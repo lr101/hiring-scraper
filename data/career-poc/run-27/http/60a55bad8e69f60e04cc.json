@@ -1,0 +1,16 @@
+{
+  "url": "https://db.jobs/de-de/leichte-sprache",
+  "checked_at": "2026-10-05T22:56:39.447951+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 154446,
+  "state": "ok",
+  "elapsed_seconds": 1.367,
+  "sha256": "d5e6ca52c66d075e7f7b3863af79687e81af77d5fa3938976713acc7f904ef47",
+  "capture": "60a55bad8e69f60e04cc"
+}

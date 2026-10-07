@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brecht-galabau.de/",
+  "checked_at": "2026-10-05T23:43:12.177608+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 24284,
+  "state": "ok",
+  "elapsed_seconds": 1.052,
+  "sha256": "d183235f6c193dfc5b16351c35e7e8d236eb93c1beb9cd0c832b475b7ad80ca8",
+  "capture": "b6715502d65ff71c933d",
+  "merged_from_run": "run-28"
+}

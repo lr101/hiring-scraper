@@ -1,0 +1,16 @@
+{
+  "url": "https://audials.com/robots.txt",
+  "checked_at": "2026-10-05T22:15:29.804225+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"282-65b1fc300fe80-gzip\"",
+  "last_modified": "Thu, 10 Sep 2026 12:03:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 642,
+  "state": "ok",
+  "elapsed_seconds": 0.272,
+  "sha256": "faaf6ce30a94b47cba5980c66afb220b686ab4657e574510eb7534873e92532e",
+  "capture": "bd2fbb877671175d5fac"
+}

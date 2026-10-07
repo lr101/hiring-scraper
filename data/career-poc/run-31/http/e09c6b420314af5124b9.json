@@ -1,0 +1,17 @@
+{
+  "url": "https://www.elmar-interschick.de/",
+  "checked_at": "2026-10-05T23:04:04.736428+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21198,
+  "state": "ok",
+  "elapsed_seconds": 1.21,
+  "sha256": "afc7216c8bbab50eb36825ba25772054cafb79c0967126bdc674b338c054d60b",
+  "capture": "e09c6b420314af5124b9",
+  "merged_from_run": "run-27"
+}

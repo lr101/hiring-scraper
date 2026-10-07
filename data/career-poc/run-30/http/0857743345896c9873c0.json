@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mbbm-ind.com/de/karriere/stellenangebot/projektingenieurin-laermschutz",
+  "checked_at": "2026-10-05T23:21:59.665123+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40061,
+  "state": "ok",
+  "elapsed_seconds": 0.884,
+  "sha256": "284072d4b6702daca713912b641c3505c90c4f9821ab435e393af540febca757",
+  "capture": "0857743345896c9873c0",
+  "merged_from_run": "run-28"
+}

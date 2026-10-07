@@ -1,0 +1,16 @@
+{
+  "url": "https://www.roeser-international.de/careers",
+  "checked_at": "2026-10-05T22:14:24.453768+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129341,
+  "state": "http_error",
+  "elapsed_seconds": 1.737,
+  "sha256": "b319d2f026a2f6510453da6b612cb5eb78f91152bb2eed109bfbc9364d213574",
+  "capture": "cd6393cf762d3ae3ebb8"
+}

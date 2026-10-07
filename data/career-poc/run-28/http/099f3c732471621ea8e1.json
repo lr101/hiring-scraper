@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.kte-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:42:11.601835+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 150010,
+  "state": "ok",
+  "elapsed_seconds": 1.113,
+  "sha256": "ae50f1f16d14937ea4851b7c2d28cac49d4062c124a911723d8fe1f3b43d1a27",
+  "capture": "099f3c732471621ea8e1"
+}

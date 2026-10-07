@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inktec-megastore.de/",
+  "checked_at": "2026-10-05T23:40:17.665482+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://inktec-megastore.de/",
+  "bytes": 276,
+  "state": "http_error",
+  "elapsed_seconds": 0.791,
+  "sha256": "d32e1aa271c2bf2358bbadfc4a6c69a3f319788e804ba80855af5f803cadf059",
+  "capture": "d0c6322ff89c78fed51d",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://axel-bastian.ergo.de/",
+  "checked_at": "2026-10-05T23:29:36.712104+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"67cf2-bZcN+RUJ15h8eU5JfE3mbnYi3dQ\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 424778,
+  "state": "ok",
+  "elapsed_seconds": 1.466,
+  "sha256": "8f79854a55a8725fe6f1f2c574d42fa63fcb183df6516a086fbb4e375625139c",
+  "capture": "9723dee0a773e98d453d",
+  "merged_from_run": "run-28"
+}

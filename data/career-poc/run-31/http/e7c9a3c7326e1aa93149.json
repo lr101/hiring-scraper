@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ibpt.kit.edu/jobs",
+  "checked_at": "2026-10-05T23:42:46.671877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ibpt.kit.edu/jobs/",
+  "bytes": 389,
+  "state": "http_error",
+  "elapsed_seconds": 0.986,
+  "sha256": "6a16a600c778568705639cd1a7b78af61487b3c0e93a33effb692842b2f34c7b",
+  "capture": "e7c9a3c7326e1aa93149",
+  "merged_from_run": "run-28"
+}

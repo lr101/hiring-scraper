@@ -1,0 +1,17 @@
+{
+  "url": "https://joimax-gmbh.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:30:47.597938+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"d2d79f448fb56dd3434021eb37ffa6b1\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20515,
+  "state": "ok",
+  "elapsed_seconds": 0.933,
+  "sha256": "1eaa5699dc4e120bf8dc3c43216162acd2828c4043d164e8e9554546e2315cbb",
+  "capture": "68c7ada0b442ee76676e",
+  "merged_from_run": "run-28"
+}

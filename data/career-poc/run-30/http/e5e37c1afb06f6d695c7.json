@@ -1,0 +1,17 @@
+{
+  "url": "https://www.merlin-zwo.de/merlin-zwo/karriere/",
+  "checked_at": "2026-10-05T23:35:56.501380+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91135,
+  "state": "ok",
+  "elapsed_seconds": 0.877,
+  "sha256": "4cd2f73db3e498079c55bb20b5bf03d221f39b25f0463a90ef9386ed205881d0",
+  "capture": "e5e37c1afb06f6d695c7",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://career2.successfactors.eu/robots.txt",
+  "checked_at": "2026-10-05T23:24:41.093551+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6abdc755-3b\"",
+  "last_modified": "Thu, 01 Oct 2026 02:37:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 59,
+  "state": "ok",
+  "elapsed_seconds": 0.86,
+  "sha256": "811943f9c60010cc9b9afbc414ff50dab21de8c623eccd1ac4e8775254800029",
+  "capture": "5a5dcfb7e7aa37f5abbb"
+}

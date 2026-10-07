@@ -1,0 +1,16 @@
+{
+  "url": "https://fruitfuloffice.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:20:12.422516+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1046,
+  "state": "ok",
+  "elapsed_seconds": 1.357,
+  "sha256": "6b39550b59a05b33df13904305e5b1a02a5052309e0f4fd4f9f98a45cbf519fb",
+  "capture": "f976a67569681be3fdfd"
+}

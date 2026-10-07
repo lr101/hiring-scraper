@@ -1,0 +1,16 @@
+{
+  "url": "https://www.etp.kit.edu/stellenangebote.php",
+  "checked_at": "2026-10-05T23:41:10.309531+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37283,
+  "state": "ok",
+  "elapsed_seconds": 1.093,
+  "sha256": "c2017ffe0a2538629b0f1d339c37d1893a314ba1838dbf0ad75b9b74c6165573",
+  "capture": "fdc7733562cc3aa0ca6a"
+}

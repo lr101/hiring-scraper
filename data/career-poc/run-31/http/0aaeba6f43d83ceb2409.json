@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe.de/stadt-rathaus/karriere-ausbildung/fuehrung-und-zusammenarbeit",
+  "checked_at": "2026-10-05T23:19:23.335506+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 614663,
+  "state": "ok",
+  "elapsed_seconds": 2.453,
+  "sha256": "ca4cf7f19dd9a88adcee8ec8123b41dcf50555e884c899d6457991aca8d64543",
+  "capture": "0aaeba6f43d83ceb2409",
+  "merged_from_run": "run-28"
+}

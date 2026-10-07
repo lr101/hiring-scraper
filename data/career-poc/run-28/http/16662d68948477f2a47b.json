@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fischer-chemie.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:33:21.837978+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 567,
+  "state": "ok",
+  "elapsed_seconds": 1.004,
+  "sha256": "5f7ab8cc480a430c908570ca2687d24ba5317eb42bd5205f9d96dc6eb66d6698",
+  "capture": "16662d68948477f2a47b"
+}

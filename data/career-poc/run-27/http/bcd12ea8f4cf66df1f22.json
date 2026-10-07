@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kvv.de/service/fundsachen.html",
+  "checked_at": "2026-10-05T22:45:02.478138+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 154163,
+  "state": "ok",
+  "elapsed_seconds": 1.251,
+  "sha256": "f2d6a292a9c02d8bd2073d469f51cb3a4c0ecd8343de7fff6dea4e3c859eef68",
+  "capture": "bcd12ea8f4cf66df1f22"
+}

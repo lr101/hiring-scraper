@@ -1,0 +1,16 @@
+{
+  "url": "https://www.obermeyer-group.com/kontakt/nationale-standorte",
+  "checked_at": "2026-10-05T23:31:35.847642+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28990,
+  "state": "http_error",
+  "elapsed_seconds": 0.98,
+  "sha256": "2ffc6475744a456145cff2238e08f1e3c405cccd8d9f76e35a053c0d455db013",
+  "capture": "adffe4d1a1fcbf191ab6"
+}

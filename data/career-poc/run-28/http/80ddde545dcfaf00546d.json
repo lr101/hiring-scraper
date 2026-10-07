@@ -1,0 +1,16 @@
+{
+  "url": "https://zimmereischeitl.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:45:52.533169+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1224,
+  "state": "ok",
+  "elapsed_seconds": 0.37,
+  "sha256": "a9573c22b85ba18db5a8606ced3708065bbc3b8fc863ff954a2e1da8febe917e",
+  "capture": "80ddde545dcfaf00546d"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.nexnoa.com/de/jobs/lebensmitteltechnikerin/",
+  "checked_at": "2026-10-05T23:29:29.825787+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 110010,
+  "state": "ok",
+  "elapsed_seconds": 1.077,
+  "sha256": "f48ac40db10bc3664cf52a0ac306901f6702faa67205961003cfeb30775b4da7",
+  "capture": "8852975e84704866bd0d"
+}

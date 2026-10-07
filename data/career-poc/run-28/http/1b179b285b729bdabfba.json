@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arcadis.com/en/privacy-for-job-applicants",
+  "checked_at": "2026-10-05T23:19:51.002295+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 130933,
+  "state": "ok",
+  "elapsed_seconds": 0.368,
+  "sha256": "713efda0e4aa6ec50ed4a4581f91a7f14102d72f099d368e8876411bc9d996bd",
+  "capture": "1b179b285b729bdabfba"
+}

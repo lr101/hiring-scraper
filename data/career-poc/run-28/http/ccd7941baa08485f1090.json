@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mb-solartechnik.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:46:12.479748+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1553,
+  "state": "ok",
+  "elapsed_seconds": 0.992,
+  "sha256": "51ba3d0fa1a132afdc3636e4274985a31f490317c7734895697113b2800593a3",
+  "capture": "ccd7941baa08485f1090"
+}

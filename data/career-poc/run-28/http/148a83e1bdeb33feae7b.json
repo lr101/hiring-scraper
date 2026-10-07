@@ -1,0 +1,16 @@
+{
+  "url": "https://sab-gmbh.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:32:07.963100+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4733,
+  "state": "ok",
+  "elapsed_seconds": 1.006,
+  "sha256": "ccd18078fe49abd510d1686087dd1844066266a9e7308e845148c5181270abd4",
+  "capture": "148a83e1bdeb33feae7b"
+}

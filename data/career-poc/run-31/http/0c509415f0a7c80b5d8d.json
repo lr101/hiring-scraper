@@ -1,0 +1,17 @@
+{
+  "url": "https://isd-ka.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:00:54.873870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "ok",
+  "elapsed_seconds": 1.644,
+  "sha256": "c0156561b35848fddb1346aef6dd1b35e94882d132cf798c258881e17b6a8da5",
+  "capture": "0c509415f0a7c80b5d8d",
+  "merged_from_run": "run-27"
+}

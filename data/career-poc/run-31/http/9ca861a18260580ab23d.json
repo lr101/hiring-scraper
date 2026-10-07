@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bonsure.com/",
+  "checked_at": "2026-10-05T23:21:30.313159+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Tue, 07 Jul 2026 11:17:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 142498,
+  "state": "ok",
+  "elapsed_seconds": 0.993,
+  "sha256": "ca1d6cf15bbe7ab69fa8ca981a3320bd2ed60fab84f4b6ed46b809ce6040fdde",
+  "capture": "9ca861a18260580ab23d",
+  "merged_from_run": "run-28"
+}

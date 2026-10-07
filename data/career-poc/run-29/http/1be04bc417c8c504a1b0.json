@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arcadis.com/de/germany/",
+  "checked_at": "2026-10-05T23:19:45.877062+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.arcadis.com/de-de",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.972,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "1be04bc417c8c504a1b0",
+  "merged_from_run": "run-28"
+}

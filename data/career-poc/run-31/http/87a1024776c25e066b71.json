@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mic.de/",
+  "checked_at": "2026-10-05T22:35:49.980398+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:11:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 48538,
+  "state": "ok",
+  "elapsed_seconds": 1.093,
+  "sha256": "3e63e882744dad611e65690b81763ecbcf3e734f654dfca43d8543a42f192a4d",
+  "capture": "87a1024776c25e066b71",
+  "merged_from_run": "run-27"
+}

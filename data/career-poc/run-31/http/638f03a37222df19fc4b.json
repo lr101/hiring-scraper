@@ -1,0 +1,17 @@
+{
+  "url": "https://www.emons.de/robots.txt",
+  "checked_at": "2026-10-05T23:16:41.043976+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 16:02:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 112,
+  "state": "ok",
+  "elapsed_seconds": 0.874,
+  "sha256": "54a7ab4621ec3e1b6317ecff35d96851e840bd708c59fd7fb239ba39667a85e8",
+  "capture": "638f03a37222df19fc4b",
+  "merged_from_run": "run-28"
+}

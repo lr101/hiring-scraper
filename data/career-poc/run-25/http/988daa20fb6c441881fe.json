@@ -1,0 +1,16 @@
+{
+  "url": "https://www.careerserviceportal.kit.edu/de/jobboerse/",
+  "checked_at": "2026-10-05T22:13:18.557924+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.careerservice.kit.edu/de/jobboerse/",
+  "bytes": 436,
+  "state": "http_error",
+  "elapsed_seconds": 0.995,
+  "sha256": "a066eabafba2ff50b43b926eaab6d685d1e97537dd09ce9216824288ce8b7c4a",
+  "capture": "988daa20fb6c441881fe"
+}

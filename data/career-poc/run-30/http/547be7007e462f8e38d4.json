@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fensterfolien-karlsruhe.com/robots.txt",
+  "checked_at": "2026-10-05T23:36:24.095250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 0.25,
+  "sha256": "5b824015bbb9c9e806c94901d9199ff84f030ef868fd66c24aad47432f8e62b0",
+  "capture": "547be7007e462f8e38d4",
+  "merged_from_run": "run-28"
+}

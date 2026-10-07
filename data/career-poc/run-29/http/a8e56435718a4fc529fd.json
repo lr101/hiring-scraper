@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tup.com/karriere-bei-tup/stellenangebote/?tax_post_tag=praktika&unfilter=1",
+  "checked_at": "2026-10-05T23:38:44.900542+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 326704,
+  "state": "ok",
+  "elapsed_seconds": 1.135,
+  "sha256": "99dead3cb948d459e9f1dbf4274bfc589a7bbfd5d4c9217ab03668680c62a68b",
+  "capture": "a8e56435718a4fc529fd",
+  "merged_from_run": "run-28"
+}

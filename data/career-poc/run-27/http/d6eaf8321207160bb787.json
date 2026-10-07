@@ -1,0 +1,16 @@
+{
+  "url": "https://chempur.de/robots.txt",
+  "checked_at": "2026-10-05T22:45:11.800191+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"145-6092615b73780\"",
+  "last_modified": "Thu, 02 Nov 2023 07:10:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 325,
+  "state": "ok",
+  "elapsed_seconds": 0.156,
+  "sha256": "6e9f90c068d789883889ece2316c809fc7e405573b3243288c3877295370d99d",
+  "capture": "d6eaf8321207160bb787"
+}

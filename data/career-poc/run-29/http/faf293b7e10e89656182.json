@@ -1,0 +1,17 @@
+{
+  "url": "https://mann-gruppe.de/",
+  "checked_at": "2026-10-05T23:21:43.863776+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40667,
+  "state": "ok",
+  "elapsed_seconds": 0.549,
+  "sha256": "2cbaf8c1241f83ddf39991589d7c46447515223388809c641432849fc9e24da7",
+  "capture": "faf293b7e10e89656182",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bergermetallbau.de/jobs",
+  "checked_at": "2026-10-05T23:41:08.933362+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 104613,
+  "state": "http_error",
+  "elapsed_seconds": 1.892,
+  "sha256": "11a03315bc113ba0b36df2536839171cec1907f3963a2e733e308632b17f0050",
+  "capture": "1e372e7543494892ac35",
+  "merged_from_run": "run-28"
+}

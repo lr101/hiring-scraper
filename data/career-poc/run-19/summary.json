@@ -1,0 +1,28 @@
+{
+  "companies": 20,
+  "statuses": {
+    "unresolved": 10,
+    "career_content_found": 9,
+    "jobs_feed_found": 1
+  },
+  "unique_requests_or_reused_captures": 144,
+  "new_requests": 0,
+  "reused_captures": 144,
+  "http_statuses": {
+    "200": 87,
+    "403": 1,
+    "301": 16,
+    "404": 33,
+    "307": 5,
+    "308": 1,
+    "network_error": 1
+  },
+  "by_cohort": {
+    "karlsruhe_it_followup_20": {
+      "unresolved": 10,
+      "career_content_found": 9,
+      "jobs_feed_found": 1
+    }
+  },
+  "finished_at": "2026-10-05T20:57:04.923572+00:00"
+}

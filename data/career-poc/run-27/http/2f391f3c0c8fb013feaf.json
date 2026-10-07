@@ -1,0 +1,16 @@
+{
+  "url": "https://www.knappschaft.de/karriere",
+  "checked_at": "2026-10-05T23:10:03.736732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:10:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 390069,
+  "state": "http_error",
+  "elapsed_seconds": 2.732,
+  "sha256": "7f6437a21bf32206a7f5ba61281a23364a0fb4e217404d287ae69149e822caa4",
+  "capture": "2f391f3c0c8fb013feaf"
+}

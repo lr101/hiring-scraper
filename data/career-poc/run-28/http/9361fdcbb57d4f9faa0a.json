@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cab.de/de/unternehmen/stellenangebote/?ref=nav_lang",
+  "checked_at": "2026-10-05T23:22:32.561633+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93218,
+  "state": "ok",
+  "elapsed_seconds": 0.817,
+  "sha256": "5eb9be5a25f5632ac11f1cd0aec6d88a23e7dba40c3576d5aebdd638ae851ab5",
+  "capture": "9361fdcbb57d4f9faa0a"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.crown.de/",
+  "checked_at": "2026-10-05T22:49:37.510726+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "application/octet-stream",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/en/",
+  "bytes": 40,
+  "state": "http_error",
+  "elapsed_seconds": 1.085,
+  "sha256": "6acddcad96703c608770b79098e5de11127cb1e982d1c2d5cad4739f68701f34",
+  "capture": "e5b00b9e95669026880d"
+}

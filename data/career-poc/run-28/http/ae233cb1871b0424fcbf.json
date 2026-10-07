@@ -1,0 +1,16 @@
+{
+  "url": "https://jegle.de/karriere/",
+  "checked_at": "2026-10-05T23:34:19.119324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:34:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 189780,
+  "state": "ok",
+  "elapsed_seconds": 1.461,
+  "sha256": "a1418cf308abdf490c7861f94dae55f7c5a8977b4572ce6e28ebb5c64db83f78",
+  "capture": "ae233cb1871b0424fcbf"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.malerbetrieb-metz.de/careers",
+  "checked_at": "2026-10-05T23:45:04.314567+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30351,
+  "state": "http_error",
+  "elapsed_seconds": 0.669,
+  "sha256": "bbd752a3cbecfc8fcad7a89faa44add686f3b2a1d1ed890870fb2d961c54a7e1",
+  "capture": "aaa7b0d4b454504ec2b4"
+}

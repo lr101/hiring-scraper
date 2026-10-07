@@ -1,0 +1,16 @@
+{
+  "url": "https://vertretung.allianz.de/agentur.zahn/",
+  "checked_at": "2026-10-05T23:44:45.074963+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5536,
+  "state": "http_error",
+  "elapsed_seconds": 0.099,
+  "sha256": "8c066c8727d7d211f12a197b9c5a22beb3cf8100c97ff4de171a98aef14f2446",
+  "capture": "54a17d5510002b5571e9"
+}

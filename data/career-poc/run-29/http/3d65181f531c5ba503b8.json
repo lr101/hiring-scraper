@@ -1,0 +1,17 @@
+{
+  "url": "https://synergie.de/niederlassung/zentrale-karlsruhe/",
+  "checked_at": "2026-10-05T23:25:17.963694+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 317331,
+  "state": "ok",
+  "elapsed_seconds": 1.949,
+  "sha256": "d1ff6bc43333210ac5daf270821435625f989749ae9441fb2b891cc753ef2934",
+  "capture": "3d65181f531c5ba503b8",
+  "merged_from_run": "run-28"
+}

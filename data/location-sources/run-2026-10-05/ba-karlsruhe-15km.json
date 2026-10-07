@@ -1,0 +1,10 @@
+{
+  "name": "ba-karlsruhe-15km",
+  "url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?wo=Karlsruhe&umkreis=15&angebotsart=1&pav=false&page=1&size=25",
+  "method": "GET",
+  "checked_at": "2026-10-05T14:42:02.983480+00:00",
+  "status": 200,
+  "content_type": "application/json",
+  "bytes": 56817,
+  "sha256": "7f4db1d0c52696bcb4b3b885966340d29533d713449db17c1e587605d7bd233e"
+}

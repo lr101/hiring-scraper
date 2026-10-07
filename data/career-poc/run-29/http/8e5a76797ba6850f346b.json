@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lesser-ing.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:19:08.108097+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1271,
+  "state": "http_error",
+  "elapsed_seconds": 1.013,
+  "sha256": "5b91dd665bf31140958c0a1a6a3de0e34b41b9ef560eb7cdcb8fd255b5266604",
+  "capture": "8e5a76797ba6850f346b",
+  "merged_from_run": "run-28"
+}

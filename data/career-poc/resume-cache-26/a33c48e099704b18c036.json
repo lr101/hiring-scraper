@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aok.de/pk/bw/",
+  "checked_at": "2026-10-05T22:20:59.302045+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"7aeeb-65d1b046bc78a\"",
+  "last_modified": "Mon, 05 Oct 2026 17:14:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 503531,
+  "state": "ok",
+  "elapsed_seconds": 1.152,
+  "sha256": "807beb1c0890ff81d4fee46e95dc323e8807749af4a7206e909eaad5e5f9d8ec",
+  "capture": "a33c48e099704b18c036"
+}

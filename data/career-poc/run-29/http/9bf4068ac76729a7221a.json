@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kintzel-akustik.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:38:48.088335+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1405,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "1ad1cee353eabb46e4f915a2f11629abf3a6a2ab92cd3a7b48fe1869cc54e591",
+  "capture": "9bf4068ac76729a7221a",
+  "merged_from_run": "run-28"
+}

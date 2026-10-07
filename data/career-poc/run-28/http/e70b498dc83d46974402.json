@@ -1,0 +1,16 @@
+{
+  "url": "https://www.frenell.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:24:36.935993+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 9292,
+  "state": "ok",
+  "elapsed_seconds": 0.933,
+  "sha256": "efff7be5bf2cbb81e48072f2a2232dce8b2abe51de1c3d47a1983081bd1d2d67",
+  "capture": "e70b498dc83d46974402"
+}

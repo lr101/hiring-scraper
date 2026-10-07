@@ -1,0 +1,16 @@
+{
+  "url": "https://omed-transporte.de/robots.txt",
+  "checked_at": "2026-10-05T22:55:32.616380+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116,
+  "state": "ok",
+  "elapsed_seconds": 0.822,
+  "sha256": "11168e745f8a87f54eff717592caf191a538e9dd00626bc0e914e76734750db2",
+  "capture": "90005164178f782d04ef"
+}

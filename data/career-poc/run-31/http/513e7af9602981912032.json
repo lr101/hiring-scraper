@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hitex.com/company/career",
+  "checked_at": "2026-10-05T23:35:34.561651+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76462,
+  "state": "ok",
+  "elapsed_seconds": 0.992,
+  "sha256": "b1e3a22ec702330ececb03ea1fe91c44aa64d492317384351baa9ffedb7a8915",
+  "capture": "513e7af9602981912032",
+  "merged_from_run": "run-28"
+}

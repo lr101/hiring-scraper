@@ -1,0 +1,17 @@
+{
+  "url": "https://onlineportal.freunde-waldorf.de/register/basic/init-registration",
+  "checked_at": "2026-10-05T23:33:55.366872+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"wafuxofbhs3tzq\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 179235,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "10d0f57063f7a46f3ec51b72f6b516c5cf6438db56c3cbead66866a5b4732569",
+  "capture": "0c7a9c990e61b041431f",
+  "merged_from_run": "run-28"
+}

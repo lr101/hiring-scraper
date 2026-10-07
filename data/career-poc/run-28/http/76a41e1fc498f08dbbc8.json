@@ -1,0 +1,16 @@
+{
+  "url": "https://fiba-kredit.de/Karriere.html",
+  "checked_at": "2026-10-05T23:26:31.660374+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123714,
+  "state": "ok",
+  "elapsed_seconds": 1.568,
+  "sha256": "58e26b5bab2ea13eb944e46dc0088710c95d5d0fc004fc2414e29135f53c4ecd",
+  "capture": "76a41e1fc498f08dbbc8"
+}

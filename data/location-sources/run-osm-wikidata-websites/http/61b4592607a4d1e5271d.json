@@ -1,0 +1,16 @@
+{
+  "url": "https://www.contargo.net/",
+  "checked_at": "2026-10-06T07:07:36.293285+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 307,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.contargo.net/de/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.266,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "61b4592607a4d1e5271d"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zoll-karriere.de/SiteGlobals/Forms/Karriere/Stellenangebote/Stellenangebote_Formular.html?resultsPerPage=10",
+  "checked_at": "2026-10-05T23:26:43.777697+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82614,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "3a3b4f91a47625b60d0c5c80f9510b4fbe58673c9883fbdbe0f21de9eb9d5116",
+  "capture": "87f7c4f9851b6d50012f"
+}

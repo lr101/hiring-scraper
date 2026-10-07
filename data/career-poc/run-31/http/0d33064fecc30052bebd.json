@@ -1,0 +1,17 @@
+{
+  "url": "https://www.myhaeppygarten.com/careers",
+  "checked_at": "2026-10-05T23:42:23.651834+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49007,
+  "state": "http_error",
+  "elapsed_seconds": 0.99,
+  "sha256": "8e1bade4c6192abb811db317af3b911057556bbaa8ebd26d5b22e907983097d3",
+  "capture": "0d33064fecc30052bebd",
+  "merged_from_run": "run-28"
+}

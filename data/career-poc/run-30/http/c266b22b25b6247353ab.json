@@ -1,0 +1,17 @@
+{
+  "url": "https://kv-ettlingen.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:35:40.784240+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 812,
+  "state": "ok",
+  "elapsed_seconds": 0.995,
+  "sha256": "de8ce61abbe530b9d4fee599709cd5bbb1daf2a5df988b34fa04ec74bda4003c",
+  "capture": "c266b22b25b6247353ab",
+  "merged_from_run": "run-28"
+}

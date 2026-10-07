@@ -1,0 +1,17 @@
+{
+  "url": "https://www.papershift.com/",
+  "checked_at": "2026-10-05T23:32:20.918174+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:41:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 168630,
+  "state": "ok",
+  "elapsed_seconds": 1.066,
+  "sha256": "eb8a5a3752728cc676f38b436b9810e615d634e841b6d53f1b835ef5c05c9848",
+  "capture": "316dbf2fafae76120ae3",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.3f3e-hausverwaltung.de/karriere/",
+  "checked_at": "2026-10-05T22:17:04.791281+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6703a4d4-bb47\"",
+  "last_modified": "Mon, 07 Oct 2024 09:07:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 47943,
+  "state": "ok",
+  "elapsed_seconds": 1.14,
+  "sha256": "2f2ba9ddef34971d5455360611a6459530511baf563e74b8b7de03b5fd44df61",
+  "capture": "c5f3b6cf9dc11852fc42",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://hewi-fugen.de/",
+  "checked_at": "2026-10-05T23:29:10.649130+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"5e21851b-2681\"",
+  "last_modified": "Fri, 17 Jan 2020 09:57:47 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 9857,
+  "state": "ok",
+  "elapsed_seconds": 0.889,
+  "sha256": "cae5205805ba8395a8ee53c93565f5d9c621dd368f5d4ae6e5d43042e6614513",
+  "capture": "0bc4e0662d66d466a278",
+  "merged_from_run": "run-28"
+}

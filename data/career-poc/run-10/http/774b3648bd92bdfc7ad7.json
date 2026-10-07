@@ -1,0 +1,14 @@
+{
+  "url": "https://www.inovex.de/robots.txt",
+  "checked_at": "2026-10-05T09:08:19.736035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "location": null,
+  "bytes": 354,
+  "state": "ok",
+  "elapsed_seconds": 0.3,
+  "sha256": "2b3cf1ade8355074b047b7d780ed0bd3a0cab95534d32407374da79aee484720",
+  "capture": "774b3648bd92bdfc7ad7",
+  "reused_from": "data/career-poc/run-09/http/774b3648bd92bdfc7ad7.json"
+}

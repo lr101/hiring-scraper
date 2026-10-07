@@ -1,0 +1,16 @@
+{
+  "url": "https://www.miro-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:11.544732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93,
+  "state": "ok",
+  "elapsed_seconds": 0.442,
+  "sha256": "4038156b1296d1470f134299deec9883ae03c89cd65481e4f27490651c455c57",
+  "capture": "de899243f4f37f95be9f"
+}

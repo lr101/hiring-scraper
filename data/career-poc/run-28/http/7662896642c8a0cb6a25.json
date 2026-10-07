@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoepfner.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:22.172804+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"66e81778-14b\"",
+  "last_modified": "Mon, 16 Sep 2024 11:33:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 331,
+  "state": "ok",
+  "elapsed_seconds": 0.203,
+  "sha256": "0c53a50f46e0f2f334f9dd2d5e58bc7bf592277df30accd27e854425f30e6296",
+  "capture": "7662896642c8a0cb6a25"
+}

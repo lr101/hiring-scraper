@@ -1,0 +1,17 @@
+{
+  "url": "https://www.geruestbau-kammerer.de/careers",
+  "checked_at": "2026-10-05T23:40:07.675393+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 36663,
+  "state": "http_error",
+  "elapsed_seconds": 0.841,
+  "sha256": "ab277ec566e08e8f119d49c2332e2a9f95ed12ce44f3bb194fb0fc01162b10da",
+  "capture": "2acfde05540efb9e303d",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schlosserei-peter-mann.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:07.262320+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 99,
+  "state": "ok",
+  "elapsed_seconds": 0.194,
+  "sha256": "f4be116b6ba137c8037617a4eb951182f259eb799c75988ec9c03fdf9998788e",
+  "capture": "f72d5630691610111685"
+}

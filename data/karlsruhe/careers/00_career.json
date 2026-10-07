@@ -1,0 +1,12 @@
+{
+  "url": "https://megacycle-gmbh.de/stellenangebote/",
+  "checked_at": "2026-10-05T08:22:51.268781+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://megacycle-gmbh.de/stellenangebote/",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 115780,
+  "truncated": false,
+  "elapsed_seconds": 0.74,
+  "sha256": "79bfc350ce50bf24881ea236318c40fa5d8411ab3e8e56d6a67c2465c0e3f0ab"
+}

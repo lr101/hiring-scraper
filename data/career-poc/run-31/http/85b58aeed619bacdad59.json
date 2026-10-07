@@ -1,0 +1,17 @@
+{
+  "url": "https://immo-gartner.de/careers",
+  "checked_at": "2026-10-05T23:30:23.095213+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65403,
+  "state": "http_error",
+  "elapsed_seconds": 1.236,
+  "sha256": "2868044cf455da2cc43c8bd64dc4833aad1118cd53c887441ba48490753d50d4",
+  "capture": "85b58aeed619bacdad59",
+  "merged_from_run": "run-28"
+}

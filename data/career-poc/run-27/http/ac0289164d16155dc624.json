@@ -1,0 +1,16 @@
+{
+  "url": "https://lutzbeck.de/",
+  "checked_at": "2026-10-05T23:02:30.919235+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:24:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 295557,
+  "state": "ok",
+  "elapsed_seconds": 1.236,
+  "sha256": "852a1524890119caa75268bcf046dad59c90b52ba6353a4d76c30a8ab65798e6",
+  "capture": "ac0289164d16155dc624"
+}

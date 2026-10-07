@@ -1,0 +1,16 @@
+{
+  "url": "https://lbp-patent.de/en/our-office/career/",
+  "checked_at": "2026-10-05T23:13:09.802379+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51154,
+  "state": "ok",
+  "elapsed_seconds": 3.089,
+  "sha256": "fbc9113275daff838b96ac4d0d21c1e09184363516e774c7e63b59cfaa59c8ae",
+  "capture": "39494574bf6d32920aab"
+}

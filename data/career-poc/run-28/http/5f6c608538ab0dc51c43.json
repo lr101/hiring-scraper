@@ -1,0 +1,16 @@
+{
+  "url": "https://www.imkaaf.kit.edu/deutsch/Stellenangebote_948.php",
+  "checked_at": "2026-10-05T23:41:21.509909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 42754,
+  "state": "ok",
+  "elapsed_seconds": 0.989,
+  "sha256": "1fa193dfe21bd04ad8f59e6e3cb7b45b6dd167fe71679010737cddf1cfe99aaa",
+  "capture": "5f6c608538ab0dc51c43"
+}

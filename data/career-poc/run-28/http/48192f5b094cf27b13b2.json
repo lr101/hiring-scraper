@@ -1,0 +1,16 @@
+{
+  "url": "https://meisteramwerk.de/careers",
+  "checked_at": "2026-10-05T23:46:28.520589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111658,
+  "state": "http_error",
+  "elapsed_seconds": 0.815,
+  "sha256": "e09a00bdfd90ccebedb2040d39bfca34631921f36e870e52d79cb760812cb2ec",
+  "capture": "48192f5b094cf27b13b2"
+}

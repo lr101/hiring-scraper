@@ -1,0 +1,17 @@
+{
+  "url": "https://horizonmicrotechnologies.com/career/team-assistant/",
+  "checked_at": "2026-10-05T23:06:39.493269+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109727,
+  "state": "ok",
+  "elapsed_seconds": 3.089,
+  "sha256": "10a66488951f12d166d513b33552987de5763b6af5c757410682f561efe2e81a",
+  "capture": "ada8a14f205fd5ad0788",
+  "merged_from_run": "run-27"
+}

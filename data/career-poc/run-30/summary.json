@@ -1,0 +1,47 @@
+{
+  "scope": "Karlsruhe OSM 15 km candidate set",
+  "candidate_count": 2251,
+  "website_seeds": 1606,
+  "no_website_candidates": 645,
+  "invalid_website_candidates": 0,
+  "unique_website_urls": 1556,
+  "unique_hosts": 1506,
+  "crawled_candidates": 1606,
+  "statuses": {
+    "jobs_extracted": 156,
+    "career_content_found": 467,
+    "unresolved": 936,
+    "jobs_feed_found": 42,
+    "ats_identified": 5
+  },
+  "career_pages_or_providers": 670,
+  "parsed_feeds": 205,
+  "feeds_by_provider": {
+    "html_jobs": 163,
+    "personio": 32,
+    "lever": 2,
+    "schema_org": 5,
+    "greenhouse": 3
+  },
+  "parsed_jobs": 1639,
+  "jobs_by_provider": {
+    "html_jobs": 548,
+    "personio": 423,
+    "lever": 200,
+    "schema_org": 290,
+    "greenhouse": 178
+  },
+  "html_role_rows_before_external_source_filter": 838,
+  "trusted_html_role_rows": 548,
+  "excluded_unverified_external_role_rows": 290,
+  "unverified_external_pages": 54,
+  "unique_http_captures": 9865,
+  "live_unique_http_urls": 9865,
+  "finished_at": "2026-10-06T07:19:26.997865+00:00",
+  "input_runs": [
+    "run-25",
+    "run-26",
+    "run-27",
+    "run-28"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "companies": 11,
+  "statuses": {
+    "career_content_found": 6,
+    "unresolved": 5
+  },
+  "unique_requests_or_reused_captures": 88,
+  "new_requests": 0,
+  "reused_captures": 88,
+  "http_statuses": {
+    "301": 12,
+    "404": 13,
+    "200": 56,
+    "302": 2,
+    "303": 4,
+    "307": 1
+  },
+  "by_cohort": {
+    "wikidata_hq_karlsruhe_25km": {
+      "career_content_found": 6,
+      "unresolved": 5
+    }
+  },
+  "finished_at": "2026-10-05T15:06:19.412986+00:00"
+}

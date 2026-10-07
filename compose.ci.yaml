@@ -1,0 +1,21 @@
+# Run through scripts/ci/run.sh: a unique project and fresh credentials isolate CI.
+services:
+  quality:
+    image: ${HIRING_QUALITY_IMAGE:-hiring-scraper-checks:dev}
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    environment:
+      DATABASE_URL: sqlite:////tmp/hiring-checks.sqlite3
+    network_mode: none
+    init: true
+
+  smoke:
+    image: ${HIRING_QUALITY_IMAGE:-hiring-scraper-checks:dev}
+    command: ["python", "scripts/ci/smoke.py"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://hiring_app:${HIRING_DB_PASSWORD:?Set HIRING_DB_PASSWORD}@db:5432/hiring
+    depends_on:
+      web:
+        condition: service_healthy
+    init: true

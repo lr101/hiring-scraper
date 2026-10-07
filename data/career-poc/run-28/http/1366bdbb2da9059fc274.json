@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ametek.de/careers/equal-opportunities",
+  "checked_at": "2026-10-05T23:20:52.404108+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78993,
+  "state": "ok",
+  "elapsed_seconds": 1.873,
+  "sha256": "861ec1d6ee8c56ecf5a4efbdcf0dbb5b50c9bb18cc0d6554f3a61d7680cb1aa0",
+  "capture": "1366bdbb2da9059fc274"
+}

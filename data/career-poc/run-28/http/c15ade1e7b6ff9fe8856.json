@@ -1,0 +1,16 @@
+{
+  "url": "https://blaupause.studio/karriere",
+  "checked_at": "2026-10-05T23:15:10.194742+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 41821,
+  "state": "http_error",
+  "elapsed_seconds": 1.031,
+  "sha256": "cc2f699f6b49f2a2092d082ddb8b9da56978509ae10ae7ce2ce56e870e7fa60c",
+  "capture": "c15ade1e7b6ff9fe8856"
+}

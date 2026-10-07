@@ -1,0 +1,16 @@
+{
+  "url": "https://www.systec-solutions.com/de/startseite",
+  "checked_at": "2026-10-05T23:23:13.812245+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.systec-solutions.com/de/",
+  "bytes": 680,
+  "state": "http_error",
+  "elapsed_seconds": 1.014,
+  "sha256": "e87a89d70cb97ba00b7a55b27fe9a89cc2f6d384e89be4b00cfa19a3980cc442",
+  "capture": "5224b976d38e659d1512"
+}

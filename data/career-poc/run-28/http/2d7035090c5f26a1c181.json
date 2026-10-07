@@ -1,0 +1,16 @@
+{
+  "url": "https://www.guthmann-gmbh.com/",
+  "checked_at": "2026-10-05T23:43:31.211774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11357,
+  "state": "ok",
+  "elapsed_seconds": 1.762,
+  "sha256": "d9c3208498ce0945d89d8a9f484e1c45b43d76cc3ba79f54db5f04050d234d14",
+  "capture": "2d7035090c5f26a1c181"
+}

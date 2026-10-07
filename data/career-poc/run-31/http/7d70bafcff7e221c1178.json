@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ruv.de/karriere/blog",
+  "checked_at": "2026-10-05T22:59:10.969181+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:53:55 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 107947,
+  "state": "ok",
+  "elapsed_seconds": 1.103,
+  "sha256": "f3b84ec68a9bce56d4dd4bb0098013db8fe7fd5ecfde1b13a20f7bdc98e6c356",
+  "capture": "7d70bafcff7e221c1178",
+  "merged_from_run": "run-27"
+}

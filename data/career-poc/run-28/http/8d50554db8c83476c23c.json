@@ -1,0 +1,16 @@
+{
+  "url": "https://www.awo-baden.de/jobs-und-karriere",
+  "checked_at": "2026-10-05T23:33:53.199392+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60686,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "700c5e18f0eface7df620585d88ff87c01878e187da02a801358be74975c1544",
+  "capture": "8d50554db8c83476c23c"
+}

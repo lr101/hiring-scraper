@@ -1,0 +1,17 @@
+{
+  "url": "https://www.michael-roth-elektro.de/",
+  "checked_at": "2026-10-05T23:26:11.674783+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"3809-65a544609875a\"",
+  "last_modified": "Mon, 31 Aug 2026 09:17:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 14345,
+  "state": "ok",
+  "elapsed_seconds": 1.023,
+  "sha256": "bb318a1b730ea7940796b09a4463e689b4ad9c244ff4ebcbe7394d9d71d1efbf",
+  "capture": "4af940c0bb84294ea1ac",
+  "merged_from_run": "run-28"
+}

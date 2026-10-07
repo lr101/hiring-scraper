@@ -1,0 +1,17 @@
+{
+  "url": "https://www.baden-tv.com/sitemap/page.xml",
+  "checked_at": "2026-10-05T23:12:06.461213+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32516,
+  "state": "ok",
+  "elapsed_seconds": 1.191,
+  "sha256": "be22d9e6e09c949dcff03f4b7bd34e78c1e80523e0ae6fa85809062cd1ea51f0",
+  "capture": "8819af16cfb2c11c1dc0",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hief-heinzmann.de/karriere",
+  "checked_at": "2026-10-05T23:28:16.543392+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 274212,
+  "state": "ok",
+  "elapsed_seconds": 0.986,
+  "sha256": "db9dfb7f1174a80d713e00832078a45b1fa12b5b4755e1242185bf12385336c0",
+  "capture": "3a57ec0f3d09d29a4b98",
+  "merged_from_run": "run-28"
+}

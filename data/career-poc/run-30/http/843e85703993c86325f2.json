@@ -1,0 +1,17 @@
+{
+  "url": "https://herrmann-kutscher.de/robots.txt",
+  "checked_at": "2026-10-05T23:39:59.556520+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 2.03,
+  "sha256": "97b6e436fd79a2a15ef7c41af38078fc08cc2bd5eb94ebfbb8589d24b1605563",
+  "capture": "843e85703993c86325f2",
+  "merged_from_run": "run-28"
+}

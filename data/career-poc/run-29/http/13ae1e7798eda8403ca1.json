@@ -1,0 +1,17 @@
+{
+  "url": "http://jobwall.de/robots.txt",
+  "checked_at": "2026-10-05T22:10:20.725388+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://jobwall.de/robots.txt",
+  "bytes": 289,
+  "state": "http_error",
+  "elapsed_seconds": 0.19,
+  "sha256": "de4988a5d541fa7544195b437547fdc9b092c58d31ca06c6cc522302b1a24aa2",
+  "capture": "13ae1e7798eda8403ca1",
+  "merged_from_run": "run-25"
+}

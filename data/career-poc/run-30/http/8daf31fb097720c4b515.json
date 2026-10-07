@@ -1,0 +1,17 @@
+{
+  "url": "https://www.rae-recklies.de/karriere",
+  "checked_at": "2026-10-05T22:40:21.791645+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2205,
+  "state": "http_error",
+  "elapsed_seconds": 1.194,
+  "sha256": "a633c4f56d2dbb610e5b2b84fcf84da0f5eee3e7c1967d9bfd905245bfb1cd29",
+  "capture": "8daf31fb097720c4b515",
+  "merged_from_run": "run-27"
+}

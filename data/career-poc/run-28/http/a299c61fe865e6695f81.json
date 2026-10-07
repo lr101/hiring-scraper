@@ -1,0 +1,16 @@
+{
+  "url": "https://www.oberacker.de/karriere",
+  "checked_at": "2026-10-05T23:45:48.650352+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"5b2762d9-cd\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 205,
+  "state": "http_error",
+  "elapsed_seconds": 0.949,
+  "sha256": "dbd99eb8ce58f00635c903d998a55c82969c010e0731334e95a60a020fef311f",
+  "capture": "a299c61fe865e6695f81"
+}

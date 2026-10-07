@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schreinerei-kastner.de/karriere",
+  "checked_at": "2026-10-05T23:45:44.672509+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1791243945\"",
+  "last_modified": "Mon, 05 Oct 2026 23:45:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 49489,
+  "state": "http_error",
+  "elapsed_seconds": 1.092,
+  "sha256": "c9da4b6eac354a41ffbafe07b625a58898ded680ffbf78d68d932ec0c3a49ee8",
+  "capture": "1828f6514d3cbc47261e"
+}

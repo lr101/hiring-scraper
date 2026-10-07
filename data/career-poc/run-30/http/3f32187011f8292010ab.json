@@ -1,0 +1,17 @@
+{
+  "url": "https://www.yellowmap.com/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:22:48.955917+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 35555,
+  "state": "ok",
+  "elapsed_seconds": 1.198,
+  "sha256": "9890663d769d07556b27241f2527630c5395ba20913a435e3601f1e1118a0270",
+  "capture": "3f32187011f8292010ab",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schuesslerplan-karriere.de/",
+  "checked_at": "2026-10-05T23:14:47.171405+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52145,
+  "state": "ok",
+  "elapsed_seconds": 0.998,
+  "sha256": "283588476f6d1e82dd194d9cd3ddebd971384ac244514b77b5cb263fa4a899f5",
+  "capture": "4a59692b6f8c4214693f",
+  "merged_from_run": "run-28"
+}

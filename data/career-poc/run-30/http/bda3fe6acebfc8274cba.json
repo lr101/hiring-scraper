@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.iscar.de/robots.txt",
+  "checked_at": "2026-10-05T23:41:43.191959+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 0.742,
+  "sha256": "71c2586dcc6727482c9bc07be0c9ffb95e366aac193c0b35ad0fc1b9af98dec9",
+  "capture": "bda3fe6acebfc8274cba",
+  "merged_from_run": "run-28"
+}

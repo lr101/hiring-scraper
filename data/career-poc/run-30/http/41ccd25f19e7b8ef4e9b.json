@@ -1,0 +1,17 @@
+{
+  "url": "https://www.j-koenig.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:21:38.634428+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 529,
+  "state": "ok",
+  "elapsed_seconds": 0.838,
+  "sha256": "22c993f20b4701a7792b8ce7a860a595f73073a82c82c9223a62390c2b5b3a52",
+  "capture": "41ccd25f19e7b8ef4e9b",
+  "merged_from_run": "run-28"
+}

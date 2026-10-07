@@ -1,0 +1,17 @@
+{
+  "url": "https://archidee-ka.net/karriere",
+  "checked_at": "2026-10-05T23:09:13.544521+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65873,
+  "state": "http_error",
+  "elapsed_seconds": 1.86,
+  "sha256": "ea5b8af40ab67410911a9f51c71fd399d3335e712cd3f48ad0c313c750651222",
+  "capture": "274f34bee599aab9b460",
+  "merged_from_run": "run-27"
+}

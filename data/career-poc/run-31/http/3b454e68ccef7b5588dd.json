@@ -1,0 +1,17 @@
+{
+  "url": "https://zeppelin.wd3.myworkdayjobs.com/de-DE/careers?hiringCompany=a3ea14ce5cdc0150bb649351ae006408",
+  "checked_at": "2026-10-05T23:36:23.321035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 8186,
+  "state": "ok",
+  "elapsed_seconds": 1.109,
+  "sha256": "a1f0c5646e4d0217273d76e136764e646b3d7e2e428e1b0a1057879356fb93e1",
+  "capture": "3b454e68ccef7b5588dd",
+  "merged_from_run": "run-28"
+}

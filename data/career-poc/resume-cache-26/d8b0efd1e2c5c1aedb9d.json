@@ -1,0 +1,16 @@
+{
+  "url": "https://alphaconsult.org/interne-karriere",
+  "checked_at": "2026-10-05T22:17:13.497416+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 249149,
+  "state": "ok",
+  "elapsed_seconds": 0.13,
+  "sha256": "2fdf718b399662f2f52ad38787436bc39656c352d1143480d502d34b0b562229",
+  "capture": "d8b0efd1e2c5c1aedb9d"
+}

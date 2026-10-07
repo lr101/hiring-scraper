@@ -1,0 +1,17 @@
+{
+  "url": "https://bdarchitekten.com/",
+  "checked_at": "2026-10-05T22:47:38.096435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47018,
+  "state": "ok",
+  "elapsed_seconds": 0.219,
+  "sha256": "f561bb5fba9604237c6d0724b6a9af4145fdc345c6b2e76c711285a10d0c940a",
+  "capture": "ce1d9218fa8676f70513",
+  "merged_from_run": "run-27"
+}

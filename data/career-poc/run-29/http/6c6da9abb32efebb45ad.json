@@ -1,0 +1,17 @@
+{
+  "url": "https://alemannen.de/",
+  "checked_at": "2026-10-05T22:11:02.140581+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196376,
+  "state": "ok",
+  "elapsed_seconds": 1.982,
+  "sha256": "c1ea68500f172d546c31ec1d57e0d30428ca965befb1e40d50cdb2582d563cb6",
+  "capture": "6c6da9abb32efebb45ad",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hallenkind.com/robots.txt",
+  "checked_at": "2026-10-05T23:17:39.554626+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1ec-i+hU01yWHZQr+t6EK0MtDHBFC+U\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 492,
+  "state": "ok",
+  "elapsed_seconds": 1.137,
+  "sha256": "bb4ee920a5c3dbaf3ee4088c0449a82b9cde8e20e58f41e1eaf35b606c955c3b",
+  "capture": "ecd63a63ef99f5f48319"
+}

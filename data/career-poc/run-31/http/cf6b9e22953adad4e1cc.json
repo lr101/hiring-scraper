@@ -1,0 +1,17 @@
+{
+  "url": "https://www.interpneu.de/unternehmen/karriere-und-ausbildung/stellenangebote?tx_tanxmlparser_tanxmlparser%5Baction%5D=list&tx_tanxmlparser_tanxmlparser%5Bcontroller%5D=Xmlparser&tx_tanxmlparser_tanxmlparser%5Bordering%5D=jobtitle_asc&cHash=8e1eaf7f28aff102cac672faeca0e32a",
+  "checked_at": "2026-10-05T23:35:08.414225+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 233099,
+  "state": "ok",
+  "elapsed_seconds": 0.919,
+  "sha256": "498a26db9012e02948119b50d779334e8e28bdb4a28faa0ac99a50909f65e204",
+  "capture": "cf6b9e22953adad4e1cc",
+  "merged_from_run": "run-28"
+}

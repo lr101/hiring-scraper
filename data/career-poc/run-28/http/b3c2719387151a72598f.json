@@ -1,0 +1,16 @@
+{
+  "url": "https://boka-sanitaer.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:28.196027+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 174,
+  "state": "ok",
+  "elapsed_seconds": 0.265,
+  "sha256": "6a5184dae48150ae3c1735c540e6914156c222a63c16eccdffeb3bf289dd40a9",
+  "capture": "b3c2719387151a72598f"
+}

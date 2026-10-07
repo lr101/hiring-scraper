@@ -1,0 +1,16 @@
+{
+  "url": "https://wasserundboden.kea-bw.de/careers",
+  "checked_at": "2026-10-05T23:03:25.629362+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17709,
+  "state": "http_error",
+  "elapsed_seconds": 1.373,
+  "sha256": "b4f615772c2e9db5a820c588b7b89e609bc743345c72b174327725bc44acd62e",
+  "capture": "51110184507b03bbebb1"
+}

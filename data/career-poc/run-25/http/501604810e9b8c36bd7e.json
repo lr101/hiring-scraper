@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ihk.de/karlsruhe/robots.txt",
+  "checked_at": "2026-10-05T22:06:00.024153+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ihk.de/blueprint/servlet/resource/blob/2444712/4c546159139f97ed0f3b6c4fd62d31da/robots-data.txt?shortUrl=%2Frobots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.62,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "501604810e9b8c36bd7e"
+}

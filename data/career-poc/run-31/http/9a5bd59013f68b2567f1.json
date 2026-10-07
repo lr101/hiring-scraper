@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.atruvia.de/studierende/",
+  "checked_at": "2026-10-05T23:25:21.260120+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91024,
+  "state": "ok",
+  "elapsed_seconds": 0.712,
+  "sha256": "cb602ae0935ec6aa6dad225f314c94e9854dfac1019737485f65a8ed209078bd",
+  "capture": "9a5bd59013f68b2567f1",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://julialacht.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:32:39.300987+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1177,
+  "state": "ok",
+  "elapsed_seconds": 0.63,
+  "sha256": "9a10db07db1f9fa09cb0f027de466b86dbeff8a87d7fa9af2304fd6f3a34304e",
+  "capture": "82af95c00f39cc33599c"
+}

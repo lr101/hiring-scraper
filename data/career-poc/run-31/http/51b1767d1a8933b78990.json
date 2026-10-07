@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ineratec.de/de/jobs/initiativbewerbung-__480651",
+  "checked_at": "2026-10-05T23:29:03.907881+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 39079,
+  "state": "ok",
+  "elapsed_seconds": 0.747,
+  "sha256": "bd6a738f5f092357e7ffd9fec5150f568f31bcfa2684c35df96e5b676a085813",
+  "capture": "51b1767d1a8933b78990",
+  "merged_from_run": "run-28"
+}

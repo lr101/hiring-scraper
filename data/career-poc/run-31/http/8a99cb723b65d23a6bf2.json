@@ -1,0 +1,17 @@
+{
+  "url": "http://versicherungsmakler-nickel.expertenhomepage.de/",
+  "checked_at": "2026-10-05T23:41:00.253986+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://versicherungsmakler-nickel.expertenhomepage.de/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.743,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "8a99cb723b65d23a6bf2",
+  "merged_from_run": "run-28"
+}

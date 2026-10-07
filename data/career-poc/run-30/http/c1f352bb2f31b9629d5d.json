@@ -1,0 +1,17 @@
+{
+  "url": "https://www.krankengymnastik-konz.de/jobs",
+  "checked_at": "2026-10-05T22:18:48.528288+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60783,
+  "state": "http_error",
+  "elapsed_seconds": 1.169,
+  "sha256": "ef29d523ae562ea48061ff985e35893e462deae86ecf58401a4a9f01a07f71db",
+  "capture": "c1f352bb2f31b9629d5d",
+  "merged_from_run": "run-25"
+}

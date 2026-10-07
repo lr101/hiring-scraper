@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rmgmbh.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:34:24.040575+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"703-5d51075d0052b\"",
+  "last_modified": "Sat, 08 Jan 2022 11:32:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1795,
+  "state": "ok",
+  "elapsed_seconds": 1.032,
+  "sha256": "6779c8487b541bdd7d87f79c6a27f4f6becb7262fe6ce71bcc241f954c69138e",
+  "capture": "0891b551a2b89f04839f"
+}

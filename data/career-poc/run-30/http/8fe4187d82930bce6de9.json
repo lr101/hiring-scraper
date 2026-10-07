@@ -1,0 +1,17 @@
+{
+  "url": "https://www.generalbundesanwalt.de/DE/Wir-ueber-uns/Stellenausschreibungen/stellenausschreibungen-node.html?gts=478950_list%253DdateOfIssue_dt%252Basc",
+  "checked_at": "2026-10-05T22:56:05.246785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:56:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 37854,
+  "state": "ok",
+  "elapsed_seconds": 1.248,
+  "sha256": "132ead4516cb5abf8942eeefcb148b9caa5e2055a7ee8dad5ef0d21d7cd8aa87",
+  "capture": "8fe4187d82930bce6de9",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.martin-anwaelte.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:09.024533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 292,
+  "state": "ok",
+  "elapsed_seconds": 3.34,
+  "sha256": "dc6a4b6f883c3fd70fe0073c5bde2275553a641bf44fd5e6a98fcdb4b5613456",
+  "capture": "191d9782082de27dfdac"
+}

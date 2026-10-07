@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rheinstetten.de/rathaus-und-service/karriere",
+  "checked_at": "2026-10-05T23:42:00.448355+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37471,
+  "state": "ok",
+  "elapsed_seconds": 0.962,
+  "sha256": "8809edc571ac82b3ce778e50d4e481a35c88b20194291af6340058ae29d6296e",
+  "capture": "841d2f8e0f4d1ead8445"
+}

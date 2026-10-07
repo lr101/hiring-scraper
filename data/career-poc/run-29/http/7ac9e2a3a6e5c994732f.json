@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.exxeta.com/search",
+  "checked_at": "2026-10-05T22:59:40.102750+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 879506,
+  "state": "ok",
+  "elapsed_seconds": 1.355,
+  "sha256": "e261a5ee627609f657a6bbed1b9597865a95868bde15f8fc0c5b4e0f54251810",
+  "capture": "7ac9e2a3a6e5c994732f",
+  "merged_from_run": "run-27"
+}

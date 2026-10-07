@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rupp-siebe.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:42:48.668619+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "W/\"270-FmqNi5mK2tT62dLeEl67dmMFCV8\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 624,
+  "state": "ok",
+  "elapsed_seconds": 0.987,
+  "sha256": "deb73bc528f2dff6d8f3c4b01efa39c5f3c6ee897d0b9d7a1e30e5330e031671",
+  "capture": "77c600cb3b9b1a14153f"
+}

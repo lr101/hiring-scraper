@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bugglinbessler.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:29.637236+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"344-5fd0ec8d00a00\"",
+  "last_modified": "Thu, 01 Jun 2023 10:20:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 836,
+  "state": "ok",
+  "elapsed_seconds": 0.965,
+  "sha256": "d974f42f070bb96d4601c706c54f883b73a2e8334117a270682608e58c6f8cc4",
+  "capture": "4bb8318436d669f98150"
+}

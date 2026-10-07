@@ -1,0 +1,13 @@
+{
+  "url": "https://www.unic.com/de/jobs/corporate-functions",
+  "checked_at": "2026-10-05T14:05:02.623383+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 283186,
+  "state": "ok",
+  "elapsed_seconds": 1.447,
+  "sha256": "5b59b1f8f49a32ab4fdb064362fd0c54a7f63f0017bf5afd12ee65ec0f08fe25",
+  "capture": "b6d06c18aad5a8ebe90f"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://tramm.info/careers",
+  "checked_at": "2026-10-05T23:13:25.703904+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 205,
+  "state": "http_error",
+  "elapsed_seconds": 1.134,
+  "sha256": "027942c62319ff6b4ee291b15fdbebabee738deeb42974e0c55cfa9c2974fde4",
+  "capture": "e74fe5947af7a1e0ea58",
+  "merged_from_run": "run-27"
+}

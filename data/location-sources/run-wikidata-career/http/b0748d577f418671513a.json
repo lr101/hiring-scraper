@@ -1,0 +1,13 @@
+{
+  "url": "https://storch-beller.de/startseite/karriere/jobs/",
+  "checked_at": "2026-10-05T14:48:37.861172+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 32936,
+  "state": "ok",
+  "elapsed_seconds": 3.339,
+  "sha256": "f090829a263c5af2787081842fd5be814f922e02637ef914c701f910a84ea07c",
+  "capture": "b0748d577f418671513a"
+}

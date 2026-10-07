@@ -1,0 +1,16 @@
+{
+  "url": "https://lesser-rechtsanwaelte.de/karriere/",
+  "checked_at": "2026-10-05T22:09:51.978204+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64779,
+  "state": "ok",
+  "elapsed_seconds": 1.351,
+  "sha256": "331d90b347a1d4f57c53666ff3afd0be8ced0640ea7e60d1accc359677d9fe9d",
+  "capture": "5fe1a307e7b7b47b1213"
+}

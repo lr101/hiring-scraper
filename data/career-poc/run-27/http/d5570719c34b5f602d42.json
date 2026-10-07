@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bub-consulting-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:47:55.050520+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"4f-nO2qdcJTXJx2TYsZlYyEAzeKfTA\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 79,
+  "state": "ok",
+  "elapsed_seconds": 0.148,
+  "sha256": "d15f535d6632be08b20e2280ec311ca7e498517039414ddc407dce9fd9717a4e",
+  "capture": "d5570719c34b5f602d42"
+}

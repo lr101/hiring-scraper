@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dvag-karriere.de/Baerbel.Gessler",
+  "checked_at": "2026-10-05T23:46:18.198946+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.dvag-karriere.de/#baerbel.gessler",
+  "bytes": 292,
+  "state": "http_error",
+  "elapsed_seconds": 0.981,
+  "sha256": "16b5209c4cc1291a8febeeb72b9f9f685073b32b1107ab21aeee7f8d784147e9",
+  "capture": "8d0cb04e5769b3c04ce0"
+}

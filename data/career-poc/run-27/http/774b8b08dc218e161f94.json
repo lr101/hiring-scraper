@@ -1,0 +1,16 @@
+{
+  "url": "https://db.jobs/service/search/de-de/7707604?qli=true&query=&itemsPerPage=0&pageNum=0&country=Deutschland&legalentity=DB+Engineering+%26+Consulting+GmbH",
+  "checked_at": "2026-10-05T22:58:20.824624+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://db.jobs/service/search/de-de/5441588?qli=true&query=&itemsPerPage=0&pageNum=0&country=Deutschland&legalentity=DB+Engineering+%26+Consulting+GmbH",
+  "bytes": 380,
+  "state": "http_error",
+  "elapsed_seconds": 0.098,
+  "sha256": "88a417855c6125a7c8356c89bbc0d9f5ad59b8c8d563b81381092c7b86cf9005",
+  "capture": "774b8b08dc218e161f94"
+}

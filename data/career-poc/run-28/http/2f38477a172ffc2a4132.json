@@ -1,0 +1,16 @@
+{
+  "url": "https://ugan.de/karriere",
+  "checked_at": "2026-10-05T23:40:35.878171+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 8988,
+  "state": "ok",
+  "elapsed_seconds": 1.014,
+  "sha256": "9b813be4e6b92b8c5acfbcb79317646eb1059334acdc298afe088305ed34346c",
+  "capture": "2f38477a172ffc2a4132"
+}

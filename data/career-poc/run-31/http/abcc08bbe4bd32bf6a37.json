@@ -1,0 +1,17 @@
+{
+  "url": "https://www.muffenrohr.de/unsere-stellenangebote/a/stellenangebote",
+  "checked_at": "2026-10-05T23:31:35.961535+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 220280,
+  "state": "ok",
+  "elapsed_seconds": 0.989,
+  "sha256": "2f1e741b0fd0993f6d10870ecbab69b3fb7c9e5a6c15ced388d98d51e9e71703",
+  "capture": "abcc08bbe4bd32bf6a37",
+  "merged_from_run": "run-28"
+}

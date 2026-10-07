@@ -1,0 +1,17 @@
+{
+  "url": "https://objektkultur.de/karriere/jobs-bei-objektkultur/",
+  "checked_at": "2026-10-05T22:09:08.043996+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 346022,
+  "state": "ok",
+  "elapsed_seconds": 1.448,
+  "sha256": "fdbba3608d21bc369274903115aedd25918893143b492058e82dad566b7f24a2",
+  "capture": "2cc3499c6b6e1f49df21",
+  "merged_from_run": "run-25"
+}

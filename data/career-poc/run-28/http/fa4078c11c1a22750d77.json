@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mip-ka.de/careers",
+  "checked_at": "2026-10-05T23:37:32.845616+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3802,
+  "state": "http_error",
+  "elapsed_seconds": 1.001,
+  "sha256": "08287cbf959ab452129b4e776977e7e43cbdaca28aa79ee4871ab1d78c477cb0",
+  "capture": "fa4078c11c1a22750d77"
+}

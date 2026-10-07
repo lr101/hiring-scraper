@@ -1,0 +1,17 @@
+{
+  "url": "https://www.malerbetrieb-metz.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:45:02.745345+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:45:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1955,
+  "state": "ok",
+  "elapsed_seconds": 0.411,
+  "sha256": "1f21be7deb78ded402d3922528a905e3a4453bf596392e7ccc9e50d1f8bae281",
+  "capture": "6fddfd4386a7ae897b82",
+  "merged_from_run": "run-28"
+}

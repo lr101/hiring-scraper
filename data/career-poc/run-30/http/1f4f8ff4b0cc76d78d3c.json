@@ -1,0 +1,17 @@
+{
+  "url": "https://ungleich-anders.de/karriere",
+  "checked_at": "2026-10-05T22:38:17.071116+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83337,
+  "state": "http_error",
+  "elapsed_seconds": 1.505,
+  "sha256": "b55542683940473cd0e21d913931e7762d97c9f85364be7ca0f377a4d524ec94",
+  "capture": "1f4f8ff4b0cc76d78d3c",
+  "merged_from_run": "run-27"
+}

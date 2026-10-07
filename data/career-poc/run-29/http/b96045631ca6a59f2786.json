@@ -1,0 +1,17 @@
+{
+  "url": "https://www.jb-elektro.com/",
+  "checked_at": "2026-10-05T23:45:40.649864+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.buchmann-elektrotechnik.de/",
+  "bytes": 287,
+  "state": "http_error",
+  "elapsed_seconds": 0.139,
+  "sha256": "445c84700b466edb513216546bfedb8f1c70b5bf188fb94345a25619351f4a77",
+  "capture": "b96045631ca6a59f2786",
+  "merged_from_run": "run-28"
+}

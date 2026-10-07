@@ -1,0 +1,16 @@
+{
+  "url": "https://icp-ing.de/",
+  "checked_at": "2026-10-05T23:34:06.183339+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 354617,
+  "state": "ok",
+  "elapsed_seconds": 1.98,
+  "sha256": "80f92d3160cbfdca213b8761ce3e7014a7ca2ca7bbf76e29712876fb63198fd3",
+  "capture": "69f87b7591b75b44c83b"
+}

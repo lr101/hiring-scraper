@@ -1,0 +1,16 @@
+{
+  "url": "https://navigate.de/karriere",
+  "checked_at": "2026-10-05T21:59:33.522208+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 191120,
+  "state": "http_error",
+  "elapsed_seconds": 2.229,
+  "sha256": "d7fda9222364b1b0f4618d18300f1293518f4a3afedbd093afdcf35ee24cc370",
+  "capture": "7abb0ee440bc44fa8f19"
+}

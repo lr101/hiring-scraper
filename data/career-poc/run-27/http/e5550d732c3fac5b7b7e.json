@@ -1,0 +1,16 @@
+{
+  "url": "https://dennig-kollegen.de/karriere/",
+  "checked_at": "2026-10-05T23:13:32.546363+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132404,
+  "state": "ok",
+  "elapsed_seconds": 2.193,
+  "sha256": "98f3f5a6d19953e41a6182cd99f0e48684f36d5fc5c0138be2bc14c1639041d2",
+  "capture": "e5550d732c3fac5b7b7e"
+}

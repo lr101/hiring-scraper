@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kieback-peter.com/de/karriere/stellenangebote/job/vertriebsingenieur-mwd-gebaeudeautomation-msr-technik-merzig-1-002107/",
+  "checked_at": "2026-10-05T23:27:05.823490+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45725,
+  "state": "ok",
+  "elapsed_seconds": 0.961,
+  "sha256": "600c39a8630c5d26960947b2ffe378f48e677de0a4410c860e6578e7bc057f5f",
+  "capture": "b9eafd4879d2673229cc",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.for.kit.edu/",
+  "checked_at": "2026-10-05T22:15:23.319620+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51603,
+  "state": "ok",
+  "elapsed_seconds": 1.137,
+  "sha256": "bf7bbd23546791bcc439689cf2e0abba3e51c5548eefcad1dbe0149ffaff7b75",
+  "capture": "2e978887766be5de0b90"
+}

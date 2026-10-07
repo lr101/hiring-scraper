@@ -1,0 +1,17 @@
+{
+  "url": "https://www.versicherungsmakler-karlsruhe.info/careers",
+  "checked_at": "2026-10-05T23:39:25.826361+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127987,
+  "state": "ok",
+  "elapsed_seconds": 0.91,
+  "sha256": "514e647f5f960d37d3c3b215d2fc11c5d7d48177db03b262b85a7216ef875648",
+  "capture": "21a5629b31f88521603a",
+  "merged_from_run": "run-28"
+}

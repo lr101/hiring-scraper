@@ -1,0 +1,16 @@
+{
+  "url": "https://kkk-law.de/careers",
+  "checked_at": "2026-10-05T22:27:59.804345+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51889,
+  "state": "http_error",
+  "elapsed_seconds": 1.514,
+  "sha256": "cd49f402c0704034ea688d424ac71cb1c79b48e67d3547b7513314c136c9aa31",
+  "capture": "c56c10c8e81993984456"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hitex.com/de/unternehmen/karriere/stellenangebote/system-test-engineer",
+  "checked_at": "2026-10-05T23:35:38.633610+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78107,
+  "state": "ok",
+  "elapsed_seconds": 0.905,
+  "sha256": "bab341cbfc6b721227c32c6fe3fa33ab030b421bba8f81fe6cb4471be89362fb",
+  "capture": "73c76b53e7edb3cd392f"
+}

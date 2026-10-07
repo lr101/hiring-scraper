@@ -1,0 +1,16 @@
+{
+  "url": "https://finanzamt-bw.fv-bwl.de/robots.txt",
+  "checked_at": "2026-10-05T22:57:55.255478+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"136-5cf6782bf6118\"",
+  "last_modified": "Thu, 28 Oct 2021 10:52:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 310,
+  "state": "ok",
+  "elapsed_seconds": 0.164,
+  "sha256": "b29a52851c0e3cb6efa6afac5113367aa8cc1e37ca16c7367fd82fdba3c10333",
+  "capture": "d5f2001fe59ec87e2ea6"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://hust-immobilien.de/",
+  "checked_at": "2026-10-05T23:26:30.498206+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10823,
+  "state": "http_error",
+  "elapsed_seconds": 1.006,
+  "sha256": "f641b05699f88393b90bd5b5615361d51adbb580ab4d8efd86d9fb2afcd0b814",
+  "capture": "fc9c075a4a887de210a7"
+}

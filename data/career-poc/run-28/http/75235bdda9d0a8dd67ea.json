@@ -1,0 +1,16 @@
+{
+  "url": "https://hbhmw.de/careers/",
+  "checked_at": "2026-10-05T23:38:50.366151+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1799,
+  "state": "http_error",
+  "elapsed_seconds": 0.99,
+  "sha256": "b5ac9b6f1e2b6607a9bb00a582ea4b5006c980c2dcf25420d7499c0e0b5b0e8a",
+  "capture": "75235bdda9d0a8dd67ea"
+}

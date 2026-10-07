@@ -1,0 +1,17 @@
+{
+  "url": "https://www.gsofa.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:01.122990+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"10-5a0950e893e80\"",
+  "last_modified": "Wed, 11 Mar 2020 14:28:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 16,
+  "state": "ok",
+  "elapsed_seconds": 1.034,
+  "sha256": "679449cbaf1f09b887570105cedb167fd9f34450d94877e8b88e786096226974",
+  "capture": "71b7e38a081dd622fd06",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.geyer-gmbh.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:47.104879+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"ce-5ae566e546b40\"",
+  "last_modified": "Wed, 02 Sep 2020 15:38:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 206,
+  "state": "ok",
+  "elapsed_seconds": 0.159,
+  "sha256": "f9de7fc5dd87437dd6ba7c5a86b3783c1b2698352911100ddd56d6570a4b27c1",
+  "capture": "7721ddcc46e893144241"
+}

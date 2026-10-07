@@ -1,0 +1,16 @@
+{
+  "url": "https://fluechtlingshilfe-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:15:36.019979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76209,
+  "state": "http_error",
+  "elapsed_seconds": 1.006,
+  "sha256": "0e534a397259429a0e9ee008f849270e24e6d6c25e5a43fe4ef14f4d402ce24e",
+  "capture": "22010b05acb5c98e9479"
+}

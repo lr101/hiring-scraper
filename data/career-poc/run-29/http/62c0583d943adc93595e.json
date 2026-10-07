@@ -1,0 +1,17 @@
+{
+  "url": "https://www.heimstiftung-karlsruhe.de/jobs-und-mitarbeit/ausbildung/uebersicht/",
+  "checked_at": "2026-10-05T22:34:59.201414+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"53318c758237dfb302ac3a8977fd3b85\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96101,
+  "state": "ok",
+  "elapsed_seconds": 1.266,
+  "sha256": "9cf9f6999e10b43759254f7076603e60c7450212d96a98d7592a3a6ce7532ba0",
+  "capture": "62c0583d943adc93595e",
+  "merged_from_run": "run-27"
+}

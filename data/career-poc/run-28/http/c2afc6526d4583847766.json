@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.atsautomation.com/?locale=en_US",
+  "checked_at": "2026-10-05T23:39:46.888810+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 97661,
+  "state": "ok",
+  "elapsed_seconds": 0.953,
+  "sha256": "e810321992861436f6559c36de1d679548cc11e975c1de65eb34331fc2f6a60c",
+  "capture": "c2afc6526d4583847766"
+}

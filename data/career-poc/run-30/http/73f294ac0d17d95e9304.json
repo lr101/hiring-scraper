@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karriere.polyrack.com/job/schweisser-m-w-d",
+  "checked_at": "2026-10-05T23:23:56.105573+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Sun, 04 Oct 2026 10:10:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 9468,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "71c9950ee5f892009ab2900ef79cebabe24180f34499b126c29538d3b827eb67",
+  "capture": "73f294ac0d17d95e9304",
+  "merged_from_run": "run-28"
+}

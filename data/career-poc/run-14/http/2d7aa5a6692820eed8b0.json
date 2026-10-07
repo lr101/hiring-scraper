@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+  "checked_at": "2026-10-05T20:44:06.746566+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 115745,
+  "state": "ok",
+  "elapsed_seconds": 1.122,
+  "sha256": "ead6fdfbfa71dc40c067dda2b7b6343537da1910bbfa1cb02d12e01ea4c94e90",
+  "capture": "2d7aa5a6692820eed8b0"
+}

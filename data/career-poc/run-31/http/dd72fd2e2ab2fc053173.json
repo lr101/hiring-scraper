@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ic-schuetz.de/robots.txt",
+  "checked_at": "2026-10-05T22:57:23.286663+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 219,
+  "state": "ok",
+  "elapsed_seconds": 0.203,
+  "sha256": "069a2e14aa4084ba771ba6c2712efdd1f4a51b558fde4f008a28e7949261a329",
+  "capture": "dd72fd2e2ab2fc053173",
+  "merged_from_run": "run-27"
+}

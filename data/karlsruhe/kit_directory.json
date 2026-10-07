@@ -1,0 +1,12 @@
+{
+  "url": "https://www.careerserviceportal.kit.edu/de/jobboerse/unternehmensverzeichnis/",
+  "checked_at": "2026-10-05T08:21:03.845386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.careerservice.kit.edu/de/studierende/berufsorientierung/unternehmensuebersicht/",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 2473490,
+  "truncated": false,
+  "elapsed_seconds": 0.6,
+  "sha256": "87eb9418d552818eb9aa335344da3865dc63aa2a61f59b1e6b3349a5b7508246"
+}

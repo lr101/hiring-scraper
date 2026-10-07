@@ -1,0 +1,16 @@
+{
+  "url": "https://ttk.de/en/global/jobs.php",
+  "checked_at": "2026-10-05T23:15:54.329696+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47273,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "de3f24e359b06aaeb540a36e7ada2487d7082fe4ba64d56977ecb45edc2031c9",
+  "capture": "fd28c0de9f25864bd1ef"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://igbau.de/robots.txt",
+  "checked_at": "2026-10-06T07:07:19.761320+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"17-598f532085164\"",
+  "last_modified": "Thu, 05 Dec 2019 13:49:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 23,
+  "state": "ok",
+  "elapsed_seconds": 0.336,
+  "sha256": "3a125e84a637dc3f5442bb6949fa200056f37db4627b4c2a3addc55bbb89b703",
+  "capture": "23d2c6ee651296106adc",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/23d2c6ee651296106adc.json"
+}

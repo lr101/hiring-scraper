@@ -1,0 +1,17 @@
+{
+  "url": "https://www.landesarchiv-bw.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:03:03.068420+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Wed, 29 Jul 2026 11:37:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 407,
+  "state": "ok",
+  "elapsed_seconds": 1.068,
+  "sha256": "20143d0f44e01b1b25c362d7ac76d639f02a9aaab9a19409240eaf5ae8a15fa0",
+  "capture": "878cc88e5b0b8d2ecc54",
+  "merged_from_run": "run-27"
+}

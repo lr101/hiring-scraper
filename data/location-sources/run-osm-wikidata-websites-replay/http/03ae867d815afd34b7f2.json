@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drk.de/mitwirken/karriere/ausbildung-drk/",
+  "checked_at": "2026-10-06T07:07:31.840815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"02ff56c02a35248a900c0d354e604891\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 229379,
+  "state": "ok",
+  "elapsed_seconds": 1.196,
+  "sha256": "c12cfdc38c298bdb4af9ca2a605b595762cdeeaab88300f51942efb6edfbee5b",
+  "capture": "03ae867d815afd34b7f2",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/03ae867d815afd34b7f2.json"
+}

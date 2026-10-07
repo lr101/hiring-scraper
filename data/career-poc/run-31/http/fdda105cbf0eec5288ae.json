@@ -1,0 +1,17 @@
+{
+  "url": "https://www.exportrecht.com/robots.txt",
+  "checked_at": "2026-10-05T23:08:20.973712+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 177,
+  "state": "ok",
+  "elapsed_seconds": 2.092,
+  "sha256": "170b6ed9e215935cd8a3157a29aacc1b4c05619b0628be1a40a9f9ebbdebc294",
+  "capture": "fdda105cbf0eec5288ae",
+  "merged_from_run": "run-27"
+}

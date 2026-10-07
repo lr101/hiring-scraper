@@ -1,0 +1,17 @@
+{
+  "url": "https://techniwaterjet.eu/robots.txt",
+  "checked_at": "2026-10-05T23:19:18.628566+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:19:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 199,
+  "state": "ok",
+  "elapsed_seconds": 2.715,
+  "sha256": "106710a85ea5effd2f8e7aae8d59eec5ff9c8206260e41b00168d2eb0a52d759",
+  "capture": "23bc7913a5a3e9eb3e55",
+  "merged_from_run": "run-28"
+}

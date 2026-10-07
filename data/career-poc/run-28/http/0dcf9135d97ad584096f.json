@@ -1,0 +1,16 @@
+{
+  "url": "https://www.holl.ag/robots.txt",
+  "checked_at": "2026-10-05T23:21:04.173672+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 202,
+  "state": "ok",
+  "elapsed_seconds": 3.388,
+  "sha256": "d833b146ed5b899b3c80156307d83f7c0662c1c766507ef1f0a97fca270450a9",
+  "capture": "0dcf9135d97ad584096f"
+}

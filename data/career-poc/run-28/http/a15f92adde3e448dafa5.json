@@ -1,0 +1,16 @@
+{
+  "url": "https://baumpflege-dennig.de/careers",
+  "checked_at": "2026-10-05T23:46:01.856336+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 69610,
+  "state": "ok",
+  "elapsed_seconds": 0.984,
+  "sha256": "9448e9f768b4c5ae9ed6cca22a009cb94704019eee7120b2fb99a66de7058a00",
+  "capture": "a15f92adde3e448dafa5"
+}

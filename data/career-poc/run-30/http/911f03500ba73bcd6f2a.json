@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steurer-batterien.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:23:42.230930+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17621,
+  "state": "ok",
+  "elapsed_seconds": 2.144,
+  "sha256": "a8ead8741a63bea4b5a6f3b7b999f836be705086887bc12110019d735085ab1a",
+  "capture": "911f03500ba73bcd6f2a",
+  "merged_from_run": "run-28"
+}

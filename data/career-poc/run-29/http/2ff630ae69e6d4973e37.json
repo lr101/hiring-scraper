@@ -1,0 +1,17 @@
+{
+  "url": "https://gartenservice-hassmann.de/wp-sitemap-posts-post-1.xml",
+  "checked_at": "2026-10-05T23:36:59.497427+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1192,
+  "state": "ok",
+  "elapsed_seconds": 0.928,
+  "sha256": "c3549a21d12e477f0267c29096012f3b27920b861435fb5108acc2f6bce1ca80",
+  "capture": "2ff630ae69e6d4973e37",
+  "merged_from_run": "run-28"
+}

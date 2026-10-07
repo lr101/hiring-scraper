@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zag.de/robots.txt",
+  "checked_at": "2026-10-05T22:10:22.139750+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6a9d9cda-29f\"",
+  "last_modified": "Sun, 06 Sep 2026 17:03:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 671,
+  "state": "ok",
+  "elapsed_seconds": 0.146,
+  "sha256": "0d1fa6d121a76c34608ee8a15d1dcd7fd5604cc74667a38357d2cf76141de152",
+  "capture": "47644409ed380d82c79a",
+  "merged_from_run": "run-25"
+}

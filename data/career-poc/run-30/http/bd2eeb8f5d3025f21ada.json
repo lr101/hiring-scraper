@@ -1,0 +1,17 @@
+{
+  "url": "https://ilias.studium.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T22:29:48.495988+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 308,
+  "state": "http_error",
+  "elapsed_seconds": 0.115,
+  "sha256": "ead6c803b0f62fa171b9b15a1456b39437da27d08ec63e081631c4dd6ff20d2a",
+  "capture": "bd2eeb8f5d3025f21ada",
+  "merged_from_run": "run-26"
+}

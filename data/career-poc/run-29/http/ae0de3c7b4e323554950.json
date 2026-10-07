@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bee360.com/robots.txt",
+  "checked_at": "2026-10-05T23:23:41.940240+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 491,
+  "state": "ok",
+  "elapsed_seconds": 0.233,
+  "sha256": "4908d9e7aa394f1876f0c46339da794626f9a12260c6f50a7dd5aab74407d77b",
+  "capture": "ae0de3c7b4e323554950",
+  "merged_from_run": "run-28"
+}

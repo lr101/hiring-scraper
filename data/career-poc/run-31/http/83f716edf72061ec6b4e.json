@@ -1,0 +1,17 @@
+{
+  "url": "https://www.johnsoncontrols.com/robots.txt",
+  "checked_at": "2026-10-05T23:42:00.357030+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 660,
+  "state": "ok",
+  "elapsed_seconds": 0.791,
+  "sha256": "2dbdfe1b5f9398a8a26cc3656cdf2adf715c47c63cf47967b100f7617be4d708",
+  "capture": "83f716edf72061ec6b4e",
+  "merged_from_run": "run-28"
+}

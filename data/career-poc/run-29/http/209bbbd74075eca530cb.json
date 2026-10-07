@@ -1,0 +1,17 @@
+{
+  "url": "https://www.blue-yonder.com/robots.txt",
+  "checked_at": "2026-10-05T23:20:06.065853+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://blueyonder.com/robots.txt",
+  "bytes": 2676,
+  "state": "ok",
+  "elapsed_seconds": 0.105,
+  "sha256": "3073d1e371afb3271c7666148766fedc5145f7d8440f7114062db79b7bd58add",
+  "capture": "209bbbd74075eca530cb",
+  "merged_from_run": "run-28"
+}

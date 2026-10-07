@@ -1,0 +1,17 @@
+{
+  "url": "https://silke-wuestholz.de/coaching-fuer-privatpersonen/",
+  "checked_at": "2026-10-05T22:16:29.537698+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123668,
+  "state": "ok",
+  "elapsed_seconds": 1.979,
+  "sha256": "76dadcda042b271be3a4261d80a65fd3f02d3b3a11795950b14e57410b91c703",
+  "capture": "7f87125b1c7990c7906f",
+  "merged_from_run": "run-25"
+}

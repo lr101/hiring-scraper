@@ -1,0 +1,16 @@
+{
+  "url": "https://anexia.com/robots.txt",
+  "checked_at": "2026-10-05T23:22:01.889530+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6a7f2f5b-5465\"",
+  "last_modified": "Fri, 14 Aug 2026 15:08:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 21605,
+  "state": "ok",
+  "elapsed_seconds": 0.178,
+  "sha256": "0a4d90fb0368bc612b2f47f5bdafbfae5a8f89017a466aad0f19cfe83ebd8c84",
+  "capture": "edd885b501500cbb0910"
+}

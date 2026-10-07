@@ -1,0 +1,16 @@
+{
+  "url": "http://www.deluxe-gebaeudemanagement.de/jobs/",
+  "checked_at": "2026-10-05T23:21:21.243700+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.deluxe-gebaeudemanagement.de/jobs/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.025,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "8f9f9fc0acd09a541b9e"
+}

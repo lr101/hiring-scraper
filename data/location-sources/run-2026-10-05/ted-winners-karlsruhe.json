@@ -1,0 +1,26 @@
+{
+  "name": "ted-winners-karlsruhe",
+  "url": "https://api.ted.europa.eu/v3/notices/search",
+  "method": "POST",
+  "checked_at": "2026-10-05T15:05:03.824652+00:00",
+  "request": {
+    "query": "publication-date >= 20200101 AND winner-city = Karlsruhe",
+    "fields": [
+      "publication-number",
+      "notice-title",
+      "winner-name",
+      "winner-city",
+      "winner-country",
+      "winner-internet-address"
+    ],
+    "limit": 25,
+    "scope": "ALL"
+  },
+  "request_sha256": "5f39f8f2a5f22b0c1248298e6b3291b65f07d7644f79a5bb5ba8041b76e87bcb",
+  "status": 200,
+  "content_type": "application/json",
+  "bytes": 198104,
+  "final_url": "https://api.ted.europa.eu/v3/notices/search",
+  "elapsed_seconds": 0.34,
+  "sha256": "a865882cbe4d7ba76d23dcbc65c739091141210b306e24f7c2cd28725aa6b8bd"
+}

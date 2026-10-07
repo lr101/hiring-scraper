@@ -1,0 +1,16 @@
+{
+  "url": "https://akademie.ukbw.de/",
+  "checked_at": "2026-10-05T23:25:26.559095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78008,
+  "state": "ok",
+  "elapsed_seconds": 1.095,
+  "sha256": "72df75082e07c9f266b57555c9c27759fa48238bbffac9251e7246f89d8810ef",
+  "capture": "76855ea14886a40b9901"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://pulspartner.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:05:29.709687+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 402,
+  "state": "ok",
+  "elapsed_seconds": 2.794,
+  "sha256": "ff24a6a523129b26448031f9cd7919a859ddeff1887eee8e53fd637519201948",
+  "capture": "e9ad9176f6cf0d7a8296"
+}

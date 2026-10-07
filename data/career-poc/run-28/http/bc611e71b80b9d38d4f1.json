@@ -1,0 +1,16 @@
+{
+  "url": "https://www.elektrotechnik-aloisi.de/",
+  "checked_at": "2026-10-05T23:41:37.723750+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"-830678934\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68293,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "dcf5851d44b916551e5590fcbfaea15de9a842a972989f1a0d04e8da2e49b13b",
+  "capture": "bc611e71b80b9d38d4f1"
+}

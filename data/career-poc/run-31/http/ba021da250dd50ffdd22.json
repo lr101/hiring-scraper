@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enventa-group.com/",
+  "checked_at": "2026-10-05T23:24:49.939572+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:04:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 299834,
+  "state": "ok",
+  "elapsed_seconds": 1.026,
+  "sha256": "6839792b8a6583a80c6b8eb64d7c20a2ae593a3416cfa4dcec579e10bb5419b6",
+  "capture": "ba021da250dd50ffdd22",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.schuessler-plan.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:46.218495+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"37d-65b2bdd41240a\"",
+  "last_modified": "Fri, 11 Sep 2026 02:30:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 893,
+  "state": "ok",
+  "elapsed_seconds": 0.704,
+  "sha256": "4beb6b7495bff94222e0202853b04a16a57433f3b51b00be970e7a2b3e780153",
+  "capture": "76692f7aa1904dfd8c0e",
+  "merged_from_run": "run-28"
+}

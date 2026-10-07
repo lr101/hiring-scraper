@@ -1,0 +1,16 @@
+{
+  "url": "https://consileon.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:03:44.330776+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"0153ccc2050616b29bffaa1094e83f08\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 220055,
+  "state": "ok",
+  "elapsed_seconds": 0.206,
+  "sha256": "e56919e5d45bb172e74aa2a0172f70521a7254b3040cc2f25635e752740d2465",
+  "capture": "a5e9083726739486b21c"
+}

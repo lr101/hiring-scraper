@@ -1,0 +1,16 @@
+{
+  "url": "https://www.exportrecht.com/citex/",
+  "checked_at": "2026-10-05T23:08:23.067691+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84894,
+  "state": "http_error",
+  "elapsed_seconds": 1.952,
+  "sha256": "751c13eba664e9f20b1eff1dc6484c397a4e269a90e0f29edb9e15f45eed48a4",
+  "capture": "492c68093abc163bc6d9"
+}

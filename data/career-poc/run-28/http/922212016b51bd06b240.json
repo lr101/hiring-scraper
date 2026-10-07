@@ -1,0 +1,16 @@
+{
+  "url": "https://andreas-mueller-hydrokulturen.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:36.018272+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 190,
+  "state": "ok",
+  "elapsed_seconds": 1.466,
+  "sha256": "7f2ac64afd277a1067b415df95dfd96561b3e7ac7fcc4fac87ce31b43bd83fc8",
+  "capture": "922212016b51bd06b240"
+}

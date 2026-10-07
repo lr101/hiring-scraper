@@ -1,0 +1,17 @@
+{
+  "url": "https://www.imk.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T23:41:15.245036+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"c4-3f153540f4b40\"",
+  "last_modified": "Wed, 02 Mar 2005 12:05:25 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 196,
+  "state": "ok",
+  "elapsed_seconds": 0.099,
+  "sha256": "8c1d04fde818cda591c876a43c33b1d6b40eb828e01834cbb5bdb324c18988ac",
+  "capture": "26fb164fbd1ad3177718",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://nominatim.openstreetmap.org/search?q=Karlsruhe%2C+Deutschland&countrycodes=de&featureType=city&format=jsonv2&addressdetails=1&limit=1",
+  "checked_at": "2026-10-05T14:55:55.955192+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://nominatim.openstreetmap.org/search?q=Karlsruhe%2C+Deutschland&countrycodes=de&featureType=city&format=jsonv2&addressdetails=1&limit=1",
+  "content_type": "application/json; charset=utf-8",
+  "bytes": 569,
+  "truncated": false,
+  "elapsed_seconds": 0.08,
+  "sha256": "1a5d3ca61c7ee8e4bc38e770401cbd12e5f629e414da0ba0258153073c5407e3"
+}

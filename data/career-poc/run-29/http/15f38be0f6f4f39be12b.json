@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inros-lackner.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:07.272681+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90,
+  "state": "ok",
+  "elapsed_seconds": 0.841,
+  "sha256": "42daf6ea262c2b1edde2b472f1e1865c49f283b85f69ea868c2162d05b9e882c",
+  "capture": "15f38be0f6f4f39be12b",
+  "merged_from_run": "run-28"
+}

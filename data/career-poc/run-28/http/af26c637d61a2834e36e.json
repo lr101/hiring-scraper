@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe-bk.mfa.gov.tr/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:15.991093+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1245,
+  "state": "http_error",
+  "elapsed_seconds": 0.74,
+  "sha256": "dc1d54dab6ec8c00f70137927504e4f222c8395f10760b6beecfcfa94e08249f",
+  "capture": "af26c637d61a2834e36e"
+}

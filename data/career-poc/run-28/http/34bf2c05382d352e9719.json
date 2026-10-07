@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wuerttembergische.de/ueber-uns/karriere/",
+  "checked_at": "2026-10-05T23:24:37.109312+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 315846,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "bd96016df00fdc29649805fee27220ddf1cfb6eea1857d33a73a21f91740fb30",
+  "capture": "34bf2c05382d352e9719"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sparkassenversicherung.de/firmenkunden/arbeitgeberportal.html",
+  "checked_at": "2026-10-05T22:41:42.843908+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162910,
+  "state": "ok",
+  "elapsed_seconds": 2.439,
+  "sha256": "cd69e893d7627f0f13f0b6640226a0c59f3b41f3b7e3dbe2e476a66a64776d26",
+  "capture": "7c645ff4675a8e7f3612",
+  "reused_from": "data/career-poc/run-27/http/7c645ff4675a8e7f3612.json"
+}

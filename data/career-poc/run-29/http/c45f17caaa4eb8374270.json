@@ -1,0 +1,17 @@
+{
+  "url": "https://www.daferner-gmbh.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:32.439366+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 0.486,
+  "sha256": "e415ca6f0c7dd40c264fa23595df803b81a3d8a9cea611164c5eeba68f5b67d8",
+  "capture": "c45f17caaa4eb8374270",
+  "merged_from_run": "run-28"
+}

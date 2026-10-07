@@ -1,0 +1,17 @@
+{
+  "url": "https://goodspaces.de/sitemap.xml?sitemap=pages&cHash=8d6a5f7b6eb6ac5775660490edf5c932",
+  "checked_at": "2026-10-05T22:51:27.869817+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15897,
+  "state": "ok",
+  "elapsed_seconds": 1.438,
+  "sha256": "80f74bc50a2ea5d5bb986d79d9cffa80cb93e190ddb764a7b2a6bb45497b4fd7",
+  "capture": "f6dcfecf857f37d3c8ef",
+  "merged_from_run": "run-27"
+}

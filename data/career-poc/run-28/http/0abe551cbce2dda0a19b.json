@@ -1,0 +1,16 @@
+{
+  "url": "https://www.verskap.de/karriere",
+  "checked_at": "2026-10-05T23:15:22.407019+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15054,
+  "state": "http_error",
+  "elapsed_seconds": 1.064,
+  "sha256": "00c556c9271c9d27f4df7350463d9c0a25a162fe1cd78225f469bfe95ad9e7f4",
+  "capture": "0abe551cbce2dda0a19b"
+}

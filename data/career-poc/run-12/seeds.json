@@ -1,0 +1,170 @@
+[
+  {
+    "name": "MegaCycle",
+    "website": "https://megacycle-gmbh.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/540998399",
+    "original_website": "https://megacycle-gmbh.de/"
+  },
+  {
+    "name": "CodeWrights GmbH",
+    "website": "https://www.codewrights.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/1249060110",
+    "original_website": "https://www.codewrights.de/"
+  },
+  {
+    "name": "ISCL - Internet Security Consulting Lang",
+    "website": "https://www.iscl.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3267801586",
+    "original_website": "http://www.iscl.de"
+  },
+  {
+    "name": "PDMLab e.K.",
+    "website": "https://pdmlab.com",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3374741649",
+    "original_website": "https://pdmlab.com"
+  },
+  {
+    "name": "Grenke Technology Center",
+    "website": "https://www.grenke.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3717670808",
+    "original_website": "http://www.grenke.de"
+  },
+  {
+    "name": "BAI - Böcherer Angewandte Informatik",
+    "website": "https://www.bai.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/3851429093",
+    "original_website": "https://www.bai.de/"
+  },
+  {
+    "name": "Excipio",
+    "website": "https://excipio.de",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4109525427",
+    "original_website": "http://excipio.de"
+  },
+  {
+    "name": "Technidata",
+    "website": "https://www.its-technidata.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4128275408",
+    "original_website": "https://www.its-technidata.de/"
+  },
+  {
+    "name": "TelemaxX",
+    "website": "https://www.telemaxx.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4231017084",
+    "original_website": "https://www.telemaxx.de/"
+  },
+  {
+    "name": "Ratiodata SE",
+    "website": "https://www.ratiodata.de/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4382036435",
+    "original_website": "http://www.ratiodata.de/"
+  },
+  {
+    "name": "Unic GmbH",
+    "website": "https://www.unic.com/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/4461286920",
+    "original_website": "https://www.unic.com/"
+  },
+  {
+    "name": "Komm.ONE",
+    "website": "https://www.komm.one/",
+    "cohort": "original_osm_12",
+    "source": "https://www.openstreetmap.org/node/5739216507",
+    "original_website": "https://www.komm.one/"
+  },
+  {
+    "name": "cinemo",
+    "website": "https://www.cinemo.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/3691999453"
+  },
+  {
+    "name": "inovex GmbH",
+    "website": "https://www.inovex.de/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/2622320478"
+  },
+  {
+    "name": "Exxeta AG",
+    "website": "https://exxeta.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/4852093881"
+  },
+  {
+    "name": "Chrono24",
+    "website": "https://about.chrono24.com/",
+    "cohort": "selected_karlsruhe",
+    "source": "https://www.openstreetmap.org/node/4078945377"
+  },
+  {
+    "name": "Contentful",
+    "website": "https://www.contentful.com/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "ResearchGate",
+    "website": "https://www.researchgate.net/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "DeepL",
+    "website": "https://www.deepl.com/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "Ecosia",
+    "website": "https://www.ecosia.org/",
+    "cohort": "selected_ats_controls",
+    "source": "Manually selected corporate homepage; not Karlsruhe coverage evidence"
+  },
+  {
+    "name": "Wooga",
+    "website": "https://www.wooga.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected Berlin employer corporate homepage"
+  },
+  {
+    "name": "trivago",
+    "website": "https://company.trivago.com/",
+    "cohort": "additional_greenhouse_controls",
+    "source": "Manually selected corporate homepage; custom-domain careers integration"
+  },
+  {
+    "name": "ResearchGate Lever board (connector only)",
+    "website": "https://jobs.lever.co/researchgate",
+    "cohort": "direct_board_control",
+    "source": "Known board URL from search; does NOT test company-homepage discovery"
+  },
+  {
+    "name": "Packmatic GmbH homepage (Lever discovery)",
+    "website": "https://packmatic.io/",
+    "cohort": "selected_lever_homepages",
+    "source": "Official company homepage; Berlin company"
+  },
+  {
+    "name": "trivago careers site (Greenhouse application signal check)",
+    "website": "https://careers.trivago.com/",
+    "cohort": "selected_greenhouse_homepages",
+    "source": "Company-linked careers domain; application URLs use gh_jid"
+  },
+  {
+    "name": "TechniData career site (search-assisted)",
+    "website": "https://karriere.technidata.de/",
+    "cohort": "search_assisted",
+    "source": "web search query: Technidata Karlsruhe Karriere"
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buechele-lufttechnik.de/jobs/stellenangebote/suche.html",
+  "checked_at": "2026-10-05T23:28:24.747368+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 19713,
+  "state": "http_error",
+  "elapsed_seconds": 0.97,
+  "sha256": "a387174d9339eab3a975b14c1ccf0ae568474661e4031cc234c91464b0345a9e",
+  "capture": "bb0c6b4572607365bfab"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arnotec.de/en/career/vacancy-overview.html",
+  "checked_at": "2026-10-05T23:32:00.523239+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21014,
+  "state": "ok",
+  "elapsed_seconds": 0.99,
+  "sha256": "5e583b08325498618b971b821603e63f800809aab99ac735076ce5ad478b6687",
+  "capture": "4b633d49fbe83defaccf",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://liveline-connect.de/karriere",
+  "checked_at": "2026-10-05T23:18:20.687629+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67420,
+  "state": "http_error",
+  "elapsed_seconds": 1.226,
+  "sha256": "49307e6628d8acdf052c6bb1e36614aaffef4d1a7439118fdd92aa18ee8d3f6d",
+  "capture": "6e61ad43af0842394c14"
+}

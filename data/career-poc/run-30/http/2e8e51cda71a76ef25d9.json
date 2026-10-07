@@ -1,0 +1,17 @@
+{
+  "url": "https://wildwasser-karlsruhe.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T22:41:20.677536+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1400,
+  "state": "ok",
+  "elapsed_seconds": 1.42,
+  "sha256": "90f0635ca6d8d9bd63a0a6c194c66b67488d6deeac13180820781dc7eed24384",
+  "capture": "2e8e51cda71a76ef25d9",
+  "merged_from_run": "run-27"
+}

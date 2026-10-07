@@ -1,0 +1,17 @@
+{
+  "url": "https://teamviewer.teamtailor.com/jobs?department=Finance",
+  "checked_at": "2026-10-05T23:31:20.098088+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://careers.teamviewer.com/jobs?department=Finance",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.176,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "daf2f0f872cc937f8c41",
+  "merged_from_run": "run-28"
+}

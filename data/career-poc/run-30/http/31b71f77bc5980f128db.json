@@ -1,0 +1,17 @@
+{
+  "url": "https://www.maler-zorn.de/careers",
+  "checked_at": "2026-10-05T23:29:40.868523+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167501,
+  "state": "http_error",
+  "elapsed_seconds": 0.958,
+  "sha256": "e0cb3d99010f0d7cb95ae6a46a1193f7d670bbace6db7378c96b411e8008329a",
+  "capture": "31b71f77bc5980f128db",
+  "merged_from_run": "run-28"
+}

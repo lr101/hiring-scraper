@@ -1,0 +1,14 @@
+{
+  "url": "https://www.inovex.de/de/karriere/das-inovex-package-fuer-mitarbeiterinnen/",
+  "checked_at": "2026-10-05T09:08:26.922172+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 227330,
+  "state": "ok",
+  "elapsed_seconds": 1.082,
+  "sha256": "2d28b557f713be1a943dd6969582901b22b6490a0b11424d52d7d364a072f06a",
+  "capture": "ed426660eae23e4004fd",
+  "reused_from": "data/career-poc/run-09/http/ed426660eae23e4004fd.json"
+}

@@ -1,0 +1,14 @@
+name,career_url,source,location_evidence,http_status,assessment,evidence
+MegaCycle,https://megacycle-gmbh.de/stellenangebote/,OSM homepage link,https://www.openstreetmap.org/node/540998399,200,Placeholder content; page exists but no usable vacancy list established,careers/00_career.json
+ISCL - Internet Security Consulting Lang,https://iscl.de/karriere/,OSM homepage link,https://www.openstreetmap.org/node/3267801586,200,Job titles readable in HTML,careers/02_career.json
+Grenke Technology Center,https://www.grenke.com/de/karriere/,OSM homepage link,https://www.openstreetmap.org/node/3717670808,200,Corporate careers landing links to jobs.grenke.com; Karlsruhe vacancies not verified,careers/04_career.json
+TelemaxX,https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene,OSM homepage link,https://www.openstreetmap.org/node/4231017084,200,Actual vacancies page verified after rejecting empty navigation link,careers/08_career_corrected.json
+Ratiodata SE,https://karriere.ratiodata.de,OSM homepage link,https://www.openstreetmap.org/node/4382036435,200,Dedicated corporate career subdomain; links to /jobs,careers/09_career.json
+Unic GmbH,https://www.unic.com/de/jobs,OSM homepage link,https://www.openstreetmap.org/node/4461286920,200,Career page includes role links; current Karlsruhe vacancies not verified,careers/10_career.json
+Komm.ONE,https://www.komm.one/karriere,OSM homepage link,https://www.openstreetmap.org/node/5739216507,200,"Public IT employer, not a private company; links to Stellenangebote",careers/11_career.json
+Volksbank pur eG,https://www.volksbank-pur.de/meine-bank/karriere.html,BA employer name + web search,"BA result 10001-1003796150-S: Karlsruhe, Baden",200,Employer site explicitly links to volksbank-karlsruhe.helixjobs.com/extern; hosted ATS not fetched,search/00_career.json
+Simon Hegele,https://www.simon-hegele.com/jetzt-it-pionier-werden,BA employer name + web search,Career page explicitly locates IT jobs in Karlsruhe,200,IT careers page links to employer vacancy search,search/01_career.json
+Open Experience,https://openexperience.de/de/karriere/,web search,Career page: Karlsruhe software and Baden-Baden hardware,200,Individual vacancy links readable in HTML; mixed Karlsruhe/Baden-Baden locations,search/02_career.json
+PLANTA,https://www.planta.de/karriere/,web search,Career page lists Karlsruhe and Winterthur,200,Individual vacancy links readable in HTML; Karlsruhe/Winterthur company,search/03_career.json
+Seven2one,https://www.seven2one.de/karriere,web search,Career page describes Karlsruhe (Durlach),200,Career page links to /stellenuebersicht; vacancies not fetched,search/04_career.json
+Arnotec GmbH,https://job.arnotec.de/,web search,Career page states company based in Karlsruhe,200,Dedicated employer subdomain; individual vacancy links readable in HTML,search/05_career.json

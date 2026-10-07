@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vbk.info/robots.txt",
+  "checked_at": "2026-10-05T23:16:34.030706+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Thu, 17 Sep 2026 08:18:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 227,
+  "state": "ok",
+  "elapsed_seconds": 0.862,
+  "sha256": "f754b8c65c532df5d48a9af79adbd56d2468f6716e110c88e685ae84c0dea5d8",
+  "capture": "dd774eab1d79a9bbea1f",
+  "merged_from_run": "run-28"
+}

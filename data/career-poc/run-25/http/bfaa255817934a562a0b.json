@@ -1,0 +1,16 @@
+{
+  "url": "https://www.akademie-bw.de/jobangebote/initiativbewerbung.html",
+  "checked_at": "2026-10-05T22:15:40.073979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32874,
+  "state": "ok",
+  "elapsed_seconds": 1.136,
+  "sha256": "406e7aeeaff8669836fd7d643581d00f8f3e856b0f60477d1477ea5bd01a3466",
+  "capture": "bfaa255817934a562a0b"
+}

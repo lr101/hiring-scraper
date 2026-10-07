@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cab.de/en/marking/?switch-lang",
+  "checked_at": "2026-10-05T23:22:28.322483+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98254,
+  "state": "ok",
+  "elapsed_seconds": 1.023,
+  "sha256": "47df2b143fdd1640660b49a47a80431c9fc6c92a534bb957e869757be7a30eca",
+  "capture": "b053c69194206912b250"
+}

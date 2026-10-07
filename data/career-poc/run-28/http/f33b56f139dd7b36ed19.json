@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoelscher-wasserbau.de/de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:43:05.815687+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 479201,
+  "state": "ok",
+  "elapsed_seconds": 1.091,
+  "sha256": "bd31a970240c791d1c7aa40033749395941335654166b9bc52cc19b63fab0222",
+  "capture": "f33b56f139dd7b36ed19"
+}

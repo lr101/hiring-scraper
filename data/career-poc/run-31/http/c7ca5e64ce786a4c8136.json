@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sd-fotografie.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:43.148238+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1ee-UeOlD6u/XKJHnQbhyXAGBKFIRa0\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 494,
+  "state": "ok",
+  "elapsed_seconds": 0.378,
+  "sha256": "cc8efe67fa66e8ec56a79e417ecf20698dc6a3a1bb140a253ac4ebb540b115c7",
+  "capture": "c7ca5e64ce786a4c8136",
+  "merged_from_run": "run-28"
+}

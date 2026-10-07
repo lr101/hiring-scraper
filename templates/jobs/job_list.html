@@ -1,7 +1,0 @@
-{% extends "base.html" %}
-{% block title %}Jobs | Job Monitor{% endblock %}
-{% block content %}
-<header class="page-heading"><p class="eyebrow">{{ active_user.name }}</p><h1>Jobs</h1><p>All open jobs matched to this account.</p></header>
-<form class="search-form" method="get"><p><label for="q">Title</label><input id="q" name="q" value="{{ request.GET.q }}" placeholder="Search titles"></p><p><label for="status-filter">Status</label><select id="status-filter" name="status"><option value="">Any status</option>{% for value,label in status_choices %}<option value="{{ value }}"{% if request.GET.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></p><button type="submit">Filter</button></form>
-<section class="card list-card"><ul class="plain-list">{% for match in matches %}<li><div><a href="{% url 'jobs:job_detail' match.job.pk %}"><strong>{{ match.job.title }}</strong></a><span class="muted">{{ match.job.source.company.name }} · {{ match.score }} points{% if match.job.city %} · {{ match.job.city }}{% endif %}</span></div><span>{% if match.is_new %}New{% endif %}</span></li>{% empty %}<li>No matching jobs.</li>{% endfor %}</ul></section>
-{% endblock %}

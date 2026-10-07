@@ -1,0 +1,16 @@
+{
+  "url": "https://eitiecloud.de/sitemap-misc.xml",
+  "checked_at": "2026-10-05T23:29:21.713021+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 855,
+  "state": "ok",
+  "elapsed_seconds": 1.035,
+  "sha256": "d35bd517dab01204894395d8111433a1c38d841918356907181ae9f068b5d148",
+  "capture": "e1cb589da2d78a5364ab"
+}

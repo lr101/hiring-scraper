@@ -1,0 +1,17 @@
+{
+  "url": "https://technologieregion-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:11.491412+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://trk.de/robots.txt",
+  "bytes": 685,
+  "state": "http_error",
+  "elapsed_seconds": 0.162,
+  "sha256": "8300027c1897b4686878074ae76276100ad5711f2cf6245bb45e1f84b3ba56cb",
+  "capture": "25750cd98f2cff99eeab",
+  "merged_from_run": "run-28"
+}

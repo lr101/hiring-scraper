@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/robots.txt",
+  "checked_at": "2026-10-05T20:42:16.220552+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45292,
+  "state": "http_error",
+  "elapsed_seconds": 0.287,
+  "sha256": "d51366f48f6ad8ff17bdb7121f47f55ef7707611d6d9cc0ff48b910b51afafae",
+  "capture": "2ea54c592b94624e2e3c"
+}

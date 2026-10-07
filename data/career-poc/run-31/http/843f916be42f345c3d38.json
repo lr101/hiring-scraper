@@ -1,0 +1,17 @@
+{
+  "url": "https://itesys.expert/sitemap.xml",
+  "checked_at": "2026-10-05T23:26:16.958371+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94065,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "23a5eb4a65ed103b035631ed7e9b1994a573e0574e93b737c5bdac143e3297f6",
+  "capture": "843f916be42f345c3d38",
+  "merged_from_run": "run-28"
+}

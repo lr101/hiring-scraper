@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schweitzer-online.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:13.780736+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Wed, 17 Jun 2026 05:07:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 34140,
+  "state": "ok",
+  "elapsed_seconds": 0.653,
+  "sha256": "091c916e8f811bcaf5f83e329cc43362be77e7d9bdb24b39b11512df4c73e7f6",
+  "capture": "b6879cbd7b580297e7ae",
+  "merged_from_run": "run-28"
+}

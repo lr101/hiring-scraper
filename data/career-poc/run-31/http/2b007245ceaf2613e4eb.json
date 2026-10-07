@@ -1,0 +1,17 @@
+{
+  "url": "https://honold.de/",
+  "checked_at": "2026-10-05T23:11:13.987220+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:11:16 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 81326,
+  "state": "ok",
+  "elapsed_seconds": 2.246,
+  "sha256": "ebb2c260b4f2c38743507c076307127733cf26a705971a0f9fb14dc78661ff20",
+  "capture": "2b007245ceaf2613e4eb",
+  "merged_from_run": "run-27"
+}

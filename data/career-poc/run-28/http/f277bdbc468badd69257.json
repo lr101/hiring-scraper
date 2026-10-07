@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bafa-gmbh.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:36:57.087161+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Mon, 07 Sep 2026 20:43:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 9950,
+  "state": "ok",
+  "elapsed_seconds": 0.992,
+  "sha256": "530c7c2e837af1b7dd91d7959802194fa5a8f43aef794131729ffad125134e25",
+  "capture": "f277bdbc468badd69257"
+}

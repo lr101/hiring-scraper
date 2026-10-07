@@ -1,0 +1,17 @@
+{
+  "url": "https://www.erb-galabau.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:44:20.013142+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Wed, 21 Nov 2018 12:18:01 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 16283,
+  "state": "ok",
+  "elapsed_seconds": 0.78,
+  "sha256": "2883a3ff4b1e398d7b5b997a87679d5c1a4778044ce79b46872f99e6b4c625bd",
+  "capture": "d5f3ac9dd16d5032c6c8",
+  "merged_from_run": "run-28"
+}

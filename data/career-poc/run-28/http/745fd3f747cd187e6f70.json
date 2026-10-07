@@ -1,0 +1,16 @@
+{
+  "url": "https://www.escde.net/jobs",
+  "checked_at": "2026-10-05T23:20:39.286778+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"0155ec4786fced50232e04e587355071\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133611,
+  "state": "http_error",
+  "elapsed_seconds": 0.961,
+  "sha256": "95ba1d0c7ca01c2fac746386629b8fda3c2bbeb45c8c6fda71f9ca163e42db4c",
+  "capture": "745fd3f747cd187e6f70"
+}

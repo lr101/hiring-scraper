@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schnittmuskel.de/careers",
+  "checked_at": "2026-10-05T23:14:57.708909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 240319,
+  "state": "http_error",
+  "elapsed_seconds": 0.93,
+  "sha256": "53b266e57a715b512275f5398901f55241f5f8053f94d8c672986990cd34b598",
+  "capture": "da50b1f6f84073aaa5e1",
+  "merged_from_run": "run-28"
+}

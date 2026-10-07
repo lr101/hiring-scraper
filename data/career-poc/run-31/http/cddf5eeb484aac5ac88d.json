@@ -1,0 +1,17 @@
+{
+  "url": "https://www.freunde-waldorf.de/",
+  "checked_at": "2026-10-05T23:33:50.106309+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 149630,
+  "state": "ok",
+  "elapsed_seconds": 1.084,
+  "sha256": "d0b7274ce400fdf210a0a0e367bf2fed1f2c119a0c4ba3e342900cfbe6b5d856",
+  "capture": "cddf5eeb484aac5ac88d",
+  "merged_from_run": "run-28"
+}

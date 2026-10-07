@@ -1,0 +1,17 @@
+{
+  "url": "https://www.holl.ag/jobboerse",
+  "checked_at": "2026-10-05T23:21:07.562819+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Sun, 12 May 2024 22:35:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 79423,
+  "state": "ok",
+  "elapsed_seconds": 0.659,
+  "sha256": "eaab5c09d8d7250852bdbc6bf385cc09d8eaa414cec4df85b04cc0fc7440800f",
+  "capture": "50f2c4c5e025afde11d2",
+  "merged_from_run": "run-28"
+}

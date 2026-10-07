@@ -1,0 +1,16 @@
+{
+  "url": "https://www.united-internet.de/jobs-karriere/",
+  "checked_at": "2026-10-05T20:42:16.508881+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 55370,
+  "state": "ok",
+  "elapsed_seconds": 1.668,
+  "sha256": "bb7da6095d926db8ab795e37269ff628c7f2ae2b2a0491b08ae3a428c4435e1e",
+  "capture": "416fcbc4605079afb1fb"
+}

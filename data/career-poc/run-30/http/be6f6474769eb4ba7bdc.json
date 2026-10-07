@@ -1,0 +1,17 @@
+{
+  "url": "https://www.merkle-idl.de/",
+  "checked_at": "2026-10-05T23:06:22.249820+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:06:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 8731,
+  "state": "ok",
+  "elapsed_seconds": 1.229,
+  "sha256": "544df9e61b96907d23476994192cfa6560869b9296e18c1a72549cb352f04737",
+  "capture": "be6f6474769eb4ba7bdc",
+  "merged_from_run": "run-27"
+}

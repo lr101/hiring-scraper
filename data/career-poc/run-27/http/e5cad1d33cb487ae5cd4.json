@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ias-gruppe.de/standort/karlsruhe-3",
+  "checked_at": "2026-10-05T23:08:43.544503+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118771,
+  "state": "http_error",
+  "elapsed_seconds": 1.185,
+  "sha256": "2ade2fb93f9a04d3845b2ac2769f471fedf654161171305cb7070ba5fc45b666",
+  "capture": "e5cad1d33cb487ae5cd4"
+}

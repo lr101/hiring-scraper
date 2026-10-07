@@ -1,0 +1,13 @@
+{
+  "url": "https://schoeps.de/en/about-schoeps/jobs-internships.html",
+  "checked_at": "2026-10-05T14:47:26.784728+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 160502,
+  "state": "ok",
+  "elapsed_seconds": 2.759,
+  "sha256": "fdf1619ba69df5e9f18c2014255d69639a8b28336ed06c0b85df07c362fbf50c",
+  "capture": "232e4ce2b4f04951e478"
+}

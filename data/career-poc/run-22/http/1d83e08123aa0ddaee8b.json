@@ -1,0 +1,17 @@
+{
+  "url": "https://www.easysg.de/about-us/careers/projects/",
+  "checked_at": "2026-10-05T20:43:23.328008+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1796,
+  "state": "http_error",
+  "elapsed_seconds": 1.141,
+  "sha256": "9ed4ea248780b46f3451bf0bac958098b3c4f5d7f9e14428f858286fb35a9cd5",
+  "capture": "1d83e08123aa0ddaee8b",
+  "reused_from": "data/career-poc/run-20/http/1d83e08123aa0ddaee8b.json"
+}

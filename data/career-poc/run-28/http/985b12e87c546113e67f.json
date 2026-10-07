@@ -1,0 +1,16 @@
+{
+  "url": "https://www.artus-gruppe.com/karriere/offene-stellen",
+  "checked_at": "2026-10-05T23:34:46.587929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.artus-gruppe.com/karriere/offene-stellen/",
+  "bytes": 33525,
+  "state": "http_error",
+  "elapsed_seconds": 0.978,
+  "sha256": "5b877227d2505d048dd472b34edac78de4e020ac3625838bd3aa6084ab4aba8f",
+  "capture": "985b12e87c546113e67f"
+}

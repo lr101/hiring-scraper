@@ -1,18 +1,2 @@
 [tools]
-python = "3.13"
-uv = "0.12.5"
-
-[env]
-_.python.venv = { path = ".venv", create = true }
-
-[tasks.setup]
-description = "Install project dependencies"
-run = "uv sync --all-groups"
-
-[tasks.test]
-description = "Run the test suite"
-run = "uv run pytest"
-
-[tasks.check]
-description = "Run formatting, linting, typing, and tests"
-run = "uv run ruff format --check . && uv run ruff check . && uv run mypy . && uv run pytest"
+uv = "0.12.23"

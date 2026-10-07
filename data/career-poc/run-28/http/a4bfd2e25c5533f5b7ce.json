@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kintzel-akustik.de/",
+  "checked_at": "2026-10-05T23:38:45.352689+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162119,
+  "state": "ok",
+  "elapsed_seconds": 0.776,
+  "sha256": "893b2c330da933f13cd7a1bf161a6dec63a89e97715deb875194a12c9bfdd622",
+  "capture": "a4bfd2e25c5533f5b7ce"
+}

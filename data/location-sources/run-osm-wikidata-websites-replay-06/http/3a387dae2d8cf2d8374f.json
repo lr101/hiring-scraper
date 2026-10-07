@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arbeitsagentur.de/bildung/bewerbung",
+  "checked_at": "2026-10-06T07:06:52.739831+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"h5itghccsz4ils\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 211199,
+  "state": "ok",
+  "elapsed_seconds": 1.119,
+  "sha256": "fe1660b56c05e51ee99c9d11f60c26cbccf6cfd3c38a3ed0b051aa25192b7c94",
+  "capture": "3a387dae2d8cf2d8374f",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/3a387dae2d8cf2d8374f.json"
+}

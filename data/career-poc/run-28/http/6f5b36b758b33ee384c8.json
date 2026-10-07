@@ -1,0 +1,16 @@
+{
+  "url": "https://www.helpandclean.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:44:20.910373+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "W/\"1019227409\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2921,
+  "state": "ok",
+  "elapsed_seconds": 0.924,
+  "sha256": "6bb528297dc967b8cc66be4f15d92492c738e11f1b34ce401122512ec287ff2b",
+  "capture": "6f5b36b758b33ee384c8"
+}

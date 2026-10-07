@@ -1,0 +1,17 @@
+{
+  "url": "https://www.physiolinkenheim.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:44:07.678090+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"511-63c2aa5219b40\"",
+  "last_modified": "Tue, 12 Aug 2025 13:01:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1297,
+  "state": "ok",
+  "elapsed_seconds": 0.81,
+  "sha256": "706e3e4b5a04b5c732b332261a220ca446cd20ffe54bd655c96a0bef2cbf1629",
+  "capture": "6fa9dab2696e3829c992",
+  "merged_from_run": "run-28"
+}

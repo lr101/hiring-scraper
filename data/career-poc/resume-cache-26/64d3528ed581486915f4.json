@@ -1,0 +1,16 @@
+{
+  "url": "https://service.bnn.de/karriere/verlag",
+  "checked_at": "2026-10-05T22:09:22.398514+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 204501,
+  "state": "ok",
+  "elapsed_seconds": 1.581,
+  "sha256": "93340f794a355bcacbfd3840f636911ecb1fe992839a3039e03867cff8f57dfd",
+  "capture": "64d3528ed581486915f4"
+}

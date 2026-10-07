@@ -1,0 +1,16 @@
+{
+  "seed_count": 18,
+  "status_counts": {
+    "career_content_found": 5,
+    "unresolved": 8,
+    "jobs_extracted": 5
+  },
+  "parsed_source_count": 5,
+  "parsed_source_types": {
+    "html_jobs": 5
+  },
+  "job_count": 17,
+  "capture_count": 123,
+  "network_requests": 0,
+  "finished_at": "2026-10-06T07:14:55.289048+00:00"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://bit-karriere.de/stellenangebote/",
+  "checked_at": "2026-10-05T23:29:40.940695+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"f66eabc12ede5f4a11843dd630dad66b\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68701,
+  "state": "ok",
+  "elapsed_seconds": 0.943,
+  "sha256": "413fb1e99a53bfa534ffba628ccdc5112c1ee280dd49c2816f5c37914355e3a0",
+  "capture": "886c634e4f30384c51e7",
+  "merged_from_run": "run-28"
+}

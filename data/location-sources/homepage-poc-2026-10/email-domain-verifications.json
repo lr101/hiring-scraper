@@ -1,0 +1,70 @@
+{
+  "source": "bounded public homepage identity check",
+  "observed_at": "2026-10-06T08:50:00+00:00",
+  "verifications": [
+    {
+      "source_id": "node/10819436841",
+      "website_url": "https://autobahn.de/",
+      "identity_confirmed": true,
+      "evidence_url": "https://www.autobahn.de/",
+      "capture": "d201edbb274f1c517d42",
+      "checked_at": "2026-10-06T08:50:22.676744+00:00",
+      "verification_method": "public_html_title_parent_identity"
+    },
+    {
+      "source_id": "node/11349271931",
+      "website_url": "https://r3dt.com/",
+      "identity_confirmed": true,
+      "evidence_url": "https://xr-easy.com/",
+      "capture": "fc3b72acea6def6b97cc",
+      "checked_at": "2026-10-06T08:50:26.155208+00:00",
+      "verification_method": "public_html_body_identity_after_redirect"
+    },
+    {
+      "source_id": "node/13738591748",
+      "website_url": "https://buderus.de/",
+      "identity_confirmed": true,
+      "evidence_url": "https://www.buderus.de/de",
+      "capture": "72f0d530e18a844f1d2b",
+      "checked_at": "2026-10-06T08:50:31.393196+00:00",
+      "verification_method": "public_html_title_identity"
+    },
+    {
+      "source_id": "node/4410545233",
+      "website_url": "https://a3architekten.com/",
+      "identity_confirmed": true,
+      "evidence_url": "https://a3architekten.com/",
+      "capture": "e885dbdb85de025e4623",
+      "checked_at": "2026-10-06T08:50:32.940988+00:00",
+      "verification_method": "public_html_title_identity"
+    },
+    {
+      "source_id": "node/4841370429",
+      "website_url": "https://kr3m.com/",
+      "identity_confirmed": true,
+      "evidence_url": "https://kr3m.com/",
+      "capture": "edc5bce3a0f72e270380",
+      "checked_at": "2026-10-06T08:50:34.407500+00:00",
+      "verification_method": "public_html_body_identity"
+    },
+    {
+      "source_id": "node/7277910391",
+      "website_url": "https://schrifthof.de/",
+      "identity_confirmed": true,
+      "evidence_url": "https://schrifthof.de/",
+      "capture": "a90a76bafa11e40406a3",
+      "checked_at": "2026-10-06T08:50:36.182322+00:00",
+      "verification_method": "public_html_title_identity"
+    },
+    {
+      "source_id": "node/1254138518",
+      "website_url": "https://joas-immobilien.de/",
+      "identity_confirmed": false,
+      "access_state": "robots_unavailable_tls_error",
+      "evidence_url": "https://joas-immobilien.de/robots.txt",
+      "capture": "f170d6634872c85edcfe",
+      "checked_at": "2026-10-06T08:50:28.212932+00:00",
+      "verification_method": "robots_aware_check_unavailable"
+    }
+  ]
+}

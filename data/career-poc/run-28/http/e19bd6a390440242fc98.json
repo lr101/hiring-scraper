@@ -1,0 +1,16 @@
+{
+  "url": "https://www.landkreis-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:36:38.316141+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=ISO-8859-15",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 94574,
+  "state": "ok",
+  "elapsed_seconds": 1.053,
+  "sha256": "2e6b34ac17f1076da39231452d51e390c283672e8dff9c6a967622d7fb41a8de",
+  "capture": "e19bd6a390440242fc98"
+}

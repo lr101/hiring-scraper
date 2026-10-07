@@ -1,0 +1,17 @@
+{
+  "url": "https://ugan.de/robots.txt",
+  "checked_at": "2026-10-05T23:40:33.710836+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 34,
+  "state": "ok",
+  "elapsed_seconds": 0.185,
+  "sha256": "d6d59ce59c2fef3ecb197012f49fb66d8c1b0af9eda61f85a0137f93b529a900",
+  "capture": "d4084dee3c57ad497875",
+  "merged_from_run": "run-28"
+}

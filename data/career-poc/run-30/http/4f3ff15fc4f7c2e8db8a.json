@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cloudflight.io/en/data_and_ai_engineering_roles/",
+  "checked_at": "2026-10-05T23:19:57.178054+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 201560,
+  "state": "ok",
+  "elapsed_seconds": 0.903,
+  "sha256": "fcb0c11cfd3b2a2262a517022be039b2bf2fa7c5118b26e18c02405e71c25a2f",
+  "capture": "4f3ff15fc4f7c2e8db8a",
+  "merged_from_run": "run-28"
+}

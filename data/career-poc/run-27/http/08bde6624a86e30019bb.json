@@ -1,0 +1,16 @@
+{
+  "url": "https://www.durm.de/robots.txt",
+  "checked_at": "2026-10-05T23:11:39.715271+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169,
+  "state": "ok",
+  "elapsed_seconds": 1.05,
+  "sha256": "69e9a689dc8efbdbbcacf79e432cc2f565c6de2a33ee9197d8c703e3db2cbb5e",
+  "capture": "08bde6624a86e30019bb"
+}

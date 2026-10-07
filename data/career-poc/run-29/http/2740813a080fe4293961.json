@@ -1,0 +1,17 @@
+{
+  "url": "https://www.metalle-in-form.com/",
+  "checked_at": "2026-10-05T23:23:48.214053+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.polyrack.com/weiterleitung-mif",
+  "bytes": 226,
+  "state": "http_error",
+  "elapsed_seconds": 0.97,
+  "sha256": "2fd7c605b7762b0dccbad4398cc5eac467358abe7d4b93cf47906b5d05b7033c",
+  "capture": "2740813a080fe4293961",
+  "merged_from_run": "run-28"
+}

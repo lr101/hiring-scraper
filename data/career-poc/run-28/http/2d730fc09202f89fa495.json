@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steinmetz-kern.de/karriere",
+  "checked_at": "2026-10-05T23:34:39.511839+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 39825,
+  "state": "http_error",
+  "elapsed_seconds": 1.046,
+  "sha256": "14dce13dbbd15ecd9e3800af9da624805703666ff25565d6f1878037ee5aa2fe",
+  "capture": "2d730fc09202f89fa495"
+}

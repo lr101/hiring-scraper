@@ -1,0 +1,17 @@
+{
+  "url": "https://www.amei-malerei.de/",
+  "checked_at": "2026-10-05T23:19:40.428153+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"156c4-63e74198d949c\"",
+  "last_modified": "Wed, 10 Sep 2025 15:30:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 87748,
+  "state": "ok",
+  "elapsed_seconds": 1.02,
+  "sha256": "8d524a3abfdef1a9029a7a9f6339c9ea58e26d32e0d7e8f6a03197fd3c1b358d",
+  "capture": "08afdf5a778b0f16a29b",
+  "merged_from_run": "run-28"
+}

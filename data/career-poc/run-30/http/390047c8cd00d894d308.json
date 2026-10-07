@@ -1,0 +1,17 @@
+{
+  "url": "https://zimmerei-ratzel.de/bewerbung",
+  "checked_at": "2026-10-05T23:46:19.250189+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 33298,
+  "state": "ok",
+  "elapsed_seconds": 0.99,
+  "sha256": "32c4131120e458830cab5e87269b952e8e16065ea6a447b9b0743d69eb325e0e",
+  "capture": "390047c8cd00d894d308",
+  "merged_from_run": "run-28"
+}

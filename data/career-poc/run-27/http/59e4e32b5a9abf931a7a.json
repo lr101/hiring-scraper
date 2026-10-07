@@ -1,0 +1,16 @@
+{
+  "url": "https://fachschaft.physik.kit.edu/sitemap.xml",
+  "checked_at": "2026-10-05T22:35:03.270352+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6652,
+  "state": "http_error",
+  "elapsed_seconds": 1.103,
+  "sha256": "becbc7069c680eb92213b88d33737e695170cb65cc752ee9f361afbca1483605",
+  "capture": "59e4e32b5a9abf931a7a"
+}

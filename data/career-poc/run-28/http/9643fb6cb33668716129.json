@@ -1,0 +1,16 @@
+{
+  "url": "https://www.inros-lackner.de/karriere/faqs",
+  "checked_at": "2026-10-05T23:31:12.510924+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52413,
+  "state": "ok",
+  "elapsed_seconds": 1.216,
+  "sha256": "710e4e1e8160245b54008e0233ee47ba88eb6a19fe803586adb59dd3021f9929",
+  "capture": "9643fb6cb33668716129"
+}

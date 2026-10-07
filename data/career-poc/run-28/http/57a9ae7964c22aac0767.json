@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zimmer-group.com/de/karriere/stellenangebote/stellenangebote-international",
+  "checked_at": "2026-10-05T23:38:24.406592+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 255413,
+  "state": "ok",
+  "elapsed_seconds": 0.844,
+  "sha256": "f146b400ad2059510ab8bbce603c973879f3d3b5d27441b20d5fec510d1d6a0a",
+  "capture": "57a9ae7964c22aac0767"
+}

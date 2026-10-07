@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hilzinger.de/jobs/",
+  "checked_at": "2026-10-05T23:35:28.162095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100620,
+  "state": "ok",
+  "elapsed_seconds": 0.857,
+  "sha256": "56425c3b280e6f81532bf92de5514aa1e18ecf5b3a9062bb74ab9905004f1d1c",
+  "capture": "e488975827682ffea133",
+  "merged_from_run": "run-28"
+}

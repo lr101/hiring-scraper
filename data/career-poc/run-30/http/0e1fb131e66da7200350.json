@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wolff-mueller.de/karriere/stellenportal",
+  "checked_at": "2026-10-05T23:19:14.253222+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63377,
+  "state": "ok",
+  "elapsed_seconds": 1.846,
+  "sha256": "3e668e103a393e06478cf0d9ef6b82df668f49d58c7b6601e0620c07438e6c4a",
+  "capture": "0e1fb131e66da7200350",
+  "merged_from_run": "run-28"
+}

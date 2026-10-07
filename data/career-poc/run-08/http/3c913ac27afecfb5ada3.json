@@ -1,0 +1,14 @@
+{
+  "url": "https://www.wooga.com/sitemap.xml",
+  "checked_at": "2026-10-05T09:12:52.921648+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/rss+xml; charset=utf-8",
+  "location": null,
+  "bytes": 25825,
+  "state": "ok",
+  "elapsed_seconds": 1.102,
+  "sha256": "dfb28e7af2baa31ac6bef861e69a0aca19a7570c11d262397edca92abedd4ebc",
+  "capture": "3c913ac27afecfb5ada3",
+  "reused_from": "data/career-poc/run-02/http/3c913ac27afecfb5ada3.json"
+}

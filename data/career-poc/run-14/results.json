@@ -1,0 +1,3966 @@
+[
+  {
+    "name": "audials",
+    "website": "https://audials.com/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12566506477",
+    "original_website": "https://audials.com/",
+    "osm_source_id": "node/12566506477",
+    "distance_m": 530.8,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://audials.com/",
+        "url": "https://audials.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "http_error",
+        "http_status": 403,
+        "content_type": "text/html",
+        "capture": "5c6fb2372d01d5e8b335",
+        "redirect_chain": [
+          "https://audials.com/"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "qwertiko GmbH",
+    "website": "https://www.qwertiko.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/9217989066",
+    "original_website": "https://www.qwertiko.de/",
+    "osm_source_id": "node/9217989066",
+    "distance_m": 562.6,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.qwertiko.de/",
+        "url": "https://www.qwertiko.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "bc80851420ce334ca6a6",
+        "redirect_chain": [
+          "https://www.qwertiko.de/"
+        ],
+        "title": "Startseite - Managed Hosting made in Germany",
+        "headings": "Managed Hosting made in Germany Platform-as-a-Service & Firewall-Lösungen für Ihr Business Ihre Business Cloud: Ganz entspannt für Sie mit dem persönlichen qwertiko-Service. Wer ist qwertiko? Unsere Partner Unser qwertiko-Shop qwertiko- Newsletter Weitere Informationen? Gerne persönlich! Darum uns unsere Kunden",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.qwertiko.de/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://cal.qwertiko.de/team/qwertiko",
+            "label": "Termin vereinbaren",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/faq/",
+            "label": "FAQ",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/blog/",
+            "label": "Blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/kontakt/",
+            "label": "Kontakt",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/newsletter/",
+            "label": "Newsletter",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/referenzen/",
+            "label": "Referenzen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/success-storys/",
+            "label": "Success Storys",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/hosting-partner/",
+            "label": "Hosting Partner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/ansprechpartner/",
+            "label": "Ansprechpartner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/netzwerke-und-engagement/",
+            "label": "Netzwerke und Engagement",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.qwertiko.de/jobs/",
+        "url": "https://www.qwertiko.de/jobs/",
+        "parent": "https://www.qwertiko.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "571daaaad244bec655dc",
+        "redirect_chain": [
+          "https://www.qwertiko.de/jobs/"
+        ],
+        "title": "Jobs - Managed Hosting made in Germany",
+        "headings": "Deine Expertise für starke IT-Infrastrukturen Bewirb dich jetzt​ IT-Jobs in Karlsruhe Deine Benefits bei uns Aktuelle Jobs Ausbildung Duales Studium Informatik Ausbildung zum Fachinformatiker Das bieten wir Das solltest Du mitbringen Dein Ansprechpartner bei uns ist:",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.qwertiko.de/jobs/senior-linux-administrator-all/",
+            "label": "Senior LINUX Administrator (all)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/jobs/junior-linux-administrator-all/",
+            "label": "Junior LINUX Administrator (all)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/uber-uns/jobs/senior-linux-administrator-all/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/uber-uns/jobs/junior-linux-administrator-all/",
+            "label": "",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://cal.qwertiko.de/team/qwertiko",
+            "label": "Termin vereinbaren",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/faq/",
+            "label": "FAQ",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/blog/",
+            "label": "Blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/kontakt/",
+            "label": "Kontakt",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/newsletter/",
+            "label": "Newsletter",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/referenzen/",
+            "label": "Referenzen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/success-storys/",
+            "label": "Success Storys",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.qwertiko.de/jobs/senior-linux-administrator-all/",
+        "url": "https://www.qwertiko.de/jobs/senior-linux-administrator-all/",
+        "parent": "https://www.qwertiko.de/jobs/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "51e8d4ac6f76dded6636",
+        "redirect_chain": [
+          "https://www.qwertiko.de/jobs/senior-linux-administrator-all/"
+        ],
+        "title": "Senior LINUX Administrator (all) - Managed Hosting made in Germany",
+        "headings": "Senior LINUX Administrator (all) Du suchst einen Job, bei dem professionelles Hosting von IT⁠-⁠Systemen aller Art , verbunden mit individueller und persönlicher Kundenbetreuung ganz oben steht? Dein Ansprechpartner bei uns ist:",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.qwertiko.de/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://cal.qwertiko.de/team/qwertiko",
+            "label": "Termin vereinbaren",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/faq/",
+            "label": "FAQ",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/blog/",
+            "label": "Blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/kontakt/",
+            "label": "Kontakt",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/newsletter/",
+            "label": "Newsletter",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/referenzen/",
+            "label": "Referenzen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/success-storys/",
+            "label": "Success Storys",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/hosting-partner/",
+            "label": "Hosting Partner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/ansprechpartner/",
+            "label": "Ansprechpartner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/netzwerke-und-engagement/",
+            "label": "Netzwerke und Engagement",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.qwertiko.de/jobs/junior-linux-administrator-all/",
+        "url": "https://www.qwertiko.de/jobs/junior-linux-administrator-all/",
+        "parent": "https://www.qwertiko.de/jobs/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "caeb366c265bd37a1092",
+        "redirect_chain": [
+          "https://www.qwertiko.de/jobs/junior-linux-administrator-all/"
+        ],
+        "title": "Junior LINUX Administrator (all) - Managed Hosting made in Germany",
+        "headings": "Junior LINUX Administrator (all) Du suchst einen Job, bei dem professionelles Hosting von IT⁠-⁠Systemen aller Art , verbunden mit individueller und persönlicher Kundenbetreuung ganz oben steht? Dein Ansprechpartner bei uns ist:",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.qwertiko.de/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://cal.qwertiko.de/team/qwertiko",
+            "label": "Termin vereinbaren",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/faq/",
+            "label": "FAQ",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/blog/",
+            "label": "Blog",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/kontakt/",
+            "label": "Kontakt",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/newsletter/",
+            "label": "Newsletter",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/referenzen/",
+            "label": "Referenzen",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/success-storys/",
+            "label": "Success Storys",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/hosting-partner/",
+            "label": "Hosting Partner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/ansprechpartner/",
+            "label": "Ansprechpartner",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.qwertiko.de/ueber-uns/netzwerke-und-engagement/",
+            "label": "Netzwerke und Engagement",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.qwertiko.de/sitemap.xml",
+        "url": "https://www.qwertiko.de/sitemap_index.xml",
+        "parent": "https://www.qwertiko.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "aee2fd4f76e12ac62369",
+        "redirect_chain": [
+          "https://www.qwertiko.de/sitemap.xml",
+          "https://www.qwertiko.de/sitemap_index.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://www.qwertiko.de/post-sitemap.xml",
+        "url": "https://www.qwertiko.de/post-sitemap.xml",
+        "parent": "https://www.qwertiko.de/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "d29cb09c7ff91e44ee51",
+        "redirect_chain": [
+          "https://www.qwertiko.de/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 4,
+      "duplicate_redirects_skipped": 2
+    }
+  },
+  {
+    "name": "Navigate AG",
+    "website": "https://navigate.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/9217989069",
+    "original_website": "https://navigate.de",
+    "osm_source_id": "node/9217989069",
+    "distance_m": 566.7,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://navigate.de/",
+        "url": "https://navigate.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "d7f591c11ca11a7ca3fc",
+        "redirect_chain": [
+          "https://navigate.de/"
+        ],
+        "title": "Webagentur aus Karlsruhe seit dem Jahr 2000 - Navigate AG - Die Internetagentur",
+        "headings": "Beratung. Design. Code. Das ist unser Antrieb für Ihre Website. Navigating Change. Ihre Website: Durchdacht, gestaltet, gebaut. Neues von Navigate AEO & GEO: Ihre Sichtbarkeit in der KI-Suche verbessern Individuelle Kunden-Chatbots Damit arbeiten wir Technologien, die wir verwenden Bringen Sie Ihre Marke von der Vision zur Realität. Ausgewählte Referenzen Führende Marketingexperten und Agenturen v",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://navigate.de/agentur/team/",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://navigate.de/referenzen/dauphin-humandesign-company/",
+            "label": "",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://navigate.de/sitemap.xml",
+        "url": "https://navigate.de/sitemap_index.xml",
+        "parent": "https://navigate.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "e3581fb5aa5839899c9e",
+        "redirect_chain": [
+          "https://navigate.de/sitemap.xml",
+          "https://navigate.de/sitemap_index.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://navigate.de/post-sitemap.xml",
+        "url": "https://navigate.de/post-sitemap.xml",
+        "parent": "https://navigate.de/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "f4b4990cc116fbd9cd48",
+        "redirect_chain": [
+          "https://navigate.de/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://navigate.de/page-sitemap.xml",
+        "url": "https://navigate.de/page-sitemap.xml",
+        "parent": "https://navigate.de/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "ba4ae1fee37d977e66b9",
+        "redirect_chain": [
+          "https://navigate.de/page-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://navigate.de/karriere",
+        "url": "https://navigate.de/karriere",
+        "parent": "https://navigate.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "7abb0ee440bc44fa8f19",
+        "redirect_chain": [
+          "https://navigate.de/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://navigate.de/careers",
+        "url": "https://navigate.de/careers",
+        "parent": "https://navigate.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "b6b62062c1bd358f2236",
+        "redirect_chain": [
+          "https://navigate.de/careers"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 1,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "awesome",
+    "website": "https://awesome-it.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12093593641",
+    "original_website": "https://awesome-it.de/",
+    "osm_source_id": "node/12093593641",
+    "distance_m": 638.1,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://awesome-it.de/",
+        "url": "https://awesome-it.de/de",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "1285fc862284a38a4191",
+        "redirect_chain": [
+          "https://awesome-it.de/",
+          "https://awesome-it.de/de"
+        ],
+        "title": "awesome IT - Cloud-Infrastruktur & Softwareentwicklung",
+        "headings": "Digitale Souveränität. Planbar umgesetzt. Digitale Souveränität. Planbar umgesetzt. Leistungen im Überblick Softwareentwicklung Beratung Infrastruktur Managed Services Digitale Souveränität. Planbar umgesetzt. Digitale Souveränität. Planbar umgesetzt. Leistungen im Überblick Softwareentwicklung Beratung Infrastruktur Managed Services Ausgewählte Referenzen Ein typischer Projektablauf Insights und ",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://awesome-it.de/de/careers",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://awesome-it.de/de/careers",
+        "url": "https://awesome-it.de/de/careers",
+        "parent": "https://awesome-it.de/de",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "406790ac5aa6aa9997e6",
+        "redirect_chain": [
+          "https://awesome-it.de/de/careers"
+        ],
+        "title": "awesome IT - Cloud-Infrastruktur & Softwareentwicklung",
+        "headings": "Komm ins Team. Komm ins Team. Argumente in eigener Sache Individuelle Weiterbildung Zufriedene Kollegen Projektvielfalt Open-Source Arbeiten mit Weitblick Choose your own ... Community Kommunikation auf Augenhöhe Selbstständigkeit Dein Weg in unser Team Welche Rollen passen zu Dir? Passt für dich?",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://awesome-it.de/en/careers",
+            "label": "Englisch",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://awesome-it.de/en/careers",
+        "url": "https://awesome-it.de/en/careers",
+        "parent": "https://awesome-it.de/de/careers",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "75338a08e8390bbe3ef3",
+        "redirect_chain": [
+          "https://awesome-it.de/en/careers"
+        ],
+        "title": "awesome IT – Cloud Infrastructure & Software Development",
+        "headings": "Join the team. Join the team. Arguments in our own favor Individual development Happy colleagues Project diversity Open Source Working with foresight Choose your own ... Community Communication at eye level Independence Your path into our team Which roles suit you? Is this for you?",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://awesome-it.de/de/careers",
+            "label": "German",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://awesome-it.de/sitemap.xml",
+        "url": "https://awesome-it.de/sitemap.xml",
+        "parent": "https://awesome-it.de/de",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml",
+        "capture": "2727556c179749538830",
+        "redirect_chain": [
+          "https://awesome-it.de/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 1
+      },
+      {
+        "requested_url": "https://awesome-it.de/karriere",
+        "url": "https://awesome-it.de/de/karriere",
+        "parent": "https://awesome-it.de/de",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "2829779aeb4d93db6f07",
+        "redirect_chain": [
+          "https://awesome-it.de/karriere",
+          "https://awesome-it.de/de/karriere"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 2
+    }
+  },
+  {
+    "name": "act smartware",
+    "website": "https://www.act-smartware.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11347267934",
+    "original_website": "https://www.act-smartware.de/",
+    "osm_source_id": "node/11347267934",
+    "distance_m": 1134.1,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.act-smartware.de/",
+        "url": "https://www.act-smartware.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "c0cc760832a516da1547",
+        "redirect_chain": [
+          "https://www.act-smartware.de/"
+        ],
+        "title": "ACT Smartware",
+        "headings": "Sicher zur Cloud – Schritt für Schritt Vorausschauend handeln beginnt mit Überblick Sensoren ja – Cloud noch nicht? Updates ohne Anreise Global vernetzen – China mitgedacht BLANCO Mercedes-Benz MOTOCOMPANO",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://www.act-smartware.de/sitemap.xml",
+        "url": "https://www.act-smartware.de/wp-sitemap.xml",
+        "parent": "https://www.act-smartware.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml; charset=UTF-8",
+        "capture": "8ad05c8690e852bd3401",
+        "redirect_chain": [
+          "https://www.act-smartware.de/sitemap.xml",
+          "https://www.act-smartware.de/wp-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 1
+      },
+      {
+        "requested_url": "https://www.act-smartware.de/wp-sitemap-posts-page-1.xml",
+        "url": "https://www.act-smartware.de/wp-sitemap-posts-page-1.xml",
+        "parent": "https://www.act-smartware.de/wp-sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml; charset=UTF-8",
+        "capture": "a0f05f62cc068fb9002d",
+        "redirect_chain": [
+          "https://www.act-smartware.de/wp-sitemap-posts-page-1.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 3
+    }
+  },
+  {
+    "name": "adesso",
+    "website": "https://www.adesso.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/6688483711",
+    "original_website": "https://www.adesso.de",
+    "osm_source_id": "node/6688483711",
+    "distance_m": 1191.3,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.adesso.de/",
+        "url": "https://www.adesso.de/de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=utf-8",
+        "capture": "25ad5e422ab52e67dc6c",
+        "redirect_chain": [
+          "https://www.adesso.de/",
+          "https://www.adesso.de/de/"
+        ],
+        "title": "adesso SE - Führender IT-Dienstleister im deutschsprachigen Raum",
+        "headings": "GenAI Impact Report 2026 Traditionelle KI vs. GenAI – steht Deutschland vor dem Change? adSCAILE Agentische Softwareentwicklung Building Europe’s Digital Future with AI Ihr KI-Pilot läuft. Aber läuft er auch in Produktion? Digitale Souveränität Ausgewählte Referenzen Events News Investor Relations",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Unsere Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+            "label": "FAQs und Bewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+            "label": "Start",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+            "label": "Arbeitswelt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+            "label": "Entwicklung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/top-employer/index.jsp",
+            "label": "adesso ist Top Employer",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/care-4-adessi/index.jsp",
+            "label": "care[4]adessi",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/karriere-adesso-group.jsp",
+            "label": "Karriere in der adesso Group",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/einstiegsmoeglichkeiten/index.jsp",
+            "label": "Einstiegsmöglichkeiten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/news/veranstaltungen/connecticum-it-karrieremesse.jsp",
+            "label": "Berlin 07.10.2026 (11:00 - 17:00 Uhr) connecticum IT-Karrieremesse Triff adesso in Berlin!",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/referenzbuch.jsp",
+            "label": "Grow Together - das adesso Referenzbuch Weitere Referenzen Grow Together - das adesso Referenzbuch Mit unserem Buch „Grow Together“ geben wi",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/standorte/index.jsp",
+            "label": "Standorte",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/",
+        "url": "https://jobs.adesso-group.com/",
+        "parent": "https://www.adesso.de/de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=UTF-8",
+        "capture": "50f222f6d407b83f47c3",
+        "redirect_chain": [
+          "https://jobs.adesso-group.com/"
+        ],
+        "title": "adesso SE Stellenportal",
+        "headings": "adesso SE Stellenportal Manager für Cookie-Einwilligungen",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.adesso.de/de/index.jsp",
+            "label": "Unternehmensseite",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+        "url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+        "parent": "https://www.adesso.de/de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=utf-8",
+        "capture": "c7a4442092909e7b0232",
+        "redirect_chain": [
+          "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp"
+        ],
+        "title": "Bewerbungs-FAQ",
+        "headings": "Bewerbungs-FAQ Hast du Fragen zu deiner Bewerbung? Deine Bewerbung Eingang deiner Bewerbung Prüfung deiner Unterlagen Interview Arbeitsvertrag Welcome und Onboarding Vor der Bewerbung Während der Bewerbung Technischer Support & Datenschutz Jobs bei adesso",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Unsere Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://career.adesso-group.com/de/job-check/",
+            "label": "Zum Job-Check",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/en/jobs-karriere/faqs/index.jsp",
+            "label": "en",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/kontakt/kontakt-karriere.jsp",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+            "label": "Start",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+            "label": "Arbeitswelt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+            "label": "Entwicklung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/top-employer/index.jsp",
+            "label": "adesso ist Top Employer",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/care-4-adessi/index.jsp",
+            "label": "care[4]adessi",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/karriere-adesso-group.jsp",
+            "label": "Karriere in der adesso Group",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/einstiegsmoeglichkeiten/index.jsp",
+            "label": "Einstiegsmöglichkeiten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/standorte/index.jsp",
+            "label": "Standorte",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+        "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+        "parent": "https://www.adesso.de/de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=utf-8",
+        "capture": "f3b520bad2e444644556",
+        "redirect_chain": [
+          "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp"
+        ],
+        "title": "Dein Start bei adesso - von Anfang an Teil des Teams",
+        "headings": "Dein Start bei adesso Von Anfang an Teil des Teams Jobs @ adesso",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Unsere Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+            "label": "FAQs und Bewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/kontakt/kontakt-karriere.jsp",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/en/jobs-karriere/start/index.jsp",
+            "label": "en",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+            "label": "Arbeitswelt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+            "label": "Entwicklung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/top-employer/index.jsp",
+            "label": "adesso ist Top Employer",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/care-4-adessi/index.jsp",
+            "label": "care[4]adessi",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/karriere-adesso-group.jsp",
+            "label": "Karriere in der adesso Group",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/einstiegsmoeglichkeiten/index.jsp",
+            "label": "Einstiegsmöglichkeiten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.adesso-group.com/?currentPage=1&pageSize=15&orderBy=datePosted&isDesc=true",
+            "label": "Zu den Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/standorte/index.jsp",
+            "label": "Standorte",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+        "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+        "parent": "https://www.adesso.de/de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=utf-8",
+        "capture": "3532ac284364bf66eacf",
+        "redirect_chain": [
+          "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp"
+        ],
+        "title": "Deine Arbeitswelt bei adesso - mehr als ein Job",
+        "headings": "Deine Arbeitswelt bei adesso Mehr als ein Job Unsere Standorte Jobs bei adesso",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Unsere Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+            "label": "FAQs und Bewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/kontakt/kontakt-karriere.jsp",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+            "label": "Start",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+            "label": "Entwicklung",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/top-employer/index.jsp",
+            "label": "adesso ist Top Employer",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/care-4-adessi/index.jsp",
+            "label": "care[4]adessi",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/karriere-adesso-group.jsp",
+            "label": "Karriere in der adesso Group",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/en/jobs-karriere/working-environment/index.jsp",
+            "label": "en",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/einstiegsmoeglichkeiten/index.jsp",
+            "label": "Einstiegsmöglichkeiten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/standorte/index.jsp",
+            "label": "Standorte",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/forschung/index.jsp",
+            "label": "Innovation und Forschung",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+        "url": "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp",
+        "parent": "https://www.adesso.de/de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=utf-8",
+        "capture": "88b5b36962cc3b3b5866",
+        "redirect_chain": [
+          "https://www.adesso.de/de/jobs-karriere/entwicklung/index.jsp"
+        ],
+        "title": "Deine Entwicklung bei adesso - der Persönlichkeit Raum geben",
+        "headings": "Deine Entwicklung bei adesso Der Persönlichkeit Raum geben Learning@adesso Jobs bei adesso",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Unsere Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/faqs/index.jsp",
+            "label": "FAQs und Bewerbungsprozess",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/kontakt/kontakt-karriere.jsp",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/start/index-2.jsp",
+            "label": "Start",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/learning-guide.jsp",
+            "label": "Erfahre mehr über unseren Learning Guide",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/en/jobs-karriere/development/index.jsp",
+            "label": "en",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/arbeitswelt/index.jsp",
+            "label": "Arbeitswelt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/top-employer/index.jsp",
+            "label": "adesso ist Top Employer",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/care-4-adessi/index.jsp",
+            "label": "care[4]adessi",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/karriere-adesso-group.jsp",
+            "label": "Karriere in der adesso Group",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/jobs-karriere/einstiegsmoeglichkeiten/index.jsp",
+            "label": "Einstiegsmöglichkeiten",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/unternehmen/standorte/index.jsp",
+            "label": "Standorte",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 42,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "IONOS",
+    "website": "https://www.ionos.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/12324666851",
+    "original_website": "https://www.ionos.de/",
+    "osm_source_id": "node/12324666851",
+    "distance_m": 1621.3,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.ionos.de/",
+        "url": "https://www.ionos.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "d6a55f0b24a0f29faa48",
+        "redirect_chain": [
+          "https://www.ionos.de/"
+        ],
+        "title": "IONOS | Von Website bis Cloud » Digital an Ihrer Seite",
+        "headings": "Der KI Telefonassistent geht ans Telefon wie ein Mensch. Der KI Telefonassistent ist immer erreichbar. Digital an Ihrer Seite. Domain. Website. Cloud. Einfach wie nie dank KI. Kein verpasster Anruf. Kein verlorener Auftrag. Zum Online-Erfolg mit Ihrer Profi-Website und smarten KI-Tools. Mit IONOS setzen Sie auf den Marktführer. Gemeinsam mit unseren Kunden auf Wachstumskurs. Führende Marken und Pa",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.ionos.de/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ionos.de/unternehmen",
+            "label": "Über IONOS",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.ionos.de/",
+        "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "parent": "https://www.ionos.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "694ad8a833c820c79527",
+        "redirect_chain": [
+          "https://jobs.ionos.de/",
+          "https://jobs.ionos.de/karriere/",
+          "https://jobs.ionos.de/karriere/wer-wir-sind"
+        ],
+        "title": "Wer wir sind - IONOS Karriere",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/about-us",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/datenschutz",
+            "label": "Datenschutz",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+            "label": "Ihre Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/",
+        "url": "https://www.united-internet.de/jobs-karriere/",
+        "parent": "https://jobs.ionos.de/karriere/wer-wir-sind",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "416fcbc4605079afb1fb",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/"
+        ],
+        "title": "Jobs & Karriere: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=graduates",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=professionals",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/kontakt.html",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/schueler.html",
+            "label": "Schüler*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/ueber-uns.html",
+            "label": "Über uns",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/studenten.html",
+            "label": "Studierende",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/diversity.html",
+            "label": "Diversity",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/absolventen.html",
+            "label": "Absolvent*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "parent": "https://www.united-internet.de/jobs-karriere/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "95f44af25a5c5e764ac1",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebote.html"
+        ],
+        "title": "Stellenangebote: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+            "label": "Trainee AI (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5278",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html",
+            "label": "Site Manager (w/m/d) bei United Internet AG in Düsseldorf Kennziffer: SF-5705",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4979230101-volljurist-wmd.html",
+            "label": "Volljurist (w/m/d) bei unserer Tochtergesellschaft IONOS SE in Berlin Kennziffer: I-1621",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5621-aiml-engineer-wmd.html",
+            "label": "AI/ML Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Frankfurt Kennziffer: SF-5621",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5915-it-pmo-manager-wmd.html",
+            "label": "IT PMO Manager (w/m/d) bei unserer Tochtergesellschaft IQ-optimize Software GmbH in Frankfurt oder Krefeld Kennziffer: SF-5915",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5760-data-scientist-wmd.html",
+            "label": "Data Scientist (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5760",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5882-schulpraktikum-wmd.html",
+            "label": "Schulpraktikum (w/m/d) bei United Internet AG in Karlsruhe Kennziffer: SF-5882",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5909-prompt-engineer-wmd.html",
+            "label": "Prompt Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Montabaur, Karlsruhe oder Frankfurt Kennziffer: SF-5909",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5276-trainee-wmd-finance.html",
+            "label": "Trainee (w/m/d) Finance bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Düsseldorf Kennziffer: SF-5276",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5773-bereichsassistenz-mwd.html",
+            "label": "Bereichsassistenz (m/w/d) bei unserer Tochtergesellschaft 1&1 Mobilfunk GmbH in Düsseldorf Kennziffer: SF-5773",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5626-aiml-ops-engineer-wmd.html",
+            "label": "AI/ML Ops Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Frankfurt Kennziffer: SF-56",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5851-junior-tax-manager-wmd.html",
+            "label": "Junior Tax Manager (w/m/d) bei United Internet AG in Montabaur oder Frankfurt Kennziffer: SF-5851",
+            "score": 92,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils",
+        "parent": "https://www.united-internet.de/jobs-karriere/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "016880e3e962a167e206",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils"
+        ],
+        "title": "Stellenangebote: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5882-schulpraktikum-wmd.html",
+            "label": "Schulpraktikum (w/m/d) bei United Internet AG in Karlsruhe Kennziffer: SF-5882",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-4107-initiativbewerbung-1-1-versatel-wmd.html",
+            "label": "Initiativbewerbung 1&1 Versatel (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Berlin, Düsseldorf oder deutschlandweit Kennzif",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5944-auszubildende-industriekaufleute-start-august-2027-wmd.html",
+            "label": "Auszubildende Industriekaufleute - Start August 2027 (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Düsseldorf Kennziffer: SF-",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5858-duales-studium-informatik-dhbw-in-karlsruhe-start-2027.html",
+            "label": "Duales Studium - Informatik (DHBW) in Karlsruhe Start 2027 bei United Internet AG in Karlsruhe Kennziffer: SF-5858",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5857-duales-studium-wirtschaftsinformatik-dhbw-in-karlsruhe-start-2027.html",
+            "label": "Duales Studium - Wirtschaftsinformatik (DHBW) in Karlsruhe Start 2027 bei United Internet AG in Karlsruhe Kennziffer: SF-5857",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5942-auszubildende-fachinformatik-systemintegration-start-august-2027-wmd.html",
+            "label": "Auszubildende Fachinformatik Systemintegration - Start August 2027 (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Essen Kennzi",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5940-auszubildende-fachinformatik-systemintegration-start-august-2027-wmd.html",
+            "label": "Auszubildende Fachinformatik Systemintegration - Start August 2027 (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Flensburg Ke",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5875-duales-studium-bwl-marketing-management-dhbw-in-montabaur-start-2027.html",
+            "label": "Duales Studium - BWL Marketing Management (DHBW) in Montabaur Start 2027 bei United Internet AG in Montabaur Kennziffer: SF-5875",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5874-duales-studium-rsw-accounting-controlling-dhbw-in-montabaur-start-2027.html",
+            "label": "Duales Studium - RSW / Accounting & Controlling (DHBW) in Montabaur Start 2027 bei United Internet AG in Montabaur Kennziffer: SF-5874",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5939-auszubildende-fachinformatik-anwendungsentwicklung-start-august-2027-wmd.html",
+            "label": "Auszubildende Fachinformatik Anwendungsentwicklung - Start August 2027 (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Flensbur",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5866-ausbildung-kaufmann-frau-wmd-fuer-bueromanagement-in-montabaur-start-2027.html",
+            "label": "Ausbildung - Kaufmann/-frau (w/m/d) für Büromanagement in Montabaur Start 2027 bei United Internet AG in Montabaur Kennziffer: SF-5866",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5865-ausbildung-kaufmann-frau-wmd-fuer-dialogmarketing-in-montabaur-start-2027.html",
+            "label": "Ausbildung - Kaufmann/-frau (w/m/d) für Dialogmarketing in Montabaur Start 2027 bei United Internet AG in Montabaur Kennziffer: SF-5865",
+            "score": 92,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student",
+        "parent": "https://www.united-internet.de/jobs-karriere/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "0ff30b8828fba844e9c7",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student"
+        ],
+        "title": "Stellenangebote: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+            "label": "Trainee AI (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5278",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5276-trainee-wmd-finance.html",
+            "label": "Trainee (w/m/d) Finance bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Düsseldorf Kennziffer: SF-5276",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5721-werkstudent-wmd-redaktion.html",
+            "label": "Werkstudent (w/m/d) - Redaktion bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5721",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4939617101-werkstudent-ux-apps-wmd.html",
+            "label": "Werkstudent UX Apps (w/m/d) bei unserer Tochtergesellschaft GMX, WEB.DE & mail.com in Karlsruhe oder München Kennziffer: M-365",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/5950-werkstudent-wmd-quality-management.html",
+            "label": "Werkstudent (w/m/d) - Quality Management bei unserer Tochtergesellschaft 1&1 Mobilfunk GmbH in Düsseldorf Kennziffer: SF-5950",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4982901101-werkstudent-sustainability-wmd.html",
+            "label": "Werkstudent Sustainability (w/m/d) bei unserer Tochtergesellschaft GMX, WEB.DE & mail.com in München Kennziffer: M-373",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5279-trainee-wmd-onlinemarketing-sales.html",
+            "label": "Trainee (w/m/d) Onlinemarketing & Sales bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe oder München Kennziffer: SF-52",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-4107-initiativbewerbung-1-1-versatel-wmd.html",
+            "label": "Initiativbewerbung 1&1 Versatel (w/m/d) bei unserer Tochtergesellschaft 1&1 Versatel GmbH in Berlin, Düsseldorf oder deutschlandweit Kennzif",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4996389101-werkstudent-wmd-sales-controlling.html",
+            "label": "Werkstudent (w/m/d) Sales Controlling bei unserer Tochtergesellschaft IONOS SE in Karlsruhe Kennziffer: I-1631",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5946-werkstudent-wmd-marketing-operations.html",
+            "label": "Werkstudent (w/m/d) - Marketing Operations bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Montabaur Kennziffer: SF-5946",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5834-werkstudent-wmd-corporate-governance.html",
+            "label": "Werkstudent (w/m/d) Corporate Governance bei United Internet AG in Karlsruhe Kennziffer: SF-5834",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5694-werkstudent-wmd-infrastruktur-einkauf.html",
+            "label": "Werkstudent (w/m/d) - Infrastruktur Einkauf bei United Internet AG in Karlsruhe oder Düsseldorf Kennziffer: SF-5694",
+            "score": 92,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 19,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Tooltec IT GmbH",
+    "website": "https://tooltec.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271942",
+    "original_website": "https://tooltec.de",
+    "osm_source_id": "node/11349271942",
+    "distance_m": 1697.9,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://tooltec.de/",
+        "url": "https://tooltec.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "7e1c1a0a4457aebfd399",
+        "redirect_chain": [
+          "https://tooltec.de/"
+        ],
+        "title": "IT-Betreuung für Unternehmen in Karlsruhe | Tooltec IT GmbH",
+        "headings": "Nie wieder allein mit IT-Problemen. Alles, was Ihre IT braucht – aus einer Hand Welches Logo auf dem Gerät steht, ist uns egal. Hauptsache, es läuft. Vom ersten Anruf zur betreuten IT – mit festen Gesichtern. Offene Standards statt Abhängigkeit. Was Kunden über uns sagen Sprechen wir über Ihre IT. Leistungen Unternehmen Kontakt Willkommen zurück!",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://tooltec.de/karriere/",
+            "label": "Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://tooltec.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://tooltec.de/unser-team/",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://tooltec.de/karriere/",
+        "url": "https://tooltec.de/karriere/",
+        "parent": "https://tooltec.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "f52dbdca8976d7d340d4",
+        "redirect_chain": [
+          "https://tooltec.de/karriere/"
+        ],
+        "title": "Karriere & Jobs | Tooltec IT GmbH - IT-Jobs Karlsruhe",
+        "headings": "Dein nächster Schritt in die IT-Welt. Leistungen Unternehmen Kontakt",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://tooltec.de/cdn-cgi/l/email-protection",
+            "label": "Jetzt bewerben",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://tooltec.de/ueber-uns/",
+            "label": "Über uns",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://tooltec.de/unser-team/",
+            "label": "Team",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://tooltec.de/cdn-cgi/l/email-protection",
+        "url": "https://tooltec.de/cdn-cgi/l/email-protection",
+        "parent": "https://tooltec.de/karriere/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "5c8c8469bc5d30ac8e96",
+        "redirect_chain": [
+          "https://tooltec.de/cdn-cgi/l/email-protection"
+        ]
+      },
+      {
+        "requested_url": "https://tooltec.de/sitemap.xml",
+        "url": "https://tooltec.de/sitemap.xml",
+        "parent": "https://tooltec.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml",
+        "capture": "d9056fbabef2d4b598f6",
+        "redirect_chain": [
+          "https://tooltec.de/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 1
+      },
+      {
+        "requested_url": "https://tooltec.de/careers",
+        "url": "https://tooltec.de/careers",
+        "parent": "https://tooltec.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "3e016f74a8a5e9af06ed",
+        "redirect_chain": [
+          "https://tooltec.de/careers"
+        ]
+      },
+      {
+        "requested_url": "https://tooltec.de/jobs",
+        "url": "https://tooltec.de/jobs",
+        "parent": "https://tooltec.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "36117424047b53a1281b",
+        "redirect_chain": [
+          "https://tooltec.de/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 1
+    }
+  },
+  {
+    "name": "DatenBerg GmbH",
+    "website": "https://datenberg.eu",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271941",
+    "original_website": "https://datenberg.eu",
+    "osm_source_id": "node/11349271941",
+    "distance_m": 1699.6,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://datenberg.eu/",
+        "url": "https://datenberg.eu/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "3a3727e0ed043f47d863",
+        "redirect_chain": [
+          "https://datenberg.eu/"
+        ],
+        "title": "DatenBerg - Maschinen- und Qualitätsdaten smart nutzen",
+        "headings": "Analysieren. Überwachen. Vorhersagen. Das Softwarepaket für die smarte Produktion. Maschinen- und Qualitätsdaten erfassen und nutzen. Für Produktionen, die sich durch Daten verbessern möchten. Unsere Kunden erfassen und nutzen ihre Maschinen- und Qualitätsdaten. Wir liefern die Software und den passenden Service.",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://datenberg.eu/sitemap.xml",
+        "url": "https://datenberg.eu/sitemap_index.xml",
+        "parent": "https://datenberg.eu/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "0b4d6e3018ea2974aec1",
+        "redirect_chain": [
+          "https://datenberg.eu/sitemap.xml",
+          "https://datenberg.eu/sitemap_index.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://datenberg.eu/post-sitemap.xml",
+        "url": "https://datenberg.eu/post-sitemap.xml",
+        "parent": "https://datenberg.eu/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "0bc6e2cdd0024c7fc569",
+        "redirect_chain": [
+          "https://datenberg.eu/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://datenberg.eu/page-sitemap.xml",
+        "url": "https://datenberg.eu/page-sitemap.xml",
+        "parent": "https://datenberg.eu/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "510b1ac4478d36645074",
+        "redirect_chain": [
+          "https://datenberg.eu/page-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://datenberg.eu/karriere",
+        "url": "https://datenberg.eu/karriere",
+        "parent": "https://datenberg.eu/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "304529b76b245f674c95",
+        "redirect_chain": [
+          "https://datenberg.eu/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://datenberg.eu/careers",
+        "url": "https://datenberg.eu/careers",
+        "parent": "https://datenberg.eu/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "a651de6cdcf04a9aaa82",
+        "redirect_chain": [
+          "https://datenberg.eu/careers"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 1,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Renumics GmbH",
+    "website": "https://renumics.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271937",
+    "original_website": "https://renumics.com",
+    "osm_source_id": "node/11349271937",
+    "distance_m": 1701.1,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://renumics.com/",
+        "url": "https://renumics.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "91a47955bd5c93597c8b",
+        "redirect_chain": [
+          "https://renumics.com/"
+        ],
+        "title": "Renumics",
+        "headings": "Agentic AI for Engineering Data Load video from YouTube? Renumics Onion Built for real engineering challenges End-to-end AI transformation We know how to protect your data Open innovation for better engineering",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://renumics.com/company/about/",
+            "label": "About Who we are, how we work, and what we focus on.",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://renumics.com/company/contact/",
+            "label": "Contact Us Talk to us about projects, partnerships, or questions.",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://renumics.com/sitemap.xml",
+        "url": "https://renumics.com/sitemap.xml",
+        "parent": "https://renumics.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "0e867e320ca00e850c62",
+        "redirect_chain": [
+          "https://renumics.com/sitemap.xml"
+        ]
+      },
+      {
+        "requested_url": "https://renumics.com/karriere",
+        "url": "https://renumics.com/karriere",
+        "parent": "https://renumics.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "db199b1990414c76d879",
+        "redirect_chain": [
+          "https://renumics.com/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://renumics.com/careers",
+        "url": "https://renumics.com/careers",
+        "parent": "https://renumics.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "8c3fb1f7d9e18eed8954",
+        "redirect_chain": [
+          "https://renumics.com/careers"
+        ]
+      },
+      {
+        "requested_url": "https://renumics.com/jobs",
+        "url": "https://renumics.com/jobs",
+        "parent": "https://renumics.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "6f78b81ad039098c547a",
+        "redirect_chain": [
+          "https://renumics.com/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "dipano GmbH",
+    "website": "https://dipano.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271934",
+    "original_website": "https://dipano.com",
+    "osm_source_id": "node/11349271934",
+    "distance_m": 1703.3,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://dipano.com/",
+        "url": "https://dipano.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "270836de57560cf18112",
+        "redirect_chain": [
+          "https://dipano.com/"
+        ],
+        "title": "dipano - Park Management Systeme",
+        "headings": "Das digitale Parkmanagementsystem Vereinfachen Sie Ihr Parken mit dipano Online-Reservierung , lokale Parkoptionen und einfache, bargeldlose Zahlung . Unsere Parklösung für Ihr digitalisiertes Parkhaus Vielfältige Identifikationsmöglichkeiten für jedes Fahrzeug Unterstützung für Mieter dipano tenant Benutzerfreundliches Touchscreen-Display mit Direktanruf-Funktion Lokale Datenhaltung und Datenschu",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://dipano.com/sitemap.xml",
+        "url": "https://dipano.com/sitemap.xml",
+        "parent": "https://dipano.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "f32797f5c48accfec436",
+        "redirect_chain": [
+          "https://dipano.com/sitemap.xml"
+        ],
+        "classification": "invalid_sitemap"
+      },
+      {
+        "requested_url": "https://dipano.com/karriere",
+        "url": "https://dipano.com/karriere",
+        "parent": "https://dipano.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "ff5b0405c7b759e1968a",
+        "redirect_chain": [
+          "https://dipano.com/karriere"
+        ],
+        "title": "dipano - Park Management Systeme",
+        "headings": "Das digitale Parkmanagementsystem Vereinfachen Sie Ihr Parken mit dipano Online-Reservierung , lokale Parkoptionen und einfache, bargeldlose Zahlung . Unsere Parklösung für Ihr digitalisiertes Parkhaus Vielfältige Identifikationsmöglichkeiten für jedes Fahrzeug Unterstützung für Mieter dipano tenant Benutzerfreundliches Touchscreen-Display mit Direktanruf-Funktion Lokale Datenhaltung und Datenschu",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://dipano.com/careers",
+        "url": "https://dipano.com/careers",
+        "parent": "https://dipano.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "21e83aada379be8ec66b",
+        "redirect_chain": [
+          "https://dipano.com/careers"
+        ],
+        "title": "dipano - Park Management Systeme",
+        "headings": "Das digitale Parkmanagementsystem Vereinfachen Sie Ihr Parken mit dipano Online-Reservierung , lokale Parkoptionen und einfache, bargeldlose Zahlung . Unsere Parklösung für Ihr digitalisiertes Parkhaus Vielfältige Identifikationsmöglichkeiten für jedes Fahrzeug Unterstützung für Mieter dipano tenant Benutzerfreundliches Touchscreen-Display mit Direktanruf-Funktion Lokale Datenhaltung und Datenschu",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://dipano.com/jobs",
+        "url": "https://dipano.com/jobs",
+        "parent": "https://dipano.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "36f7b8e6b2b38e95ad2c",
+        "redirect_chain": [
+          "https://dipano.com/jobs"
+        ],
+        "title": "dipano - Park Management Systeme",
+        "headings": "Das digitale Parkmanagementsystem Vereinfachen Sie Ihr Parken mit dipano Online-Reservierung , lokale Parkoptionen und einfache, bargeldlose Zahlung . Unsere Parklösung für Ihr digitalisiertes Parkhaus Vielfältige Identifikationsmöglichkeiten für jedes Fahrzeug Unterstützung für Mieter dipano tenant Benutzerfreundliches Touchscreen-Display mit Direktanruf-Funktion Lokale Datenhaltung und Datenschu",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "emmtrix Technologies GmbH",
+    "website": "https://www.emmtrix.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271933",
+    "original_website": "https://www.emmtrix.com",
+    "osm_source_id": "node/11349271933",
+    "distance_m": 1705.2,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.emmtrix.com/",
+        "url": "https://www.emmtrix.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "6fc09e91e1b85f93e138",
+        "redirect_chain": [
+          "https://www.emmtrix.com/"
+        ],
+        "title": "emmtrix Technologies | Automation Tools for Better Code",
+        "headings": "Automation Tools for Better Code Static Software Analysis & Optimization – Automated. Reliable. For Embedded Systems. Our Tools & Services People Who Trust Us Free Webinars: Optimize Embedded Software Latest News & Highlights",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.emmtrix.com/company/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company",
+            "label": "Company",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/contact",
+            "label": "Contact",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/partners",
+            "label": "Customers and Partners",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/research-projects",
+            "label": "Research Projects",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.emmtrix.com/company/jobs",
+        "url": "https://www.emmtrix.com/company/jobs",
+        "parent": "https://www.emmtrix.com/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "d5b0b9cdc4e36b61e0b0",
+        "redirect_chain": [
+          "https://www.emmtrix.com/company/jobs"
+        ],
+        "title": "Join Our Team | emmtrix Technologies",
+        "headings": "Engineering Better Embedded Software Careers at emmtrix Current Opportunities",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.emmtrix.com/company",
+            "label": "Company",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/contact",
+            "label": "Contact",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/partners",
+            "label": "Customers and Partners",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/research-projects",
+            "label": "Research Projects",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.emmtrix.com/sitemap.xml",
+        "url": "https://www.emmtrix.com/sitemap.xml",
+        "parent": "https://www.emmtrix.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "66f9fe7f6f772f31a88c",
+        "redirect_chain": [
+          "https://www.emmtrix.com/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://www.emmtrix.com/post-sitemap.xml",
+        "url": "https://www.emmtrix.com/post-sitemap.xml",
+        "parent": "https://www.emmtrix.com/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "057a793db813ac15b841",
+        "redirect_chain": [
+          "https://www.emmtrix.com/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 3
+      },
+      {
+        "requested_url": "https://www.emmtrix.com/page-sitemap.xml",
+        "url": "https://www.emmtrix.com/page-sitemap.xml",
+        "parent": "https://www.emmtrix.com/sitemap.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "7e53a34e9ecf81327588",
+        "redirect_chain": [
+          "https://www.emmtrix.com/page-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 7
+      },
+      {
+        "requested_url": "https://www.emmtrix.com/news/software-jobs-emmtrix.html",
+        "url": "https://www.emmtrix.com/news/software-jobs-emmtrix.html",
+        "parent": "https://www.emmtrix.com/post-sitemap.xml",
+        "method": "sitemap_link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "b99df4f91584fd866d09",
+        "redirect_chain": [
+          "https://www.emmtrix.com/news/software-jobs-emmtrix.html"
+        ],
+        "title": "Software Jobs in Karlsruhe | emmtrix Technologies",
+        "headings": "Software Jobs in Karlsruhe for People Who Want to Work Below the Surface How emmtrix Technologies connects compiler expertise, embedded systems, AURIX™ TC4x PPU and embedded AI When code meets real hardware Why embedded AI makes this more relevant What kind of people fit here? What people have valued about working here Is emmtrix the right place for everyone? Why Karlsruhe? Frequently asked questi",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.emmtrix.com/company/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/jobs%20",
+            "label": "Visit our job site",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/jobs/software-engineer-compiler-construction",
+            "label": "Software Engineer role focused on compiler construction",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company",
+            "label": "Company",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/contact",
+            "label": "Contact",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/partners",
+            "label": "Customers and Partners",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.emmtrix.com/company/research-projects",
+            "label": "Research Projects",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 8,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "heliopas.ai GmbH",
+    "website": "https://heliopas.ai/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271939",
+    "original_website": "https://heliopas.ai/",
+    "osm_source_id": "node/11349271939",
+    "distance_m": 1706.4,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://heliopas.ai/",
+        "url": "https://heliopas.ai/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "f4d4a5c7e7ef8511e931",
+        "redirect_chain": [
+          "https://heliopas.ai/"
+        ],
+        "title": "Remote Environmental Monitoring | heliopas.ai Analytics",
+        "headings": "Remote Environmental Monitoring Transforming Agriculture What We Offer Industries We Serve Parameters We Offer Would You Also Like to Benefit From Our Analytics? Successful Cooperations Awards & Prizes Our Team & Vision Latest News About Us Featured News Request a Product Demo",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://heliopas.ai/jobs/",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://heliopas.ai/about_us/",
+            "label": "About Us",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://heliopas.ai/jobs/",
+        "url": "https://heliopas.ai/jobs/",
+        "parent": "https://heliopas.ai/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "836feee1446e89e4f426",
+        "redirect_chain": [
+          "https://heliopas.ai/jobs/"
+        ],
+        "title": "Jobs - heliopas.ai Analytics",
+        "headings": "Wir wachsen und verstärken unser Team Bereit mit künstlicher Intelligenz die Landwirtschaft zu revolutionieren? Offene Stellen Unser Büro Das bieten wir dir Bereit voll durchzustarten?",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://drive.google.com/file/d/16ZpZz3oEPSD0cEwtXv-mKPBI3uUyR4d1/view?usp=sharing",
+            "label": "Detailed job description",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://heliopas.ai/about_us/",
+            "label": "About Us",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://drive.google.com/file/d/16ZpZz3oEPSD0cEwtXv-mKPBI3uUyR4d1/view?usp=sharing",
+        "url": "https://drive.google.com/file/d/16ZpZz3oEPSD0cEwtXv-mKPBI3uUyR4d1/view?usp=sharing",
+        "parent": "https://heliopas.ai/jobs/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "c496d83432efd0e6614b",
+        "redirect_chain": [
+          "https://drive.google.com/file/d/16ZpZz3oEPSD0cEwtXv-mKPBI3uUyR4d1/view?usp=sharing"
+        ],
+        "title": "Job vacancy international sales intern.pdf - Google Drive",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://heliopas.ai/sitemap.xml",
+        "url": "https://heliopas.ai/sitemap_index.xml",
+        "parent": "https://heliopas.ai/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "9a7f594ac57d8a238b23",
+        "redirect_chain": [
+          "https://heliopas.ai/sitemap.xml",
+          "https://heliopas.ai/sitemap_index.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://heliopas.ai/post-sitemap.xml",
+        "url": "https://heliopas.ai/post-sitemap.xml",
+        "parent": "https://heliopas.ai/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "1c93fe32ba6a33733360",
+        "redirect_chain": [
+          "https://heliopas.ai/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://heliopas.ai/page-sitemap.xml",
+        "url": "https://heliopas.ai/page-sitemap.xml",
+        "parent": "https://heliopas.ai/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "55eee3e442a7c07d6fd1",
+        "redirect_chain": [
+          "https://heliopas.ai/page-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 1
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 3,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "thingsTHINKING GmbH",
+    "website": "https://www.semantha.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271929",
+    "original_website": "https://www.semantha.de/",
+    "osm_source_id": "node/11349271929",
+    "distance_m": 1708.7,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.semantha.de/",
+        "url": "https://www.semantha.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "robots_unavailable",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "Easy Smart Grid GmbH",
+    "website": "https://www.easysg.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271936",
+    "original_website": "https://www.easysg.de/",
+    "osm_source_id": "node/11349271936",
+    "distance_m": 1709.9,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.easysg.de/",
+        "url": "https://www.easysg.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "fccacef2352471f44d35",
+        "redirect_chain": [
+          "https://www.easysg.de/"
+        ],
+        "title": "Home | Easy Smart Grid",
+        "headings": "Our Solutions",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.easysg.de/about-us/careers/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/nc/about-us/news/",
+            "label": "News",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/our-team/",
+            "label": "About Us",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/contact-us/",
+            "label": "Contact Us",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/vision-mission/",
+            "label": "Vision & Mission",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/library-videos/",
+            "label": "Library & Videos",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/news-02/easy-smart-grid-winner-urban-tech-hackathon/",
+            "label": "Easy Smart Grid – Winner @Urban Tech Hackathon",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.easysg.de/about-us/careers/",
+        "url": "https://www.easysg.de/about-us/careers/",
+        "parent": "https://www.easysg.de/",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "dca30fce7761313237a3",
+        "redirect_chain": [
+          "https://www.easysg.de/about-us/careers/"
+        ],
+        "title": "Careers | Easy Smart Grid",
+        "headings": "Careers Easy Smart Grid looks for talents! Students Working student | Master Thesis - Embedded Systems Engineering (m/w)",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.easysg.de/about-us/careers/en/",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/de/",
+            "label": "DE",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/projects/",
+            "label": "Projects",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/nc/about-us/news/",
+            "label": "News",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/about-us/careers/",
+            "label": "Careers",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/static/impressum/",
+            "label": "Impressum",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/about-us/our-team/",
+            "label": "About Us",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/about-us/contact-us/",
+            "label": "Contact Us",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/en/about-us/careers/",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/projects/interconnect/",
+            "label": "InterConnect",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/static/privacy-policy/",
+            "label": "Privacy Policy",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.easysg.de/about-us/careers/de/ueber-uns/karriere/",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.easysg.de/about-us/careers/en/",
+        "url": "https://www.easysg.de/about-us/careers/en/",
+        "parent": "https://www.easysg.de/about-us/careers/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "706b80613dc34fdc6168",
+        "redirect_chain": [
+          "https://www.easysg.de/about-us/careers/en/"
+        ]
+      },
+      {
+        "requested_url": "https://www.easysg.de/about-us/careers/de/",
+        "url": "https://www.easysg.de/about-us/careers/de/",
+        "parent": "https://www.easysg.de/about-us/careers/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "4ff1a6837e28e731117f",
+        "redirect_chain": [
+          "https://www.easysg.de/about-us/careers/de/"
+        ]
+      },
+      {
+        "requested_url": "https://www.easysg.de/about-us/careers/projects/",
+        "url": "https://www.easysg.de/about-us/careers/projects/",
+        "parent": "https://www.easysg.de/about-us/careers/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "1d83e08123aa0ddaee8b",
+        "redirect_chain": [
+          "https://www.easysg.de/about-us/careers/projects/"
+        ]
+      },
+      {
+        "requested_url": "https://www.easysg.de/about-us/careers/nc/about-us/news/",
+        "url": "https://www.easysg.de/about-us/careers/nc/about-us/news/",
+        "parent": "https://www.easysg.de/about-us/careers/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "92aca45e08d7c9772675",
+        "redirect_chain": [
+          "https://www.easysg.de/about-us/careers/nc/about-us/news/"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 12,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "HS High Stake GmbH",
+    "website": "https://high-stake.de/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271924",
+    "original_website": "https://high-stake.de/",
+    "osm_source_id": "node/11349271924",
+    "distance_m": 1713.2,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://high-stake.de/",
+        "url": "https://high-stake.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "72b3ff91bf6329a71696",
+        "redirect_chain": [
+          "https://high-stake.de/"
+        ],
+        "title": "Web development team High-Stake",
+        "headings": "Agile approach to creating IT-products We take on different tasks Use agile approach Build convenient communication Guarantee quality of performed work Our Projects Community Life Fraunhofer Expopartner Schwäbische Werkzeugmaschinen How we work Understand the task Arrange working process Create product in milestones Assist after project’s release CEO Contacts",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://high-stake.de/company_coordination_project_expopartner",
+            "label": "Build convenient communicationProject Page",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://high-stake.de/sitemap.xml",
+        "url": "https://high-stake.de/sitemap.xml",
+        "parent": "https://high-stake.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "application/xml",
+        "capture": "4a486ee27d0cf791d2a1",
+        "redirect_chain": [
+          "https://high-stake.de/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://high-stake.de/karriere",
+        "url": "https://high-stake.de/karriere",
+        "parent": "https://high-stake.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "dfa8aa893eced7c32709",
+        "redirect_chain": [
+          "https://high-stake.de/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://high-stake.de/careers",
+        "url": "https://high-stake.de/careers",
+        "parent": "https://high-stake.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "10c27ed948e17ecfc881",
+        "redirect_chain": [
+          "https://high-stake.de/careers"
+        ]
+      },
+      {
+        "requested_url": "https://high-stake.de/jobs",
+        "url": "https://high-stake.de/jobs",
+        "parent": "https://high-stake.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "f05c674c99dffa859ea4",
+        "redirect_chain": [
+          "https://high-stake.de/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "BIN Holding",
+    "website": "https://binholding.de",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271927",
+    "original_website": "https://binholding.de",
+    "osm_source_id": "node/11349271927",
+    "distance_m": 1716.1,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://binholding.de/",
+        "url": "https://binholding.de/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "e703fae49a6cbae8c572",
+        "redirect_chain": [
+          "https://binholding.de/"
+        ],
+        "title": "BIN Holding",
+        "headings": "Business - Intelligence - Novelism BIN Holding HS Analysis - Digital Microscopy and Robotics for Your Reseach Endeavors BI Agnostix - Patient Centered Dermatology SL Optimum - Your partner for AR and VR Solutions SP Uniq - Sensor Processing Units and Sensor Intelligence for Your Monitoring Capabilities BIN Academy - Strengthening our Bonds with Sciences BIN Partner - Empowering Comprehensive Busin",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://binholding.de/sitemap.xml",
+        "url": "https://binholding.de/sitemap.xml",
+        "parent": "https://binholding.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "f1d44b7f185824bf4be0",
+        "redirect_chain": [
+          "https://binholding.de/sitemap.xml"
+        ]
+      },
+      {
+        "requested_url": "https://binholding.de/karriere",
+        "url": "https://binholding.de/karriere",
+        "parent": "https://binholding.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "18fd8a38a2714050e340",
+        "redirect_chain": [
+          "https://binholding.de/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://binholding.de/careers",
+        "url": "https://binholding.de/careers",
+        "parent": "https://binholding.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "335205753ea8059502de",
+        "redirect_chain": [
+          "https://binholding.de/careers"
+        ]
+      },
+      {
+        "requested_url": "https://binholding.de/jobs",
+        "url": "https://binholding.de/jobs",
+        "parent": "https://binholding.de/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "e1042e5dce3e3306b142",
+        "redirect_chain": [
+          "https://binholding.de/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "HS Analysis GmbH",
+    "website": "https://www.hs-analysis.com/",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271925",
+    "original_website": "https://www.hs-analysis.com/",
+    "osm_source_id": "node/11349271925",
+    "distance_m": 1718.0,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.hs-analysis.com/",
+        "url": "https://hs-analysis.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "68b62249e904af1bb26d",
+        "redirect_chain": [
+          "https://www.hs-analysis.com/",
+          "https://hs-analysis.com/"
+        ],
+        "title": "Home - HS Analysis GmbH",
+        "headings": "Software for Digital microscopy Products HSA SCAN HSA Consulting HSA STUDY HSA KIT HSA GTD Service HSA Annotator HSA FILE Viewer HSA CASES HSA DASH HSA API HSA AI Cockpit HSA PRED FC HSA Academy HSA Courses HSA Workshops Modules Nephrology | Nephropathology GSI Analyzer – Mice KidneyAnalyzer – FL KidneyAnalyzer – PAS Local Complement PLA Analyzer QualityAnalyzer Ophthalmology Ophthal Tumor Classif",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://hs-analysis.com/sitemap.xml",
+        "url": "https://hs-analysis.com/sitemap_index.xml",
+        "parent": "https://hs-analysis.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "a336b32a5bda775506a8",
+        "redirect_chain": [
+          "https://hs-analysis.com/sitemap.xml",
+          "https://hs-analysis.com/sitemap_index.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://hs-analysis.com/post-sitemap.xml",
+        "url": "https://hs-analysis.com/post-sitemap.xml",
+        "parent": "https://hs-analysis.com/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "eb7d6ec0b55a4b909448",
+        "redirect_chain": [
+          "https://hs-analysis.com/post-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 0
+      },
+      {
+        "requested_url": "https://hs-analysis.com/page-sitemap.xml",
+        "url": "https://hs-analysis.com/page-sitemap.xml",
+        "parent": "https://hs-analysis.com/sitemap_index.xml",
+        "method": "sitemap",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml; charset=UTF-8",
+        "capture": "01534a386a56a31db1bd",
+        "redirect_chain": [
+          "https://hs-analysis.com/page-sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 2
+      },
+      {
+        "requested_url": "https://hs-analysis.com/karriere/",
+        "url": "https://hs-analysis.com/karriere/",
+        "parent": "https://hs-analysis.com/page-sitemap.xml",
+        "method": "sitemap_link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "a5f4dbd33c5777b6afd6",
+        "redirect_chain": [
+          "https://hs-analysis.com/karriere/"
+        ],
+        "title": "Wir sind auf der Suche nach talentierten C#/WPF Entwicklern!",
+        "headings": "Karriere Initiativbewerbung Abschlussarbeiten Offene Stellen",
+        "classification": "placeholder",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://hs-analysis.com/careers/",
+        "url": "https://hs-analysis.com/careers/",
+        "parent": "https://hs-analysis.com/page-sitemap.xml",
+        "method": "sitemap_link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "0bd7bffb7e2a8745f4f3",
+        "redirect_chain": [
+          "https://hs-analysis.com/careers/"
+        ],
+        "title": "Careers - HS Analysis GmbH",
+        "headings": "Careers JOIN THE TEAM OPEN POSITIONS OUR NEXT OPEN POSITION Continue Reading",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 3,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "SL Optimum GmbH",
+    "website": "https://sl-optimum.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11349271921",
+    "original_website": "https://sl-optimum.com",
+    "osm_source_id": "node/11349271921",
+    "distance_m": 1721.4,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://sl-optimum.com/",
+        "url": "https://sl-optimum.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html",
+        "capture": "b39da1afa2908d069c61",
+        "redirect_chain": [
+          "https://sl-optimum.com/"
+        ],
+        "title": "SL Optimum GmbH",
+        "headings": "Welcome to SL Optimum - Your Partner for AR and VR Solutions Welcome to the Future of AR and VR Solutions AR in Medicine - The Future of Your Patient Care Industry - Empowering Your Businesses with AR and VR Solutions Robotics - Harnessing the Power of AR and VR for Your Robotic Advancements Smart Maintenance and Diagnostics Drop us a line!",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": []
+      },
+      {
+        "requested_url": "https://sl-optimum.com/sitemap.xml",
+        "url": "https://sl-optimum.com/sitemap.xml",
+        "parent": "https://sl-optimum.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "f1a411537e1458327101",
+        "redirect_chain": [
+          "https://sl-optimum.com/sitemap.xml"
+        ]
+      },
+      {
+        "requested_url": "https://sl-optimum.com/karriere",
+        "url": "https://sl-optimum.com/karriere",
+        "parent": "https://sl-optimum.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "39f557b0203ed8cc283b",
+        "redirect_chain": [
+          "https://sl-optimum.com/karriere"
+        ]
+      },
+      {
+        "requested_url": "https://sl-optimum.com/careers",
+        "url": "https://sl-optimum.com/careers",
+        "parent": "https://sl-optimum.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "d6f1dd707d2366408710",
+        "redirect_chain": [
+          "https://sl-optimum.com/careers"
+        ]
+      },
+      {
+        "requested_url": "https://sl-optimum.com/jobs",
+        "url": "https://sl-optimum.com/jobs",
+        "parent": "https://sl-optimum.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "http_error",
+        "http_status": 404,
+        "content_type": "text/html",
+        "capture": "93799e3ef1319544916d",
+        "redirect_chain": [
+          "https://sl-optimum.com/jobs"
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "unresolved",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": false,
+      "remaining_queue": 0,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "PTV Logistics GmbH",
+    "website": "https://www.ptvlogistics.com",
+    "cohort": "karlsruhe_it_followup_20",
+    "source": "https://www.openstreetmap.org/node/11270910756",
+    "original_website": "https://www.ptvlogistics.com",
+    "osm_source_id": "node/11270910756",
+    "distance_m": 1925.1,
+    "osm_category": "it",
+    "pages": [
+      {
+        "requested_url": "https://www.ptvlogistics.com/",
+        "url": "https://www.ptvlogistics.com/en-us",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "f3d5fe163134f6637ebd",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/",
+          "https://www.ptvlogistics.com/en-us"
+        ],
+        "title": "Routing, optimization and delivery management software | PTV Logistics",
+        "headings": "Select your route to smarter, more efficient, and green logistics Proven Impact. Real Results. Your industry moves fast. So do we. PTV Logistics is the decision system for road logistics that turns complexity into confident decisions Accelerating road logistics innovation Our customers A world where every route, choice, and judgment call compounds into logistics intelligence — making the next deci",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program/our-partners",
+            "label": "Our partners",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+        "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+        "parent": "https://www.ptvlogistics.com/en-us",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "50ab8097c1af2268d3fe",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers"
+        ],
+        "title": "Your career at PTV Logistics | PTV Logistics",
+        "headings": "Your career at PTV Logistics Culture Values Empowering Every Talent Equality Sustainability We are looking for you!",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+        "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+        "parent": "https://www.ptvlogistics.com/en-us",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "15784eba5af6330f8416",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq"
+        ],
+        "title": "Frequently Asked Questions about applying at PTV Logistics | PTV Logistics",
+        "headings": "Frequently Asked Questions Your application process General questions",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/faq",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program/our-partners",
+            "label": "Our partners",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+        "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+        "parent": "https://www.ptvlogistics.com/en-us",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "2d7aa5a6692820eed8b0",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs"
+        ],
+        "title": "Open job postings at PTV Logistics | PTV Logistics",
+        "headings": "Our open job postings",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "ptv-logistics",
+            "board_url": "https://ptv-logistics.jobs.personio.com",
+            "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+            "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+            "evidence_kind": "iframe"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+        "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+        "parent": "https://www.ptvlogistics.com/en-us",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "d0cb5ede614d439ce204",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits"
+        ],
+        "title": "PTV Logistics Employees Benefits | PTV Logistics",
+        "headings": "Employee Benefits at PTV Logistics Your Benefits We are looking for you!",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/benefits",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/benefits",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program/our-partners",
+            "label": "Our partners",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers",
+        "url": "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers",
+        "parent": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "e48be9013fabad885041",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers"
+        ],
+        "title": "Is PTV Logistics jouw carrièrebestemming? | PTV Logistics",
+        "headings": "Werken bij PTV Logistics",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about/partner-program/onze-partners",
+            "label": "Onze partners",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "personio",
+        "tenant": "ptv-logistics",
+        "board_url": "https://ptv-logistics.jobs.personio.com",
+        "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+        "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+        "evidence_kind": "iframe",
+        "discovered_on": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+        "job_count": null,
+        "feed_state": "http_error",
+        "complete": false,
+        "jobs": [],
+        "feed_http_status": 404,
+        "capture": "cb2a318fdc0b6a2b3a7f"
+      }
+    ],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 22,
+      "duplicate_redirects_skipped": 0
+    }
+  }
+]

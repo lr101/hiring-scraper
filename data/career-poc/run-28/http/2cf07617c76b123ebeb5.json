@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schmidt-seitz.com/jobs/",
+  "checked_at": "2026-10-05T23:38:58.948636+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 104109,
+  "state": "ok",
+  "elapsed_seconds": 0.635,
+  "sha256": "0a670416735cbed4182a64c3d5df113f6afc58c7f95ad84ebc3ea38bf205892a",
+  "capture": "2cf07617c76b123ebeb5"
+}

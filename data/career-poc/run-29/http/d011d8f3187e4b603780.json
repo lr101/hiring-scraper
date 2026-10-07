@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bolz-stutensee.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:39.294394+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"62-4a2f3c7860536\"",
+  "last_modified": "Tue, 10 May 2011 22:50:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 98,
+  "state": "ok",
+  "elapsed_seconds": 0.289,
+  "sha256": "47e4eb145e20940b1c69016fb2f1be2840b749c4bda14c660676ca6dc22e7b22",
+  "capture": "d011d8f3187e4b603780",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://schreinerei-glaserei-potaczek.de/karriere",
+  "checked_at": "2026-10-05T23:33:22.442043+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106014,
+  "state": "http_error",
+  "elapsed_seconds": 0.916,
+  "sha256": "f1c33cdd3997715ad9a82a1730824d30bf79084c5860b2297c58554127e317b5",
+  "capture": "903308ff3b41bd02c7cc"
+}

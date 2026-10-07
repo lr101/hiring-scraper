@@ -1,0 +1,17 @@
+{
+  "url": "https://enactus-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:54:55.376133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"e27c6121695281ecaa646af5ea2ca0bc\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 73,
+  "state": "ok",
+  "elapsed_seconds": 0.305,
+  "sha256": "8ea2008c7e93603528ac5423a97e0590ad69e197a3a157311816d988bc8aa32b",
+  "capture": "d84b996f78000c2ca57a",
+  "merged_from_run": "run-27"
+}

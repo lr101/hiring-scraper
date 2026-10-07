@@ -1,0 +1,16 @@
+{
+  "url": "https://baron-sicherheit-service.de/bss/jobs-karriere/",
+  "checked_at": "2026-10-05T23:45:56.416924+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51962,
+  "state": "ok",
+  "elapsed_seconds": 0.867,
+  "sha256": "9c48e4ed0370819334606d407fcbf4f9123f79bbe6f1f0e64ad0e69bb1aae4dd",
+  "capture": "c59e25e77fd76e51f1bb"
+}

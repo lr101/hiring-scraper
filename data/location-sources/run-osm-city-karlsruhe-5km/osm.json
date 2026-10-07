@@ -1,0 +1,12 @@
+{
+  "url": "https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%5Btimeout%3A60%5D%3B%0A%28%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Boffice%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bcraft%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bindustrial%5D%3B%0A%29%3B%0Aout+center+tags%3B",
+  "checked_at": "2026-10-05T14:55:56.038256+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 504,
+  "final_url": "https://overpass-api.de/api/interpreter?data=%5Bout%3Ajson%5D%5Btimeout%3A60%5D%3B%0A%28%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Boffice%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bcraft%5D%3B%0A++nwr%28around%3A5000%2C49.00687%2C8.4034195%29%5Bname%5D%5Bindustrial%5D%3B%0A%29%3B%0Aout+center+tags%3B",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 695,
+  "truncated": false,
+  "elapsed_seconds": 7.36,
+  "sha256": "9e8d149c02b9ab7719f9e6cfdf696730c39abead6f27e39eb13793b7d2adbb82"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.haus-garten-montage.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:37.770943+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20529,
+  "state": "http_error",
+  "elapsed_seconds": 1.251,
+  "sha256": "ef53f1889c6d20be503ccd24b39b3bd861b344ef79f09fa06e6f28893e43e7f9",
+  "capture": "726484e09ea1ba5e249b"
+}

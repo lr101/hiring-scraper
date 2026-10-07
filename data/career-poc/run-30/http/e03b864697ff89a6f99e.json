@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vogel-partner.eu/",
+  "checked_at": "2026-10-05T23:20:38.124402+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 320253,
+  "state": "ok",
+  "elapsed_seconds": 0.289,
+  "sha256": "2ef9fb578382577dd31beb410cc9d4fb7c27ba2f7d3166d46497f24ef990e1a6",
+  "capture": "e03b864697ff89a6f99e",
+  "merged_from_run": "run-28"
+}

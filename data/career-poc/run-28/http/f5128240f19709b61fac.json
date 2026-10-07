@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.dressler-bau.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:47.089561+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 31,
+  "state": "ok",
+  "elapsed_seconds": 0.326,
+  "sha256": "76afe6753f2059e26bcbe59b242daf57da2f2fcee256be8aa9b86b2aa61f3492",
+  "capture": "f5128240f19709b61fac"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.interpneu.de/unternehmen/karriere-und-ausbildung",
+  "checked_at": "2026-10-05T23:35:04.379343+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66830,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "1a8de769c51a2affe7164e722fa98f82c420ffd2e3640ce21871e7fd31f5be61",
+  "capture": "a0ed94c0f73eff94d6aa"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zeeh-design.com/karriere/",
+  "checked_at": "2026-10-05T23:41:24.422045+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 182235,
+  "state": "ok",
+  "elapsed_seconds": 1.323,
+  "sha256": "5ce302dc6995bc0a389604fdc4ee1ad7c8d63135bc22c11b763204891baad466",
+  "capture": "dcea452481c105b64dc2",
+  "merged_from_run": "run-28"
+}

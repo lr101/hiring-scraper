@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tk.de/stellenangebote/Fachexperte-Rechnungszahlungen-m-w-d-TK25623",
+  "checked_at": "2026-10-05T22:29:19.865155+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90335,
+  "state": "ok",
+  "elapsed_seconds": 1.156,
+  "sha256": "effd6a1edd6eee0bcb840318651fe74269c8f821086057dde1896a55968ed380",
+  "capture": "b2ac22e443a616d91518"
+}

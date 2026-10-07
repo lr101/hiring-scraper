@@ -1,0 +1,16 @@
+{
+  "url": "https://www.heinrich-schmid.com/karriere/",
+  "checked_at": "2026-10-05T23:46:29.485921+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 120243,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "d179456e06a3bacc7a2a89c09b7d94268b9199bee76d8f3e26746a9812852a8a",
+  "capture": "7045f271752c7b488af4"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ingenieurgruppe-bauen.de/robots.txt",
+  "checked_at": "2026-10-05T22:14:29.577371+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 89,
+  "state": "ok",
+  "elapsed_seconds": 0.532,
+  "sha256": "0fb51ca0c4bfb6021ca7fbe38808c61ba6863a654b2f916d31f639bb50b8dcea",
+  "capture": "cc08f861786267ae990f"
+}

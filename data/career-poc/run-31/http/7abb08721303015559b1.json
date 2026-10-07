@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diebergerdesigner.de/",
+  "checked_at": "2026-10-05T23:44:24.927490+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": "Thu, 01 Apr 2021 09:30:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 50399,
+  "state": "ok",
+  "elapsed_seconds": 1.026,
+  "sha256": "ba77d345afd905c3da66f32e67c462e2e5689f56eca65b9431cd276af606561c",
+  "capture": "7abb08721303015559b1",
+  "merged_from_run": "run-28"
+}

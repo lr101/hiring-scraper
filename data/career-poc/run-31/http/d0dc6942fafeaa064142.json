@@ -1,0 +1,11 @@
+{
+  "url": "https://www.tachlinski-elektro.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:54.279523+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate (_ssl.c:992)>",
+  "elapsed_seconds": 0.183,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "d0dc6942fafeaa064142",
+  "merged_from_run": "run-28"
+}

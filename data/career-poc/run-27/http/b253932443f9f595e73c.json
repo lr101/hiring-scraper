@@ -1,0 +1,16 @@
+{
+  "url": "https://career.1and1.org/Access",
+  "checked_at": "2026-10-05T22:58:58.784732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32376,
+  "state": "ok",
+  "elapsed_seconds": 1.141,
+  "sha256": "28f004da4cbc644e24cc480c540c0294b5d65e7bb3530183e1a2eb405db02f5e",
+  "capture": "b253932443f9f595e73c"
+}

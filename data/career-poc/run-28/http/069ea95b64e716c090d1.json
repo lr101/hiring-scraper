@@ -1,0 +1,16 @@
+{
+  "url": "https://www.glasschmid.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:01.768192+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 319,
+  "state": "ok",
+  "elapsed_seconds": 1.124,
+  "sha256": "deb884f91b3f6ab0e106633332d357007f6f8906a4dc2f8399467cc076aedde2",
+  "capture": "069ea95b64e716c090d1"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.metallwerkstatt-epp.de/",
+  "checked_at": "2026-10-05T23:40:48.009976+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"3d44-5bc77d7800476\"",
+  "last_modified": "Mon, 01 Mar 2021 11:23:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 15684,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "db5cdb8dc1d09c20bd0f6711586b0a157a4136f8fa0e58f0b2901aa2b68542ed",
+  "capture": "b453fc3c104c5472c18d"
+}

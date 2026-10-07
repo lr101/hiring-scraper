@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wetax-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:52.370653+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 471,
+  "state": "http_error",
+  "elapsed_seconds": 0.929,
+  "sha256": "f2a5e581cdf3eaacece45831a4564414d00fd805739cff8f2bd24354f87146fc",
+  "capture": "a961997042f31a90cf6f"
+}

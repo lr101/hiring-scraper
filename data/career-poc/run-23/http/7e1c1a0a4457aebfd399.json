@@ -1,0 +1,17 @@
+{
+  "url": "https://tooltec.de/",
+  "checked_at": "2026-10-05T20:42:24.716324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": "Wed, 30 Sep 2026 17:26:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 147076,
+  "state": "ok",
+  "elapsed_seconds": 1.176,
+  "sha256": "6acbd3dfb20468fa579a5920ad592475ed8d26a05813d1d4f0b6ea668ea363d7",
+  "capture": "7e1c1a0a4457aebfd399",
+  "reused_from": "data/career-poc/run-22/http/7e1c1a0a4457aebfd399.json"
+}

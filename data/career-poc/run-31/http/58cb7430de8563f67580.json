@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schwagedruck.de/jobs",
+  "checked_at": "2026-10-05T23:37:11.774130+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44366,
+  "state": "http_error",
+  "elapsed_seconds": 1.037,
+  "sha256": "64bea988aa2e4a49ae0a771540a09b02e93d111e23b0e3a824c976ce402fd75b",
+  "capture": "58cb7430de8563f67580",
+  "merged_from_run": "run-28"
+}

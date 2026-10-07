@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jaeger-haustechnik.de/karriere/ausbildung-und-praktikum/",
+  "checked_at": "2026-10-05T23:24:50.580245+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 21:19:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 118382,
+  "state": "ok",
+  "elapsed_seconds": 0.418,
+  "sha256": "8567f4646d55a36c10188a2a4ef4de3bdfe3a9a360c56a45a5527dadad61a7b0",
+  "capture": "881dd493ba106c534dda"
+}

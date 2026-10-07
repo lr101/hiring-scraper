@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schlosserei-natek.de/",
+  "checked_at": "2026-10-05T23:39:23.751549+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"3458-57b1eedd6ae8e\"",
+  "last_modified": "Tue, 20 Nov 2018 21:00:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 13400,
+  "state": "ok",
+  "elapsed_seconds": 1.046,
+  "sha256": "dc391d98d0d81986d762c85216580c63e6815e6ac1dd44b8383e83d0f4f0e15b",
+  "capture": "70180f55ea07477861b1",
+  "merged_from_run": "run-28"
+}

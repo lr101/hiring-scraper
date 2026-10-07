@@ -1,0 +1,16 @@
+{
+  "url": "https://united-internet-media.de/robots.txt",
+  "checked_at": "2026-10-05T22:58:02.679438+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.united-internet-media.de/index.php",
+  "bytes": 294,
+  "state": "http_error",
+  "elapsed_seconds": 0.106,
+  "sha256": "731c982ce4475497028c6b967f9d1ed286c9fff37bec9227a56d7d8166d7e3b9",
+  "capture": "d0f17d6a988d304c69ae"
+}

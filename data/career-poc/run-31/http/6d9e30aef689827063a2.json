@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hecopa-gmbh.de/careers",
+  "checked_at": "2026-10-05T22:37:02.430382+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6969,
+  "state": "http_error",
+  "elapsed_seconds": 1.208,
+  "sha256": "895d57e71cb322ef7f18ad5448c780ac63e7e7108e79106ab6b6a6cd315ccce4",
+  "capture": "6d9e30aef689827063a2",
+  "merged_from_run": "run-27"
+}

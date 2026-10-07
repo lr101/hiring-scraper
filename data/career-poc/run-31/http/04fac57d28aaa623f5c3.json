@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bundesfreiwilligendienst.de/",
+  "checked_at": "2026-10-05T23:44:32.899576+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 142844,
+  "state": "ok",
+  "elapsed_seconds": 0.53,
+  "sha256": "ed48ec8674c611fd86e195aab001bdff73241bbdbb9abd1ec30ef868c3ae02ec",
+  "capture": "04fac57d28aaa623f5c3",
+  "merged_from_run": "run-28"
+}

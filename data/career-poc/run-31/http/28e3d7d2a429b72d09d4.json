@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.elosmedtech.com/jobs/8483438-quality-inspector",
+  "checked_at": "2026-10-05T23:39:56.401771+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"9330c0ff5fc0008bd1b8a47f12999721\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 81558,
+  "state": "ok",
+  "elapsed_seconds": 0.071,
+  "sha256": "9330c0ff5fc0008bd1b8a47f1299972164b8c3f210121e8458a1aec2cc8e7b82",
+  "capture": "28e3d7d2a429b72d09d4",
+  "merged_from_run": "run-28"
+}

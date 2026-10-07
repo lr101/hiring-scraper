@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zg-raiffeisen.de/unternehmen/karriere/deine-karrieremoeglichkeiten",
+  "checked_at": "2026-10-05T22:46:16.271062+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 560812,
+  "state": "ok",
+  "elapsed_seconds": 2.178,
+  "sha256": "fe3b06e8b46678675ddaec4daaed3b27b140c51c2cd55618f753c4edce701df6",
+  "capture": "c7728d20eb6673f0899e"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.podologie-kaviar.de/",
+  "checked_at": "2026-10-05T23:08:35.216013+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"903-64897c0a3ba8c\"",
+  "last_modified": "Sat, 17 Jan 2026 16:14:29 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2307,
+  "state": "ok",
+  "elapsed_seconds": 1.122,
+  "sha256": "eb2c45bb990063a5300de35a90626120ed85455b61df9b061141879ccce8ee68",
+  "capture": "789e35e798cc5edb9173",
+  "merged_from_run": "run-27"
+}

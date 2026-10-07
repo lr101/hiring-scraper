@@ -1,0 +1,14 @@
+{
+  "url": "https://megacycle-gmbh.de/",
+  "checked_at": "2026-10-05T09:06:37.288656+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 197896,
+  "state": "ok",
+  "elapsed_seconds": 2.228,
+  "sha256": "35ccdca0ba1a5f1bd0ce62ff86cefef65552c7630377158c4ed5f7f7487a6fef",
+  "capture": "f36e2c09466b7afc0f55",
+  "reused_from": "data/career-poc/run-12/http/f36e2c09466b7afc0f55.json"
+}

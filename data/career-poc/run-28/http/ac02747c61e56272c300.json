@@ -1,0 +1,16 @@
+{
+  "url": "https://apply.workable.com/robots.txt",
+  "checked_at": "2026-10-05T23:28:14.181761+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:28:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 78,
+  "state": "ok",
+  "elapsed_seconds": 0.236,
+  "sha256": "3594bfb0ec0bbfce844cf6ab5cd2aac430e784f3fb1581e5c8f74066b6997df7",
+  "capture": "ac02747c61e56272c300"
+}

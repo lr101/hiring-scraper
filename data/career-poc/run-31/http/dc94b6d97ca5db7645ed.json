@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe-erleben.de/",
+  "checked_at": "2026-10-05T22:08:07.906111+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 381944,
+  "state": "ok",
+  "elapsed_seconds": 1.408,
+  "sha256": "bb834bd6e0a4ea6310d3b48e196cce5fb6830462dd8c81f6fd9ebb7932034cac",
+  "capture": "dc94b6d97ca5db7645ed",
+  "merged_from_run": "run-25"
+}

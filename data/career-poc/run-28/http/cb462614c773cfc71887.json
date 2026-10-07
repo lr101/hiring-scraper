@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buchmann-elektrotechnik.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:39.634147+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1f8-Xxi68H/vWgYD5RIyAwow8JEmG7k\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 504,
+  "state": "ok",
+  "elapsed_seconds": 1.014,
+  "sha256": "98a6c8fccd89ed96189ce6a1c309db3a160e8a94afbe44fa41d81f45321ac3af",
+  "capture": "cb462614c773cfc71887"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.eurotec-ks.com/robots.txt",
+  "checked_at": "2026-10-05T23:35:42.751897+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"884-6558a6b0397ef\"",
+  "last_modified": "Wed, 01 Jul 2026 10:47:29 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2180,
+  "state": "ok",
+  "elapsed_seconds": 1.017,
+  "sha256": "eba9ac6f120fdf7aa802d3a4081b40b07b33ca3a30bcbb6327570c459ec6ab27",
+  "capture": "8b4dfd2773d672b19350",
+  "merged_from_run": "run-28"
+}

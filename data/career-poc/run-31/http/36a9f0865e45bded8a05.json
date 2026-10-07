@@ -1,0 +1,17 @@
+{
+  "url": "https://residenztreuhand.de/robots.txt",
+  "checked_at": "2026-10-05T23:11:29.059929+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"88d-5bda5b3f53b80\"",
+  "last_modified": "Tue, 16 Mar 2021 11:31:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2189,
+  "state": "ok",
+  "elapsed_seconds": 0.256,
+  "sha256": "278e83bcf567badfebcdea4d5d20ca9898e4449fe4eb2e3b5a08227b4ca9b762",
+  "capture": "36a9f0865e45bded8a05",
+  "merged_from_run": "run-27"
+}

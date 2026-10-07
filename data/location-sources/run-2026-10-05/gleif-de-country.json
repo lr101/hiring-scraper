@@ -1,0 +1,12 @@
+{
+  "url": "https://api.gleif.org/api/v1/lei-records?filter%5Bentity.legalAddress.country%5D=DE&page%5Bsize%5D=2",
+  "checked_at": "2026-10-05T15:02:44.603906+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://api.gleif.org/api/v1/lei-records?filter%5Bentity.legalAddress.country%5D=DE&page%5Bsize%5D=2",
+  "content_type": "application/vnd.api+json",
+  "bytes": 5290,
+  "truncated": false,
+  "elapsed_seconds": 0.25,
+  "sha256": "8916e3d62eb2a294b19c82f5b2aa2a30e904c1a27228e2f43c76d560286b28e3"
+}

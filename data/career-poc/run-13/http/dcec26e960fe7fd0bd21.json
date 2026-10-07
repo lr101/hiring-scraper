@@ -1,0 +1,14 @@
+{
+  "url": "https://technidata-it.career.softgarden.de/robots.txt",
+  "checked_at": "2026-10-05T14:17:03.826987+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "location": "https://karriere.technidata.de/robots.txt",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 0.137,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "dcec26e960fe7fd0bd21",
+  "reused_from": "data/career-poc/run-12/http/dcec26e960fe7fd0bd21.json"
+}

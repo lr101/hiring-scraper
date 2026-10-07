@@ -1,0 +1,17 @@
+{
+  "url": "https://djive-naturals.de/kontakt/",
+  "checked_at": "2026-10-05T23:17:54.461751+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:12:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 246651,
+  "state": "ok",
+  "elapsed_seconds": 0.699,
+  "sha256": "aab0cdcf1b5ddeba2e8b4358ca1ac6aa25fde9845801474be8f116cb1c8116b3",
+  "capture": "de1dddd81646696c70a7",
+  "merged_from_run": "run-28"
+}

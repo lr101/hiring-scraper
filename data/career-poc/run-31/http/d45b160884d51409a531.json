@@ -1,0 +1,17 @@
+{
+  "url": "https://www.durm.de/",
+  "checked_at": "2026-10-05T23:11:40.767514+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64861,
+  "state": "ok",
+  "elapsed_seconds": 2.101,
+  "sha256": "69f4e2c2077fb9198189e2d86325803b8386ac9e031c6d9efb1ba54c68b9b7ac",
+  "capture": "d45b160884d51409a531",
+  "merged_from_run": "run-27"
+}

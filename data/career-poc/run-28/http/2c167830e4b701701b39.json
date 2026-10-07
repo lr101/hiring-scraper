@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerberater-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:51.262422+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Fri, 02 Oct 2026 08:34:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 347,
+  "state": "ok",
+  "elapsed_seconds": 0.889,
+  "sha256": "4af32acbe4aaab226d8842e07f689d8401db0a104980f5147034e66d40de700d",
+  "capture": "2c167830e4b701701b39"
+}

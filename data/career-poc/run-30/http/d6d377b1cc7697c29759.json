@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nexnoa.com/",
+  "checked_at": "2026-10-05T23:29:22.561287+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 230233,
+  "state": "ok",
+  "elapsed_seconds": 0.218,
+  "sha256": "941806a8b5d3af5fe044e11fcc83e23a5e90486cc3ec3aa52b05003c36803437",
+  "capture": "d6d377b1cc7697c29759",
+  "merged_from_run": "run-28"
+}

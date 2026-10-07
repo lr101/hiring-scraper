@@ -1,0 +1,14 @@
+{
+  "url": "https://www.caemmerer-lenz.de/karriere-ausbildung/sekretaerin-m-w-d-caemmererlenz-1/",
+  "checked_at": "2026-10-05T14:49:06.237185+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 39548,
+  "state": "ok",
+  "elapsed_seconds": 1.24,
+  "sha256": "12b05ffa371745336bcbd98ce2f9ece8bff5ddb8ef7717f346ecf55032d9bacd",
+  "capture": "81c7c28dd451cc24067c",
+  "reused_from": "data/location-sources/run-wikidata-career/http/81c7c28dd451cc24067c.json"
+}

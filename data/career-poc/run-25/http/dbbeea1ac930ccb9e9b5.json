@@ -1,0 +1,16 @@
+{
+  "url": "https://fix-perso.de/robots.txt",
+  "checked_at": "2026-10-05T22:20:16.099790+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 149,
+  "state": "ok",
+  "elapsed_seconds": 0.403,
+  "sha256": "7fd576a1d70cb9ba292f44b797390bce732fa3ca32fa4c56ed9585313c5c4038",
+  "capture": "dbbeea1ac930ccb9e9b5"
+}

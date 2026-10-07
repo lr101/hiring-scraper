@@ -1,0 +1,17 @@
+{
+  "url": "https://db-engineering-consulting.com/robots.txt",
+  "checked_at": "2026-10-05T22:58:18.077074+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 190,
+  "state": "ok",
+  "elapsed_seconds": 0.253,
+  "sha256": "cca61723178b76e654844956270abe803ef504222955f7b607102f75cf410a85",
+  "capture": "5aef80a3ba620919caa0",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,14 @@
+{
+  "url": "https://www.telemaxx.de/robots.txt",
+  "checked_at": "2026-10-05T09:07:34.861532+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "location": null,
+  "bytes": 315,
+  "state": "ok",
+  "elapsed_seconds": 0.091,
+  "sha256": "1b83117dcf0a05022a286c88c5eb9e85ad34bae31dc7556dd753578709bdb68d",
+  "capture": "5d41c29bbd9dc54ef779",
+  "reused_from": "data/career-poc/run-03/http/5d41c29bbd9dc54ef779.json"
+}

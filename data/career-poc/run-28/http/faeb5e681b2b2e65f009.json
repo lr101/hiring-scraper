@@ -1,0 +1,16 @@
+{
+  "url": "https://holzelementbau-nordbaden.de/",
+  "checked_at": "2026-10-05T23:45:59.146547+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 34525,
+  "state": "ok",
+  "elapsed_seconds": 1.255,
+  "sha256": "07ec2e8a90d69d9ab5981bb5dd067fe634ef01878908ebbb2beaf7be514698b6",
+  "capture": "faeb5e681b2b2e65f009"
+}

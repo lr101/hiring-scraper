@@ -1,0 +1,16 @@
+{
+  "url": "https://www.autensys.de/karriere-autensys/projekte/",
+  "checked_at": "2026-10-05T22:32:27.677154+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25864,
+  "state": "ok",
+  "elapsed_seconds": 1.108,
+  "sha256": "b7f26e43283332a1eaecb12cd3a0d034d4abde02587a32f2e78a217e345d61c9",
+  "capture": "dba8979436708451853e"
+}

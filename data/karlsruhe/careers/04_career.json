@@ -1,0 +1,12 @@
+{
+  "url": "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/",
+  "checked_at": "2026-10-05T08:23:54.247583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.grenke.com/de/karriere/",
+  "content_type": "text/html;charset=UTF-8",
+  "bytes": 210525,
+  "truncated": false,
+  "elapsed_seconds": 0.29,
+  "sha256": "d5f33ba493d42fb1e9d069d312ee9fe1dcd5c1e5fe7f7e8bd37645448edab669"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "http://www.lohi-bw.de/karriere/bewerbung",
+  "checked_at": "2026-10-06T07:07:16.060000+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://lohi-bw.de/karriere/bewerbung/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.024,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "5a80e5273b49e176ad8b"
+}

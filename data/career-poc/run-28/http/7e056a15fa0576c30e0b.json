@@ -1,0 +1,16 @@
+{
+  "url": "https://raumausstattung-meder.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:39.218019+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:28:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 350,
+  "state": "ok",
+  "elapsed_seconds": 2.667,
+  "sha256": "26f0795fe080c86a8b9605be59ecdf764ad1da9c38bee6ba6de9ebaa6f4254bf",
+  "capture": "7e056a15fa0576c30e0b"
+}

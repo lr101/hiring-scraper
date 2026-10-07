@@ -1,0 +1,23 @@
+[
+  {
+    "name": "IONOS careers jobs portal (targeted entry)",
+    "website": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.ionos.de/",
+    "source": "https://jobs.ionos.de/karriere/jobs/alle-jobs"
+  },
+  {
+    "name": "adesso Group jobs portal (targeted entry)",
+    "website": "https://jobs.adesso-group.com/",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.adesso.de/",
+    "source": "https://jobs.adesso-group.com/"
+  },
+  {
+    "name": "PTV Logistics German jobs page (targeted entry)",
+    "website": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.ptvlogistics.com/",
+    "source": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs"
+  }
+]

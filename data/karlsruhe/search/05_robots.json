@@ -1,0 +1,12 @@
+{
+  "url": "https://job.arnotec.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:52.195095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://job.arnotec.de/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 77,
+  "truncated": false,
+  "elapsed_seconds": 0.1,
+  "sha256": "d26acdae71e4117a27fea123afbf174e2997d5acc4ba9c387d7f3d4cb35bdb44"
+}

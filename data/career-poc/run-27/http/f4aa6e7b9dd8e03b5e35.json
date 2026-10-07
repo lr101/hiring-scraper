@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lutherisch-karlsruhe.org/robots.txt",
+  "checked_at": "2026-10-05T22:35:38.947260+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129,
+  "state": "ok",
+  "elapsed_seconds": 0.422,
+  "sha256": "6e201cf938ae6afe545189620e614dd7142ece0e0abe4747b58525120a99c994",
+  "capture": "f4aa6e7b9dd8e03b5e35"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.galileo-webagentur.de/jobs/arbeitsalltag",
+  "checked_at": "2026-10-05T23:19:38.061392+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133725,
+  "state": "ok",
+  "elapsed_seconds": 0.964,
+  "sha256": "7974584c7bb3286e988bbd07a8a5e9f3fb65490ea26c2a61948bc7385e68d49d",
+  "capture": "80251e6c0ecb9589499a"
+}

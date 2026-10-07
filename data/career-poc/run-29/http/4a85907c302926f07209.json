@@ -1,0 +1,17 @@
+{
+  "url": "https://citykirche-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:06:35.834560+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 181,
+  "state": "ok",
+  "elapsed_seconds": 0.42,
+  "sha256": "77f043aeb263baa56152b6fad29b60ae8ba86274e67bd628255711faaa8d2781",
+  "capture": "4a85907c302926f07209",
+  "merged_from_run": "run-25"
+}

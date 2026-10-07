@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nero.com/robots.txt",
+  "checked_at": "2026-10-05T22:19:29.849133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"397-5ce26466edc8f\"",
+  "last_modified": "Tue, 12 Oct 2021 11:37:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 919,
+  "state": "ok",
+  "elapsed_seconds": 0.483,
+  "sha256": "34abfefca5a65b3ef768ac5e4cfcdff70617c2d0862e11958b94489753398ee5",
+  "capture": "96c339cb1f325a9757cd",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "scope": "18 eligible missing-website OSM records enriched via Wikidata P856 or name-matched OSM url",
+    "candidate_count": 18,
+    "statuses": {
+      "career_content_found": 4,
+      "unresolved": 8,
+      "jobs_extracted": 6
+    },
+    "parsed_sources": 6,
+    "providers": {
+      "html_jobs": 6
+    },
+    "jobs": 16,
+    "http_capture_count": 123,
+    "request_count": 123,
+    "finished_at": "2026-10-06T07:07:46.656508+00:00"
+  },
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "page_budget": 6,
+  "depth_budget": 3
+}

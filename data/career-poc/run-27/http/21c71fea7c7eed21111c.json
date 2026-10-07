@@ -1,0 +1,16 @@
+{
+  "url": "https://www.baden-tv.com/praktikum-job-faq/",
+  "checked_at": "2026-10-05T23:12:08.920655+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 36780,
+  "state": "ok",
+  "elapsed_seconds": 1.059,
+  "sha256": "3aaa042324a9752db75fec41e8f3206081702e3791173f3460e2dbf0659d8735",
+  "capture": "21c71fea7c7eed21111c"
+}

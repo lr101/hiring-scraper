@@ -1,0 +1,16 @@
+{
+  "url": "https://hust-immobilien.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:30.194299+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:26:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 109,
+  "state": "ok",
+  "elapsed_seconds": 0.302,
+  "sha256": "f2772cd8d70106a075fc5f83ffe1a36de70ace9cc1b7ac9efe5154d7e14f831a",
+  "capture": "f8abae20d7acb7e31175"
+}

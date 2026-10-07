@@ -1,0 +1,17 @@
+{
+  "url": "https://www.therapiezentrum-spross.de/karriere/",
+  "checked_at": "2026-10-05T23:44:37.476220+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83523,
+  "state": "ok",
+  "elapsed_seconds": 1.949,
+  "sha256": "d6764c5d2004b24ff593a5ef6612cd5bf0c07cb95eccd7a0db0ed6f282e9fc1f",
+  "capture": "081c8ca23952623e93c3",
+  "merged_from_run": "run-28"
+}

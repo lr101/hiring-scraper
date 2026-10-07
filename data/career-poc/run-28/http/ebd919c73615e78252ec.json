@@ -1,0 +1,16 @@
+{
+  "url": "https://www.heinrich-schmid.com/karriere/kaufleute/",
+  "checked_at": "2026-10-05T23:46:31.194895+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 201645,
+  "state": "ok",
+  "elapsed_seconds": 1.632,
+  "sha256": "a1e780dedc2880faa9fea3c656b47582a40f353f608aac06d71b3d578584bcdf",
+  "capture": "ebd919c73615e78252ec"
+}

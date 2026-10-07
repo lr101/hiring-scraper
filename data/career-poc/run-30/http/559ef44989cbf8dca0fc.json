@@ -1,0 +1,17 @@
+{
+  "url": "https://n-komm.de/careers",
+  "checked_at": "2026-10-05T23:19:53.944148+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 383010,
+  "state": "http_error",
+  "elapsed_seconds": 2.015,
+  "sha256": "6a2f260b87f7b972e1393bbc7828ca1d6e118b7200ce49b1961df5e199ed9cc7",
+  "capture": "559ef44989cbf8dca0fc",
+  "merged_from_run": "run-28"
+}

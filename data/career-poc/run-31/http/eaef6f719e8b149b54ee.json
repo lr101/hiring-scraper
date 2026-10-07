@@ -1,0 +1,17 @@
+{
+  "url": "https://diconium.com/en/career/hybrid-workplace",
+  "checked_at": "2026-10-05T23:20:07.603437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 11:27:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 134146,
+  "state": "ok",
+  "elapsed_seconds": 0.86,
+  "sha256": "e129dc0edca5be549dd30653e84585495abffe2a215ad7715a4e5f25d6806e31",
+  "capture": "eaef6f719e8b149b54ee",
+  "merged_from_run": "run-28"
+}

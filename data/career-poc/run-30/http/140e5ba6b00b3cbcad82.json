@@ -1,0 +1,17 @@
+{
+  "url": "https://www.steuerberater-ka.de/karriere",
+  "checked_at": "2026-10-05T23:28:54.140107+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 544988,
+  "state": "http_error",
+  "elapsed_seconds": 1.079,
+  "sha256": "e812c3c3983b5e961b5fecc969cdb07ff755ac23f2bee0958cd579947fd8d9f1",
+  "capture": "140e5ba6b00b3cbcad82",
+  "merged_from_run": "run-28"
+}

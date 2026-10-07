@@ -1,0 +1,16 @@
+{
+  "url": "https://ces.itec.kit.edu/karriere",
+  "checked_at": "2026-10-05T23:03:32.464451+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 347,
+  "state": "http_error",
+  "elapsed_seconds": 1.086,
+  "sha256": "3e099bc568e90cdd47e34c3ff3788966638a176df3a082a15fc85a0a66b333e1",
+  "capture": "0a8a31d0fe0a8e568848"
+}

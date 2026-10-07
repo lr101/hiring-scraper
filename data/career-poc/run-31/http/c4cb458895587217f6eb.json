@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hoellmueller.de/robots.txt",
+  "checked_at": "2026-10-05T23:40:31.881889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 573,
+  "state": "http_error",
+  "elapsed_seconds": 0.167,
+  "sha256": "b337a0282123a2be7490839b82a77a75a4a3d5eae3d9c79e0da2a5e6a9e033f6",
+  "capture": "c4cb458895587217f6eb",
+  "merged_from_run": "run-28"
+}

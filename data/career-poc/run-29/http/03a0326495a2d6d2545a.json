@@ -1,0 +1,17 @@
+{
+  "url": "https://entegra.de/mitwirken/",
+  "checked_at": "2026-10-05T23:37:57.888407+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:39:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 130230,
+  "state": "ok",
+  "elapsed_seconds": 0.737,
+  "sha256": "d75fe14e7f6236f3cd952ac931cfcfabd403f1807be51bff980c0c2e26ce087e",
+  "capture": "03a0326495a2d6d2545a",
+  "merged_from_run": "run-28"
+}

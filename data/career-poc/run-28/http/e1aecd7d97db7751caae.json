@@ -1,0 +1,16 @@
+{
+  "url": "https://www.iai.kit.edu/stellenangebote.php",
+  "checked_at": "2026-10-05T23:41:24.029655+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49115,
+  "state": "ok",
+  "elapsed_seconds": 1.066,
+  "sha256": "ebd50ab59035843125ee32ab6ce0911d6e9d603ce64428e7f6c87340eb18ad47",
+  "capture": "e1aecd7d97db7751caae"
+}

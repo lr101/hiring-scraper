@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dr-leute.de/",
+  "checked_at": "2026-10-05T23:08:09.208983+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"731-44f9cc6e17740\"",
+  "last_modified": "Sat, 14 Jun 2008 09:11:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1841,
+  "state": "ok",
+  "elapsed_seconds": 1.104,
+  "sha256": "6da5b91d1cf1d12f66cfe5181555c2446c9163f360c9e9e1f5487163c0617944",
+  "capture": "52df634c077dda45cd78"
+}

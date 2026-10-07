@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tipico-careers.com/robots.txt",
+  "checked_at": "2026-10-05T23:32:46.403267+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"728b6a5956beda1:0\"",
+  "last_modified": "Fri, 14 Jun 2024 12:28:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 80,
+  "state": "ok",
+  "elapsed_seconds": 0.995,
+  "sha256": "c8a61a4f2199ee69e8671e0efd35660773302789e04eb0023b8ccd3e4e905691",
+  "capture": "dd7320eb8e865e91c00c"
+}

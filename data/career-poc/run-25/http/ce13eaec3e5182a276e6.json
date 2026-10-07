@@ -1,0 +1,16 @@
+{
+  "url": "https://volkswohnung.de/karriere/stellenangebote/stellenangebote.html",
+  "checked_at": "2026-10-05T22:07:40.390207+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 269450,
+  "state": "ok",
+  "elapsed_seconds": 6.541,
+  "sha256": "5e884dcfde2cb50e50f481857e7c8b073272051db445d3908dee67f4063fdc73",
+  "capture": "ce13eaec3e5182a276e6"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nuebold.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:18.647707+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 172,
+  "state": "ok",
+  "elapsed_seconds": 7.11,
+  "sha256": "a20553dd2374524a27241bfc4cfc61d5588b097b9e0fc60f6877b99c5e509565",
+  "capture": "2999fe5be083afb8296c",
+  "merged_from_run": "run-28"
+}

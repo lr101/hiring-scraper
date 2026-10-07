@@ -1,0 +1,16 @@
+{
+  "url": "https://www.diqp.eu/stellenangebote/",
+  "checked_at": "2026-10-05T23:46:00.999659+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87207,
+  "state": "ok",
+  "elapsed_seconds": 1.738,
+  "sha256": "3a948d3ffbfe4cc384bb2909febf489d749776aa652f10738086f5b6a6ab314d",
+  "capture": "477b231bf61f32417bdb"
+}

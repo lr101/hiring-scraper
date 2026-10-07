@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nero.com/eng/company/careers/",
+  "checked_at": "2026-10-05T22:19:32.772708+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 87233,
+  "state": "ok",
+  "elapsed_seconds": 1.376,
+  "sha256": "288e87a604d0434c70efd5c46b23e718c2b8bb966246668eaed7f6fe50358dda",
+  "capture": "4965d5d32718a22125d2",
+  "merged_from_run": "run-25"
+}

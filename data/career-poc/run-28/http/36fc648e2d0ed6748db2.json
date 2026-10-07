@@ -1,0 +1,16 @@
+{
+  "url": "https://www.infokom-it.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:00.840295+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 407,
+  "state": "ok",
+  "elapsed_seconds": 0.803,
+  "sha256": "5a04352db6bbde8300af96f13403d86b0126da1aeda0925d92e0f9faee93b4bd",
+  "capture": "36fc648e2d0ed6748db2"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bechtle.com/karriere",
+  "checked_at": "2026-10-05T23:37:06.137923+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 687477,
+  "state": "ok",
+  "elapsed_seconds": 0.648,
+  "sha256": "1b1956cc5f947fd554284a8a17002a4c6fe924b4a479d3963aa461642f6b6b5b",
+  "capture": "5b1cb2ef31aed6012c2a",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ametek.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:37.336312+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17390,
+  "state": "ok",
+  "elapsed_seconds": 1.341,
+  "sha256": "89e6aa195463d57e4b9c6284cdeaf05863fcf6b7819fa8aee6fb593a974d0274",
+  "capture": "f165eed3b73d165c0f1f",
+  "merged_from_run": "run-28"
+}

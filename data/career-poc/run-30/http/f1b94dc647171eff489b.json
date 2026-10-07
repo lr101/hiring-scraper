@@ -1,0 +1,17 @@
+{
+  "url": "https://augenzentrum-eckert.de/standorte/karlsruhe-stadtmitte/",
+  "checked_at": "2026-10-05T22:17:18.970376+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"4bf28-65d1f3249f7d6\"",
+  "last_modified": "Mon, 05 Oct 2026 22:13:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 311080,
+  "state": "ok",
+  "elapsed_seconds": 1.267,
+  "sha256": "fb0bb065749f82729dbcc57a7a0045667cbf91963dacda7bba6a0d6cc4bef526",
+  "capture": "f1b94dc647171eff489b",
+  "merged_from_run": "run-25"
+}

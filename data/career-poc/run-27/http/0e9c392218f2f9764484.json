@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wir-bewegen-alle.de/bewerben/jobs",
+  "checked_at": "2026-10-05T22:45:04.864725+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"5c64966dc8d914c1b31c35085145d536\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 104429,
+  "state": "ok",
+  "elapsed_seconds": 1.182,
+  "sha256": "24428a7637277b270f835d5f4f35244dc91137dc5007b6e3795686ef181121dc",
+  "capture": "0e9c392218f2f9764484"
+}

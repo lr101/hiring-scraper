@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.bechtle.com/job/Affalterbach-Teamleiter-Managed-Services-%28wmd%29-71563/83251-de_DE/",
+  "checked_at": "2026-10-05T23:37:06.841043+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82073,
+  "state": "ok",
+  "elapsed_seconds": 0.539,
+  "sha256": "028d05f8e05b15e25e0e8befb17de5823c3976383c68f5779f9026efa7a13eb3",
+  "capture": "3f442cd015bf14fed169"
+}

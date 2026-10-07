@@ -1,0 +1,17 @@
+{
+  "url": "https://www.insbw.de/karriere",
+  "checked_at": "2026-10-05T22:44:51.209091+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78706,
+  "state": "http_error",
+  "elapsed_seconds": 1.228,
+  "sha256": "3cd16a9bc8029fbbb3814f45562d762db6233a1a26faa989f4f0e710a1e5f1a8",
+  "capture": "d7d26623903c35bf502b",
+  "merged_from_run": "run-27"
+}

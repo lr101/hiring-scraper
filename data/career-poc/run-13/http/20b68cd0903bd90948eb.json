@@ -1,0 +1,14 @@
+{
+  "url": "https://www.unic.com/de/jobs/consultant",
+  "checked_at": "2026-10-05T09:07:58.651328+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 255355,
+  "state": "ok",
+  "elapsed_seconds": 1.361,
+  "sha256": "6afbcb8a25c9cba65fe41990064c5e05f971f8142022f40607642abe3be900f5",
+  "capture": "20b68cd0903bd90948eb",
+  "reused_from": "data/career-poc/run-12/http/20b68cd0903bd90948eb.json"
+}

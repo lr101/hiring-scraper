@@ -1,0 +1,17 @@
+{
+  "url": "https://www.elektrotechnik-aloisi.de/careers",
+  "checked_at": "2026-10-05T23:41:41.726525+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48397,
+  "state": "http_error",
+  "elapsed_seconds": 0.981,
+  "sha256": "e46aa62247ca662f2be780aa83d26a181562686b158bab9d84807c13efdadff6",
+  "capture": "04cf9fcf26298af00df8",
+  "merged_from_run": "run-28"
+}

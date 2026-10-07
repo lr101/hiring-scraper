@@ -1,0 +1,17 @@
+{
+  "url": "https://gaul-catering.de/",
+  "checked_at": "2026-10-05T22:20:27.875158+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 156651,
+  "state": "ok",
+  "elapsed_seconds": 3.233,
+  "sha256": "97e5f7b7668dc9ec96be9edd6b92adfbc80d231ae91dab16edb73ead7251b476",
+  "capture": "d66a9d56745f1ae98e71",
+  "merged_from_run": "run-25"
+}

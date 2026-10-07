@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ites.kit.edu/",
+  "checked_at": "2026-10-05T23:42:16.517610+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61215,
+  "state": "ok",
+  "elapsed_seconds": 1.022,
+  "sha256": "74285c357b244fe76501f26922121b03b7454d8349b4ee1b113982237224abb5",
+  "capture": "47d9c7cb39530f3e20c8"
+}

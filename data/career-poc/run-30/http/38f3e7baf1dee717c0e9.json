@@ -1,0 +1,17 @@
+{
+  "url": "https://www.inovex.de/de/",
+  "checked_at": "2026-10-05T22:38:46.318049+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"6ac42502-34adb\"",
+  "last_modified": "Mon, 05 Oct 2026 22:30:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 215771,
+  "state": "ok",
+  "elapsed_seconds": 1.159,
+  "sha256": "5213efe99d0e16ec5d5358d675d87f0a15182e4efe5f78b5b18c7a09796eab72",
+  "capture": "38f3e7baf1dee717c0e9",
+  "merged_from_run": "run-27"
+}

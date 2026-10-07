@@ -1,0 +1,16 @@
+{
+  "url": "https://p-neo.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:28.609510+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112,
+  "state": "ok",
+  "elapsed_seconds": 1.305,
+  "sha256": "f01938be75bce4ad51a0f714dcb95ae8a486facf9395867f0586a0d49b95a94b",
+  "capture": "44d21dd3de40f3c514be"
+}

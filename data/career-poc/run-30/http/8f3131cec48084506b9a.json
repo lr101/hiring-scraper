@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brauhaus-karlsruhe.com/",
+  "checked_at": "2026-10-05T23:18:35.139508+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 79,
+  "state": "ok",
+  "elapsed_seconds": 0.511,
+  "sha256": "974a4dcf7a23198a75ca01fc7622d7b8b2734aa5cc6366db6a1e00e6bafa0bef",
+  "capture": "8f3131cec48084506b9a",
+  "merged_from_run": "run-28"
+}

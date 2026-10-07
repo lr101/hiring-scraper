@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dymatrix.de/en",
+  "checked_at": "2026-10-05T23:01:38.183409+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 149817,
+  "state": "ok",
+  "elapsed_seconds": 0.433,
+  "sha256": "0e30c66b2827e8b19c46666c244c27df380eadc724da4a6582a895f4e28e4e79",
+  "capture": "3627f1eb84731bd86164"
+}

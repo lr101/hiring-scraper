@@ -1,0 +1,17 @@
+{
+  "url": "https://www.shiratech-knowtion.com/robots.txt",
+  "checked_at": "2026-10-05T23:29:36.708123+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119,
+  "state": "ok",
+  "elapsed_seconds": 2.455,
+  "sha256": "ac9201c4bb61dc927e5d2f076fd9714257342b8aed15d3fc4fdc1e350a11ad34",
+  "capture": "14715b52e5d9e2722c08",
+  "merged_from_run": "run-28"
+}

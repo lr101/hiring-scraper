@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sdk.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:33.750241+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 410,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 136,
+  "state": "http_error",
+  "elapsed_seconds": 0.167,
+  "sha256": "3f2463c10cd391e448cc9e320a6671f050405f13207c746f9ad77385b6d32ee6",
+  "capture": "960775800e04c0965b66"
+}

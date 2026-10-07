@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.exxeta.com/data-ai",
+  "checked_at": "2026-10-05T22:59:41.716942+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1527176,
+  "state": "ok",
+  "elapsed_seconds": 1.165,
+  "sha256": "b4006d535c3934ebcc4d42f692aa65a06e8b5fd884cae993f847f395315fc1b0",
+  "capture": "2a5c79f235645ca3f5b7",
+  "merged_from_run": "run-27"
+}

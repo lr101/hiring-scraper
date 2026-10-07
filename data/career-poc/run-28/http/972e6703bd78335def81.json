@@ -1,0 +1,16 @@
+{
+  "url": "https://nemenergy.recruitee.com/robots.txt",
+  "checked_at": "2026-10-05T23:28:32.267583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85,
+  "state": "ok",
+  "elapsed_seconds": 0.607,
+  "sha256": "b72acf2b01ea181a143e706a926ebc18204f1cb2b579de5102301524d1e53bdd",
+  "capture": "972e6703bd78335def81"
+}

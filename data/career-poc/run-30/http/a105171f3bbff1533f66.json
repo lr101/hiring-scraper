@@ -1,0 +1,17 @@
+{
+  "url": "https://leipziger-logistik.com/stellenangebote-sitemap.xml",
+  "checked_at": "2026-10-05T23:38:09.739522+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"4e4-65ca26b87e7bd\"",
+  "last_modified": "Tue, 29 Sep 2026 17:21:58 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1252,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "d523bcfe9ac091d0f6a3a60c1042492bba613060e0a199b2446399241f16487d",
+  "capture": "a105171f3bbff1533f66",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schmidt-seitz.com/",
+  "checked_at": "2026-10-05T23:38:57.264999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133608,
+  "state": "ok",
+  "elapsed_seconds": 1.666,
+  "sha256": "66dd1e07eed89a272a76c37868faa6a861903c70d638476bb8bad125cfd26163",
+  "capture": "68150f064fc348cdf005"
+}

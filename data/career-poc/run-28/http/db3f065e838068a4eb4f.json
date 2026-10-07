@@ -1,0 +1,16 @@
+{
+  "url": "https://leipziger-logistik.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:38:08.848035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"59b-65ca204708a6b\"",
+  "last_modified": "Tue, 29 Sep 2026 16:53:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1435,
+  "state": "ok",
+  "elapsed_seconds": 0.889,
+  "sha256": "792b17351dc978795e69a9b01669c1d19e9064ed5d43fcfad31be40dee2401f1",
+  "capture": "db3f065e838068a4eb4f"
+}

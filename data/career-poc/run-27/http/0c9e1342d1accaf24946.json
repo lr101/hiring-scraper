@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.hypoport.de/jobs/",
+  "checked_at": "2026-10-05T22:39:23.976874+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 18:31:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 271534,
+  "state": "ok",
+  "elapsed_seconds": 0.422,
+  "sha256": "8ce9b3cd7e43af14e00f6bde30a7ef6b5e2812d2aaea563cd13f6f981cfc5cde",
+  "capture": "0c9e1342d1accaf24946"
+}

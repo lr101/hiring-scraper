@@ -1,0 +1,16 @@
+{
+  "url": "https://www.swhs.de/category/jobangebote/",
+  "checked_at": "2026-10-05T23:45:15.897519+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49516,
+  "state": "ok",
+  "elapsed_seconds": 1.721,
+  "sha256": "74ec70573c2375c5dcbe7577711c68598f88f254a1dc29547b3257ac637587bc",
+  "capture": "66d6c7287990b7cbe8ed"
+}

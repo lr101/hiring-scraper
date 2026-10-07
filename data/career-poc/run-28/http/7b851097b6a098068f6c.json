@@ -1,0 +1,16 @@
+{
+  "url": "https://www.solute.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:09.566485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"36-510dcef2b5fc0\"",
+  "last_modified": "Mon, 09 Mar 2015 15:46:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 54,
+  "state": "ok",
+  "elapsed_seconds": 0.625,
+  "sha256": "e028ea26241d84819f497b958a5aa9208f6348210a3b6cb64fb2bfe56b66f54c",
+  "capture": "7b851097b6a098068f6c"
+}

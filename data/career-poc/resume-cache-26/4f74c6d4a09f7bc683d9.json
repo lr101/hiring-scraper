@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bgw-online.de/bgw-online-de/bgw-newsletter-jetzt-abonnieren-20370",
+  "checked_at": "2026-10-05T22:20:10.936620+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51959,
+  "state": "ok",
+  "elapsed_seconds": 1.205,
+  "sha256": "db56d1aee711073be9402a8cbcac808b134e66e23c775cf35f9d52a54bda3e61",
+  "capture": "4f74c6d4a09f7bc683d9"
+}

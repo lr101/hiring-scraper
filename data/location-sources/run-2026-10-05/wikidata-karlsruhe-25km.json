@@ -1,0 +1,10 @@
+{
+  "name": "wikidata-karlsruhe-25km",
+  "url": "https://query.wikidata.org/sparql?query=PREFIX+bd%3A+%3Chttp%3A%2F%2Fwww.bigdata.com%2Frdf%23%3E%0APREFIX+wd%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0APREFIX+wdt%3A+%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX+rdfs%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.opengis.net%2Font%2Fgeosparql%23%3E%0ASELECT+DISTINCT+%3Fcompany+%3Flabel+%3Fwebsite+%3Fhq+%3Fcoord+%3Fdistance+WHERE+%7B%0A++SERVICE+wikibase%3Aaround+%7B%0A++++%3Fhq+wdt%3AP625+%3Fcoord+.%0A++++bd%3AserviceParam+wikibase%3Acenter+%22Point%288.4037+49.0069%29%22%5E%5Egeo%3AwktLiteral+.%0A++++bd%3AserviceParam+wikibase%3Aradius+%2225%22+.%0A++++bd%3AserviceParam+wikibase%3Adistance+%3Fdistance+.%0A++%7D%0A++%3Fcompany+wdt%3AP17+wd%3AQ183+%3B+wdt%3AP159+%3Fhq+%3B+wdt%3AP856+%3Fwebsite+.%0A++OPTIONAL+%7B+%3Fcompany+rdfs%3Alabel+%3Flabel+.+FILTER%28LANG%28%3Flabel%29+%3D+%22de%22+%7C%7C+LANG%28%3Flabel%29+%3D+%22en%22%29+%7D%0A%7D+ORDER+BY+%3Fdistance+LIMIT+100&format=json",
+  "method": "GET",
+  "checked_at": "2026-10-05T14:41:58.535039+00:00",
+  "status": 200,
+  "content_type": "application/sparql-results+json;charset=utf-8",
+  "bytes": 77889,
+  "sha256": "4b3484357a06b55cfc888f2c1262507f09367ddc938306f7aa7f90ab4f1e81d6"
+}

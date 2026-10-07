@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.strabag.com/de/warnung-vor-gefaelschten-stellenangeboten",
+  "checked_at": "2026-10-05T23:33:06.757535+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51183,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "32ca9dfe3060be35651d1a9c44cf4f3444d19b56c00590a837a8de0064a6db91",
+  "capture": "23a4f5293566452a8f78"
+}

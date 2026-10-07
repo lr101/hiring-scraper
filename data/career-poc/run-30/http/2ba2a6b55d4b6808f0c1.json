@@ -1,0 +1,17 @@
+{
+  "url": "https://www.psk-lions.de/sitemap.xml?tx_csseo_view=pages",
+  "checked_at": "2026-10-05T23:15:38.873992+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 8932,
+  "state": "ok",
+  "elapsed_seconds": 1.187,
+  "sha256": "1221a7e22089a85d43c242e6ac537849919a8bb6a4c60b6ec1be9e2c659ac46b",
+  "capture": "2ba2a6b55d4b6808f0c1",
+  "merged_from_run": "run-28"
+}

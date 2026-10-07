@@ -1,0 +1,17 @@
+{
+  "url": "https://andrena.softgarden.io/de/widgets/jobs?-1.-jobSearch-jobSearchContainer-jobAboLink=&config=eyJzaG93Sm9iTGlzdCI6eyJhdWRpZW5jZSI6dHJ1ZSwiam9iY2F0ZWdvcnkiOnRydWUsIlByb2plY3RHZW9Mb2NhdGlvbkNpdHkiOnRydWUsInNob3dEYXRlSW5Gcm9udGVuZCI6dHJ1ZX0sInNob3dGaWx0ZXIiOnsiYXVkaWVuY2UiOnRydWUsImpvYmNhdGVnb3J5Ijp0cnVlLCJQcm9qZWN0R2VvTG9jYXRpb25DaXR5Ijp0cnVlfSwicHJlZmlsbEZpbHRlciI6eyJhdWRpZW5jZSI6IiIsImpvYmNhdGVnb3J5IjoiIiwiUHJvamVjdEdlb0xvY2F0aW9uQ2l0eSI6IiIsIlByb2plY3RHZW9Mb2NhdGlvbkNpdHlSYWRpdXMiOiIyNSJ9LCJudW1iZXJPZkpvYnMiOjEwfQ%3D%3D",
+  "checked_at": "2026-10-05T23:24:08.409449+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 113,
+  "state": "http_error",
+  "elapsed_seconds": 0.89,
+  "sha256": "d6bd67e57b1e7b4d2d682ab2f2ac07a22b71cdf0d134dcb6d65dec07a1ede927",
+  "capture": "9d81adbb4ac6d714b62b",
+  "merged_from_run": "run-28"
+}

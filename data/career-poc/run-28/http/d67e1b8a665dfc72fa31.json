@@ -1,0 +1,16 @@
+{
+  "url": "https://www.psv-karlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:14.408948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "W/\"-1587725958\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26233,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "3a3f6c52e24bae8e06a8fe0a04f680d9bbed1c4ca6b12447ddb8c4e433361550",
+  "capture": "d67e1b8a665dfc72fa31"
+}

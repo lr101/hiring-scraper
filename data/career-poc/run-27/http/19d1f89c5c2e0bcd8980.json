@@ -1,0 +1,16 @@
+{
+  "url": "https://finanzamt-bw.fv-bwl.de/,Len/Home+page/Career",
+  "checked_at": "2026-10-05T22:57:59.525996+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58670,
+  "state": "ok",
+  "elapsed_seconds": 1.221,
+  "sha256": "bffb281724e5b441b0c4c40f78eaa5f60db8070b85ccf6ceb1129c0c6a86c431",
+  "capture": "19d1f89c5c2e0bcd8980"
+}

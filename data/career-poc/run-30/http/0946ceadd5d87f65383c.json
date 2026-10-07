@@ -1,0 +1,17 @@
+{
+  "url": "https://zimmerei-ratzel.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:21.261000+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"c21-65baaed875394\"",
+  "last_modified": "Thu, 17 Sep 2026 10:05:47 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 3105,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "cc14cc51ba66222d34d2a0bc164a7a0f03ede3cbb659a108007210a8f960b034",
+  "capture": "0946ceadd5d87f65383c",
+  "merged_from_run": "run-28"
+}

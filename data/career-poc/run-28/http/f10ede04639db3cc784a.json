@@ -1,0 +1,16 @@
+{
+  "url": "https://www.asb-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:44.328775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 530,
+  "state": "ok",
+  "elapsed_seconds": 0.135,
+  "sha256": "ee7dd9ebc093142cc59b13029351452e5cd1514c3f091ec255651103ae8f172c",
+  "capture": "f10ede04639db3cc784a"
+}

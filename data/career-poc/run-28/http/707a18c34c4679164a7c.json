@@ -1,0 +1,16 @@
+{
+  "url": "https://malerbetrieb-busch.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:38:04.673511+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5654,
+  "state": "ok",
+  "elapsed_seconds": 1.114,
+  "sha256": "53856cebfe4ffd8975353fccacdce0af207a6d36b7a6d4ab17c3163ba2108cec",
+  "capture": "707a18c34c4679164a7c"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.immokoenig.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:46.751423+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"33d-5a39fc3862505\"",
+  "last_modified": "Sun, 19 Apr 2020 07:30:59 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 829,
+  "state": "ok",
+  "elapsed_seconds": 0.189,
+  "sha256": "97c87f1e050ea0ead076373282f50734e90f71734b825931f9a4739ca0d5ace8",
+  "capture": "2609b3c972b46adc3cfb"
+}

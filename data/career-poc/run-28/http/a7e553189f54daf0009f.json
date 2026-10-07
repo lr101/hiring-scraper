@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.stark-deutschland.de/stellen/",
+  "checked_at": "2026-10-05T23:31:40.603118+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 140202,
+  "state": "ok",
+  "elapsed_seconds": 0.585,
+  "sha256": "9ba98533203138bb76874a0f048ab723e7f5084461a941831a444ead4c867f46",
+  "capture": "a7e553189f54daf0009f"
+}

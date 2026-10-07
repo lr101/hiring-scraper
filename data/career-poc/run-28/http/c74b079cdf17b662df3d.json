@@ -1,0 +1,16 @@
+{
+  "url": "https://www.altus-re.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:26:58.911582+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 650,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "52d3e6f5b5e160236ad744c4f456e2fba72763234ebdde841290ef8c65f3a799",
+  "capture": "c74b079cdf17b662df3d"
+}

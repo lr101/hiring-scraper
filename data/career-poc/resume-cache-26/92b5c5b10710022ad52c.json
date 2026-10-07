@@ -1,0 +1,16 @@
+{
+  "url": "https://www.workwise.io/jobsuche",
+  "checked_at": "2026-10-05T22:15:46.265513+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 149827,
+  "state": "ok",
+  "elapsed_seconds": 1.128,
+  "sha256": "4fb6699f7da45827f104d43a37f2dbda2bd5a33c7602aa31dfdb30835417be99",
+  "capture": "92b5c5b10710022ad52c"
+}

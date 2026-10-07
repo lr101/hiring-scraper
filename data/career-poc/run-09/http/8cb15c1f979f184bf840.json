@@ -1,0 +1,11 @@
+{
+  "url": "https://pdmlab.com/robots.txt",
+  "checked_at": "2026-10-05T09:07:08.268784+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error timed out>",
+  "elapsed_seconds": 12.086,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "8cb15c1f979f184bf840",
+  "reused_from": "data/career-poc/run-08/http/8cb15c1f979f184bf840.json"
+}

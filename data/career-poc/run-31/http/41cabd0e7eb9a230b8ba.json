@@ -1,0 +1,17 @@
+{
+  "url": "http://karriere.dfs.de/en",
+  "checked_at": "2026-10-05T23:17:28.499290+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://karriere.dfs.de/en",
+  "bytes": 299,
+  "state": "http_error",
+  "elapsed_seconds": 0.802,
+  "sha256": "9ffea33f3687e20904ef6a642d15376147e48482a2d8bc397d9bc4c4d2ff8218",
+  "capture": "41cabd0e7eb9a230b8ba",
+  "merged_from_run": "run-28"
+}

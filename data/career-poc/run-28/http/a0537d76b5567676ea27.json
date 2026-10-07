@@ -1,0 +1,16 @@
+{
+  "url": "https://kueffner.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:36:39.554064+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "\"1791241200\"",
+  "last_modified": "Mon, 05 Oct 2026 23:00:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1193581,
+  "state": "ok",
+  "elapsed_seconds": 1.031,
+  "sha256": "fd619f300fb112201be5650c77282556e28f48ad2088264fdcd82bf636122308",
+  "capture": "a0537d76b5567676ea27"
+}

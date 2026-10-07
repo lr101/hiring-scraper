@@ -1,0 +1,16 @@
+{
+  "url": "https://mg-ie.de/jobs/",
+  "checked_at": "2026-10-05T23:39:42.001741+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112725,
+  "state": "ok",
+  "elapsed_seconds": 1.907,
+  "sha256": "e001fab2baba5b980d42df1d1cc09426abd732a8e67892d1358d527785eaaf0c",
+  "capture": "775890b06402dbaf48d2"
+}

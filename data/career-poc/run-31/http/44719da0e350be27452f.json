@@ -1,0 +1,17 @@
+{
+  "url": "https://www.medie-ambulanz.de/karriere?start=3",
+  "checked_at": "2026-10-05T23:18:48.267296+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:18:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 46620,
+  "state": "ok",
+  "elapsed_seconds": 0.967,
+  "sha256": "72e90a4b342d9b01e5ecef5619c42b83e8360d1fc278bbe1d03c9bfda25c4130",
+  "capture": "44719da0e350be27452f",
+  "merged_from_run": "run-28"
+}

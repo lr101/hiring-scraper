@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ff-studio.de/jobs",
+  "checked_at": "2026-10-05T23:27:54.223883+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27,
+  "state": "http_error",
+  "elapsed_seconds": 0.984,
+  "sha256": "4ea24676c33b55685f591bf65220e7280754ca0fcc7cbc4e04dad58453e1a95e",
+  "capture": "598f62069d67deafc91d",
+  "merged_from_run": "run-28"
+}

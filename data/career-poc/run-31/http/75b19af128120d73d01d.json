@@ -1,0 +1,17 @@
+{
+  "url": "https://www.jobs-im-suedwesten.de/robots.txt",
+  "checked_at": "2026-10-05T22:54:48.393132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 307,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/static/suedwestjd/robots.txt",
+  "bytes": 29,
+  "state": "http_error",
+  "elapsed_seconds": 0.17,
+  "sha256": "83bec66e2a6d250fe7fd127083cf24ff111def16a95e88bb2761a1363ca5e936",
+  "capture": "75b19af128120d73d01d",
+  "merged_from_run": "run-27"
+}

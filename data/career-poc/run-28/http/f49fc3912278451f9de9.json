@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerberatung-leibold.de/careers",
+  "checked_at": "2026-10-05T23:18:14.804263+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109676,
+  "state": "http_error",
+  "elapsed_seconds": 0.976,
+  "sha256": "6678f56e0dbcc13cb7bd46443cee80b16dbbca9467e9f6ea21f471ddaf511b83",
+  "capture": "f49fc3912278451f9de9"
+}

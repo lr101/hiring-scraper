@@ -1,0 +1,14 @@
+{
+  "url": "https://www.komm.one/karriere/stellenangebote",
+  "checked_at": "2026-10-05T09:08:06.900127+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "location": null,
+  "bytes": 27851,
+  "state": "ok",
+  "elapsed_seconds": 0.312,
+  "sha256": "28f118554f40cc079ddc764aea0f5d67d824509bdd3da89b7718717441f2cc5b",
+  "capture": "ab19a105130d95ea4655",
+  "reused_from": "data/career-poc/run-02/http/ab19a105130d95ea4655.json"
+}

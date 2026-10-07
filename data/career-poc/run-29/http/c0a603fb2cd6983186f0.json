@@ -1,0 +1,17 @@
+{
+  "url": "https://www.packaging-partner.de/careers",
+  "checked_at": "2026-10-05T23:27:26.655389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 174375,
+  "state": "http_error",
+  "elapsed_seconds": 1.008,
+  "sha256": "08903070fb4123b4d7f57bda29cbba775d417a6f5a0f6f238982fe79355158e0",
+  "capture": "c0a603fb2cd6983186f0",
+  "merged_from_run": "run-28"
+}

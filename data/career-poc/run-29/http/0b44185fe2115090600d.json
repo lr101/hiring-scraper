@@ -1,0 +1,17 @@
+{
+  "url": "https://www.roeser-international.de/robots.txt",
+  "checked_at": "2026-10-05T22:14:16.805437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.929,
+  "sha256": "f6d406106e869fa3ec958d68d9c510cfdcf2f915bd534cf6a214ec80699746eb",
+  "capture": "0b44185fe2115090600d",
+  "merged_from_run": "run-25"
+}

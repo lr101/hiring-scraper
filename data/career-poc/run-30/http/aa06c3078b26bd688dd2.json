@@ -1,0 +1,17 @@
+{
+  "url": "https://www.itas.kit.edu/fehler.php",
+  "checked_at": "2026-10-05T22:31:07.402889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 45429,
+  "state": "ok",
+  "elapsed_seconds": 1.101,
+  "sha256": "6c76a318f621b1d9cae37ad16b4b6b0a70986d3d441ef2affefc4916eef8f3d3",
+  "capture": "aa06c3078b26bd688dd2",
+  "merged_from_run": "run-26"
+}

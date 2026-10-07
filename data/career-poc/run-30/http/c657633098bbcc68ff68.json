@@ -1,0 +1,17 @@
+{
+  "url": "https://gammagroup.co/robots.txt",
+  "checked_at": "2026-10-05T22:13:26.276766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:13:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "ce162768f31cea22abfe3078c6f876c6afd652e303fec1823b05731a662f4b3b",
+  "capture": "c657633098bbcc68ff68",
+  "merged_from_run": "run-25"
+}

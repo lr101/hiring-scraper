@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diefuehrungsakademie.de/robots.txt",
+  "checked_at": "2026-10-05T22:21:18.515250+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 590,
+  "state": "ok",
+  "elapsed_seconds": 0.388,
+  "sha256": "f1d62364657b8249e1f52f67b590e4a6f806f1b7f5ccedf3a7f69b932aa67e4d",
+  "capture": "8c26ae9d41bec688c3ce",
+  "merged_from_run": "run-25"
+}

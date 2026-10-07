@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zg-raiffeisen.de/unternehmen/karriere/unsere-benefits",
+  "checked_at": "2026-10-05T22:46:11.100280+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 579397,
+  "state": "ok",
+  "elapsed_seconds": 2.592,
+  "sha256": "81716bf951d61c62677a7015103c185597b02bc3a4deaf499c4ab850a90f1b03",
+  "capture": "f45b8eb2fdad40df7b80",
+  "reused_from": "data/career-poc/run-27/http/f45b8eb2fdad40df7b80.json"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.wibu.com/en",
+  "checked_at": "2026-10-05T22:36:09.777775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 472810,
+  "state": "ok",
+  "elapsed_seconds": 1.739,
+  "sha256": "dbd6d7fe5a7fe7ae34851437e60b929388e9e1d18a445feeb2065e5e83e25d47",
+  "capture": "cf39ff8b1927aa89fb50",
+  "merged_from_run": "run-27"
+}

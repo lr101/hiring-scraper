@@ -1,0 +1,16 @@
+{
+  "url": "https://jci.wd5.myworkdayjobs.com/robots.txt",
+  "checked_at": "2026-10-05T23:42:05.036143+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 283,
+  "state": "ok",
+  "elapsed_seconds": 0.836,
+  "sha256": "0593f3948676787e74340fdc6f5886cc369d826e42ca086a0e4b672aa7f0d3dc",
+  "capture": "9b9182120367b79e3f45"
+}

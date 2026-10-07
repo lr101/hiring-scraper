@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arbeitsagentur.de/",
+  "checked_at": "2026-10-05T23:25:48.309478+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"7gz4z456gi3kph\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167090,
+  "state": "ok",
+  "elapsed_seconds": 0.946,
+  "sha256": "97998078572bedad6c4d3745661542576f1efdaf7e5f0fe93f67c33a4d5d2a73",
+  "capture": "c1e4a65dc1a9c6810dea",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://trg-design.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:56.401443+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"92e-62be92455c3a9\"",
+  "last_modified": "Fri, 17 Jan 2025 16:09:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2350,
+  "state": "ok",
+  "elapsed_seconds": 0.874,
+  "sha256": "474fdac07f29882a96b0edfe4a1a92b776a5598439906d7e67c36b32542f9e31",
+  "capture": "65b30045087c50d80732"
+}

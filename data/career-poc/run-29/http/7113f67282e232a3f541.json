@@ -1,0 +1,17 @@
+{
+  "url": "https://www.praxis-cosmetic.de/careers",
+  "checked_at": "2026-10-05T23:36:00.141151+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 179804,
+  "state": "http_error",
+  "elapsed_seconds": 1.9,
+  "sha256": "548dd0a7f26045a616eeea96a04784981d53419abef4213ce4e5c389ef847488",
+  "capture": "7113f67282e232a3f541",
+  "merged_from_run": "run-28"
+}

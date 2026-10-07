@@ -1,0 +1,17 @@
+{
+  "url": "http://icf.church/robots.txt",
+  "checked_at": "2026-10-05T23:20:48.569826+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://icf.church/robots.txt",
+  "bytes": 253,
+  "state": "http_error",
+  "elapsed_seconds": 0.063,
+  "sha256": "79496122e5d32537b0f8e7eb88390cc4632773b711be96d5fb7c4f1c94546875",
+  "capture": "8b8cd02ab60765527577",
+  "merged_from_run": "run-28"
+}

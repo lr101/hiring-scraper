@@ -1,0 +1,17 @@
+{
+  "url": "https://hhac.de/aktuelles-stellenangebot-chemielaborant-laborant-m-w-d/",
+  "checked_at": "2026-10-05T23:43:09.629636+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 07:26:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 85434,
+  "state": "ok",
+  "elapsed_seconds": 0.54,
+  "sha256": "ca6ade536a90de9b1ba47a1ce9035b6a38bcd143d21324e7fb8e1e78527fe58d",
+  "capture": "958207c91a2480196a1f",
+  "merged_from_run": "run-28"
+}

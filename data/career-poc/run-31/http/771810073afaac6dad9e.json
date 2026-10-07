@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.malteser.de/de/",
+  "checked_at": "2026-10-05T22:47:08.769318+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:46:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1468909,
+  "state": "ok",
+  "elapsed_seconds": 1.267,
+  "sha256": "6f86ee5df5f9737d2aa5fc61861a3ea9a383b4ecc6e2174a92849f2d7c0912de",
+  "capture": "771810073afaac6dad9e",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,10 @@
+{
+  "url": "https://joas-immobilien.de/robots.txt",
+  "checked_at": "2026-10-06T08:50:28.212932+00:00",
+  "user_agent": "HiringScraper/0.2 (homepage evidence study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:992)>",
+  "elapsed_seconds": 0.138,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "f170d6634872c85edcfe"
+}

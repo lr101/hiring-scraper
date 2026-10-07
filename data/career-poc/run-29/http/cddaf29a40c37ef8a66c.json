@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.grenke.com/go/08_Initiativbewerbung/9295901/",
+  "checked_at": "2026-10-05T23:16:14.200231+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 123561,
+  "state": "ok",
+  "elapsed_seconds": 0.609,
+  "sha256": "c816c4c683620b54f8c49fcd5d4ae7f422b65c95a1422230bf6c285b9e1c2252",
+  "capture": "cddaf29a40c37ef8a66c",
+  "merged_from_run": "run-28"
+}

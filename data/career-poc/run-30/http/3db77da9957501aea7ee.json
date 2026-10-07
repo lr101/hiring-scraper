@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arbeitgeber-ranking.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:40.036737+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Fri, 11 Sep 2026 19:21:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 99,
+  "state": "ok",
+  "elapsed_seconds": 0.972,
+  "sha256": "2f15987e4606501202b9d337085439339e53a374e3d194847192c12f85ba78f8",
+  "capture": "3db77da9957501aea7ee",
+  "merged_from_run": "run-28"
+}

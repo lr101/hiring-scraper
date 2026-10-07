@@ -1,0 +1,17 @@
+{
+  "url": "https://uhrenklinik-ka.de/careers",
+  "checked_at": "2026-10-05T22:55:57.161116+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21240,
+  "state": "http_error",
+  "elapsed_seconds": 1.619,
+  "sha256": "c1b4e755209cec208f3868d23e40f882655744599c39e14f91bc182db3d58eea",
+  "capture": "b055c86d320bb3143ecf",
+  "merged_from_run": "run-27"
+}

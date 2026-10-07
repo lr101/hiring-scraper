@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schneller-inkasso.de/karriere",
+  "checked_at": "2026-10-05T23:33:21.176752+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 236,
+  "state": "http_error",
+  "elapsed_seconds": 0.999,
+  "sha256": "9448f8a1159c9b14e3e1b9d8eab1a6ddf88d26e1f888a34cef430c756e4e6e1e",
+  "capture": "7bcf04e1783558d85f63",
+  "merged_from_run": "run-28"
+}

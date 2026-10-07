@@ -1,0 +1,17 @@
+{
+  "url": "https://www.verskap.de/jobs",
+  "checked_at": "2026-10-05T23:15:24.437317+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15042,
+  "state": "http_error",
+  "elapsed_seconds": 1.0,
+  "sha256": "9a3ef29d19e8e59145eda5b9c48dc0f2c05bb19c9fa4eedb8369956ba57861b8",
+  "capture": "4a048a3f1032e27f975c",
+  "merged_from_run": "run-28"
+}

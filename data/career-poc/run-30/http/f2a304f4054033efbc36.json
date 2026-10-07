@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lele-pr.com/robots.txt",
+  "checked_at": "2026-10-05T23:46:07.561498+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66,
+  "state": "ok",
+  "elapsed_seconds": 0.925,
+  "sha256": "84f7242b69a0d079d88d20a768e20124979f0499d2b0e5b947cc4b32bc07dff9",
+  "capture": "f2a304f4054033efbc36",
+  "merged_from_run": "run-28"
+}

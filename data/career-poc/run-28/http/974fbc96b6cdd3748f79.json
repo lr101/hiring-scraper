@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bergermetallbau.de/",
+  "checked_at": "2026-10-05T23:41:00.125125+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:23:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 218253,
+  "state": "ok",
+  "elapsed_seconds": 0.246,
+  "sha256": "5270dc10fa446f6f088d76be204af338da245c28b00161aa06f4c0151b657921",
+  "capture": "974fbc96b6cdd3748f79"
+}

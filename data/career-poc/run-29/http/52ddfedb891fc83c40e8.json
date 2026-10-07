@@ -1,0 +1,17 @@
+{
+  "url": "https://p-neo.de/job/initiativbewerbung/",
+  "checked_at": "2026-10-05T23:42:35.485303+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 481462,
+  "state": "ok",
+  "elapsed_seconds": 0.977,
+  "sha256": "116f37a26dde5245ed92e4b4bf7a1e0e342a382111256e20861a4f2ee25d3d6e",
+  "capture": "52ddfedb891fc83c40e8",
+  "merged_from_run": "run-28"
+}

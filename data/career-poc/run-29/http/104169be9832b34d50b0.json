@@ -1,0 +1,17 @@
+{
+  "url": "https://riedle-heiztech.de/karriere-in-stutensee/",
+  "checked_at": "2026-10-05T23:43:02.024609+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 154663,
+  "state": "ok",
+  "elapsed_seconds": 0.976,
+  "sha256": "ebea20a05ad5dabcd99a1de175114b6c6cec77cfb2cbaaa3d4a657e8dc3f2550",
+  "capture": "104169be9832b34d50b0",
+  "merged_from_run": "run-28"
+}

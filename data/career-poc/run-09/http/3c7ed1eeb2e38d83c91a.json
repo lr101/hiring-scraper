@@ -1,0 +1,14 @@
+{
+  "url": "https://www.codewrights.de/karriere",
+  "checked_at": "2026-10-05T09:06:51.897095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 5044,
+  "state": "http_error",
+  "elapsed_seconds": 1.102,
+  "sha256": "9d19039fcf357efad1e4b5bbddc2e8e020de401b5c8176e68ebbb7d280c7a602",
+  "capture": "3c7ed1eeb2e38d83c91a",
+  "reused_from": "data/career-poc/run-08/http/3c7ed1eeb2e38d83c91a.json"
+}

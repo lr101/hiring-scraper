@@ -1,0 +1,17 @@
+{
+  "url": "https://www.asi-online.de/robots.txt",
+  "checked_at": "2026-10-05T22:42:17.608828+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"18-5f4545438ebc0\"",
+  "last_modified": "Fri, 10 Feb 2023 08:31:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 24,
+  "state": "ok",
+  "elapsed_seconds": 0.172,
+  "sha256": "e1f21c9aa28d50ca112ed357f34b67c550597effd4d42fd55b4e27300dd8f9c1",
+  "capture": "a1614fc4c24548bacc81",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.synyx.de/robots.txt",
+  "checked_at": "2026-10-05T22:53:52.058772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"6abcf39d-af\"",
+  "last_modified": "Wed, 30 Sep 2026 11:33:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 175,
+  "state": "ok",
+  "elapsed_seconds": 0.194,
+  "sha256": "6cb7e4b464ffb9508935e4d7aafd280c436b324e5d431ecb661412ccaa240cfd",
+  "capture": "9f8d5509220c67d49b95",
+  "merged_from_run": "run-27"
+}

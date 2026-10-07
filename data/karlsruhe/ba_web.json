@@ -1,0 +1,12 @@
+{
+  "url": "https://www.arbeitsagentur.de/jobsuche/suche?wo=Karlsruhe&umkreis=5&angebotsart=1&pav=false",
+  "checked_at": "2026-10-05T08:20:50.662623+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.arbeitsagentur.de/jobsuche/suche?wo=Karlsruhe&umkreis=5&angebotsart=1&pav=false&suchbereich=jobs",
+  "content_type": "text/html;charset=UTF-8",
+  "bytes": 365828,
+  "truncated": false,
+  "elapsed_seconds": 0.34,
+  "sha256": "bd6f81400ccc8415d3b693f7a1c6653203eefbe1e101af1702bf9f3f7d031b21"
+}

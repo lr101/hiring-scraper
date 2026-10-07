@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hunkler.de/karriere/",
+  "checked_at": "2026-10-05T23:19:26.699142+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.hunkler.de/",
+  "bytes": 338,
+  "state": "http_error",
+  "elapsed_seconds": 0.916,
+  "sha256": "a755e378b39673513f9ba78d7cf2012c3ac5ebc3f4aae0ba76e5c2e0d311d2e3",
+  "capture": "500b9cc6678534d9832d",
+  "merged_from_run": "run-28"
+}

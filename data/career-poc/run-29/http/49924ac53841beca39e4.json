@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zeeh-design.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:41:28.837410+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1172,
+  "state": "ok",
+  "elapsed_seconds": 1.127,
+  "sha256": "cc03a3858c337896073fd15f6ac9936b261c06acd7d0a414c43671baaf67b73e",
+  "capture": "49924ac53841beca39e4",
+  "merged_from_run": "run-28"
+}

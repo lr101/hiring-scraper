@@ -1,0 +1,17 @@
+{
+  "url": "https://fachpressetexte.rbsonline.de/robots.txt",
+  "checked_at": "2026-10-05T23:41:02.709351+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.rbsonline.de/robots.txt",
+  "bytes": 283,
+  "state": "http_error",
+  "elapsed_seconds": 0.542,
+  "sha256": "88a2b7961c2f4f4ecd0f52512208fbce5bc2c701d813c583868430551c80252a",
+  "capture": "c3e722c5387a2c95c9c7",
+  "merged_from_run": "run-28"
+}

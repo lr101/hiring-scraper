@@ -1,0 +1,17 @@
+{
+  "url": "https://www.malerbetrieb-thomas-schneider.de/careers",
+  "checked_at": "2026-10-05T23:43:00.949111+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40214,
+  "state": "http_error",
+  "elapsed_seconds": 0.976,
+  "sha256": "6fe1075eeb81bc8ae03bc8a67992ed249debc023b11c387812e753ed6afba1b2",
+  "capture": "9e883d6994afb672a881",
+  "merged_from_run": "run-28"
+}

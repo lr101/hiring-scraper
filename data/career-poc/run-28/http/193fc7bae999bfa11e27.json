@@ -1,0 +1,16 @@
+{
+  "url": "https://ineratec-gmbh-1.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:29:04.698150+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"31eaf2b90cc120d31bde4085882b626e\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40917,
+  "state": "ok",
+  "elapsed_seconds": 0.877,
+  "sha256": "02a7af5dcb2e3becc92141a80e1dc66e9032960fd4739bc7a537f4835dff08b9",
+  "capture": "193fc7bae999bfa11e27"
+}

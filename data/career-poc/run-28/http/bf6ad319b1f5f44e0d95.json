@@ -1,0 +1,16 @@
+{
+  "url": "https://hakue-werbetechnik.de/karriere",
+  "checked_at": "2026-10-05T23:31:48.726770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 129357,
+  "state": "http_error",
+  "elapsed_seconds": 2.556,
+  "sha256": "82fa2b8fd7ba09ecf87f35328fdd6c46fa5691c8c0ce9c29ec2db329e4ef23b2",
+  "capture": "bf6ad319b1f5f44e0d95"
+}

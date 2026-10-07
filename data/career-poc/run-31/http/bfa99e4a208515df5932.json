@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brennerei-heidt.de/",
+  "checked_at": "2026-10-05T23:43:45.848193+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"14dbb-65211c50bb9fd\"",
+  "last_modified": "Mon, 18 May 2026 06:35:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 85435,
+  "state": "ok",
+  "elapsed_seconds": 1.004,
+  "sha256": "53554e7d7cea99a43cd852c599a2c158e7444e12203e2f6e2a567bb1cec9293c",
+  "capture": "bfa99e4a208515df5932",
+  "merged_from_run": "run-28"
+}

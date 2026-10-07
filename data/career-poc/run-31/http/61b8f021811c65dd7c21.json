@@ -1,0 +1,17 @@
+{
+  "url": "https://im.baden-wuerttemberg.de/de/robots.txt",
+  "checked_at": "2026-10-05T23:21:47.751597+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 262,
+  "state": "ok",
+  "elapsed_seconds": 0.997,
+  "sha256": "7fd645810d0dcaed1ff3de9469e6ddf10e660695fde599d28980cecdf0d8d3b5",
+  "capture": "61b8f021811c65dd7c21",
+  "merged_from_run": "run-28"
+}

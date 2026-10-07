@@ -1,0 +1,16 @@
+{
+  "url": "https://login.microsoftonline.com/965033b7-434c-49c2-8a9c-4b57375909f1/oauth2/v2.0/authorize?client_id=fea4c0c3-0ca9-4f91-8905-7a9db1d0ffa1&redirect_uri=https%3a%2f%2fzimmergroupb2c.b2clogin.com%2fzimmergroupb2c.onmicrosoft.com%2foauth2%2fauthresp&response_type=code&scope=openid+profile&response_mode=form_post&nonce=hO9EE5GGFIjCjsfge%2b8%2fEQ%3d%3d&prompt=login&ui_locales=en-US&state=StateProperties%3deyJTSUQiOiJ4LW1zLWNwaW0tcmM6YzMxMTZlMzAtNDIxMy00MTU0LWIwM2QtZjZiMjM4ZjUxNzZlIiwiVElEIjoiODlmYzc3OTUtNmI4YS00ZjJlLWEwNDctMzk3ZGVkZjQ4NGRjIiwiVE9JRCI6ImM5ZjA5ZjlhLTkzMzUtNGRiMy04Y2JiLTI4YjFkMGFhMTVkNCJ9",
+  "checked_at": "2026-10-05T23:38:28.661583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48720,
+  "state": "ok",
+  "elapsed_seconds": 1.071,
+  "sha256": "9c4b318080de9add1877a1e192f95c9634e82904039186fea4dbc7ea9ad75ce2",
+  "capture": "8d63e3da6f1cd10b8bf7"
+}

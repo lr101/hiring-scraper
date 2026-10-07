@@ -1,0 +1,16 @@
+{
+  "url": "https://entropia.de/Spezial:Linkliste/Jobs",
+  "checked_at": "2026-10-05T22:07:23.760472+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 33972,
+  "state": "http_error",
+  "elapsed_seconds": 1.261,
+  "sha256": "e17c483bbd00ab492d5ec7a6476e0fd28895907529dac5231f96cb0468d3916f",
+  "capture": "908be280704a07a5396f"
+}

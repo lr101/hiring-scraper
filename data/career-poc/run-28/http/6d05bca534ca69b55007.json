@@ -1,0 +1,16 @@
+{
+  "url": "https://labor-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:33.876311+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://labor-karlsruhe.bioscientia.de/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.92,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "6d05bca534ca69b55007"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://consumer.ftc.gov/search-terms/jobs",
+  "checked_at": "2026-10-05T23:20:18.024734+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1791242418\"",
+  "last_modified": "Mon, 05 Oct 2026 23:20:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 491036,
+  "state": "ok",
+  "elapsed_seconds": 2.885,
+  "sha256": "2b7613b51b7e4d9856efa305151e8228c8ad0a035a4e517d4a72a05d0b23a577",
+  "capture": "857ed7d39af5ee766961"
+}

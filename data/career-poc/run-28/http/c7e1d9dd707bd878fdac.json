@@ -1,0 +1,16 @@
+{
+  "url": "http://www.rosen-group.com/global/company/explore/we-are/locations/europe/rosen-karlsruhe.html",
+  "checked_at": "2026-10-05T23:38:22.062620+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.rosen-group.com/global/company/explore/we-are/locations/europe/rosen-karlsruhe.html",
+  "bytes": 14,
+  "state": "http_error",
+  "elapsed_seconds": 1.018,
+  "sha256": "cd23991b4e02a17e5a224a1f8265c5a187ab366b40b8f8a14608371feb8f6e25",
+  "capture": "c7e1d9dd707bd878fdac"
+}

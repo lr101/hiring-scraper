@@ -1,0 +1,16 @@
+{
+  "url": "https://ginex-espressomaschinen.de/",
+  "checked_at": "2026-10-05T23:43:14.136006+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 307,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/maintenance?redirectTo=frontend.home.page",
+  "bytes": 414,
+  "state": "http_error",
+  "elapsed_seconds": 1.185,
+  "sha256": "92c36f8a86056fef067832b71e9c28bd3a2d7a7438b0656b95202602b3bab7d9",
+  "capture": "8e8d027d108859afaa7a"
+}

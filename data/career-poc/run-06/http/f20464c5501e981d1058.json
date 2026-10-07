@@ -1,0 +1,14 @@
+{
+  "url": "https://careers.trivago.com/robots.txt",
+  "checked_at": "2026-10-05T09:12:56.845130+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "location": null,
+  "bytes": 177,
+  "state": "ok",
+  "elapsed_seconds": 0.564,
+  "sha256": "7e4e68c76cc007bf4ff97efeaa9d371498aa5bffb931ff2c081f6a66ac33d147",
+  "capture": "f20464c5501e981d1058",
+  "reused_from": "data/career-poc/run-05/http/f20464c5501e981d1058.json"
+}

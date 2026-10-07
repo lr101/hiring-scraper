@@ -1,0 +1,17 @@
+{
+  "url": "https://www.daferner-gmbh.de/wp-sitemap-posts-post-1.xml",
+  "checked_at": "2026-10-05T23:43:37.946722+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 336,
+  "state": "ok",
+  "elapsed_seconds": 0.977,
+  "sha256": "c354b8edd74adf88174a052d31a03adbbc98e6f536bb3b2715e86877cc96d699",
+  "capture": "2b3940891a71dc4ed89d",
+  "merged_from_run": "run-28"
+}

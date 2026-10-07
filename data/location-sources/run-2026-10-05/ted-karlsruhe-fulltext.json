@@ -1,0 +1,27 @@
+{
+  "name": "ted-karlsruhe-fulltext",
+  "url": "https://api.ted.europa.eu/v3/notices/search",
+  "method": "POST",
+  "checked_at": "2026-10-05T15:04:22.626009+00:00",
+  "request": {
+    "query": "FT~Karlsruhe",
+    "fields": [
+      "notice-title",
+      "publication-number",
+      "winner-name",
+      "winner-city",
+      "winner-country",
+      "winner-internet-address",
+      "place-of-performance-city-part"
+    ],
+    "limit": 10,
+    "scope": "ALL"
+  },
+  "request_sha256": "08b6c8c29e40a156c24e1338e70fa722f6414de936e0f5c4e4f5bce1179a00e6",
+  "status": 200,
+  "content_type": "application/json",
+  "bytes": 61585,
+  "final_url": "https://api.ted.europa.eu/v3/notices/search",
+  "elapsed_seconds": 0.7,
+  "sha256": "f72235dfa2a9c3637d23e0e6fd5db53e588a8e6c8915b57b09d2a78a99322eb5"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://schmal-fotografie.jimdofree.com/karriere",
+  "checked_at": "2026-10-05T23:27:53.250248+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 30602,
+  "state": "http_error",
+  "elapsed_seconds": 1.06,
+  "sha256": "082f4d1c4c0a0cb654be23f2735afca1159797a89194916780a72d08351f5465",
+  "capture": "6cb89c7da5db516b9f84",
+  "merged_from_run": "run-28"
+}

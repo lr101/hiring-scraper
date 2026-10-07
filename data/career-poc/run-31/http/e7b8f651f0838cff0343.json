@@ -1,0 +1,17 @@
+{
+  "url": "https://www.domainmarkt.de/www.awika.de",
+  "checked_at": "2026-10-05T22:19:29.485306+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5796,
+  "state": "ok",
+  "elapsed_seconds": 0.311,
+  "sha256": "56d9fb646a0016252b3e0ffacce5e82627a78dbf4ea59eb1682c0742264aa160",
+  "capture": "e7b8f651f0838cff0343",
+  "merged_from_run": "run-25"
+}

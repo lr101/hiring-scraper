@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ft-design.de/karriere",
+  "checked_at": "2026-10-05T23:37:52.718224+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50881,
+  "state": "http_error",
+  "elapsed_seconds": 1.0,
+  "sha256": "f1be6b74d7d4c07f0f14188a17f488e03b84425690ad75b8ff6f544d86186f2b",
+  "capture": "6c11bea790ef879884c2"
+}

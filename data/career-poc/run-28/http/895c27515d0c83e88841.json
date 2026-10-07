@@ -1,0 +1,16 @@
+{
+  "url": "https://dalloo-pool.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:25.777123+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "1740393347-ssl",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3449,
+  "state": "http_error",
+  "elapsed_seconds": 0.435,
+  "sha256": "8514f0009a58c6e0acb5468f88037732b59b70af5e524f452e3bef8fb33effc5",
+  "capture": "895c27515d0c83e88841"
+}

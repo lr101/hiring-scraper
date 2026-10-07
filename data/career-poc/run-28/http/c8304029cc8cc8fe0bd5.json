@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ibs-gruppe.de/portfolio-sitemap.xml",
+  "checked_at": "2026-10-05T23:37:48.038509+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13536,
+  "state": "ok",
+  "elapsed_seconds": 1.057,
+  "sha256": "7b9f25950b64ffbb62a92a0351fa512f88605d9534fffe909a78364d3008d69e",
+  "capture": "c8304029cc8cc8fe0bd5"
+}

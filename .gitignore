@@ -1,12 +1,16 @@
-.worktrees/
-.venv/
 __pycache__/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
+*.py[cod]
+*.tsbuildinfo
+.venv/
 .env
+.env.local
+node_modules/
+frontend/dist/
+*.egg-info/
 *.sqlite3
-staticfiles/
-.superpowers/
+hiring.db
+# Full third-party responses stay local; compact metadata and derived tables are tracked.
+*.body
+# Task-specific regional captures and local private inputs.
+data/local-cv-board/
+.ci-results/

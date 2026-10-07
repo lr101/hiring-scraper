@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.steuerring.de/stellenangebote/ihre-bewerbung/application/initiativbewerbung-mwd-de-f85.html",
+  "checked_at": "2026-10-05T22:39:36.908257+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 158863,
+  "state": "ok",
+  "elapsed_seconds": 2.176,
+  "sha256": "6613c1e2240b9a040f4c6056e506f3baf729143abc7913042b43071d9441adb7",
+  "capture": "90ef2846d4382dc9bfe3"
+}

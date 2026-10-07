@@ -1,0 +1,16 @@
+{
+  "url": "https://axel-bastian.ergo.de/de/bqa/de5/regionaldirektion/jobangebote/innendienst",
+  "checked_at": "2026-10-05T23:29:40.983099+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 202610,
+  "state": "http_error",
+  "elapsed_seconds": 0.889,
+  "sha256": "6cffb4e3518bd1c8638977775b6a111cc58a6899e1c66fea20359585163bea37",
+  "capture": "22b9451d873bc9b6b4a6"
+}

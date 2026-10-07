@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ztm.de/jobs/offene-stellen/",
+  "checked_at": "2026-10-05T22:40:26.953116+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:40:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 69222,
+  "state": "ok",
+  "elapsed_seconds": 1.339,
+  "sha256": "46a6e6e417f1a819128e4a22322ac7611cf4d4fc7cde5946cc0534ca01004e69",
+  "capture": "3bdb3d1d5568c93acbd8",
+  "merged_from_run": "run-27"
+}

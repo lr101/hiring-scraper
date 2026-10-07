@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ing-rothenhoefer.de/robots.txt",
+  "checked_at": "2026-10-05T22:12:07.081485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ing-rothenhoefer.derobots.txt",
+  "bytes": 285,
+  "state": "http_error",
+  "elapsed_seconds": 0.147,
+  "sha256": "1ba05789ee854730764d2f40e9318cd8079d2a5a88f1e702ea21a9396e9e36a4",
+  "capture": "0e67bdd07c3261a4fa94"
+}

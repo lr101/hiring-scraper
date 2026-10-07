@@ -1,0 +1,16 @@
+{
+  "url": "https://www.magnie.de/karriere",
+  "checked_at": "2026-10-05T23:45:43.629624+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 181509,
+  "state": "http_error",
+  "elapsed_seconds": 3.001,
+  "sha256": "06ead8bc1d5e91a4e720da7ece98f60e2a52d04f73f7c45790d9a918cadd5733",
+  "capture": "8261158e0e7f0751b6cb"
+}

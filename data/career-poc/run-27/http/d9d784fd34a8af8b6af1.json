@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fabrinsky.com/",
+  "checked_at": "2026-10-05T22:46:24.664839+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90604,
+  "state": "ok",
+  "elapsed_seconds": 1.236,
+  "sha256": "0c5c83afa55991d0ecaadaf00c75c4281f541cbb8ecd976b4c3a6f5904042943",
+  "capture": "d9d784fd34a8af8b6af1"
+}

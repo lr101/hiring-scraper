@@ -1,0 +1,17 @@
+{
+  "url": "https://www.weihnachten-neu-erleben.de/",
+  "checked_at": "2026-10-05T23:20:02.347812+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://weihnachten-neu-erleben.de/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.009,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "22c23da62bfbf512681d",
+  "merged_from_run": "run-28"
+}

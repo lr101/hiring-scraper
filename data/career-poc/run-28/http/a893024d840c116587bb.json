@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hwk.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:36:26.886129+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 638,
+  "state": "ok",
+  "elapsed_seconds": 0.955,
+  "sha256": "6c624ed6be703b14c7c559db241134d031886b97eeaa7e5e26ba2893160294f6",
+  "capture": "a893024d840c116587bb"
+}

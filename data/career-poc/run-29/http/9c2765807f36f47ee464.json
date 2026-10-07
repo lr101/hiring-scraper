@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.mateco.de/de/",
+  "checked_at": "2026-10-05T23:37:11.461638+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:35:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 158094,
+  "state": "ok",
+  "elapsed_seconds": 1.017,
+  "sha256": "cb96b76fac5bfbd5b56d635e5e1e95352a9638d504d14872a8f7213b7bde01ea",
+  "capture": "9c2765807f36f47ee464",
+  "merged_from_run": "run-28"
+}

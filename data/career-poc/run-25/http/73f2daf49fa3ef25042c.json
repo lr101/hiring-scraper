@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.de.dis-ag.com/robots.txt",
+  "checked_at": "2026-10-05T22:08:33.733075+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 473,
+  "state": "ok",
+  "elapsed_seconds": 0.251,
+  "sha256": "d1ebb6a8134cde598d1410ac09985ca6648e2a5c2813c9907ba7c251db685ee4",
+  "capture": "73f2daf49fa3ef25042c"
+}

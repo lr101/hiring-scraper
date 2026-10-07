@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schulamt-karlsruhe.de/,Lde/Startseite",
+  "checked_at": "2026-10-05T22:08:16.237231+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ka.schulamt-bw.de/,Lde/Startseite",
+  "bytes": 365,
+  "state": "http_error",
+  "elapsed_seconds": 0.952,
+  "sha256": "042b1c22e84055f0a9513d13f13270c7bec6faf994a17f8e6198a50abfe55c04",
+  "capture": "ee325cb6e45f862235b4",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.die-podologen-karlsruhe.info/robots.txt",
+  "checked_at": "2026-10-05T22:56:49.416712+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://die-podologen-karlsruhe.info/robots.txt",
+  "bytes": 295,
+  "state": "http_error",
+  "elapsed_seconds": 0.507,
+  "sha256": "249b703864d55c39f0e13e0428baa124fc24ce5cb37450977d1261e70b1154fc",
+  "capture": "a182c61dd35da6571d70",
+  "merged_from_run": "run-27"
+}

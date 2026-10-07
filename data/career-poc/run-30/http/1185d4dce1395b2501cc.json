@@ -1,0 +1,17 @@
+{
+  "url": "https://www.keyence.de/ss/careers/",
+  "checked_at": "2026-10-05T23:31:32.277853+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 50023,
+  "state": "ok",
+  "elapsed_seconds": 0.694,
+  "sha256": "63a2083031bde20c6be271d4780590bdcb26c472d34ebdbbc4fb57cd9ab8f344",
+  "capture": "1185d4dce1395b2501cc",
+  "merged_from_run": "run-28"
+}

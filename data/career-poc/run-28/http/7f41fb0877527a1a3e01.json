@@ -1,0 +1,16 @@
+{
+  "url": "https://technologieregion-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:22:11.793658+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://trk.de/",
+  "bytes": 685,
+  "state": "http_error",
+  "elapsed_seconds": 0.882,
+  "sha256": "ba3bfc5eb5175567b37fe284c2defdba43716fc9af4b72e81e789056b9bd357d",
+  "capture": "7f41fb0877527a1a3e01"
+}

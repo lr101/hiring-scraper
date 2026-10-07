@@ -1,0 +1,17 @@
+{
+  "url": "https://zetcon.mhmhr.com/8-initiativbewerbung/job.html",
+  "checked_at": "2026-10-05T22:52:37.136755+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://zetcon.mhmhr.com/8-initiativbewerbung/de/job.html",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.149,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "d58191bba64ef05f54ce",
+  "merged_from_run": "run-27"
+}

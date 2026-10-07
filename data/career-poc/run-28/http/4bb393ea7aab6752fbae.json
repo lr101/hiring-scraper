@@ -1,0 +1,16 @@
+{
+  "url": "https://n-komm.de/",
+  "checked_at": "2026-10-05T23:19:47.432045+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Fri, 02 Oct 2026 09:21:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 442552,
+  "state": "ok",
+  "elapsed_seconds": 0.529,
+  "sha256": "c8807fba37809b1e476e8c126872d1e8c68125805a32319ddb9f375a245d0ccd",
+  "capture": "4bb393ea7aab6752fbae"
+}

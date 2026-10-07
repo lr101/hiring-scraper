@@ -1,0 +1,16 @@
+{
+  "url": "https://bodynova.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:33:33.818855+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Sun, 04 Oct 2026 00:00:04 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 893086,
+  "state": "ok",
+  "elapsed_seconds": 0.662,
+  "sha256": "9b243eef20a84a5e8f02f44c29a9d8a531cb5038ffd6b3ff661d6f1840abe4c6",
+  "capture": "e55e516619fc1e3a212a"
+}

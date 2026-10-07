@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dokuschmiede.de/jobs/technischer-redakteur-m/w/d",
+  "checked_at": "2026-10-05T23:23:33.176383+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66112,
+  "state": "ok",
+  "elapsed_seconds": 0.833,
+  "sha256": "540037cd651f29e97f968ca5f4427b122c389106c66011ee05462941cb990ac9",
+  "capture": "bb837d7c8c50f3b3bfb4",
+  "merged_from_run": "run-28"
+}

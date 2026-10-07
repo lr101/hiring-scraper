@@ -1,0 +1,16 @@
+{
+  "url": "https://www.for.kit.edu/stellenangebote.php?sort_table=2319&sort_field=bewerbungsfrist&sort_order=SORT_ASC",
+  "checked_at": "2026-10-05T22:15:28.638591+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32998,
+  "state": "ok",
+  "elapsed_seconds": 1.129,
+  "sha256": "a5dae664d8362d839e7803680522e2ead63fd6ba3cdbf6c5f3644f4be820155b",
+  "capture": "dec23ef685ffa40d14a1"
+}

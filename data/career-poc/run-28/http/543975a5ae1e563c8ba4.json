@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aicas.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:12:20.205640+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13396,
+  "state": "ok",
+  "elapsed_seconds": 1.642,
+  "sha256": "4ad64a64df34fbcf68766c0f4da43059f222cd587df5c4f6fa8f6de8a46c3d28",
+  "capture": "543975a5ae1e563c8ba4",
+  "reused_from": "data/career-poc/run-27/http/543975a5ae1e563c8ba4.json"
+}

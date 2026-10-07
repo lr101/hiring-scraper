@@ -1,0 +1,14 @@
+{
+  "url": "https://careers.ptvgroup.com/robots.txt",
+  "checked_at": "2026-10-05T14:47:35.586153+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "location": null,
+  "bytes": 2622,
+  "state": "ok",
+  "elapsed_seconds": 0.135,
+  "sha256": "5577212b2ba03db64f9f2fab8d7b4317ccf05700dd9296c6f331fad765324fb7",
+  "capture": "67999a7919c3370a4ec4",
+  "reused_from": "data/location-sources/run-wikidata-career/http/67999a7919c3370a4ec4.json"
+}

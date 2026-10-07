@@ -1,0 +1,17 @@
+{
+  "url": "https://www.artec-showtechnik.de/karriere",
+  "checked_at": "2026-10-05T23:38:13.865998+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14087,
+  "state": "http_error",
+  "elapsed_seconds": 1.01,
+  "sha256": "5a8d97218fb7f803bd56a634022974513a2bc84f8baea5237958bae5b239c891",
+  "capture": "dcff8a1a064a00cb655d",
+  "merged_from_run": "run-28"
+}

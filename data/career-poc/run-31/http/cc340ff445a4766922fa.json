@@ -1,0 +1,17 @@
+{
+  "url": "https://www.scriptrunner.com/company/career/speculative-application",
+  "checked_at": "2026-10-05T23:36:12.542826+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:36:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 25483,
+  "state": "ok",
+  "elapsed_seconds": 1.491,
+  "sha256": "b4cf5204822de6248ac61ef954457364b725beb3d46cf10238c7d181e916002b",
+  "capture": "cc340ff445a4766922fa",
+  "merged_from_run": "run-28"
+}

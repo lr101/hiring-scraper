@@ -1,0 +1,16 @@
+{
+  "url": "https://www.biochem.de/jobs/",
+  "checked_at": "2026-10-05T23:28:42.052646+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 68841,
+  "state": "ok",
+  "elapsed_seconds": 1.985,
+  "sha256": "48a2573c543acf55664e9fa891a625f468351f01f5e6746b919ce7e07f69949c",
+  "capture": "6944235dc3df410aef87"
+}

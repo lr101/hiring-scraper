@@ -1,0 +1,16 @@
+{
+  "url": "https://gomomentus.com/robots.txt",
+  "checked_at": "2026-10-05T22:08:23.384147+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:28:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 97,
+  "state": "ok",
+  "elapsed_seconds": 0.195,
+  "sha256": "a636610c7c3e2cebcf91170725ba4c119e1e827101dc5361fb67ce27f3d43f57",
+  "capture": "2c28e48802c9764f82c9"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.heinrich-schmid.com/robots.txt",
+  "checked_at": "2026-10-05T23:46:25.964451+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77,
+  "state": "ok",
+  "elapsed_seconds": 0.252,
+  "sha256": "ecccb97884fac5937bd5c1a50e7257b73d481f37f38085a95296801de5d71169",
+  "capture": "1d6d3113539c37b3b4f1",
+  "merged_from_run": "run-28"
+}

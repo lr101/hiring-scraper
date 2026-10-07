@@ -1,0 +1,17 @@
+{
+  "url": "https://energy4u.org/job/werkstudenten-gesucht/",
+  "checked_at": "2026-10-05T23:23:09.655537+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 512220,
+  "state": "ok",
+  "elapsed_seconds": 0.909,
+  "sha256": "7229622dadcf9fe25aae3eeed5595e33af2fa88197a61479f1cd477dbe419b96",
+  "capture": "2c7453201ea8cda805e8",
+  "merged_from_run": "run-28"
+}

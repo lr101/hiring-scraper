@@ -1,0 +1,16 @@
+{
+  "url": "https://www.md-bw.de/karriere/stellenangebote",
+  "checked_at": "2026-10-05T23:02:44.021672+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 124658,
+  "state": "ok",
+  "elapsed_seconds": 1.979,
+  "sha256": "33966c81f8a4061828934bd3817e6880fe0f92f40722573d3ff3e78ffefb5582",
+  "capture": "86dab8cc5481eb10e646"
+}

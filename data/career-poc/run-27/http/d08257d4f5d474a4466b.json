@@ -1,0 +1,16 @@
+{
+  "url": "https://www.amz-steuer.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:34:42.277078+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25835,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "abf416d0d30989a60f1c40967493ec41102171e4c81499a92034190f93aa2f25",
+  "capture": "d08257d4f5d474a4466b"
+}

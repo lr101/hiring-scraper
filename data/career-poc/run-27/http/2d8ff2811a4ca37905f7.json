@@ -1,0 +1,16 @@
+{
+  "url": "https://www.heimstiftung-karlsruhe.de/jobs-und-mitarbeit/ehrenamt/",
+  "checked_at": "2026-10-05T22:34:57.494596+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"f6d3dc8385def3c5d897c811e0942e36\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 97754,
+  "state": "ok",
+  "elapsed_seconds": 0.31,
+  "sha256": "f026a671041f5d0f793e3a1d344cdd7cc69d2d4e9f912a37a673cf49406b7661",
+  "capture": "2d8ff2811a4ca37905f7"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mail-and-media.com/jobs/bewerbung?gh_jid=4996542101",
+  "checked_at": "2026-10-05T22:58:15.339467+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.mail-and-media.com/jobs/bewerbung/?gh_jid=4996542101",
+  "bytes": 312,
+  "state": "http_error",
+  "elapsed_seconds": 1.064,
+  "sha256": "6faad444016ad932cc669ae87a33e5102305fdc9c316dcc09f925ac1982227fc",
+  "capture": "62923a4b6534286e117f"
+}

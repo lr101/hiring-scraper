@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schmuck-concepte.de/robots.txt",
+  "checked_at": "2026-10-05T23:11:53.845218+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 102,
+  "state": "ok",
+  "elapsed_seconds": 0.334,
+  "sha256": "3f38d5510fb041fdd1e0e2adf734852b2bdf6c3361bcea4e84bc3b6cc0d569c4",
+  "capture": "a3879a6a765a768d76ad"
+}

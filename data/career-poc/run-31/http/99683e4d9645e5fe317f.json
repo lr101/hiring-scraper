@@ -1,0 +1,17 @@
+{
+  "url": "https://elektro-mg.de/robots.txt",
+  "checked_at": "2026-10-05T23:41:31.495831+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245,
+  "state": "ok",
+  "elapsed_seconds": 2.462,
+  "sha256": "cd28594f7d24ae2bcee167f50c6cc358559fd320985a1f89d31c7934f9ffcb9a",
+  "capture": "99683e4d9645e5fe317f",
+  "merged_from_run": "run-28"
+}

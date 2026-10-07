@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ggukarlsruhe.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:44:41.432095+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1528,
+  "state": "http_error",
+  "elapsed_seconds": 1.182,
+  "sha256": "dcbec1f464aafb20dfaf2131da2782e9add395fa6c14efe38619cbbb6d38f34b",
+  "capture": "c9e1ce10bd429bad073f",
+  "merged_from_run": "run-27"
+}

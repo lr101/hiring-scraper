@@ -1,0 +1,16 @@
+{
+  "url": "https://auto-bissinger.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:04.240054+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 1.028,
+  "sha256": "e87fced4fd735c235bbc811b0841a258d437548763b16ed1b31bba2f8a006b2d",
+  "capture": "8c8639863ff5a87d67ac"
+}

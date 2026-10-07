@@ -1,0 +1,17 @@
+{
+  "url": "https://igienair.de/jobs/teamleiter-hygienereinigung-gesucht/",
+  "checked_at": "2026-10-05T23:36:26.372950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84721,
+  "state": "ok",
+  "elapsed_seconds": 0.942,
+  "sha256": "6718372a77eb60a1cce23b2c007d1e35260658116751c538fb3668491bf95ab0",
+  "capture": "b562727cb55d64e01f1a",
+  "merged_from_run": "run-28"
+}

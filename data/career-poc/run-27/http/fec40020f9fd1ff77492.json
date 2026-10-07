@@ -1,0 +1,16 @@
+{
+  "url": "https://stellenmarkt.faz.net/karriere-lounge/im-beruf/befoerderung/guten-tag-meine-damen-und-herren/",
+  "checked_at": "2026-10-05T23:11:01.877206+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85795,
+  "state": "ok",
+  "elapsed_seconds": 1.344,
+  "sha256": "bfd90e4f589b62673df20342c587d2b15eb429bf619da56d7d11f2365c17c5a3",
+  "capture": "fec40020f9fd1ff77492"
+}

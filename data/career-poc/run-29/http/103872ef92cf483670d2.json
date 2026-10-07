@@ -1,0 +1,17 @@
+{
+  "url": "https://www.glasarbeiten.com/careers",
+  "checked_at": "2026-10-05T22:23:18.458315+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23615,
+  "state": "http_error",
+  "elapsed_seconds": 1.179,
+  "sha256": "e744230125f20247c34ca465d31dfeb1bff9fb0f5f7738690c56733043d75000",
+  "capture": "103872ef92cf483670d2",
+  "merged_from_run": "run-25"
+}

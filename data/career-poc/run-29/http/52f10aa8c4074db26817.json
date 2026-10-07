@@ -1,0 +1,17 @@
+{
+  "url": "https://steuerberatung-hanauer.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:51.435589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 339,
+  "state": "ok",
+  "elapsed_seconds": 1.067,
+  "sha256": "90c837924f9e1c9d6badaf00ae8cb0c7b06f8198b5b49622a9d94e2a2c3debdd",
+  "capture": "52f10aa8c4074db26817",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.frenell.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:34.614682+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 69,
+  "state": "ok",
+  "elapsed_seconds": 0.296,
+  "sha256": "5f44e78299cee798b80bcf08e5c41f8fbe166af33198b853e472c9e79d275833",
+  "capture": "a3007effbbf2d79f6c24"
+}

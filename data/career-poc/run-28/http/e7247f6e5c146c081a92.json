@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fahnen-kreisel.de/",
+  "checked_at": "2026-10-05T23:33:08.155806+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 297240,
+  "state": "ok",
+  "elapsed_seconds": 1.341,
+  "sha256": "72272fd99dcef413172f36ae82f812f640b7df9af9284e0438f4866b9b1dca41",
+  "capture": "e7247f6e5c146c081a92"
+}

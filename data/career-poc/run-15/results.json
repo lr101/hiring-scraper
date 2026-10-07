@@ -1,0 +1,1246 @@
+[
+  {
+    "name": "IONOS careers jobs portal (targeted entry)",
+    "website": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.ionos.de/",
+    "source": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+    "pages": [
+      {
+        "requested_url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+        "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "16b0d97f63736016bcbe",
+        "redirect_chain": [
+          "https://jobs.ionos.de/karriere/jobs/alle-jobs"
+        ],
+        "title": "Jobs - IONOS Karriere",
+        "headings": "",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Stellenangebote der United Internet AG anzeigen",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/career/all-jobs",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/datenschutz",
+            "label": "Datenschutz",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/wer-wir-sind",
+            "label": "Wer wir sind",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/ihre-karriere",
+            "label": "Ihre Karriere",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/standorte/berlin",
+            "label": "Standorte",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobs/alle-jobs?new-search=1",
+            "label": "Filter zurücksetzen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/bereichsvorstellungen/customer-care",
+            "label": "Bereiche",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4979230101-volljurist-wmd",
+            "label": "Volljurist (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4989654101-staff-cyber-security-wmd",
+            "label": "Staff Cyber Security (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4989699101-staff-cyber-security-wmd",
+            "label": "Staff Cyber Security (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.ionos.de/karriere/jobangebot/4905094101-group-accountant-and-tax-wmd",
+            "label": "Group Accountant and Tax (w/m/d)",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/",
+        "url": "https://www.united-internet.de/jobs-karriere/",
+        "parent": "https://jobs.ionos.de/karriere/jobs/alle-jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "416fcbc4605079afb1fb",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/"
+        ],
+        "title": "Jobs & Karriere: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=pupils",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=student",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=graduates",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html?tx_cisocareer_jobsearchform%5BcareerLevel%5D%5B%5D=professionals",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/kontakt.html",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/schueler.html",
+            "label": "Schüler*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/ueber-uns.html",
+            "label": "Über uns",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/studenten.html",
+            "label": "Studierende",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/diversity.html",
+            "label": "Diversity",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/absolventen.html",
+            "label": "Absolvent*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "parent": "https://www.united-internet.de/jobs-karriere/",
+        "method": "link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "95f44af25a5c5e764ac1",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebote.html"
+        ],
+        "title": "Stellenangebote: United Internet AG",
+        "headings": "Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+            "label": "Trainee AI (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5278",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html",
+            "label": "Site Manager (w/m/d) bei United Internet AG in Düsseldorf Kennziffer: SF-5705",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4979230101-volljurist-wmd.html",
+            "label": "Volljurist (w/m/d) bei unserer Tochtergesellschaft IONOS SE in Berlin Kennziffer: I-1621",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5621-aiml-engineer-wmd.html",
+            "label": "AI/ML Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Frankfurt Kennziffer: SF-5621",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5915-it-pmo-manager-wmd.html",
+            "label": "IT PMO Manager (w/m/d) bei unserer Tochtergesellschaft IQ-optimize Software GmbH in Frankfurt oder Krefeld Kennziffer: SF-5915",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5760-data-scientist-wmd.html",
+            "label": "Data Scientist (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe Kennziffer: SF-5760",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5882-schulpraktikum-wmd.html",
+            "label": "Schulpraktikum (w/m/d) bei United Internet AG in Karlsruhe Kennziffer: SF-5882",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5909-prompt-engineer-wmd.html",
+            "label": "Prompt Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Montabaur, Karlsruhe oder Frankfurt Kennziffer: SF-5909",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5276-trainee-wmd-finance.html",
+            "label": "Trainee (w/m/d) Finance bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Düsseldorf Kennziffer: SF-5276",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5773-bereichsassistenz-mwd.html",
+            "label": "Bereichsassistenz (m/w/d) bei unserer Tochtergesellschaft 1&1 Mobilfunk GmbH in Düsseldorf Kennziffer: SF-5773",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5626-aiml-ops-engineer-wmd.html",
+            "label": "AI/ML Ops Engineer (w/m/d) bei unserer Tochtergesellschaft 1&1 Telecommunication SE in Karlsruhe, Montabaur oder Frankfurt Kennziffer: SF-56",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5851-junior-tax-manager-wmd.html",
+            "label": "Junior Tax Manager (w/m/d) bei United Internet AG in Montabaur oder Frankfurt Kennziffer: SF-5851",
+            "score": 92,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html",
+        "parent": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "770105155fbe1b803c5b",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5278-trainee-ai-wmd.html"
+        ],
+        "title": "IT-Softwareentwicklung: Trainee AI (w/m/d), Karlsruhe: United Internet AG IT-Softwareentwicklung: Trainee AI (w/m/d), Karlsruhe",
+        "headings": "Trainee AI (w/m/d)",
+        "classification": "jobposting",
+        "jobposting_count": 1,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Home",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/jobs.html",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/kontakt.html",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/schueler.html",
+            "label": "Schüler*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/ueber-uns.html",
+            "label": "Über uns",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/studenten.html",
+            "label": "Studierende",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/diversity.html",
+            "label": "Diversity",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/absolventen.html",
+            "label": "Absolvent*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/perspektiven.html",
+            "label": "Perspektiven",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/professionals.html",
+            "label": "Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/karrierestufen.html",
+            "label": "Karrierestufen",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html",
+        "parent": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "be2f67974660726169c5",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebot/sf-5705-site-manager-wmd.html"
+        ],
+        "title": "Einkauf / Logistik / Real Estate Management: Site Manager (w/m/d), Düsseldorf: United Internet AG Einkauf / Logistik / Real Estate Management: Site Manager (w/m/d), Düsseldorf",
+        "headings": "Site Manager (w/m/d)",
+        "classification": "jobposting",
+        "jobposting_count": 1,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Home",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/jobs.html",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/kontakt.html",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/schueler.html",
+            "label": "Schüler*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/ueber-uns.html",
+            "label": "Über uns",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/studenten.html",
+            "label": "Studierende",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/diversity.html",
+            "label": "Diversity",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/absolventen.html",
+            "label": "Absolvent*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/perspektiven.html",
+            "label": "Perspektiven",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/professionals.html",
+            "label": "Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/karrierestufen.html",
+            "label": "Karrierestufen",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4979230101-volljurist-wmd.html",
+        "url": "https://www.united-internet.de/jobs-karriere/stellenangebot/4979230101-volljurist-wmd.html",
+        "parent": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "capture": "28468116396d8a5b3d24",
+        "redirect_chain": [
+          "https://www.united-internet.de/jobs-karriere/stellenangebot/4979230101-volljurist-wmd.html"
+        ],
+        "title": "Finanzen / Controlling: Volljurist (w/m/d) , Berlin: United Internet AG Finanzen / Controlling: Volljurist (w/m/d) , Berlin",
+        "headings": "Volljurist (w/m/d)",
+        "classification": "jobposting",
+        "jobposting_count": 1,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/stellenangebote.html",
+            "label": "Stellenangebote",
+            "score": 86,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/",
+            "label": "Home",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/en/jobs-career/jobs.html",
+            "label": "EN",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/kontakt.html",
+            "label": "Kontakt",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://job-boards.eu.greenhouse.io/ionos/jobs/4979230101",
+            "label": "Jetzt online bewerben",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/schueler.html",
+            "label": "Schüler*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/ueber-uns.html",
+            "label": "Über uns",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/studenten.html",
+            "label": "Studierende",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/diversity.html",
+            "label": "Diversity",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/absolventen.html",
+            "label": "Absolvent*innen",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/perspektiven.html",
+            "label": "Perspektiven",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.united-internet.de/jobs-karriere/professionals.html",
+            "label": "Professionals",
+            "score": 70,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 35,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "adesso Group jobs portal (targeted entry)",
+    "website": "https://jobs.adesso-group.com/",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.adesso.de/",
+    "source": "https://jobs.adesso-group.com/",
+    "pages": [
+      {
+        "requested_url": "https://jobs.adesso-group.com/",
+        "url": "https://jobs.adesso-group.com/",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=UTF-8",
+        "capture": "50f222f6d407b83f47c3",
+        "redirect_chain": [
+          "https://jobs.adesso-group.com/"
+        ],
+        "title": "adesso SE Stellenportal",
+        "headings": "adesso SE Stellenportal Manager für Cookie-Einwilligungen",
+        "classification": "ordinary_page",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.adesso.de/de/index.jsp",
+            "label": "Unternehmensseite",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/sitemap.xml",
+        "url": "https://jobs.adesso-group.com/sitemap.xml",
+        "parent": "https://jobs.adesso-group.com/",
+        "method": "fallback",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/xml;charset=UTF-8",
+        "capture": "9b7a8967e905612b167a",
+        "redirect_chain": [
+          "https://jobs.adesso-group.com/sitemap.xml"
+        ],
+        "classification": "sitemap",
+        "candidate_count": 516
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/job/Aachen-Senior-Consultant-Digitalisierung-KreditZahlungsverkehrWertpapier-%28all-genders%29-NW-52070/934259155/",
+        "url": "https://jobs.adesso-group.com/job/Aachen-Senior-Consultant-Digitalisierung-KreditZahlungsverkehrWertpapier-%28all-genders%29-NW-52070/934259155/",
+        "parent": "https://jobs.adesso-group.com/sitemap.xml",
+        "method": "sitemap_link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=UTF-8",
+        "capture": "ecb8ff097474b1a2ca91",
+        "redirect_chain": [
+          "https://jobs.adesso-group.com/job/Aachen-Senior-Consultant-Digitalisierung-KreditZahlungsverkehrWertpapier-%28all-genders%29-NW-52070/934259155/"
+        ],
+        "title": "Senior Consultant Digitalisierung Kredit/Zahlungsverkehr/Wertpapier (all genders) Stellendetails | Adesso SE",
+        "headings": "Senior Consultant Digitalisierung Kredit/Zahlungsverkehr/Wertpapier (all genders) Senior Consultant Digitalisierung Kredit/Zahlungsverkehr/Wertpapier (all genders) Manager für Cookie-Einwilligungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/talentcommunity/apply/934259155/?locale=de_DE",
+            "label": "Jetzt bewerben »",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Alle Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/index.jsp",
+            "label": "Unternehmensseite",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/talentcommunity/apply/934259155/?locale=de_DE",
+        "url": "https://jobs.adesso-group.com/talentcommunity/apply/934259155/?locale=de_DE",
+        "parent": "https://jobs.adesso-group.com/job/Aachen-Senior-Consultant-Digitalisierung-KreditZahlungsverkehrWertpapier-%28all-genders%29-NW-52070/934259155/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "robots_disallowed",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/job/Aachen-Software-Engineer-Enterprise-Search-%28all-genders%29-NW-52070/973137855/",
+        "url": "https://jobs.adesso-group.com/job/Aachen-Software-Engineer-Enterprise-Search-%28all-genders%29-NW-52070/973137855/",
+        "parent": "https://jobs.adesso-group.com/sitemap.xml",
+        "method": "sitemap_link",
+        "depth": 2,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html;charset=UTF-8",
+        "capture": "ccb7ed5951e4988c5d39",
+        "redirect_chain": [
+          "https://jobs.adesso-group.com/job/Aachen-Software-Engineer-Enterprise-Search-%28all-genders%29-NW-52070/973137855/"
+        ],
+        "title": "Software Engineer Enterprise Search (all genders) Stellendetails | Adesso SE",
+        "headings": "Software Engineer Enterprise Search (all genders) Software Engineer Enterprise Search (all genders) Manager für Cookie-Einwilligungen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://jobs.adesso-group.com/talentcommunity/apply/973137855/?locale=de_DE",
+            "label": "Jetzt bewerben »",
+            "score": 92,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://jobs.adesso-group.com/",
+            "label": "Alle Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.adesso.de/de/index.jsp",
+            "label": "Unternehmensseite",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://jobs.adesso-group.com/talentcommunity/apply/973137855/?locale=de_DE",
+        "url": "https://jobs.adesso-group.com/talentcommunity/apply/973137855/?locale=de_DE",
+        "parent": "https://jobs.adesso-group.com/job/Aachen-Software-Engineer-Enterprise-Search-%28all-genders%29-NW-52070/973137855/",
+        "method": "link",
+        "depth": 3,
+        "fetch_state": "robots_disallowed",
+        "http_status": null,
+        "content_type": "",
+        "capture": null,
+        "redirect_chain": []
+      }
+    ],
+    "boards": [],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 5,
+      "duplicate_redirects_skipped": 0
+    }
+  },
+  {
+    "name": "PTV Logistics German jobs page (targeted entry)",
+    "website": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+    "cohort": "targeted_portal_followup",
+    "original_website": "https://www.ptvlogistics.com/",
+    "source": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+    "pages": [
+      {
+        "requested_url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "parent": null,
+        "method": "seed",
+        "depth": 0,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "43013f5a4796ba4f6809",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs"
+        ],
+        "title": "Offenen Stellenangebote bei PTV Logistics | PTV Logistics",
+        "headings": "Unsere offenen Stellenangebote",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "ptv-logistics",
+            "board_url": "https://ptv-logistics.jobs.personio.com",
+            "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+            "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+            "evidence_kind": "iframe"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+            "label": "Arbeiten bei PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/unternehmensprofil",
+            "label": "Unternehmensprofil",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+        "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+        "parent": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "6d30f533e4c390e96155",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere"
+        ],
+        "title": "Deine Karriere bei PTV Logistics | PTV Logistics",
+        "headings": "Deine Karriere mit PTV Logistics Kulturelle Werte Förderung aller Talente Gleichstellung Nachhaltigkeit Jetzt DEINEN Traumjob finden!",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/unternehmensprofil",
+            "label": "Unternehmensprofil",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+        "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+        "parent": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "1b546e3304ac6924504e",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs"
+        ],
+        "title": "Open job postings at PTV Logistics | PTV Logistics",
+        "headings": "Our open job postings",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "ptv-logistics",
+            "board_url": "https://ptv-logistics.jobs.personio.com",
+            "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+            "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+            "evidence_kind": "iframe"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+        "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+        "parent": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "748e8c9927036d31e9c0",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs"
+        ],
+        "title": "Openstaande vacatures bij PTV Logistics | PTV Logistics",
+        "headings": "Onze openstaande vacatures",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "ptv-logistics",
+            "board_url": "https://ptv-logistics.jobs.personio.com",
+            "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+            "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+            "evidence_kind": "iframe"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/nl/over-ptv-logistics/careers",
+            "label": "Werken bij PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "Careers Frequently Asked Questions Do you have any questions? Then take a look at our FAQ to see if you can find the suitable answer. Meer t",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Careers Your Benefits The well-being of our team is our top priority. We therefore offer a broad range of benefits to support and enrich our",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about/partner-program/onze-partners",
+            "label": "Onze partners",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+        "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+        "parent": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "777c82867b6d6b3a66b6",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq"
+        ],
+        "title": "Häufig gestellte Fragen zur Bewerbung bei PTV Logistics | PTV Logistics",
+        "headings": "Frequently Asked Questions Dein Bewerbungsprozess Allgemeine Fragen",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere",
+            "label": "Arbeiten bei PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/faq",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Jobs",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "English (US)",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/unternehmensprofil",
+            "label": "Unternehmensprofil",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      },
+      {
+        "requested_url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+        "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs",
+        "parent": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "method": "link",
+        "depth": 1,
+        "fetch_state": "ok",
+        "http_status": 200,
+        "content_type": "text/html; charset=UTF-8",
+        "capture": "2d7aa5a6692820eed8b0",
+        "redirect_chain": [
+          "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/jobs"
+        ],
+        "title": "Open job postings at PTV Logistics | PTV Logistics",
+        "headings": "Our open job postings",
+        "classification": "career_content",
+        "jobposting_count": 0,
+        "ats": [
+          {
+            "provider": "personio",
+            "tenant": "ptv-logistics",
+            "board_url": "https://ptv-logistics.jobs.personio.com",
+            "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+            "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+            "evidence_kind": "iframe"
+          }
+        ],
+        "candidates": [
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers",
+            "label": "Working at PTV Logistics",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en/about-ptv-logistics/careers/jobs",
+            "label": "English",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/nl/about-ptv-logistics/careers/jobs",
+            "label": "Dutch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+            "label": "Deutsch",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/faq",
+            "label": "FAQ",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about-ptv-logistics/careers/benefits",
+            "label": "Benefits",
+            "score": 70,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/locations",
+            "label": "Locations",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/our-customers",
+            "label": "Success Stories",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/advisory-board",
+            "label": "Advisory Board",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-portal",
+            "label": "PTV Logistics Partner Portal",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/company-profile",
+            "label": "Company Profile",
+            "score": 20,
+            "evidence_kind": "link"
+          },
+          {
+            "url": "https://www.ptvlogistics.com/en-us/about/partner-program",
+            "label": "Partner Program",
+            "score": 20,
+            "evidence_kind": "link"
+          }
+        ]
+      }
+    ],
+    "boards": [
+      {
+        "provider": "personio",
+        "tenant": "ptv-logistics",
+        "board_url": "https://ptv-logistics.jobs.personio.com",
+        "feed_url": "https://ptv-logistics.jobs.personio.com/xml",
+        "evidence_url": "https://ptv-logistics.jobs.personio.com/",
+        "evidence_kind": "iframe",
+        "discovered_on": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/jobs",
+        "job_count": null,
+        "feed_state": "http_error",
+        "complete": false,
+        "jobs": [],
+        "feed_http_status": 404,
+        "capture": "cb2a318fdc0b6a2b3a7f"
+      }
+    ],
+    "status": "career_content_found",
+    "limits": {
+      "max_pages": 6,
+      "max_depth": 3,
+      "max_boards": 3,
+      "page_budget_reached": true,
+      "remaining_queue": 25,
+      "duplicate_redirects_skipped": 0
+    }
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.koerber.com/job/Arden-Spare-Parts-Coordinator/1444281633/",
+  "checked_at": "2026-10-05T23:22:37.441743+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 104750,
+  "state": "ok",
+  "elapsed_seconds": 0.961,
+  "sha256": "e701881db29376140ff1e4700f32583266ab25f8622dd515ed2adbc3ef0e05e5",
+  "capture": "20f67673b9a970b90cc7"
+}

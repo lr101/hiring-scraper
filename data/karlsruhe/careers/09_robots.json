@@ -1,0 +1,12 @@
+{
+  "url": "https://www.ratiodata.de/robots.txt",
+  "checked_at": "2026-10-05T08:24:05.017840+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.ratiodata.de/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 174,
+  "truncated": false,
+  "elapsed_seconds": 0.1,
+  "sha256": "00f4e0618bf55b16a55f585cc1a4141b15505cf4af04b025b296d6272e53c938"
+}

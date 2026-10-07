@@ -1,0 +1,145 @@
+[
+  {
+    "name": "MegaCycle",
+    "osm_url": "https://www.openstreetmap.org/node/540998399",
+    "tagged_website": "https://megacycle-gmbh.de/",
+    "tested_website": "https://megacycle-gmbh.de/",
+    "career_links": [
+      "https://megacycle-gmbh.de/stellenangebote/"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://megacycle-gmbh.de/stellenangebote/"
+  },
+  {
+    "name": "CodeWrights GmbH",
+    "osm_url": "https://www.openstreetmap.org/node/1249060110",
+    "tagged_website": "https://www.codewrights.de/",
+    "tested_website": "https://www.codewrights.de/",
+    "career_links": [],
+    "homepage_status": 200,
+    "result": "no_homepage_career_link"
+  },
+  {
+    "name": "ISCL - Internet Security Consulting Lang",
+    "osm_url": "https://www.openstreetmap.org/node/3267801586",
+    "tagged_website": "http://www.iscl.de",
+    "tested_website": "https://www.iscl.de",
+    "career_links": [
+      "https://iscl.de/karriere/"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://iscl.de/karriere/"
+  },
+  {
+    "name": "PDMLab e.K.",
+    "osm_url": "https://www.openstreetmap.org/node/3374741649",
+    "tagged_website": "https://pdmlab.com",
+    "tested_website": "https://pdmlab.com",
+    "career_links": [],
+    "result": "robots_disallowed_or_unavailable"
+  },
+  {
+    "name": "Grenke Technology Center",
+    "osm_url": "https://www.openstreetmap.org/node/3717670808",
+    "tagged_website": "http://www.grenke.de",
+    "tested_website": "https://www.grenke.de",
+    "career_links": [
+      "https://www.grenke.com/de/karriere/arbeiten-bei-grenke/"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://www.grenke.com/de/karriere/"
+  },
+  {
+    "name": "BAI - Böcherer Angewandte Informatik",
+    "osm_url": "https://www.openstreetmap.org/node/3851429093",
+    "tagged_website": "https://www.bai.de/",
+    "tested_website": "https://www.bai.de/",
+    "career_links": [],
+    "homepage_status": 200,
+    "result": "no_homepage_career_link"
+  },
+  {
+    "name": "Excipio",
+    "osm_url": "https://www.openstreetmap.org/node/4109525427",
+    "tagged_website": "http://excipio.de",
+    "tested_website": "https://excipio.de",
+    "career_links": [],
+    "result": "robots_disallowed_or_unavailable"
+  },
+  {
+    "name": "Technidata",
+    "osm_url": "https://www.openstreetmap.org/node/4128275408",
+    "tagged_website": "https://www.its-technidata.de/",
+    "tested_website": "https://www.its-technidata.de/",
+    "career_links": [],
+    "result": "robots_disallowed_or_unavailable"
+  },
+  {
+    "name": "TelemaxX",
+    "osm_url": "https://www.openstreetmap.org/node/4231017084",
+    "tagged_website": "https://www.telemaxx.de/",
+    "tested_website": "https://www.telemaxx.de/",
+    "career_links": [
+      "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+      "https://www.telemaxx.de/ueber-uns/karriere/arbeiten-bei-telemaxx",
+      "https://www.telemaxx.de/ueber-uns/karriere/ausbildung-studium",
+      "https://www.telemaxx.de/ueber-uns/karriere/deine-bewerbung-bei-uns",
+      "https://www.telemaxx.de/ueber-uns/karriere"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene",
+    "evidence": "careers/08_career_corrected"
+  },
+  {
+    "name": "Ratiodata SE",
+    "osm_url": "https://www.openstreetmap.org/node/4382036435",
+    "tagged_website": "http://www.ratiodata.de/",
+    "tested_website": "https://www.ratiodata.de/",
+    "career_links": [
+      "https://karriere.ratiodata.de",
+      "https://karriere.ratiodata.de/",
+      "https://karriere.ratiodata.de/jobs/",
+      "https://www.ratiodata.de/karriere/"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://karriere.ratiodata.de"
+  },
+  {
+    "name": "Unic GmbH",
+    "osm_url": "https://www.openstreetmap.org/node/4461286920",
+    "tagged_website": "https://www.unic.com/",
+    "tested_website": "https://www.unic.com/",
+    "career_links": [
+      "https://www.unic.com/de/jobs"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://www.unic.com/de/jobs"
+  },
+  {
+    "name": "Komm.ONE",
+    "osm_url": "https://www.openstreetmap.org/node/5739216507",
+    "tagged_website": "https://www.komm.one/",
+    "tested_website": "https://www.komm.one/",
+    "career_links": [
+      "https://www.komm.one/karriere",
+      "https://www.komm.one/karriere/stellenangebote",
+      "https://www.komm.one/karriere/studium-ausbildung-und-praktika"
+    ],
+    "homepage_status": 200,
+    "result": "career_link_found",
+    "career_status": 200,
+    "career_final_url": "https://www.komm.one/karriere"
+  }
+]

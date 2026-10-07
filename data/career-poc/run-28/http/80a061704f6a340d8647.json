@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.geigergruppe.de/stellenangebote.html?reset_search=1",
+  "checked_at": "2026-10-05T23:20:46.551176+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 141978,
+  "state": "ok",
+  "elapsed_seconds": 1.09,
+  "sha256": "f3aa19ca65a29db314700c8a6b07b6956c75bbe5bcade769def5351587e2e3ba",
+  "capture": "80a061704f6a340d8647"
+}

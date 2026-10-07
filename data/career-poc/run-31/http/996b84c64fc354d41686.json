@@ -1,0 +1,17 @@
+{
+  "url": "https://sizilien-recht.com/",
+  "checked_at": "2026-10-05T23:32:17.282867+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 16:26:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 559157,
+  "state": "ok",
+  "elapsed_seconds": 0.772,
+  "sha256": "876a6726bf72b3d81262568c1bf16a2f37e6b8497d0258bb93b7f96e6c981b17",
+  "capture": "996b84c64fc354d41686",
+  "merged_from_run": "run-28"
+}

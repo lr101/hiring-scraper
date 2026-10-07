@@ -1,0 +1,17 @@
+{
+  "url": "https://www.semilution.de/careers",
+  "checked_at": "2026-10-05T23:42:44.694209+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2565,
+  "state": "http_error",
+  "elapsed_seconds": 0.993,
+  "sha256": "dcceb9abf057d8a4d6b8984e9a4a4917a03b756e8caed93897f46c97c427256c",
+  "capture": "2da183b866bd57901a7b",
+  "merged_from_run": "run-28"
+}

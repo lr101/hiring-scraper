@@ -1,0 +1,12 @@
+{
+  "url": "https://firmen.standort-sachsen.de/robots.txt",
+  "checked_at": "2026-10-05T08:20:09.640677+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://firmen.standort-sachsen.de/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 70,
+  "truncated": false,
+  "elapsed_seconds": 0.4,
+  "sha256": "038118231f55a8622e6a1a859066563944bbd0803170760762aa91c88f03d77c"
+}

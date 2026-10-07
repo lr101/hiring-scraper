@@ -1,0 +1,17 @@
+{
+  "url": "https://www.packaging-partner.de/",
+  "checked_at": "2026-10-05T23:27:23.593011+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 215406,
+  "state": "ok",
+  "elapsed_seconds": 1.316,
+  "sha256": "122ffa72f79ff9db3a60ea5cef1cd1cb426dfb138bbe3c58cd245a75456e73ad",
+  "capture": "e2f0fed39df04d414c35",
+  "merged_from_run": "run-28"
+}

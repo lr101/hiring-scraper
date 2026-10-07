@@ -1,0 +1,16 @@
+{
+  "url": "https://www.designoffices.de/robots.txt",
+  "checked_at": "2026-10-05T22:54:18.423130+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "\"d3087b14b5dc8dce0f8cb6e07d107d29\"",
+  "last_modified": "Mon, 05 Oct 2026 07:15:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22,
+  "state": "ok",
+  "elapsed_seconds": 0.148,
+  "sha256": "d5f43806c7f27d10249efb2b7ee093e2337057a7e42e130c24d87a8616056eca",
+  "capture": "8b3d767b3d8fa31d1050"
+}

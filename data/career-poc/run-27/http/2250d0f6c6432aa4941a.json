@@ -1,0 +1,16 @@
+{
+  "url": "https://www.generalbundesanwalt.de/DE/Home/home_node.html",
+  "checked_at": "2026-10-05T22:56:00.074654+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 34361,
+  "state": "ok",
+  "elapsed_seconds": 1.116,
+  "sha256": "31497ac6e8396ea85b14571776f7ac065c47a010a3834038571fc1b2e91cb4d5",
+  "capture": "2250d0f6c6432aa4941a"
+}

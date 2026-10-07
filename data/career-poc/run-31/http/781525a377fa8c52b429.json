@@ -1,0 +1,17 @@
+{
+  "url": "https://www.martin-anwaelte.de/job/jura-studentin-uni-m-w-d/",
+  "checked_at": "2026-10-05T23:21:21.640454+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"083c8abdb40ebdb304152938ed16279c\"",
+  "last_modified": "Mon, 05 Oct 2026 23:21:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 229848,
+  "state": "ok",
+  "elapsed_seconds": 1.853,
+  "sha256": "55413a2f860077a2f824fe57d3d3caefd4ce6fd027363fe4ae073fa7593461d1",
+  "capture": "781525a377fa8c52b429",
+  "merged_from_run": "run-28"
+}

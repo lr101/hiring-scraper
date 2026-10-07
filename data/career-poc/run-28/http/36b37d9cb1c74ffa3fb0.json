@@ -1,0 +1,16 @@
+{
+  "url": "https://kammer-kirsch.de/careers",
+  "checked_at": "2026-10-05T23:25:07.367732+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 225385,
+  "state": "http_error",
+  "elapsed_seconds": 0.967,
+  "sha256": "668b0728621e705a83ed57bba7c82b097228ccb33a2a360f551e32f3660e69ac",
+  "capture": "36b37d9cb1c74ffa3fb0"
+}

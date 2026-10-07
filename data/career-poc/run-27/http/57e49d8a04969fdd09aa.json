@@ -1,0 +1,16 @@
+{
+  "url": "https://www.randstad.de/jobs/",
+  "checked_at": "2026-10-05T22:41:28.990317+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"e21f0-Zavn+RM8y1UQLa4bDjoo/EULQWw\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 926192,
+  "state": "ok",
+  "elapsed_seconds": 1.095,
+  "sha256": "87a68c2b0e5ff935d203b2ebf813bf5733eee4cd969a12304ee95f57230c2ca1",
+  "capture": "57e49d8a04969fdd09aa"
+}

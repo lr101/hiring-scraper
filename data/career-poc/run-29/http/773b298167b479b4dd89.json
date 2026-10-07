@@ -1,0 +1,17 @@
+{
+  "url": "https://atsautomation.com/",
+  "checked_at": "2026-10-05T23:39:43.803671+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 92018,
+  "state": "ok",
+  "elapsed_seconds": 0.949,
+  "sha256": "302787dda1557e1dfcd9ab51ad74afb005b3b51fd952fc94655d06de7a59bec0",
+  "capture": "773b298167b479b4dd89",
+  "merged_from_run": "run-28"
+}

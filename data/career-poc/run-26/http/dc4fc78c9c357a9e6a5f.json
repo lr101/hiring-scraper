@@ -1,0 +1,16 @@
+{
+  "url": "https://kongeos.xyz/robots.txt",
+  "checked_at": "2026-10-05T22:28:53.576815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112,
+  "state": "ok",
+  "elapsed_seconds": 0.452,
+  "sha256": "d6cd07480b11033c764e68b2235cdb5c8720118a75802e4991c6cf6a42fce01b",
+  "capture": "dc4fc78c9c357a9e6a5f"
+}

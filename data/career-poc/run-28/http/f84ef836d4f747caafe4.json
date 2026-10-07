@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cuffaro-gruppe.de/",
+  "checked_at": "2026-10-05T23:46:41.100849+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"2acb-6567b03b775d1\"",
+  "last_modified": "Mon, 13 Jul 2026 09:50:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 10955,
+  "state": "ok",
+  "elapsed_seconds": 1.055,
+  "sha256": "c60b1556f125993fcd5478528f7be2aae6e0f94874558a8fe612870a0cc3e439",
+  "capture": "f84ef836d4f747caafe4"
+}

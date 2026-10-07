@@ -1,0 +1,16 @@
+{
+  "url": "https://www.geno-pensionskasse.de/",
+  "checked_at": "2026-10-05T22:46:51.670463+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82210,
+  "state": "ok",
+  "elapsed_seconds": 1.145,
+  "sha256": "0865277693cde4b1cb4489b52c48b2e734ecc13fc85bb98750d17d25d0185e91",
+  "capture": "fa5c3354aa0976e50282"
+}

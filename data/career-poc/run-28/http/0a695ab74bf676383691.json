@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vincentsystems.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:47.860993+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"261-FzjHtyK5iAbafR4RodUvDR11hSg\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 609,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "397874af8bd4241905a55033683233ad8b460d644fdfa728762ba29a714a4bae",
+  "capture": "0a695ab74bf676383691"
+}

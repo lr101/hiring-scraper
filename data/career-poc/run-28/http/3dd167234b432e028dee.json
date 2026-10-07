@@ -1,0 +1,16 @@
+{
+  "url": "https://www.profiltech.com/",
+  "checked_at": "2026-10-05T23:45:52.538102+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 120245,
+  "state": "ok",
+  "elapsed_seconds": 2.569,
+  "sha256": "2a5d4701fd76e4c8abe3a888b4102b2379fedcfe03ec47ad6870f0afa4414fce",
+  "capture": "3dd167234b432e028dee"
+}

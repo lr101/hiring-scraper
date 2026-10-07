@@ -1,0 +1,16 @@
+{
+  "url": "https://www.medie-ambulanz.de/karriere/rettungshelfer-m-w-d-in-vollzeit-oder-teilzeit-gesucht",
+  "checked_at": "2026-10-05T23:18:50.298704+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:18:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 58034,
+  "state": "ok",
+  "elapsed_seconds": 0.927,
+  "sha256": "cd3c8b610b99b33906673b35b1cbe22dcbd21282ab4d32d56a90a4bc5402667a",
+  "capture": "bcea70233b621ef62f43"
+}

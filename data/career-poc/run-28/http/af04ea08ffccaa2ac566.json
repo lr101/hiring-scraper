@@ -1,0 +1,16 @@
+{
+  "url": "https://www.industriebau-schauenberg.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:54.637584+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63,
+  "state": "ok",
+  "elapsed_seconds": 0.763,
+  "sha256": "7f7c714fca5a14f8307e99e37555e2b41e69a09bce6404f66b36ed5e7d8a2c67",
+  "capture": "af04ea08ffccaa2ac566"
+}

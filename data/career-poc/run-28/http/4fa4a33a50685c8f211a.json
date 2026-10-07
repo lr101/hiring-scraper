@@ -1,0 +1,16 @@
+{
+  "url": "https://www.heinrich-schmid.com/",
+  "checked_at": "2026-10-05T23:46:26.218045+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 185975,
+  "state": "ok",
+  "elapsed_seconds": 1.53,
+  "sha256": "b2385595302d20f1fc69f2a5211e5cd22b4ef8ec252eaac283d70eb4ef2c90b1",
+  "capture": "4fa4a33a50685c8f211a"
+}

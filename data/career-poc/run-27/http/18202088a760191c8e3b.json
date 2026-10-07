@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wandatelier.com/stellen",
+  "checked_at": "2026-10-05T22:43:11.222327+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "W/\"46f7df6933d97ddcd86bd60f718e926f\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 580430,
+  "state": "ok",
+  "elapsed_seconds": 1.121,
+  "sha256": "3d16b0db697b8200462f19f6594c25836cdf85a829c67ed3e3287d616ba891f0",
+  "capture": "18202088a760191c8e3b"
+}

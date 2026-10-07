@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hogapage.ch/robots.txt",
+  "checked_at": "2026-10-05T22:20:35.816694+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 618,
+  "state": "ok",
+  "elapsed_seconds": 0.15,
+  "sha256": "ad0cb9ae039f94fd60d37cf247b1b153534d3afe550d72a7bde33538899de515",
+  "capture": "4c43ac867ee28a514822",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hitex.com/company/career/working-at-hitex",
+  "checked_at": "2026-10-05T23:35:35.637047+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85714,
+  "state": "ok",
+  "elapsed_seconds": 0.905,
+  "sha256": "3974edac8b38b81738d77ea29438dc358cd2760dbf4d479af2c41f7bd41cebc2",
+  "capture": "ea18e3c12bf891de6f93"
+}

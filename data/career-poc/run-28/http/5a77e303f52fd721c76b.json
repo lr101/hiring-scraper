@@ -1,0 +1,16 @@
+{
+  "url": "https://klingelnberg.com/",
+  "checked_at": "2026-10-05T23:42:34.536925+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 161096,
+  "state": "ok",
+  "elapsed_seconds": 1.04,
+  "sha256": "3eecfdb4690febf7ee56c786a6e7ef6e1638e03dbadad3c6e2a00e54733a2b98",
+  "capture": "5a77e303f52fd721c76b"
+}

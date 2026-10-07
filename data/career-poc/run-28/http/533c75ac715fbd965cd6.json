@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sn-finanzplanung.de/",
+  "checked_at": "2026-10-05T23:41:00.173482+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://versicherungsmakler-nickel.expertenhomepage.de/",
+  "bytes": 302,
+  "state": "http_error",
+  "elapsed_seconds": 0.08,
+  "sha256": "6d228f99eb11f74de761315f5eb5bb4ed1d30fd5c3b365ad569f24b297c9bf1c",
+  "capture": "533c75ac715fbd965cd6"
+}

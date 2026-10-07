@@ -1,0 +1,17 @@
+{
+  "url": "https://t2consult.net/jobs",
+  "checked_at": "2026-10-05T23:16:49.389412+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1767,
+  "state": "ok",
+  "elapsed_seconds": 0.969,
+  "sha256": "1ed4841c33671a91f614dfba0cd1b17068251d077533b0167c993f84dff9cba2",
+  "capture": "fff8d34c82578909da02",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zwick-hanke-hartmann.com/karriere",
+  "checked_at": "2026-10-05T23:31:32.638009+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 685,
+  "state": "http_error",
+  "elapsed_seconds": 0.983,
+  "sha256": "322a397e90bc9c8449ded23be4dca905700e15b90d6a49b4507bc9332fe41a3e",
+  "capture": "a978b40720ad92a85404",
+  "merged_from_run": "run-28"
+}

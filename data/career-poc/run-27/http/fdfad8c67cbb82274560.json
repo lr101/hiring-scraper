@@ -1,0 +1,16 @@
+{
+  "url": "https://b-lv.de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T22:48:29.466976+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 270855,
+  "state": "ok",
+  "elapsed_seconds": 1.862,
+  "sha256": "7fa25494664a46a30e539ee690a181153387a73708e183696cd89e5475f59a35",
+  "capture": "fdfad8c67cbb82274560"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schindler-kollegen.de/wp-sitemap-posts-post-1.xml",
+  "checked_at": "2026-10-05T23:17:42.918660+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "ok",
+  "elapsed_seconds": 0.727,
+  "sha256": "5f8c5bc84e93dc2e848e36fcb307a6ac5fe35c6ad6a04d4bbbb0b4cdab3c1086",
+  "capture": "b32b2351c7092b4eae25",
+  "merged_from_run": "run-28"
+}

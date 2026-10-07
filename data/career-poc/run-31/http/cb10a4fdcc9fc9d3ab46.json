@@ -1,0 +1,17 @@
+{
+  "url": "https://www.isb.net/jobs",
+  "checked_at": "2026-10-05T23:43:53.073526+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 24927,
+  "state": "http_error",
+  "elapsed_seconds": 0.945,
+  "sha256": "50fd93ddbc3dd49436118e726add179343f64a14b74207a96c4f6a15d98eab58",
+  "capture": "cb10a4fdcc9fc9d3ab46",
+  "merged_from_run": "run-28"
+}

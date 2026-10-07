@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enviolet.com/jobs.html",
+  "checked_at": "2026-10-05T23:18:59.279673+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 141587,
+  "state": "ok",
+  "elapsed_seconds": 1.113,
+  "sha256": "6185ed8b3f24b22d460b163f59a7debb58a716d40a89be4e1adeb20dcdb630af",
+  "capture": "f4824257d2c2aacecab2",
+  "merged_from_run": "run-28"
+}

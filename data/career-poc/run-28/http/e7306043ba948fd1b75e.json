@@ -1,0 +1,16 @@
+{
+  "url": "https://conuti.de/robots.txt",
+  "checked_at": "2026-10-05T23:35:04.399005+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51305,
+  "state": "http_error",
+  "elapsed_seconds": 7.43,
+  "sha256": "d4c4332b703258d106fd5d64d7a4d0b93af8ba5bf2ec15e7814a166219c74ceb",
+  "capture": "e7306043ba948fd1b75e"
+}

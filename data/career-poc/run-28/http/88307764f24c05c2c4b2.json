@@ -1,0 +1,16 @@
+{
+  "url": "https://www.geyer-gmbh.de/de/karriere/ausbildung.php",
+  "checked_at": "2026-10-05T23:46:50.423426+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 101485,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "9359785a1d17866a1c82c8c056d9557bd85ff24e2a95a97711ceca19a1dffe16",
+  "capture": "88307764f24c05c2c4b2"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.solute.de/",
+  "checked_at": "2026-10-05T23:25:10.193765+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.solute.de/ger/",
+  "bytes": 234,
+  "state": "http_error",
+  "elapsed_seconds": 0.993,
+  "sha256": "7f9583b97b3b99a6b536fe44b291f5db149e45826f06a8becb9b0aa3b8c51161",
+  "capture": "e85e11bbd88e875605a7",
+  "merged_from_run": "run-28"
+}

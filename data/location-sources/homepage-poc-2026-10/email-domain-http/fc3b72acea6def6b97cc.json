@@ -1,0 +1,16 @@
+{
+  "url": "https://xr-easy.com",
+  "checked_at": "2026-10-06T08:50:26.155208+00:00",
+  "user_agent": "HiringScraper/0.2 (homepage evidence study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 255935,
+  "state": "ok",
+  "elapsed_seconds": 2.055,
+  "sha256": "9f077733b2f5e57dd6f5f5c55b5b609622ac97739fdf512edaedfa2955974ae9",
+  "capture": "fc3b72acea6def6b97cc"
+}

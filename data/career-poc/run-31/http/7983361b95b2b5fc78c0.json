@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schleith.de/karriere/schueler",
+  "checked_at": "2026-10-05T23:23:48.577167+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57199,
+  "state": "ok",
+  "elapsed_seconds": 0.981,
+  "sha256": "4c9d4eeade038320b19ed703283652060a6bb2ba9254d4d5e5be09d9166a90ec",
+  "capture": "7983361b95b2b5fc78c0",
+  "merged_from_run": "run-28"
+}

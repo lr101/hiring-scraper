@@ -1,0 +1,17 @@
+{
+  "url": "https://www.laks-bw.de/aktuell/stellenausschreibung-geschaftsfuhrung-m-w-d-vollzeit",
+  "checked_at": "2026-10-05T23:14:52.364303+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 17286,
+  "state": "ok",
+  "elapsed_seconds": 1.124,
+  "sha256": "e4dd7c06b29cc69432b39f98ba76d76a03e58b689e44ff04efbad4ea43ef5ade",
+  "capture": "c927070cdc0bf7bd163d",
+  "merged_from_run": "run-28"
+}

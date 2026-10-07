@@ -1,0 +1,17 @@
+{
+  "url": "https://www.polygongroup.com/about-us/career/",
+  "checked_at": "2026-10-05T23:27:35.998143+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:27:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 82801,
+  "state": "ok",
+  "elapsed_seconds": 0.973,
+  "sha256": "fc5a5848717f73e602f2397f6c0c4f60eecc6120104df3b1ab095c161965082c",
+  "capture": "b67da011c08fa74d3693",
+  "merged_from_run": "run-28"
+}

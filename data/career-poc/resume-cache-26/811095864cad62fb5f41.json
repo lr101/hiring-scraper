@@ -1,0 +1,16 @@
+{
+  "url": "https://www.singliesel.de/stellenangebote",
+  "checked_at": "2026-10-05T22:13:33.274403+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 198075,
+  "state": "ok",
+  "elapsed_seconds": 1.343,
+  "sha256": "cad09eb8fd30f6181df8329198f6b3dbad39e3653f569b5f6a469276eaf9ffe1",
+  "capture": "811095864cad62fb5f41"
+}

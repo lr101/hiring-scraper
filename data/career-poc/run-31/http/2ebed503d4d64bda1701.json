@@ -1,0 +1,17 @@
+{
+  "url": "https://www.act-smartware.de/robots.txt",
+  "checked_at": "2026-10-05T22:45:54.224292+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121,
+  "state": "ok",
+  "elapsed_seconds": 0.625,
+  "sha256": "8be9cdd8902246f6885db39d01352e217cd0b187c0a858e46f2306a3e6ae3f93",
+  "capture": "2ebed503d4d64bda1701",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ge.com/robots.txt",
+  "checked_at": "2026-10-05T23:38:22.006668+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"7eb-65b0a5057dd00\"",
+  "last_modified": "Wed, 09 Sep 2026 10:28:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2027,
+  "state": "ok",
+  "elapsed_seconds": 0.332,
+  "sha256": "773fb8d35bb9a39d35335ee6db8dc5c912d2aacbfb823152d9c61cd647dd902d",
+  "capture": "73d2cc9e2ccdd7ed96be",
+  "merged_from_run": "run-28"
+}

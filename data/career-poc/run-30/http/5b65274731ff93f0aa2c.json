@@ -1,0 +1,17 @@
+{
+  "url": "https://www.generali.de/karriere/schueler",
+  "checked_at": "2026-10-05T23:22:36.874729+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 286417,
+  "state": "ok",
+  "elapsed_seconds": 0.956,
+  "sha256": "191b908c8520e7218080497c40da1feb89e93cffd1bfae5a04c0067fbbf1215b",
+  "capture": "5b65274731ff93f0aa2c",
+  "merged_from_run": "run-28"
+}

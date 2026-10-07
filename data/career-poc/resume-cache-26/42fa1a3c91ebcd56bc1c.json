@@ -1,0 +1,16 @@
+{
+  "url": "https://www.workwise.io/robots.txt",
+  "checked_at": "2026-10-05T22:15:44.909702+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1aa-cZ3N9/zCr4KUM+lqqClEsxROMlI\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 426,
+  "state": "ok",
+  "elapsed_seconds": 0.129,
+  "sha256": "1d8b1c0c28dd037834d33be8032f637a822a64b69de207d2a71a5b44639ad689",
+  "capture": "42fa1a3c91ebcd56bc1c"
+}

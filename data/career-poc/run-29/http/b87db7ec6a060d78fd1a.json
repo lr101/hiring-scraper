@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zzdrivetech.com/karriere",
+  "checked_at": "2026-10-05T23:30:48.664940+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 31732,
+  "state": "http_error",
+  "elapsed_seconds": 1.389,
+  "sha256": "4d865efa453d225728afc2890c32ae2384740fd5d46719a6a565f6a5713767b6",
+  "capture": "b87db7ec6a060d78fd1a",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tk.de/tk/kundenberatungen-a-z/k/0784-karlsruhe-campus/150668",
+  "checked_at": "2026-10-05T22:29:11.130274+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.tk.de/redirect/kundenberatungen-a-z/k/0784-karlsruhe-campus/150668",
+  "bytes": 302,
+  "state": "http_error",
+  "elapsed_seconds": 1.099,
+  "sha256": "cd05e48f8340f3ff647821e50a84aefc442691fca963a7263d6158bbc298f36b",
+  "capture": "a84d72e7feaa8846b258"
+}

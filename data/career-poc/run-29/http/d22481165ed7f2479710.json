@@ -1,0 +1,17 @@
+{
+  "url": "https://www.thiele-gartengestaltung.de/",
+  "checked_at": "2026-10-05T23:23:08.473016+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"603cd031-1829\"",
+  "last_modified": "Mon, 01 Mar 2021 11:29:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 6185,
+  "state": "ok",
+  "elapsed_seconds": 1.066,
+  "sha256": "fb193b1a854c3537f2722b47047c651070723baac687201cd71a08e65843b7ed",
+  "capture": "d22481165ed7f2479710",
+  "merged_from_run": "run-28"
+}

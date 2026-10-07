@@ -1,0 +1,17 @@
+{
+  "url": "https://www.docpharm.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:33:43.799133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1574,
+  "state": "ok",
+  "elapsed_seconds": 0.938,
+  "sha256": "5eeca29824925004989bf19fe05551f29f0f92c58ac8c1d7914d85f71823d008",
+  "capture": "f9dca56be9bdaf86509b",
+  "merged_from_run": "run-28"
+}

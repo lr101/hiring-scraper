@@ -1,0 +1,16 @@
+{
+  "url": "https://www.guedler.de/jobs",
+  "checked_at": "2026-10-05T23:33:46.926020+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57321,
+  "state": "http_error",
+  "elapsed_seconds": 2.533,
+  "sha256": "73988e0a421fb13a34eb9d7792c452920bac610f75ff8273b0ff523fb522e645",
+  "capture": "e271a587448630f92676"
+}

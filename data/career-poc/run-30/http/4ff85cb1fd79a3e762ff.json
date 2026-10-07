@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hangar-sued.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:53.060281+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"75-63cb7ba5df07c\"",
+  "last_modified": "Tue, 19 Aug 2025 13:21:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 117,
+  "state": "ok",
+  "elapsed_seconds": 0.534,
+  "sha256": "fc0b1829b2187960e68eb8626a9c556eae04d4d7126752fc7b22cab5f41e32fd",
+  "capture": "4ff85cb1fd79a3e762ff",
+  "merged_from_run": "run-28"
+}

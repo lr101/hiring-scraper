@@ -1,0 +1,14 @@
+{
+  "url": "https://www.deepl.com/robots.txt",
+  "checked_at": "2026-10-05T09:08:46.436785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "location": null,
+  "bytes": 1722,
+  "state": "ok",
+  "elapsed_seconds": 0.171,
+  "sha256": "175afdacbfd99bd6af1de23dea2d150f5f0176f6b2fdb219c3813bee9c1944ce",
+  "capture": "b41cc81200345f17fddf",
+  "reused_from": "data/career-poc/run-10/http/b41cc81200345f17fddf.json"
+}

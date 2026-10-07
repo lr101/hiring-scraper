@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cuffaro-immobilien.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:45:14.391848+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1243,
+  "state": "ok",
+  "elapsed_seconds": 1.121,
+  "sha256": "09823f6a70fc5c56fada91c401bbd24b6917482533aaa5862688f2c9b695a8fe",
+  "capture": "3b79f76d753534b9f07f"
+}

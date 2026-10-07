@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerberatungskanzlei-aydin.de/robots.txt",
+  "checked_at": "2026-10-05T22:49:54.107019+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.aydin-tax.de//robots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.155,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "d85f4078a76b0ee40370"
+}

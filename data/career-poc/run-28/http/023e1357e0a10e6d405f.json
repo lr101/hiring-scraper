@@ -1,0 +1,16 @@
+{
+  "url": "https://p-neo.de/job/pflegefachkraft/",
+  "checked_at": "2026-10-05T23:42:34.433232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 490666,
+  "state": "ok",
+  "elapsed_seconds": 0.99,
+  "sha256": "ac759e480078722e012dfd5ef7af9e734034927f40b8dbf2e75f8b85f9550cb5",
+  "capture": "023e1357e0a10e6d405f"
+}

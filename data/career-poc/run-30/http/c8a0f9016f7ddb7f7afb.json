@@ -1,0 +1,17 @@
+{
+  "url": "https://www.verbraucherzentrale-bawue.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:10:34.769854+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "\"1791110820\"",
+  "last_modified": "Sun, 04 Oct 2026 10:47:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2659939,
+  "state": "ok",
+  "elapsed_seconds": 1.266,
+  "sha256": "8f802b731fef919a93c718cf2ed63a27a630d248bddbaecd29b01032adacb5d9",
+  "capture": "c8a0f9016f7ddb7f7afb",
+  "merged_from_run": "run-25"
+}

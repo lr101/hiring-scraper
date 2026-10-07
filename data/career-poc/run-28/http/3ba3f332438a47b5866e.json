@@ -1,0 +1,16 @@
+{
+  "url": "https://perez-haustechnik.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:16.819469+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 124,
+  "state": "ok",
+  "elapsed_seconds": 0.672,
+  "sha256": "289e97d5eaf2d242c18a79150b1ecf1b0765c1ae9dffde556e7ce7fde1784d53",
+  "capture": "3ba3f332438a47b5866e"
+}

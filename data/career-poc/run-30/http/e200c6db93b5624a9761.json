@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hays.de/personaldienstleister/karrierecenter/bewerbung",
+  "checked_at": "2026-10-05T22:19:07.158321+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 464205,
+  "state": "ok",
+  "elapsed_seconds": 2.172,
+  "sha256": "65f001cff98c6a3842e0903aa2f54131af5040ddbebcfa7758a5da4ff18daaa1",
+  "capture": "e200c6db93b5624a9761",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://enkeonline.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:30.077666+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 33624,
+  "state": "ok",
+  "elapsed_seconds": 0.286,
+  "sha256": "c002766dad89eee076b25e29c422b9361116d8a0b41b7b8af197f1b5a4ab886a",
+  "capture": "3c6b7f1971eba624ff0d",
+  "merged_from_run": "run-28"
+}

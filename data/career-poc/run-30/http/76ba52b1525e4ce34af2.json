@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tk.de/service/app/2055100/stellenmarkt/suche.app",
+  "checked_at": "2026-10-05T22:29:16.101948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": "Sun, 04 Oct 2026 22:00:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 100868,
+  "state": "ok",
+  "elapsed_seconds": 1.228,
+  "sha256": "2d71b116c74de429f1f07a39e3db0aa8950d494101fb355bf764dabe605ca39e",
+  "capture": "76ba52b1525e4ce34af2",
+  "merged_from_run": "run-26"
+}

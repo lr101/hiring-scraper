@@ -1,0 +1,17 @@
+{
+  "url": "https://blechnerei-nock.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:41:54.253637+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 819,
+  "state": "ok",
+  "elapsed_seconds": 2.131,
+  "sha256": "01a26142b4f7d705acba93900fe30c423dcc2fc7a70f3e3f3f7fced85859721d",
+  "capture": "c667eb985794090c624e",
+  "merged_from_run": "run-28"
+}

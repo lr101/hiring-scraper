@@ -1,0 +1,17 @@
+{
+  "url": "https://www.arburg.com/en/company/news-press/detail/fakuma-2026-career-friday/",
+  "checked_at": "2026-10-05T23:01:43.547681+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67626,
+  "state": "ok",
+  "elapsed_seconds": 1.015,
+  "sha256": "701620ae1b84501a02b87eb2b454fe796af4cf0e35ec7b71b464956fc668b5c8",
+  "capture": "e3dcc93bbd067ff82d2e",
+  "merged_from_run": "run-27"
+}

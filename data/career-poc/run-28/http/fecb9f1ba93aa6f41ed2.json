@@ -1,0 +1,16 @@
+{
+  "url": "https://ochs-gruppe.com/job/monteurin/",
+  "checked_at": "2026-10-05T23:30:56.730688+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 147845,
+  "state": "ok",
+  "elapsed_seconds": 0.986,
+  "sha256": "8292e83682b9ee29cd201e691994ab9ba98065f88c0109012c0eb9303a5f2d26",
+  "capture": "fecb9f1ba93aa6f41ed2"
+}

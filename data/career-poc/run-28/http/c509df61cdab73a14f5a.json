@@ -1,0 +1,10 @@
+{
+  "url": "https://www.gaestezimmer-stutensee.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:44.763341+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "[Errno -2] Name or service not known",
+  "elapsed_seconds": 0.026,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "c509df61cdab73a14f5a"
+}

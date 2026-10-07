@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drhaasters.net/hydrogen/stellenausschreibungen.html",
+  "checked_at": "2026-10-05T23:24:33.931389+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96331,
+  "state": "ok",
+  "elapsed_seconds": 0.999,
+  "sha256": "6e33580d9356619a5e83c667ba5ddbaa923aef89ad6f380603ac60653ed27b5c",
+  "capture": "64940d7ac3085efa728f",
+  "merged_from_run": "run-28"
+}

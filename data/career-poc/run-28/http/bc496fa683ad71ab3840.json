@@ -1,0 +1,16 @@
+{
+  "url": "https://ritterweiss.de/robots.txt",
+  "checked_at": "2026-10-05T23:40:53.363553+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 115,
+  "state": "ok",
+  "elapsed_seconds": 1.374,
+  "sha256": "8441a08f2d46265d08bea9c7cec9e9f79a77efabcd6c64187086361e67c18994",
+  "capture": "bc496fa683ad71ab3840"
+}

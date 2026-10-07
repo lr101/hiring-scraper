@@ -1,0 +1,17 @@
+{
+  "url": "https://www.reif-sanitaer-karlsruhe.de/stellenangebote",
+  "checked_at": "2026-10-05T23:26:32.918527+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 56719,
+  "state": "ok",
+  "elapsed_seconds": 0.965,
+  "sha256": "ae4f976cd71a83d5ee8836d446c59b39f9302b01f92cced55b70fc376389f8d3",
+  "capture": "0cbdb57269b6047311cd",
+  "merged_from_run": "run-28"
+}

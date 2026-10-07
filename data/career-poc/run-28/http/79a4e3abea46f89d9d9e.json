@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cuffaro-immobilien.de/karriere",
+  "checked_at": "2026-10-05T23:45:17.665035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1298250,
+  "state": "http_error",
+  "elapsed_seconds": 1.358,
+  "sha256": "69bb4bd85838cac6f8260713809255b23df0e65bc97d443d47153e1c5e6060c6",
+  "capture": "79a4e3abea46f89d9d9e"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.engelvoelkers.com/de/de/unternehmen/karriere",
+  "checked_at": "2026-10-05T22:28:15.284834+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 742707,
+  "state": "ok",
+  "elapsed_seconds": 1.067,
+  "sha256": "d5107f06a2a58000d89f87515ffb0128eb15d26c9aa7590eeba312443bef6a53",
+  "capture": "0b76881d36ca0f48fdea",
+  "merged_from_run": "run-26"
+}

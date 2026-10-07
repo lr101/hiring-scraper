@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ukbw.de/karriere/ausbildung-und-studium",
+  "checked_at": "2026-10-05T23:25:33.837087+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 105497,
+  "state": "ok",
+  "elapsed_seconds": 0.752,
+  "sha256": "419c13a6be970a016282692913571e42cddc4596f5d14eb124db48b419f38d3a",
+  "capture": "a4078f33e7a6f8a0701d"
+}

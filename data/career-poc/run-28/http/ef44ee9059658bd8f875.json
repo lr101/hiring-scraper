@@ -1,0 +1,16 @@
+{
+  "url": "https://weihnachten-neu-erleben.de/karriere",
+  "checked_at": "2026-10-05T23:20:07.515383+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169635,
+  "state": "http_error",
+  "elapsed_seconds": 1.583,
+  "sha256": "edaa6b364792ff7690069f8bb056d05129cd08fc8252cbad35be1f69013e5141",
+  "capture": "ef44ee9059658bd8f875"
+}

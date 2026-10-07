@@ -1,0 +1,13 @@
+{
+  "url": "https://karriere.ratiodata.de/job/?vacancieid=2026-115",
+  "checked_at": "2026-10-05T14:04:43.159838+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 597936,
+  "state": "ok",
+  "elapsed_seconds": 2.453,
+  "sha256": "addba834d483893ae65a386864e51ec8c7c9e0d9eb7f7410e73192cdfaeb976f",
+  "capture": "31d9ef7661b8b9261cae"
+}

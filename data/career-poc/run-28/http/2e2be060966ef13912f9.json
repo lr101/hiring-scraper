@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kitten.kit.edu/",
+  "checked_at": "2026-10-05T23:42:37.537261+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60150,
+  "state": "ok",
+  "elapsed_seconds": 0.967,
+  "sha256": "6d0046de78222297a2508a444a67d1941556c535f693a851656996307542a246",
+  "capture": "2e2be060966ef13912f9"
+}

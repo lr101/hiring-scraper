@@ -1,0 +1,17 @@
+{
+  "url": "https://funkybooth.eu/robots.txt",
+  "checked_at": "2026-10-05T23:16:05.642427+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171,
+  "state": "ok",
+  "elapsed_seconds": 1.498,
+  "sha256": "5d0c0d511d2224caf46d9865a862c4f5493441bfafaf31248c92ecb4076b5a3f",
+  "capture": "2a1e2e4e6c1fbda2be38",
+  "merged_from_run": "run-28"
+}

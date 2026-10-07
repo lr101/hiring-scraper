@@ -1,0 +1,17 @@
+{
+  "url": "https://www.gut-gruppe.de/unternehmen/keilhauer/karriere/stellenangebote/vertriebsassistenz-teilzeit-mwd-15786",
+  "checked_at": "2026-10-05T22:59:51.107186+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 124916,
+  "state": "ok",
+  "elapsed_seconds": 1.35,
+  "sha256": "5f8b8421f8e7e1ded7664187fd5200b67e5e78e0c0d8a045664009f557f3a73f",
+  "capture": "fa66793170fa01223440",
+  "merged_from_run": "run-27"
+}

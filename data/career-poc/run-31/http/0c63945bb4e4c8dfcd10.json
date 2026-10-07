@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sv-struck.de/dynamic-karriere_p_7de9c1e2_d6b8_4279_ad9e_cc6f82f3f450_0_5000-sitemap.xml",
+  "checked_at": "2026-10-05T23:22:35.296087+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "http_error",
+  "elapsed_seconds": 1.051,
+  "sha256": "461a5c849668e6242a7042be8e43dee07befa88d0a92c3dfeef5c4a28f6bcfa6",
+  "capture": "0c63945bb4e4c8dfcd10",
+  "merged_from_run": "run-28"
+}

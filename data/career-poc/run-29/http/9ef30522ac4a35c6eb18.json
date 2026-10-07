@@ -1,0 +1,17 @@
+{
+  "url": "https://amnesty-karlsruhe.de/careers",
+  "checked_at": "2026-10-05T23:16:33.028096+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 57479,
+  "state": "http_error",
+  "elapsed_seconds": 1.001,
+  "sha256": "88f5291ab5a7b142cde4fa7802b24ed99ebb090ccb53146d9505743461aa73af",
+  "capture": "9ef30522ac4a35c6eb18",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://gartnergmbh.de/karriere",
+  "checked_at": "2026-10-05T23:20:02.826287+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78647,
+  "state": "http_error",
+  "elapsed_seconds": 1.04,
+  "sha256": "db46b43be5f9cd4793e0e001091695a673ec51ada88ab61d1e76dd44fc2df732",
+  "capture": "110c5a7d4a8fc6c70392"
+}

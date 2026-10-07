@@ -1,0 +1,283 @@
+{
+  "run_dir": "data/career-poc/run-31",
+  "eligible_unique_captures": 1775,
+  "sample_size": 250,
+  "sample_rule": "one context per capture, then first N sorted by SHA-256(page URL + newline + capture ID), using saved page metadata (career-like HTML, no ATS, jobposting_count=0) before loading only the sampled bodies",
+  "markers": {
+    "next_data": 7,
+    "next_flight": 2,
+    "nuxt": 9,
+    "same_origin_endpoint_reference": 70,
+    "job_script_text": 72
+  },
+  "embedded_json_active_jobs": 0,
+  "embedded_json_unconfirmed_candidates": 0,
+  "structured_card_sources": [
+    {
+      "capture": "cf39ff8b1927aa89fb50",
+      "company": "Wibu Systems",
+      "url": "https://jobs.wibu.com/en",
+      "trust": "first_party",
+      "access": {
+        "state": "ok",
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "bytes": 472810
+      },
+      "active_rows": [
+        {
+          "title": "Technical Lead - Cloud Operations (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=297547",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=297547"
+          ]
+        },
+        {
+          "title": "Cloud Operations Engineer (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=cce08f",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=cce08f"
+          ]
+        },
+        {
+          "title": "Cloud Systems Engineer (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=005af8",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=005af8"
+          ]
+        },
+        {
+          "title": "Senior Developer (m/w/d) CodeMeter Cloud",
+          "url": "https://jobs.wibu.com/en?id=d5c099",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=d5c099"
+          ]
+        },
+        {
+          "title": "Senior Product Manager Cloud Services & SaaS (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=ae3f53",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=ae3f53"
+          ]
+        },
+        {
+          "title": "Senior Software Security Engineer (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=698356",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=698356"
+          ]
+        },
+        {
+          "title": "Software Developer Java / Database (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=440c3e",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=440c3e"
+          ]
+        },
+        {
+          "title": "Werkstudent (m/w/d) Agentic AI für operative Unternehmensprozesse",
+          "url": "https://jobs.wibu.com/en?id=64fee6",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=64fee6"
+          ]
+        },
+        {
+          "title": "Werkstudent / Praktikant (m/w/d) im Bereich Softwareentwicklung",
+          "url": "https://jobs.wibu.com/en?id=bd2d59",
+          "location": "Karlsruhe",
+          "identity_key": [
+            "destination",
+            "https://jobs.wibu.com/en?id=bd2d59"
+          ]
+        }
+      ],
+      "unconfirmed_rows": [
+        {
+          "title": "Initiativbewerbung (m/w/d)",
+          "url": "https://jobs.wibu.com/en?id=41247d",
+          "method": "structured_job_card",
+          "confidence": "unconfirmed_role"
+        }
+      ]
+    }
+  ],
+  "structured_active_identity_count": 9,
+  "baseline_synthetic_heading_count": 2,
+  "baseline_title_overlap_count": 2,
+  "baseline_title_overlap": [
+    "werkstudent m w d agentic ai für operative unternehmensprozesse",
+    "werkstudent praktikant m w d im bereich softwareentwicklung"
+  ],
+  "new_stable_detail_identity_count": 9,
+  "new_stable_detail_rows": [
+    {
+      "title": "Technical Lead - Cloud Operations (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=297547",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=297547"
+      ]
+    },
+    {
+      "title": "Cloud Operations Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=cce08f",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=cce08f"
+      ]
+    },
+    {
+      "title": "Cloud Systems Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=005af8",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=005af8"
+      ]
+    },
+    {
+      "title": "Senior Developer (m/w/d) CodeMeter Cloud",
+      "url": "https://jobs.wibu.com/en?id=d5c099",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=d5c099"
+      ]
+    },
+    {
+      "title": "Senior Product Manager Cloud Services & SaaS (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=ae3f53",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=ae3f53"
+      ]
+    },
+    {
+      "title": "Senior Software Security Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=698356",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=698356"
+      ]
+    },
+    {
+      "title": "Software Developer Java / Database (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=440c3e",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=440c3e"
+      ]
+    },
+    {
+      "title": "Werkstudent (m/w/d) Agentic AI für operative Unternehmensprozesse",
+      "url": "https://jobs.wibu.com/en?id=64fee6",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=64fee6"
+      ]
+    },
+    {
+      "title": "Werkstudent / Praktikant (m/w/d) im Bereich Softwareentwicklung",
+      "url": "https://jobs.wibu.com/en?id=bd2d59",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=bd2d59"
+      ]
+    }
+  ],
+  "new_title_novelty_count": 7,
+  "new_title_novelty_rows": [
+    {
+      "title": "Technical Lead - Cloud Operations (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=297547",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=297547"
+      ]
+    },
+    {
+      "title": "Cloud Operations Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=cce08f",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=cce08f"
+      ]
+    },
+    {
+      "title": "Cloud Systems Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=005af8",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=005af8"
+      ]
+    },
+    {
+      "title": "Senior Developer (m/w/d) CodeMeter Cloud",
+      "url": "https://jobs.wibu.com/en?id=d5c099",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=d5c099"
+      ]
+    },
+    {
+      "title": "Senior Product Manager Cloud Services & SaaS (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=ae3f53",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=ae3f53"
+      ]
+    },
+    {
+      "title": "Senior Software Security Engineer (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=698356",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=698356"
+      ]
+    },
+    {
+      "title": "Software Developer Java / Database (m/w/d)",
+      "url": "https://jobs.wibu.com/en?id=440c3e",
+      "location": "Karlsruhe",
+      "identity_key": [
+        "destination",
+        "https://jobs.wibu.com/en?id=440c3e"
+      ]
+    }
+  ],
+  "prior_generic_hint_replacement_count": 2,
+  "same_origin_endpoint_requests": 0,
+  "browser_available": {
+    "playwright": false,
+    "selenium": false
+  }
+}

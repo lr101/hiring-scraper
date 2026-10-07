@@ -1,0 +1,17 @@
+{
+  "url": "https://kgv-weiherfeld.de/robots.txt",
+  "checked_at": "2026-10-05T23:23:47.220704+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118,
+  "state": "ok",
+  "elapsed_seconds": 1.025,
+  "sha256": "e1a6a590c2a00bbbb3a741c7b206fa33e7bc7eb97767e0788f72de02ca22f624",
+  "capture": "c93f74a3629a2a73b143",
+  "merged_from_run": "run-28"
+}

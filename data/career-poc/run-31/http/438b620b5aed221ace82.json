@@ -1,0 +1,17 @@
+{
+  "url": "https://www.brennecke-rechtsanwaelte.de/Stellenangebot-Rechtsanwaltsfachangestellter-in-Muenchen-oder-Homeoffice_209499",
+  "checked_at": "2026-10-05T22:56:11.856985+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25391,
+  "state": "ok",
+  "elapsed_seconds": 1.387,
+  "sha256": "70fd1b55b3d47d4fab3af7b29f118d03a8a8066fb94a809dcc04250a6f70216e",
+  "capture": "438b620b5aed221ace82",
+  "merged_from_run": "run-27"
+}

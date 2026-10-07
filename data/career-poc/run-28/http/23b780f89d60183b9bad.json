@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jungheinrich.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:46.398509+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2401,
+  "state": "ok",
+  "elapsed_seconds": 0.284,
+  "sha256": "f20db6fb0dd028f8a75c810a159156d623af4bfc3ef320bca7c7de0f758b1813",
+  "capture": "23b780f89d60183b9bad"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.asta-kit.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:43:32.848880+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1791234546-0\"",
+  "last_modified": "Mon, 05 Oct 2026 21:09:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 10081,
+  "state": "http_error",
+  "elapsed_seconds": 1.064,
+  "sha256": "cb92ec03ddfd118b3a51eafcae0e188f44206f56794053f8af064bb914ef2171",
+  "capture": "a91886e4c898e113b140",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://ungleich-anders.de/denkhafen/",
+  "checked_at": "2026-10-05T22:38:10.251182+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84811,
+  "state": "ok",
+  "elapsed_seconds": 1.544,
+  "sha256": "bc15e3e4c722b45101ceae1481a7d2854f6f17b5904dd7ee8944e8f2ad28cfac",
+  "capture": "2048ec260aa57b413b82"
+}

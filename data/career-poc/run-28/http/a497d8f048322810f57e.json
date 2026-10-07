@@ -1,0 +1,16 @@
+{
+  "url": "https://toepferladen-karlsruhe.de/careers",
+  "checked_at": "2026-10-05T23:36:09.125097+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 117867,
+  "state": "http_error",
+  "elapsed_seconds": 0.818,
+  "sha256": "94febc93cbe746cdfc845aa362cc83f3909eeb35bc57319c1cb3d1f5ac5635ea",
+  "capture": "a497d8f048322810f57e"
+}

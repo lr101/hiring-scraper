@@ -1,0 +1,17 @@
+{
+  "url": "https://dipano.com/robots.txt",
+  "checked_at": "2026-10-05T20:42:50.488081+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 80,
+  "state": "ok",
+  "elapsed_seconds": 0.315,
+  "sha256": "66e71dfb6fc0108970e94d9515653bd1e31b93ec51cedbbf4a8d37c7c3fef5a4",
+  "capture": "e1b238570ae40dbb50ca",
+  "reused_from": "data/career-poc/run-18/http/e1b238570ae40dbb50ca.json"
+}

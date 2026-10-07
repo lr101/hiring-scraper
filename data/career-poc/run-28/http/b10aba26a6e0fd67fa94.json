@@ -1,0 +1,16 @@
+{
+  "url": "https://www.emtrion.de/aboutus/vacancies/",
+  "checked_at": "2026-10-05T23:15:13.686739+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 614680,
+  "state": "ok",
+  "elapsed_seconds": 1.558,
+  "sha256": "0bc0fcaffa3cc37533b276492aee32a6a39398d8b2f84e55bc1df7e3660ab9a4",
+  "capture": "b10aba26a6e0fd67fa94"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.suedroh.com/",
+  "checked_at": "2026-10-05T23:42:29.888330+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"8388-65d1fc9bb5167\"",
+  "last_modified": "Mon, 05 Oct 2026 22:56:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 33672,
+  "state": "ok",
+  "elapsed_seconds": 0.633,
+  "sha256": "120a53f85507e2cc53bac58254f155554101704aad9f5c160e04aad455a73012",
+  "capture": "6b226b67a85a8e85087e"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wisag.de/karriere/tipps/",
+  "checked_at": "2026-10-05T23:25:35.528634+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 247,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "http_error",
+  "elapsed_seconds": 0.953,
+  "sha256": "c051e9f1bb24b0607cf13e3f1b9ae5af2b6ed40c85d7ba023cdca008652347a1",
+  "capture": "5be61ef223eaaed864e1"
+}

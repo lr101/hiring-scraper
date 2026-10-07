@@ -1,0 +1,17 @@
+{
+  "url": "https://www.patricia-kappler.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:40:18.433505+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 376,
+  "state": "ok",
+  "elapsed_seconds": 1.038,
+  "sha256": "371edb240a7922f8635db8ad86068a36ae8d326f190d307919afca4d5683bcb1",
+  "capture": "197e5036f98af440722c",
+  "merged_from_run": "run-28"
+}

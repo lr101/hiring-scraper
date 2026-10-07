@@ -1,0 +1,17 @@
+{
+  "url": "https://videmo.de/robots.txt",
+  "checked_at": "2026-10-05T23:21:11.597716+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Thu, 07 May 2026 10:15:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 59,
+  "state": "ok",
+  "elapsed_seconds": 0.515,
+  "sha256": "ca89fab5be67578c14442eae1332a6f461345d44fd02f3b05df224a151e5a978",
+  "capture": "e07cf1dfa2b2275984db",
+  "merged_from_run": "run-28"
+}

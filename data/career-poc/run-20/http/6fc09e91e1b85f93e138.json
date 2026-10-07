@@ -1,0 +1,17 @@
+{
+  "url": "https://www.emmtrix.com/",
+  "checked_at": "2026-10-05T20:42:56.559215+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 540845,
+  "state": "ok",
+  "elapsed_seconds": 2.719,
+  "sha256": "71276f6a86563aac2a38aba4cd27819c561300c118258833c7f157ce2d76abdd",
+  "capture": "6fc09e91e1b85f93e138",
+  "reused_from": "data/career-poc/run-18/http/6fc09e91e1b85f93e138.json"
+}

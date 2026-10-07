@@ -1,0 +1,17 @@
+{
+  "url": "https://itesys.expert/en/career/",
+  "checked_at": "2026-10-05T23:26:17.922648+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"iqhux92y332su4\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 130763,
+  "state": "ok",
+  "elapsed_seconds": 0.958,
+  "sha256": "f1727d2bf0b25a909ef21a1d31f9bd776fe9975dfb1e085e2f03fb8e72b0cc88",
+  "capture": "acda92977de6edabd7cc",
+  "merged_from_run": "run-28"
+}

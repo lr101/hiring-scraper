@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cyberlab-karlsruhe.de/",
+  "checked_at": "2026-10-05T23:14:22.347326+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62899,
+  "state": "ok",
+  "elapsed_seconds": 1.107,
+  "sha256": "29b84adebeddd43f9dbefa2869f8388a2477ccfe2eb1490eace91d6ecdd4d43b",
+  "capture": "b1c5f23a96d26333c395",
+  "merged_from_run": "run-28"
+}

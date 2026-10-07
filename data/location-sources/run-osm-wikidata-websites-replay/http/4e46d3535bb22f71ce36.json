@@ -1,0 +1,17 @@
+{
+  "url": "https://www.greenpeace.org/international/join/jobs/",
+  "checked_at": "2026-10-06T07:06:57.598065+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://workfor.international.greenpeace.org/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.418,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "4e46d3535bb22f71ce36",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/4e46d3535bb22f71ce36.json"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gwolf-elektro.de/jobs-ausbildung/ausbildung/",
+  "checked_at": "2026-10-05T23:18:48.949034+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27075,
+  "state": "ok",
+  "elapsed_seconds": 0.962,
+  "sha256": "2530e82fee6cefe003cfb753d009b0e9c549a637ed2f049cd5311e609bcdfe57",
+  "capture": "91593fd7d48dd908949f"
+}

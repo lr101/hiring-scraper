@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.vde.com/de/vde-als-arbeitgeber",
+  "checked_at": "2026-10-05T22:13:57.346988+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 29903,
+  "state": "ok",
+  "elapsed_seconds": 1.163,
+  "sha256": "ae41cb00ce7aa0d7aa094ec0c3096ef93d3b095612ef8bf0d51a8e4e57ff1a9c",
+  "capture": "faaaddd36ab7091d4484"
+}

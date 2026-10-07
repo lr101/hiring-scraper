@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.rbs-wave.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:50.515733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 99,
+  "state": "ok",
+  "elapsed_seconds": 0.428,
+  "sha256": "5ecb91f420ddc00f766b674630c557db6ab158b27a83648b0776ba2623b3cf1b",
+  "capture": "de8d2d72fe85e95f131c",
+  "merged_from_run": "run-28"
+}

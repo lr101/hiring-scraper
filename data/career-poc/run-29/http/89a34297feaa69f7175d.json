@@ -1,0 +1,17 @@
+{
+  "url": "https://www.autensys.de/karriere-autensys/",
+  "checked_at": "2026-10-05T22:32:25.432102+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 25855,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "78688768e75c06f8cb9727fd249bedcd11fbe226a2d8b6996f5e6f8a1fd6a740",
+  "capture": "89a34297feaa69f7175d",
+  "merged_from_run": "run-26"
+}

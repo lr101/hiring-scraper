@@ -1,0 +1,11 @@
+{
+  "url": "https://www.seeger-consulting.com/robots.txt",
+  "checked_at": "2026-10-05T23:33:26.136269+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.seeger-consulting.com'. (_ssl.c:992)>",
+  "elapsed_seconds": 0.149,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "b9a264a771fbcfdfb8fa",
+  "merged_from_run": "run-28"
+}

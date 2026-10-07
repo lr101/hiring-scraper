@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bridging-it.de/karriere/",
+  "checked_at": "2026-10-05T22:17:41.794594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"eaeb-65263fa1b1618\"",
+  "last_modified": "Fri, 22 May 2026 08:40:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 60139,
+  "state": "ok",
+  "elapsed_seconds": 1.13,
+  "sha256": "fdea1565bd2253020f956a171ad02b793d12fb6c52a3534cd42504081f72dda4",
+  "capture": "954d4e0856c05159e883",
+  "merged_from_run": "run-25"
+}

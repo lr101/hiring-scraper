@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bm-bahndienste.de/karrierejobs",
+  "checked_at": "2026-10-05T23:20:01.143453+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106217,
+  "state": "ok",
+  "elapsed_seconds": 1.177,
+  "sha256": "236a9946bcf760dc8a1e25c1b81287f2bab0e14c8b18d8888aa4afc3fced74d0",
+  "capture": "21f645b5dd739b964f3c"
+}

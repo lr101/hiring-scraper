@@ -1,0 +1,16 @@
+{
+  "url": "https://www.helvetia.de/karriere",
+  "checked_at": "2026-10-05T23:43:43.282270+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.helvetia.de/de/jobs/de.html",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.609,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "a2d5e17e7568828eb4ed"
+}

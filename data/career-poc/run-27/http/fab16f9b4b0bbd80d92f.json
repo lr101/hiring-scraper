@@ -1,0 +1,16 @@
+{
+  "url": "https://www.big-gruppe.com/de/standorte/karlsruhe-management",
+  "checked_at": "2026-10-05T23:03:06.433428+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.big-gruppe.com/standorte/karlsruhe-management",
+  "bytes": 265,
+  "state": "http_error",
+  "elapsed_seconds": 1.103,
+  "sha256": "38c0ccb290ff380857c2ea2e1c04ffe089db7ee73502d135298770ec643a5170",
+  "capture": "fab16f9b4b0bbd80d92f"
+}

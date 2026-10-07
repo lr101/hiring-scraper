@@ -1,0 +1,17 @@
+{
+  "url": "https://www.scriptor-brennerei.de/sitemap_agentic_discovery.xml",
+  "checked_at": "2026-10-05T23:17:50.006568+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"page_cache:86919577927:AgenticDiscoverySitemapController:5f27135a29c8e00fdf9993600934c0a4\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 222,
+  "state": "ok",
+  "elapsed_seconds": 0.996,
+  "sha256": "0af9e8ec4fb42e74b3286108e30dcf5ac10a500de614aa5bd7e6aa3a9289e5b2",
+  "capture": "3c5856d1b6ace0aa8940",
+  "merged_from_run": "run-28"
+}

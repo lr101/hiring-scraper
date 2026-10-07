@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schneideranwaelte.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:15:23.994258+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21367,
+  "state": "ok",
+  "elapsed_seconds": 1.14,
+  "sha256": "081442cc22166d8793725ad4a1a67c5be3d1040291a38e643d93f7e1ec946892",
+  "capture": "8fd1c952ee163fb61fb2"
+}

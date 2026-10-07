@@ -1,0 +1,17 @@
+{
+  "url": "https://www.orizon.de/de/top-jobs",
+  "checked_at": "2026-10-05T22:09:43.392802+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 142325,
+  "state": "ok",
+  "elapsed_seconds": 1.089,
+  "sha256": "7ff750fdf5bbcfc21c20770deac1d9c0ecd24d486ebe9350924781e5ef5929ff",
+  "capture": "aa6384e34adbc90c344b",
+  "merged_from_run": "run-25"
+}

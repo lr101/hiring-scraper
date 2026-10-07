@@ -1,0 +1,17 @@
+{
+  "url": "https://www.efs-steuerberatung.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:07.636112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"2fc-5f31112ebf340\"",
+  "last_modified": "Wed, 25 Jan 2023 06:52:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 764,
+  "state": "ok",
+  "elapsed_seconds": 0.28,
+  "sha256": "f1a6b5e3f6e69a71c53516c4bce70e2414429d23dab6814239500999eb80907e",
+  "capture": "a75494121a7818d87831",
+  "merged_from_run": "run-28"
+}

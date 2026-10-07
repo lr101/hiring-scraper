@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sk-holzbau.com/robots.txt",
+  "checked_at": "2026-10-05T23:43:57.202948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"66e05d75-344\"",
+  "last_modified": "Tue, 10 Sep 2024 14:53:41 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 836,
+  "state": "ok",
+  "elapsed_seconds": 1.029,
+  "sha256": "d974f42f070bb96d4601c706c54f883b73a2e8334117a270682608e58c6f8cc4",
+  "capture": "ef6bbfb635592e6b9d11",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://baumpflege-dennig.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:00.007753+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "\"0661453cd8a42ebc08c1bb66f39e4dfb\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1291,
+  "state": "ok",
+  "elapsed_seconds": 0.8,
+  "sha256": "ab52733ee09a55a80136835dc3b4ad32c617409249eb9a2165269f956f596960",
+  "capture": "616892fc134979867636",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://ksg-de.com/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:38:40.013012+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 606,
+  "state": "ok",
+  "elapsed_seconds": 1.062,
+  "sha256": "6f2559920f0834447f30628db5bf057139c1021af80525670cc7040e08792a22",
+  "capture": "5553f99ac284fe27f9c7"
+}

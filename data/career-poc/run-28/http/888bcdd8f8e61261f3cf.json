@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vollack.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:47.036510+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://vollack.de/robots.txt",
+  "bytes": 302,
+  "state": "http_error",
+  "elapsed_seconds": 0.156,
+  "sha256": "9d677ac20d39c60fc3e06a5c2e55ad59d764a9fd912225122dae8f8bdc18ee10",
+  "capture": "888bcdd8f8e61261f3cf"
+}

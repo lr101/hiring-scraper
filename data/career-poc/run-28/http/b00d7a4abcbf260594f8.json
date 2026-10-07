@@ -1,0 +1,16 @@
+{
+  "url": "https://michel-hug.de/",
+  "checked_at": "2026-10-05T23:32:15.006184+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 684303,
+  "state": "ok",
+  "elapsed_seconds": 1.075,
+  "sha256": "cd339d9e115405eb3c6a4f3a6336b3dd8b85243cd085e53f7e8929e7bada9938",
+  "capture": "b00d7a4abcbf260594f8"
+}

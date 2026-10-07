@@ -1,0 +1,17 @@
+{
+  "url": "https://www.stb-krumes.de/jobs",
+  "checked_at": "2026-10-05T23:42:30.602751+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171739,
+  "state": "http_error",
+  "elapsed_seconds": 0.992,
+  "sha256": "8b3fa0ae42a286bbdcf24d5ef07c7d96cbec8f132e103662a78238a0ca2d87a9",
+  "capture": "acadda1b7d6384233e8b",
+  "merged_from_run": "run-28"
+}

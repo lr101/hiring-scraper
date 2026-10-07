@@ -1,0 +1,16 @@
+{
+  "url": "https://svt-karriere.de/kaufmaennische-positionen",
+  "checked_at": "2026-10-05T23:38:39.988192+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1289997,
+  "state": "ok",
+  "elapsed_seconds": 1.059,
+  "sha256": "88bfec4a9f0bd3ad647af0eaf1926a3caafcdaf0207a59cd1e8b4d302a3423fb",
+  "capture": "cc9c7a1abab01d4e9422"
+}

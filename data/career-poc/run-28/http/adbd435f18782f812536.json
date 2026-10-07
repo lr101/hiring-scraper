@@ -1,0 +1,16 @@
+{
+  "url": "https://www.becomecloud.com/careers",
+  "checked_at": "2026-10-05T23:39:47.158325+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 69934,
+  "state": "http_error",
+  "elapsed_seconds": 2.109,
+  "sha256": "1510afd6c1f7fdf7c86bbc691bcb482d092e543ca2e9710de508b7e59023eb68",
+  "capture": "adbd435f18782f812536"
+}

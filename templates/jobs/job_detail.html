@@ -1,6 +1,0 @@
-{% extends "base.html" %}
-{% block title %}{{ job.title }} | Job Monitor{% endblock %}
-{% block content %}
-<header class="page-heading"><p class="eyebrow">{{ job.source.company.name }}</p><h1>{{ job.title }}</h1><p>{% if job.city %}{{ job.city }} · {% endif %}{{ job.get_remote_type_display }}</p></header>
-<div class="two-column"><article class="card"><h2>Job details</h2>{{ job.description_text|linebreaks }}{% with application_url=job.application_url|default:job.canonical_url %}{% if application_url|slice:":8" == "https://" or application_url|slice:":7" == "http://" %}<p><a class="button-link" href="{{ application_url }}" target="_blank" rel="noreferrer">Open application</a></p>{% endif %}{% endwith %}</article><section class="card"><h2>Workflow</h2><form method="post" action="{% url 'jobs:job_state' job.pk %}">{% csrf_token %}<p><label for="status">Status</label><select id="status" name="status">{% for value,label in state.Status.choices %}<option value="{{ value }}"{% if state.status == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></p><p><label for="notes">Notes</label><textarea id="notes" name="notes">{{ state.notes }}</textarea></p><button type="submit">Save</button></form><h2>Matches</h2>{% for match in matches %}<p>{{ match.profile.name }} · {{ match.score }} points</p>{% endfor %}</section></div>
-{% endblock %}

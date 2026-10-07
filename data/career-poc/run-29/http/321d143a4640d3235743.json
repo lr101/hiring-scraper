@@ -1,0 +1,17 @@
+{
+  "url": "https://www.emtrion.de/karriere",
+  "checked_at": "2026-10-05T23:15:15.326948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 586436,
+  "state": "http_error",
+  "elapsed_seconds": 0.834,
+  "sha256": "e2482d488595147aac5165e856a8d8754f7ceb2cd8631b4c7a05442716d49e13",
+  "capture": "321d143a4640d3235743",
+  "merged_from_run": "run-28"
+}

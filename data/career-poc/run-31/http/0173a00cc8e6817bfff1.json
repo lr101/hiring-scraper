@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ww-cs.de/karriere",
+  "checked_at": "2026-10-05T23:37:46.085530+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 245243,
+  "state": "http_error",
+  "elapsed_seconds": 1.6,
+  "sha256": "34aae0a49184142e686533c8d8fe4c93bb220670d20c67bafae9eb0f90c892ab",
+  "capture": "0173a00cc8e6817bfff1",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://meisteramwerk.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:46:24.387869+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 551,
+  "state": "ok",
+  "elapsed_seconds": 0.883,
+  "sha256": "81a7a1da22c21eeebfe964030ec68b5f3896576b09083ff81190c538b9d43f0e",
+  "capture": "bf1fe4f200176057ad93"
+}

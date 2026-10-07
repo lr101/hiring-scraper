@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hkr-garten.de/",
+  "checked_at": "2026-10-05T23:40:02.416668+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"2b7d-6353aacfa1e72\"",
+  "last_modified": "Fri, 16 May 2025 06:13:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 11133,
+  "state": "ok",
+  "elapsed_seconds": 1.022,
+  "sha256": "a7b59d8a4c2384fe090dbf899207949d320e200ff46b48c27d735cee4e44ba9a",
+  "capture": "0fd504f24a35de91b488",
+  "merged_from_run": "run-28"
+}

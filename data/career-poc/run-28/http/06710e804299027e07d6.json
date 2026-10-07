@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ehase-elektrotechnik.de/karriere",
+  "checked_at": "2026-10-05T23:14:34.297052+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 207445,
+  "state": "http_error",
+  "elapsed_seconds": 1.182,
+  "sha256": "5f3dc76aacdf6bf4bdf956fc28452eb9f4acbaba02bec17cab17296116d365f2",
+  "capture": "06710e804299027e07d6"
+}

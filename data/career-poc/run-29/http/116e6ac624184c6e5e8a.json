@@ -1,0 +1,17 @@
+{
+  "url": "https://trk.de/en/who-we-are/karriere/?wg-choose-original=false",
+  "checked_at": "2026-10-05T23:22:18.011524+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://trk.de/en/who-we-are/karriere/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.246,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "116e6ac624184c6e5e8a",
+  "merged_from_run": "run-28"
+}

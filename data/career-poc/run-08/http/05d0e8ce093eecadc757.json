@@ -1,0 +1,14 @@
+{
+  "url": "https://www.inovex.de/de/karriere/",
+  "checked_at": "2026-10-05T09:08:23.568013+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 192119,
+  "state": "ok",
+  "elapsed_seconds": 1.07,
+  "sha256": "86f17e814cbf29ee21df806397bb36d4f417bc0ddf3372583921023444d1eceb",
+  "capture": "05d0e8ce093eecadc757",
+  "reused_from": "data/career-poc/run-02/http/05d0e8ce093eecadc757.json"
+}

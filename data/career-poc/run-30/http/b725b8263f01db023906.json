@@ -1,0 +1,17 @@
+{
+  "url": "https://www.landkreis-karlsruhe.de/Aktuelles-Landkreis/Aktuelles/50-Jahre-im-Landkreis-Karlsruhe/Arbeitgeber-und-Beh%C3%B6rde/",
+  "checked_at": "2026-10-05T23:36:42.510707+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=iso-8859-15",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76564,
+  "state": "ok",
+  "elapsed_seconds": 0.992,
+  "sha256": "d5cdda762ad6782f2f9d99f2fbb5a01003b13b095477e70d7587851725b2866d",
+  "capture": "b725b8263f01db023906",
+  "merged_from_run": "run-28"
+}

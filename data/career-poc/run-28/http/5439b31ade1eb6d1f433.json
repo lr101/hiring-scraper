@@ -1,0 +1,16 @@
+{
+  "url": "http://metallbau-model.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:26.802123+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://metallbau-model.de/post-sitemap.xml",
+  "bytes": 291,
+  "state": "http_error",
+  "elapsed_seconds": 1.0,
+  "sha256": "b1858ee09868a15305df5239c3f26a4041f0404f43bcd2b9a11c5ff74d59c167",
+  "capture": "5439b31ade1eb6d1f433"
+}

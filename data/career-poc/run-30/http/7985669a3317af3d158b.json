@@ -1,0 +1,17 @@
+{
+  "url": "https://halter.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:06.694880+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 884,
+  "state": "ok",
+  "elapsed_seconds": 0.133,
+  "sha256": "b32a33c7ff6ce6eff24c1eaf87539b3f1503b2840b223a2bf885ed4defba8431",
+  "capture": "7985669a3317af3d158b",
+  "merged_from_run": "run-28"
+}

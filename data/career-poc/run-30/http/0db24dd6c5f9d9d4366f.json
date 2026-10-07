@@ -1,0 +1,17 @@
+{
+  "url": "https://baidenger-finanzberatung.de/careers",
+  "checked_at": "2026-10-05T23:17:25.910723+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103044,
+  "state": "http_error",
+  "elapsed_seconds": 1.265,
+  "sha256": "04523f08fe0ae169a1d87b6823ddb8b7deb6ea5365e886a09e0311aa92c6cac2",
+  "capture": "0db24dd6c5f9d9d4366f",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://axel.energy/robots.txt",
+  "checked_at": "2026-10-05T23:07:39.045387+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169,
+  "state": "ok",
+  "elapsed_seconds": 0.672,
+  "sha256": "a27c472b76d79fe90316648720e9c930c4d8928d142b512db5bbe9c3c0edcb3a",
+  "capture": "4037f723a39bb2c43275"
+}

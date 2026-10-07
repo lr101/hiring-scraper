@@ -1,0 +1,17 @@
+{
+  "url": "https://www.rae-dr-schmitt.de/robots.txt",
+  "checked_at": "2026-10-05T23:10:18.417516+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100,
+  "state": "ok",
+  "elapsed_seconds": 0.295,
+  "sha256": "0df4d86dcc949b365da0c2a6e2be4fc04e136a18841423f2107f5d2da31653ef",
+  "capture": "d05f17099891f8c979d5",
+  "merged_from_run": "run-27"
+}

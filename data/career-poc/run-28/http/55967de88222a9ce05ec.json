@@ -1,0 +1,16 @@
+{
+  "url": "https://crossing-gmbh.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:07.479144+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4350,
+  "state": "ok",
+  "elapsed_seconds": 0.9,
+  "sha256": "7594786b37818b009dc22d79a71418f669a90b91122975c2aaf7870b37bb7c65",
+  "capture": "55967de88222a9ce05ec"
+}

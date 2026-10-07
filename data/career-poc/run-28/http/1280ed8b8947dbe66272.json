@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lancom-jobs.de/job-offers.html",
+  "checked_at": "2026-10-05T23:28:58.764120+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 31900,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "e4b1e6c8d80f7a045b33f42213a5a6a02a912dca4a9dc26085ae0da549a67d79",
+  "capture": "1280ed8b8947dbe66272"
+}

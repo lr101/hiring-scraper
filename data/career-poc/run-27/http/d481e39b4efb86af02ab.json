@@ -1,0 +1,16 @@
+{
+  "url": "https://casinocatering.de/careers",
+  "checked_at": "2026-10-05T23:09:54.970383+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 49156,
+  "state": "http_error",
+  "elapsed_seconds": 1.447,
+  "sha256": "172ab04fab2d4b01007a7a5a3be0f12cb7b0184fb6557a4d4d021eab4824d95b",
+  "capture": "d481e39b4efb86af02ab"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rajapack.de/",
+  "checked_at": "2026-10-05T23:39:10.761745+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 277742,
+  "state": "ok",
+  "elapsed_seconds": 1.074,
+  "sha256": "57e5226f36b87068d8f1b3aabf9403e1ac6f88ecbdfb1c2e25e5ba82b4469001",
+  "capture": "c212f8eb496a81877d87"
+}

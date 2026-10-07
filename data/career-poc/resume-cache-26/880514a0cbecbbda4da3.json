@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bd-kanzlei.de/robots.txt",
+  "checked_at": "2026-10-05T22:28:23.912039+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1030087f6-63-65c37f9ced2b7\"",
+  "last_modified": "Thu, 24 Sep 2026 10:22:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 99,
+  "state": "ok",
+  "elapsed_seconds": 0.138,
+  "sha256": "78510cd400354b0f11dadc97de81f5f603bc78edd198cf2920fea9a85600c407",
+  "capture": "880514a0cbecbbda4da3"
+}

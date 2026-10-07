@@ -1,0 +1,16 @@
+{
+  "url": "https://www.awo-karlsruhe.de/jobs/",
+  "checked_at": "2026-10-05T22:36:35.888114+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.awo-karlsruhe.de/mitmachen/stellenangebote/",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 3.541,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "bc87d06be43f6ecaf17c"
+}

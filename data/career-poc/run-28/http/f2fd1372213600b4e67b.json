@@ -1,0 +1,16 @@
+{
+  "url": "https://www.profiltech.com/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:45:55.136805+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116713,
+  "state": "ok",
+  "elapsed_seconds": 2.693,
+  "sha256": "a6022b35b63e3ed2f6921105cbd3c45a233711e3dc1074be24ee0f57f61759d7",
+  "capture": "f2fd1372213600b4e67b"
+}

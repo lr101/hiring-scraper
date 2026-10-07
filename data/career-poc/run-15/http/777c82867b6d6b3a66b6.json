@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ptvlogistics.com/de/ueber-ptv-logistics/karriere/faq",
+  "checked_at": "2026-10-05T20:47:11.102348+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132777,
+  "state": "ok",
+  "elapsed_seconds": 1.081,
+  "sha256": "17dcf486c5a22b0a963ed7c38c6c5c5a84f4260a38b825a28d9da343fc25ac17",
+  "capture": "777c82867b6d6b3a66b6"
+}

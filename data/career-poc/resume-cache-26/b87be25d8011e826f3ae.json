@@ -1,0 +1,16 @@
+{
+  "url": "https://www.granget.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T22:24:20.984633+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2285,
+  "state": "ok",
+  "elapsed_seconds": 2.812,
+  "sha256": "9a2ce5d4a3369b5865ebd3c60dc5bd3dcd2cb6a8eebbd70104864b8f05abb32a",
+  "capture": "b87be25d8011e826f3ae"
+}

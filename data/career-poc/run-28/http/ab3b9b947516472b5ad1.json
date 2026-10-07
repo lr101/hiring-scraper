@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gtu-gruppe.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:36.051122+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 979,
+  "state": "http_error",
+  "elapsed_seconds": 0.371,
+  "sha256": "7d3935c143c3e468ff9ff86d084a02e3ae86e9be603e3dbb76f104698c934aff",
+  "capture": "ab3b9b947516472b5ad1"
+}

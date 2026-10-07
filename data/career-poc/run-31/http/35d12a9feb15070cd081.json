@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drk-berghausen.de/robots.txt",
+  "checked_at": "2026-10-05T23:41:33.075586+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 401,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 543,
+  "state": "http_error",
+  "elapsed_seconds": 0.61,
+  "sha256": "30fe9c4a1ab18b051b0fa152bfca786e5101d182c14d3ffed4969738d9ec60ca",
+  "capture": "35d12a9feb15070cd081",
+  "merged_from_run": "run-28"
+}

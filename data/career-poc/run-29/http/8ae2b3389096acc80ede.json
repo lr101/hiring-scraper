@@ -1,0 +1,17 @@
+{
+  "url": "https://trautmann-bauunternehmen.de/jobs-karriere/Stellenangebote/Polier-Werkpolier-m-w-d-Rohbau.php",
+  "checked_at": "2026-10-05T23:37:26.979227+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 260744,
+  "state": "ok",
+  "elapsed_seconds": 1.055,
+  "sha256": "56f1502da27e3a639b897af1b80bf2f37ee1604ee9c433b4c3f6e153d9a78952",
+  "capture": "8ae2b3389096acc80ede",
+  "merged_from_run": "run-28"
+}

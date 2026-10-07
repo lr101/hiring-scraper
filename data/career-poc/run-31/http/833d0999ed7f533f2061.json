@@ -1,0 +1,17 @@
+{
+  "url": "https://hwk-karlsruhe.softgarden.io/de/vacancies",
+  "checked_at": "2026-10-05T23:30:18.649007+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26855,
+  "state": "ok",
+  "elapsed_seconds": 0.893,
+  "sha256": "6ffbc8462981607c4bab9a9838c87994924b63b6edd5d56e26841fd08e4e174a",
+  "capture": "833d0999ed7f533f2061",
+  "merged_from_run": "run-28"
+}

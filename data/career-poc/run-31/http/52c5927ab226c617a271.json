@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wandatelier.com/karriere",
+  "checked_at": "2026-10-05T22:43:14.610677+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "http_error",
+  "elapsed_seconds": 1.17,
+  "sha256": "2576ef8bf645027674a108ec24f17e2b1cd5137b3a9c03e7a12ea78614b2cba3",
+  "capture": "52c5927ab226c617a271",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.rajapack.de/arbeiten-bei-raja.html",
+  "checked_at": "2026-10-05T23:39:14.857328+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26154,
+  "state": "ok",
+  "elapsed_seconds": 0.962,
+  "sha256": "acee57ccf6b8ba6712ad7f82743ed3b349d8cbad6e511fdfc9aa17d183a66421",
+  "capture": "3c63d1d50f830f6c0019"
+}

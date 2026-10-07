@@ -1,0 +1,17 @@
+{
+  "url": "https://gofore.com/de/karriere/",
+  "checked_at": "2026-10-05T23:39:09.730584+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 186524,
+  "state": "ok",
+  "elapsed_seconds": 1.125,
+  "sha256": "d4e670deefc867cdaf370b8bd10aab12079b11b970bcc868c0d428bbda0cbda4",
+  "capture": "e2be331e8150a20cc849",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zsb.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T22:30:46.362190+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.sle.kit.edu/wirueberuns/zsb.php",
+  "bytes": 400,
+  "state": "http_error",
+  "elapsed_seconds": 0.138,
+  "sha256": "83159bfa477ba3fdb8f0126a99d2bfc12f6b9d20a646e8f097271a9395d30447",
+  "capture": "9a7966a25d4753e21dc5"
+}

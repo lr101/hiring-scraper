@@ -1,0 +1,16 @@
+{
+  "url": "https://www.beckergmbh.de/robots.txt",
+  "checked_at": "2026-10-05T23:35:53.151107+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"1151048748\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106,
+  "state": "ok",
+  "elapsed_seconds": 0.765,
+  "sha256": "22c55e05c2c0782fb1f97ef245fe67d067964bbf1a3a9cb839bcf90d192c6c53",
+  "capture": "64ce13376793439d7f61"
+}

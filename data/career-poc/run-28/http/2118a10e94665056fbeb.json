@@ -1,0 +1,16 @@
+{
+  "url": "https://www.jb-elektro.com/robots.txt",
+  "checked_at": "2026-10-05T23:45:39.218140+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.buchmann-elektrotechnik.de/robots.txt",
+  "bytes": 297,
+  "state": "http_error",
+  "elapsed_seconds": 0.414,
+  "sha256": "fa14a04529a83a935d1cb33db0f1e1a8c10c066dcd823de46d7c315575df2e2e",
+  "capture": "2118a10e94665056fbeb"
+}

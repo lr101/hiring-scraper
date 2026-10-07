@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tk.de/sitemap.xml",
+  "checked_at": "2026-10-06T07:06:41.750232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2062,
+  "state": "http_error",
+  "elapsed_seconds": 1.122,
+  "sha256": "42edd3d567096ddac6da9ef47107eee4dae5b445b5d044a14c36fb491b873505",
+  "capture": "1ddf2d8bb59c288532e0",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/1ddf2d8bb59c288532e0.json"
+}

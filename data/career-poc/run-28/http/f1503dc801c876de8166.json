@@ -1,0 +1,16 @@
+{
+  "url": "https://www.afs-strahltechnik.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:35:36.665711+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "W/\"fc-ChZQKQymq24BN5txs71Pz4a6rcM\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 252,
+  "state": "ok",
+  "elapsed_seconds": 0.776,
+  "sha256": "9c68cb3d262f671d29a1df1ddcc16d57c69ab01ce6fe0462aaca4c245c9562b8",
+  "capture": "f1503dc801c876de8166"
+}

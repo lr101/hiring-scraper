@@ -1,0 +1,17 @@
+{
+  "url": "https://baron-sicherheit-service.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:49.693891+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 128,
+  "state": "ok",
+  "elapsed_seconds": 4.835,
+  "sha256": "0b173921f8cf69a0a3b81bc5558db46f4e128660847d8599c6a0e218d1036962",
+  "capture": "a21ba1c6b5a71133e1cf",
+  "merged_from_run": "run-28"
+}

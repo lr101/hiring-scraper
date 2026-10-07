@@ -1,0 +1,17 @@
+{
+  "url": "https://pflugers.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:02:00.201863+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"372-65d1f57b511e8\"",
+  "last_modified": "Mon, 05 Oct 2026 22:24:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 882,
+  "state": "ok",
+  "elapsed_seconds": 1.085,
+  "sha256": "eec026b1eac3762734539ab38422be9e74c11f0e349234538e6d803560216376",
+  "capture": "d1cbe3ae7395ada78099",
+  "merged_from_run": "run-27"
+}

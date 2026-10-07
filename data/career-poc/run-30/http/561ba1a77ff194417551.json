@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dokuschmiede.de/robots.txt",
+  "checked_at": "2026-10-05T23:23:20.875245+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 21 Mar 2022 12:46:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 132,
+  "state": "ok",
+  "elapsed_seconds": 2.03,
+  "sha256": "1997f49105c4eea017bccb9fead2f1831eb361217588bde92d902b4992d7f8b3",
+  "capture": "561ba1a77ff194417551",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,11 @@
+{
+  "url": "https://4you-gmbh.eu/robots.txt",
+  "checked_at": "2026-10-05T23:33:16.683594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for '4you-gmbh.eu'. (_ssl.c:992)>",
+  "elapsed_seconds": 0.134,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "9c2214f7dc5e0d1795ac",
+  "merged_from_run": "run-28"
+}

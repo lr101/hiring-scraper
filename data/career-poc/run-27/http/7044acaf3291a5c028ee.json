@@ -1,0 +1,16 @@
+{
+  "url": "https://db.jobs/de-de/warum-zur-db",
+  "checked_at": "2026-10-05T22:56:39.094657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 131030,
+  "state": "ok",
+  "elapsed_seconds": 0.327,
+  "sha256": "bc32a10827418448b4aa265402cab41a2dbf0fd473fe44fbf9902c61d3540b79",
+  "capture": "7044acaf3291a5c028ee"
+}

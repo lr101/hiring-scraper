@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ineratec.de/de/karriere",
+  "checked_at": "2026-10-05T23:29:01.691887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60512,
+  "state": "ok",
+  "elapsed_seconds": 1.212,
+  "sha256": "31c7739725fc6721590927fde640dddf8596aa7a9185e10d1bc58dae63b065e9",
+  "capture": "769ad28c61cc10a5beef"
+}

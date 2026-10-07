@@ -1,0 +1,16 @@
+{
+  "url": "https://ks-kassen.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:45.991979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116,
+  "state": "ok",
+  "elapsed_seconds": 0.691,
+  "sha256": "cc2a5aa312851afdc217e1155be8d926c035a14180bab99eb72165eefcaa28eb",
+  "capture": "c35cf471691db8723d19"
+}

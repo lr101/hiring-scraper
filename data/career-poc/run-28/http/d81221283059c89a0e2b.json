@@ -1,0 +1,16 @@
+{
+  "url": "https://gebaeudereinigung-schoch.de/job/ec8d6d23-e8c6-4d04-bb0f-45c39b01430d",
+  "checked_at": "2026-10-05T23:22:54.155772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:05:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 51287,
+  "state": "ok",
+  "elapsed_seconds": 0.976,
+  "sha256": "f6b0425a149c779653637255bafb4c22fe2ac12120d6eac815dadbb6495f724f",
+  "capture": "d81221283059c89a0e2b"
+}

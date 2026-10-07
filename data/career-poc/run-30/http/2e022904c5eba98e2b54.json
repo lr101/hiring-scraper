@@ -1,0 +1,17 @@
+{
+  "url": "https://www.karlsruhe-erleben.de/kme/jobs/praktikum-eventmanagement",
+  "checked_at": "2026-10-05T22:08:13.223926+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 221997,
+  "state": "ok",
+  "elapsed_seconds": 1.213,
+  "sha256": "2145d9d276e1daed77003347a572afc3c8bf2372e22e87dbce09ba28184022a6",
+  "capture": "2e022904c5eba98e2b54",
+  "merged_from_run": "run-25"
+}

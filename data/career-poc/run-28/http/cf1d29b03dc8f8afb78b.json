@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rolladenbau-ganz.de/careers",
+  "checked_at": "2026-10-05T23:28:32.582666+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 56412,
+  "state": "http_error",
+  "elapsed_seconds": 0.939,
+  "sha256": "4be779ce9743ed41763748159b5002caa046cf7c4f9c863f87cf3f29c654f419",
+  "capture": "cf1d29b03dc8f8afb78b"
+}

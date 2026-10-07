@@ -1,0 +1,17 @@
+{
+  "url": "https://alterbahnhofmalsch.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:31.842232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"304-5c55b577c1a00\"",
+  "last_modified": "Tue, 22 Jun 2021 14:09:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 772,
+  "state": "ok",
+  "elapsed_seconds": 0.772,
+  "sha256": "790c8cb0165a1e8405d9c8aeb0be02276cd94a1e19d65110043a9f20eda7130d",
+  "capture": "8e61742e0fc304cdcf8a",
+  "merged_from_run": "run-28"
+}

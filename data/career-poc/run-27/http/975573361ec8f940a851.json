@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerring.de/steuererklaerung-hilfe-news/news/steuerfreie-zuschuesse-vom-arbeitgeber-fuer-die-kinderbetreuung.html",
+  "checked_at": "2026-10-05T22:48:17.612653+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 37289,
+  "state": "ok",
+  "elapsed_seconds": 1.748,
+  "sha256": "5ffb0cdeb15fc7727bebc3cc8995d4878a17f7b5c8737c6a04819057285bf2bc",
+  "capture": "975573361ec8f940a851"
+}

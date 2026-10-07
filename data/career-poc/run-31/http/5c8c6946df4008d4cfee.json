@@ -1,0 +1,17 @@
+{
+  "url": "https://www.medavis.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:36.423622+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Tue, 16 Feb 2021 11:46:59 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 259,
+  "state": "ok",
+  "elapsed_seconds": 0.136,
+  "sha256": "784874a22d616325772719daf8266e28c8305962f94331811a54d5d1af9f045b",
+  "capture": "5c8c6946df4008d4cfee",
+  "merged_from_run": "run-28"
+}

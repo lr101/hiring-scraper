@@ -1,0 +1,16 @@
+{
+  "url": "https://www.key-work.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:29:05.224065+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.key-work.de/",
+  "bytes": 272,
+  "state": "http_error",
+  "elapsed_seconds": 0.124,
+  "sha256": "c237cb4831917270c666de40794aae77cd0e8058ed2fc8aaaf598b7c4871e624",
+  "capture": "b73165e32d00fcdb07fc"
+}

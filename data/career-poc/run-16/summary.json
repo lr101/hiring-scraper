@@ -1,0 +1,20 @@
+{
+  "companies": 1,
+  "statuses": {
+    "career_content_found": 1
+  },
+  "unique_requests_or_reused_captures": 10,
+  "new_requests": 4,
+  "reused_captures": 6,
+  "http_statuses": {
+    "200": 7,
+    "404": 1,
+    "307": 2
+  },
+  "by_cohort": {
+    "karlsruhe_it_followup_20": {
+      "career_content_found": 1
+    }
+  },
+  "finished_at": "2026-10-05T20:51:30.345916+00:00"
+}

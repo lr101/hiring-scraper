@@ -1,0 +1,16 @@
+{
+  "url": "https://grabmale-loeffler.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:42.629369+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 178,
+  "state": "ok",
+  "elapsed_seconds": 1.306,
+  "sha256": "4e9a26cbba6966e9a60a5b91d6f4a58c38c17bb76d3d8f902d68ac3c69321f76",
+  "capture": "b840bac633ceb376c92e"
+}

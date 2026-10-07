@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schwagedruck.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:37:08.491280+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 9910,
+  "state": "ok",
+  "elapsed_seconds": 1.014,
+  "sha256": "61e44912d21862e9df940bd995536826b2747c3415cff14df9b862d26cd59820",
+  "capture": "6f54563aa6e5e6180305"
+}

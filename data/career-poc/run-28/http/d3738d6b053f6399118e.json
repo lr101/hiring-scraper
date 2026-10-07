@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoffmann-umzuege.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:28:55.416344+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"3a5-65d1ebeebab08\"",
+  "last_modified": "Mon, 05 Oct 2026 21:41:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 933,
+  "state": "ok",
+  "elapsed_seconds": 1.001,
+  "sha256": "2c3a0a49171e35ed47602e60ac71338af6a9bd89aa622239ce4e6702687d9dbf",
+  "capture": "d3738d6b053f6399118e"
+}

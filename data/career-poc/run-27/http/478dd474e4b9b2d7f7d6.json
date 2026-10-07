@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.steuerring.de/stellenangebote/ihre-bewerbung.html",
+  "checked_at": "2026-10-05T22:39:35.427815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32582,
+  "state": "ok",
+  "elapsed_seconds": 1.443,
+  "sha256": "56b229955c9bdc727184c243ea40ed88d9f5f333c13d4417a54866db2538e841",
+  "capture": "478dd474e4b9b2d7f7d6"
+}

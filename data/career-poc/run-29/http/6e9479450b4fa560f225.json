@@ -1,0 +1,17 @@
+{
+  "url": "https://mds-transport.de/karriere",
+  "checked_at": "2026-10-05T23:40:18.619372+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106981,
+  "state": "ok",
+  "elapsed_seconds": 1.28,
+  "sha256": "1437e2566b622d04450391847362669e7baa027a4eb6bffc5ee2a8ff19714837",
+  "capture": "6e9479450b4fa560f225",
+  "merged_from_run": "run-28"
+}

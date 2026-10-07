@@ -1,0 +1,16 @@
+{
+  "url": "https://version1.de/arbeiten-bei-version1/",
+  "checked_at": "2026-10-05T23:02:18.592224+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167797,
+  "state": "ok",
+  "elapsed_seconds": 2.168,
+  "sha256": "2b182ed9943e66cf07490e7a727215a153d37fcf409a794a83556139dcfb0bf4",
+  "capture": "76cbc531f4e5856b0344"
+}

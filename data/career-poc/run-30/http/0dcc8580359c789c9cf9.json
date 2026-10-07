@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mbv-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:32.353281+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 92,
+  "state": "ok",
+  "elapsed_seconds": 0.949,
+  "sha256": "b17d96139ef99c05eb0fe35277f73af6a02965939926476a1687bc2e22c73273",
+  "capture": "0dcc8580359c789c9cf9",
+  "merged_from_run": "run-28"
+}

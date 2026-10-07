@@ -1,0 +1,17 @@
+{
+  "url": "https://ovol.de/",
+  "checked_at": "2026-10-05T23:26:24.219720+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 130678,
+  "state": "ok",
+  "elapsed_seconds": 1.151,
+  "sha256": "8b394559141cac6e09abaa68f3432ec1e3e5bbc647387c8d0032c8c370c5b9a8",
+  "capture": "4db91c95a5b9c522769c",
+  "merged_from_run": "run-28"
+}

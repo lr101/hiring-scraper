@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schindler-kollegen.de/",
+  "checked_at": "2026-10-05T23:17:38.897549+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 126739,
+  "state": "ok",
+  "elapsed_seconds": 1.177,
+  "sha256": "21e3465f82ccc028cc5e55087c642650e79e4a8a82db66ed627e30fd34a0ddf7",
+  "capture": "5754608a00ec3c64af0c"
+}

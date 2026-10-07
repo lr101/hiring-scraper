@@ -1,0 +1,17 @@
+{
+  "url": "https://knubben-lunker.de/robots.txt",
+  "checked_at": "2026-10-05T22:52:01.205721+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1508,
+  "state": "ok",
+  "elapsed_seconds": 0.277,
+  "sha256": "3d91c967bd645af7edd553c32ee57c8b5868fe08fb12b302fa13bb6926c0eaa2",
+  "capture": "d18360eb6b187d3c0bb1",
+  "merged_from_run": "run-27"
+}

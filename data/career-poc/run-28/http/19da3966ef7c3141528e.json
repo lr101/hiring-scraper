@@ -1,0 +1,16 @@
+{
+  "url": "https://www.eurotec-ks.com/de/karriere",
+  "checked_at": "2026-10-05T23:35:47.844385+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"1790871561\"",
+  "last_modified": "Thu, 01 Oct 2026 16:19:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 88659,
+  "state": "ok",
+  "elapsed_seconds": 0.959,
+  "sha256": "43e0784bcde03a74a47c8c3816035d45a08f766ac411bf886c5161f28f86ed5e",
+  "capture": "19da3966ef7c3141528e"
+}

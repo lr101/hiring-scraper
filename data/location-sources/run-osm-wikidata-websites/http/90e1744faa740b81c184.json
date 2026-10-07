@@ -1,0 +1,16 @@
+{
+  "url": "https://www.huk.de/robots.txt",
+  "checked_at": "2026-10-06T07:06:04.731458+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Tue, 22 Sep 2026 05:51:16 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 993,
+  "state": "ok",
+  "elapsed_seconds": 0.282,
+  "sha256": "3374907928c91bad0922680692ff5ad991a8364bfcba88b841dfcd4e7678a008",
+  "capture": "90e1744faa740b81c184"
+}

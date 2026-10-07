@@ -1,0 +1,17 @@
+{
+  "url": "https://toepferladen-karlsruhe.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:36:04.837319+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 587,
+  "state": "ok",
+  "elapsed_seconds": 0.997,
+  "sha256": "fefba08001bf656579c84c03f2c922f51a8885f0b34e27d07ba0fc0ff99093f3",
+  "capture": "d3c8366d099c853f047b",
+  "merged_from_run": "run-28"
+}

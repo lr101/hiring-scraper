@@ -1,0 +1,16 @@
+{
+  "url": "https://www.health-and-beauty.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:37:51.464024+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 672,
+  "state": "ok",
+  "elapsed_seconds": 1.042,
+  "sha256": "a3fac238f92e3f8eded97397de71d3f7f4c5b2d17bc3d5242554e5287b814a75",
+  "capture": "6d12f0dd8432f5dc4634"
+}

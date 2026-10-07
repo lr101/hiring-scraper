@@ -1,0 +1,16 @@
+{
+  "url": "https://chempur.de/karriere",
+  "checked_at": "2026-10-05T22:45:16.652854+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 60630,
+  "state": "ok",
+  "elapsed_seconds": 0.179,
+  "sha256": "a9a334be8a66db51e16c060e996131024e5f2f86487f64b82126b10058884eef",
+  "capture": "92fa875cf15123b0670b"
+}

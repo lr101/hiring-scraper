@@ -1,0 +1,16 @@
+{
+  "url": "https://immo-gartner.de/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T23:30:20.292364+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 886,
+  "state": "ok",
+  "elapsed_seconds": 1.046,
+  "sha256": "c105d19d9ba688bdcb9b9d5aaefee38e5d9803a104f22dbd132c4adafef5e63d",
+  "capture": "d64d8e3dbf81a6557e88"
+}

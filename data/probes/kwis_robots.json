@@ -1,0 +1,12 @@
+{
+  "url": "https://kwis-web.leipzig.de/robots.txt",
+  "checked_at": "2026-10-05T08:20:09.332940+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 404,
+  "final_url": "https://kwis-web.leipzig.de/robots.txt",
+  "content_type": "text/html;charset=utf-8",
+  "bytes": 772,
+  "truncated": false,
+  "elapsed_seconds": 0.32,
+  "sha256": "ed55e2e77660970ff1fa74fcbab33c10a9e2cfa6dd677c1ffe3b8eabca99837d"
+}

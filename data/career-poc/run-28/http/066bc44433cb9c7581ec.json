@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kfz-zeltmann.de/karriere/sachbearbeiter",
+  "checked_at": "2026-10-05T23:39:34.383811+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 43246,
+  "state": "ok",
+  "elapsed_seconds": 0.896,
+  "sha256": "8ba630cd0e3b904ab6a3dad22a505b3797d67b0d6f31aa59a9e4732dc00e9f5d",
+  "capture": "066bc44433cb9c7581ec"
+}

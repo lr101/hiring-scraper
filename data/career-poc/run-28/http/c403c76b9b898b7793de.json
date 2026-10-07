@@ -1,0 +1,16 @@
+{
+  "url": "https://www.autolackierung-weisenburger.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:41.827561+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 104,
+  "state": "ok",
+  "elapsed_seconds": 0.166,
+  "sha256": "acf431be94c193f10abe6f17ed2532ac7b2ef6b961349dae24ce715329db2699",
+  "capture": "c403c76b9b898b7793de"
+}

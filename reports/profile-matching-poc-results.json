@@ -1,0 +1,1235 @@
+{
+  "rule_version": "rules-v1",
+  "matching_source_sha256": "382dbfd48afb4b5aaefd636cc5578442738b13026ac4b11c8cbfeb63f4b29d5b",
+  "fixture": {
+    "companies": 2251,
+    "feeds": 210,
+    "jobs": 1664
+  },
+  "before": {
+    "coverage": {
+      "jobs": 1664,
+      "description": 1352,
+      "employment_type": 1238,
+      "seniority": 422,
+      "salary": 50,
+      "work_arrangement": 661,
+      "substantial_descriptions": 1185,
+      "recognized_skills": 701,
+      "inferred_levels": 367,
+      "explicit_minimum_experience": 15
+    },
+    "area_jobs": 283,
+    "profiles": [
+      {
+        "name": "Demo · Software development",
+        "eligible_jobs": 235,
+        "strong_overlap": 4,
+        "some_overlap": 25,
+        "uncertain_jobs": 95,
+        "query_seconds": 0.173,
+        "keyword_top_10": [
+          {
+            "id": 476,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 478,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx event location",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 500,
+            "title": "Kubernetes Platform Engineer (w/m/d)",
+            "company": "1&1 Mail & Media GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 501,
+            "title": "Private Cloud Engineer (w/m/d)",
+            "company": "1&1 Mail & Media GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 523,
+            "title": "Kubernetes Platform Engineer (w/m/d)",
+            "company": "United Internet Media",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 524,
+            "title": "Private Cloud Engineer (w/m/d)",
+            "company": "United Internet Media",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 842,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "Jacob Elektronik",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 989,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "JACOB Elektronik GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1247,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "JACOB Elektronik",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 276,
+            "title": "Fullstack Developer React/ERP Systems (m/w/d)",
+            "company": "Welectron",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          }
+        ],
+        "evidence_top_10": [
+          {
+            "id": 476,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx",
+            "score": 69,
+            "skills": [
+              "Java",
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java, Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 478,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx event location",
+            "score": 69,
+            "skills": [
+              "Java",
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java, Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 646,
+            "title": "OUTSTANDING SOFTWARE ENGINEER",
+            "company": "HS Analysis GmbH",
+            "score": 69,
+            "skills": [
+              "Python",
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python, Java",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 544,
+            "title": "AI Developer with Python for Customer Care AI Platform team (f/m/d)",
+            "company": "IONOS",
+            "score": 67,
+            "skills": [
+              "Python",
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python, Java",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 830,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "Jacob Elektronik",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 977,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "JACOB Elektronik GmbH",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 1235,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "JACOB Elektronik",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 276,
+            "title": "Fullstack Developer React/ERP Systems (m/w/d)",
+            "company": "Welectron",
+            "score": 59,
+            "skills": [
+              "SQL",
+              "Docker"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: SQL, Docker",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 765,
+            "title": "Senior C++ Software Engineer – Real-Time Systems (m/w/d)",
+            "company": "enabl Technologies GmbH",
+            "score": 56,
+            "skills": [
+              "Python"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 193,
+            "title": "Senior Developer & Consultant – CIAM (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": 55,
+            "skills": [
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java",
+              "Role matches Software developer"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Demo · Accounting",
+        "eligible_jobs": 235,
+        "strong_overlap": 5,
+        "some_overlap": 8,
+        "uncertain_jobs": 95,
+        "query_seconds": 0.246,
+        "keyword_top_10": [
+          {
+            "id": 280,
+            "title": "Mitarbeiter:in Buchhaltung & Accounting (m/w/d)",
+            "company": "Welectron",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1214,
+            "title": "Werkstudent*in (m/w/d) Finance & Accounting",
+            "company": "Asseco Solutions AG",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 553,
+            "title": "Group Accountant and Tax (w/m/d)",
+            "company": "IONOS",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 666,
+            "title": "Senior Controller (f/m/d)",
+            "company": "Chrono24",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 700,
+            "title": "Buchhalter und Zahlen Stratege (m/w/d)",
+            "company": "K³ Kultur- und Kreativwirtschaftsbüro Karlsruhe",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 296,
+            "title": "Buchhalter (m/w/d) mit Fokus auf Lohn- und Gehaltsbuchhaltung",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 300,
+            "title": "Sachbearbeiter Buchhaltung (m/w/d)",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1075,
+            "title": "Insurance Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 187,
+            "title": "Developer & Consultant - CIAM (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 188,
+            "title": "IAM System Engineer (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          }
+        ],
+        "evidence_top_10": [
+          {
+            "id": 553,
+            "title": "Group Accountant and Tax (w/m/d)",
+            "company": "IONOS",
+            "score": 86,
+            "skills": [
+              "Accounting",
+              "Financial reporting",
+              "SAP"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, Financial reporting, SAP",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 700,
+            "title": "Buchhalter und Zahlen Stratege (m/w/d)",
+            "company": "K³ Kultur- und Kreativwirtschaftsbüro Karlsruhe",
+            "score": 82,
+            "skills": [
+              "Accounting",
+              "DATEV",
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV, Excel",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 296,
+            "title": "Buchhalter (m/w/d) mit Fokus auf Lohn- und Gehaltsbuchhaltung",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": 76,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 300,
+            "title": "Sachbearbeiter Buchhaltung (m/w/d)",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": 76,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 280,
+            "title": "Mitarbeiter:in Buchhaltung & Accounting (m/w/d)",
+            "company": "Welectron",
+            "score": 72,
+            "skills": [
+              "Accounting",
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, Excel",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 592,
+            "title": "Bilanzbuchhalter (w/m/d)",
+            "company": "Consileon",
+            "score": 63,
+            "skills": [
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 781,
+            "title": "(Senior) Steuerassistent (m/w/d)",
+            "company": "Falk",
+            "score": 31,
+            "skills": [
+              "Financial reporting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Financial reporting, DATEV"
+            ]
+          },
+          {
+            "id": 1075,
+            "title": "Insurance Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": 31,
+            "skills": [
+              "Excel",
+              "SAP"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Excel, SAP"
+            ]
+          },
+          {
+            "id": 666,
+            "title": "Senior Controller (f/m/d)",
+            "company": "Chrono24",
+            "score": 28,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV"
+            ]
+          },
+          {
+            "id": 1073,
+            "title": "HSE Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": 18,
+            "skills": [
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Excel"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "detail_pass": {
+    "checked": 1664,
+    "updated": 0,
+    "details_attempted": 20,
+    "descriptions_improved": 7
+  },
+  "after": {
+    "coverage": {
+      "jobs": 1664,
+      "description": 1359,
+      "employment_type": 1238,
+      "seniority": 422,
+      "salary": 50,
+      "work_arrangement": 661,
+      "substantial_descriptions": 1192,
+      "recognized_skills": 706,
+      "inferred_levels": 367,
+      "explicit_minimum_experience": 16
+    },
+    "area_jobs": 283,
+    "profiles": [
+      {
+        "name": "Demo · Software development",
+        "eligible_jobs": 235,
+        "strong_overlap": 4,
+        "some_overlap": 25,
+        "uncertain_jobs": 95,
+        "query_seconds": 0.238,
+        "keyword_top_10": [
+          {
+            "id": 476,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 478,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx event location",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 500,
+            "title": "Kubernetes Platform Engineer (w/m/d)",
+            "company": "1&1 Mail & Media GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 501,
+            "title": "Private Cloud Engineer (w/m/d)",
+            "company": "1&1 Mail & Media GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 523,
+            "title": "Kubernetes Platform Engineer (w/m/d)",
+            "company": "United Internet Media",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 524,
+            "title": "Private Cloud Engineer (w/m/d)",
+            "company": "United Internet Media",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 842,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "Jacob Elektronik",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 989,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "JACOB Elektronik GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1247,
+            "title": "Senior Systems Engineer Linux (m/w/d)",
+            "company": "JACOB Elektronik",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 276,
+            "title": "Fullstack Developer React/ERP Systems (m/w/d)",
+            "company": "Welectron",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          }
+        ],
+        "evidence_top_10": [
+          {
+            "id": 476,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx",
+            "score": 69,
+            "skills": [
+              "Java",
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java, Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 478,
+            "title": "(Senior) Softwareentwickler Backend / Full Stack (m/w/d)",
+            "company": "synyx event location",
+            "score": 69,
+            "skills": [
+              "Java",
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java, Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 646,
+            "title": "OUTSTANDING SOFTWARE ENGINEER",
+            "company": "HS Analysis GmbH",
+            "score": 69,
+            "skills": [
+              "Python",
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python, Java",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 544,
+            "title": "AI Developer with Python for Customer Care AI Platform team (f/m/d)",
+            "company": "IONOS",
+            "score": 67,
+            "skills": [
+              "Python",
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python, Java",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 830,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "Jacob Elektronik",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 977,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "JACOB Elektronik GmbH",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 1235,
+            "title": "AI-First Software Engineer (m/w/d) - Backend & Platforms",
+            "company": "JACOB Elektronik",
+            "score": 60,
+            "skills": [
+              "Docker",
+              "Kubernetes"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Docker, Kubernetes",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 276,
+            "title": "Fullstack Developer React/ERP Systems (m/w/d)",
+            "company": "Welectron",
+            "score": 59,
+            "skills": [
+              "SQL",
+              "Docker"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: SQL, Docker",
+              "Role matches Software developer",
+              "Role matches Backend"
+            ]
+          },
+          {
+            "id": 765,
+            "title": "Senior C++ Software Engineer – Real-Time Systems (m/w/d)",
+            "company": "enabl Technologies GmbH",
+            "score": 56,
+            "skills": [
+              "Python"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Python",
+              "Role matches Software developer"
+            ]
+          },
+          {
+            "id": 193,
+            "title": "Senior Developer & Consultant – CIAM (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": 55,
+            "skills": [
+              "Java"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Java",
+              "Role matches Software developer"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Demo · Accounting",
+        "eligible_jobs": 235,
+        "strong_overlap": 5,
+        "some_overlap": 8,
+        "uncertain_jobs": 95,
+        "query_seconds": 0.193,
+        "keyword_top_10": [
+          {
+            "id": 280,
+            "title": "Mitarbeiter:in Buchhaltung & Accounting (m/w/d)",
+            "company": "Welectron",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1214,
+            "title": "Werkstudent*in (m/w/d) Finance & Accounting",
+            "company": "Asseco Solutions AG",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 553,
+            "title": "Group Accountant and Tax (w/m/d)",
+            "company": "IONOS",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 666,
+            "title": "Senior Controller (f/m/d)",
+            "company": "Chrono24",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 700,
+            "title": "Buchhalter und Zahlen Stratege (m/w/d)",
+            "company": "K³ Kultur- und Kreativwirtschaftsbüro Karlsruhe",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 296,
+            "title": "Buchhalter (m/w/d) mit Fokus auf Lohn- und Gehaltsbuchhaltung",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 300,
+            "title": "Sachbearbeiter Buchhaltung (m/w/d)",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 1075,
+            "title": "Insurance Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 187,
+            "title": "Developer & Consultant - CIAM (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          },
+          {
+            "id": 188,
+            "title": "IAM System Engineer (m/w/d)",
+            "company": "amiconsult GmbH",
+            "score": null,
+            "skills": null,
+            "uncertain": null,
+            "reasons": null
+          }
+        ],
+        "evidence_top_10": [
+          {
+            "id": 553,
+            "title": "Group Accountant and Tax (w/m/d)",
+            "company": "IONOS",
+            "score": 86,
+            "skills": [
+              "Accounting",
+              "Financial reporting",
+              "SAP"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, Financial reporting, SAP",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 700,
+            "title": "Buchhalter und Zahlen Stratege (m/w/d)",
+            "company": "K³ Kultur- und Kreativwirtschaftsbüro Karlsruhe",
+            "score": 82,
+            "skills": [
+              "Accounting",
+              "DATEV",
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV, Excel",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 296,
+            "title": "Buchhalter (m/w/d) mit Fokus auf Lohn- und Gehaltsbuchhaltung",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": 76,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 300,
+            "title": "Sachbearbeiter Buchhaltung (m/w/d)",
+            "company": "M-A-U-S Erste Hilfe Kurse",
+            "score": 76,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 280,
+            "title": "Mitarbeiter:in Buchhaltung & Accounting (m/w/d)",
+            "company": "Welectron",
+            "score": 72,
+            "skills": [
+              "Accounting",
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, Excel",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 592,
+            "title": "Bilanzbuchhalter (w/m/d)",
+            "company": "Consileon",
+            "score": 63,
+            "skills": [
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: DATEV",
+              "Role matches Accounting",
+              "Role matches Buchhaltung"
+            ]
+          },
+          {
+            "id": 781,
+            "title": "(Senior) Steuerassistent (m/w/d)",
+            "company": "Falk",
+            "score": 31,
+            "skills": [
+              "Financial reporting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Financial reporting, DATEV"
+            ]
+          },
+          {
+            "id": 1075,
+            "title": "Insurance Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": 31,
+            "skills": [
+              "Excel",
+              "SAP"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Excel, SAP"
+            ]
+          },
+          {
+            "id": 666,
+            "title": "Senior Controller (f/m/d)",
+            "company": "Chrono24",
+            "score": 28,
+            "skills": [
+              "Accounting",
+              "DATEV"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Accounting, DATEV"
+            ]
+          },
+          {
+            "id": 1073,
+            "title": "HSE Specialist (m/w/d)",
+            "company": "Vulcan Energie",
+            "score": 18,
+            "skills": [
+              "Excel"
+            ],
+            "uncertain": false,
+            "reasons": [
+              "Skills mentioned: Excel"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "detail_examples": [
+    {
+      "id": 1,
+      "title": "Ausbildungsplätze und Praktika beim Regierungspräsidium Karlsruhe",
+      "description_chars": 140,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 2,
+      "title": "Praktikum oder Studi-Job gesucht?",
+      "description_chars": 302,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 3,
+      "title": "Grabungstechnikerin / Grabungstechniker (w/m/d)",
+      "description_chars": 279,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 4,
+      "title": "Staatlich geprüfte/r Bautechniker/in oder vergleichbare Ausbildung (w/m/d)",
+      "description_chars": 234,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 5,
+      "title": "Praktikum im Bereich Bevölkerungsschutz (w/m/d)",
+      "description_chars": 176,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 6,
+      "title": "Praktikum im Rahmen des Bachelor-Studiengangs Public Management / Public Financial Management",
+      "description_chars": 297,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 7,
+      "title": "Praktikum in den Studiengängen Arbeitspsychologie, Sozialwissenschaften, Arbeitswissenschaften (w/m/d)",
+      "description_chars": 285,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 8,
+      "title": "Praktikum & Werkstudierende",
+      "description_chars": 148,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 10,
+      "title": "Ausbildung zum Immobilienkaufmann/-frau (m/w/d) Start 09-2027",
+      "description_chars": 2978,
+      "method": "verified_detail_jsonld",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 11,
+      "title": "Schulpraktikum",
+      "description_chars": 798,
+      "method": "verified_detail_jsonld",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 12,
+      "title": "Stellenangebote und Ausbildungsplätze",
+      "description_chars": 168,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 13,
+      "title": "PRAKTIKUM BEI DER STADTWERKE KARLSRUHE WINTERZEIT",
+      "description_chars": 2294,
+      "method": "verified_detail_html",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 14,
+      "title": "PRAKTIKUM EVENTMANAGEMENT",
+      "description_chars": 2191,
+      "method": "verified_detail_html",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 17,
+      "title": "Werkstudenten",
+      "description_chars": 170,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 18,
+      "title": "Aushilfen/ Werkstudenten",
+      "description_chars": 0,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 19,
+      "title": "Temporary staff/working students",
+      "description_chars": 0,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 20,
+      "title": "Werkstudent Datenschutz & Datensicherheit (m/w/d)",
+      "description_chars": 0,
+      "method": null,
+      "status": "no_verified_description",
+      "http_state": "ok"
+    },
+    {
+      "id": 21,
+      "title": "Finance & Office Manager (m/w/d)",
+      "description_chars": 2382,
+      "method": "verified_detail_html",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 22,
+      "title": "Montagemitarbeiter (m/w/d) Elektrotechnik",
+      "description_chars": 2047,
+      "method": "verified_detail_html",
+      "status": "improved",
+      "http_state": "ok"
+    },
+    {
+      "id": 23,
+      "title": "Anlagenmechaniker (m/w/d) Sanitär-, Heizungs- und Klimatechnik",
+      "description_chars": 1532,
+      "method": "verified_detail_html",
+      "status": "improved",
+      "http_state": "ok"
+    }
+  ]
+}

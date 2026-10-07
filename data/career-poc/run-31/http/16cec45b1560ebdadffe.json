@@ -1,0 +1,17 @@
+{
+  "url": "https://www.drhaasters.net/karriere",
+  "checked_at": "2026-10-05T23:24:39.137071+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 83605,
+  "state": "http_error",
+  "elapsed_seconds": 1.076,
+  "sha256": "9b25ec71f81f328af818643734bc502c19776e130f991ed17629dd9d2e2220db",
+  "capture": "16cec45b1560ebdadffe",
+  "merged_from_run": "run-28"
+}

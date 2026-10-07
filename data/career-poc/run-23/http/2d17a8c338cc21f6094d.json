@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hs-analysis.com/robots.txt",
+  "checked_at": "2026-10-05T20:43:37.239226+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://hs-analysis.com/robots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.311,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "2d17a8c338cc21f6094d",
+  "reused_from": "data/career-poc/run-22/http/2d17a8c338cc21f6094d.json"
+}

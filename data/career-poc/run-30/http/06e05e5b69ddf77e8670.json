@@ -1,0 +1,17 @@
+{
+  "url": "https://frauenundbusiness.de/karriere/",
+  "checked_at": "2026-10-05T22:43:25.024646+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 179356,
+  "state": "ok",
+  "elapsed_seconds": 1.274,
+  "sha256": "5344fd624a1f75e7d1a889ddbc0ef1a5ecc3f7cee3014b076b77ef2237eb138d",
+  "capture": "06e05e5b69ddf77e8670",
+  "merged_from_run": "run-27"
+}

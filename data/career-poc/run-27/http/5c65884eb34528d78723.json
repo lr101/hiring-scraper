@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drklein.de/",
+  "checked_at": "2026-10-05T22:39:16.552895+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 117627,
+  "state": "ok",
+  "elapsed_seconds": 3.008,
+  "sha256": "155ebf9ba7c6f0c1a3160ff067112d555b7537e4f13615d8cad56772d49ce399",
+  "capture": "5c65884eb34528d78723"
+}

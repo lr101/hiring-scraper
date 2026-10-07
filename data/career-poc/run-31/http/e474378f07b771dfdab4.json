@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zwo-elf.de/wp-sitemap-posts-post-1.xml",
+  "checked_at": "2026-10-05T23:15:16.953480+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20170,
+  "state": "ok",
+  "elapsed_seconds": 1.007,
+  "sha256": "18d6f25bb62c644f45df0fbc0ced57b241a7db6806688ae6355f2c69a4fa6750",
+  "capture": "e474378f07b771dfdab4",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.strippel-dach.de/Stellenangebote.html",
+  "checked_at": "2026-10-05T23:23:30.022386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6280-65d199d25c544\"",
+  "last_modified": "Mon, 05 Oct 2026 15:34:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 25216,
+  "state": "ok",
+  "elapsed_seconds": 0.92,
+  "sha256": "6fb9bbb37cd42178aa588e87cc379bed2bfa4ddc10075fdf941b90c0a58e19b2",
+  "capture": "253a2c48b3da5b8cbec3"
+}

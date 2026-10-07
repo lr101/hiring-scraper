@@ -1,0 +1,17 @@
+{
+  "url": "https://careers.holcimgroup.com/holcim_south_germany/job/Stra%C3%9Fberg-Kraftfahrer-%28mwd%29-72479/1368898957/",
+  "checked_at": "2026-10-05T23:45:04.927546+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91482,
+  "state": "ok",
+  "elapsed_seconds": 0.979,
+  "sha256": "57391ff0e0be5b72e74374d4fa856d998b8db13b54a8cceeb19109331de97490",
+  "capture": "2c3a655eb28b5124a473",
+  "merged_from_run": "run-28"
+}

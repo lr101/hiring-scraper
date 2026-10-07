@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kuhn-edeka.de/karriere/quereinstieg/",
+  "checked_at": "2026-10-05T23:37:18.925832+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 790975,
+  "state": "ok",
+  "elapsed_seconds": 3.868,
+  "sha256": "3fb88544da418da113262c96a8045bb277ea7f827818c06b11401ad87980fad7",
+  "capture": "39c135a0a72ec42f4d17",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.tria-technologies.com/robots.txt",
+  "checked_at": "2026-10-05T23:47:13.203667+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 400,
+  "state": "ok",
+  "elapsed_seconds": 1.071,
+  "sha256": "7ecd7a430a92633998c2f617148a227b54b8247a7c9b5c6e5e48a6d395553bdf",
+  "capture": "6745eed7f9ff6a888708",
+  "merged_from_run": "run-28"
+}

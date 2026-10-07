@@ -1,0 +1,16 @@
+{
+  "url": "https://www.invenio.net/robots.txt",
+  "checked_at": "2026-10-05T23:19:28.752387+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"12e-615a671b97d40\"",
+  "last_modified": "Tue, 09 Apr 2024 09:21:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 302,
+  "state": "ok",
+  "elapsed_seconds": 0.145,
+  "sha256": "18abdabfd1c2532176989ff51e5526ebee7abb0bc438321f8c02201ede516b8c",
+  "capture": "157a0479062c61f5b18b"
+}

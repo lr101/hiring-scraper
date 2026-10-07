@@ -1,0 +1,7 @@
+{
+  "started_at": "2026-10-06T07:22:25.037121+00:00",
+  "finished_at": "2026-10-06T07:22:27.175835+00:00",
+  "source_run": "run-osm-wikidata-websites",
+  "parser_replay": true,
+  "network_requests": 0
+}

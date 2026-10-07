@@ -1,0 +1,17 @@
+{
+  "url": "https://hhac.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:43:08.337909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 41937,
+  "state": "ok",
+  "elapsed_seconds": 1.285,
+  "sha256": "0b474a6ab89bf41f55bf44a3be0b6fcb8393954f20152b541e160e98624e57ff",
+  "capture": "8ba339369b90acb99313",
+  "merged_from_run": "run-28"
+}

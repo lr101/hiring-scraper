@@ -1,0 +1,17 @@
+{
+  "url": "https://www.awo-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T22:36:28.313720+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/octet-stream",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127,
+  "state": "ok",
+  "elapsed_seconds": 0.131,
+  "sha256": "78f053e4ca4e756ba15ab5fb173c4d869d5d4b8e6b6cffc5b0dc04fc2f8ceff8",
+  "capture": "fa3fdbe86c26253d283d",
+  "merged_from_run": "run-27"
+}

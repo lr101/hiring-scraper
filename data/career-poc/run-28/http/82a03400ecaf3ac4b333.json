@@ -1,0 +1,16 @@
+{
+  "url": "https://www.psk-lions.de/news/artikel/office-jobs-4-you-x-psk-lions.html",
+  "checked_at": "2026-10-05T23:15:41.759708+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 54227,
+  "state": "ok",
+  "elapsed_seconds": 1.572,
+  "sha256": "135420b8514f5a3371b54cccdd230f2e66d22f9769d7d14d5141df5bc1ee1eda",
+  "capture": "82a03400ecaf3ac4b333"
+}

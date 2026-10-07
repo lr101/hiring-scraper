@@ -1,0 +1,10 @@
+{
+  "url": "https://education.altium.com/robots.txt",
+  "checked_at": "2026-10-05T22:27:48.906416+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error TLS/SSL connection has been closed (EOF) (_ssl.c:992)>",
+  "elapsed_seconds": 0.149,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "bb664d07f90f8566357d"
+}

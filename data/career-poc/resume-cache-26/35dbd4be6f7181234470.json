@@ -1,0 +1,16 @@
+{
+  "url": "https://bnn.de/",
+  "checked_at": "2026-10-05T22:09:18.825132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 406376,
+  "state": "ok",
+  "elapsed_seconds": 1.494,
+  "sha256": "c80e8a28fa08e07b27891ba084e87decea98c816d5f08a6826949bce2828eb3d",
+  "capture": "35dbd4be6f7181234470"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.randstad.de/karriere/bewerbung/arbeitsproben/",
+  "checked_at": "2026-10-05T22:41:32.652887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"50b10f778625b35133b5401ef7792bc1\"",
+  "last_modified": "Mon, 05 Oct 2026 15:58:31 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 149759,
+  "state": "ok",
+  "elapsed_seconds": 1.14,
+  "sha256": "e75d528348a04b0b3b244194a3088dd5e9b7a71f683de2fd40a03ee92feb6394",
+  "capture": "cc46f046a454d875f0d7"
+}

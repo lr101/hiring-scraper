@@ -1,0 +1,16 @@
+{
+  "url": "https://www.toepferladen-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:35:59.021175+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://toepferladen-karlsruhe.de/robots.txt",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 3.004,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "16de1e93fb5626fd11e0"
+}

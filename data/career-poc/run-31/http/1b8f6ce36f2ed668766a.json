@@ -1,0 +1,17 @@
+{
+  "url": "https://joos-gruppe.de/jobs/bauabrechner-m-w-d/",
+  "checked_at": "2026-10-05T23:36:35.427498+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90673,
+  "state": "ok",
+  "elapsed_seconds": 1.061,
+  "sha256": "3df3ebba3efb74c6780011c1ba205ba18f83016b0b3ba48c2e746944b6ad5804",
+  "capture": "1b8f6ce36f2ed668766a",
+  "merged_from_run": "run-28"
+}

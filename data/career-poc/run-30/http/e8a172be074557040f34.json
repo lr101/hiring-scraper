@@ -1,0 +1,17 @@
+{
+  "url": "https://sv-karlsruhe-beiertheim.de/auf-jobsuche/",
+  "checked_at": "2026-10-05T23:18:01.137016+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 154208,
+  "state": "ok",
+  "elapsed_seconds": 0.959,
+  "sha256": "a985f3d6380a374babf33bfee862a377b5b888eb528fca7b6c30336f20dd520d",
+  "capture": "e8a172be074557040f34",
+  "merged_from_run": "run-28"
+}

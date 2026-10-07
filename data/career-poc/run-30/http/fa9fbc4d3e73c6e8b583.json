@@ -1,0 +1,17 @@
+{
+  "url": "https://career.dreso.com/de/stellenangebote/details/projektmanager-w-m-d-data-center-ref293u",
+  "checked_at": "2026-10-05T22:35:32.188694+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84433,
+  "state": "ok",
+  "elapsed_seconds": 0.306,
+  "sha256": "f2effe56690133034dcf35530af12113e34bc445ac2aa745e595de29e0dad179",
+  "capture": "fa9fbc4d3e73c6e8b583",
+  "merged_from_run": "run-27"
+}

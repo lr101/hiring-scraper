@@ -1,0 +1,16 @@
+{
+  "url": "https://www.aspion.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:20:18.027785+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 761,
+  "state": "ok",
+  "elapsed_seconds": 1.238,
+  "sha256": "6685839fe33a77d1dba585c1a4ea500a11170255666667f23b2a9db024a339ee",
+  "capture": "4f806052a4c1e1907abe"
+}

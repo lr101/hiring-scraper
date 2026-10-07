@@ -1,0 +1,17 @@
+{
+  "url": "https://www.asi-online.de/geschaeftsstellen-detail/karriere.html",
+  "checked_at": "2026-10-05T22:42:19.381156+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 20597,
+  "state": "ok",
+  "elapsed_seconds": 1.495,
+  "sha256": "919dd5a0c5f0aff685a9a99b64d12747e2e1307da97cde217bf635de712eb025",
+  "capture": "a5df1a7adfa8ff8cc3b8",
+  "merged_from_run": "run-27"
+}

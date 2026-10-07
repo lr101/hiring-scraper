@@ -1,0 +1,16 @@
+{
+  "url": "https://www.amz-steuer.de/karriere.html",
+  "checked_at": "2026-10-05T22:34:41.041481+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51739,
+  "state": "ok",
+  "elapsed_seconds": 1.184,
+  "sha256": "7104a081296d6a2c9d0c5176eec79aeb0fbef957b972bf6a47ad2e18e194085f",
+  "capture": "8502a2c8168bfde9e589"
+}

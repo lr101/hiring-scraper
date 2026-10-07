@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hallenkind.com/karriere",
+  "checked_at": "2026-10-05T23:17:45.009206+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2204,
+  "state": "http_error",
+  "elapsed_seconds": 0.72,
+  "sha256": "517bff6159368ac8d4ce58a3b46be3d1a3f24eb83d39b8029d31deb69c4f73d2",
+  "capture": "16acb05b6f5d228f60c5"
+}

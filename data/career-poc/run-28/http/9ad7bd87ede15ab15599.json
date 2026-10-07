@@ -1,0 +1,16 @@
+{
+  "url": "https://www.nexnoa.com/de/jobs/lebensmittelchemikerin/",
+  "checked_at": "2026-10-05T23:29:28.745766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 109923,
+  "state": "ok",
+  "elapsed_seconds": 1.062,
+  "sha256": "78bb3a309db256663dc0a9cd0ededdd422aafd5937e31b573c8596b77909bb17",
+  "capture": "9ad7bd87ede15ab15599"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.smartrecruiters.com/oneclick-ui/company/Tipico/publication/b2494ebd-ed03-46e4-a9f8-ecc8bb4314d8?dcr_ci=Tipico&sid=ad8b6b6a-016d-479c-815c-9be7447c167a",
+  "checked_at": "2026-10-05T23:32:50.455926+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2078,
+  "state": "http_error",
+  "elapsed_seconds": 0.965,
+  "sha256": "a99d30fdc638c6db5f5f1aa019a0cfec2e38233bab4aecfdb56485bde57b9fbc",
+  "capture": "37f3ba01db8749ffdfa1",
+  "merged_from_run": "run-28"
+}

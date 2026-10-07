@@ -1,0 +1,17 @@
+{
+  "url": "https://stark.wd3.myworkdayjobs.com/robots.txt",
+  "checked_at": "2026-10-05T23:31:38.544458+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 896,
+  "state": "ok",
+  "elapsed_seconds": 0.846,
+  "sha256": "413d19b9443e0925b98806959cdc19e210d24039638d636d54aa28f6aa27861c",
+  "capture": "1cd41a69d18810c832b4",
+  "merged_from_run": "run-28"
+}

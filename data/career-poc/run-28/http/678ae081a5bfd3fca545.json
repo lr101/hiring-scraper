@@ -1,0 +1,16 @@
+{
+  "url": "https://conuti.de/careers/consultant-ai-service-experience",
+  "checked_at": "2026-10-05T23:35:16.559053+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62540,
+  "state": "ok",
+  "elapsed_seconds": 0.884,
+  "sha256": "bf01c1f8b77adc3fef02a018b27b0aa78fd1a63d35f1b5887f714103fdeedaa2",
+  "capture": "678ae081a5bfd3fca545"
+}

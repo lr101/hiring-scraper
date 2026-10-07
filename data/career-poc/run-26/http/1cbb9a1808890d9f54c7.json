@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dekra-arbeit.de/news/aktuelles/detail/chatyourjob-schluss-mit-der-jobsuche-wie-frueher-1",
+  "checked_at": "2026-10-05T22:31:21.706812+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"WhVhSiJvEE\"",
+  "last_modified": "Mon, 05 Oct 2026 22:31:23 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 339032,
+  "state": "ok",
+  "elapsed_seconds": 1.367,
+  "sha256": "5a15614a226f10468f82ea52e1985259e4c749c6c2f35b6b331becc84787e97a",
+  "capture": "1cbb9a1808890d9f54c7"
+}

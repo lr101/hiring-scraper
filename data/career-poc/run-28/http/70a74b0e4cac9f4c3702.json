@@ -1,0 +1,16 @@
+{
+  "url": "https://s-und-o.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:28:35.169353+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"902-63ec869ffc080\"",
+  "last_modified": "Sun, 14 Sep 2025 20:05:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2306,
+  "state": "ok",
+  "elapsed_seconds": 0.986,
+  "sha256": "f0560e449099979ea639b8aa69a2e8aecf4b00763fde3f99cab192ba69f2ef30",
+  "capture": "70a74b0e4cac9f4c3702"
+}

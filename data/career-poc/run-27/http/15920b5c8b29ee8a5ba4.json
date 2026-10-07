@@ -1,0 +1,16 @@
+{
+  "url": "http://www.wir-bewegen-alle.de/robots.txt",
+  "checked_at": "2026-10-05T22:45:03.773169+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.wir-bewegen-alle.de/robots.txt",
+  "bytes": 250,
+  "state": "http_error",
+  "elapsed_seconds": 0.062,
+  "sha256": "cfbc947401e30f14d814177bda216c935b125398d13c63ab52f84f3aed35202d",
+  "capture": "15920b5c8b29ee8a5ba4"
+}

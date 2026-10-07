@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ide-trainingsinstitut.de/stellenangebote/kontakt/",
+  "checked_at": "2026-10-05T23:28:28.998015+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 33375,
+  "state": "ok",
+  "elapsed_seconds": 0.973,
+  "sha256": "092420eee89499eb2ae63b8619829e6e2ea90747ce841ff0c75ca07649a36a48",
+  "capture": "110460691e99eb323974",
+  "merged_from_run": "run-28"
+}

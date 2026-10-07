@@ -1,0 +1,16 @@
+{
+  "url": "https://rnt.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:41:35.319734+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 741,
+  "state": "ok",
+  "elapsed_seconds": 0.924,
+  "sha256": "e4f46c504aa5991dce8592efab714a10c915d6fe71207decce3da32ce1870581",
+  "capture": "8d5885c2188575ea1e66"
+}

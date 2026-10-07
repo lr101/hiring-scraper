@@ -1,0 +1,16 @@
+{
+  "url": "https://www.theisinger-probst.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:58.722640+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://gross-bau.de",
+  "bytes": 178,
+  "state": "http_error",
+  "elapsed_seconds": 0.636,
+  "sha256": "2e04a18ff185ba5b16f762a0538339bc4049aceaef9738edd43af77d2ceb788b",
+  "capture": "741a330a52052440398b"
+}

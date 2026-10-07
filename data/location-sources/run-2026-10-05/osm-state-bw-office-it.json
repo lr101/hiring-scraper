@@ -1,0 +1,11 @@
+{
+  "name": "osm-state-bw-office-it",
+  "url": "https://overpass-api.de/api/interpreter",
+  "method": "POST",
+  "checked_at": "2026-10-05T14:41:50.922021+00:00",
+  "status": 504,
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 695,
+  "sha256": "9e8d149c02b9ab7719f9e6cfdf696730c39abead6f27e39eb13793b7d2adbb82",
+  "error": "HTTP Error 504: Gateway Timeout"
+}

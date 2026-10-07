@@ -1,0 +1,17 @@
+{
+  "url": "https://www.zahnarztpraxis-ettlingen.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:35:56.997700+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Mon, 18 Jun 2018 03:37:26 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1604,
+  "state": "ok",
+  "elapsed_seconds": 0.95,
+  "sha256": "b5b3bf1b2ee6a50c5c9408c16e0023d2c9db98eb9146a33de56decc11bba43ca",
+  "capture": "530bccbd6c6d95631e40",
+  "merged_from_run": "run-28"
+}

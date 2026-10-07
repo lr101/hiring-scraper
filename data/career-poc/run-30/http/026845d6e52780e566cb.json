@@ -1,0 +1,17 @@
+{
+  "url": "https://teamtraining-walter.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:37:25.823882+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3066,
+  "state": "ok",
+  "elapsed_seconds": 1.278,
+  "sha256": "0ddb43b4663ef23cbc74b69573e58991c58103233600f5119b305a70a2bfff3b",
+  "capture": "026845d6e52780e566cb",
+  "merged_from_run": "run-28"
+}

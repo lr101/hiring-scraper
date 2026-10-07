@@ -1,0 +1,16 @@
+{
+  "url": "http://eurajobs.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:18.408950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://eurajobs.de/robots.txt",
+  "bytes": 278,
+  "state": "http_error",
+  "elapsed_seconds": 0.076,
+  "sha256": "101eea818632e273eb9ac0afe96bd42aaee934eb49f80e56a86f451d766b0382",
+  "capture": "eaa143aed3b2413105ad"
+}

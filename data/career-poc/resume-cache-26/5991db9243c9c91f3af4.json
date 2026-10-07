@@ -1,0 +1,16 @@
+{
+  "url": "https://synergie.de/en/bewerber/initiativbewerbung/",
+  "checked_at": "2026-10-05T22:16:08.384109+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 315048,
+  "state": "ok",
+  "elapsed_seconds": 2.146,
+  "sha256": "8b7f9dbb7688f6f4660ce85c776acaf959de05ce03fae81573d8b4e13cee79f2",
+  "capture": "5991db9243c9c91f3af4"
+}

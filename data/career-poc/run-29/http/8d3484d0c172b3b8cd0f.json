@@ -1,0 +1,17 @@
+{
+  "url": "https://lang-schwarz.de/sitemap-misc.xml",
+  "checked_at": "2026-10-05T23:14:59.670686+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1042,
+  "state": "ok",
+  "elapsed_seconds": 0.986,
+  "sha256": "1b8877ec429abbc3f547746e44647b0c54a3841730ee435329f3221bbe3d8992",
+  "capture": "8d3484d0c172b3b8cd0f",
+  "merged_from_run": "run-28"
+}

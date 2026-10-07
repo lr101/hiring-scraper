@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cci-dialog.de/robots.txt",
+  "checked_at": "2026-10-05T22:52:55.285635+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"17-5b2e7f3cc5f40\"",
+  "last_modified": "Fri, 30 Oct 2020 18:56:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 23,
+  "state": "ok",
+  "elapsed_seconds": 0.13,
+  "sha256": "16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95",
+  "capture": "6dbfa987d2aad69cd4ad",
+  "merged_from_run": "run-27"
+}

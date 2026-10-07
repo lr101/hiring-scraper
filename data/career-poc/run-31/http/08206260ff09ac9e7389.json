@@ -1,0 +1,17 @@
+{
+  "url": "https://kfwmarchitekten.de/robots.txt",
+  "checked_at": "2026-10-05T22:22:42.789487+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3959,
+  "state": "http_error",
+  "elapsed_seconds": 0.221,
+  "sha256": "8e158bfc657bb23de7d597df2e97be907e94900d60af0c5d665bac356d61da79",
+  "capture": "08206260ff09ac9e7389",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://gartnergmbh.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:56.988849+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 260,
+  "state": "ok",
+  "elapsed_seconds": 0.754,
+  "sha256": "d67162f16d935b24bea7f3b62789431ac6ceed906500a41330c810ebee71d86e",
+  "capture": "a1f0d3953123328a8a24",
+  "merged_from_run": "run-28"
+}

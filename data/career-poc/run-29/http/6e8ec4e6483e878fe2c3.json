@@ -1,0 +1,17 @@
+{
+  "url": "https://db.jobs/de-de/Suche/Projektleiter-in-Spezialist-14039966?jobId=637694",
+  "checked_at": "2026-10-05T22:58:28.946063+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 141277,
+  "state": "ok",
+  "elapsed_seconds": 2.676,
+  "sha256": "3e0fa0069766183b66c45d9084a94c9119df52686bd94585173ea158ed1e9d58",
+  "capture": "6e8ec4e6483e878fe2c3",
+  "merged_from_run": "run-27"
+}

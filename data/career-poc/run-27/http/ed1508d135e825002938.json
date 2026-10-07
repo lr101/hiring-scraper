@@ -1,0 +1,16 @@
+{
+  "url": "https://claus-augenschmaus.de/jobs",
+  "checked_at": "2026-10-05T23:08:19.732236+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 604,
+  "state": "http_error",
+  "elapsed_seconds": 1.122,
+  "sha256": "1404d47724e318a0edfb35ad09c8c6ca711062dccced23dcf7059d45d72a1bdc",
+  "capture": "ed1508d135e825002938"
+}

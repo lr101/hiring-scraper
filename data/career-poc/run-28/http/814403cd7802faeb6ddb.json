@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hauptfleisch.de/karriere/mitarbeiter-in-vertriebsinnendienst/",
+  "checked_at": "2026-10-05T23:36:36.169783+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Thu, 01 Oct 2026 07:26:50 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 196180,
+  "state": "ok",
+  "elapsed_seconds": 0.939,
+  "sha256": "6b43e8a5c633a20cab58dd826a2eccd7ca0e5e5d8ddef8f683addcc1f1791d57",
+  "capture": "814403cd7802faeb6ddb"
+}

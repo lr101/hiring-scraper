@@ -1,0 +1,16 @@
+{
+  "url": "https://www.designoffices.de/familie",
+  "checked_at": "2026-10-05T22:54:25.686245+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"zoz7h04g6c3nq7\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 170947,
+  "state": "ok",
+  "elapsed_seconds": 0.144,
+  "sha256": "91a5075fe4255c266222e85a045516cd0be8793752aace7ea9b1b60c8e482ff2",
+  "capture": "1eaff1bbd3bcc7dabe76"
+}

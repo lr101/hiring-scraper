@@ -1,0 +1,16 @@
+{
+  "url": "https://www.logistik-schmitt.de/",
+  "checked_at": "2026-10-05T23:19:38.536440+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 417097,
+  "state": "ok",
+  "elapsed_seconds": 0.886,
+  "sha256": "64827286d2082aef4b01b19ca9440329fdaaaaa359ded0b948a8b560fa67f15a",
+  "capture": "26e89d5192e76ed26db4"
+}

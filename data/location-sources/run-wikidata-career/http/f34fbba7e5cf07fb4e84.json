@@ -1,0 +1,13 @@
+{
+  "url": "https://www.physikinstrumente.com/en/about/careers/benefits",
+  "checked_at": "2026-10-05T14:48:26.398835+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 1434325,
+  "state": "ok",
+  "elapsed_seconds": 1.115,
+  "sha256": "0491d5552bb01b22e17042d2be125607b7249e5de507159dc5b3d60c8ef30602",
+  "capture": "f34fbba7e5cf07fb4e84"
+}

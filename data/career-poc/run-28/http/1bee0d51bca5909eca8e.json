@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kunbus.com/robots.txt",
+  "checked_at": "2026-10-05T23:36:51.902897+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93,
+  "state": "ok",
+  "elapsed_seconds": 0.147,
+  "sha256": "b12d19b97e357a2bb945dcff223b9e95d2c954ee9b3e15b1e683a7245767ac0b",
+  "capture": "1bee0d51bca5909eca8e"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stb-huell.de/karriere",
+  "checked_at": "2026-10-05T22:48:50.528324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/karriere/",
+  "bytes": 11,
+  "state": "http_error",
+  "elapsed_seconds": 1.101,
+  "sha256": "2564a6e04f1433928a11e7ae0a2019081a3e6f36586e1d763c9b437f0a954d1b",
+  "capture": "3f8341ed9814e2017ee6"
+}

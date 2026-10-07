@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fc-gruppe.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:31:24.099251+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 462,
+  "state": "ok",
+  "elapsed_seconds": 1.115,
+  "sha256": "d3a1270a199e225153a9c546b2fa0fe8fbfa7f86d504444cdec3d57158d6e532",
+  "capture": "e6a293e2981228c02cdc"
+}

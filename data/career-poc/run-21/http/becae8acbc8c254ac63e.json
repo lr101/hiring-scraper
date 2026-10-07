@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.ionos.de/robots.txt",
+  "checked_at": "2026-10-05T20:42:11.952110+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 16269,
+  "state": "http_error",
+  "elapsed_seconds": 0.43,
+  "sha256": "320b915d06a3ccaa506c1825144236a3acfa7dc24b1e6b9244533eeabc4e1227",
+  "capture": "becae8acbc8c254ac63e",
+  "reused_from": "data/career-poc/run-20/http/becae8acbc8c254ac63e.json"
+}

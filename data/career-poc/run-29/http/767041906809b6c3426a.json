@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.schwabe-group.com/robots.txt",
+  "checked_at": "2026-10-05T23:17:06.855230+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 308,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://karriere.schwabe.de/",
+  "bytes": 169,
+  "state": "http_error",
+  "elapsed_seconds": 0.109,
+  "sha256": "c230f673289b2f53f31d1a678e11b9167b824aa5b6ed2195fdaecb63260dad63",
+  "capture": "767041906809b6c3426a",
+  "merged_from_run": "run-28"
+}

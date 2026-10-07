@@ -1,0 +1,17 @@
+{
+  "url": "https://www.rosenbauer.com/de",
+  "checked_at": "2026-10-05T23:27:11.020217+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 514364,
+  "state": "ok",
+  "elapsed_seconds": 1.018,
+  "sha256": "41ce43d0e07a787b9b7b8c24cb7cad47a1c092663951b7c4710e7c6c7726d07b",
+  "capture": "3825d82b82e503431476",
+  "merged_from_run": "run-28"
+}

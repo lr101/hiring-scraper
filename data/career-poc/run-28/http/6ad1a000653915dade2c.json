@@ -1,0 +1,16 @@
+{
+  "url": "https://gamerbraeu.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:48.763254+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 4.629,
+  "sha256": "6e3b771c0ea706ea7b1b91d04aa23b0ca2a66fc3704c7217910ade00ebb555e4",
+  "capture": "6ad1a000653915dade2c"
+}

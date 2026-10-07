@@ -1,0 +1,16 @@
+{
+  "url": "https://marsilli.com/de/stellenangebote/",
+  "checked_at": "2026-10-05T23:22:17.318633+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 88791,
+  "state": "ok",
+  "elapsed_seconds": 2.027,
+  "sha256": "9596360af4bce9bee445ee1365b69ce85d6c060ef454492595e7fce029dddec7",
+  "capture": "5bda34265646435c1ba9"
+}

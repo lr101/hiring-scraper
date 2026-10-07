@@ -1,0 +1,16 @@
+{
+  "url": "https://3dmicrofabrication.com/robots.txt",
+  "checked_at": "2026-10-05T23:06:28.110445+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://horizonmicrotechnologies.com/robots.txt",
+  "bytes": 255,
+  "state": "http_error",
+  "elapsed_seconds": 0.197,
+  "sha256": "c9e2859e481b8ad494282729ac5927ab924b56168397324897690ffcbfa4a596",
+  "capture": "53f827f6be6bf86fdd06"
+}

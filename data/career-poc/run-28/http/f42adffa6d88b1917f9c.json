@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerkanzlei-woitzik.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:57.745011+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"2fc-611bd21185d80\"",
+  "last_modified": "Mon, 19 Feb 2024 14:44:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 764,
+  "state": "ok",
+  "elapsed_seconds": 0.146,
+  "sha256": "f1a6b5e3f6e69a71c53516c4bce70e2414429d23dab6814239500999eb80907e",
+  "capture": "f42adffa6d88b1917f9c"
+}

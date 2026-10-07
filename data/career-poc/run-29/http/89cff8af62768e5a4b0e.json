@@ -1,0 +1,17 @@
+{
+  "url": "https://svt-karriere.de/search",
+  "checked_at": "2026-10-05T23:38:36.588071+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 854132,
+  "state": "ok",
+  "elapsed_seconds": 1.121,
+  "sha256": "78a624d7fb97462851138603f0787c946e5e24ea31d584125d99f1bb9135d8fa",
+  "capture": "89cff8af62768e5a4b0e",
+  "merged_from_run": "run-28"
+}

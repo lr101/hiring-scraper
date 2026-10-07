@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diva-e.com/de/",
+  "checked_at": "2026-10-05T22:49:27.287079+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 363682,
+  "state": "ok",
+  "elapsed_seconds": 1.839,
+  "sha256": "3cbcb68b21256cfe6bf4ded86de69357df03dadd0aec83f13a615cb8c755cc42",
+  "capture": "95fa302cc4365d935b4e",
+  "merged_from_run": "run-27"
+}

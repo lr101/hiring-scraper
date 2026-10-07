@@ -1,0 +1,16 @@
+{
+  "url": "http://www.steinhaus-informationssysteme.de/",
+  "checked_at": "2026-10-05T23:20:29.010905+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.steinhaus-informationssysteme.de/",
+  "bytes": 293,
+  "state": "http_error",
+  "elapsed_seconds": 0.997,
+  "sha256": "c6014fc6a183ed4c7510928e94326a3f45f5ca1ec3f9be2743049b4179b8b8e6",
+  "capture": "92ecca5b52f5d5b34ae5"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wb-metallbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:13.411357+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98,
+  "state": "ok",
+  "elapsed_seconds": 0.891,
+  "sha256": "d684d26e5c77cb55b8429e72205f8c10f0ff11c1bb08eb5b1a898f32c0a061a4",
+  "capture": "5337333d1ba5a90f7789"
+}

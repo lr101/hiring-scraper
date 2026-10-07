@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sg-veneers.com/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:31:14.132877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:11:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 531420,
+  "state": "ok",
+  "elapsed_seconds": 0.895,
+  "sha256": "432f8a7b1a4e074544701bcdf09550524a5a42120dbac1c37ab90c2a5320e24f",
+  "capture": "1ad640e86069fd2356a2"
+}

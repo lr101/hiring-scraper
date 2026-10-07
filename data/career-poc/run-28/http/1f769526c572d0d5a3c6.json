@@ -1,0 +1,16 @@
+{
+  "url": "https://www.paseo-marketing.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:44.306772+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 126,
+  "state": "ok",
+  "elapsed_seconds": 1.235,
+  "sha256": "14e17807b9dde292f55cd0ab6addfa8e7ccb9b8119f00d0c8fe6284cf33c73c7",
+  "capture": "1f769526c572d0d5a3c6"
+}

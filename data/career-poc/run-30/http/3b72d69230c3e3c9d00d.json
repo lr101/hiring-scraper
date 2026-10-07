@@ -1,0 +1,17 @@
+{
+  "url": "https://www.burst-zick.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:35:08.417133+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 294,
+  "state": "ok",
+  "elapsed_seconds": 0.905,
+  "sha256": "82b3aeeaa80c2d4a78ac915bc348861287a871b8e178c5f8b20a55fb28048d6d",
+  "capture": "3b72d69230c3e3c9d00d",
+  "merged_from_run": "run-28"
+}

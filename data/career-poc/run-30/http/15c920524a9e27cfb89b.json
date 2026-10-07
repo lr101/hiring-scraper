@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bkk-verbundplus.de/robots.txt",
+  "checked_at": "2026-10-05T22:21:10.223183+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 02 Jun 2026 07:14:02 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1004,
+  "state": "ok",
+  "elapsed_seconds": 0.301,
+  "sha256": "6aedc77a2abba0722680709772587d0d0b01407c86380a99a173e7d267e8a84e",
+  "capture": "15c920524a9e27cfb89b",
+  "merged_from_run": "run-25"
+}

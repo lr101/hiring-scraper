@@ -1,0 +1,16 @@
+{
+  "url": "https://www.softronic.de/",
+  "checked_at": "2026-10-05T23:28:01.808687+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22959,
+  "state": "ok",
+  "elapsed_seconds": 1.674,
+  "sha256": "80008fd01b5ad3c4be8798b988848832a5f13f82e8914052e54edbfd58b5dec7",
+  "capture": "29bef91e8f37a213407c"
+}

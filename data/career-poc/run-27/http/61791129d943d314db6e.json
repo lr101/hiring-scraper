@@ -1,0 +1,10 @@
+{
+  "url": "https://www.b\u00fcro-f\u00fcr-gew\u00e4sser\u00f6kologie.de/robots.txt",
+  "checked_at": "2026-10-05T22:57:30.593326+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:992)>",
+  "elapsed_seconds": 0.384,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "61791129d943d314db6e"
+}

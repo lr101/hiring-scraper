@@ -1,0 +1,17 @@
+{
+  "url": "https://www.raceresult.com/de-de/home/index",
+  "checked_at": "2026-10-05T23:39:27.725813+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76264,
+  "state": "ok",
+  "elapsed_seconds": 1.146,
+  "sha256": "8b3188ab30ef80d0e54d87283862d90d0974b9b17da0b0e22ad4e9149eb4c51c",
+  "capture": "f1c282e6731a360cfb34",
+  "merged_from_run": "run-28"
+}

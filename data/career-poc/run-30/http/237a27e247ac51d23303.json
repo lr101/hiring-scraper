@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vhh.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:34:47.561736+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"2a9d-62fac6811cab2\"",
+  "last_modified": "Thu, 06 Mar 2025 13:23:07 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 10909,
+  "state": "ok",
+  "elapsed_seconds": 0.758,
+  "sha256": "1c546136dc80a0c18dda209534e9a2cbb799255b443a665974cd533ad7546379",
+  "capture": "237a27e247ac51d23303",
+  "merged_from_run": "run-28"
+}

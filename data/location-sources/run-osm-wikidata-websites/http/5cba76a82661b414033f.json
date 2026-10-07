@@ -1,0 +1,16 @@
+{
+  "url": "https://www.tk.de/robots.txt",
+  "checked_at": "2026-10-06T07:06:39.234512+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1305,
+  "state": "ok",
+  "elapsed_seconds": 0.257,
+  "sha256": "bba4f8fb96ee16c9c174265c462a4245f815f73f1d746276989eb4b5f63ea2a0",
+  "capture": "5cba76a82661b414033f"
+}

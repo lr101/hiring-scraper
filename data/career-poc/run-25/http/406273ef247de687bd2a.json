@@ -1,0 +1,16 @@
+{
+  "url": "https://service.bnn.de/robots.txt",
+  "checked_at": "2026-10-05T22:09:20.374531+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": null,
+  "last_modified": "Wed, 28 Feb 2024 08:01:42 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 239,
+  "state": "ok",
+  "elapsed_seconds": 0.273,
+  "sha256": "397a400fc309d8a926ef3de3bc5c5757a1afc5de2b0681d04ffd1184c3c790e8",
+  "capture": "406273ef247de687bd2a"
+}

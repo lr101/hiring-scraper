@@ -1,0 +1,17 @@
+{
+  "url": "https://www.magnie.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:45:42.308399+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4981,
+  "state": "ok",
+  "elapsed_seconds": 1.082,
+  "sha256": "f270552d08b5942955c624b5f5f913e3dddf183e465266eefa87cd31b0dccb78",
+  "capture": "7c6b13c2e6cfdd6cae80",
+  "merged_from_run": "run-28"
+}

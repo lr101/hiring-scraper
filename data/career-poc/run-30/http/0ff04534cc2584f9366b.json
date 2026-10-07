@@ -1,0 +1,17 @@
+{
+  "url": "https://www.egg-leo.de/de/umwelt-wirtschaft/wirtschaft/unternehmensverzeichnis/unternehmen/Brennerei-Siegfried-Erndwein.php",
+  "checked_at": "2026-10-05T23:38:56.095307+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "application/json; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1644,
+  "state": "http_error",
+  "elapsed_seconds": 1.021,
+  "sha256": "4eb036205ad4d74a616e0e0f568802b1dc1c33d6e9ac2cb2fe3ececb132eddb8",
+  "capture": "0ff04534cc2584f9366b",
+  "merged_from_run": "run-28"
+}

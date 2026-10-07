@@ -1,0 +1,17 @@
+{
+  "url": "https://www.apleona.com/ueber-apleona/",
+  "checked_at": "2026-10-05T23:42:31.717683+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://apleona.com/ueber-apleona/",
+  "bytes": 242,
+  "state": "http_error",
+  "elapsed_seconds": 0.779,
+  "sha256": "4df8dc3e0e827f7d6795bf320f3051b5c46e27633a69d9d5508f91ccf7d6a258",
+  "capture": "ddcc437f474ff617f437",
+  "merged_from_run": "run-28"
+}

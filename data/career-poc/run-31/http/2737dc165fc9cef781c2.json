@@ -1,0 +1,17 @@
+{
+  "url": "https://blueyonder.com/",
+  "checked_at": "2026-10-05T23:20:07.449907+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 434277,
+  "state": "ok",
+  "elapsed_seconds": 1.405,
+  "sha256": "12fe49ec4a900778613ff4b777049aae06e70a86e274d3bea1469f8006844d2f",
+  "capture": "2737dc165fc9cef781c2",
+  "merged_from_run": "run-28"
+}

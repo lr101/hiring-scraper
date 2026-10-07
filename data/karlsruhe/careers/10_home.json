@@ -1,0 +1,12 @@
+{
+  "url": "https://www.unic.com/",
+  "checked_at": "2026-10-05T08:24:11.868274+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.unic.com/de",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 389192,
+  "truncated": false,
+  "elapsed_seconds": 0.6,
+  "sha256": "3fa9a0115b7325fc3d656c6655512b2af6f34afa2a54d71e790b5c23c759818c"
+}

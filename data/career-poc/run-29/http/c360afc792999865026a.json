@@ -1,0 +1,17 @@
+{
+  "url": "https://badenairparkexpress.de/",
+  "checked_at": "2026-10-05T23:37:36.712015+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 54930,
+  "state": "ok",
+  "elapsed_seconds": 0.475,
+  "sha256": "84969a0b8df7fc77d498031908fa23750365d86f0c1e63ea93bfd116c9c461e3",
+  "capture": "c360afc792999865026a",
+  "merged_from_run": "run-28"
+}

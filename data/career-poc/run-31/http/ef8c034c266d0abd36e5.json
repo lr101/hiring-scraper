@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kilicerbau.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:46:20.008998+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"66dd-6561d82981d99\"",
+  "last_modified": "Wed, 08 Jul 2026 18:16:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 26333,
+  "state": "http_error",
+  "elapsed_seconds": 1.103,
+  "sha256": "728cf380d87308dee06867e80d8c7389bde0da8d27658d3544bd64aa17b0d8f9",
+  "capture": "ef8c034c266d0abd36e5",
+  "merged_from_run": "run-27"
+}

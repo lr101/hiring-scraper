@@ -1,0 +1,16 @@
+{
+  "url": "https://www.andrena.de/karriere/arbeiten-bei-andrena",
+  "checked_at": "2026-10-05T23:24:09.613766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58827,
+  "state": "ok",
+  "elapsed_seconds": 0.971,
+  "sha256": "7cc45bde515800493dab48e5bc7ffc9def3fdaacc24ec2877c78785c8f3c88c1",
+  "capture": "73cec36682bc82352e9c"
+}

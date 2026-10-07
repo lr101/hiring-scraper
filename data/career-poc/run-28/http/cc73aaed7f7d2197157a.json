@@ -1,0 +1,16 @@
+{
+  "url": "https://www.esg-kanzlei.de/robots.txt",
+  "checked_at": "2026-10-05T23:20:15.444815+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"16-6548688d0920d\"",
+  "last_modified": "Thu, 18 Jun 2026 12:44:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 22,
+  "state": "ok",
+  "elapsed_seconds": 0.159,
+  "sha256": "d5f43806c7f27d10249efb2b7ee093e2337057a7e42e130c24d87a8616056eca",
+  "capture": "cc73aaed7f7d2197157a"
+}

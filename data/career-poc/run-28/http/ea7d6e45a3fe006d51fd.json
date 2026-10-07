@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steurer-batterien.de/einsatzort-sitemap.xml",
+  "checked_at": "2026-10-05T23:23:44.377593+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3979,
+  "state": "ok",
+  "elapsed_seconds": 2.017,
+  "sha256": "2e9fbb5f734d5e682fa75e8e7c41bc74dc13802f9e08da57ff66d48e876a1d6d",
+  "capture": "ea7d6e45a3fe006d51fd"
+}

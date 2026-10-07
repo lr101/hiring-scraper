@@ -1,0 +1,16 @@
+{
+  "url": "https://www.medlab.eu/",
+  "checked_at": "2026-10-05T23:38:54.157666+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"204-400087fe07f00\"",
+  "last_modified": "Mon, 05 Sep 2005 16:06:52 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 516,
+  "state": "ok",
+  "elapsed_seconds": 0.941,
+  "sha256": "448f86771acec219feef7c9d5a3e28c0fad117684b85d7735007ff4716994dbf",
+  "capture": "82205e03cc5407d51487"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lancom-systems.de/",
+  "checked_at": "2026-10-05T23:28:52.212001+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 307,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://rs-nc.rohde-schwarz.com/de/",
+  "bytes": 245,
+  "state": "http_error",
+  "elapsed_seconds": 1.014,
+  "sha256": "2dd8dd89ec23b277afdc4fb68522d189b1ea86e54f3928a62e25c00f427f3569",
+  "capture": "e1fe26ff87cdb2eb404e"
+}

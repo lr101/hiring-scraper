@@ -1,0 +1,16 @@
+{
+  "url": "https://www.khw-immobilien.de/robots.txt",
+  "checked_at": "2026-10-05T22:40:00.140774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 101,
+  "state": "ok",
+  "elapsed_seconds": 0.28,
+  "sha256": "37ee7a0df78a657ad220f0c0968ff41e5ce7adaefcae5abc6b167fbe005396d1",
+  "capture": "62826b797ac12c0f479a"
+}

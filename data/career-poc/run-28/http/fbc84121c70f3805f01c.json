@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schmidt-markisen.de/karriere",
+  "checked_at": "2026-10-05T23:33:58.483788+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48133,
+  "state": "http_error",
+  "elapsed_seconds": 1.255,
+  "sha256": "f99f9d7a025ccd31ac9c508a8112908fc7a8d6ba85d3ea1e9a960503be8a1ee2",
+  "capture": "fbc84121c70f3805f01c"
+}

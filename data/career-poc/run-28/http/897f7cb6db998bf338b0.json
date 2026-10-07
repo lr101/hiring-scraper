@@ -1,0 +1,16 @@
+{
+  "url": "https://griesemann.com/karriere/ausbildung/",
+  "checked_at": "2026-10-05T23:29:48.894282+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 158380,
+  "state": "ok",
+  "elapsed_seconds": 1.308,
+  "sha256": "c72ddafed3cdacc0438a8e10d0bfb0ee9092d4fc8fac47bb2c51ec951e78a76a",
+  "capture": "897f7cb6db998bf338b0"
+}

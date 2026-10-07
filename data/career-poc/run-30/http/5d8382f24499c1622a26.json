@@ -1,0 +1,17 @@
+{
+  "url": "https://greenplaces.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T22:37:54.977132+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1151,
+  "state": "ok",
+  "elapsed_seconds": 1.276,
+  "sha256": "18b6caafa96d58144edc94c5d88e747a11f1dffbb45515af4aebc952a7b0f5bd",
+  "capture": "5d8382f24499c1622a26",
+  "merged_from_run": "run-27"
+}

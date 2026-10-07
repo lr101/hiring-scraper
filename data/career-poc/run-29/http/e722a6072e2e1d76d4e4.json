@@ -1,0 +1,11 @@
+{
+  "url": "https://www.stb-fetzner.de/robots.txt",
+  "checked_at": "2026-10-05T23:42:45.680252+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:992)>",
+  "elapsed_seconds": 0.974,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "e722a6072e2e1d76d4e4",
+  "merged_from_run": "run-28"
+}

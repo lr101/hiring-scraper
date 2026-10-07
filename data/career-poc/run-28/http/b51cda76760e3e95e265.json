@@ -1,0 +1,16 @@
+{
+  "url": "https://loewensteinmedical.com/be-fr/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:24:05.211850+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 85969,
+  "state": "http_error",
+  "elapsed_seconds": 1.077,
+  "sha256": "40e1396454bbb875c5a05175518be67bacc542011aa43e2335dfed70978c4516",
+  "capture": "b51cda76760e3e95e265"
+}

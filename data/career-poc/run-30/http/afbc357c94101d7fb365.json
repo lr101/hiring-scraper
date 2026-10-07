@@ -1,0 +1,17 @@
+{
+  "url": "https://horizonmicrotechnologies.com/de/careers/",
+  "checked_at": "2026-10-05T23:06:36.455554+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107273,
+  "state": "ok",
+  "elapsed_seconds": 3.013,
+  "sha256": "afba39b791149a80c795fcecc4774225d317d5603debb41e084b79444aac93d8",
+  "capture": "afbc357c94101d7fb365",
+  "merged_from_run": "run-27"
+}

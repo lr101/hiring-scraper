@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dfs.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:25.027300+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 19999,
+  "state": "http_error",
+  "elapsed_seconds": 0.176,
+  "sha256": "21a84dab7a8df11a1c0d10f493582c7d793d326691f6ee1dc9668c9177a2af56",
+  "capture": "7345f01a799d7b303207",
+  "merged_from_run": "run-28"
+}

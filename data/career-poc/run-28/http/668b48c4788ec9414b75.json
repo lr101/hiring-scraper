@@ -1,0 +1,16 @@
+{
+  "url": "https://www.maler-alshut.de/index.php/index.php/jobs.html",
+  "checked_at": "2026-10-05T23:31:17.556008+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:31:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 8295,
+  "state": "ok",
+  "elapsed_seconds": 0.758,
+  "sha256": "70db4d1cb8c83e80a35d3d6b22b45d87296119664df249f77219fb16030f2a42",
+  "capture": "668b48c4788ec9414b75"
+}

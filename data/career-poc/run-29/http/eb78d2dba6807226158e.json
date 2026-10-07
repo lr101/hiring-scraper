@@ -1,0 +1,17 @@
+{
+  "url": "https://ccs-service.de/karriere",
+  "checked_at": "2026-10-05T23:28:02.811594+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:28:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 10046,
+  "state": "http_error",
+  "elapsed_seconds": 1.085,
+  "sha256": "e8913f88d9add9b96232eef74df558f6ee019723039ba59b4e13c62496e0d3df",
+  "capture": "eb78d2dba6807226158e",
+  "merged_from_run": "run-28"
+}

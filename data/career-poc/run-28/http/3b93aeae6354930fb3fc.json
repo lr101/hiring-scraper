@@ -1,0 +1,16 @@
+{
+  "url": "https://mds-transport.de/",
+  "checked_at": "2026-10-05T23:40:17.478038+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 106957,
+  "state": "ok",
+  "elapsed_seconds": 0.364,
+  "sha256": "9a0de5208efc199807d440f29d3f80db4cda21460e746c2cbde1f8a9f2ef9e6b",
+  "capture": "3b93aeae6354930fb3fc"
+}

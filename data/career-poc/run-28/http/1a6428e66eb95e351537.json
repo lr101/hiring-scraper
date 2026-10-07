@@ -1,0 +1,16 @@
+{
+  "url": "https://interconnect-gmbh.workwise.io/",
+  "checked_at": "2026-10-05T23:28:09.870190+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98923,
+  "state": "ok",
+  "elapsed_seconds": 1.121,
+  "sha256": "efc27159793d2a9a7da4cb42467048a19efad754182023afc4b1942ece88e821",
+  "capture": "1a6428e66eb95e351537"
+}

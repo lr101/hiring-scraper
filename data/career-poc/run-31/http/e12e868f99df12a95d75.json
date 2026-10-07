@@ -1,0 +1,17 @@
+{
+  "url": "https://ekiegg.de/jobs",
+  "checked_at": "2026-10-05T23:38:05.732141+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 23058,
+  "state": "ok",
+  "elapsed_seconds": 1.039,
+  "sha256": "df1ee9ca55c6e779ff2e009bfd4f2fe7f33a0a8ea2449532bb0ff216b3d8566d",
+  "capture": "e12e868f99df12a95d75",
+  "merged_from_run": "run-28"
+}

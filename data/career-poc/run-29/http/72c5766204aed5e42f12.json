@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dpa.com/de/kontakt",
+  "checked_at": "2026-10-05T22:39:43.005313+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"se9cq6jh5k9jav\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 445337,
+  "state": "ok",
+  "elapsed_seconds": 1.216,
+  "sha256": "62e0a6a12f6f9ebebb1c57a42989f5c0edad134023c2bb3a0ed99382f9cc6fb6",
+  "capture": "72c5766204aed5e42f12",
+  "merged_from_run": "run-27"
+}

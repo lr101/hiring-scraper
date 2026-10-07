@@ -1,0 +1,17 @@
+{
+  "url": "https://hoelzergmbh.de/karriere",
+  "checked_at": "2026-10-05T23:32:34.671296+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53027,
+  "state": "http_error",
+  "elapsed_seconds": 1.22,
+  "sha256": "79f329d6e86300a14a817a106a6010c0e5dfea5409fd061a449d2e11bd4e17c1",
+  "capture": "7e88bfa2825577614526",
+  "merged_from_run": "run-28"
+}

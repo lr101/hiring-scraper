@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schwaninger-schmale.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:19:41.826601+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:19:42 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1863,
+  "state": "ok",
+  "elapsed_seconds": 1.129,
+  "sha256": "282616a85a6697418821e056be49a220c38ee1bf4aef1457f687f2d96b0401f9",
+  "capture": "46e2a64b039031b6836c",
+  "merged_from_run": "run-25"
+}

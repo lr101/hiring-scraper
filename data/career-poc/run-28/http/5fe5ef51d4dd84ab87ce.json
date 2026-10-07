@@ -1,0 +1,16 @@
+{
+  "url": "https://www.altus-re.de/stellenanzeige/bauzeichner-in-der-bautechnik/",
+  "checked_at": "2026-10-05T23:26:54.271781+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 179012,
+  "state": "ok",
+  "elapsed_seconds": 1.005,
+  "sha256": "6d93f892aa144d8198fb0cbe12e612f5468736053cd7452c6a8f7f8683c6a248",
+  "capture": "5fe5ef51d4dd84ab87ce"
+}

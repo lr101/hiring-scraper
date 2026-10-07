@@ -1,0 +1,17 @@
+{
+  "url": "https://djive-naturals.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:17:59.149886+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2291,
+  "state": "ok",
+  "elapsed_seconds": 1.972,
+  "sha256": "6c8d533745632816119dd3aa4292705fb3dc53d4a6d6ab3510e1fb2c4debbbaa",
+  "capture": "e6d578a59b411c97df0c",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://erhardt-galabau.de/robots.txt",
+  "checked_at": "2026-10-05T23:30:18.554447+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1b5-65b9a6aa43312\"",
+  "last_modified": "Wed, 16 Sep 2026 14:23:52 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 437,
+  "state": "ok",
+  "elapsed_seconds": 0.733,
+  "sha256": "26a94325fe885d4b52686408eeca40052ca1aad77f922117c8becdb6d462df43",
+  "capture": "7d82f39433331b1909d8"
+}

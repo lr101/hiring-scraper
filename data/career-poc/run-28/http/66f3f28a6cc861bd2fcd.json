@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gsofa.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:42:03.134780+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.gsofa.de/",
+  "bytes": 245,
+  "state": "http_error",
+  "elapsed_seconds": 0.975,
+  "sha256": "4b55e35f8f51dd9bec2429ed78e19986b286ea69df349ae5883fb2ab631103c0",
+  "capture": "66f3f28a6cc861bd2fcd"
+}

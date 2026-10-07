@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe-event.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:14:43.129318+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 79183,
+  "state": "ok",
+  "elapsed_seconds": 0.906,
+  "sha256": "af699b1191953858109994751bb00d2578364d0a10a9b9135b8aa9238734954c",
+  "capture": "67fe40c4f4cb790d7a3a"
+}

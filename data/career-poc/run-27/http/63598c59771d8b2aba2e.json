@@ -1,0 +1,16 @@
+{
+  "url": "https://careers.cloud.com/jobs/search/sales-team",
+  "checked_at": "2026-10-05T22:52:28.773111+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"7523be8fde921664592150fd43f913d6\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 246398,
+  "state": "ok",
+  "elapsed_seconds": 1.606,
+  "sha256": "7523be8fde921664592150fd43f913d672b507cf7f55d08a297e5f7313fbe04e",
+  "capture": "63598c59771d8b2aba2e"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://karlsruhe.stadtmobil.de/privatkunden/sitemap.xml?sitemap=pages&cHash=66ffab069253a5be35424daa1d40d20e",
+  "checked_at": "2026-10-05T22:54:35.218867+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 32270,
+  "state": "ok",
+  "elapsed_seconds": 1.573,
+  "sha256": "13f62e3abd34805b3f4c6eb4383a3f476a25ff54ccf09dff161210286b6d1698",
+  "capture": "5fab16b8f9ea368abc6c"
+}

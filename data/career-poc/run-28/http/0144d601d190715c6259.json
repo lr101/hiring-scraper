@@ -1,0 +1,16 @@
+{
+  "url": "https://trautmann-bauunternehmen.de/jobs-karriere/",
+  "checked_at": "2026-10-05T23:37:30.060273+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 267517,
+  "state": "ok",
+  "elapsed_seconds": 0.957,
+  "sha256": "b766a05c7fcc24c836d3430d89137dbe0523ba727685b34706bf2cdcceb79aba",
+  "capture": "0144d601d190715c6259"
+}

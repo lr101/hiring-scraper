@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cnt.com/karriere",
+  "checked_at": "2026-10-05T22:49:23.665550+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": "\"6ac38d12-1096a\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67946,
+  "state": "http_error",
+  "elapsed_seconds": 1.111,
+  "sha256": "f208089a735b349e60a4dfa4370570dcc63b8b2d321993112b15ceaa228ce335",
+  "capture": "0c61ee2dfa67beb2a87e",
+  "merged_from_run": "run-27"
+}

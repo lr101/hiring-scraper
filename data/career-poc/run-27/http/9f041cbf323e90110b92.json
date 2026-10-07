@@ -1,0 +1,16 @@
+{
+  "url": "https://heatit.de/robots.txt",
+  "checked_at": "2026-10-05T23:05:11.915522+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"page_cache:30399398024:RobotsController:18f5928d26608e2a1cac008b6ba408e1\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3604,
+  "state": "ok",
+  "elapsed_seconds": 0.192,
+  "sha256": "e70472b4fcfa87eda99fc979f68382d539d0661da24c968d53e54423f79f8cee",
+  "capture": "9f041cbf323e90110b92"
+}

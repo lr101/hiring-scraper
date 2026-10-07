@@ -1,0 +1,14 @@
+{
+  "url": "https://jobs.lever.co/researchgate",
+  "checked_at": "2026-10-05T09:13:12.245574+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 297289,
+  "state": "http_error",
+  "elapsed_seconds": 2.261,
+  "sha256": "6ae280a851d6f8475da36fb561ea43f1be20f3d2281a8f8c3be1e3397fe73e84",
+  "capture": "4ac861b010b8408ea17a",
+  "reused_from": "data/career-poc/run-02/http/4ac861b010b8408ea17a.json"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.erdling.me/sitemap.xml",
+  "checked_at": "2026-10-05T23:14:48.303526+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"2c2-5702e01d38840\"",
+  "last_modified": "Wed, 04 Jul 2018 15:23:05 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 706,
+  "state": "ok",
+  "elapsed_seconds": 0.93,
+  "sha256": "45e51f46cf4b50c3a68da7a86742d2f801beadb68ba4d2f4d4ab4faff82b1d3c",
+  "capture": "d858f2b187d853f645eb"
+}

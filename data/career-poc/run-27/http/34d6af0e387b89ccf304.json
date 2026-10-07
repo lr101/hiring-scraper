@@ -1,0 +1,16 @@
+{
+  "url": "https://www.amz-steuer.de/karlsruhe.html",
+  "checked_at": "2026-10-05T22:34:39.837157+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 38948,
+  "state": "ok",
+  "elapsed_seconds": 1.177,
+  "sha256": "770b3f53d527d587786a287f73ca44d43c3c55baf4485b1019a39f0a1348a106",
+  "capture": "34d6af0e387b89ccf304"
+}

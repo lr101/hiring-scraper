@@ -1,0 +1,17 @@
+{
+  "url": "https://emt-metallbau.de/",
+  "checked_at": "2026-10-05T23:28:39.872443+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"1fa-5152e6af-bc2d0795708f0e6;;;\"",
+  "last_modified": "Wed, 27 Mar 2013 12:31:43 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "ok",
+  "elapsed_seconds": 1.035,
+  "sha256": "780b775321c9faac701ebc27f49cd137a9872a584fd25e5144961ddb1dca7333",
+  "capture": "6a9af6beb7a093927fac",
+  "merged_from_run": "run-28"
+}

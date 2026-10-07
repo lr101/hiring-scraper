@@ -1,0 +1,17 @@
+{
+  "url": "https://bartsch.law/stellenausschreibung/rechtsanwaltsfachangestellte-rechtsfachwirtin-m-w-d/",
+  "checked_at": "2026-10-05T22:39:58.845271+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 463975,
+  "state": "ok",
+  "elapsed_seconds": 1.253,
+  "sha256": "6792a3a7bcd176028999a666d8db06266816dab5d9d1f4bdfafa56f0fd731ce0",
+  "capture": "6d92d56edf0d1840dcc2",
+  "merged_from_run": "run-27"
+}

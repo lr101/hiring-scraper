@@ -1,0 +1,16 @@
+{
+  "url": "https://www.roeser-partner.de/",
+  "checked_at": "2026-10-05T22:14:01.374158+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://roeser-partner.de/",
+  "bytes": 274,
+  "state": "http_error",
+  "elapsed_seconds": 0.122,
+  "sha256": "1357912899401c0f93bb806cc4ede7540f697cacd92d903ca89bacae41cdc169",
+  "capture": "ae11d8c377dfafa985f1"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://n-biotics.de/robots.txt",
+  "checked_at": "2026-10-05T23:04:56.118456+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4545,
+  "state": "http_error",
+  "elapsed_seconds": 0.138,
+  "sha256": "d910ef6d3be83397c606cc93f0d8aec46e08477c345dee50d3bc1bd479ec8b55",
+  "capture": "be5121bceac1241bf3ac"
+}

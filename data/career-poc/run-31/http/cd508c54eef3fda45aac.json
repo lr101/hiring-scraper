@@ -1,0 +1,17 @@
+{
+  "url": "https://www.it-structure.de/careers",
+  "checked_at": "2026-10-05T23:34:08.911515+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3523,
+  "state": "http_error",
+  "elapsed_seconds": 0.967,
+  "sha256": "26e5a71cc15214165f58154a34d2d8604740a5835aeade361c752094f4e4782c",
+  "capture": "cd508c54eef3fda45aac",
+  "merged_from_run": "run-28"
+}

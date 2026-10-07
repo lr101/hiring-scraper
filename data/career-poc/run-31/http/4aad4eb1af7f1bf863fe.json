@@ -1,0 +1,17 @@
+{
+  "url": "https://frauenundbusiness.de/page-sitemap.xml",
+  "checked_at": "2026-10-05T22:43:30.307254+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13849,
+  "state": "ok",
+  "elapsed_seconds": 1.208,
+  "sha256": "e52cbb250e8766fbab1d72e29399779ef53c2d5888550077efe5ebd43dd84647",
+  "capture": "4aad4eb1af7f1bf863fe",
+  "merged_from_run": "run-27"
+}

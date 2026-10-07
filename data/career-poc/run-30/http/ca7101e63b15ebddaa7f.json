@@ -1,0 +1,17 @@
+{
+  "url": "https://www.concordia.de/karriere/stellenangebote/stellenangebot/?tx_digitlyjobs_jobs%5Baction%5D=show&tx_digitlyjobs_jobs%5Bjob%5D=872&cHash=0c480906e1f4a00158beaf0bad416431",
+  "checked_at": "2026-10-05T23:26:07.509818+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64146,
+  "state": "ok",
+  "elapsed_seconds": 0.922,
+  "sha256": "fc2fa4c0bc284ae994ca50203eb04221666702cd89a0eb656d46b5264183a07b",
+  "capture": "ca7101e63b15ebddaa7f",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://geistsoz.de/category/ausschreibungen/jobs/",
+  "checked_at": "2026-10-05T22:42:48.147421+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 75954,
+  "state": "ok",
+  "elapsed_seconds": 1.359,
+  "sha256": "94b6693a90f91ca179998da638f402656fe4f622a67c34432d0c11e1accae4c2",
+  "capture": "04020b70a4a517b546dd",
+  "merged_from_run": "run-27"
+}

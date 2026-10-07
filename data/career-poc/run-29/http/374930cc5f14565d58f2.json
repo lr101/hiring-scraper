@@ -1,0 +1,17 @@
+{
+  "url": "https://www.suedwest-datenschutz.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T22:44:20.418292+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 565,
+  "state": "ok",
+  "elapsed_seconds": 1.622,
+  "sha256": "3500fb74da4c8016c951822119db45fa819574f1c0e283f066e6d54309a0786e",
+  "capture": "374930cc5f14565d58f2",
+  "merged_from_run": "run-27"
+}

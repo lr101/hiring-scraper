@@ -1,0 +1,16 @@
+{
+  "url": "https://www.etp.kit.edu/careers",
+  "checked_at": "2026-10-05T23:41:14.234778+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 345,
+  "state": "http_error",
+  "elapsed_seconds": 1.01,
+  "sha256": "fca47126a077b397c57cf40fbc4a9920c89f0ad64644fd2c3c19311f9cd426d9",
+  "capture": "86268f1dbe212ac5cb95"
+}

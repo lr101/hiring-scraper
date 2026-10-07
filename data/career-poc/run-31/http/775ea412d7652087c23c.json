@@ -1,0 +1,17 @@
+{
+  "url": "https://eitiecloud.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:16.530337+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 158,
+  "state": "ok",
+  "elapsed_seconds": 1.117,
+  "sha256": "ffd0baa63a3c8e6879c7e801383b20f50ece553fdfcecbd0686ac796fd496aef",
+  "capture": "775ea412d7652087c23c",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.allianz.de/robots.txt",
+  "checked_at": "2026-10-06T07:07:04.298555+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 403,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5499,
+  "state": "http_error",
+  "elapsed_seconds": 0.12,
+  "sha256": "f4d3e6ae07c6e8878d8f36ded94d135b462938e05fb407415511ac4c6fe71155",
+  "capture": "9d1be64746088d7aa110"
+}

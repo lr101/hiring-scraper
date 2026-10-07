@@ -1,0 +1,16 @@
+{
+  "url": "https://likehome.immo/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:29:11.972295+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 448,
+  "state": "ok",
+  "elapsed_seconds": 0.964,
+  "sha256": "2df877b366433b691d475aaa3ab6cb303484e3eda7523cc01f4914661d8a2a84",
+  "capture": "9f51d9e4e574461c7ceb"
+}

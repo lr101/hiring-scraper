@@ -1,0 +1,16 @@
+{
+  "url": "https://goldener-zirkel.com/schlagworte/tag/Jobs",
+  "checked_at": "2026-10-05T23:09:26.183813+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74344,
+  "state": "ok",
+  "elapsed_seconds": 1.599,
+  "sha256": "bab2f151ed4b5cbba6d401e35159e282e9946ed67e744ee421dc056845c9bc0d",
+  "capture": "677742a635ab77e23aa0"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "http://chempur.de/sitemap1.xml.gz",
+  "checked_at": "2026-10-05T22:45:15.623213+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "\"407-635158d7909a3\"",
+  "last_modified": "Wed, 14 May 2025 09:55:44 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1031,
+  "state": "ok",
+  "elapsed_seconds": 1.028,
+  "sha256": "fac62f3f791be5fc253fb1d72902cbb384de4e473c3992c38b05682b39502c09",
+  "capture": "e553d88dd2b17d7ed19f"
+}

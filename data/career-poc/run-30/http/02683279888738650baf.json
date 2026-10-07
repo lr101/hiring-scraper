@@ -1,0 +1,17 @@
+{
+  "url": "https://www.infokom-it.de/home?sitemap=pages&type=1533906435&cHash=c29d83ed37bb89d8e598e49498924e72",
+  "checked_at": "2026-10-05T23:29:05.952737+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 35694,
+  "state": "ok",
+  "elapsed_seconds": 0.972,
+  "sha256": "57058213a7dfefb9cdcfe973822fdf1ff9a73915981c18e1bc5d3d9ebea7df28",
+  "capture": "02683279888738650baf",
+  "merged_from_run": "run-28"
+}

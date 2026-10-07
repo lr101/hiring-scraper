@@ -1,0 +1,16 @@
+{
+  "url": "https://arin-ka.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:47.581396+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111,
+  "state": "ok",
+  "elapsed_seconds": 3.361,
+  "sha256": "43c3387436a335adec0e5b26a4a6f069fa9354cf247cf1aa2e0d75f7b454fef4",
+  "capture": "4e19c88b9d1b8fda4f95"
+}

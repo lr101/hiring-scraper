@@ -1,0 +1,17 @@
+{
+  "url": "https://geistsoz.de/2021/05/stellenausschreibung-als-studentische-hilfskraft/",
+  "checked_at": "2026-10-05T22:42:49.559587+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64955,
+  "state": "ok",
+  "elapsed_seconds": 1.286,
+  "sha256": "3f3f998286e64bd92c0c408c58dfe71310a3e7b018a47c6b86d80eaad431ba20",
+  "capture": "fc8ebb8d52625556b864",
+  "merged_from_run": "run-27"
+}

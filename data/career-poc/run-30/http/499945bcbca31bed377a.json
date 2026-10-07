@@ -1,0 +1,17 @@
+{
+  "url": "https://baeckerei-visel.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:40:45.148370+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 411,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "662c7c9aa1761a749c0ae5342ba2855e8f2b14aaa4c931a592ea762b45f8eec8",
+  "capture": "499945bcbca31bed377a",
+  "merged_from_run": "run-28"
+}

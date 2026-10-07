@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hausverwaltung-weiss.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:36.247771+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 300,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 459,
+  "state": "http_error",
+  "elapsed_seconds": 0.949,
+  "sha256": "fae00cdb1aa972e00dea17daeeb6e86e0f50ce0228581f1fea553f3abc3438f8",
+  "capture": "8a21a0aec3d6406e2150",
+  "merged_from_run": "run-28"
+}

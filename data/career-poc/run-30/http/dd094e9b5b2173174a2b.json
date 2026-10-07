@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ensecur.de/karriere/stellenangebote/junior-consultant-datenschutz-datensicherheit-m-w-d-in-karlsruhe-auch-remote-und-teilzeit/",
+  "checked_at": "2026-10-05T22:10:09.917614+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 169583,
+  "state": "ok",
+  "elapsed_seconds": 1.775,
+  "sha256": "9e829eb58b15125ac4c269e04433e4b7c54f26f9928ebc1f3ae3d3aae4a205a6",
+  "capture": "dd094e9b5b2173174a2b",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://weber-parkettboden.de/karriere",
+  "checked_at": "2026-10-05T23:32:26.464515+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103741,
+  "state": "http_error",
+  "elapsed_seconds": 1.107,
+  "sha256": "cf20a39bb4280b1efa74eb5d58afafd15653c1809d4b2b5bd77cb4b34fadc8cc",
+  "capture": "4a72f671cd2210775cba"
+}

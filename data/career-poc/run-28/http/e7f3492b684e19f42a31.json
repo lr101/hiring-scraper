@@ -1,0 +1,16 @@
+{
+  "url": "https://www.itscope.com/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:16:16.383401+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:16:20 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1016377,
+  "state": "ok",
+  "elapsed_seconds": 4.011,
+  "sha256": "ed0a09a365b192004d0830ba07cd1f2670141dca04e897898a4f17a2b3bdcdc0",
+  "capture": "e7f3492b684e19f42a31"
+}

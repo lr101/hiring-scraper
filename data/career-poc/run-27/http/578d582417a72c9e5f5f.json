@@ -1,0 +1,16 @@
+{
+  "url": "https://bd-management.de/karriere",
+  "checked_at": "2026-10-05T22:37:34.751642+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 186406,
+  "state": "http_error",
+  "elapsed_seconds": 2.731,
+  "sha256": "062f5ec8c34afd56aafb742c0d6d3fdbda6d7876f9f840a044b5342023f70710",
+  "capture": "578d582417a72c9e5f5f"
+}

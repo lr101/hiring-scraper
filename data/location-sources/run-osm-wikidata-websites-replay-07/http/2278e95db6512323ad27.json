@@ -1,0 +1,17 @@
+{
+  "url": "https://wissenswert.debeka.de/robots.txt",
+  "checked_at": "2026-10-06T07:06:27.717140+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": "\"c7-65d21ac756a6a\"",
+  "last_modified": "Tue, 06 Oct 2026 01:11:08 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 199,
+  "state": "ok",
+  "elapsed_seconds": 0.147,
+  "sha256": "32a36dc12db1d7ceaf84e508e45c991541d38aafdedf060cc361176f0932a794",
+  "capture": "2278e95db6512323ad27",
+  "reused_from": "data/location-sources/run-osm-wikidata-websites/http/2278e95db6512323ad27.json"
+}

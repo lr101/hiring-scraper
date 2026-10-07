@@ -1,0 +1,16 @@
+{
+  "url": "https://www.finanzen.net/robots.txt",
+  "checked_at": "2026-10-05T22:53:49.091951+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"0c7548ce71ddd1:0\"",
+  "last_modified": "Mon, 27 Jul 2026 16:47:02 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 3646,
+  "state": "ok",
+  "elapsed_seconds": 0.391,
+  "sha256": "042509df5ae7feebc6517fa8f8fed7f892d99a6c27ba5fdde0f5ef2fba2dfdf8",
+  "capture": "f312cf05f8a4045e059d"
+}

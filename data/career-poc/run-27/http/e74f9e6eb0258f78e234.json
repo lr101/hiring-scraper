@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vidia-kliniken.de/robots.txt",
+  "checked_at": "2026-10-05T23:12:35.355848+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 122,
+  "state": "ok",
+  "elapsed_seconds": 0.806,
+  "sha256": "693405c10fcb3ec6cb5d64271e64e61bdd943c1656aafd47812af7c427a7df50",
+  "capture": "e74f9e6eb0258f78e234"
+}

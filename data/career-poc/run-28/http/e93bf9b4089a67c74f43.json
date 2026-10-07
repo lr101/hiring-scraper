@@ -1,0 +1,10 @@
+{
+  "url": "https://www.maler-valencia.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:16.578823+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "[Errno -2] Name or service not known",
+  "elapsed_seconds": 0.032,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "e93bf9b4089a67c74f43"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.joimax.com/robots.txt",
+  "checked_at": "2026-10-05T23:30:42.940029+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 172,
+  "state": "ok",
+  "elapsed_seconds": 2.265,
+  "sha256": "788c6da7410c305a0627d6984ac0f871e5ef16016dc4ecdf84f4f4c7a5ba4ddd",
+  "capture": "e043c461fcb6d1eda108",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://ihrbad.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:53.954224+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 167,
+  "state": "ok",
+  "elapsed_seconds": 0.786,
+  "sha256": "f5703ee1d221f8809d2047bba221b250ffe84af5cf1e5154989df5a71b70ab86",
+  "capture": "70f0f8d8c6a17c077322"
+}

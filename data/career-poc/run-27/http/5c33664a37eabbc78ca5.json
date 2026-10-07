@@ -1,0 +1,16 @@
+{
+  "url": "https://enactus-karlsruhe.de/de/jobs",
+  "checked_at": "2026-10-05T22:55:04.973648+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118103,
+  "state": "http_error",
+  "elapsed_seconds": 1.186,
+  "sha256": "85ba59ed354327ca3a1b613118c1ab8cb14781654775f46ea773e61adf7a4d13",
+  "capture": "5c33664a37eabbc78ca5"
+}

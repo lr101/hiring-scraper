@@ -1,0 +1,16 @@
+{
+  "url": "https://designoffices.softgarden.io/de/vacancies",
+  "checked_at": "2026-10-05T22:54:20.146114+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10054,
+  "state": "ok",
+  "elapsed_seconds": 1.113,
+  "sha256": "66f73e99717e35530bf2aba6dbc52b0106bf1e99f6ad029b285cb95fd6a482c7",
+  "capture": "27838e612369e61d9431"
+}

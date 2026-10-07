@@ -1,0 +1,14 @@
+{
+  "url": "https://www.unic.com/robots.txt",
+  "checked_at": "2026-10-05T09:07:52.470846+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "location": null,
+  "bytes": 244,
+  "state": "ok",
+  "elapsed_seconds": 0.169,
+  "sha256": "9bc98a6502ae5d8f26e6949aaf1fe33ead204bfe7b39a866160329c16a21278e",
+  "capture": "d96569509d6711e18ddc",
+  "reused_from": "data/career-poc/run-10/http/d96569509d6711e18ddc.json"
+}

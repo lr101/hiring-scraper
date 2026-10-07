@@ -1,0 +1,16 @@
+{
+  "url": "https://entropia.de/Careers",
+  "checked_at": "2026-10-05T22:07:20.073776+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22358,
+  "state": "http_error",
+  "elapsed_seconds": 1.235,
+  "sha256": "492406be78695415e18bf24a2a586849e95ffc9fb0effa21924a013469bb4842",
+  "capture": "51efdac57cfd022a88c8"
+}

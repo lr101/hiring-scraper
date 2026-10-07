@@ -1,0 +1,17 @@
+{
+  "url": "https://www.holler-druck.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:27:07.346485+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3302,
+  "state": "ok",
+  "elapsed_seconds": 1.068,
+  "sha256": "1b84cee817e1b0bc450d9532fec9dea725ec60302b57db9eb770c2b4c3fe0f2b",
+  "capture": "c09bebcaac625050237e",
+  "merged_from_run": "run-28"
+}

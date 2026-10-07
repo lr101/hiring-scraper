@@ -1,0 +1,16 @@
+{
+  "url": "https://familienanwalt-karlsruhe.de/",
+  "checked_at": "2026-10-05T22:16:38.415911+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67780,
+  "state": "ok",
+  "elapsed_seconds": 1.137,
+  "sha256": "2d34826631883784003784c67f9bb043e109233e0c0c4155d2f52fb6c3078c62",
+  "capture": "f6ac4f193e8d41774b40"
+}

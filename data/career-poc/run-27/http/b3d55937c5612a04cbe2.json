@@ -1,0 +1,16 @@
+{
+  "url": "https://careers.cloud.com/jobs/search",
+  "checked_at": "2026-10-05T22:52:26.275083+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"e64382bc78ae4634187eefaacd0a84b0\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 306462,
+  "state": "ok",
+  "elapsed_seconds": 0.783,
+  "sha256": "e64382bc78ae4634187eefaacd0a84b061c8cfd0b390da35177c9bd1debb32dd",
+  "capture": "b3d55937c5612a04cbe2"
+}

@@ -1,0 +1,12 @@
+{
+  "url": "https://www.telemaxx.de/",
+  "checked_at": "2026-10-05T08:24:02.565465+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.telemaxx.de/",
+  "content_type": "text/html; charset=utf-8",
+  "bytes": 935499,
+  "truncated": false,
+  "elapsed_seconds": 0.21,
+  "sha256": "aa754d47eb3002ac8801194892e2bdb7eecada6c1cab37a8f4bf9fe43aeb6b19"
+}

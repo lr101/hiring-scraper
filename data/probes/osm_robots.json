@@ -1,0 +1,12 @@
+{
+  "url": "https://overpass-api.de/robots.txt",
+  "checked_at": "2026-10-05T08:20:09.332777+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://overpass-api.de/robots.txt",
+  "content_type": "text/plain",
+  "bytes": 95,
+  "truncated": false,
+  "elapsed_seconds": 0.36,
+  "sha256": "658b1cd273d9d0be8535388700a93b02d7e22047ec0371d8448ae847b47a994f"
+}

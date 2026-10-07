@@ -1,0 +1,17 @@
+{
+  "url": "https://www.service-bw.de/zufi/organisationseinheiten/6017313",
+  "checked_at": "2026-10-05T23:03:09.757146+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"ad9ca-HAks7zrZEsjUwLxx1aBRu0np02A\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 711114,
+  "state": "ok",
+  "elapsed_seconds": 0.464,
+  "sha256": "30ce8a8e3616f8ec8a3e132f205320acc26e312ec3f1a5bbacf87298f9612741",
+  "capture": "458f538483209238e614",
+  "merged_from_run": "run-27"
+}

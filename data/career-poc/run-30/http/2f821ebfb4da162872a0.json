@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bia-karlsruhe.de/artikel/werden-sie-teil-unseres-teams-3631,290,388.html",
+  "checked_at": "2026-10-05T23:30:16.857932+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40216,
+  "state": "ok",
+  "elapsed_seconds": 0.736,
+  "sha256": "e09c53ceda06fb07e5e1e7fa144ff53e0ab95195fc0fd066c4529f82a55149c6",
+  "capture": "2f821ebfb4da162872a0",
+  "merged_from_run": "run-28"
+}

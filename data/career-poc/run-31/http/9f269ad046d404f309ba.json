@@ -1,0 +1,17 @@
+{
+  "url": "https://www.euroflow.de/karriere/",
+  "checked_at": "2026-10-05T23:25:08.270448+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Tue, 01 Sep 2026 16:25:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 57568,
+  "state": "ok",
+  "elapsed_seconds": 0.926,
+  "sha256": "dec7d9c4a9759d991b61ed7c9795c78f9a3a913f106afa1b8185f4141a1a3428",
+  "capture": "9f269ad046d404f309ba",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,13 @@
+{
+  "url": "https://sci-mo.de/careers",
+  "checked_at": "2026-10-05T14:47:53.880632+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 59605,
+  "state": "http_error",
+  "elapsed_seconds": 2.269,
+  "sha256": "4638fbd9c8016c0a732afc514d902df011c5a276a2efeaf836bb19fe43c8e02f",
+  "capture": "32962e8ab3a192a9ecac"
+}

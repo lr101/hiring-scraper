@@ -1,0 +1,17 @@
+{
+  "url": "https://www.malteser.de/standorte/karlsruhe.html",
+  "checked_at": "2026-10-05T22:46:58.908533+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"08780ffdcdea0bedff347ca90018f3af-gzip\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 348110,
+  "state": "ok",
+  "elapsed_seconds": 1.112,
+  "sha256": "6ed5dd694b2c971b6c23239af4454cf849c34de4cc6e9aa66da3050ed8812b0f",
+  "capture": "fcac1a66653b9c3da99e",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mic.de/bewerben/berufserfahrene/projektleiter-fachexperte-m-w-d-fr-den-bereich-boden-und-gewsserschutz/",
+  "checked_at": "2026-10-05T22:35:52.397786+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 35047,
+  "state": "ok",
+  "elapsed_seconds": 1.177,
+  "sha256": "e6e080ba0fc1d284fe3f971611ef9e26ecbe70612be1546722f5be0dc0299698",
+  "capture": "171f37ee5b5364557621",
+  "merged_from_run": "run-27"
+}

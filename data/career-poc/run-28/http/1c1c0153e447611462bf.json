@@ -1,0 +1,16 @@
+{
+  "url": "https://www.zwo-elf.de/karriere",
+  "checked_at": "2026-10-05T23:15:18.935109+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64040,
+  "state": "http_error",
+  "elapsed_seconds": 1.13,
+  "sha256": "8ce48339cab88a004abd426b4797608000d25370549cb6369ec8bb9f90d9fed7",
+  "capture": "1c1c0153e447611462bf"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://codecentric.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T22:55:46.544790+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"fb048b25c26f15cd302878f148fb9347\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 126644,
+  "state": "ok",
+  "elapsed_seconds": 0.207,
+  "sha256": "64e0cdd75305ebec5fb3f4313e34d60814831c2b3bb5480b0eebd4fb05edb5ba",
+  "capture": "d37f23241346368b51ff",
+  "merged_from_run": "run-27"
+}

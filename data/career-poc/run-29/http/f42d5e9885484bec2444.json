@@ -1,0 +1,17 @@
+{
+  "url": "https://version1.de/karriere",
+  "checked_at": "2026-10-05T23:02:26.860907+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 119005,
+  "state": "http_error",
+  "elapsed_seconds": 2.184,
+  "sha256": "ae0bfac83a70ac2fca2db795b78d2af810ba5d8d75bc95877d90a006816a0441",
+  "capture": "f42d5e9885484bec2444",
+  "merged_from_run": "run-27"
+}

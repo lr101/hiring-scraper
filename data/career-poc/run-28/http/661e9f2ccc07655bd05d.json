@@ -1,0 +1,16 @@
+{
+  "url": "https://www.biochem.de/job/initiativbewerbung/",
+  "checked_at": "2026-10-05T23:28:44.076590+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 79449,
+  "state": "ok",
+  "elapsed_seconds": 1.92,
+  "sha256": "389f5accd76c89597dc78857720f27b3a8d2a25a1290ce1bf61d37fe8916437c",
+  "capture": "661e9f2ccc07655bd05d"
+}

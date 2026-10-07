@@ -1,0 +1,11 @@
+{
+  "url": "https://www.s-fm-gmbh.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:36.711796+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "[Errno -2] Name or service not known",
+  "elapsed_seconds": 0.038,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "af823b4ba55bae49c4ce",
+  "merged_from_run": "run-28"
+}

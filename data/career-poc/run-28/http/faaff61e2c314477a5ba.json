@@ -1,0 +1,16 @@
+{
+  "url": "https://fundr.com/",
+  "checked_at": "2026-10-05T23:39:22.107433+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 103789,
+  "state": "ok",
+  "elapsed_seconds": 1.116,
+  "sha256": "bbf0f49fa7f16416b34a45186463952827c05422a19a74fb9fe768f53e89bb8d",
+  "capture": "faaff61e2c314477a5ba"
+}

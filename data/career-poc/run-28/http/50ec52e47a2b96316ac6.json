@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bai.de/robots.txt",
+  "checked_at": "2026-10-05T23:18:27.714380+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"f5-6001bdc18e540;5ff8002f5282d",
+  "last_modified": "Mon, 10 Jul 2023 06:11:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 245,
+  "state": "ok",
+  "elapsed_seconds": 0.869,
+  "sha256": "edf08beb9b2379dce6cbb53b501eac259223c1a675539f842d6f20fc6417458b",
+  "capture": "50ec52e47a2b96316ac6"
+}

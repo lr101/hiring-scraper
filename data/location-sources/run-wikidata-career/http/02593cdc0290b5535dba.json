@@ -1,0 +1,13 @@
+{
+  "url": "https://www.bokela.com/en/",
+  "checked_at": "2026-10-05T14:48:00.483806+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 222594,
+  "state": "ok",
+  "elapsed_seconds": 2.804,
+  "sha256": "1fb9848106586bcdcc8aadd9c224e4844669795540de1dd3f22a0574fe347096",
+  "capture": "02593cdc0290b5535dba"
+}

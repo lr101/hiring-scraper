@@ -1,0 +1,17 @@
+{
+  "url": "https://it-cs.io/robots.txt",
+  "checked_at": "2026-10-05T23:40:34.967592+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 166,
+  "state": "ok",
+  "elapsed_seconds": 1.101,
+  "sha256": "12e9a84465497c117b428620d9e7abe529e0ea1da9eeea9eff73a029cf67c40b",
+  "capture": "0ff1c00d1f52cfc16526",
+  "merged_from_run": "run-28"
+}

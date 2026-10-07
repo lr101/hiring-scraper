@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rajapack.de:443/robots.txt",
+  "checked_at": "2026-10-05T23:39:17.770877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"451-65c8eebb6c880-gzip:dtagent1034726090215454328kU\"",
+  "last_modified": "Mon, 28 Sep 2026 18:06:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1105,
+  "state": "ok",
+  "elapsed_seconds": 1.073,
+  "sha256": "83c21f9216211aa976e0b7d79dffe0339dd6308ce954cbe98a52d7cdd2391eb5",
+  "capture": "fb0c3e5bb4743f48862b"
+}

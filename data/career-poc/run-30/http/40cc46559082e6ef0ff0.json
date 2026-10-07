@@ -1,0 +1,17 @@
+{
+  "url": "https://www.hs-gmbh-stb.de/karriere?rCH=-2",
+  "checked_at": "2026-10-05T23:45:28.209340+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:45:29 GMT",
+  "retry_after": null,
+  "location": "https://www.hs-gmbh-stb.de/karriere",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.995,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "40cc46559082e6ef0ff0",
+  "merged_from_run": "run-28"
+}

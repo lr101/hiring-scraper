@@ -1,0 +1,17 @@
+{
+  "url": "https://zimmereischeitl.de/stellenangebote.html",
+  "checked_at": "2026-10-05T23:45:51.668650+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 7753,
+  "state": "ok",
+  "elapsed_seconds": 0.849,
+  "sha256": "a883faaef283ca620074e8fcd0950979e650fcc328cf0920ee3a8903b2374f5c",
+  "capture": "273b1040146f0e9c626c",
+  "merged_from_run": "run-28"
+}

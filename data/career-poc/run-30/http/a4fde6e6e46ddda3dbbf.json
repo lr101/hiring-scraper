@@ -1,0 +1,11 @@
+{
+  "url": "https://www.cad-spanke.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:25.328981+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:992)>",
+  "elapsed_seconds": 0.834,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "a4fde6e6e46ddda3dbbf",
+  "merged_from_run": "run-28"
+}

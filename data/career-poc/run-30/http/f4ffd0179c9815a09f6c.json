@@ -1,0 +1,17 @@
+{
+  "url": "https://www.thw.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:39.654143+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 589,
+  "state": "ok",
+  "elapsed_seconds": 0.766,
+  "sha256": "81ee7e844bfc6c54a907809b757aad9edf685e73469892733e4d4316313a893d",
+  "capture": "f4ffd0179c9815a09f6c",
+  "merged_from_run": "run-28"
+}

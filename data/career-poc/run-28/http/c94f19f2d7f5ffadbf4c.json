@@ -1,0 +1,16 @@
+{
+  "url": "https://www.visteon.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:30:29.949854+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.visteon.com:443/sitemap.ashx",
+  "bytes": 518,
+  "state": "http_error",
+  "elapsed_seconds": 0.952,
+  "sha256": "4e77da3fae129cf4e8505ecf5711898350d57fa8d634d1ce59e52e0033f9b8bb",
+  "capture": "c94f19f2d7f5ffadbf4c"
+}

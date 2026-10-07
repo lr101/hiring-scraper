@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bgv.de/karriere/stellenangebote/index.xhtml",
+  "checked_at": "2026-10-05T23:00:41.672159+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 117487,
+  "state": "ok",
+  "elapsed_seconds": 0.133,
+  "sha256": "e3c37880b457a9f051904c34dffca0b3e3dd83c332c4423d26fa30de13f9dff6",
+  "capture": "935565e44fa531808005"
+}

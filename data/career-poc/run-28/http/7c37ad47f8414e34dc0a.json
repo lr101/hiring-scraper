@@ -1,0 +1,16 @@
+{
+  "url": "https://riedle-heiztech.de/karriere/",
+  "checked_at": "2026-10-05T23:43:07.144704+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 135440,
+  "state": "ok",
+  "elapsed_seconds": 0.856,
+  "sha256": "1441857afa177491f2d9d7bae3bfa657cfce953d7a947620a1221359b95e40d9",
+  "capture": "7c37ad47f8414e34dc0a"
+}

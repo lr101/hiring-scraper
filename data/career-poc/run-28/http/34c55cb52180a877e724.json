@@ -1,0 +1,16 @@
+{
+  "url": "https://www.iformatics.de/",
+  "checked_at": "2026-10-05T23:39:29.577175+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:59:19 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 519573,
+  "state": "ok",
+  "elapsed_seconds": 0.7,
+  "sha256": "49d6b66690b5de78af651fbb8e1622bdebb3ca39c262f96ae3acb197443f0e7c",
+  "capture": "34c55cb52180a877e724"
+}

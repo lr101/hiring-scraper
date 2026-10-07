@@ -1,0 +1,16 @@
+{
+  "url": "https://www.karlsruhe.igm.de/robots.txt",
+  "checked_at": "2026-10-05T22:12:06.547223+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://karlsruhe.igmetall.de",
+  "bytes": 231,
+  "state": "http_error",
+  "elapsed_seconds": 0.148,
+  "sha256": "4040671172a073a5233a0e552f48e3165bfccfe70503957cc85a80f36e9416c7",
+  "capture": "8a42abe9f2cff1284305"
+}

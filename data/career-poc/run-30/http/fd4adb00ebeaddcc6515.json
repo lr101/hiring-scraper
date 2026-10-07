@@ -1,0 +1,17 @@
+{
+  "url": "https://www.invenio.net/de/karriere/",
+  "checked_at": "2026-10-05T23:19:34.847228+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 31609,
+  "state": "ok",
+  "elapsed_seconds": 0.141,
+  "sha256": "912209ef989897baba4a26516c73ef553c9d6be397e85dc9f64554ae4999a6ee",
+  "capture": "fd4adb00ebeaddcc6515",
+  "merged_from_run": "run-28"
+}

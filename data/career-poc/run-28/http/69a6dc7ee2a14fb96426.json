@@ -1,0 +1,16 @@
+{
+  "url": "https://hbm-partner.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:08.351440+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 172,
+  "state": "ok",
+  "elapsed_seconds": 0.245,
+  "sha256": "804c33789760b3ad1e331fd64935527b10abb4ae98694a41bbb584365116f35e",
+  "capture": "69a6dc7ee2a14fb96426"
+}

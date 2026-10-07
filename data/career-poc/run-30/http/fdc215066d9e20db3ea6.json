@@ -1,0 +1,17 @@
+{
+  "url": "https://alphaconsult.org/stellenangebote",
+  "checked_at": "2026-10-05T22:17:09.645589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 249538,
+  "state": "ok",
+  "elapsed_seconds": 1.043,
+  "sha256": "8588853fb34ae29a9c298b0096d1535f978615f50c6685105092e09a9c9ecf78",
+  "capture": "fdc215066d9e20db3ea6",
+  "merged_from_run": "run-25"
+}

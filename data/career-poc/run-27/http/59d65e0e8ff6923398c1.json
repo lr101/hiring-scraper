@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sap.com/robots.txt",
+  "checked_at": "2026-10-05T23:01:38.722713+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4487,
+  "state": "ok",
+  "elapsed_seconds": 0.252,
+  "sha256": "b712e5e7bfa6452be3c66e2d866730f89091ad6f9f5d0b2b4544a009002f7f9e",
+  "capture": "59d65e0e8ff6923398c1"
+}

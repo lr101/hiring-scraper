@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pbw.de/ueber-uns/karriere",
+  "checked_at": "2026-10-05T22:18:58.635235+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 62500,
+  "state": "ok",
+  "elapsed_seconds": 1.066,
+  "sha256": "b1c7d0a97845f8ecc2d7a778245f8f355f9f55508c97f8ef0afefaec1e0bd194",
+  "capture": "4dc3de0addab335b9b08",
+  "merged_from_run": "run-25"
+}

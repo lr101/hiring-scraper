@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.dfs.de/en/career-paths",
+  "checked_at": "2026-10-05T23:17:30.655310+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 590541,
+  "state": "ok",
+  "elapsed_seconds": 0.336,
+  "sha256": "25a937f3cb04c98b4ee264b9910c3bee39d37f57de132b063d9373d43c05f012",
+  "capture": "6c36cbac3dbc0cadd5ef",
+  "merged_from_run": "run-28"
+}

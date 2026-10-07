@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ferrotec.net/careers",
+  "checked_at": "2026-10-05T23:38:53.069137+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 146,
+  "state": "http_error",
+  "elapsed_seconds": 1.1,
+  "sha256": "55f7d9e99b8e2d4e0e193b2f0275501e6d9c1ebd29cadbea6a0da48a8587e3e0",
+  "capture": "b6176b2ea640e1d86845"
+}

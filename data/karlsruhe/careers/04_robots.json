@@ -1,0 +1,12 @@
+{
+  "url": "https://www.grenke.de/robots.txt",
+  "checked_at": "2026-10-05T08:23:50.613494+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.grenke.de/robots.txt",
+  "content_type": "text/plain;charset=UTF-8",
+  "bytes": 119,
+  "truncated": false,
+  "elapsed_seconds": 0.28,
+  "sha256": "e43a0169288aa53e461dcc9726287b567b4805e11bdb789090c3cd41807ae99e"
+}

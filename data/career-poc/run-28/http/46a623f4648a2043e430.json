@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hug-ka.de/karriere.html",
+  "checked_at": "2026-10-05T23:18:20.494010+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76845,
+  "state": "ok",
+  "elapsed_seconds": 0.649,
+  "sha256": "49009f4537a88f889b0f3c6516d6e901752b06cfce328ba4873de90647f1963d",
+  "capture": "46a623f4648a2043e430"
+}

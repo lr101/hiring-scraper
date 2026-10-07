@@ -1,0 +1,17 @@
+{
+  "url": "https://corporate.jacob.de/robots.txt",
+  "checked_at": "2026-10-05T23:22:41.815487+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.jacob.de:443/robots.txt",
+  "bytes": 134,
+  "state": "http_error",
+  "elapsed_seconds": 0.879,
+  "sha256": "34ccdc351dc93dbf30a8630521968421091e3ed19c31a16e32c2eabb55c6a73a",
+  "capture": "5bdc1f959994315ab1dd",
+  "merged_from_run": "run-28"
+}

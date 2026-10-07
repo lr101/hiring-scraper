@@ -1,0 +1,12 @@
+{
+  "url": "https://www.grenke.de",
+  "checked_at": "2026-10-05T08:23:51.893925+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.grenke.de",
+  "content_type": "text/html;charset=UTF-8",
+  "bytes": 267186,
+  "truncated": false,
+  "elapsed_seconds": 0.13,
+  "sha256": "5368de8dc7b88c529ef6d421af1bda05126fe633503d36d2c96391177061f3f4"
+}

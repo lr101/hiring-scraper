@@ -1,0 +1,17 @@
+{
+  "url": "https://berchtoldkrass.de/robots.txt",
+  "checked_at": "2026-10-05T22:14:55.446557+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"48-656fca50b6a40\"",
+  "last_modified": "Sun, 19 Jul 2026 20:29:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 72,
+  "state": "ok",
+  "elapsed_seconds": 0.171,
+  "sha256": "d1adba2be49185606b0b32de8d4498443db5840bb5f34741c5dd287c4610d9e2",
+  "capture": "ed08e19bb32617ae0f04",
+  "merged_from_run": "run-25"
+}

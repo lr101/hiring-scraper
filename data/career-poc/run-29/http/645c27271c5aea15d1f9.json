@@ -1,0 +1,17 @@
+{
+  "url": "https://www.jaeger-haustechnik.de/karriere/willkommen-im-team/",
+  "checked_at": "2026-10-05T23:24:49.552139+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 113640,
+  "state": "ok",
+  "elapsed_seconds": 1.002,
+  "sha256": "a8b1f5adfa96090b14632a98158178c7b8c7ee243851b0aaa29b9e5fd0729256",
+  "capture": "645c27271c5aea15d1f9",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.db-dach.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:37:59.594889+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "W/\"-1204217431\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3360,
+  "state": "ok",
+  "elapsed_seconds": 0.925,
+  "sha256": "6b16a100aebff8da69f02494399127d0a0e7c0ab517191a8b63ddfb4241b3dad",
+  "capture": "a767170d85e4ceb6821f"
+}

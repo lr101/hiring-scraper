@@ -1,0 +1,17 @@
+{
+  "url": "https://beruf-und-familie.blogspot.com/2021/03/LandratsamtKarlsruhe.html",
+  "checked_at": "2026-10-05T23:36:40.463314+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 14:23:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 124476,
+  "state": "ok",
+  "elapsed_seconds": 1.131,
+  "sha256": "1c682fc50758caf95a04d029674c3681d03db835d5e33f1781f9c877b2ff5604",
+  "capture": "dd26afe6607df150cd94",
+  "merged_from_run": "run-28"
+}

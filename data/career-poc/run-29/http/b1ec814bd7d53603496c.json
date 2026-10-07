@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ihm.kit.edu/jobs",
+  "checked_at": "2026-10-05T23:42:27.509007+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 345,
+  "state": "http_error",
+  "elapsed_seconds": 0.999,
+  "sha256": "08f1a648a50b601bb2a524aa21537224f0c69eaa6ebe1ab89d16a0481fdcffab",
+  "capture": "b1ec814bd7d53603496c",
+  "merged_from_run": "run-28"
+}

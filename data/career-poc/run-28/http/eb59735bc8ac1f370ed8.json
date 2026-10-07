@@ -1,0 +1,16 @@
+{
+  "url": "https://kirchenbauer.de/robots.txt",
+  "checked_at": "2026-10-05T23:38:23.080523+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1c7-65c8a266a3200\"",
+  "last_modified": "Mon, 28 Sep 2026 12:24:40 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 455,
+  "state": "ok",
+  "elapsed_seconds": 0.19,
+  "sha256": "1f6725337bb1b21e467a4dc8a431ef83056cfd1ce8cdd0fcd6cc6d198cf370f0",
+  "capture": "eb59735bc8ac1f370ed8"
+}

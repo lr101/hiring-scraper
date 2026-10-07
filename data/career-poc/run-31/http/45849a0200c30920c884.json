@@ -1,0 +1,17 @@
+{
+  "url": "https://www.bfb-ka.de/",
+  "checked_at": "2026-10-05T23:22:56.340992+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 80042,
+  "state": "ok",
+  "elapsed_seconds": 1.095,
+  "sha256": "22b4e08203e4983a3d889e8d49041e3a2042fafc36a2d5d05c4b7c10f3fdfbc0",
+  "capture": "45849a0200c30920c884",
+  "merged_from_run": "run-28"
+}

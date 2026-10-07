@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schlosserei-wahlich.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:31:25.170098+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"6ab541fe-24ea\"",
+  "last_modified": "Thu, 24 Sep 2026 15:30:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 9450,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "0404bf3cdcf200d8ef53422346ea2c119e850c227af349b2465c5d85be2d0adc",
+  "capture": "a1bf54c6c4832fa09757"
+}

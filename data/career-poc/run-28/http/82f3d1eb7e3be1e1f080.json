@@ -1,0 +1,16 @@
+{
+  "url": "https://bodynova.de/fr/jobs/",
+  "checked_at": "2026-10-05T23:33:31.953653+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 152549,
+  "state": "ok",
+  "elapsed_seconds": 1.182,
+  "sha256": "c08b56dc4e48ea65e060c07d99d4ee7cb894b133cbb111f904137372b387a104",
+  "capture": "82f3d1eb7e3be1e1f080"
+}

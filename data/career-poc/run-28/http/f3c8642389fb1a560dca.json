@@ -1,0 +1,16 @@
+{
+  "url": "https://www.emilfrey.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:17.008679+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"4ab748b66c31ff7f15a5dc1b9617de12\"",
+  "last_modified": "Thu, 01 Oct 2026 11:49:56 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 418,
+  "state": "ok",
+  "elapsed_seconds": 0.122,
+  "sha256": "8c4738682844bb46a243047e524a3db905ccb1e59994df4fad72ffbd9aacf342",
+  "capture": "f3c8642389fb1a560dca"
+}

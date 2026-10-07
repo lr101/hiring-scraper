@@ -1,0 +1,17 @@
+{
+  "url": "https://ilias.studium.kit.edu/ilias.php?baseClass=ilrepositorygui&cmdNode=xu:mq:f6&cmdClass=ilInfoScreenGUI&ref_id=1155076",
+  "checked_at": "2026-10-05T22:29:55.023257+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 55263,
+  "state": "ok",
+  "elapsed_seconds": 1.48,
+  "sha256": "3c50c4308a8b63c506d3c733a03210a709dbc9d447758a4b21123d811055242f",
+  "capture": "5ac251ba97669c63a8ae",
+  "merged_from_run": "run-26"
+}

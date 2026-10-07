@@ -1,0 +1,16 @@
+{
+  "url": "https://www.autosattlerei-anderer.de/",
+  "checked_at": "2026-10-05T23:30:12.332938+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"32ae-65c03e72be011\"",
+  "last_modified": "Mon, 21 Sep 2026 20:14:53 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 12974,
+  "state": "ok",
+  "elapsed_seconds": 0.978,
+  "sha256": "05a1b8ec561558dd22344346434c11a16ee7be56f10d501522922da8b991fdb5",
+  "capture": "a5156ef9646241173754"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://griesemann.com/",
+  "checked_at": "2026-10-05T23:29:43.486437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 181102,
+  "state": "ok",
+  "elapsed_seconds": 1.621,
+  "sha256": "bf8bcc4a7e274fa602b63e6b7b17c0c44deccff699693dd0117a0ab933958ca1",
+  "capture": "17d39046b48929326b06",
+  "merged_from_run": "run-28"
+}

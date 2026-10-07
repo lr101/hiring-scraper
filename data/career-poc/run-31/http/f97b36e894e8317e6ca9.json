@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ww-cs.de/jobangebote/",
+  "checked_at": "2026-10-05T23:37:37.925499+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:33:22 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 319559,
+  "state": "ok",
+  "elapsed_seconds": 0.931,
+  "sha256": "fd515b75067189d8c6e59c7f5f598b0cfc637230c4c0eaf51cc71cc6681fc65d",
+  "capture": "f97b36e894e8317e6ca9",
+  "merged_from_run": "run-28"
+}

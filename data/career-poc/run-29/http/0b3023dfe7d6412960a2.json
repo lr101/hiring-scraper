@@ -1,0 +1,17 @@
+{
+  "url": "https://axel-bastian.ergo.de/de/bqa/de5/regionaldirektion/karriere-im-vertrieb/Jobs-und-karriere/Quereinsteiger",
+  "checked_at": "2026-10-05T23:29:41.875303+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"4f823-gNwE0w4qvB7PlEQXjrntEqqbu/c\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 325667,
+  "state": "ok",
+  "elapsed_seconds": 1.061,
+  "sha256": "2eb3d69fcd0b23fd5a745711cda33fa5697a103fd4b79c29a38a50da8467553e",
+  "capture": "0b3023dfe7d6412960a2",
+  "merged_from_run": "run-28"
+}

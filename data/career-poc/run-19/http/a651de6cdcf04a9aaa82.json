@@ -1,0 +1,17 @@
+{
+  "url": "https://datenberg.eu/careers",
+  "checked_at": "2026-10-05T20:42:41.732617+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63745,
+  "state": "http_error",
+  "elapsed_seconds": 1.831,
+  "sha256": "2c854bb99c4d8f740d476bc974d1ef008be316c89412d8666e1513c4fc692087",
+  "capture": "a651de6cdcf04a9aaa82",
+  "reused_from": "data/career-poc/run-18/http/a651de6cdcf04a9aaa82.json"
+}

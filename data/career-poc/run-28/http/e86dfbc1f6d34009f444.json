@@ -1,0 +1,16 @@
+{
+  "url": "https://iwk.de/",
+  "checked_at": "2026-10-05T23:40:09.868225+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 111597,
+  "state": "ok",
+  "elapsed_seconds": 1.003,
+  "sha256": "856d744926620bc7614faf63d219ead3a400f7715e88cf3a03c70379b145b0c8",
+  "capture": "e86dfbc1f6d34009f444"
+}

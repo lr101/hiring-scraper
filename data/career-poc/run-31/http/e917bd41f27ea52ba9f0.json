@@ -1,0 +1,17 @@
+{
+  "url": "https://www.waldpaedagogik-karlsruhe.de/careers",
+  "checked_at": "2026-10-05T23:18:43.572220+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196877,
+  "state": "http_error",
+  "elapsed_seconds": 1.028,
+  "sha256": "21d825fa02ec2fca3e3be6989039c0e53efb5b9648fc8d4635cc4c72dba7560f",
+  "capture": "e917bd41f27ea52ba9f0",
+  "merged_from_run": "run-28"
+}

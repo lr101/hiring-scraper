@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bit-ingenieure.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:36.749896+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://bit-ingenieure.de/robots.txt",
+  "bytes": 284,
+  "state": "http_error",
+  "elapsed_seconds": 0.978,
+  "sha256": "ca293ba009d856e7685bf32a799f67bb9e3c0eb4e5d855b84ef78b3630dd7b62",
+  "capture": "197d60351a4b86ca392d"
+}

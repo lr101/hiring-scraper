@@ -1,0 +1,17 @@
+{
+  "url": "https://www.malteser.de/standorte/karlsruhe/mitarbeiten.html",
+  "checked_at": "2026-10-05T22:47:00.058675+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"a77c9845ba45d162df4486d3a19f442f-gzip\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 330941,
+  "state": "ok",
+  "elapsed_seconds": 1.074,
+  "sha256": "14775a83ee162da73bb2eb56a61fbfdcabbe75da03228ea14b0e965d2b57c98e",
+  "capture": "20738ac26e3a76c8c5d6",
+  "merged_from_run": "run-27"
+}

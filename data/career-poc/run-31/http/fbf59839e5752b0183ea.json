@@ -1,0 +1,17 @@
+{
+  "url": "https://tecvia.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:18:11.163350+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"fadccd9b72753a0332dec611e6e2a7b9\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 59155,
+  "state": "ok",
+  "elapsed_seconds": 0.347,
+  "sha256": "c64c6c7c92e8df473d4d59f2c066059fe012c6fcf5c94327193f9c4a6f750fe7",
+  "capture": "fbf59839e5752b0183ea",
+  "merged_from_run": "run-28"
+}

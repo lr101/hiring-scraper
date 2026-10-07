@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vega.com/karriere/studium",
+  "checked_at": "2026-10-05T22:51:21.320435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 42977,
+  "state": "ok",
+  "elapsed_seconds": 0.923,
+  "sha256": "3926a953c9d58c163ab42ac0c1a45f613be830d7318478fa47500e7db5957f04",
+  "capture": "a98d5ffa8e699cd5bc51",
+  "merged_from_run": "run-27"
+}

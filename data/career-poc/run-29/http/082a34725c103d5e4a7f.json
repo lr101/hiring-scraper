@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vins-catering.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:41:23.019324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 415,
+  "state": "ok",
+  "elapsed_seconds": 1.435,
+  "sha256": "dc8f232c7a32a74568c06d37ca68e8ff1c9a3de0ed4b71a17140540af1a6a604",
+  "capture": "082a34725c103d5e4a7f",
+  "merged_from_run": "run-28"
+}

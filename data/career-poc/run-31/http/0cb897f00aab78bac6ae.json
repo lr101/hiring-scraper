@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.pse.kit.edu/de/p/Duales_Studium/jobs/144333/form",
+  "checked_at": "2026-10-05T23:41:53.942464+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 61756,
+  "state": "ok",
+  "elapsed_seconds": 0.26,
+  "sha256": "318fa69ec1ef68946d170b95f5a876e6901d5d7bcb96237ea5d15ffccde07100",
+  "capture": "0cb897f00aab78bac6ae",
+  "merged_from_run": "run-28"
+}

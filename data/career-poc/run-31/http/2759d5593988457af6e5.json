@@ -1,0 +1,17 @@
+{
+  "url": "https://www.holl.ag/job/karlsruhe",
+  "checked_at": "2026-10-05T23:21:08.236233+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Sun, 12 May 2024 22:35:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 94951,
+  "state": "ok",
+  "elapsed_seconds": 0.994,
+  "sha256": "99da05671a7f3af74e55768e41478cc56594dc49b64e8a0c4b8f3ee91eca232d",
+  "capture": "2759d5593988457af6e5",
+  "merged_from_run": "run-28"
+}

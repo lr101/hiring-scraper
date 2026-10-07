@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.malteser.de/robots.txt",
+  "checked_at": "2026-10-05T22:47:01.166254+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 388,
+  "state": "ok",
+  "elapsed_seconds": 0.334,
+  "sha256": "f4dfa0cdd446258016de1201235e072b35620b2f99810650cc7a0246af771c97",
+  "capture": "34baeb951d85b049d92f",
+  "merged_from_run": "run-27"
+}

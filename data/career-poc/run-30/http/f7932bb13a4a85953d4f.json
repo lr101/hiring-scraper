@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aok.de/baden-wuerttemberg/die-aok/112502.php",
+  "checked_at": "2026-10-05T22:38:04.409498+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.aok.de/pk/kontakt/aok-vor-ort/",
+  "bytes": 414,
+  "state": "http_error",
+  "elapsed_seconds": 0.147,
+  "sha256": "9ee95861f0cd64bec444b56673929467a1ad398accdee2af958f69cea9d75464",
+  "capture": "f7932bb13a4a85953d4f",
+  "merged_from_run": "run-27"
+}

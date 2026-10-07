@@ -1,0 +1,16 @@
+{
+  "url": "https://anexia.onlyfy.jobs/robots.txt",
+  "checked_at": "2026-10-05T23:21:33.256035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6ac3bff2-6e\"",
+  "last_modified": "Mon, 05 Oct 2026 15:19:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 110,
+  "state": "ok",
+  "elapsed_seconds": 0.137,
+  "sha256": "7eb854bc908f73d3199fe92933875af62dc7bd380240a74db7bd96d9ce828b8a",
+  "capture": "7179f94a699e7dd46af7"
+}

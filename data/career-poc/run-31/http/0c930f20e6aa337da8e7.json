@@ -1,0 +1,17 @@
+{
+  "url": "https://2d-datarecording.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T23:18:04.518092+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3721,
+  "state": "ok",
+  "elapsed_seconds": 1.038,
+  "sha256": "a7628085f26e8982413d41571a56d844ad9e24f1a41a48df09482d79ffca5b59",
+  "capture": "0c930f20e6aa337da8e7",
+  "merged_from_run": "run-28"
+}

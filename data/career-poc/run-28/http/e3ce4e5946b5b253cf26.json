@@ -1,0 +1,10 @@
+{
+  "url": "https://www.timo-borrmann.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:22.108239+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [Errno 101] Network is unreachable>",
+  "elapsed_seconds": 5.692,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "e3ce4e5946b5b253cf26"
+}

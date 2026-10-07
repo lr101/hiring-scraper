@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hunkler.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:21.356050+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93,
+  "state": "ok",
+  "elapsed_seconds": 0.208,
+  "sha256": "5fdb4733f2d111b5f1032e8cfd2127a47de3e082157395282d1de86f81499e1c",
+  "capture": "504006e21a2a7527718f"
+}

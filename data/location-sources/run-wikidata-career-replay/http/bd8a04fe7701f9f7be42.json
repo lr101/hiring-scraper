@@ -1,0 +1,14 @@
+{
+  "url": "https://www.cas-software.com/robots.txt",
+  "checked_at": "2026-10-05T14:48:15.238512+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "location": null,
+  "bytes": 148,
+  "state": "ok",
+  "elapsed_seconds": 0.256,
+  "sha256": "9077d50c5e17d3a150c15ac7ab3cbed61a2322cdaea2a872e11ddf80ab343a47",
+  "capture": "bd8a04fe7701f9f7be42",
+  "reused_from": "data/location-sources/run-wikidata-career/http/bd8a04fe7701f9f7be42.json"
+}

@@ -1,0 +1,14 @@
+{
+  "url": "https://exxeta.com/",
+  "checked_at": "2026-10-05T09:08:31.512435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 155014,
+  "state": "ok",
+  "elapsed_seconds": 1.18,
+  "sha256": "319612f56155c21e94b67aa6f24b088f89e59e193f0f4f7de5f3f25bb58e7dfd",
+  "capture": "4ffd5a4b621f368d19f2",
+  "reused_from": "data/career-poc/run-10/http/4ffd5a4b621f368d19f2.json"
+}

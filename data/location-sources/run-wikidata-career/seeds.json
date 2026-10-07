@@ -1,0 +1,79 @@
+[
+  {
+    "name": "Schoeps",
+    "website": "https://www.schoeps.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q138363",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "PTV Transport Consult GmbH",
+    "website": "https://consult.ptvgroup.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q122305380",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Produktivkeller Studios",
+    "website": "https://produktivkeller.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q123340200",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "SciMo GmbH",
+    "website": "https://sci-mo.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q124411839",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "BOKELA GmbH",
+    "website": "https://www.bokela.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q125392132",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "CAS Software AG",
+    "website": "https://www.cas-software.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q30252828",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Physik Instrumente (PI)",
+    "website": "https://www.physikinstrumente.com/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q47423134",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Storch und Beller",
+    "website": "https://storch-beller.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q50038790",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Hatz-Moninger Brauhaus",
+    "website": "https://www.moninger.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q1589080",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Caemmerer Lenz",
+    "website": "https://www.caemmerer-lenz.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q34561210",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  },
+  {
+    "name": "Volksbank pur",
+    "website": "https://www.volksbank-karlsruhe.de/",
+    "cohort": "wikidata_hq_karlsruhe_25km",
+    "source": "https://www.wikidata.org/wiki/Q1633965",
+    "location_evidence": "Wikidata headquarters property points to Karlsruhe city"
+  }
+]

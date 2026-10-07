@@ -1,0 +1,16 @@
+{
+  "url": "https://bit-karriere.de/stellenangebote/gkb/initiativ-bewerbung-alle-standorte",
+  "checked_at": "2026-10-05T23:29:43.063925+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://app.jobportal.abaservices.ch/job-advertisement/3c8a3488-47e3-4ff9-a8c2-e5e6fa03f34c/35dc260b-b88f-01eb-6f80-5a504896c201?jp=ABACUS",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 0.809,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "f800869a7d2a809a0113"
+}

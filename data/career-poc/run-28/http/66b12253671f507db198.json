@@ -1,0 +1,16 @@
+{
+  "url": "https://griesinger-l\u00f6wenberger.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:47.689370+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 400,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 150,
+  "state": "http_error",
+  "elapsed_seconds": 0.795,
+  "sha256": "487ad0d2cf075f4328a1adf57ef428759ad4e2c873a8ebd2ad9653990829c9cf",
+  "capture": "66b12253671f507db198"
+}

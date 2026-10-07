@@ -1,0 +1,16 @@
+{
+  "url": "https://pdtec.de/",
+  "checked_at": "2026-10-05T23:24:29.537500+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 296100,
+  "state": "ok",
+  "elapsed_seconds": 0.147,
+  "sha256": "94b351245b2deacd9c7667baec3f35121dc6fb91d16b7862b2123c554df0aeec",
+  "capture": "c0d1c844ae3bc863171e"
+}

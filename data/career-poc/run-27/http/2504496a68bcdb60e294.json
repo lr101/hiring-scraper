@@ -1,0 +1,16 @@
+{
+  "url": "https://www.drgorka.de/",
+  "checked_at": "2026-10-05T22:57:43.394837+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 113295,
+  "state": "ok",
+  "elapsed_seconds": 1.953,
+  "sha256": "1d12b1e40e81b24c6b7eaf43f3b136ed5c669b000c2012af45d58392d088cc0b",
+  "capture": "2504496a68bcdb60e294"
+}

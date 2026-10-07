@@ -1,0 +1,16 @@
+{
+  "url": "https://www.transneu.de/stellenangebote-und-kontakt.html",
+  "checked_at": "2026-10-05T23:32:46.379688+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6428-657586cf2ba31\"",
+  "last_modified": "Fri, 24 Jul 2026 09:59:16 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 25640,
+  "state": "ok",
+  "elapsed_seconds": 1.031,
+  "sha256": "7d369d2d70b5055fbd2d0eb5f11acfd9200935843c7f0574616f5f52e954fd11",
+  "capture": "59df1a65e7c0ad2f9522"
+}

@@ -1,0 +1,14 @@
+{
+  "url": "https://www.bai.de/karriere",
+  "checked_at": "2026-10-05T09:07:29.565589+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "location": "https://www.bai.de/",
+  "bytes": 227,
+  "state": "http_error",
+  "elapsed_seconds": 1.086,
+  "sha256": "2616839cddc0bd63fb65b94983b5957195a3784c6230c0a63a9dd1c4bd4f4592",
+  "capture": "d7d5587c8453d25c9d90",
+  "reused_from": "data/career-poc/run-10/http/d7d5587c8453d25c9d90.json"
+}

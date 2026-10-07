@@ -1,0 +1,16 @@
+{
+  "url": "https://steuer-pfinztal.de/team/karriere/",
+  "checked_at": "2026-10-05T23:41:16.020375+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 14:24:45 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 261253,
+  "state": "ok",
+  "elapsed_seconds": 0.5,
+  "sha256": "b5abec735eaf6372bed88a4c115e2e5a72cbfd38d984bb5246c95e414fd73ae2",
+  "capture": "7f57f0b4c2f9ceea445e"
+}

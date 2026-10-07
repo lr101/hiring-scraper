@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gwolf-elektro.de/",
+  "checked_at": "2026-10-05T23:18:44.556146+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 58137,
+  "state": "ok",
+  "elapsed_seconds": 1.668,
+  "sha256": "ecd20835e3b9586ef756cbf2986449f5b1d1e71ccccd7f413d64939e6fe9a729",
+  "capture": "7df55c122265302bf43c"
+}

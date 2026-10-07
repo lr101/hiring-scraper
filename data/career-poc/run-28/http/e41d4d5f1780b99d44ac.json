@@ -1,0 +1,16 @@
+{
+  "url": "https://julialacht.de/robots.txt",
+  "checked_at": "2026-10-05T23:32:34.209627+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"72-57158c98e96fc\"",
+  "last_modified": "Thu, 19 Jul 2018 11:50:36 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 0.182,
+  "sha256": "cf14943089d835e9ed42e077d831995735111f261d4f0f2772377d630ff8ed98",
+  "capture": "e41d4d5f1780b99d44ac"
+}

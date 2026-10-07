@@ -1,0 +1,16 @@
+{
+  "url": "https://zetcon.mhmhr.com/2186-teamassistenz-m-w-d/de/job.html",
+  "checked_at": "2026-10-05T22:52:42.904679+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"1be5b1be51007ee8dabe04e7429f2ab2\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21528,
+  "state": "ok",
+  "elapsed_seconds": 1.193,
+  "sha256": "1be5b1be51007ee8dabe04e7429f2ab2c9e5dd1e4622a52d0611ddb88c13dc5f",
+  "capture": "143852b1ae054cc80c78"
+}

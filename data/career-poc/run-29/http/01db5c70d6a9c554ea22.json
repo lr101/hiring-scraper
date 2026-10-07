@@ -1,0 +1,17 @@
+{
+  "url": "https://www.aticon.de/careers",
+  "checked_at": "2026-10-05T22:18:21.490769+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77275,
+  "state": "http_error",
+  "elapsed_seconds": 1.336,
+  "sha256": "544c5c37e2ccd81cc12acf0c2fbd9921e0dc55663de9a0691aad5f623c4f1afe",
+  "capture": "01db5c70d6a9c554ea22",
+  "merged_from_run": "run-25"
+}

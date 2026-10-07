@@ -1,0 +1,16 @@
+{
+  "url": "https://cluetecgmbh.recruitee.com/o/initiativbewerbungen-keine-zuordnung-zu-aktueller-ausschreibung",
+  "checked_at": "2026-10-05T23:23:17.686275+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 210120,
+  "state": "ok",
+  "elapsed_seconds": 0.957,
+  "sha256": "a9c5f86a5c4d795c7ac207e025f22df1d6a08bf3126142a7c53cd4325fa6c5b5",
+  "capture": "9ebd4c1cfa8351ed2ac2"
+}

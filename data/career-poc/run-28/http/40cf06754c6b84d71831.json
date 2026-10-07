@@ -1,0 +1,16 @@
+{
+  "url": "https://andreas-mueller-hydrokulturen.de/karriere/",
+  "checked_at": "2026-10-05T23:18:39.106918+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 74894,
+  "state": "ok",
+  "elapsed_seconds": 1.816,
+  "sha256": "cc8b7f01d3e90225603319466ba3c5b21ab572cbb7bd05a7aad24bd4d67abe83",
+  "capture": "40cf06754c6b84d71831"
+}

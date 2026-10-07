@@ -1,0 +1,16 @@
+{
+  "url": "https://www.brennecke-rechtsanwaelte.de/robots.txt",
+  "checked_at": "2026-10-05T22:56:08.098894+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"bb-61c3ef20e90c0\"",
+  "last_modified": "Tue, 02 Jul 2024 07:48:54 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 187,
+  "state": "ok",
+  "elapsed_seconds": 0.117,
+  "sha256": "7c3a0f6e3b9ee1c50902273fab9a9de788e0f3717a7e345e0b6f32adf94b2914",
+  "capture": "46ade1c4c044b9f1236c"
+}

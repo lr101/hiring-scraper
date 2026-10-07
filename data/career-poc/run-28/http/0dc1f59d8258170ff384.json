@@ -1,0 +1,16 @@
+{
+  "url": "https://trockenmacher.de/karriere",
+  "checked_at": "2026-10-05T23:43:29.907878+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 127175,
+  "state": "http_error",
+  "elapsed_seconds": 2.066,
+  "sha256": "859b2c6ab6213db17e2b51dac79e2e79b5e19d1fe0c91fc7b9c49a125e464bd1",
+  "capture": "0dc1f59d8258170ff384"
+}

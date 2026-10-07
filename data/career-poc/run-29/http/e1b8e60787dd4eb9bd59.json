@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.b-ite.com/robots.txt",
+  "checked_at": "2026-10-05T23:39:04.193991+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 93,
+  "state": "ok",
+  "elapsed_seconds": 0.165,
+  "sha256": "b49a1f7369bfc9c5418268b399ff86d8e0247fe3b9c19ad1837946cc2f47a670",
+  "capture": "e1b8e60787dd4eb9bd59",
+  "merged_from_run": "run-28"
+}

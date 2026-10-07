@@ -1,0 +1,16 @@
+{
+  "url": "https://stark.wd3.myworkdayjobs.com/de-DE/STARK-Germany/login",
+  "checked_at": "2026-10-05T23:31:39.390856+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114017,
+  "state": "ok",
+  "elapsed_seconds": 1.205,
+  "sha256": "503aa3cc479237b78a2f90cdad72de7f35f15f6c5afa955c9c740073b304be22",
+  "capture": "5766e2b32ea9e220226d"
+}

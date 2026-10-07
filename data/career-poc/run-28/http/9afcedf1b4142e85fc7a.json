@@ -1,0 +1,16 @@
+{
+  "url": "https://www.konecranes.com/robots.txt",
+  "checked_at": "2026-10-05T23:24:41.094617+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"6ab4ceae-da6\"",
+  "last_modified": "Thu, 24 Sep 2026 07:18:06 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 3494,
+  "state": "ok",
+  "elapsed_seconds": 0.925,
+  "sha256": "e1be395f300d4a1c618cc43b5650b57661bc964388fe0674fbaa322691c188fb",
+  "capture": "9afcedf1b4142e85fc7a"
+}

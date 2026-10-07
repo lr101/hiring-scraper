@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rajapack.de:443/sitemap/sitemap-https",
+  "checked_at": "2026-10-05T23:39:18.845496+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://validate.perfdrive.com/e32acabbc4004ac27181274f77ae315b/?ssa=8f899156-2b21-41c8-a879-98b8dc5f69df&ssb=57406256167&ssc=https%3A%2F%2Fwww.rajapack.de%2Fsitemap%2Fsitemap-https&ssi=dc2bed57-c68n-4420-a75d-d1005e974da6&ssk=botmanager_support@radware.com&ssm=39079887727702618105314249039180&ssn=85a8ace135a587fec04089273d854aa0cd85953b27f9-057d-4b00-9eb047&sso=b75d0273-f41d387ed81b2addfd96cf79633bf2426781558348949318&ssp=04515062771791227022179125406426723&ssq=25801244355911632828843559083899778970854&ssr=ODkuMC40OC4yMjU=&sst=HiringDiscoveryResearch/0.2 (career discovery feasibility study)&ssu=&ssv=&ssw=&ssx=eyJ1em14IjoiN2ZjMDAwZTkzZDliZmMtOWJhMi00YTBmLWI3NWItOWFlMzg2NDQ1MTI4MS0xNzkxMjQzNTU5NzI2MC0wMDgxYTFmNTc3ZGM4MTM4YjdmMTAiLCJfX3V6bWYiOiI3ZjkwMDA5NTNiMjdmOS0wNTdkLTRiMDAtOTI3My1mNDFkMzg3ZWQ4MWIxLTE3OTEyNDM1NTk3MjYwLTAwNTJhYTRmNGE2NGM0OTQzNTgxMCIsInJkIjoicmFqYXBhY2suZGUifQ==",
+  "bytes": 1436,
+  "state": "http_error",
+  "elapsed_seconds": 0.899,
+  "sha256": "f3a18e334cd49165fd6f9fc77a902678e7dc206939718bd062defc7bc2c6fea0",
+  "capture": "6dc9ff1070df9ee0019a"
+}

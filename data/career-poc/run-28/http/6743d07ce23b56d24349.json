@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wolff-mueller.de/robots.txt",
+  "checked_at": "2026-10-05T23:19:11.959869+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 633,
+  "state": "ok",
+  "elapsed_seconds": 0.141,
+  "sha256": "9ab2a7ea9f4605656216138ae9a5b432bb4ded1bbaf45d0f12c3e811aa6c7184",
+  "capture": "6743d07ce23b56d24349"
+}

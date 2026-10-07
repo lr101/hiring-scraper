@@ -1,0 +1,17 @@
+{
+  "url": "https://riedle-heiztech.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:43:04.073985+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 535,
+  "state": "ok",
+  "elapsed_seconds": 0.982,
+  "sha256": "083f2f7ea541b691cdf04ce31684aee23e39e35c5ba494ca0ba20642ea13a85b",
+  "capture": "1e743b16eba4a8672218",
+  "merged_from_run": "run-28"
+}

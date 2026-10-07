@@ -1,0 +1,17 @@
+{
+  "url": "https://www.it-choice.de/en/careers/",
+  "checked_at": "2026-10-05T23:26:21.258781+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162940,
+  "state": "ok",
+  "elapsed_seconds": 0.914,
+  "sha256": "1bb92230fcb679853f372bebe6c0506820853c3978e52bf21fd608aa2833d8e2",
+  "capture": "6b31a10a4fb27f1c7e87",
+  "merged_from_run": "run-28"
+}

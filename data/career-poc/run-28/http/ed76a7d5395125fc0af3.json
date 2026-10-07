@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ev-kirche-friedrichstal.de/robots.txt",
+  "checked_at": "2026-10-05T23:43:17.185626+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://ekistuwei.de/friedrichstal/robots.txt",
+  "bytes": 293,
+  "state": "http_error",
+  "elapsed_seconds": 0.986,
+  "sha256": "7a39cfe9bfc01255d3a1a80a1732c324f18176642c8c01f59ae4672427a74a51",
+  "capture": "ed76a7d5395125fc0af3"
+}

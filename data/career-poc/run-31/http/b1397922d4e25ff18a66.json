@@ -1,0 +1,17 @@
+{
+  "url": "https://rs-nc.rohde-schwarz.com/de/unternehmen/karriere",
+  "checked_at": "2026-10-05T23:28:57.645240+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 247615,
+  "state": "ok",
+  "elapsed_seconds": 1.03,
+  "sha256": "55684093ea526b9b84dd7432d4cfa03e7601e839cd60ee64393ed2ecd9c26d95",
+  "capture": "b1397922d4e25ff18a66",
+  "merged_from_run": "run-28"
+}

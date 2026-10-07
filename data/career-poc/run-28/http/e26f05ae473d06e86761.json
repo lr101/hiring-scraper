@@ -1,0 +1,16 @@
+{
+  "url": "https://atruvia.de/robots.txt",
+  "checked_at": "2026-10-05T23:25:15.596689+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 53956,
+  "state": "http_error",
+  "elapsed_seconds": 0.815,
+  "sha256": "208014752e75469a8314eba7cb05e1bb5585c418af4980104bb5daac5da58264",
+  "capture": "e26f05ae473d06e86761"
+}

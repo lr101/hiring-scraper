@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bau4.de/karriere",
+  "checked_at": "2026-10-05T23:16:23.045770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.bau4.de/bau4-architekten.html",
+  "bytes": 410,
+  "state": "http_error",
+  "elapsed_seconds": 1.218,
+  "sha256": "8da6817c04c8c61d86de7f2b5f03f6d18f8518e63774e2d6d5e3fc1d71864887",
+  "capture": "ac31663d5865e3e4a70c"
+}

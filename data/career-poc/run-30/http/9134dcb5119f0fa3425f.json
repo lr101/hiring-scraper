@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kieback-peter.com/de/",
+  "checked_at": "2026-10-05T23:27:01.768993+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52215,
+  "state": "ok",
+  "elapsed_seconds": 1.039,
+  "sha256": "2961b96be62629b328f478a348110f6630066f1639c0d94b4876b8a3e210419c",
+  "capture": "9134dcb5119f0fa3425f",
+  "merged_from_run": "run-28"
+}

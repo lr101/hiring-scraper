@@ -1,0 +1,17 @@
+{
+  "url": "https://www.butz-buerker.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:10.623480+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 177,
+  "state": "ok",
+  "elapsed_seconds": 2.919,
+  "sha256": "94e9e652778a599a962b49c48507c6d7312fc1a5f0a42123f61b566accf08dfe",
+  "capture": "3086a8903871ca176c9c",
+  "merged_from_run": "run-28"
+}

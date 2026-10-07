@@ -1,0 +1,16 @@
+{
+  "url": "https://funkybooth.eu/karriere",
+  "checked_at": "2026-10-05T23:16:11.943386+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98659,
+  "state": "http_error",
+  "elapsed_seconds": 1.361,
+  "sha256": "e80cb0c28c3ca5ca181e9c9da82de1196a8354af6eb1ef03e29a3b7abd84bd6d",
+  "capture": "b16995b95d1ede151316"
+}

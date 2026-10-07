@@ -1,0 +1,16 @@
+{
+  "url": "https://innenausbau-kuppinger.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:55.473838+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 125,
+  "state": "ok",
+  "elapsed_seconds": 0.326,
+  "sha256": "c436b20ff89659ee242aca5448eb1e4348651b80a75fd2552464a3c4503a5fda",
+  "capture": "bbe3094b3442b2ceb719"
+}

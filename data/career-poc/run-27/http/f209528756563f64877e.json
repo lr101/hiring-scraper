@@ -1,0 +1,16 @@
+{
+  "url": "https://gruenekarlsruhe.de/",
+  "checked_at": "2026-10-05T22:36:18.078000+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:14:29 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 72203,
+  "state": "ok",
+  "elapsed_seconds": 1.227,
+  "sha256": "e80d7987960e5952b77f9d332b43c8447b89dd1bc982df43103f331d80fc7d7b",
+  "capture": "f209528756563f64877e"
+}

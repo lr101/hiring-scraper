@@ -1,0 +1,17 @@
+{
+  "url": "https://www.nock-gmbh.de/",
+  "checked_at": "2026-10-05T23:11:07.176984+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"60a645af-329d\"",
+  "last_modified": "Thu, 20 May 2021 11:19:11 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 12957,
+  "state": "ok",
+  "elapsed_seconds": 1.116,
+  "sha256": "cbe7b72cacd332f6af452cf57fbf980f90f403727a27e451c0669dcf29cbeff2",
+  "capture": "82b6445bf6520d2162f7",
+  "merged_from_run": "run-27"
+}

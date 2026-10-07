@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lenkert-hoerrmann.de/",
+  "checked_at": "2026-10-05T23:25:42.896497+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 18:10:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 403293,
+  "state": "ok",
+  "elapsed_seconds": 0.418,
+  "sha256": "e4742204c239b4a4b781cd329c42b614a23010de484abdb9e2df888bcf4d2fb6",
+  "capture": "ad1c01f2035057d5f97d"
+}

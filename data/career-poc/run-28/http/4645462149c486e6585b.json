@@ -1,0 +1,16 @@
+{
+  "url": "https://streit.softgarden.io/applications/cceb6ff9-8782-42f8-beb2-6163ee192ea6?6=&isEditMode=false&isNew=true&l=de",
+  "checked_at": "2026-10-05T23:28:18.636025+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://streit.softgarden.io/applications/cceb6ff9-8782-42f8-beb2-6163ee192ea6?isEditMode=false&isNew=true&l=de",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.045,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "4645462149c486e6585b"
+}

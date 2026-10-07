@@ -1,0 +1,17 @@
+{
+  "url": "https://nees-bauen.de/careers",
+  "checked_at": "2026-10-05T23:44:55.304939+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 70344,
+  "state": "http_error",
+  "elapsed_seconds": 3.5,
+  "sha256": "e622288e1dfeefa50148082b37a8238e7ebc0d92dffcfb69ee252ba943597f00",
+  "capture": "f1576844733de554a284",
+  "merged_from_run": "run-28"
+}

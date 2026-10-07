@@ -1,0 +1,16 @@
+{
+  "url": "https://www.karlsruhe.de/b3/soziales/personengruppen/senioren/seniorenwegweiser/beratung/seniorenbuero.de",
+  "checked_at": "2026-10-05T22:41:27.175462+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 574203,
+  "state": "http_error",
+  "elapsed_seconds": 0.262,
+  "sha256": "9ae3d0a718e88a8e1d5839c4059756f23f93aacd28e625e77ed303189729f58f",
+  "capture": "18b77076ac734877de4d"
+}

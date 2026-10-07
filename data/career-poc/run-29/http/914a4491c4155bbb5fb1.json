@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ideal-sicherheit.de/stellenangebote.php",
+  "checked_at": "2026-10-05T23:27:45.257744+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ideal-sicherheit.de/karriere.php",
+  "bytes": 292,
+  "state": "http_error",
+  "elapsed_seconds": 1.034,
+  "sha256": "53cc80e0b85d51efb9f7b9118d336039bde3ff3065f3dceded5376e27a5aa8ca",
+  "capture": "914a4491c4155bbb5fb1",
+  "merged_from_run": "run-28"
+}

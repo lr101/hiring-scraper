@@ -1,0 +1,17 @@
+{
+  "url": "https://netzstrategen.jobs.personio.com/xml",
+  "checked_at": "2026-10-05T23:16:29.036496+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"d961e396354d528892d70b8c94bf5df5\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51399,
+  "state": "ok",
+  "elapsed_seconds": 0.878,
+  "sha256": "7eff13770212b21d0b9d798bad95a31b0166f62b342829172f6dd5415f570603",
+  "capture": "91b2b3373631f5e606df",
+  "merged_from_run": "run-28"
+}

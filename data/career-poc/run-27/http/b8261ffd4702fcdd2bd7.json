@@ -1,0 +1,16 @@
+{
+  "url": "https://geofabrik.de/robots.txt",
+  "checked_at": "2026-10-05T22:42:54.906752+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.geofabrik.de/robots.txt",
+  "bytes": 243,
+  "state": "http_error",
+  "elapsed_seconds": 0.141,
+  "sha256": "b6b8d1be99969196f1dbb13b7820fa9e01e4ba08dfd10b087a25912cea46bf78",
+  "capture": "b8261ffd4702fcdd2bd7"
+}

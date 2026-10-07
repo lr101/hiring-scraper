@@ -1,0 +1,186 @@
+{
+  "study": {
+    "date": "2026-10-05",
+    "location": "Karlsruhe, Germany",
+    "geocoded_state": "Baden-Württemberg",
+    "geocoded_center": {
+      "latitude": 49.0068705,
+      "longitude": 8.4034195,
+      "source": "Nominatim city search",
+      "osm_type": "relation",
+      "osm_id": 62518
+    },
+    "radius_query_center": {
+      "latitude": 49.0069,
+      "longitude": 8.4037,
+      "source": "Original manually selected Karlsruhe study center",
+      "used_for": "5 km baseline and 15 km Overpass comparison"
+    },
+    "radius_tests_m": [5000, 15000],
+    "notes": [
+      "A radius around a geocoded city point is not the same as a municipal boundary.",
+      "Candidate counts are map objects, job postings, entity records, or notices as labelled; they are not a count of verified companies.",
+      "Full HTTP response bodies are present locally but gitignored. Compact metadata and derived result tables are tracked."
+    ]
+  },
+  "sources": {
+    "nominatim": {
+      "evaluation": "live_tested",
+      "status": 200,
+      "result_count": 1,
+      "result": "Karlsruhe, Baden-Württemberg",
+      "role": "City geocoding and state hint; not company discovery"
+    },
+    "openstreetmap_overpass_radius": {
+      "evaluation": "live_tested",
+      "five_km_baseline": {
+        "business_like_map_objects": 1453,
+        "objects_with_website": 1080,
+        "distinct_url_authorities": 1012,
+        "source": "data/karlsruhe/summary.json"
+      },
+      "fifteen_km_response": {
+        "http_status": 200,
+        "raw_business_like_map_objects": 2254,
+        "raw_objects_with_website": 1607,
+        "raw_distinct_hostnames_including_www_variants": 1508,
+        "strict_center_radius_objects": 2251,
+        "strict_center_radius_objects_with_website": 1606,
+        "strict_center_radius_distinct_hostnames_including_www_variants": 1507,
+        "outside_circle_by_returned_center": 3
+      },
+      "state_query": {
+        "query": "Baden-Württemberg office=it",
+        "http_status": 504,
+        "assessment": "Public shared endpoint timed out; do not repeat as a production statewide query"
+      },
+      "later_five_km_cli_query": {
+        "geocoding_status": 200,
+        "overpass_status": 504,
+        "complete": false
+      },
+      "role": "Broad map-based company/site discovery with coordinates and optional homepage"
+    },
+    "bkg_vg250": {
+      "evaluation": "live_tested",
+      "wfs_status": 200,
+      "state_feature_count": 16,
+      "geojson_bytes": 2658506,
+      "checks": {
+        "Karlsruhe": "Baden-Württemberg",
+        "Hamburg": "Hamburg",
+        "Paris": null
+      },
+      "role": "State boundary and point-to-state assignment; not company discovery"
+    },
+    "arbeitsagentur_jobs_api": {
+      "evaluation": "live_tested",
+      "karlsruhe_radius_15_km": {
+        "http_status": 200,
+        "first_page_postings": 25,
+        "reported_total_postings": 5344,
+        "distinct_employer_names_on_page": 12,
+        "job_locations_on_page": 25,
+        "external_urls_on_page": 2
+      },
+      "baden_wuerttemberg": {
+        "http_status": 200,
+        "first_page_postings": 25,
+        "reported_total_postings": 95069,
+        "distinct_employer_names_on_page": 23,
+        "job_locations_on_page": 29,
+        "external_urls_on_page": 0
+      },
+      "role": "Active job-demand signal; not a company census or career-site resolver"
+    },
+    "wikidata_headquarters_radius": {
+      "evaluation": "live_tested",
+      "radius_km": 25,
+      "binding_limit": 100,
+      "bindings_returned": 100,
+      "distinct_entity_ids": 56,
+      "distinct_website_hostnames": 55,
+      "hostnames_not_in_osm_15_km_hostname_set": 39,
+      "bindings_sharing_one_headquarters_place_item": 77,
+      "distance_range_km_in_capped_result": [0.309, 1.119],
+      "role": "Supplemental names and homepages; city-level HQ coordinates and non-company entities limit radius precision"
+    },
+    "wikidata_entity_coordinates": {
+      "evaluation": "live_tested",
+      "radius_km": 25,
+      "binding_limit": 100,
+      "bindings_returned": 100,
+      "distinct_entity_ids": 63,
+      "distinct_website_hostnames": 46,
+      "distance_range_km_in_returned_slice": [0.099, 0.741],
+      "role": "More precise entity points than city HQ references, but unfiltered results include non-companies"
+    },
+    "ted_procurement_winner_city": {
+      "evaluation": "live_tested",
+      "query": "publication-date >= 20200101 AND winner-city = Karlsruhe",
+      "http_status": 200,
+      "reported_matching_notices": 1311,
+      "sampled_notices": 25,
+      "distinct_winner_name_strings_in_sample": 90,
+      "sampled_notices_with_winner_internet_address": 0,
+      "role": "Public-contract winner leads and supplier city fields; multi-winner notices may include non-local co-winners"
+    },
+    "gleif_lei_api": {
+      "evaluation": "live_tested",
+      "global_record_count": 3451562,
+      "country_filter_de_record_count": 257139,
+      "city_postal_code_and_region_filters": "HTTP 400; filter keys rejected as unsupported",
+      "role": "Legal-entity name/identifier enrichment; no practical city/radius results in this test"
+    },
+    "mast_r": {
+      "evaluation": "documentation_and_metadata_only",
+      "public_full_export_size_kb": 3144319,
+      "format": "XML",
+      "refresh": "Daily export, normally updated around 05:00",
+      "api_access": "Registered web-service user/key required",
+      "role": "Niche energy-operator/location candidates; full export not downloaded"
+    },
+    "destatis_genesis": {
+      "evaluation": "documentation_only",
+      "table": "52111-0006",
+      "dimensions": ["Bundesland", "year", "industry", "employment-size band"],
+      "role": "State/industry establishment-count denominator; no company rows"
+    },
+    "google_places_nearby": {
+      "evaluation": "documentation_only",
+      "radius_max_m": 50000,
+      "api_key_and_billing_required": true,
+      "website_field": "places.websiteUri",
+      "role": "Potential paid circle-search comparison; no billable request made"
+    },
+    "cordis_eu_project_participants": {
+      "evaluation": "documented_not_live_tested",
+      "role": "Research-sector organization leads; location and homepage coverage need a separate test"
+    }
+  },
+  "career_homepage_crawl": {
+    "seed_source": "56 Wikidata entities; 11 deliberately selected for homepage crawl",
+    "max_pages_per_company": 6,
+    "initial_live_requests": 88,
+    "zero_network_replay_requests": 0,
+    "replay_statuses": {
+      "career_content_found": 6,
+      "unresolved": 5
+    },
+    "parsed_feeds": 0,
+    "helix_detection_only_company_count": 1,
+    "notes": [
+      "The 6/11 outcome is a selected sample, not a statistical hit rate.",
+      "Unresolved does not mean that a company has no hiring website.",
+      "An age-confirmation gate on Moninger /jobs was not treated as verified hiring content."
+    ],
+    "result_csv": "data/location-sources/run-wikidata-career-replay/companies.csv"
+  },
+  "recommended_location_model": {
+    "city_radius": "Geocode one city point, query local OSM/Places candidates around the point, and filter by explicit great-circle distance.",
+    "state": "Use BKG state polygons plus a local per-state OSM extract; assign source coordinates to the polygon locally.",
+    "active_hiring": "Add Arbeitsagentur postings as a separate signal and retain job-site coordinates independently from employer offices.",
+    "career_resolution": "Fetch employer homepages with robots-aware limits, follow ranked links/sitemaps, record ATS evidence, and parse only supported public feeds.",
+    "precision_fields": ["location_role", "location_precision", "location_source", "distance_m", "state_code", "observed_at"]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.landesarchiv-bw.de/robots.txt",
+  "checked_at": "2026-10-05T23:02:52.465421+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Wed, 29 Jul 2026 11:09:17 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 126,
+  "state": "ok",
+  "elapsed_seconds": 0.131,
+  "sha256": "c15d8adb01ead0983032ec49cfe00fc7f0d58334748c357abcba7fdb51d6b71f",
+  "capture": "977ec557253245b8f290",
+  "merged_from_run": "run-27"
+}

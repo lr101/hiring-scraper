@@ -1,0 +1,17 @@
+{
+  "url": "https://www.medie-ambulanz.de/karriere/rettungssanitaeter-m-w-d-in-vollzeit-oder-teilzeit-gesucht",
+  "checked_at": "2026-10-05T23:18:51.264483+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:18:52 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 58069,
+  "state": "ok",
+  "elapsed_seconds": 1.077,
+  "sha256": "e3bfbbaae728d9d5de67a9fc73b81ec27976beedfb66881b82db80842eb1caed",
+  "capture": "cd439c2cb4fd84897744",
+  "merged_from_run": "run-28"
+}

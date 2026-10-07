@@ -1,0 +1,17 @@
+{
+  "url": "https://abas-erp.com/sitemap.xml",
+  "checked_at": "2026-10-05T22:53:43.246720+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 872,
+  "state": "ok",
+  "elapsed_seconds": 0.18,
+  "sha256": "ea4ef149f4fc19197f40fd403a0b0df748de9aec855584d3a074c1a625ffa273",
+  "capture": "3c8a103eab493de76b38",
+  "merged_from_run": "run-27"
+}

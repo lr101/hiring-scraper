@@ -1,0 +1,16 @@
+{
+  "url": "https://www.key-work.de/karriere/",
+  "checked_at": "2026-10-05T22:29:02.723286+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 204830,
+  "state": "ok",
+  "elapsed_seconds": 1.14,
+  "sha256": "e0a4d6a3d97fb27d72f2e3669e3adb69379274b3e039a2418fe5ba5a21d52eb1",
+  "capture": "45e4abca869cefeff749"
+}

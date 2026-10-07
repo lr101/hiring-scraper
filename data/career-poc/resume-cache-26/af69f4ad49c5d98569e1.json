@@ -1,0 +1,16 @@
+{
+  "url": "https://fs-etit.kit.edu/de/sitemap.xml",
+  "checked_at": "2026-10-05T22:31:29.180645+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "\"6ac2d694-4df3\"",
+  "last_modified": "Sun, 04 Oct 2026 22:43:32 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 19955,
+  "state": "ok",
+  "elapsed_seconds": 1.093,
+  "sha256": "335533a2f5d84806a8ba30bd75cb8875ff230aea12713fce2691adabb537ad72",
+  "capture": "af69f4ad49c5d98569e1"
+}

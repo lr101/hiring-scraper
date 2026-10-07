@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hoepfner.de/",
+  "checked_at": "2026-10-05T23:14:22.377122+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 162001,
+  "state": "ok",
+  "elapsed_seconds": 1.414,
+  "sha256": "17bf572ee2af833a4e0d4dfd225dc68d653eeb1406d545d5011f51047371927a",
+  "capture": "5fd1c08df91a5687c5a9"
+}

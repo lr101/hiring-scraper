@@ -1,0 +1,16 @@
+{
+  "url": "https://grabmale-huber.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:29:00.595183+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 294,
+  "state": "ok",
+  "elapsed_seconds": 0.969,
+  "sha256": "1c55d8df03af99e198acbeda1cd2f1fcc47f26bffb6c8e2a0a7f138f094ef4f9",
+  "capture": "28e8eff434d1fab276a3"
+}

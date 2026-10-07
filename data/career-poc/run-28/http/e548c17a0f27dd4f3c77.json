@@ -1,0 +1,16 @@
+{
+  "url": "https://pickel-haustechnik.de/robots.txt",
+  "checked_at": "2026-10-05T23:39:01.132756+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 105,
+  "state": "ok",
+  "elapsed_seconds": 1.152,
+  "sha256": "56dfe02e510c460c998e967142bc7b704d08f47a30d6b6773060047460a1b955",
+  "capture": "e548c17a0f27dd4f3c77"
+}

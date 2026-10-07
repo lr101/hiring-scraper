@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bedios.de/careers",
+  "checked_at": "2026-10-05T23:44:48.352361+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 817,
+  "state": "http_error",
+  "elapsed_seconds": 1.11,
+  "sha256": "afb106be5985eb5efae422b189cc7d29352003ab8ab46a905852402502648f0d",
+  "capture": "be1e748e4af03b9640f0"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://rittershofer-bedachungen.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:53.651920+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 164,
+  "state": "ok",
+  "elapsed_seconds": 0.966,
+  "sha256": "b37dfd7201ecd7a54e7e2323418d97c2c50baa52eed7e840b8de42065d038b16",
+  "capture": "a45b709a13c264e97679",
+  "merged_from_run": "run-28"
+}

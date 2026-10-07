@@ -1,0 +1,17 @@
+{
+  "url": "https://www.iformatics.de/jobs",
+  "checked_at": "2026-10-05T23:39:37.326392+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 196703,
+  "state": "http_error",
+  "elapsed_seconds": 1.235,
+  "sha256": "f86960a418827c16deee143d7f631ff9e59be0623f8627fb127f8359061851e6",
+  "capture": "437801926574e15e7704",
+  "merged_from_run": "run-28"
+}

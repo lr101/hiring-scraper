@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arcos-hausverwaltung.de/robots.txt",
+  "checked_at": "2026-10-05T22:40:59.097300+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 128,
+  "state": "ok",
+  "elapsed_seconds": 3.254,
+  "sha256": "c95e7c0f20de8bbef9e81b4c52cc3da3d6c818e21a8f6313c191c9d7909055f7",
+  "capture": "66a9b7f57881ec4e315e"
+}

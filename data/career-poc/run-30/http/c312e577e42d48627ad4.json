@@ -1,0 +1,11 @@
+{
+  "url": "https://inapa.de/robots.txt",
+  "checked_at": "2026-10-05T23:36:54.993728+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [Errno 111] Connection refused>",
+  "elapsed_seconds": 0.142,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "c312e577e42d48627ad4",
+  "merged_from_run": "run-28"
+}

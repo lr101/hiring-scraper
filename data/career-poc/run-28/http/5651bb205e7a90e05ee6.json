@@ -1,0 +1,16 @@
+{
+  "url": "https://www.taxi-zentrale-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:58.411725+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"34a-5f9ad077f3295\"",
+  "last_modified": "Wed, 19 Apr 2023 09:27:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 842,
+  "state": "ok",
+  "elapsed_seconds": 0.935,
+  "sha256": "22aa0adeed7730e6a83520a4013a3500ccb280a2f55c57b5a59183ffd05d611b",
+  "capture": "5651bb205e7a90e05ee6"
+}

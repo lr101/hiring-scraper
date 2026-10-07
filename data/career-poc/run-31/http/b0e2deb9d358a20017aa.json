@@ -1,0 +1,17 @@
+{
+  "url": "https://www.enviolet.com/cn/translate-to-cn-jobs.html",
+  "checked_at": "2026-10-05T23:19:00.469449+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.enviolet.com/jobs.html",
+  "bytes": 282,
+  "state": "http_error",
+  "elapsed_seconds": 0.282,
+  "sha256": "3e47ab6a4708d7dff82e7546c0ab6431ec7bb8eb4a58e8e599fa2ff03adea429",
+  "capture": "b0e2deb9d358a20017aa",
+  "merged_from_run": "run-28"
+}

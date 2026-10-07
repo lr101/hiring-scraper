@@ -1,0 +1,16 @@
+{
+  "url": "https://www.interconnect.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:06.088870+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"c0dfce1b85f8da1:0\"",
+  "last_modified": "Tue, 27 Aug 2024 13:29:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 83,
+  "state": "ok",
+  "elapsed_seconds": 0.764,
+  "sha256": "33099f8946bb37be44297ff9c97006acc5d109c0561249ab586bed2df5388eb3",
+  "capture": "58328411a9f7f5e69f8f"
+}

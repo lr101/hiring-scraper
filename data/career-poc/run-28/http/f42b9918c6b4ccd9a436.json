@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rolladen-klingler.de/",
+  "checked_at": "2026-10-05T23:35:04.370223+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"6a913ee9-68a2\"",
+  "last_modified": "Fri, 28 Aug 2026 07:55:21 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 26786,
+  "state": "ok",
+  "elapsed_seconds": 1.031,
+  "sha256": "2bc694161ae6ea63c086028d51be3e76834c6292fdc9f8a24ede758fa2307bf8",
+  "capture": "f42b9918c6b4ccd9a436"
+}

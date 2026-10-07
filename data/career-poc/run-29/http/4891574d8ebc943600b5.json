@@ -1,0 +1,17 @@
+{
+  "url": "https://pneu.com/",
+  "checked_at": "2026-10-05T23:36:10.463808+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 524480,
+  "state": "ok",
+  "elapsed_seconds": 2.349,
+  "sha256": "762ba588be31222b270d41eec38c3a9d5c528601e732c22c196eea89ed74d2d3",
+  "capture": "4891574d8ebc943600b5",
+  "merged_from_run": "run-28"
+}

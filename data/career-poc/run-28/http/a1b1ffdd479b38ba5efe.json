@@ -1,0 +1,16 @@
+{
+  "url": "https://www.bad-dach.de/careers",
+  "checked_at": "2026-10-05T23:43:31.116023+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22831,
+  "state": "http_error",
+  "elapsed_seconds": 0.947,
+  "sha256": "eb436cdbead63f8540b0e80ccd989c8f1c450e421f8a95417a88326c51f2a20a",
+  "capture": "a1b1ffdd479b38ba5efe"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.dressler-bau.de/karlsruhe-1",
+  "checked_at": "2026-10-05T23:20:44.869648+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 303,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.dressler-bau.de/",
+  "bytes": 358,
+  "state": "http_error",
+  "elapsed_seconds": 1.03,
+  "sha256": "af45f41607f8b0300cdce0594c72c4ca474544782cc8cdc51c1206de58311b0d",
+  "capture": "3ac02b60ec766f5c9fa8"
+}

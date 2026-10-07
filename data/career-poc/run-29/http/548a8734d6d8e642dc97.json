@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mehrwerk-ag.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:38.933635+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://mehrwerk.netrobots.txt",
+  "bytes": 347,
+  "state": "http_error",
+  "elapsed_seconds": 0.982,
+  "sha256": "96de1131987e39de85477296d77e72dd3632abee564157919f70a030353a2cb8",
+  "capture": "548a8734d6d8e642dc97",
+  "merged_from_run": "run-28"
+}

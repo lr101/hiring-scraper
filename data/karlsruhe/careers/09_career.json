@@ -1,0 +1,12 @@
+{
+  "url": "https://karriere.ratiodata.de",
+  "checked_at": "2026-10-05T08:24:09.270820+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://karriere.ratiodata.de",
+  "content_type": "text/html; charset=UTF-8",
+  "bytes": 219513,
+  "truncated": false,
+  "elapsed_seconds": 0.15,
+  "sha256": "34aa21c415bbd2c8388017a7f6be3fe074f82d14abdde37956095b4d39f6dc05"
+}

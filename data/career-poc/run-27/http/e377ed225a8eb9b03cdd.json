@@ -1,0 +1,16 @@
+{
+  "url": "https://intrepidcs.com/worldwide/",
+  "checked_at": "2026-10-05T23:07:12.081460+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 18:10:15 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 357679,
+  "state": "ok",
+  "elapsed_seconds": 1.736,
+  "sha256": "44690ca28d3b73136752e737702e3154c9a887b50a34928be1e31e46ed1ed578",
+  "capture": "e377ed225a8eb9b03cdd"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.barmer.de/karriere/einstieg-bei-uns",
+  "checked_at": "2026-10-05T22:06:46.098162+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 70048,
+  "state": "ok",
+  "elapsed_seconds": 1.131,
+  "sha256": "3d07b22f48a89ff9907c3399942211a6dc3a664993552c3e179d9ad8678d7208",
+  "capture": "f155d92e65c96363f823"
+}

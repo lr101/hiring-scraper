@@ -1,0 +1,17 @@
+{
+  "url": "https://k-quadrat.de/robots.txt",
+  "checked_at": "2026-10-05T22:55:06.526564+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "http://www.k-quadrat.de/robots.txt",
+  "bytes": 282,
+  "state": "http_error",
+  "elapsed_seconds": 0.32,
+  "sha256": "f8d96221649d0866aa7bb5a99675f7971a99ec94d60043a8e674636454717bc4",
+  "capture": "6b8b25a682607a7e5a55",
+  "merged_from_run": "run-27"
+}

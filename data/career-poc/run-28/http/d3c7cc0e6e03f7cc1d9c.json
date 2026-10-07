@@ -1,0 +1,16 @@
+{
+  "url": "https://www.helpandclean.de/robots.txt",
+  "checked_at": "2026-10-05T23:44:18.615228+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"-1930233282\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 163,
+  "state": "ok",
+  "elapsed_seconds": 0.166,
+  "sha256": "6c3bb1bca8b1d12fc6adbf41414e578aa8b485a97f4091c0f8816c898c9e134e",
+  "capture": "d3c7cc0e6e03f7cc1d9c"
+}

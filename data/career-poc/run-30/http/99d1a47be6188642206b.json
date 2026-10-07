@@ -1,0 +1,17 @@
+{
+  "url": "https://www.malerbetrieb-thomas-schneider.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:42:59.000278+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "W/\"-1841399625\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 779,
+  "state": "ok",
+  "elapsed_seconds": 0.899,
+  "sha256": "294f41fd4ebe38cdcb8c221458af2a26ac6fc8fa9cf0e1d279ddeca7a9731815",
+  "capture": "99d1a47be6188642206b",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lohmeyer.de/ueber-uns/stellenangebote/",
+  "checked_at": "2026-10-05T23:34:37.413544+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 22:57:48 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 50289,
+  "state": "ok",
+  "elapsed_seconds": 0.96,
+  "sha256": "5a1c7bcf0dfbc59051df892ddb0473833af294803a5211087b67f2d31487d6b2",
+  "capture": "bfce40b4145a5dcaf57f"
+}

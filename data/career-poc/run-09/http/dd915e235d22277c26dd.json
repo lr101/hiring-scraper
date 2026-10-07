@@ -1,0 +1,14 @@
+{
+  "url": "https://www.unic.com/en/jobs",
+  "checked_at": "2026-10-05T09:07:57.023509+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 363958,
+  "state": "ok",
+  "elapsed_seconds": 1.604,
+  "sha256": "d113403dd14e6672721ed74f57ae2cf32ea625f4411415161362bbceb8ea41a4",
+  "capture": "dd915e235d22277c26dd",
+  "reused_from": "data/career-poc/run-08/http/dd915e235d22277c26dd.json"
+}

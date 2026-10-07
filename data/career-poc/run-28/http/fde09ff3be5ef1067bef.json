@@ -1,0 +1,16 @@
+{
+  "url": "https://www.miro-ka.de/karriere/stellenangebote/details/chemikant-m-w-d?id=1239",
+  "checked_at": "2026-10-05T23:38:14.386456+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84113,
+  "state": "ok",
+  "elapsed_seconds": 1.013,
+  "sha256": "566f4bf6b192b58b2de9faf493dec74e9dd51e1c8c587cdce916ad91897d7855",
+  "capture": "fde09ff3be5ef1067bef"
+}

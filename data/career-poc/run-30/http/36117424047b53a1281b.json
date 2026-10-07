@@ -1,0 +1,17 @@
+{
+  "url": "https://tooltec.de/jobs",
+  "checked_at": "2026-10-05T23:03:41.511134+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 21732,
+  "state": "http_error",
+  "elapsed_seconds": 1.103,
+  "sha256": "466adfb0e83936b95a0642202fedcec324e5c04516b706e1e7b0ceec67a06c5b",
+  "capture": "36117424047b53a1281b",
+  "merged_from_run": "run-27"
+}

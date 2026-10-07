@@ -1,0 +1,16 @@
+{
+  "url": "https://www.idea-personal.de/",
+  "checked_at": "2026-10-05T22:22:17.880019+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 84442,
+  "state": "ok",
+  "elapsed_seconds": 1.277,
+  "sha256": "4f439ad66ddf932c4d9bd6d6779954c5fc6994bc7582462c712284e8312ee5af",
+  "capture": "232133fc743872043112"
+}

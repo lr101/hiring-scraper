@@ -1,0 +1,17 @@
+{
+  "url": "https://www.buhlinger-architekten.de/karriere/kostenplaner",
+  "checked_at": "2026-10-05T23:14:56.962774+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28038,
+  "state": "ok",
+  "elapsed_seconds": 0.887,
+  "sha256": "dab217a51c4881e19b57cedd17a8865de17b42cf2950c88f411b671913072889",
+  "capture": "4ef7803e02f69d9b69f2",
+  "merged_from_run": "run-28"
+}

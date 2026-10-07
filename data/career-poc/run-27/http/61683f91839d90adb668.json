@@ -1,0 +1,16 @@
+{
+  "url": "https://nowak-karriere.de/robots.txt",
+  "checked_at": "2026-10-05T22:58:42.111009+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 118,
+  "state": "ok",
+  "elapsed_seconds": 0.86,
+  "sha256": "66b7598d7e63152118e43afe02915f698ff3346dbd1bf7254fe0a3dea4613659",
+  "capture": "61683f91839d90adb668"
+}

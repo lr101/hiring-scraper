@@ -1,0 +1,17 @@
+{
+  "url": "https://ungleich-anders.de/robots.txt",
+  "checked_at": "2026-10-05T22:38:05.970909+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 175,
+  "state": "ok",
+  "elapsed_seconds": 4.279,
+  "sha256": "a5afb9251426fbe7874cac87856e565baa3c4bdf63783c0040dafcc383892e07",
+  "capture": "33387e7195ef04e06ad1",
+  "merged_from_run": "run-27"
+}

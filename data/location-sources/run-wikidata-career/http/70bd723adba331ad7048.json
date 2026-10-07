@@ -1,0 +1,13 @@
+{
+  "url": "https://www.physikinstrumente.com/en/about/careers/lederhose",
+  "checked_at": "2026-10-05T14:48:29.969985+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "location": null,
+  "bytes": 1378169,
+  "state": "ok",
+  "elapsed_seconds": 1.189,
+  "sha256": "3ac0d0e57ede9036f6a1f33f9887979843892632b98ee15064e5ce8c1cc7230f",
+  "capture": "70bd723adba331ad7048"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.disy.net/robots.txt",
+  "checked_at": "2026-10-05T22:38:01.802324+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Wed, 13 Apr 2022 15:14:33 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 474,
+  "state": "ok",
+  "elapsed_seconds": 0.152,
+  "sha256": "764dbf9ed1d173d520b65b7d31ecd0cf7e0b519d9c6b9eb969aa71583852a3e4",
+  "capture": "d4184dd5c2cf8fc23f4e",
+  "merged_from_run": "run-27"
+}

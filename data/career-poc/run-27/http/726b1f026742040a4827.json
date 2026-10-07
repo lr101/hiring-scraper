@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kriegerteam.de/careers",
+  "checked_at": "2026-10-05T22:58:52.730637+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"6ac3f264-38a\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 906,
+  "state": "http_error",
+  "elapsed_seconds": 1.291,
+  "sha256": "90c032f35272ba1a7aa93027ab635e6610d4f24cf9e53c0624d00f065d7c7e7d",
+  "capture": "726b1f026742040a4827"
+}

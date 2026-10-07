@@ -1,0 +1,17 @@
+{
+  "url": "https://www.buhlinger-architekten.de/karriere/bauleiter",
+  "checked_at": "2026-10-05T23:14:55.859366+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28803,
+  "state": "ok",
+  "elapsed_seconds": 1.076,
+  "sha256": "6b86163aeb8cfdd3a7fe68f5ea86870b4e96cea497ea31d580eafcd9f4df6ef5",
+  "capture": "89fb83cbfff8e087cffa",
+  "merged_from_run": "run-28"
+}

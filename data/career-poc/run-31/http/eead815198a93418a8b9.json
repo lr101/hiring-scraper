@@ -1,0 +1,17 @@
+{
+  "url": "https://pulspartner.com/jobs",
+  "checked_at": "2026-10-05T23:05:41.574807+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 159342,
+  "state": "http_error",
+  "elapsed_seconds": 2.781,
+  "sha256": "71872f0b0e2b4f509f2daef563acc657a0fd24045414328b41766e71cd464e51",
+  "capture": "eead815198a93418a8b9",
+  "merged_from_run": "run-27"
+}

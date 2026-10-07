@@ -1,0 +1,17 @@
+{
+  "url": "https://careers.teamviewer.com/jobs?department=Sales",
+  "checked_at": "2026-10-05T23:31:19.315596+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"f923cd5f59ded361a1685a84c8c162b9\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 121396,
+  "state": "ok",
+  "elapsed_seconds": 0.727,
+  "sha256": "f923cd5f59ded361a1685a84c8c162b9cba24e9ef3ff4fa90ebc8dae05666f52",
+  "capture": "5b420492f832a97b14ac",
+  "merged_from_run": "run-28"
+}

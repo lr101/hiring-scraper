@@ -1,0 +1,16 @@
+{
+  "url": "https://www.efs-steuerberatung.de/karriere/stellenausschreibung/steuerfachangestellter",
+  "checked_at": "2026-10-05T23:18:11.586788+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 23:18:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 29604,
+  "state": "ok",
+  "elapsed_seconds": 0.942,
+  "sha256": "f86267b2654bf9d4b15739fe9bb0e059c5a39b266b3fd6114e69bc1aeb3b8356",
+  "capture": "08a41a0732284da99bca"
+}

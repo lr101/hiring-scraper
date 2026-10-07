@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.kanalservicegruppe.com/robots.txt",
+  "checked_at": "2026-10-05T23:38:37.448277+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 11494,
+  "state": "http_error",
+  "elapsed_seconds": 0.202,
+  "sha256": "ca1536338120f46a2999b005533fc8bf354a03900442a65bf3ccf769d69d384c",
+  "capture": "b92036d694b9f39c8426",
+  "merged_from_run": "run-28"
+}

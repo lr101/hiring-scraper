@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ide-trainingsinstitut.de/robots.txt",
+  "checked_at": "2026-10-05T23:28:26.727280+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 108,
+  "state": "ok",
+  "elapsed_seconds": 0.192,
+  "sha256": "9ca5cc77e30389ef5a9bdc8b69fe48df15fd8f07a93f9a8ed1158eb19b2a5911",
+  "capture": "a15c32242a66142fe336"
+}

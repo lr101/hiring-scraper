@@ -1,0 +1,17 @@
+{
+  "url": "https://breyer-holzbau.de/",
+  "checked_at": "2026-10-05T23:44:04.530538+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 36834,
+  "state": "ok",
+  "elapsed_seconds": 0.871,
+  "sha256": "a6a6803811b480a786a25a259d1db8fa2ce579b5f9e2e305347c219ed3b24303",
+  "capture": "92ad879c173f8039fd65",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.de.endress.com/sitemap.xml",
+  "checked_at": "2026-10-05T22:46:46.899661+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1900,
+  "state": "ok",
+  "elapsed_seconds": 1.144,
+  "sha256": "b129dac663e2fc615f699644f7e924985475946eded3fad5d1e67c94c06086ae",
+  "capture": "a0e38ff56097d7f0df4b"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://sam-elektrotechnik.de/careers",
+  "checked_at": "2026-10-05T23:23:05.737563+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 52183,
+  "state": "http_error",
+  "elapsed_seconds": 0.895,
+  "sha256": "c11ed701d285afc06cb86b2d1f6e1992299b8456f3bd04bacf38dfe2fc0d4dd1",
+  "capture": "107530c892a0519e7d0f"
+}

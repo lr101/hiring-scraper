@@ -1,0 +1,17 @@
+{
+  "url": "https://private-storage.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:35:42.748435+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml",
+  "etag": "\"6dd-64b6949d0b723\"",
+  "last_modified": "Sun, 22 Feb 2026 13:04:02 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1757,
+  "state": "ok",
+  "elapsed_seconds": 0.977,
+  "sha256": "568ea7a32a475982353cda24dba7d6b267cc0c8a9d2be8901cb38d54c44d615f",
+  "capture": "9ecde7c856ce1e0c60b9",
+  "merged_from_run": "run-28"
+}

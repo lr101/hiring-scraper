@@ -1,0 +1,17 @@
+{
+  "url": "https://www.beckergmbh.de/karriere",
+  "checked_at": "2026-10-05T23:35:55.932789+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44394,
+  "state": "http_error",
+  "elapsed_seconds": 1.056,
+  "sha256": "0e962c38d71899817c79a4cd5621c6ef7d111cb447a2ad08fdf5e7207668109b",
+  "capture": "2402666ef98358f50904",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.burkardsteuerberater.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:20.012345+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 206,
+  "state": "ok",
+  "elapsed_seconds": 1.232,
+  "sha256": "b488831644b47108270fe17eba44f185d8a7e31f7adabb6ba1cdacb363d8d93c",
+  "capture": "fcd71a1fc8c2d3db745e",
+  "merged_from_run": "run-28"
+}

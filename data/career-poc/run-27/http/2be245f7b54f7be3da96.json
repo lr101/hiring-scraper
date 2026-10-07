@@ -1,0 +1,16 @@
+{
+  "url": "https://www.explain.de/robots.txt",
+  "checked_at": "2026-10-05T23:08:44.851653+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://explain.de/robots.txt",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 0.153,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "2be245f7b54f7be3da96"
+}

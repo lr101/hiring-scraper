@@ -1,0 +1,17 @@
+{
+  "url": "https://rs-nc.rohde-schwarz.com/robots.txt",
+  "checked_at": "2026-10-05T23:28:53.227670+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Fri, 08 May 2026 08:17:30 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 162,
+  "state": "ok",
+  "elapsed_seconds": 0.142,
+  "sha256": "5237814e47bdeae065d0f8e388a6fc1e32710f41178d53dedef26411fa5e1374",
+  "capture": "6a7af6306768e2817b2d",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lbs.de/robots.txt",
+  "checked_at": "2026-10-05T23:14:28.733463+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"4bwdwinvyw1r\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63,
+  "state": "ok",
+  "elapsed_seconds": 0.74,
+  "sha256": "cf816c874620c4be85b022069fe2dfd870ecc30949853dc4bf6b909ddd2d8a10",
+  "capture": "a7278e40dc9cb5f110a1"
+}

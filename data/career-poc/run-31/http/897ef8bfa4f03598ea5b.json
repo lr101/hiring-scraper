@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.awo-baden.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:54.177506+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100,
+  "state": "ok",
+  "elapsed_seconds": 0.201,
+  "sha256": "841c5c222806f14d1c106c4a1a0adb219ee56f918f0ece0868eebf09e3a1c1c2",
+  "capture": "897ef8bfa4f03598ea5b",
+  "merged_from_run": "run-28"
+}

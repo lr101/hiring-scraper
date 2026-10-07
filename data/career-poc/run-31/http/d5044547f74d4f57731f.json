@@ -1,0 +1,17 @@
+{
+  "url": "https://validate.perfdrive.com/robots.txt",
+  "checked_at": "2026-10-05T23:39:19.746066+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 341,
+  "state": "ok",
+  "elapsed_seconds": 1.277,
+  "sha256": "2ce57bac519aa467d82275e83255b816ccb4a109e3e2a7cae799ba8cb7a388cf",
+  "capture": "d5044547f74d4f57731f",
+  "merged_from_run": "run-28"
+}

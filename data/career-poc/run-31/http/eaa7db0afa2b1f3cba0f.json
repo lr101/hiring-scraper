@@ -1,0 +1,17 @@
+{
+  "url": "https://apps.apple.com/robots.txt",
+  "checked_at": "2026-10-05T22:06:52.694657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"6a69551e339c695ee67cbdc162133a09\"",
+  "last_modified": "Wed, 4 Mar 2026 19:07:24 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 506,
+  "state": "ok",
+  "elapsed_seconds": 0.124,
+  "sha256": "c21b0e8b8f4defbaa32015dbcbf74eae73f6528b211c524f18e34bc75863a2c5",
+  "capture": "eaa7db0afa2b1f3cba0f",
+  "merged_from_run": "run-25"
+}

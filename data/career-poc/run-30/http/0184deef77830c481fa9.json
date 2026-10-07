@@ -1,0 +1,17 @@
+{
+  "url": "https://www.anwaeltekarlsruhe.de/",
+  "checked_at": "2026-10-05T23:17:00.685190+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": "Mon, 01 Dec 2025 12:51:57 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 19450,
+  "state": "ok",
+  "elapsed_seconds": 1.016,
+  "sha256": "cfd00733e3803aebe0c23db9306a08d5c1ae89c5ef9f298f25b32ee2f0929051",
+  "capture": "0184deef77830c481fa9",
+  "merged_from_run": "run-28"
+}

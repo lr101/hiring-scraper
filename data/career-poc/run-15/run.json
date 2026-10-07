@@ -1,0 +1,24 @@
+{
+  "started_at": "2026-10-05T20:46:49.252022+00:00",
+  "arguments": {
+    "seeds": "data/career-poc/seeds-targeted-portal-followup.json",
+    "out": "data/career-poc/run-15",
+    "cache_from": null,
+    "max_pages": 6,
+    "max_depth": 3,
+    "timeout": 12.0,
+    "delay": 1.0,
+    "max_requests": 100
+  },
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "source_sha256": {
+    "/workspace/hiring-scraper/hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "/workspace/hiring-scraper/hiring_scraper/__main__.py": "3db595be1093e576747b35fb692f1b4aca037baf3cf1709ba9bf5a75d1da2ef8",
+    "/workspace/hiring-scraper/hiring_scraper/ats.py": "074ed32352b8bbb9e4630d677e2054e8912d1bb13cfffe78ee115940c5d7f9c3",
+    "/workspace/hiring-scraper/hiring_scraper/discovery.py": "3831c80cc9120f0e8a44454fd0475730cc4fda51477de5e00e7bc0bc0939e30e",
+    "/workspace/hiring-scraper/hiring_scraper/geography.py": "6164e30f5d1068cf6b521b72bc67bf13a2a2bc177363b282966e072c122f455b",
+    "/workspace/hiring-scraper/hiring_scraper/http.py": "f289c800cd3b3a236521022b6d877862b122870208b60fab369747c5f29cd452",
+    "/workspace/hiring-scraper/hiring_scraper/pages.py": "e5ced6bb7ad1a7cf67260a2782db1d5261616efe960274c97c62b72bd06719f5"
+  },
+  "git_dirty": true
+}

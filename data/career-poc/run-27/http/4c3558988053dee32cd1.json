@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ptvo.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:47:12.324350+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 521,
+  "state": "ok",
+  "elapsed_seconds": 1.114,
+  "sha256": "72746c1cfab0ba15ffa90e9068db719ceb134602cd99af7fa6d3910ef92f6df5",
+  "capture": "4c3558988053dee32cd1"
+}

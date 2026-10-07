@@ -1,0 +1,12 @@
+{
+  "url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails/MTAwMDEtMTAwMzc5NjE1MC1T",
+  "checked_at": "2026-10-05T08:22:57.125165+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails/MTAwMDEtMTAwMzc5NjE1MC1T",
+  "content_type": "application/json",
+  "bytes": 3340,
+  "truncated": false,
+  "elapsed_seconds": 0.11,
+  "sha256": "0e07043772dd7621c7987c88fe2b1c2bb12298c14d58911eefcad56189c0d673"
+}

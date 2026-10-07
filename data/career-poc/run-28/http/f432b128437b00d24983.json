@@ -1,0 +1,16 @@
+{
+  "url": "https://k3-karlsruhe.de/jobboerse/content-strategian-m-w-d-2/",
+  "checked_at": "2026-10-05T23:16:28.120869+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 176344,
+  "state": "ok",
+  "elapsed_seconds": 0.897,
+  "sha256": "3252b9b60599cbe9baa7eb35187c633f7234fa39c299c958ec77ea3636e2234e",
+  "capture": "f432b128437b00d24983"
+}

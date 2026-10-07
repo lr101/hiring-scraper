@@ -1,0 +1,16 @@
+{
+  "url": "https://www.schwagedruck.de/karriere",
+  "checked_at": "2026-10-05T23:37:09.506263+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 44398,
+  "state": "http_error",
+  "elapsed_seconds": 1.305,
+  "sha256": "d4710dd1ab92e91e4a80016b7c63a1750628669bedb93f2abd5322f3c0e4e7b4",
+  "capture": "d18d7e6383fdc15dbc7f"
+}

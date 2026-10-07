@@ -1,0 +1,17 @@
+{
+  "url": "https://www.glasarbeiten.com/robots.txt",
+  "checked_at": "2026-10-05T22:23:14.791817+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 100,
+  "state": "ok",
+  "elapsed_seconds": 0.187,
+  "sha256": "39841e5a34005f1bf3642e99038aeba73da59f0447531792d63b587000c17cc3",
+  "capture": "25c1237bc801d0c203fd",
+  "merged_from_run": "run-25"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://reif.app/apps/sparta/public/index.php?preset=internet_lang",
+  "checked_at": "2026-10-05T23:36:15.857281+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 48543,
+  "state": "ok",
+  "elapsed_seconds": 1.011,
+  "sha256": "08f044a76e0a85ee9dc4180b7106488fbb94691b0466d691ede22b1ab806771c",
+  "capture": "09b9ea636d5a19cc1d22"
+}

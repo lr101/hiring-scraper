@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kunbus.de/",
+  "checked_at": "2026-10-05T23:36:52.081583+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.kunbus.com/",
+  "bytes": 231,
+  "state": "http_error",
+  "elapsed_seconds": 0.804,
+  "sha256": "324294c61fdd277c447f577b8ccb54f055475cec4ecb62baa0c78c8e7d97abf0",
+  "capture": "fa66d005697590f843b1",
+  "merged_from_run": "run-28"
+}

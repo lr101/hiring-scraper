@@ -1,0 +1,16 @@
+{
+  "url": "https://afb-ggmbh.jobs.personio.de/xml",
+  "checked_at": "2026-10-05T23:38:35.118501+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"f6e3422af8909457cd3c0fa049ba32ee\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 137085,
+  "state": "ok",
+  "elapsed_seconds": 0.168,
+  "sha256": "5861408ccd826e4843f58899ae6fe18670648a472ddf5e10f9d1e88ce68fafb8",
+  "capture": "da62a9271b393700745a"
+}

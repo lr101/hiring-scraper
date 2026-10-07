@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.adesso-group.com/",
+  "checked_at": "2026-10-05T22:00:04.327457+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 77180,
+  "state": "ok",
+  "elapsed_seconds": 1.146,
+  "sha256": "94b1d8dd1466abbf8a9cc4032a202ea0b4809355d6825fcb122981ec95691968",
+  "capture": "50f222f6d407b83f47c3"
+}

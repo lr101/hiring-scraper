@@ -1,0 +1,16 @@
+{
+  "url": "https://www.magnie.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:28.588950+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171,
+  "state": "ok",
+  "elapsed_seconds": 9.521,
+  "sha256": "271d5729cc62bfb7afa318682037c8a723a50ec017cde8bd0c0d92044541c9fb",
+  "capture": "2f00e1cf81658a5c86af"
+}

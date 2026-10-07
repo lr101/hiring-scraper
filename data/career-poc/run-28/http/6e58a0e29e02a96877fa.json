@@ -1,0 +1,16 @@
+{
+  "url": "https://pailer.com/karriere",
+  "checked_at": "2026-10-05T23:45:27.597378+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://pailer.com/karriere/",
+  "bytes": 276,
+  "state": "http_error",
+  "elapsed_seconds": 1.011,
+  "sha256": "1d26ecf7051230df2b23da6611abb2b48f8b2e53a009bf0b0fca7533e9948a00",
+  "capture": "6e58a0e29e02a96877fa"
+}

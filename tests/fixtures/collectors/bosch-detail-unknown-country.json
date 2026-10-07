@@ -1,6 +1,0 @@
-{
-  "id": "bosch-unknown",
-  "name": "Unknown location role",
-  "location": {"city": "Undisclosed"},
-  "jobAd": {"sections": {"description": {"text": "<p>Location missing.</p>"}}}
-}

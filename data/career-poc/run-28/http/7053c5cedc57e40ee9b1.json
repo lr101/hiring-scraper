@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.pse.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T22:28:06.558501+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=ISO-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 314,
+  "state": "ok",
+  "elapsed_seconds": 0.194,
+  "sha256": "3dd470596290c27fc55aed04de6f493fcfd4589553e1efc6aeefabd45cda3dee",
+  "capture": "7053c5cedc57e40ee9b1",
+  "reused_from": "data/career-poc/run-27/http/7053c5cedc57e40ee9b1.json"
+}

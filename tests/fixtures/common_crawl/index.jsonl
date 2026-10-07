@@ -1,5 +1,0 @@
-{"url":"https://acme.jobs.personio.de/xml","status":"200","mime":"text/xml"}
-{"url":"https://acme.jobs.personio.de/xml","status":"200","mime":"text/xml"}
-{"url":"https://boards.greenhouse.io/acme/jobs/123","status":"200","mime":"text/html"}
-{"url":"https://boards.greenhouse.io/other/jobs","status":"404","mime":"text/html"}
-{"url":"https://example.test/jobs","status":"200","mime":"text/html"}

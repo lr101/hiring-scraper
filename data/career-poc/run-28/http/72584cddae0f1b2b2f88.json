@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sd-fotografie.de/careers",
+  "checked_at": "2026-10-05T23:32:50.488508+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2205,
+  "state": "http_error",
+  "elapsed_seconds": 1.003,
+  "sha256": "4806fcf8285d638934f24103606b8789b060f97132e25318d4d5e5ff8d17ad9c",
+  "capture": "72584cddae0f1b2b2f88"
+}

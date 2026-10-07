@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fc-gruppe.de/robots.txt",
+  "checked_at": "2026-10-05T23:31:21.232473+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 293,
+  "state": "ok",
+  "elapsed_seconds": 0.874,
+  "sha256": "e45861fc647f292f5fa6036c631bd514dffab7a537e77e340d798589ce03e976",
+  "capture": "b4a5b9df9d677eb8bf49",
+  "merged_from_run": "run-28"
+}

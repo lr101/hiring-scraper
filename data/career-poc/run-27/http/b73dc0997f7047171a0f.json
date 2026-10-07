@@ -1,0 +1,16 @@
+{
+  "url": "https://www.duerr-ka.de/careers",
+  "checked_at": "2026-10-05T22:57:13.765633+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 108083,
+  "state": "http_error",
+  "elapsed_seconds": 2.078,
+  "sha256": "c04c550039efb72dd66783a4f2d3afe5a81df168bed10e5a511de3b0693a13ff",
+  "capture": "b73dc0997f7047171a0f"
+}

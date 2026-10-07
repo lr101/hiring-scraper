@@ -1,0 +1,17 @@
+{
+  "url": "https://www.scdsoft.de/",
+  "checked_at": "2026-10-05T23:24:28.465641+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 15:14:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 112952,
+  "state": "ok",
+  "elapsed_seconds": 1.074,
+  "sha256": "f56a4a2ac3d5e3ff7de4507cd34698b5a5492fe79b18af6c45604ce7fccb1147",
+  "capture": "5dec88128b88776e2605",
+  "merged_from_run": "run-28"
+}

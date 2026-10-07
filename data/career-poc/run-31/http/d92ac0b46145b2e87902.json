@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lampevier.de/",
+  "checked_at": "2026-10-05T22:59:15.680877+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 374811,
+  "state": "ok",
+  "elapsed_seconds": 2.007,
+  "sha256": "bac3454cbfbf61698431f82b731a8012193935e7abd7ab78303639a678d45c24",
+  "capture": "d92ac0b46145b2e87902",
+  "merged_from_run": "run-27"
+}

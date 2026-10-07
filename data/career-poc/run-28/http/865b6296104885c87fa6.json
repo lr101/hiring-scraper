@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hallenkind.com/blog-posts-sitemap.xml",
+  "checked_at": "2026-10-05T23:17:44.091218+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "W/\"443-LZ1kNmd61j/mBWNjkxKeK77WIBI\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1091,
+  "state": "ok",
+  "elapsed_seconds": 0.915,
+  "sha256": "8b5fd4e9b6c9c6f4d75837d2386268109266250b5ce7cd805ea9e7f1dd022bb7",
+  "capture": "865b6296104885c87fa6"
+}

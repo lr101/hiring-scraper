@@ -1,0 +1,17 @@
+{
+  "url": "https://diakonie-kork.de/ausbildung-karriere/fort-und-weiterbildung/",
+  "checked_at": "2026-10-05T22:50:52.184947+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 489421,
+  "state": "ok",
+  "elapsed_seconds": 2.062,
+  "sha256": "02236c08f5247d2f05e1c3a65ab9a4b97c5a2513459d8a710f2c2bd9253bb8f2",
+  "capture": "950d125e99bc9119afcb",
+  "merged_from_run": "run-27"
+}

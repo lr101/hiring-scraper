@@ -1,0 +1,17 @@
+{
+  "url": "https://www.sautter-elektrotechnik.de/",
+  "checked_at": "2026-10-05T23:42:32.504437+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 934,
+  "state": "http_error",
+  "elapsed_seconds": 0.972,
+  "sha256": "ed450ae2d52d7ac7b4c7ea8b281a96eafcb1dcafef9cc9acf65186ca054a8b83",
+  "capture": "2a06dcb93673ffc759a5",
+  "merged_from_run": "run-28"
+}

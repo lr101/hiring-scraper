@@ -1,0 +1,17 @@
+{
+  "url": "https://medicalvalues.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:12:31.798718+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26306,
+  "state": "ok",
+  "elapsed_seconds": 1.66,
+  "sha256": "008a929a5474ad043b0967c003bce29cbcabcde9d8eb2da2cfc89dd5dd64c7d0",
+  "capture": "a7fa429a148c11ba89fe",
+  "merged_from_run": "run-27"
+}

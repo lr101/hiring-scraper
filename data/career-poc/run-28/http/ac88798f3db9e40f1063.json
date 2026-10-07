@@ -1,0 +1,16 @@
+{
+  "url": "https://www.plakartiv.de/robots.txt",
+  "checked_at": "2026-10-05T23:46:07.148267+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"1e4-60529240e9f40\"",
+  "last_modified": "Tue, 12 Sep 2023 13:08:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 484,
+  "state": "ok",
+  "elapsed_seconds": 0.985,
+  "sha256": "3c4c3a9bbe014d1c8e2beae60e881600123dc5600dd9fcd1db0d4010f51a4bfa",
+  "capture": "ac88798f3db9e40f1063"
+}

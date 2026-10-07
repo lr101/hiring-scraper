@@ -1,0 +1,16 @@
+{
+  "url": "https://www.kombident.de/robots.txt",
+  "checked_at": "2026-10-05T23:37:14.751434+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"364-56d49e057f175\"",
+  "last_modified": "Mon, 28 May 2018 20:22:27 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 868,
+  "state": "ok",
+  "elapsed_seconds": 0.972,
+  "sha256": "b246e97d24f7e63775eb519c2baafb72bc22ac2767a29f242f1c0b99cc243f10",
+  "capture": "3f63775b0ab725859cff"
+}

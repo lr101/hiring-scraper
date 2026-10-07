@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mercer.com/de-de/",
+  "checked_at": "2026-10-05T23:33:04.614839+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "\"24c8e-65d1ca8ca3b8a\"",
+  "last_modified": "Mon, 05 Oct 2026 19:12:12 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 150670,
+  "state": "ok",
+  "elapsed_seconds": 0.434,
+  "sha256": "9f29f62900251622b5e6c14aa6e26b060d2d8a66c73d5453a01b076bddc79b2a",
+  "capture": "14590f8e88b4ff08116f"
+}

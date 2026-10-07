@@ -1,0 +1,16 @@
+{
+  "url": "https://job.siera-alliance.com/Karriere/",
+  "checked_at": "2026-10-05T23:34:11.807577+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"l3kl31f3webfh\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14813,
+  "state": "ok",
+  "elapsed_seconds": 0.21,
+  "sha256": "94d60374ced3c9e621788054edd917396223e326a5b886f5a439c50727b4af49",
+  "capture": "64dafd8ab965001f5785"
+}

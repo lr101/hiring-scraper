@@ -1,0 +1,17 @@
+{
+  "url": "https://www.keyence.de/",
+  "checked_at": "2026-10-05T23:31:30.828273+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 190385,
+  "state": "ok",
+  "elapsed_seconds": 1.396,
+  "sha256": "e32f0f2cf5d6760b28d7bc1f10c32aabbc1b574c3012ef738ce87a6de7721b3b",
+  "capture": "eca56bc0c09b64735041",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mueller-hof.de/",
+  "checked_at": "2026-10-05T23:10:40.010402+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 107638,
+  "state": "ok",
+  "elapsed_seconds": 1.187,
+  "sha256": "7fc73e5e6b7620cb195171f3e5f158e25dd5ed65f7b9baeb5f56f42e978a3a4d",
+  "capture": "b821be9b2def8ed18992",
+  "merged_from_run": "run-27"
+}

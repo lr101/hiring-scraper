@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buhlinger-architekten.de/karriere",
+  "checked_at": "2026-10-05T23:14:54.911974+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 27537,
+  "state": "ok",
+  "elapsed_seconds": 0.923,
+  "sha256": "1edde6db4af62fffc620ea36852f6dbea3dd53f62bc78624c448f2abc8f1ca4c",
+  "capture": "a0b0ee17bff03bef8814"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sprachmuehle.de/jobs",
+  "checked_at": "2026-10-05T23:39:00.130969+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6327,
+  "state": "ok",
+  "elapsed_seconds": 0.989,
+  "sha256": "eed43549847afcad4c6c03af1919f48449c196feb4ae7db5f38561061ce308ea",
+  "capture": "a6a92c36593b31196a88"
+}

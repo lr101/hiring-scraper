@@ -1,0 +1,16 @@
+{
+  "url": "https://emons-karriere.de/emons-als-arbeitgeber",
+  "checked_at": "2026-10-05T23:16:48.816455+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 236105,
+  "state": "ok",
+  "elapsed_seconds": 1.161,
+  "sha256": "d26fc2b8225d22bef4f7cdd5dbd5dcd54cc5db3eda4a36d46e4e404970bdbbb8",
+  "capture": "80dc9d0387a7d472a43e"
+}

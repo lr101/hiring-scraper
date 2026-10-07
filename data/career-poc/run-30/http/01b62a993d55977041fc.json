@@ -1,0 +1,17 @@
+{
+  "url": "https://bremerbau.de/de/karriere/studium",
+  "checked_at": "2026-10-05T23:17:49.429488+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 181590,
+  "state": "ok",
+  "elapsed_seconds": 1.242,
+  "sha256": "a290ceef8e006966e09826c66a6903c14ca2af73d13b0a638c9dbad11e34cbaa",
+  "capture": "01b62a993d55977041fc",
+  "merged_from_run": "run-28"
+}

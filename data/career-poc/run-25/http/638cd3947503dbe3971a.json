@@ -1,0 +1,16 @@
+{
+  "url": "https://www.singliesel.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:13:34.692054+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 533,
+  "state": "ok",
+  "elapsed_seconds": 1.269,
+  "sha256": "1cccfe9c47bf16995940d6fedf0af88e2ce769f540e1fe0d9ab7186fccf1195a",
+  "capture": "638cd3947503dbe3971a"
+}

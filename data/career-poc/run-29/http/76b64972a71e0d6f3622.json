@@ -1,0 +1,17 @@
+{
+  "url": "https://service.bnn.de/karriere/praktikum",
+  "checked_at": "2026-10-05T22:09:24.031598+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 206833,
+  "state": "ok",
+  "elapsed_seconds": 1.596,
+  "sha256": "fe48f41e578f611db9e4438c4c9febf8ba81e547c15431dfc288daa047ff9bf1",
+  "capture": "76b64972a71e0d6f3622",
+  "merged_from_run": "run-25"
+}

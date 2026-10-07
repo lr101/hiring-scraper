@@ -1,0 +1,16 @@
+{
+  "url": "https://www.blumen-mosch.de/jobs",
+  "checked_at": "2026-10-05T23:35:51.742311+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 13,
+  "state": "http_error",
+  "elapsed_seconds": 0.942,
+  "sha256": "7d04f7431bbfa41a04bcc7e6b98b9de0d919756c4c671c5785c99fff45f16402",
+  "capture": "208f8af3bf69c0e84100"
+}

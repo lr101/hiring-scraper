@@ -1,0 +1,16 @@
+{
+  "url": "https://www.immobilien-guenter.de/post-sitemap.xml",
+  "checked_at": "2026-10-05T23:36:08.619748+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 10735,
+  "state": "ok",
+  "elapsed_seconds": 1.434,
+  "sha256": "7abd62325b59b116b6287953d39a5726114ae59d4cc530ef50755ab0a07cec73",
+  "capture": "11441ebcbd82c42eb4bc"
+}

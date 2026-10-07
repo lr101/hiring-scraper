@@ -1,0 +1,16 @@
+{
+  "url": "https://goerisch.de/wp-sitemap.xml",
+  "checked_at": "2026-10-05T23:34:39.590978+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 445,
+  "state": "ok",
+  "elapsed_seconds": 1.77,
+  "sha256": "4c7a650f4148841466ec37590a12b78d4699f9a7e31669695b1ae5a61848d1c6",
+  "capture": "f45259c45f8cc2fe8464"
+}

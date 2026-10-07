@@ -1,0 +1,16 @@
+{
+  "url": "https://www.i-tuepfelchen-shop.de/",
+  "checked_at": "2026-10-05T23:44:07.481625+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://i-tuepfelchen-shop.de/",
+  "bytes": 366,
+  "state": "http_error",
+  "elapsed_seconds": 1.03,
+  "sha256": "6b2f273ba7ec33d409be93d748cd9f29e50837bf6ecb59daba160d181ec4bfe4",
+  "capture": "c99fa96960d1b3f2e0d0"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.weisenburger.de/karriere-bei-weisenburger",
+  "checked_at": "2026-10-05T22:51:13.114958+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 13:23:28 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 60347,
+  "state": "ok",
+  "elapsed_seconds": 1.057,
+  "sha256": "94d93983f84e11d2753847e55772a131612c83dbc4d904cf394ffc71fdded98d",
+  "capture": "a416743b67edaff61ff5",
+  "merged_from_run": "run-27"
+}

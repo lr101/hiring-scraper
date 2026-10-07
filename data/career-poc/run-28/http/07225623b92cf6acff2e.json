@@ -1,0 +1,16 @@
+{
+  "url": "https://jobs.elosmedtech.com/jobs/8483407-manufacturing-engineer",
+  "checked_at": "2026-10-05T23:39:56.491957+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "W/\"391f90e385d9c002dbe786bec03c2e31\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 73239,
+  "state": "ok",
+  "elapsed_seconds": 1.006,
+  "sha256": "391f90e385d9c002dbe786bec03c2e31b34b5d00af2798bee3a3b8fbedf2e55a",
+  "capture": "07225623b92cf6acff2e"
+}

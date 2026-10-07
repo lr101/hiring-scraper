@@ -1,0 +1,17 @@
+{
+  "url": "https://www.schukraft.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:36:38.761410+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 404,
+  "state": "ok",
+  "elapsed_seconds": 1.179,
+  "sha256": "39720f06fe618047eb3ddfd7a5036c87a363e775a4e6c8c30ce6e67e33ff1986",
+  "capture": "eba66ade05c43d427136",
+  "merged_from_run": "run-28"
+}

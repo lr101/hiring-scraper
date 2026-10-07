@@ -1,0 +1,16 @@
+{
+  "url": "https://www.steuerbuero-hecht.de/jobs",
+  "checked_at": "2026-10-05T23:45:31.635796+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 271,
+  "state": "http_error",
+  "elapsed_seconds": 0.967,
+  "sha256": "b9bdd568a4e026776c4086c9e672ec281273a9b981e9ba15e94ea28169e8053c",
+  "capture": "25eb5852661bdfee4221"
+}

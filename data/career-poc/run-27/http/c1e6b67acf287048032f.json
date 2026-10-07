@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mail-and-media.com/jobs/",
+  "checked_at": "2026-10-05T22:58:12.395887+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 88971,
+  "state": "ok",
+  "elapsed_seconds": 1.559,
+  "sha256": "1f288ed48055e92cdb7c174d286e1f8f15e6fb5404f804800c757ed3824ce48c",
+  "capture": "c1e6b67acf287048032f"
+}

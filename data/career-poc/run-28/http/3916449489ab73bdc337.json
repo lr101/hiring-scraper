@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pir-galabau.de/unternehmen/karriere/",
+  "checked_at": "2026-10-05T23:37:39.881784+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82710,
+  "state": "ok",
+  "elapsed_seconds": 0.885,
+  "sha256": "5e3c514c30905023c655e097edc4f95fd9bef0cdd5bf0db2f4ca3ab7142a0a27",
+  "capture": "3916449489ab73bdc337"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wisag.de/karriere/stellenmarkt/detail/job/418344/",
+  "checked_at": "2026-10-05T23:25:32.373376+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 91323,
+  "state": "http_error",
+  "elapsed_seconds": 0.199,
+  "sha256": "a6c06e64dbf342fbe73743f8eefe545fe98b5ad58b527437bc551a0b65546a8f",
+  "capture": "eb4e8377790bdcd41cd0",
+  "merged_from_run": "run-28"
+}

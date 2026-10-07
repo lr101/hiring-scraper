@@ -1,0 +1,14 @@
+{
+  "url": "https://careers.trivago.com/job/r8641657002/",
+  "checked_at": "2026-10-05T13:26:58.845905+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 751026,
+  "state": "ok",
+  "elapsed_seconds": 1.728,
+  "sha256": "62dfb5c19566af5e17e5e712c1f95a69e2471e57805ad09c10ec59d560d70bab",
+  "capture": "ea07d1687d9f469b0e15",
+  "reused_from": "data/career-poc/run-05/http/ea07d1687d9f469b0e15.json"
+}

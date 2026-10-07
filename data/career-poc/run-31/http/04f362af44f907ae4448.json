@@ -1,0 +1,17 @@
+{
+  "url": "https://baeko-mittelbaden.de",
+  "checked_at": "2026-10-05T23:24:08.757975+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 47539,
+  "state": "ok",
+  "elapsed_seconds": 1.036,
+  "sha256": "571655a8a93f2d194904ebc19021ecef72dce7020f341193aa3bb8e6839d6a71",
+  "capture": "04f362af44f907ae4448",
+  "merged_from_run": "run-28"
+}

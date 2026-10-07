@@ -1,0 +1,17 @@
+{
+  "url": "https://www.myhaeppygarten.com/robots.txt",
+  "checked_at": "2026-10-05T23:42:19.477530+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 51,
+  "state": "ok",
+  "elapsed_seconds": 1.053,
+  "sha256": "4c8de7b94c0e5a495227e81b0ee7f3a15975fc6a563dd7449f72dc0ca44c9f88",
+  "capture": "2af3d2664d55a404e83b",
+  "merged_from_run": "run-28"
+}

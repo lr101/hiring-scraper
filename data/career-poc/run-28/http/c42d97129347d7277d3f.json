@@ -1,0 +1,16 @@
+{
+  "url": "https://www.blv-online.de/robots.txt",
+  "checked_at": "2026-10-05T23:27:32.472194+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 875,
+  "state": "ok",
+  "elapsed_seconds": 0.43,
+  "sha256": "12c9eeeeefe52f9a1e80a086a4e192e7e21ddb4d48c5f0c7824b2eb5620a3e28",
+  "capture": "c42d97129347d7277d3f"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://siegrist.de/",
+  "checked_at": "2026-10-05T23:30:06.873765+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 231814,
+  "state": "ok",
+  "elapsed_seconds": 0.21,
+  "sha256": "9ae7469d223432959a037f0aac2fa688702304794fb231af836fabe703d28f2d",
+  "capture": "5aac951f4050cff8399e"
+}

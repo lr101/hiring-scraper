@@ -1,0 +1,17 @@
+{
+  "url": "https://pflugers.com/karriere/",
+  "checked_at": "2026-10-05T23:01:49.348773+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"f11788a51973aad5b9d637cd656e7454\"",
+  "last_modified": "Mon, 05 Oct 2026 23:01:51 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 89281,
+  "state": "ok",
+  "elapsed_seconds": 1.822,
+  "sha256": "e8bab86aba8ffb95c596802662deea8945b947407328add26a4428e828251ce4",
+  "capture": "ce9ecb21d8b5771afefc",
+  "merged_from_run": "run-27"
+}

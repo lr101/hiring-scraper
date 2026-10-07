@@ -1,0 +1,3238 @@
+{
+  "candidate_count": 2251,
+  "with_website_seed_count": 1606,
+  "no_website_count": 645,
+  "invalid_website_count": 0,
+  "unique_website_urls": 1556,
+  "unique_hosts": 1506,
+  "source_file": "fixtures/karlsruhe-osm-candidates.csv",
+  "seed_file": "data/career-poc/seeds-karlsruhe-osm-2251.json",
+  "no_website_candidates": [
+    {
+      "source_id": "node/4622655478",
+      "name": "Center Management",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5888375733",
+      "name": "Bauordnungsamt Stadt Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/5888375734",
+      "name": "Stadtplanungsamt Stadt Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/12913063100",
+      "name": "atelier der schönen schneiderkünste",
+      "category": "atelier"
+    },
+    {
+      "source_id": "node/1547914554",
+      "name": "Curious About",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/3579302579",
+      "name": "Stadt Karlsruhe Wirtschaftsförderung",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4825818954",
+      "name": "Greenpeace Karlsruhe",
+      "category": "ngo"
+    },
+    {
+      "source_id": "node/4677039621",
+      "name": "Stadtkämmerei: Sachgebiet Kommunale Steuern",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3578191196",
+      "name": "C-Concept Bausanierung",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/4972621995",
+      "name": "Fotostudio",
+      "category": "photographer"
+    },
+    {
+      "source_id": "node/4972621994",
+      "name": "Karstadt Service-Center",
+      "category": "customer_service"
+    },
+    {
+      "source_id": "node/4756332032",
+      "name": "Stadt Karlsruhe Stadtkämmerei",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3578191193",
+      "name": "Änderungsschneiderei Ercan",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/4726157504",
+      "name": "Mosaik Digital Network GmbH",
+      "category": "it"
+    },
+    {
+      "source_id": "node/3294325217",
+      "name": "Turan",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/3611324606",
+      "name": "Jugendberatung, Drogenberatung, Präventionsbüro, Interner Beratungsdienst",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/3598614047",
+      "name": "Jugendamt Jugendgerichtshilfe",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/3584193704",
+      "name": "Tiefbauamt S3 Straßenwesen Bauausführung",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/6018042352",
+      "name": "Fidelitas Sicherheit",
+      "category": "security"
+    },
+    {
+      "source_id": "node/3491830771",
+      "name": "Kreisbüro der LINKEN",
+      "category": "political_party"
+    },
+    {
+      "source_id": "node/4585870065",
+      "name": "Stadt Karlsruhe Personal- und Organisationsamt",
+      "category": "government"
+    },
+    {
+      "source_id": "relation/1547813",
+      "name": "Evangelischer Oberkirchenrat",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/5209139516",
+      "name": "Schreinerei Keller Pichi Mangold",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/13014550450",
+      "name": "Rechtsanwalt Wolfgang Schmatloch",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/5209292395",
+      "name": "Übersetzungsbüro BOZIG",
+      "category": "translation"
+    },
+    {
+      "source_id": "node/5209292394",
+      "name": "Übersetzungsbüro Pichottka",
+      "category": "translation"
+    },
+    {
+      "source_id": "node/3686189864",
+      "name": "Hammer + Helbling Wilser Grundstücksverwaltung GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5209292393",
+      "name": "Anwaltskanzlei Pichottka",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/5209292392",
+      "name": "erste reserve",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/3584193703",
+      "name": "Klimaschutz- und Energieagentur Baden-Württemberg",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4306367901",
+      "name": "Schul- und Sportamt",
+      "category": "government"
+    },
+    {
+      "source_id": "way/772962987",
+      "name": "L-Bank, Staatsbank für Baden-Württemberg",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12624186151",
+      "name": "Markus Mokinski Photography",
+      "category": "photographer"
+    },
+    {
+      "source_id": "node/5821280061",
+      "name": "Sean Dundee Fußballschule",
+      "category": "sport"
+    },
+    {
+      "source_id": "node/5821280062",
+      "name": "Heinz Kutt e.K. Generalagentur",
+      "category": "insurance"
+    },
+    {
+      "source_id": "way/101325570",
+      "name": "DGB Haus",
+      "category": "ngo"
+    },
+    {
+      "source_id": "node/9369517965",
+      "name": "IG BAU Mitgliederbüro Karlsruhe",
+      "category": "union"
+    },
+    {
+      "source_id": "node/2998265443",
+      "name": "Techniker Krankenkasse",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/6425338443",
+      "name": "Bagci Service",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "node/3510886811",
+      "name": "Lohnsteuerhilfe City e.V.",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/4004213891",
+      "name": "Übersetzungsbüro Salex GmbH",
+      "category": "translation"
+    },
+    {
+      "source_id": "node/4720618322",
+      "name": "Schuhmachermeister Haffner",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "way/238175621",
+      "name": "Nguyen Änderungsschneiderei",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/2274404243",
+      "name": "Veselcic Bauengineering GmbH",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/12566506480",
+      "name": "Gabriele Schneider",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/4158244001",
+      "name": "Deutsche BKK",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/2392730442",
+      "name": "consultive gmbh",
+      "category": "it"
+    },
+    {
+      "source_id": "node/3174659861",
+      "name": "BBBank Schulungszentrum",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12104242159",
+      "name": "Fächerbräu",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6200998411",
+      "name": "Amnesty International Regionalbüro Karlsruhe",
+      "category": "ngo"
+    },
+    {
+      "source_id": "node/4060056290",
+      "name": "Service-Center Bagmaci",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "node/3581700279",
+      "name": "Geschäftsstelle DIE LINKE",
+      "category": "political_party"
+    },
+    {
+      "source_id": "node/4057042003",
+      "name": "Strabag",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9519273169",
+      "name": "Samsun Juwelier",
+      "category": "jeweller"
+    },
+    {
+      "source_id": "node/4897347381",
+      "name": "Gartenbauamt",
+      "category": "government"
+    },
+    {
+      "source_id": "node/1305923004",
+      "name": "Smartpunkt.",
+      "category": "electronics_repair"
+    },
+    {
+      "source_id": "node/8022674265",
+      "name": "Damian Grade",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/11810464561",
+      "name": "Helvetia",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3718868222",
+      "name": "mariposa",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/834261965",
+      "name": "International Student Hub",
+      "category": "university"
+    },
+    {
+      "source_id": "node/5890338959",
+      "name": "merz kley partner",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/4017876008",
+      "name": "Vector",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3755136438",
+      "name": "RosyWave",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7816793920",
+      "name": "Deutsche Telekom AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3520551329",
+      "name": "Regierungspräsidium Tübingen, Abteilung 11 - Marktüberwachung",
+      "category": "government"
+    },
+    {
+      "source_id": "way/256606281",
+      "name": "Serviceplätze 1-9",
+      "category": "university"
+    },
+    {
+      "source_id": "node/9519273167",
+      "name": "Erdal's Schlüssel Service",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "way/256606278",
+      "name": "Welcome Desk",
+      "category": "university"
+    },
+    {
+      "source_id": "node/6918881499",
+      "name": "Interhyp",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/256606279",
+      "name": "Serviceplätze 10-18",
+      "category": "university"
+    },
+    {
+      "source_id": "node/3708646407",
+      "name": "Dr. jur. Herbert Geisler",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/4004213513",
+      "name": "Domicilia Hausverwaltung",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/11595105198",
+      "name": "Amalienpraxis Andrea Klaas",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/11595105197",
+      "name": "Amalienpraxis Claudia Haarbeck",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/11595105196",
+      "name": "Dipl.-Ing. Rolf Apell, Freier Architekt",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/11595105195",
+      "name": "Eva Wolter Rechtsanwältin",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/9420355141",
+      "name": "PicturePeople",
+      "category": "photographer"
+    },
+    {
+      "source_id": "node/4793460912",
+      "name": "MatSec Security & Transport GmbH",
+      "category": "security"
+    },
+    {
+      "source_id": "node/4825738783",
+      "name": "Meister Bagci Service",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "node/3646153670",
+      "name": "Max Blum KG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4715572955",
+      "name": "Unicef-Arbeitsgruppe Karlsruhe",
+      "category": "ngo"
+    },
+    {
+      "source_id": "node/6070521687",
+      "name": "Deutsche Vermögensberatung",
+      "category": "financial_advisor"
+    },
+    {
+      "source_id": "node/3755136437",
+      "name": "RGM",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13578252965",
+      "name": "tecis",
+      "category": "financial_advisor"
+    },
+    {
+      "source_id": "way/1134006884",
+      "name": "Hausmeister",
+      "category": "caretaker"
+    },
+    {
+      "source_id": "node/4841370429",
+      "name": "kr3m. media GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11733948647",
+      "name": "Super Gebäudereinigung",
+      "category": "cleaning"
+    },
+    {
+      "source_id": "node/5974071411",
+      "name": "Cammerer Lenz",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/524507023",
+      "name": "Radsport & Schlüsseldienst",
+      "category": "locksmith"
+    },
+    {
+      "source_id": "node/13017393134",
+      "name": "Immo Baden",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/10900306485",
+      "name": "Volkshochschule im Landkreis Karlsruhe",
+      "category": "educational_institution"
+    },
+    {
+      "source_id": "node/10900306482",
+      "name": "SBB Cargo International",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10900306486",
+      "name": "Stadt Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3071631069",
+      "name": "Gastronomie-Service Thomas Glaser",
+      "category": "dispensing equipment"
+    },
+    {
+      "source_id": "node/10734521957",
+      "name": "Daniela Maisack Versicherungsmaklerin",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/9957429819",
+      "name": "Emslander",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/13638757947",
+      "name": "Betreuungsbüro Thomas Schirmer",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/1681598682",
+      "name": "Institut für Literaturwissenschaft",
+      "category": "research"
+    },
+    {
+      "source_id": "node/11416850756",
+      "name": "planethOme",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/830188958",
+      "name": "Institut für Geschichte",
+      "category": "research"
+    },
+    {
+      "source_id": "node/5906084407",
+      "name": "Heizung & Sanitär Installationsbetrieb",
+      "category": "plumber"
+    },
+    {
+      "source_id": "node/13696583156",
+      "name": "KKH Kaufmännische Krankenkasse",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/6956166566",
+      "name": "WWK Versicherungen",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/2050369527",
+      "name": "Schwarz Weiss Reinigung",
+      "category": "cleaning"
+    },
+    {
+      "source_id": "node/5238637322",
+      "name": "Gartenbauamt Bezirk Ost",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4622429973",
+      "name": "Fraunhofer-Institut für Werkstoffmechanik",
+      "category": "research"
+    },
+    {
+      "source_id": "node/3506705161",
+      "name": "Regus Business Center",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/982371850",
+      "name": "Skriptenverkauf / Information",
+      "category": "university"
+    },
+    {
+      "source_id": "node/8197596380",
+      "name": "Gerhard Weber",
+      "category": "locksmith"
+    },
+    {
+      "source_id": "node/5968284389",
+      "name": "ID Ingenieure",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/3584193700",
+      "name": "AXA Versicherung",
+      "category": "insurance"
+    },
+    {
+      "source_id": "way/106088836",
+      "name": "Petra Hausmann",
+      "category": "jeweller"
+    },
+    {
+      "source_id": "way/171575126",
+      "name": "Architekten Lenzstraße Dreizehn",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/11005771725",
+      "name": "Studierendenbüro",
+      "category": "university"
+    },
+    {
+      "source_id": "node/3657164257",
+      "name": "Pâtisserie Ludwig",
+      "category": "bakery"
+    },
+    {
+      "source_id": "node/4004213510",
+      "name": "Daum Rechtsanwälte",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/4771468904",
+      "name": "WWK Versicherungen Bezirksdirektion Karlsruhe-Nord",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/5211213698",
+      "name": "Günther Lehmann GmbH & Co. KG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4410545233",
+      "name": "a3architekten",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/6466836601",
+      "name": "Regierungspräsidium Karlsruhe Referat 16 - Polizeirecht, Höhere Straßenverkehrsbehörde",
+      "category": "government"
+    },
+    {
+      "source_id": "way/109764370",
+      "name": "Haus Solms",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4410545199",
+      "name": "Corpoccino",
+      "category": "therapist"
+    },
+    {
+      "source_id": "node/13999845480",
+      "name": "IWI International IT Business",
+      "category": "university"
+    },
+    {
+      "source_id": "node/13999845481",
+      "name": "IWI Data Science",
+      "category": "university"
+    },
+    {
+      "source_id": "node/13999845479",
+      "name": "IWI Wirtschaftsinformatik",
+      "category": "university"
+    },
+    {
+      "source_id": "node/13999845478",
+      "name": "IWI Informatik",
+      "category": "university"
+    },
+    {
+      "source_id": "node/13999845476",
+      "name": "EIT Elektrotechnik – Energietechnik und Erneuerbare Energien",
+      "category": "university"
+    },
+    {
+      "source_id": "node/5838435085",
+      "name": "Pander Visuelle Komunikation",
+      "category": "graphic_design"
+    },
+    {
+      "source_id": "node/13999845477",
+      "name": "IWI Medieninformatik",
+      "category": "university"
+    },
+    {
+      "source_id": "way/97377636",
+      "name": "Gemeinsame Dienststelle für Flurneuordnung",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3484748203",
+      "name": "Versicherungsbüro Dr. Savas",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/10891947552",
+      "name": "Deutsche Bahn AG",
+      "category": "company"
+    },
+    {
+      "source_id": "relation/1551481",
+      "name": "Agentur für Arbeit",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/2841442587",
+      "name": "K + A Finanzdienstleistungen GmbH",
+      "category": "financial_advisor"
+    },
+    {
+      "source_id": "node/3534156925",
+      "name": "Welfen Schuh- und Schlüsseldienst",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "way/1120093826",
+      "name": "Informatik Studiengangservice",
+      "category": "student_affairs"
+    },
+    {
+      "source_id": "node/4004213509",
+      "name": "DB InfraGO AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4004213508",
+      "name": "DB Fernverkehr AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6513845737",
+      "name": "Jobcenter",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/5476258025",
+      "name": "SAM",
+      "category": "signmaker"
+    },
+    {
+      "source_id": "node/11917461828",
+      "name": "Kuhn & Kollegen",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/11917461829",
+      "name": "Schroth § Kollegen",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/10184443453",
+      "name": "Rechtsanwaltskanzlei Riegel",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/5238421276",
+      "name": "SBB Cargo",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4771468885",
+      "name": "DB Fahrwegdienste GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9609241253",
+      "name": "Ringwald | Uhrig PartG mbB",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/6053265633",
+      "name": "Goldschmied Günter Ketterer",
+      "category": "goldsmith"
+    },
+    {
+      "source_id": "node/3705530440",
+      "name": "1&1 Mail & Media GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "way/111184660",
+      "name": "Allianz Lebensversicherung AG",
+      "category": "insurance"
+    },
+    {
+      "source_id": "way/110084636",
+      "name": "Altkatholisches Pfarramt Karlsruhe",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/5863209799",
+      "name": "Schreinerei Sonfheimer",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/11310813538",
+      "name": "Katholische Pfarrgemeinde St. Elisabeth",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/539626759",
+      "name": "BPB",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/12534722762",
+      "name": "Ordnungs- und Bürgeramt",
+      "category": "government"
+    },
+    {
+      "source_id": "node/9609241262",
+      "name": "Media Consult Maier + Partner GmbH",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "way/90519958",
+      "name": "Eisenbahn-Bundesamt Außenstelle Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/13647905794",
+      "name": "FZI Living Lab",
+      "category": "research"
+    },
+    {
+      "source_id": "node/12988498440",
+      "name": "Sozial- und Jugendbehörde",
+      "category": "government"
+    },
+    {
+      "source_id": "node/9667879961",
+      "name": "Verwaltungsgericht Karlsruhe",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/7796568465",
+      "name": "Gesundheitsamt Karlsruhe Landkreis",
+      "category": "government"
+    },
+    {
+      "source_id": "node/10892031331",
+      "name": "ias",
+      "category": "it"
+    },
+    {
+      "source_id": "node/10892010435",
+      "name": "IT Security Club",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11349271940",
+      "name": "3D Printing Solutions GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9629083773",
+      "name": "Dipl. Psych. Birgit Kaiser",
+      "category": "therapist"
+    },
+    {
+      "source_id": "node/11349271931",
+      "name": "R3DT GmbH",
+      "category": "it"
+    },
+    {
+      "source_id": "node/11349271928",
+      "name": "AI.Remove",
+      "category": "it"
+    },
+    {
+      "source_id": "node/11349271930",
+      "name": "OrbusNeich Medical GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11349271920",
+      "name": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/12106984312",
+      "name": "Jelic",
+      "category": "electrician"
+    },
+    {
+      "source_id": "node/11349271917",
+      "name": "Böhrer Innovations UG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3074620171",
+      "name": "Ralf Gurock",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/8012933686",
+      "name": "Bernhard Dürr",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/11606180552",
+      "name": "Aktions- und Zirkusbüro",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3218524324",
+      "name": "Berufsgenossenschaft der Bauwirtschaft",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3564355288",
+      "name": "Deutsche Umschlaggesellschaft Schiene - Straße mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9609241240",
+      "name": "Constructiv BauPartner GmbH",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/9609241239",
+      "name": "Emslander Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/814646760",
+      "name": "R+V Versicherungen",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3377137351",
+      "name": "Debeka",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3073259636",
+      "name": "Bahlinger",
+      "category": "carpenter;glaziery"
+    },
+    {
+      "source_id": "node/7277910391",
+      "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+      "category": "handicraft"
+    },
+    {
+      "source_id": "way/584930935",
+      "name": "Bundesanstalt für Immobilienaufgaben",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3778727239",
+      "name": "Jamit Labs GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9789239366",
+      "name": "DB Station & Service AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9789239365",
+      "name": "Deutsche Bahn AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/2554095061",
+      "name": "Pianowerkstatt Karlsruhe",
+      "category": "musical_instrument"
+    },
+    {
+      "source_id": "node/8012933801",
+      "name": "Koehler Immobilien",
+      "category": "company"
+    },
+    {
+      "source_id": "node/8012933800",
+      "name": "Brüder Schmidt GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/1719104555",
+      "name": "DB Engineering & Consulting GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4825738766",
+      "name": "Atelier B2",
+      "category": "artist"
+    },
+    {
+      "source_id": "node/4853070269",
+      "name": "DB InfraGO AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6068904397",
+      "name": "Stadt Karlsruhe Amt für Hochbau und Gebäudewirtschaft Außenstelle Wettbewerbsbüro",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/9035666874",
+      "name": "Bagmaci",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "node/4799843361",
+      "name": "Karlsruher Fächer Werkstatt",
+      "category": "workshop"
+    },
+    {
+      "source_id": "node/5352361506",
+      "name": "Malerfachbetrieb Essig",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/1659431397",
+      "name": "Filmboard Karlsruhe e.V. - Filmproduktion",
+      "category": "company"
+    },
+    {
+      "source_id": "node/802519377",
+      "name": "RockHold Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/102701913",
+      "name": "Kurt Wesch Grabmale",
+      "category": "stonemason"
+    },
+    {
+      "source_id": "node/4729773096",
+      "name": "Krankengymnastikpraxis A. Klohe",
+      "category": "therapist"
+    },
+    {
+      "source_id": "node/3620742819",
+      "name": "Grabmale Heinz Schmidt",
+      "category": "stonemason"
+    },
+    {
+      "source_id": "node/10789909705",
+      "name": "Polsterei Gattke",
+      "category": "upholsterer"
+    },
+    {
+      "source_id": "node/9070530368",
+      "name": "Allianz",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3154541712",
+      "name": "Debeka Versicherungen",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/6235652333",
+      "name": "Servicezentrum Auto und Verkehr",
+      "category": "government"
+    },
+    {
+      "source_id": "way/110539711",
+      "name": "Augenblick Werbeagentur",
+      "category": "advertising_agency"
+    },
+    {
+      "source_id": "way/122267494",
+      "name": "Thorsten Müller",
+      "category": "carpenter;joiner"
+    },
+    {
+      "source_id": "node/7796499377",
+      "name": "Friedhofs- und Bestattungsamt",
+      "category": "government"
+    },
+    {
+      "source_id": "node/11214296100",
+      "name": "Sozial- und Jugendbehörde",
+      "category": "government"
+    },
+    {
+      "source_id": "way/538117502",
+      "name": "Bundesanwaltschaft",
+      "category": "government"
+    },
+    {
+      "source_id": "node/6468167344",
+      "name": "Famigo",
+      "category": "it"
+    },
+    {
+      "source_id": "node/3489585141",
+      "name": "Rechnungshof",
+      "category": "government"
+    },
+    {
+      "source_id": "node/6468167341",
+      "name": "dokKa",
+      "category": "association"
+    },
+    {
+      "source_id": "node/6468167351",
+      "name": "avee GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10819436841",
+      "name": "Autobahn GmbH Außenstelle Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/9609241248",
+      "name": "Matthis Dischler",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "way/134547166",
+      "name": "VBK - Betriebshof Ost",
+      "category": "depot"
+    },
+    {
+      "source_id": "node/3489585140",
+      "name": "Oberfinanzdirektion Karlsruhe Landeszentrum für Datenverarbeitung",
+      "category": "government"
+    },
+    {
+      "source_id": "node/13015831942",
+      "name": "Onur Icel",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/13015843515",
+      "name": "Bayram Mansuroglu",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/11334807206",
+      "name": "Evangelisches Pfarramt Markusgemeinde",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/6416988484",
+      "name": "Karlsruher TV e.V.",
+      "category": "association"
+    },
+    {
+      "source_id": "way/134499590",
+      "name": "VBK - Betriebshof Gerwigstraße",
+      "category": "depot"
+    },
+    {
+      "source_id": "node/4348497735",
+      "name": "Netze BW",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5298479528",
+      "name": "Dental Genial",
+      "category": "dental_technician"
+    },
+    {
+      "source_id": "node/13016102159",
+      "name": "West Stadt Service",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "relation/1679896",
+      "name": "EnBW Energie Baden-Württemberg",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6467977271",
+      "name": "Dr. Willmar Schwabe Business Services",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4799358233",
+      "name": "Dipl.-Kfm. Bruno Scheurer & Co. Steuerberatungsgesellschaft mbH",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "way/756056076",
+      "name": "Lukasgemeinde",
+      "category": "religion"
+    },
+    {
+      "source_id": "way/135510425",
+      "name": "Forstbetrieb V. Leger",
+      "category": "forestry"
+    },
+    {
+      "source_id": "node/9195617770",
+      "name": "Lohnsteuerhilfe Baden-Württemberg",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/6090397017",
+      "name": "DB Bahnbau Gruppe",
+      "category": "company"
+    },
+    {
+      "source_id": "way/689461270",
+      "name": "Atruvia AG",
+      "category": "company"
+    },
+    {
+      "source_id": "way/845527994",
+      "name": "punkt.de",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/4702332261",
+      "name": "RehaGym",
+      "category": "therapist"
+    },
+    {
+      "source_id": "node/10582011750",
+      "name": "Steuerberatung Dittmann",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/11646746440",
+      "name": "Göleli",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "node/10166690630",
+      "name": "Dr. Karl-Heinz Kellner",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10166690627",
+      "name": "Emil Huber Immobilienverwaltungs-GmbH & Co. KG",
+      "category": "company"
+    },
+    {
+      "source_id": "way/523352458",
+      "name": "EnBW Printcenter",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10760230818",
+      "name": "DV Direkt",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/6283009839",
+      "name": "Immadio",
+      "category": "facility_management"
+    },
+    {
+      "source_id": "node/13016225881",
+      "name": "C.K. Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/123792653",
+      "name": "A&E Logistik",
+      "category": "moving_company"
+    },
+    {
+      "source_id": "node/12550031705",
+      "name": "Steger + Partner",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/5645664074",
+      "name": "Kassenärztliche Vereinigung Baden-Württemberg",
+      "category": "government"
+    },
+    {
+      "source_id": "way/916950052",
+      "name": "Vector Informatik",
+      "category": "company"
+    },
+    {
+      "source_id": "way/455891010",
+      "name": "VBK - Bahnmeisterei & Bauhof",
+      "category": "storage"
+    },
+    {
+      "source_id": "node/656279908",
+      "name": "Artmann Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/5003469011",
+      "name": "ibnconsult",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12416519780",
+      "name": "Heiko Reif",
+      "category": "plumber"
+    },
+    {
+      "source_id": "node/9182594825",
+      "name": "Ingenieurbüro Struck",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/10759398246",
+      "name": "Stadt Karlsruhe Marktamt",
+      "category": "government"
+    },
+    {
+      "source_id": "node/11416395305",
+      "name": "Ärztlicher Dienst der Stadt Karlsruhe",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3972340714",
+      "name": "K2L GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3972340715",
+      "name": "Microchip Technology",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4128275406",
+      "name": "Intel Automotive Innovation and Product Development Center",
+      "category": "company"
+    },
+    {
+      "source_id": "way/105371627",
+      "name": "Rudolph",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13738591748",
+      "name": "Buderus",
+      "category": "hvac"
+    },
+    {
+      "source_id": "node/11328328217",
+      "name": "HUK-Coburg",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/5922983048",
+      "name": "CAS InnovationCenter",
+      "category": "research"
+    },
+    {
+      "source_id": "node/4278622334",
+      "name": "CAS InnovationCenter",
+      "category": "research"
+    },
+    {
+      "source_id": "node/3424873322",
+      "name": "Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/4281094366",
+      "name": "Gameforge 4D GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10250879373",
+      "name": "Elektro Meier",
+      "category": "electrician"
+    },
+    {
+      "source_id": "way/450654856",
+      "name": "Feuerverzinkerei Karlsruhe",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "node/6796984169",
+      "name": "Bildungs- und Wissenschaftszentrum der Bundesfinanzverwaltung - Dienstsitz Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4579371050",
+      "name": "Dickemann Steuerberatungsgesellschaft mbH",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/4267035351",
+      "name": "Dassault Systèmes",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6296486425",
+      "name": "Heiss Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/6352265167",
+      "name": "Hoffmanns Bistro & Restaurant - Partyservice - Catering in der Metro Gastro",
+      "category": "caterer"
+    },
+    {
+      "source_id": "node/12401186887",
+      "name": "Kottler",
+      "category": "scaffolder"
+    },
+    {
+      "source_id": "node/11183132548",
+      "name": "Leckermaul",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/4434013887",
+      "name": "Kurt Eichsteller Baggerbetrieb",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3964629530",
+      "name": "Dr. med. Josef Gatti",
+      "category": "physician"
+    },
+    {
+      "source_id": "node/4609654425",
+      "name": "Kaufland Warenannahme",
+      "category": "goods_receiving"
+    },
+    {
+      "source_id": "node/4159669335",
+      "name": "Anthroposophische Gesellschaft",
+      "category": "association"
+    },
+    {
+      "source_id": "node/9445925532",
+      "name": "Kribl",
+      "category": "cabinet_maker"
+    },
+    {
+      "source_id": "node/4609654432",
+      "name": "MEC Centermanagement",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9484024875",
+      "name": "DEKRA",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/4825738743",
+      "name": "Südwestbus Betrieb Karlsruhe",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9484024874",
+      "name": "Gartenbauamt Spielanlagenunterhaltung",
+      "category": "government"
+    },
+    {
+      "source_id": "node/9622500436",
+      "name": "Sozial- und Jugendbehörde",
+      "category": "government"
+    },
+    {
+      "source_id": "node/13512250484",
+      "name": "Kiefer & Simon Zahntechnik",
+      "category": "dental_technician"
+    },
+    {
+      "source_id": "node/6070923534",
+      "name": "Dipl. Betriebswirt (BA) Ulrich F. Sinn",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/4365275397",
+      "name": "Rudi Winter",
+      "category": "heating_engineer"
+    },
+    {
+      "source_id": "way/160832479",
+      "name": "Hatz-Moninger Brauhaus",
+      "category": "brewery"
+    },
+    {
+      "source_id": "node/4825738740",
+      "name": "Grosser Speditions- und Vermittlungs GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11709458289",
+      "name": "Azentro",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/11709458290",
+      "name": "AIKO",
+      "category": "property_management"
+    },
+    {
+      "source_id": "node/4825738741",
+      "name": "Andreas Merkle Spedition und Transport GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5045358344",
+      "name": "Evangelische Petrus-Jakobus-Gemeinde Karlsruhe",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/5667806823",
+      "name": "Dr. Oskar Trinks",
+      "category": "accountant"
+    },
+    {
+      "source_id": "node/4365275398",
+      "name": "Acor Malerbetrieb GmbH",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/9490951594",
+      "name": "Ingenieurbüro Thomas Hill",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/10589854960",
+      "name": "Ingenieurbüro Pfeffinger",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11423719765",
+      "name": "Ingenieurbüro Thomas Harich",
+      "category": "engineer"
+    },
+    {
+      "source_id": "node/3389289730",
+      "name": "bunte büffel",
+      "category": "company"
+    },
+    {
+      "source_id": "way/1192927336",
+      "name": "103 (Hub)",
+      "category": "it"
+    },
+    {
+      "source_id": "node/3395691621",
+      "name": "Deutsche Vermögensberatung",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3395691623",
+      "name": "Generali Versicherung",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3395691643",
+      "name": "planting",
+      "category": "company"
+    },
+    {
+      "source_id": "way/334889236",
+      "name": "Schaustellerbetrieb Wagner",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10589977269",
+      "name": "Bürgerverein Grünwinkel e.V.",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/12486697082",
+      "name": "Hatz-Moninger Brauhaus GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4329623092",
+      "name": "Geschäftstelle Deutscher Alpenverein Sektion Karlsruhe",
+      "category": "association"
+    },
+    {
+      "source_id": "node/4401519789",
+      "name": "Hammer+BuchmüllerMalermeister",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/4329623094",
+      "name": "Leonhard Denkler",
+      "category": "floorer"
+    },
+    {
+      "source_id": "node/9069818495",
+      "name": "Schuh- und Schlüsseldienst",
+      "category": "key_cutter"
+    },
+    {
+      "source_id": "node/5856882940",
+      "name": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6597207390",
+      "name": "dm-drogerie markt GmbH + Co. KG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6848347047",
+      "name": "dm-drogerie markt Verwaltungs-GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6410106736",
+      "name": "Prüfstelle für Straßenbau- und Geotechnik",
+      "category": "government"
+    },
+    {
+      "source_id": "node/6848347044",
+      "name": "dm-Vermögensverwaltungsgesellschaft mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6848347046",
+      "name": "dmTECH GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6848347045",
+      "name": "Futura Drogerie-Marken Vertriebsgesellschaft mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12676338218",
+      "name": "Pfarrbüro St. Josef",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/4909416891",
+      "name": "Böhling Rohrleitungs- und Apparatebau GmbH",
+      "category": "plumber"
+    },
+    {
+      "source_id": "node/7294970490",
+      "name": "Carrier",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11416417687",
+      "name": "A. Suka Metallwaren",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/7294970540",
+      "name": "euromicron",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4732212222",
+      "name": "Stadtgärtnerei Stadt Karlsruhe",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/415816949",
+      "name": "UNISENSOR Sensorsysteme GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/251523941",
+      "name": "Büro KGV Rennichwiesen",
+      "category": "association"
+    },
+    {
+      "source_id": "way/599691594",
+      "name": "TÜV Süd",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/5387912392",
+      "name": "Intel Deutschland GmbH PFZ1 Building E",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12377373287",
+      "name": "Müller",
+      "category": "electronics"
+    },
+    {
+      "source_id": "node/6302779241",
+      "name": "Siemens Power Academy PS CD",
+      "category": "educational_institution"
+    },
+    {
+      "source_id": "node/4405674847",
+      "name": "Bundesamt für Migration und Flüchtlinge",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4665702430",
+      "name": "Schwerdtfeger Holzbau",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/4417968603",
+      "name": "DB Schenker Rail Deutschland AG",
+      "category": "company"
+    },
+    {
+      "source_id": "way/87903360",
+      "name": "Hafendirektion",
+      "category": "harbour_master"
+    },
+    {
+      "source_id": "node/6268697565",
+      "name": "Immo VBV",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/9938123383",
+      "name": "VFIB - Verein zur Förderung der Integration und Bildung in Karlsruhe e.V.",
+      "category": "association"
+    },
+    {
+      "source_id": "node/6597572768",
+      "name": "Urich Transporte",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5637277508",
+      "name": "Siemens-Betriebskrankenkasse",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/13096764994",
+      "name": "Bildung und Integration",
+      "category": "association"
+    },
+    {
+      "source_id": "node/27005346",
+      "name": "Textil Perle",
+      "category": "dressmaker"
+    },
+    {
+      "source_id": "node/13096764993",
+      "name": "Amt Jugend und Soziales",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4732787160",
+      "name": "Michael Jakob Allianz Hauptvertretung",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/14119791823",
+      "name": "BGV Badische Versicherungen",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/13665841695",
+      "name": "All for One",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5858947191",
+      "name": "ICnova AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4587557028",
+      "name": "Simon Hegele Logistik und Service",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13665841694",
+      "name": "Espinea",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13665841693",
+      "name": "Debeka",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/6414046176",
+      "name": "AOK",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/6168842279",
+      "name": "KaTeX Atelier für Dekorationen",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/5352590685",
+      "name": "Änderungsschneiderei Sibel",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/4497213000",
+      "name": "Forstrevier Waldstadt",
+      "category": "forestry"
+    },
+    {
+      "source_id": "way/117943147",
+      "name": "Brau&Brennturm",
+      "category": "brewery;distillery"
+    },
+    {
+      "source_id": "node/7685173286",
+      "name": "Bauunternehmung Streib",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4219890890",
+      "name": "Dr.Ansa",
+      "category": "physician"
+    },
+    {
+      "source_id": "node/4219890889",
+      "name": "Dr.Glutsch",
+      "category": "physician"
+    },
+    {
+      "source_id": "node/6787708677",
+      "name": "Körner Gartenbau",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/5896664839",
+      "name": "Rhenus Port Logistics Karlsruhe Verwaltungs GmbH",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/11806468886",
+      "name": "Ramboll Deutschland",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3215970711",
+      "name": "Ed. Züblin AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3215970712",
+      "name": "STRABAG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6716835673",
+      "name": "Pfarramt Laurentiusgemeinde",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/8356609535",
+      "name": "Falc Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/6680277941",
+      "name": "ZG Raiffeisen Agrar",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10827679654",
+      "name": "Polsterei Benz",
+      "category": "upholsterer"
+    },
+    {
+      "source_id": "node/6254552790",
+      "name": "SWG Objektgesellschaft mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6254552789",
+      "name": "HAL Objektgesellschaft mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6254552788",
+      "name": "GUF Objektgesellschaft mbH",
+      "category": "company"
+    },
+    {
+      "source_id": "way/1245534771",
+      "name": "VBK - Betriebshof West II",
+      "category": "depot"
+    },
+    {
+      "source_id": "node/13725328583",
+      "name": "M. Gebhardt",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "node/7391666045",
+      "name": "weisenburger Bemusterungszentrum baustein",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/6512038013",
+      "name": "Fotostudio Graf",
+      "category": "photographer"
+    },
+    {
+      "source_id": "way/132386601",
+      "name": "BGV Servicebüro",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/1254138518",
+      "name": "Joas Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/104387291",
+      "name": "Rathaus Wolfartsweier",
+      "category": "government"
+    },
+    {
+      "source_id": "node/5643610464",
+      "name": "Dr. Bechtold Kieninger & Kollegen Rechtsanwaltskanzlei",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/5643610463",
+      "name": "Romanowski Architekten GmbH.",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/5643610462",
+      "name": "STUMPF OHG Allianz",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/5643610461",
+      "name": "Steuerberatungsgesellschaft mbH",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/4519305942",
+      "name": "SIVIS GmbH Softwareentwichlung",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5805121863",
+      "name": "Honig aus eigener Imkerei",
+      "category": "beekeeper"
+    },
+    {
+      "source_id": "way/807325903",
+      "name": "Raben",
+      "category": "logistics"
+    },
+    {
+      "source_id": "node/4431428950",
+      "name": "Isenmann",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7529357588",
+      "name": "Interpneu Abholer / Anmeldung",
+      "category": "logistics"
+    },
+    {
+      "source_id": "node/10294884305",
+      "name": "Trausaal Karlsburg Standesamt Durlach",
+      "category": "government"
+    },
+    {
+      "source_id": "way/4842209",
+      "name": "VBK - Betriebshof West I",
+      "category": "depot"
+    },
+    {
+      "source_id": "way/105840255",
+      "name": "Jobcenter Karlsruhe-Durlach",
+      "category": "government"
+    },
+    {
+      "source_id": "node/7006499227",
+      "name": "Pneuhage Unternehmensgruppe",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5964515993",
+      "name": "NaturFreunde Baden e.V.",
+      "category": "association"
+    },
+    {
+      "source_id": "node/5983632296",
+      "name": "MHC Anlagentechnik GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10972181195",
+      "name": "Lampe",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/10972181196",
+      "name": "Lebensräume",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/10972181194",
+      "name": "Leonhard",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/13585444457",
+      "name": "T&N Änderungsschneiderei",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/12474342809",
+      "name": "Mobile Jugendarbeit West",
+      "category": "government"
+    },
+    {
+      "source_id": "node/12474342808",
+      "name": "Sozial- und Jugendbehörde Sozialer Dienst",
+      "category": "government"
+    },
+    {
+      "source_id": "node/4730839095",
+      "name": "Netze BW Betriebsstelle Karlsruhe",
+      "category": "company"
+    },
+    {
+      "source_id": "relation/7906688",
+      "name": "Rheinhafen",
+      "category": "port"
+    },
+    {
+      "source_id": "node/9759420090",
+      "name": "NetCom BW",
+      "category": "company"
+    },
+    {
+      "source_id": "way/334161493",
+      "name": "TelemaxX IPC3",
+      "category": "it"
+    },
+    {
+      "source_id": "node/7006499188",
+      "name": "ad Gebäudedienste GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10698231499",
+      "name": "Stützle & Partner",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/5659366531",
+      "name": "Feinkost Kirbas",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12712835130",
+      "name": "Alba Nordbaden GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/5659366533",
+      "name": "Wall GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/9940251520",
+      "name": "NGE",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12076108016",
+      "name": "Opsytec Dr. Gröbel",
+      "category": "company"
+    },
+    {
+      "source_id": "way/39505249",
+      "name": "Atruvia",
+      "category": "it"
+    },
+    {
+      "source_id": "node/9518872387",
+      "name": "Sabolini",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/7902837317",
+      "name": "Badischer Fußballverband e.V.",
+      "category": "association"
+    },
+    {
+      "source_id": "way/445116667",
+      "name": "Oiltanking Tanklager Karlsruhe",
+      "category": "oil"
+    },
+    {
+      "source_id": "node/3147894474",
+      "name": "Ute's Änderungsschneiderei",
+      "category": "tailor"
+    },
+    {
+      "source_id": "node/3147893527",
+      "name": "Jürgen Hemmann",
+      "category": "painter"
+    },
+    {
+      "source_id": "way/22998987",
+      "name": "Joos",
+      "category": "construction_company"
+    },
+    {
+      "source_id": "node/3096522311",
+      "name": "Pfarramt Heilig-Geist-Gemeinde Büchig",
+      "category": "religion"
+    },
+    {
+      "source_id": "way/37690165",
+      "name": "Wetterwarte Rheinstetten",
+      "category": "government"
+    },
+    {
+      "source_id": "node/12683800383",
+      "name": "RLP Timeline",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12683800378",
+      "name": "Horizon Microtechnologies",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "node/12683800382",
+      "name": "Draht Walput GmbH & Co. KG",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "node/6759035156",
+      "name": "Kfz-Zulassungsstelle Ettlingen",
+      "category": "government"
+    },
+    {
+      "source_id": "way/28884673",
+      "name": "BKV-Logistik GmbH & Co. KG",
+      "category": "moving_company"
+    },
+    {
+      "source_id": "way/151484037",
+      "name": "Dopf",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/6142917492",
+      "name": "Fenster+Türen Braun",
+      "category": "window_construction"
+    },
+    {
+      "source_id": "way/176754204",
+      "name": "Burkart Gerüstbau",
+      "category": "scaffolder"
+    },
+    {
+      "source_id": "node/6142917494",
+      "name": "HDP GmbH",
+      "category": "electronics"
+    },
+    {
+      "source_id": "node/4425676800",
+      "name": "InnovationsCampus 2",
+      "category": "company"
+    },
+    {
+      "source_id": "way/244102877",
+      "name": "Landwirtschaftliches Technologiezentrum Augustenberg",
+      "category": "research"
+    },
+    {
+      "source_id": "node/4425676798",
+      "name": "EnBW Energie Baden-Württemberg AG InnovationsCampus Forschung und Entwicklung",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3547680499",
+      "name": "Brennerei Reiter",
+      "category": "distillery"
+    },
+    {
+      "source_id": "node/6448028040",
+      "name": "Persona Concept GmbH",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/9924990911",
+      "name": "Thorsten Reinschmidt - Steuerberater",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/8568792895",
+      "name": "TransnetBW",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12358099653",
+      "name": "Immo Gräßer GmbH",
+      "category": "property_management"
+    },
+    {
+      "source_id": "node/13808007064",
+      "name": "GGB Gesellschaft für Geomechanik und Baumesstechnik mbH",
+      "category": "surveyor"
+    },
+    {
+      "source_id": "node/13808007065",
+      "name": "Glötzl Gesellschaft für Baumesstechnik mbH",
+      "category": "surveyor"
+    },
+    {
+      "source_id": "node/13808007066",
+      "name": "Malerbetrieb Albert Doldt GmbH",
+      "category": "painter"
+    },
+    {
+      "source_id": "way/298679856",
+      "name": "Sidus Logistics",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7476415607",
+      "name": "MiRO Mineraloelraffinerie Oberrhein Verwaltung",
+      "category": "company"
+    },
+    {
+      "source_id": "way/654437188",
+      "name": "Sidus Media",
+      "category": "advertising_agency"
+    },
+    {
+      "source_id": "node/1520773542",
+      "name": "Immowessi",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/297107335",
+      "name": "Schneider Fassaden GmbH + Co. KG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7139182321",
+      "name": "AVG",
+      "category": "railway"
+    },
+    {
+      "source_id": "node/6142917489",
+      "name": "GROSS DruckArt",
+      "category": "printmaker"
+    },
+    {
+      "source_id": "node/14061106134",
+      "name": "Schneider Fassaden GmbH",
+      "category": "insulation"
+    },
+    {
+      "source_id": "node/531860225",
+      "name": "Bürgerbüro",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3040867940",
+      "name": "Ausländerbehörde",
+      "category": "government"
+    },
+    {
+      "source_id": "node/6547234096",
+      "name": "Messebau Gleich GmbH",
+      "category": "stand_builder"
+    },
+    {
+      "source_id": "node/6142917488",
+      "name": "Alber Fensterbau GmbH",
+      "category": "window_construction"
+    },
+    {
+      "source_id": "node/4185645289",
+      "name": "Ingenieur-Büro Harald Rapp",
+      "category": "it"
+    },
+    {
+      "source_id": "node/14061106133",
+      "name": "Schneider Fassaden GmbH",
+      "category": "insulation"
+    },
+    {
+      "source_id": "node/6142917490",
+      "name": "autoVimation",
+      "category": "toolmaker"
+    },
+    {
+      "source_id": "node/6142917487",
+      "name": "Messebau Gleich GmbH",
+      "category": "stand_builder"
+    },
+    {
+      "source_id": "way/582378673",
+      "name": "Gasübergabestelle Karlsruhe West",
+      "category": "gas"
+    },
+    {
+      "source_id": "node/10927067007",
+      "name": "Netze BW",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11569272783",
+      "name": "Apollo-Optik",
+      "category": "optician"
+    },
+    {
+      "source_id": "node/6448405779",
+      "name": "Badische Neueste Nachrichten",
+      "category": "newspaper"
+    },
+    {
+      "source_id": "node/300725610",
+      "name": "Begegnugszentrum Seniorenbüro",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/7141276789",
+      "name": "Malerfachbetrieb Leibold",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/3147893525",
+      "name": "Birgit's Heissmangel",
+      "category": "yes"
+    },
+    {
+      "source_id": "way/46726807",
+      "name": "Gärtnerei Oesterle",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/10696739921",
+      "name": "AVG",
+      "category": "yes"
+    },
+    {
+      "source_id": "way/260901055",
+      "name": "Bardusch",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12752190755",
+      "name": "Klimaalarm24.de",
+      "category": "hvac"
+    },
+    {
+      "source_id": "way/169027647",
+      "name": "Peter Knobloch",
+      "category": "hvac"
+    },
+    {
+      "source_id": "node/4442791369",
+      "name": "Agentur für Arbeit",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/13048097084",
+      "name": "Hans Herr GmbH Vogelringfabrikation",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13048097075",
+      "name": "KARA Bauelemente und Möbelmontage",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/13048097081",
+      "name": "coMbi deZign",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/14250886665",
+      "name": "Leber Gastro",
+      "category": "company"
+    },
+    {
+      "source_id": "way/622468712",
+      "name": "Kunstofftanks FT-Design",
+      "category": "company"
+    },
+    {
+      "source_id": "way/103580944",
+      "name": "Badische Backstub'",
+      "category": "bakery"
+    },
+    {
+      "source_id": "node/3244130740",
+      "name": "Karlheinz Brecht",
+      "category": "therapist"
+    },
+    {
+      "source_id": "node/3244130736",
+      "name": "Erhard Seitz",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/13041908687",
+      "name": "Baloise Versicherungsagentur Zeyd Al Saad",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/4936080426",
+      "name": "Forstamt Stadt Karlsruhe Revier Ost",
+      "category": "forestry"
+    },
+    {
+      "source_id": "way/59700142",
+      "name": "Rudolf Reiter Gärtnerei",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/7707554559",
+      "name": "Wasserstraßen- und Schifffahrtsamt Oberrhein Außenbezirk Karlsruhe",
+      "category": "government"
+    },
+    {
+      "source_id": "node/13041908688",
+      "name": "Architekturbüro Nees",
+      "category": "architect"
+    },
+    {
+      "source_id": "way/221201827",
+      "name": "Lehmann & Nagel GmbH",
+      "category": "roofer"
+    },
+    {
+      "source_id": "node/6326179461",
+      "name": "Balfour Beatty Rail",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3219494055",
+      "name": "BürgerBüro Stutensee",
+      "category": "administrative"
+    },
+    {
+      "source_id": "way/308179033",
+      "name": "Malermeisterbetrieb Werner",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/2819486449",
+      "name": "Imkerei Stiefel",
+      "category": "beekeeper"
+    },
+    {
+      "source_id": "node/2826614832",
+      "name": "Evelyns Katzensteine",
+      "category": "handicraft"
+    },
+    {
+      "source_id": "node/3147894473",
+      "name": "Thomas Schell",
+      "category": "plumber;timsmith"
+    },
+    {
+      "source_id": "way/192161447",
+      "name": "visuell GmbH",
+      "category": "advertising_agency"
+    },
+    {
+      "source_id": "node/10614949313",
+      "name": "gbm - Gesellschaft für Baugeologie und -meßtechnik mbH Baugrundinstitut",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10614949315",
+      "name": "Ammann Elba Beton GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10614949314",
+      "name": "walterservices",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10614949312",
+      "name": "Akira Handelsgesellschaft m.b.H.",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10614949311",
+      "name": "PuRo Lifestyle GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10614949310",
+      "name": "Deutsche Beratungsgesellschaft für Finanzplanung GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7514369650",
+      "name": "Wildenmann Consulting GmbH & Co. KG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12752231418",
+      "name": "Hottenrot Heizunsbau",
+      "category": "hvac"
+    },
+    {
+      "source_id": "node/7514369651",
+      "name": "ProMtec",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7514369648",
+      "name": "IGT AG",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7514369649",
+      "name": "PROMATIS software GmbH",
+      "category": "it"
+    },
+    {
+      "source_id": "node/10282190195",
+      "name": "Klaus Lerch",
+      "category": "beekeeper"
+    },
+    {
+      "source_id": "way/96021522",
+      "name": "WIFO",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/8355603965",
+      "name": "Die Werbetechniker Karlsruhe",
+      "category": "advertising_agency"
+    },
+    {
+      "source_id": "node/4345071789",
+      "name": "Bernfried Fischer",
+      "category": "stonemason"
+    },
+    {
+      "source_id": "node/4427046430",
+      "name": "Alleima",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13568449072",
+      "name": "Jochen Müller",
+      "category": "tiler"
+    },
+    {
+      "source_id": "node/1355086771",
+      "name": "Dentallabor Mansky",
+      "category": "dental_technician"
+    },
+    {
+      "source_id": "node/10586503926",
+      "name": "Rappold & Rappold GbR",
+      "category": "surveyor"
+    },
+    {
+      "source_id": "node/10586501862",
+      "name": "Adrian Gebäudereinigung",
+      "category": "cleaning"
+    },
+    {
+      "source_id": "node/3385272440",
+      "name": "Delta Personalmanagement GmbH & Co. KG",
+      "category": "employment_agency"
+    },
+    {
+      "source_id": "node/5609412733",
+      "name": "Architekturbüro Markus Kornmüller",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/5615181105",
+      "name": "Burkart Gerüstbau",
+      "category": "scaffolder"
+    },
+    {
+      "source_id": "way/348027219",
+      "name": "Demus GmbH",
+      "category": "gardener;road_builder"
+    },
+    {
+      "source_id": "node/6391993761",
+      "name": "medienundwerk",
+      "category": "company"
+    },
+    {
+      "source_id": "node/1578715769",
+      "name": "Powergy Energielösungen",
+      "category": "electrician"
+    },
+    {
+      "source_id": "way/259131450",
+      "name": "Michael Eckhard Müller",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/9202547188",
+      "name": "BEON Teilecenter",
+      "category": "company"
+    },
+    {
+      "source_id": "way/221198012",
+      "name": "Wolfgang Schmitt Elektrotechnik",
+      "category": "electrician"
+    },
+    {
+      "source_id": "node/3605906675",
+      "name": "Uwe Rudolph Schreinerei und Innenausbau",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/4878463632",
+      "name": "Bauamt/Baubetrieb",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/4878463631",
+      "name": "Bauhof",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/4878463630",
+      "name": "Zweckverband Wasserversorgung Mitte/Hardt Bereich Technik",
+      "category": "administrative"
+    },
+    {
+      "source_id": "node/11360126110",
+      "name": "Bambeela",
+      "category": "company"
+    },
+    {
+      "source_id": "node/11416722419",
+      "name": "Fahrzeuglackierung Titz e.k.",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/4896970965",
+      "name": "HG",
+      "category": "telecommunication"
+    },
+    {
+      "source_id": "way/257764228",
+      "name": "Contargo Wörth-Karlsruhe GmbH",
+      "category": "port"
+    },
+    {
+      "source_id": "way/118616733",
+      "name": "NetPlans GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/7514307664",
+      "name": "DCS-consult",
+      "category": "it"
+    },
+    {
+      "source_id": "node/7514307665",
+      "name": "ORGAKOM",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/7514307666",
+      "name": "Marius Schrömbgens",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/7514307667",
+      "name": "FlipPen",
+      "category": "company"
+    },
+    {
+      "source_id": "node/1701359511",
+      "name": "NetPlans GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "way/118616749",
+      "name": "IMKO Micromodultechnik GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12495518243",
+      "name": "FIM Fachbüro",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/6466746518",
+      "name": "M.K Fahrradteile",
+      "category": "locksmith"
+    },
+    {
+      "source_id": "way/219469918",
+      "name": "Katholisches Pfarramt St. Antonius",
+      "category": "religion"
+    },
+    {
+      "source_id": "way/238647450",
+      "name": "irmand planer und ingenieure Planung von Gewerbeküchen",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/13254194870",
+      "name": "Bürgerbüro",
+      "category": "government"
+    },
+    {
+      "source_id": "way/289417657",
+      "name": "KWK Kabelwerk Karlsruhe",
+      "category": "company"
+    },
+    {
+      "source_id": "node/1146299899",
+      "name": "Institut für Mikroverfahrenstechnik",
+      "category": "research"
+    },
+    {
+      "source_id": "node/13279688491",
+      "name": "Standesamt, Friedhofswesen, Grundbucheinsichtsstelle",
+      "category": "government"
+    },
+    {
+      "source_id": "node/9054434773",
+      "name": "PPG Industries Lackfabrik GmbH",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3123590465",
+      "name": "Deutscher Immobilien Verbund International",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/1004929221",
+      "name": "Kerntechnische Entsorgung Karlsruhe GmbH",
+      "category": "nuclear"
+    },
+    {
+      "source_id": "node/3705795351",
+      "name": "ImmoBlue",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/234006758",
+      "name": "Winzergenossenschaft Weingarten",
+      "category": "winery"
+    },
+    {
+      "source_id": "node/12587752574",
+      "name": "Human Touch Interiors",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3710699320",
+      "name": "Pfarramt Ev. Kirchengemeinde Weingarten",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/3710699319",
+      "name": "Pfarrbüro Kath. Kirche Weingarten",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/12467051843",
+      "name": "LVM Versicherung Mathias Schmidt",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/3461277945",
+      "name": "Atelier 77",
+      "category": "architect"
+    },
+    {
+      "source_id": "node/13026015461",
+      "name": "Personendosimetrie KTE",
+      "category": "yes"
+    },
+    {
+      "source_id": "way/279574012",
+      "name": "SPSE Schieberstation TW Wörth",
+      "category": "oil"
+    },
+    {
+      "source_id": "node/2340458780",
+      "name": "Protestantisches Pfarramt Wörth-Hagenbach",
+      "category": "parish"
+    },
+    {
+      "source_id": "node/2340458762",
+      "name": "Arndt Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "way/309712354",
+      "name": "DRK Ortsverein Hagenbach",
+      "category": "association"
+    },
+    {
+      "source_id": "node/2344697759",
+      "name": "Kardex Software GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "way/88218340",
+      "name": "Grabmale Christ",
+      "category": "stonemason"
+    },
+    {
+      "source_id": "node/2344697757",
+      "name": "Geißer GmbH Sanitärfachmarkt",
+      "category": "company"
+    },
+    {
+      "source_id": "node/2344697754",
+      "name": "Energetisches Heiler- & Lichtzentrum",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4020079973",
+      "name": "Fachblechnerei Uwe Becker",
+      "category": "tinsmith"
+    },
+    {
+      "source_id": "node/9583971451",
+      "name": "Heike Ingenkamp",
+      "category": "lawyer"
+    },
+    {
+      "source_id": "node/2344697742",
+      "name": "E. Braumandl Isolierungen",
+      "category": "company"
+    },
+    {
+      "source_id": "node/2344697737",
+      "name": "Hugo Knoblauch System-Bau",
+      "category": "company"
+    },
+    {
+      "source_id": "node/3084846921",
+      "name": "Schreinerei Rimmelspacher e.K.",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/9159054310",
+      "name": "Taxi und Mietwagen Lukas Cevik",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13245616590",
+      "name": "Ortsverwaltung",
+      "category": "government"
+    },
+    {
+      "source_id": "node/13159956405",
+      "name": "BGV",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/472294390",
+      "name": "Snack TEC",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6048323925",
+      "name": "Glaserei Bauer",
+      "category": "window_construction"
+    },
+    {
+      "source_id": "node/4086843413",
+      "name": "Maler Kleiber",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/5298221194",
+      "name": "MiNo",
+      "category": "painter"
+    },
+    {
+      "source_id": "way/511354379",
+      "name": "Gasübergabestelle Hardt-Nord",
+      "category": "gas"
+    },
+    {
+      "source_id": "node/3556037897",
+      "name": "Obstbrennerei Fränkle",
+      "category": "distillery"
+    },
+    {
+      "source_id": "node/4086852009",
+      "name": "LVM",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/4033155010",
+      "name": "Gartenarbeit König & Schlienz",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/8003300544",
+      "name": "Goldland Immobilien UG",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/3331092052",
+      "name": "Helmut Ruf",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/11992001020",
+      "name": "Helius Drive Systems",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12454136359",
+      "name": "Katholisches Pfarramt",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/3219494054",
+      "name": "BürgerBüro Staffort",
+      "category": "government"
+    },
+    {
+      "source_id": "node/3244130739",
+      "name": "Jochen Strumm",
+      "category": "hvac"
+    },
+    {
+      "source_id": "node/6039797246",
+      "name": "Brennerei Nagel",
+      "category": "distillery"
+    },
+    {
+      "source_id": "node/7997438272",
+      "name": "Lid's Catering und Partyservice",
+      "category": "caterer"
+    },
+    {
+      "source_id": "node/4033409279",
+      "name": "Bagpipemaker",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3185533357",
+      "name": "Cultura hominis",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/9139493444",
+      "name": "Geggus",
+      "category": "cleaning"
+    },
+    {
+      "source_id": "node/4162090591",
+      "name": "in'cept GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/12070644878",
+      "name": "Ochs Schreinerei",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/12070619736",
+      "name": "Malerfachbetrieb Joachim Rebholz",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/9718412518",
+      "name": "Bürgert & Richter",
+      "category": "insurance"
+    },
+    {
+      "source_id": "node/12070619725",
+      "name": "Pius Ochs und Söhne",
+      "category": "tiler"
+    },
+    {
+      "source_id": "node/3451272548",
+      "name": "Thomas Schückle",
+      "category": "electrician"
+    },
+    {
+      "source_id": "node/661506082",
+      "name": "ELL",
+      "category": "tiler"
+    },
+    {
+      "source_id": "node/9437258083",
+      "name": "Perfekt Gebäudereinigung",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4868203807",
+      "name": "Alkandu",
+      "category": "shoemaker"
+    },
+    {
+      "source_id": "way/144255121",
+      "name": "Roos Spedition GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/802380537",
+      "name": "Holiday Land Reise-Box",
+      "category": "guide"
+    },
+    {
+      "source_id": "way/192391270",
+      "name": "Evangelisches Pfarramt Linkenheim",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/10061345013",
+      "name": "Horvath Tief- und Straßenbau",
+      "category": "builder"
+    },
+    {
+      "source_id": "node/10061398242",
+      "name": "Zapf Metallbau",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "node/6927723899",
+      "name": "Dr. Willmar Schwabe",
+      "category": "company"
+    },
+    {
+      "source_id": "way/216257091",
+      "name": "Reisebüro Anita Deigentasch-Stein",
+      "category": "travel_agent"
+    },
+    {
+      "source_id": "node/10061398287",
+      "name": "BB Zerspanungstechnik",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "way/348035287",
+      "name": "Gundolf Hertweck",
+      "category": "tinsmith"
+    },
+    {
+      "source_id": "way/123939230",
+      "name": "Tischlerei Oliver Gräßle",
+      "category": "joiner"
+    },
+    {
+      "source_id": "way/268400503",
+      "name": "Uwe und Bernd Stadler GdbR",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/14027270678",
+      "name": "Wagner Gipser- und Stukkateurgeschäft",
+      "category": "plasterer"
+    },
+    {
+      "source_id": "node/5276181795",
+      "name": "Claas Landtechnik Jöhlingen",
+      "category": "agricultural_engines"
+    },
+    {
+      "source_id": "node/8283580763",
+      "name": "Honig vom Imker",
+      "category": "beekeeper"
+    },
+    {
+      "source_id": "way/116480470",
+      "name": "Zimmerei Meisterbetrieb Manfred Antoni",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/12155636384",
+      "name": "Pädagogischer Fachdienst für Sprache und Kommunikation",
+      "category": "yes"
+    },
+    {
+      "source_id": "node/3240093187",
+      "name": "Frank Raupp",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/9159054311",
+      "name": "B.M Gartengestaltung",
+      "category": "gardener"
+    },
+    {
+      "source_id": "node/6419523775",
+      "name": "Steuerberatung Judith Frit",
+      "category": "tax_advisor"
+    },
+    {
+      "source_id": "node/4460859139",
+      "name": "Invat Werkzeugschärfdienst",
+      "category": "company"
+    },
+    {
+      "source_id": "node/4951258864",
+      "name": "engelschreiner",
+      "category": "cabinet_maker"
+    },
+    {
+      "source_id": "node/3146931436",
+      "name": "Coban",
+      "category": "tiler"
+    },
+    {
+      "source_id": "node/7554187296",
+      "name": "Klotz Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/3196094989",
+      "name": "Schreinerei Klöbel",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/6285671349",
+      "name": "Dimos Panidis",
+      "category": "plumber"
+    },
+    {
+      "source_id": "node/6396688269",
+      "name": "Bau Imperium",
+      "category": "company"
+    },
+    {
+      "source_id": "node/6848233635",
+      "name": "Xeno-Data GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/10013695620",
+      "name": "Langhof GmbH",
+      "category": "roofer"
+    },
+    {
+      "source_id": "node/5844471297",
+      "name": "Drobny's Maler- und Stuckateurbetrieb",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/5141477623",
+      "name": "Wertholzlager Landesforsten RLP",
+      "category": "forestry"
+    },
+    {
+      "source_id": "way/192415547",
+      "name": "Kastner Holzbau",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/14245122620",
+      "name": "United Autoglas",
+      "category": "company"
+    },
+    {
+      "source_id": "way/441438844",
+      "name": "Zimmerei und Holzbau Stengel GmbH",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "way/192415649",
+      "name": "Wima Tische",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/3526899114",
+      "name": "Fanara",
+      "category": "window_construction"
+    },
+    {
+      "source_id": "way/192415610",
+      "name": "GAMERDINGER Glaserei - Fensterbau",
+      "category": "glaziery"
+    },
+    {
+      "source_id": "node/13955153030",
+      "name": "Evangelisches Pfarramt Hochstetten",
+      "category": "religion"
+    },
+    {
+      "source_id": "node/4705996153",
+      "name": "Klotz-Immobilien",
+      "category": "estate_agent"
+    },
+    {
+      "source_id": "node/9939045474",
+      "name": "PS Solutions",
+      "category": "consulting"
+    },
+    {
+      "source_id": "node/2031854094",
+      "name": "REBSTO GmbH",
+      "category": "metal_construction"
+    },
+    {
+      "source_id": "node/14245028755",
+      "name": "Unimess Duhr GmbH",
+      "category": "company"
+    },
+    {
+      "source_id": "node/2031854098",
+      "name": "Vi2vi GmbH",
+      "category": "it"
+    },
+    {
+      "source_id": "node/491442088",
+      "name": "Matthes Transporte",
+      "category": "logistics"
+    },
+    {
+      "source_id": "node/5711073244",
+      "name": "Dietmar Backes Holzwerkstatt",
+      "category": "joiner"
+    },
+    {
+      "source_id": "node/10033954810",
+      "name": "K&R Lackierung",
+      "category": "company"
+    },
+    {
+      "source_id": "way/229578346",
+      "name": "Maler Berndt",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/13978522951",
+      "name": "Stober Metallbau",
+      "category": "company"
+    },
+    {
+      "source_id": "node/2525196248",
+      "name": "Ambiente",
+      "category": "painter"
+    },
+    {
+      "source_id": "node/14247903266",
+      "name": "Büro TV Hochstetten",
+      "category": "club"
+    },
+    {
+      "source_id": "way/126063319",
+      "name": "Hans Huber Grabmale",
+      "category": "stonemason"
+    },
+    {
+      "source_id": "way/229441448",
+      "name": "Kurt Sauter",
+      "category": "carpenter"
+    },
+    {
+      "source_id": "node/4338981484",
+      "name": "Holz-Ruf",
+      "category": "sawmill"
+    },
+    {
+      "source_id": "node/13975357472",
+      "name": "MR Garten- und Landschaftsbau",
+      "category": "company"
+    },
+    {
+      "source_id": "node/13975357486",
+      "name": "Zwecker Heizungsbau",
+      "category": "company"
+    }
+  ],
+  "invalid_website_candidates": []
+}

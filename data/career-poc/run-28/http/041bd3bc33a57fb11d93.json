@@ -1,0 +1,16 @@
+{
+  "url": "https://gs-sanierung-ka.de/",
+  "checked_at": "2026-10-05T23:22:02.260737+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 17:50:39 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 508263,
+  "state": "ok",
+  "elapsed_seconds": 1.087,
+  "sha256": "a218ff5c3c7af028d554d07a0f0b5f342c1bb47d6481a33406e878add4c8871e",
+  "capture": "041bd3bc33a57fb11d93"
+}

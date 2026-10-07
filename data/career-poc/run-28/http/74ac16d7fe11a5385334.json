@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hinte-messe.de/karriere/stellenangebote/",
+  "checked_at": "2026-10-05T23:17:52.270948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 13:27:31 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 417809,
+  "state": "ok",
+  "elapsed_seconds": 0.948,
+  "sha256": "3e2357e87d31d3950dda71f1f1b6169c7f6bdc5df845ba59607310403d091c65",
+  "capture": "74ac16d7fe11a5385334"
+}

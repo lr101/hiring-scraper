@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pflugerpartner.de/",
+  "checked_at": "2026-10-05T23:01:48.193420+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://pflugers.com/",
+  "bytes": 269,
+  "state": "http_error",
+  "elapsed_seconds": 0.457,
+  "sha256": "03beb65874a3768b20d72a0e079323b1bfd7770af3291db35ed5c96d37c59463",
+  "capture": "038189368db0d69aa47a"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://i-tuepfelchen-shop.de/karriere",
+  "checked_at": "2026-10-05T23:44:14.614383+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 315640,
+  "state": "ok",
+  "elapsed_seconds": 0.991,
+  "sha256": "b7722af77cfedb0757b2f657bf46ad9d87d5ce30054c1c1a4c5c69a183045a67",
+  "capture": "3ded5bd492cfbbf8d5e4",
+  "merged_from_run": "run-28"
+}

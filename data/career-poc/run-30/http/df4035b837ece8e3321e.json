@@ -1,0 +1,17 @@
+{
+  "url": "https://berchtoldkrass.de/careers",
+  "checked_at": "2026-10-05T22:15:03.281016+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 26221,
+  "state": "http_error",
+  "elapsed_seconds": 2.423,
+  "sha256": "4d48c4c0a7f713aa442830869450e7fbca4dd2754c5375e4aa75ee69dbba8667",
+  "capture": "df4035b837ece8e3321e",
+  "merged_from_run": "run-25"
+}

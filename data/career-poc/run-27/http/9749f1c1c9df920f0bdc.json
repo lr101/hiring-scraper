@@ -1,0 +1,16 @@
+{
+  "url": "https://planb-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T22:43:04.602766+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 6034,
+  "state": "http_error",
+  "elapsed_seconds": 1.373,
+  "sha256": "e181d5a2d51f51e9e5e8830904d2369e49e5e0a4fc174d6bbba09200591ae70a",
+  "capture": "9749f1c1c9df920f0bdc"
+}

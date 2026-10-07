@@ -1,0 +1,17 @@
+{
+  "url": "https://www.kanzlei-rastaetter.de/karriere",
+  "checked_at": "2026-10-05T23:25:52.227518+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1011,
+  "state": "http_error",
+  "elapsed_seconds": 0.975,
+  "sha256": "a68d655258dafdf0b1fda466864e200af082144d77120d2a19c2543b27496f59",
+  "capture": "be836c081d992cf36afc",
+  "merged_from_run": "run-28"
+}

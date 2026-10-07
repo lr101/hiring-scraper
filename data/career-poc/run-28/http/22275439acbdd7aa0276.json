@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pink-event-service.de/blog/it-karriere-messe-in-darmstadt/",
+  "checked_at": "2026-10-05T23:40:33.077733+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 41678,
+  "state": "ok",
+  "elapsed_seconds": 1.08,
+  "sha256": "67b32a6cf8080d0a26842268362534408d536f04d43740b3156afa2b7c325f1f",
+  "capture": "22275439acbdd7aa0276"
+}

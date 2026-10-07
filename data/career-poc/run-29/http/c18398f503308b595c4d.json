@@ -1,0 +1,17 @@
+{
+  "url": "https://www.vbl.de/de/stellenangebote",
+  "checked_at": "2026-10-05T22:37:19.910928+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 145982,
+  "state": "ok",
+  "elapsed_seconds": 1.428,
+  "sha256": "a8ee027a9845b2372ceff1cbb75aa9c1deb98894aaeb4052668344474c76492b",
+  "capture": "c18398f503308b595c4d",
+  "merged_from_run": "run-27"
+}

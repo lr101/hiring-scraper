@@ -1,0 +1,17 @@
+{
+  "url": "https://www.escde.net/",
+  "checked_at": "2026-10-05T23:20:34.102928+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"73cd55c797da5a10d3c5b06871197468--gzip\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1442919,
+  "state": "ok",
+  "elapsed_seconds": 1.097,
+  "sha256": "af0c56956ac0a2d60fcf9bb1e186fcf51bd68acdcc7faadcdaf741c7b4d5a5c6",
+  "capture": "c9a6681448806f26b9e2",
+  "merged_from_run": "run-28"
+}

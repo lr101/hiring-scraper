@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.thermofisher.com/global/en/c/corporate-jobs",
+  "checked_at": "2026-10-05T23:24:27.086473+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 124536,
+  "state": "ok",
+  "elapsed_seconds": 1.226,
+  "sha256": "92285c93e0bbb5f48dc5cfe2a4823f1706b7bdf1b15348b12bae4396f2555c5a",
+  "capture": "bd31891dde6dd2af72ab",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://entropia.de/Sitemap.xml",
+  "checked_at": "2026-10-05T22:07:15.301441+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 22435,
+  "state": "http_error",
+  "elapsed_seconds": 1.229,
+  "sha256": "3d242e6b9de10d136bc5a87467024f800d581d444360accb721045289c5f2247",
+  "capture": "fdd261cbdec9e533fb87",
+  "merged_from_run": "run-25"
+}

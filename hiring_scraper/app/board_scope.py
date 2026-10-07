@@ -1,0 +1,164 @@
+"""Evidence-based area eligibility and verified vacancy identity for the board."""
+from datetime import datetime, time, timezone
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from hiring_scraper.geography import haversine_m
+
+_COUNTRIES = {'germany':'DE', 'deutschland':'DE', 'united states':'US', 'united states of america':'US',
+              'usa':'US', 'united kingdom':'GB', 'uk':'GB', 'france':'FR', 'switzerland':'CH',
+              'schweiz':'CH', 'austria':'AT', 'österreich':'AT', 'spain':'ES', 'españa':'ES',
+              'canada':'CA', 'kanada':'CA', 'australia':'AU', 'australien':'AU',
+              'netherlands':'NL', 'niederlande':'NL', 'italy':'IT', 'italien':'IT',
+              'belgium':'BE', 'belgien':'BE', 'poland':'PL', 'polen':'PL', 'ireland':'IE',
+              'irland':'IE', 'india':'IN', 'indien':'IN', 'china':'CN', 'japan':'JP',
+              'brazil':'BR', 'brasilien':'BR', 'portugal':'PT', 'sweden':'SE', 'schweden':'SE',
+              'denmark':'DK', 'dänemark':'DK', 'norway':'NO', 'norwegen':'NO', 'finland':'FI',
+              'finnland':'FI', 'mexico':'MX', 'mexiko':'MX', 'new zealand':'NZ', 'neuseeland':'NZ'}
+
+
+def country_code(value):
+    if isinstance(value, dict):
+        for key in ('addressCountry', 'country_code', 'name', 'address'):
+            if code := country_code(value.get(key)):
+                return code
+        return None
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value.upper() if len(value) == 2 and value.isalpha() else _COUNTRIES.get(value.casefold())
+
+
+def expiry(job):
+    metadata = job.raw_metadata or {}
+    value = metadata.get('validThrough') or metadata.get('valid_through')
+    expired = False
+    if isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            if len(value) == 10:
+                parsed = datetime.combine(parsed.date(), time.max)
+            parsed = parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed
+            expired = parsed < datetime.now(timezone.utc)
+        except ValueError:
+            pass
+    return {'valid_through': value if isinstance(value, str) else None, 'expired': expired}
+
+
+def fully_remote(job):
+    return job.work_arrangement in {None, 'remote'} and (job.is_remote or job.work_arrangement == 'remote')
+
+
+def _remote_scope(job):
+    """Office addresses do not establish applicant permission to work remotely."""
+    if not fully_remote(job):
+        return set(), False
+    raw = job.raw_metadata or {}
+    for key in ('remote_country_codes', 'applicantLocationRequirements',
+                'applicant_location_requirements', 'remote_country'):
+        values = raw.get(key)
+        # Producers use missing/null fields and empty country lists for absent scope.
+        # Other present values must parse, including falsey malformed objects/scalars.
+        if values is None or isinstance(values, list) and not values:
+            continue
+        values = values if isinstance(values, list) else [values]
+        codes = {code for item in values if (code := country_code(item))}
+        return codes, not bool(codes)
+    if raw.get('remote_scope_source'):
+        codes = {code for location in job.locations if (code := country_code(location.country_code))}
+        for key in ('country_code', 'country', 'office_country_code'):
+            if code := country_code(raw.get(key)):
+                codes.add(code)
+        office = raw.get('office')
+        if isinstance(office, dict):
+            if code := country_code(office.get('country_code') or office.get('country')):
+                codes.add(code)
+        return codes, False
+    return set(), False
+
+
+def remote_countries(job):
+    return _remote_scope(job)[0]
+
+
+def geographic_scope(job, latitude, longitude, radius_km, place=None, country=None):
+    country = country_code(country)
+    if expiry(job)['expired']:
+        return {'eligible': False, 'reason': 'expired', 'unknowns': [], 'match_kind': None}
+    if fully_remote(job):
+        countries, unresolved_restriction = _remote_scope(job)
+        if country and (unresolved_restriction or countries and country not in countries):
+            return {'eligible': False, 'reason': 'remote_country', 'unknowns': [], 'match_kind': 'remote'}
+        gaps = ['Remote country eligibility not stated'] if country and not countries else []
+        return {'eligible': True, 'reason': None, 'unknowns': gaps, 'match_kind': 'remote'}
+    place_key = place.strip().casefold() if place else None
+    for location in job.locations:
+        location_country = country_code(location.country_code)
+        if country and location_country and country != location_country:
+            continue
+        # A partial coordinate is not evidence that the city-text fallback is safe.
+        if location.latitude is not None or location.longitude is not None:
+            if location.latitude is not None and location.longitude is not None and latitude is not None and longitude is not None:
+                if haversine_m(latitude, longitude, location.latitude, location.longitude) <= radius_km * 1000:
+                    return {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'in_area'}
+        elif place_key and location.label.split(',', 1)[0].strip().casefold() == place_key:
+            return {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'in_area'}
+    return {'eligible': False, 'reason': 'outside_area', 'unknowns': [], 'match_kind': None}
+
+
+def canonical_vacancy_url(url):
+    try:
+        parsed = urlsplit(url)
+    except (ValueError, TypeError):
+        return None
+    if parsed.scheme not in {'http', 'https'} or not parsed.netloc:
+        return None
+    query = [(key, value) for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+             if not key.casefold().startswith('utm_') and key.casefold() not in
+             {'gh_src', 'gclid', 'fbclid', 'msclkid', 'trk'}]
+    path = parsed.path.rstrip('/') or '/'
+    fragment = parsed.fragment
+    if fragment.casefold() in {'top', 'jobs', 'careers', 'main', 'content'}:
+        fragment = ''
+    generic = {'', 'jobs', 'job', 'careers', 'career', 'stellenangebote', 'stellen', 'vacancies',
+               'openings', 'positions', 'open-positions', 'job-openings', 'all-jobs', 'join-us',
+               'careers.html', 'career.html', 'jobs.html', 'index.html', 'index.php'}
+    identity_keys = {'id', 'ref', 'jobid', 'job_id', 'job-id', 'gh_jid', 'gh_job', 'jid',
+                     'requisitionid', 'requisition_id', 'reqid', 'req_id', 'vacancyid',
+                     'vacancy_id', 'positionid', 'position_id', 'reference', 'referenznummer'}
+    has_identity = any(key.casefold() in identity_keys and value.strip() for key, value in query)
+    if path.rsplit('/', 1)[-1].casefold() in generic and not has_identity and not fragment:
+        return None
+    return urlunsplit((parsed.scheme.casefold(), parsed.netloc.casefold(), path,
+                       urlencode(sorted(query)), fragment))
+
+
+def vacancy_keys(job):
+    keys = [('source', job.feed_id, job.external_id)]
+    if url := canonical_vacancy_url(job.url):
+        keys.append(('url', url))
+    requisition = (job.raw_metadata or {}).get('requisition_id')
+    if requisition not in (None, '') and isinstance(requisition, (str, int)):
+        # Company identity keeps existing Greenhouse language-variant behavior.
+        keys.append(('requisition', job.feed.provider, 'company', job.feed.company_id, str(requisition)))
+        if job.feed.tenant:
+            keys.append(('requisition', job.feed.provider, 'tenant', job.feed.tenant, str(requisition)))
+    return keys
+
+
+def deduplicate_jobs(jobs):
+    groups, seen = {}, {}
+    for job in jobs:
+        keys = vacancy_keys(job)
+        existing = {seen[key] for key in keys if key in seen}
+        group = min(existing) if existing else job.id
+        combined = [job]
+        for old_group in existing:
+            combined.extend(groups.pop(old_group, []))
+        groups[group] = combined
+        for candidate in combined:
+            for key in vacancy_keys(candidate):
+                seen[key] = group
+    def richness(job):
+        timestamp = job.last_seen_at.timestamp() if job.last_seen_at else 0
+        return (job.is_active and not expiry(job)['expired'], len(job.description or ''),
+                len(job.locations), timestamp, -job.id)
+    return [max(group, key=richness) for group in groups.values()]

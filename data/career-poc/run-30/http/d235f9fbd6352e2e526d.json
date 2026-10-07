@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.cjd.de/robots.txt",
+  "checked_at": "2026-10-05T22:36:04.143242+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90,
+  "state": "ok",
+  "elapsed_seconds": 0.177,
+  "sha256": "bb7122ef51b1d28995861d374bf5679e906e875515ae0ad2ce90b641d066f174",
+  "capture": "d235f9fbd6352e2e526d",
+  "merged_from_run": "run-27"
+}

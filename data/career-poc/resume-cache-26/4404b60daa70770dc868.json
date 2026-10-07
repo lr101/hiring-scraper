@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arbeitsagentur.de/leichte-sprache/themen/karriere-und-weiter-bildung",
+  "checked_at": "2026-10-05T22:06:04.482557+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"2plxlms82b16e5\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 54981,
+  "state": "ok",
+  "elapsed_seconds": 1.083,
+  "sha256": "73469417fae257f6ea5f41042dd09759c796fa2902cdcdfc299e2e1e4a22fa1d",
+  "capture": "4404b60daa70770dc868"
+}

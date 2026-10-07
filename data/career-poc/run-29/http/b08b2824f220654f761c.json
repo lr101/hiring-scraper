@@ -1,0 +1,17 @@
+{
+  "url": "https://www.swweb.de/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:31:52.330352+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 890,
+  "state": "ok",
+  "elapsed_seconds": 0.988,
+  "sha256": "e540e9fd3a0b1762693305ccb60582a09a8a54f30e35d977b2ae90128cf23b34",
+  "capture": "b08b2824f220654f761c",
+  "merged_from_run": "run-28"
+}

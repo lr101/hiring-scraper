@@ -1,0 +1,12 @@
+{
+  "url": "https://www.cyberforum.de/robots.txt",
+  "checked_at": "2026-10-05T08:21:05.466113+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.1 (local feasibility experiment)",
+  "status": 200,
+  "final_url": "https://www.cyberforum.de/robots.txt",
+  "content_type": "text/plain; charset=utf-8",
+  "bytes": 1832,
+  "truncated": false,
+  "elapsed_seconds": 0.1,
+  "sha256": "03c08e684d4c8e9f5268b123ebf280dec701a3eed07f6753b778df2e22ff2100"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fotofoxx.com/careers",
+  "checked_at": "2026-10-05T23:22:07.494455+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "W/\"b39fa3a35dff18c2ee9c0ffaf9edd998\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 659425,
+  "state": "http_error",
+  "elapsed_seconds": 2.037,
+  "sha256": "274447b613c2d0654b42a3bc91f53f11049554f9eb5008addf4299db451f5562",
+  "capture": "e3808b2d5e9e92906a99",
+  "merged_from_run": "run-28"
+}

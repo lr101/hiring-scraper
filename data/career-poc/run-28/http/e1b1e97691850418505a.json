@@ -1,0 +1,16 @@
+{
+  "url": "https://marsilli.com/about-us-careers/",
+  "checked_at": "2026-10-05T23:22:15.664304+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 90835,
+  "state": "ok",
+  "elapsed_seconds": 1.608,
+  "sha256": "313d46f8775f5be28af6e3c2fb3c845b58d9c8cb69467e26e06991d391e9ec21",
+  "capture": "e1b1e97691850418505a"
+}

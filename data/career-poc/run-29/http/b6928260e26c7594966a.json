@@ -1,0 +1,17 @@
+{
+  "url": "https://esentri.com/",
+  "checked_at": "2026-10-05T23:39:05.926963+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Thu, 27 Aug 2026 16:35:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 223939,
+  "state": "ok",
+  "elapsed_seconds": 0.469,
+  "sha256": "31014736ab6dc408b8ca90bc9400a6d6186d28f70f2c90c9b5c783e9d0f278ea",
+  "capture": "b6928260e26c7594966a",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ggukarlsruhe.de/jobs",
+  "checked_at": "2026-10-05T22:44:44.958657+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1528,
+  "state": "http_error",
+  "elapsed_seconds": 1.129,
+  "sha256": "dcbec1f464aafb20dfaf2131da2782e9add395fa6c14efe38619cbbb6d38f34b",
+  "capture": "86924a369cd89b6d1fb6"
+}

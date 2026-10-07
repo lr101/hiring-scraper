@@ -1,0 +1,16 @@
+{
+  "url": "https://www.isi.fraunhofer.de/",
+  "checked_at": "2026-10-05T23:26:22.900851+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 98474,
+  "state": "ok",
+  "elapsed_seconds": 1.038,
+  "sha256": "8b47cf9828f371e62cdf7a15964d9944bfbc80448d2fb6e9f7189db9c8488b52",
+  "capture": "fe583ca095bd344e3d4a"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.pensum-gmbh.de/stellenangebot/elektroniker-m-w-d/",
+  "checked_at": "2026-10-05T22:31:53.114979+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 189850,
+  "state": "ok",
+  "elapsed_seconds": 2.047,
+  "sha256": "29c246fdbfcb7aee973c2c598761c9f129ace7c8d375b523da38d466d25c1fca",
+  "capture": "c809c92e92647e43af0f",
+  "merged_from_run": "run-26"
+}

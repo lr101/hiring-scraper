@@ -1,0 +1,17 @@
+{
+  "url": "https://www.atevia.com/sitemap.xml",
+  "checked_at": "2026-10-05T23:30:38.915089+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2740,
+  "state": "http_error",
+  "elapsed_seconds": 0.998,
+  "sha256": "e32e81971ae34e81d6e5b220dc4bcecdd62e2c8314bba83341ca3f9d0b8deaf7",
+  "capture": "3dce80d129342d165216",
+  "merged_from_run": "run-28"
+}

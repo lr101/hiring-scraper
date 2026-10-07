@@ -1,0 +1,16 @@
+{
+  "url": "https://flexdienstleistungen.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:46:50.313970+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml",
+  "etag": "\"6a135bee-70f\"",
+  "last_modified": "Sun, 24 May 2026 20:13:34 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1807,
+  "state": "ok",
+  "elapsed_seconds": 0.92,
+  "sha256": "e25548453287e7532282af4ef4efad0c16ec27151221685e54bbd6e8a32bd8a1",
+  "capture": "72811217211159734d2d"
+}

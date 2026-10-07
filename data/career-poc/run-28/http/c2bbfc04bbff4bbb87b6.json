@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hilzinger.de/robots.txt",
+  "checked_at": "2026-10-05T23:35:26.178924+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 476,
+  "state": "ok",
+  "elapsed_seconds": 0.738,
+  "sha256": "ed8b24189a4acecee6088c12d4a1d9c754d9b748a790f41e878a54c7bb830295",
+  "capture": "c2bbfc04bbff4bbb87b6"
+}

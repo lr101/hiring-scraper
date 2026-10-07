@@ -1,0 +1,14 @@
+{
+  "url": "https://consult.ptvgroup.com/en",
+  "checked_at": "2026-10-05T14:47:34.502339+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 59224,
+  "state": "ok",
+  "elapsed_seconds": 1.075,
+  "sha256": "314160089309ab6b469404f2fdffa70266408286c68ad888f24b5709e07e127f",
+  "capture": "75ddbbbb2f06f222a11d",
+  "reused_from": "data/location-sources/run-wikidata-career/http/75ddbbbb2f06f222a11d.json"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.adesso.de/robots.txt",
+  "checked_at": "2026-10-05T20:42:03.149196+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "W/\"35150-1790856000422\"",
+  "last_modified": "Thu, 01 Oct 2026 12:00:00 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 35150,
+  "state": "ok",
+  "elapsed_seconds": 0.122,
+  "sha256": "cbd72351ad5077580b2a956123a38e3467774796700bc82a0c0a5b830d6cb24e",
+  "capture": "c9385cf756ad98f42916",
+  "reused_from": "data/career-poc/run-22/http/c9385cf756ad98f42916.json"
+}

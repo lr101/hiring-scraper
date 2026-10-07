@@ -1,0 +1,16 @@
+{
+  "url": "https://www.visteon.com/careers/join-us/default.aspx",
+  "checked_at": "2026-10-05T23:30:23.671057+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96868,
+  "state": "ok",
+  "elapsed_seconds": 0.969,
+  "sha256": "7cacc3443bbe5c6ef7482f9ded594db3a343519f52fc720652fb2e44181118dc",
+  "capture": "396b5c52cff28939236e"
+}

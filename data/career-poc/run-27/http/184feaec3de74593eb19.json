@@ -1,0 +1,16 @@
+{
+  "url": "https://bewog.de/robots.txt",
+  "checked_at": "2026-10-05T22:37:43.344745+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112,
+  "state": "ok",
+  "elapsed_seconds": 0.213,
+  "sha256": "f3d4a75d5ae69f585ba6d527b234dd84b38e211a6351325bf27117f32d72ac34",
+  "capture": "184feaec3de74593eb19"
+}

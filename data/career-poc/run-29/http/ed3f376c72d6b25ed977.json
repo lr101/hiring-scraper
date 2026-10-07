@@ -1,0 +1,17 @@
+{
+  "url": "https://www.cyberforum.de/",
+  "checked_at": "2026-10-05T23:14:22.321804+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 76155,
+  "state": "ok",
+  "elapsed_seconds": 1.381,
+  "sha256": "df1879e9f0ef24f0813cb5d2755ddfbe7886c8ab6b8ef14c06cc9a02a67392ce",
+  "capture": "ed3f376c72d6b25ed977",
+  "merged_from_run": "run-28"
+}

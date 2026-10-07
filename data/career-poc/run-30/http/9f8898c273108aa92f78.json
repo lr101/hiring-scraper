@@ -1,0 +1,17 @@
+{
+  "url": "https://www.it-choice.de/robots.txt",
+  "checked_at": "2026-10-05T23:26:16.668754+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 174,
+  "state": "ok",
+  "elapsed_seconds": 0.3,
+  "sha256": "f624fee882f90a09443df80c5087bb1b2b5ee323a1b69e68035ddc2146720fce",
+  "capture": "9f8898c273108aa92f78",
+  "merged_from_run": "run-28"
+}

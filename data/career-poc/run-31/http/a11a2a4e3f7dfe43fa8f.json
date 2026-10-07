@@ -1,0 +1,17 @@
+{
+  "url": "https://newandable.com/page-sitemap.xml",
+  "checked_at": "2026-10-05T22:50:35.140054+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 75474,
+  "state": "ok",
+  "elapsed_seconds": 2.926,
+  "sha256": "a4c292edd13667470dc77aaf4cc6faf18a463728594c567e37046d9c37459d1d",
+  "capture": "a11a2a4e3f7dfe43fa8f",
+  "merged_from_run": "run-27"
+}

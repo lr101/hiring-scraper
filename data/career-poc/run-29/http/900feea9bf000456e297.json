@@ -1,0 +1,17 @@
+{
+  "url": "https://www.keppel-anderer.de/anlagenmechaniker-shk-jobs-karlsruhe/",
+  "checked_at": "2026-10-05T23:18:55.865336+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 296831,
+  "state": "ok",
+  "elapsed_seconds": 2.497,
+  "sha256": "2ea2144cd65ad86a5cb2afb7a5343c0e8e8ca50c892b89b3262b836a2410e04a",
+  "capture": "900feea9bf000456e297",
+  "merged_from_run": "run-28"
+}

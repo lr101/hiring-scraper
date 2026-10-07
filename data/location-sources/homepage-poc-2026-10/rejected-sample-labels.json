@@ -1,0 +1,87 @@
+{
+  "source": "bounded rejected email-domain suggestion review",
+  "observed_at": "2026-10-06T09:00:00+00:00",
+  "population": {
+    "email_domain_suggestions": 40,
+    "initial_not_selected_before_verification_gate": 33,
+    "current_not_auto_enriched_after_verification_gate": 34,
+    "current_verified_auto_enrichments": 6
+  },
+  "sample": [
+    {
+      "source_id": "node/10184443453",
+      "reason": "email_domain_does_not_identify_candidate",
+      "website_url": "https://kanzleiriegel.de/",
+      "check": "robots-aware GET",
+      "outcome": "robots_unavailable",
+      "label": "unresolved; no homepage identity decision"
+    },
+    {
+      "source_id": "node/6419523775",
+      "reason": "email_domain_does_not_identify_candidate",
+      "website_url": "https://steuerberater-fritzj.de/",
+      "check": "robots-aware GET",
+      "outcome": "200 public HTML; title Steuerbüro Judith Fritz",
+      "label": "likely valid homepage lead rejected by the 0.8 token cutoff; retain for reviewed source-name correction, not automatic enrichment"
+    },
+    {
+      "source_id": "node/12377373287",
+      "reason": "email_domain_does_not_identify_candidate",
+      "website_url": "https://mueller-msr.de/",
+      "check": "robots-aware GET",
+      "outcome": "robots_unavailable",
+      "label": "unresolved; generic OSM name remains insufficient"
+    },
+    {
+      "source_id": "node/5209292395",
+      "reason": "free_email_provider",
+      "website_url": "https://web.de/",
+      "check": "saved-domain classification",
+      "outcome": "shared email provider",
+      "label": "correctly rejected; provider does not identify the employer"
+    },
+    {
+      "source_id": "node/3147893527",
+      "reason": "free_email_provider",
+      "website_url": "https://gmx.de/",
+      "check": "saved-domain classification",
+      "outcome": "shared email provider",
+      "label": "correctly rejected; provider does not identify the employer"
+    },
+    {
+      "source_id": "node/10589854960",
+      "reason": "free_email_provider",
+      "website_url": "https://t-online.de/",
+      "check": "saved-domain classification",
+      "outcome": "shared email provider",
+      "label": "correctly rejected; provider does not identify the employer"
+    },
+    {
+      "source_id": "node/11214296100",
+      "reason": "website_domain_already_mapped_in_osm",
+      "website_url": "https://karlsruhe.de/",
+      "check": "saved candidate-domain set",
+      "outcome": "domain already represented",
+      "label": "correctly rejected duplicate"
+    },
+    {
+      "source_id": "node/3219494055",
+      "reason": "website_domain_already_mapped_in_osm",
+      "website_url": "https://stutensee.de/",
+      "check": "saved candidate-domain set",
+      "outcome": "domain already represented",
+      "label": "correctly rejected duplicate"
+    },
+    {
+      "source_id": "node/3219494054",
+      "reason": "website_domain_already_mapped_in_osm",
+      "website_url": "https://stutensee.de/",
+      "check": "saved candidate-domain set",
+      "outcome": "domain already represented",
+      "label": "correctly rejected duplicate"
+    }
+  ],
+  "live_request_count": 4,
+  "sampled_false_rejections": 1,
+  "limitation": "The one likely false rejection has an OSM-name/title spelling difference (Frit/Fritz). The threshold remains unchanged because the verified-page gate is necessary but the source identity still needs correction or manual approval."
+}

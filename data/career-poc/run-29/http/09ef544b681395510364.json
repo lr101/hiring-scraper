@@ -1,0 +1,17 @@
+{
+  "url": "https://letsdev.de/jobs?show=permanent&job=mobile-app-developer",
+  "checked_at": "2026-10-05T23:16:40.098767+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://letsdev.de/jobs/?show=permanent&job=mobile-app-developer",
+  "bytes": 316,
+  "state": "http_error",
+  "elapsed_seconds": 0.83,
+  "sha256": "466acf060aaca6725b51cad338e7906568de980dc8f88ef43763d1feb824fc56",
+  "capture": "09ef544b681395510364",
+  "merged_from_run": "run-28"
+}

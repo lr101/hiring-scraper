@@ -1,0 +1,17 @@
+{
+  "url": "https://jobs.apleona.com/",
+  "checked_at": "2026-10-05T23:42:37.606604+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1751281,
+  "state": "ok",
+  "elapsed_seconds": 1.209,
+  "sha256": "2444bc763e8f67f5f0e9a80302e7893d748441a2abbd042d3f4c25dc0004bf4d",
+  "capture": "8db1724d306fa6647f63",
+  "merged_from_run": "run-28"
+}

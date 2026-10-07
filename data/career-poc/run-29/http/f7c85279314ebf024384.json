@@ -1,0 +1,17 @@
+{
+  "url": "https://bajer-sanierung.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:53.939899+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 399,
+  "state": "ok",
+  "elapsed_seconds": 1.002,
+  "sha256": "74221acf176603c4a268830231d1feffcc21c944fc32bb8ef40f869e70743997",
+  "capture": "f7c85279314ebf024384",
+  "merged_from_run": "run-28"
+}

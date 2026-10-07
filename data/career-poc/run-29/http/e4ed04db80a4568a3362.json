@@ -1,0 +1,17 @@
+{
+  "url": "https://kanzleihmk.de/",
+  "checked_at": "2026-10-05T22:16:45.455003+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 65190,
+  "state": "ok",
+  "elapsed_seconds": 0.661,
+  "sha256": "cc91d8282d58005fc73e7f17bc0c1e31aa05575726399b14c3c29426ffd60034",
+  "capture": "e4ed04db80a4568a3362",
+  "merged_from_run": "run-25"
+}

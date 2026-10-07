@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ingenieurgruppe-bauen.de/",
+  "checked_at": "2026-10-05T22:14:30.110727+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 64371,
+  "state": "ok",
+  "elapsed_seconds": 1.431,
+  "sha256": "a954bc541f20b9288ae940b08ee0f80bab52df90250ef932b31525082e330eb8",
+  "capture": "3288330d76f9c9875d9f",
+  "merged_from_run": "run-25"
+}

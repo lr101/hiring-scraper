@@ -1,0 +1,17 @@
+{
+  "url": "https://siegrist.de/jobs/teilzeitkraft-buchhaltung-m-w-d/",
+  "checked_at": "2026-10-05T23:30:08.140024+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 233203,
+  "state": "ok",
+  "elapsed_seconds": 0.972,
+  "sha256": "16c804fb2c87ee1c5021791d5aadbcd26c3cc687486a4da06b6622603346bb1b",
+  "capture": "5921c4e88bff335d3b02",
+  "merged_from_run": "run-28"
+}

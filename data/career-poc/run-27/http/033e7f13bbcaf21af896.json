@@ -1,0 +1,16 @@
+{
+  "url": "https://www.vbl.de/robots.txt",
+  "checked_at": "2026-10-05T22:37:16.948076+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 63,
+  "state": "ok",
+  "elapsed_seconds": 0.349,
+  "sha256": "16c9038576aedd6bf0f998b0a5061ed41e0629d74d4ae3280b55cf8bd848189d",
+  "capture": "033e7f13bbcaf21af896"
+}

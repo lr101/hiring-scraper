@@ -1,0 +1,17 @@
+{
+  "url": "https://bd-management.de/sitemap-1.xml",
+  "checked_at": "2026-10-05T22:37:30.264683+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1420,
+  "state": "ok",
+  "elapsed_seconds": 2.125,
+  "sha256": "a94831d07a100ae279888b5cb44f0d761015b1196021b35d4408845f40c06295",
+  "capture": "ff71851ed514bc8092ae",
+  "merged_from_run": "run-27"
+}

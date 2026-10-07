@@ -1,0 +1,17 @@
+{
+  "url": "https://www.eifer.org/robots.txt",
+  "checked_at": "2026-10-05T23:22:01.867561+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 171,
+  "state": "ok",
+  "elapsed_seconds": 0.393,
+  "sha256": "67cdc9ce5d157533ea2e45d8dfb2842141efd5b97b2f375bb9bd2534ce6eeae3",
+  "capture": "6e6fa1dd0e19da762295",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.stulz.com/de-de/karriere/jobs/",
+  "checked_at": "2026-10-05T22:53:01.775403+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"1a24d29bca78c18037172c43bdff4797\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114235,
+  "state": "ok",
+  "elapsed_seconds": 1.145,
+  "sha256": "2fcfa4f981bf32acda5eb79f4f64d7be76c7987d6779bf57e870adac5d8e3a5a",
+  "capture": "5bdb0f44d6b3b1c0a737"
+}

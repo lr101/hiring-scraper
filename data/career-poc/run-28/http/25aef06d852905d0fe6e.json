@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arag-vertrieb.de/versicherungsinsider",
+  "checked_at": "2026-10-05T23:26:49.234068+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1388968,
+  "state": "ok",
+  "elapsed_seconds": 1.323,
+  "sha256": "a6ff4426e5aebd63c8a1d61d01b9dc278c0d9af7ef1e0de1425d8dbd03902030",
+  "capture": "25aef06d852905d0fe6e"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://bw.aok.de/robots.txt",
+  "checked_at": "2026-10-05T22:20:57.696131+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": "\"5c6-65d193c03bf71\"",
+  "last_modified": "Mon, 05 Oct 2026 15:07:02 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1478,
+  "state": "ok",
+  "elapsed_seconds": 0.143,
+  "sha256": "45613c2335db86fa5c6eae81cc94ed444a2e74c78eba572fd9624fbb4e806137",
+  "capture": "91a64518b254a8402189",
+  "merged_from_run": "run-25"
+}

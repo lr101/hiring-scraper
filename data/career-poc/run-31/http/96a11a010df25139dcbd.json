@@ -1,0 +1,17 @@
+{
+  "url": "https://www.high-court.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:14:49.526821+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1095,
+  "state": "ok",
+  "elapsed_seconds": 1.113,
+  "sha256": "23ddf23fa627fdc722df8e098679961b2d3d2e565e06009c29d6523829d9aef2",
+  "capture": "96a11a010df25139dcbd",
+  "merged_from_run": "run-25"
+}

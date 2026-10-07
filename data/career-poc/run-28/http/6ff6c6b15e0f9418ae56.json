@@ -1,0 +1,16 @@
+{
+  "url": "https://www.rundumwohnen.de/robots.txt",
+  "checked_at": "2026-10-05T23:33:09.867413+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=iso-8859-1",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://rundumwohnen.de/robots.txt",
+  "bytes": 242,
+  "state": "http_error",
+  "elapsed_seconds": 0.78,
+  "sha256": "713b3c254fdf45a5e56d7c7f52f0fff56e3c2e5be33df797ede8235d190d4898",
+  "capture": "6ff6c6b15e0f9418ae56"
+}

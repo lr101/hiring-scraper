@@ -1,0 +1,16 @@
+{
+  "url": "https://www.birkle-gmbh.de/booking-services-sitemap.xml",
+  "checked_at": "2026-10-05T23:25:25.268335+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=utf-8",
+  "etag": "W/\"1b4-QA2xA+uSZU6VcNrgME5K/ErsnJg\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 436,
+  "state": "ok",
+  "elapsed_seconds": 0.454,
+  "sha256": "37831bd79738b1551078145b21f98d5db7933c1283adab701e718caa15b280fa",
+  "capture": "30d5e086094f551bd873"
+}

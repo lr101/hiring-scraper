@@ -1,0 +1,16 @@
+{
+  "url": "https://www.buedenbender-hausbau.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:08.953175+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 17:08:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 91,
+  "state": "ok",
+  "elapsed_seconds": 0.908,
+  "sha256": "cec59189fb224b62f3fb543584f6156b147d94a07814e1b6d70f097371c632fc",
+  "capture": "744112869a22213ff3d8"
+}

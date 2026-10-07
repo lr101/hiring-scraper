@@ -1,0 +1,17 @@
+{
+  "url": "https://www.blv-online.de/verband/stellenangebote-1",
+  "checked_at": "2026-10-05T23:27:34.240896+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"e85375b1373899cc1901612cf1aeb69b\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 220480,
+  "state": "ok",
+  "elapsed_seconds": 0.884,
+  "sha256": "d2afd253c76a30bbf20d45db558ac484914a6d24c89980ec416fe552b3948388",
+  "capture": "21c3416407b4e8d7242a",
+  "merged_from_run": "run-28"
+}

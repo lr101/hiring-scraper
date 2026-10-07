@@ -1,0 +1,16 @@
+{
+  "url": "https://www.pink-event-service.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:40:32.112147+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 24712,
+  "state": "ok",
+  "elapsed_seconds": 0.913,
+  "sha256": "d0b98138e0e311ce72ec35010fbe23f9554db09fd3871020f8b39243125791f0",
+  "capture": "7a1156f942a79c3d0e0d"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://likehome.immo/robots.txt",
+  "checked_at": "2026-10-05T23:29:08.540896+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 0.541,
+  "sha256": "6833927ce96fbf094aef6be2d41a12eb83cc064c6cbbe3400f38fd76d23a388a",
+  "capture": "8f008d0476bd08d06c16",
+  "merged_from_run": "run-28"
+}

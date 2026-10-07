@@ -1,0 +1,17 @@
+{
+  "url": "https://www.landesarchiv-bw.de/de/landesarchiv/karriere/ausbildung---praktika",
+  "checked_at": "2026-10-05T23:03:00.018035+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 302,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "/de/landesarchiv/karriere/ausbildung---praktika/46849",
+  "bytes": 458,
+  "state": "http_error",
+  "elapsed_seconds": 1.392,
+  "sha256": "122c56d68a87895bb461cf32e3976bc270f51d2c61eb529ea7ac8c9c30579151",
+  "capture": "3ac75f27e44425cbab23",
+  "merged_from_run": "run-27"
+}

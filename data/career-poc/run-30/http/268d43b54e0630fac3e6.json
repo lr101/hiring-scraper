@@ -1,0 +1,17 @@
+{
+  "url": "https://karriere.ukbw.de/stellenangebote.html",
+  "checked_at": "2026-10-05T23:25:32.868449+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 34921,
+  "state": "ok",
+  "elapsed_seconds": 0.934,
+  "sha256": "597441e1c171fccaafce5f6e9952c0bfbd57aa2c776aef824f9d1b1cb20d9588",
+  "capture": "268d43b54e0630fac3e6",
+  "merged_from_run": "run-28"
+}

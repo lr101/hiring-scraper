@@ -1,0 +1,17 @@
+{
+  "url": "https://www.boagroup.com/careers/",
+  "checked_at": "2026-10-05T23:40:23.816613+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 19:20:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 123337,
+  "state": "ok",
+  "elapsed_seconds": 0.911,
+  "sha256": "f672b44dafb76174a3e2385ae379c1cf69e1251e00f4e3d6b406b2e83d733105",
+  "capture": "a9969f19f61dd4798e0f",
+  "merged_from_run": "run-28"
+}

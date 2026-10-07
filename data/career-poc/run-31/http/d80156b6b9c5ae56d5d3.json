@@ -1,0 +1,17 @@
+{
+  "url": "https://cluetec-audit.de/en/career/",
+  "checked_at": "2026-10-05T23:23:18.684930+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": "Mon, 05 Oct 2026 20:46:38 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 1491315,
+  "state": "ok",
+  "elapsed_seconds": 0.28,
+  "sha256": "84c99bcb1a19dcdf889bf77f892adf5fab1380dce25055c470deb54a8d28e3ab",
+  "capture": "d80156b6b9c5ae56d5d3",
+  "merged_from_run": "run-28"
+}

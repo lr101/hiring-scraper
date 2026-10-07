@@ -1,0 +1,16 @@
+{
+  "url": "https://karriere.hypoport.de/robots.txt",
+  "checked_at": "2026-10-05T22:39:21.329024+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 693,
+  "state": "ok",
+  "elapsed_seconds": 0.293,
+  "sha256": "942faef9159c25583624d7240ab6a2690c55748b773b65495a2c5c341a703281",
+  "capture": "d89a9c5380c564e86cb6"
+}

@@ -1,0 +1,13 @@
+{
+  "url": "https://sci-mo.de/robots.txt",
+  "checked_at": "2026-10-05T14:47:43.236775+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "location": null,
+  "bytes": 110,
+  "state": "ok",
+  "elapsed_seconds": 1.147,
+  "sha256": "6f325d3ef2d243c0df3afdd1fa261cf1994b2386de30facd9e31780c8e0d9d19",
+  "capture": "8654fbe0d11a2503ed95"
+}

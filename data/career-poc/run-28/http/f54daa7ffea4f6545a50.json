@@ -1,0 +1,16 @@
+{
+  "url": "https://www.psv-karlsruhe.de/karriere",
+  "checked_at": "2026-10-05T23:17:13.401839+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=utf-8",
+  "etag": "W/\"-1512008304\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 66773,
+  "state": "ok",
+  "elapsed_seconds": 0.96,
+  "sha256": "86bc28c572bc3bb193a6e204a345b74b3db67546f2a74110e403c68f3c896aed",
+  "capture": "f54daa7ffea4f6545a50"
+}

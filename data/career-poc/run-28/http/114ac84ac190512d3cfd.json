@@ -1,0 +1,16 @@
+{
+  "url": "https://stachurski.de/careers",
+  "checked_at": "2026-10-05T23:38:42.397661+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 40962,
+  "state": "http_error",
+  "elapsed_seconds": 1.056,
+  "sha256": "0bd6335fcd73b1e148a674cff8d69a6cc4ef27e2b189427ae137ccd6c20538de",
+  "capture": "114ac84ac190512d3cfd"
+}

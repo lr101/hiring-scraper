@@ -1,0 +1,17 @@
+{
+  "url": "https://www.itas.kit.edu/robots.txt",
+  "checked_at": "2026-10-05T22:31:03.828620+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"ee-4dcc325d08a80\"",
+  "last_modified": "Wed, 15 May 2013 15:10:18 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 238,
+  "state": "ok",
+  "elapsed_seconds": 0.158,
+  "sha256": "d63c4044f5544aee2d2a1eb24842aca61451ea110f4cc26c15124b25e4360aba",
+  "capture": "ce42edeb71d5be1f944d",
+  "merged_from_run": "run-26"
+}

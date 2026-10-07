@@ -1,0 +1,17 @@
+{
+  "url": "https://www.j-koenig.de/Unternehmensseiten/arbeitgeber/",
+  "checked_at": "2026-10-05T23:21:37.645489+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 160502,
+  "state": "ok",
+  "elapsed_seconds": 0.934,
+  "sha256": "804e96133851cb4f297a7023e1ae781144084c51f086a2551baa3a5d661d8c1d",
+  "capture": "a15f23b7fe81cd9c8bd9",
+  "merged_from_run": "run-28"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://goerisch.de/robots.txt",
+  "checked_at": "2026-10-05T23:34:32.517101+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 112,
+  "state": "ok",
+  "elapsed_seconds": 2.204,
+  "sha256": "59304d2c7cbd421272b89e34c2654a57440c0354990ce74896a2f0bd558c3dc7",
+  "capture": "7acac23ae46713c12bda",
+  "merged_from_run": "run-28"
+}

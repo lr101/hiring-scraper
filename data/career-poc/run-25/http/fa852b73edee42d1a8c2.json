@@ -1,0 +1,16 @@
+{
+  "url": "https://roeser-partner.de/karriere",
+  "checked_at": "2026-10-05T22:14:10.638707+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 95361,
+  "state": "http_error",
+  "elapsed_seconds": 3.034,
+  "sha256": "29f563afe91958d5ce1ca331ca49e3428dd69f00892f9af18752bdb21a3dd1d9",
+  "capture": "fa852b73edee42d1a8c2"
+}

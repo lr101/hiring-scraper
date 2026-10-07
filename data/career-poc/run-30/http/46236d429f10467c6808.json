@@ -1,0 +1,17 @@
+{
+  "url": "https://www.diabetiker-bw.de/sitemap.xml",
+  "checked_at": "2026-10-05T22:28:47.306479+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 500,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2383,
+  "state": "http_error",
+  "elapsed_seconds": 1.225,
+  "sha256": "4c64cf1ca916a85ec27aacf613e1ca3b82c4ddff9180fcbbc50ff8ec5a22943e",
+  "capture": "46236d429f10467c6808",
+  "merged_from_run": "run-26"
+}

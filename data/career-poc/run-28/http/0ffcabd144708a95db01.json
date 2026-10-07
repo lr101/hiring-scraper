@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mall.info/unternehmen/karriere/aktuelle-stellenangebote/?showOptIn=1&cHash=edc46b3391a71b955adaacbc866462ce",
+  "checked_at": "2026-10-05T23:42:22.511977+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 496635,
+  "state": "ok",
+  "elapsed_seconds": 1.204,
+  "sha256": "fe409ae7abc575027cbeb842a6909b7f1bc9d924fca74f19053cd7cd7adfb588",
+  "capture": "0ffcabd144708a95db01"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://digital-cinema-mastering.com/karriere",
+  "checked_at": "2026-10-05T23:16:32.466948+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 82647,
+  "state": "http_error",
+  "elapsed_seconds": 0.926,
+  "sha256": "73599c859f09c5305f3b42626eadbf06b7f85e53a6a73b35eaad9fbbf03f43c1",
+  "capture": "a891f2a399fe8630e7a1",
+  "merged_from_run": "run-28"
+}

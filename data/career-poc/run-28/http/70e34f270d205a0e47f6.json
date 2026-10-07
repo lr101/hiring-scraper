@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fiz-karlsruhe.de/de/ueber-uns/unsere-stellenangebote",
+  "checked_at": "2026-10-05T23:42:10.423681+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 78028,
+  "state": "ok",
+  "elapsed_seconds": 1.418,
+  "sha256": "d166967342da28ead538f8521fc1f13ecf9d39df6761c6a17c22ecd285f2528d",
+  "capture": "70e34f270d205a0e47f6"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://laborvolkmann.de/karriere/wir-als-arbeitgeber/",
+  "checked_at": "2026-10-05T23:17:29.405809+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"6ac368fd-bb0b\"",
+  "last_modified": "Mon, 05 Oct 2026 09:08:13 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 47883,
+  "state": "ok",
+  "elapsed_seconds": 1.0,
+  "sha256": "bda70548444eb05fadadeb0b3935902cf7395bdf3e9818fc9fd735c4a39fa42d",
+  "capture": "48206af6d1333632c3b1"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://blossom-kreativmanufaktur.de/karriere",
+  "checked_at": "2026-10-05T23:33:10.879855+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 153957,
+  "state": "http_error",
+  "elapsed_seconds": 2.263,
+  "sha256": "0892b26debd4b735236fa9e03dcaa51ae584ded0d9843122827789b967bc5f5f",
+  "capture": "52196a40bf42f35da45b",
+  "merged_from_run": "run-28"
+}

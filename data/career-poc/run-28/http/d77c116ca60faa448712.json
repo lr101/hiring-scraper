@@ -1,0 +1,16 @@
+{
+  "url": "https://www.phytonics.com/sitemap_products_1.xml?from=15307301618046&to=15711467012478",
+  "checked_at": "2026-10-05T23:23:04.402263+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=utf-8",
+  "etag": "W/\"page_cache:93090513278:SitemapProductsController:75e2f2a2e870de636958d8d2a73d9e01\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 4236,
+  "state": "ok",
+  "elapsed_seconds": 1.104,
+  "sha256": "4fbe167cbe013cc9efaf3daa6cea595d4575b3511bc610325101d1f4b1be2eed",
+  "capture": "d77c116ca60faa448712"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://residenztreuhand.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:11:30.525484+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 14651,
+  "state": "http_error",
+  "elapsed_seconds": 1.154,
+  "sha256": "29354456bae9bed05f85bc381243eb3e57d2c12002d139bc2ef9d5a5dea817ff",
+  "capture": "0dcfb1ff35e89589e087",
+  "merged_from_run": "run-27"
+}

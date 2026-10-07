@@ -1,0 +1,16 @@
+{
+  "url": "https://www.mh-karlsruhe.de/robots.txt",
+  "checked_at": "2026-10-05T23:15:56.584400+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 120,
+  "state": "ok",
+  "elapsed_seconds": 1.305,
+  "sha256": "0527de67ec1e8e1c05535918179a3ae2630f19b87787634ca75800c0b842691d",
+  "capture": "9e80ee28ef0fbc4ee970"
+}

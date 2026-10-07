@@ -1,0 +1,17 @@
+{
+  "url": "https://www.mueller-hereth.com/careers",
+  "checked_at": "2026-10-05T22:30:43.896792+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.mueller-hereth.com/tunnelbau-felsbau",
+  "bytes": 0,
+  "state": "http_error",
+  "elapsed_seconds": 1.211,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "5359a75612a146f06a07",
+  "merged_from_run": "run-26"
+}

@@ -1,0 +1,17 @@
+{
+  "url": "https://www.wolfsrudel-kreativagentur.com/sitemap_index.xml",
+  "checked_at": "2026-10-05T23:28:11.858963+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1332,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "3abdcad69045df1e480137d5a6e6153e62251152475065531c7e720f80fe01e9",
+  "capture": "b384ee0f7aca4832869c",
+  "merged_from_run": "run-28"
+}

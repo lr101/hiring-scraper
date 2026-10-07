@@ -1,0 +1,17 @@
+{
+  "url": "https://www.insbw.de/",
+  "checked_at": "2026-10-05T22:44:46.360659+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 81962,
+  "state": "ok",
+  "elapsed_seconds": 1.318,
+  "sha256": "bf51906e0ba1dd734759bb2fc626f5adb6d4fce1b5809331d7669cd0bb8ea3e3",
+  "capture": "b693688f9ed6a750b3b9",
+  "merged_from_run": "run-27"
+}

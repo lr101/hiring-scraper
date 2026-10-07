@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wolff-mueller.de/karriere/nachwuchskraefte/studium",
+  "checked_at": "2026-10-05T23:19:17.372112+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 96171,
+  "state": "ok",
+  "elapsed_seconds": 0.991,
+  "sha256": "c59ada41c0c63888866aee236db9f003e049cf9ffbeb1910ec33ab7a27a8e3d4",
+  "capture": "2920f4c06acb935e56c3"
+}

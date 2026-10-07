@@ -1,0 +1,17 @@
+{
+  "url": "https://www.lutherisch-karlsruhe.org/wp-sitemap-posts-page-1.xml",
+  "checked_at": "2026-10-05T22:35:43.800770+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "application/xml; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 3953,
+  "state": "ok",
+  "elapsed_seconds": 1.368,
+  "sha256": "a4ae9f9a5318b4f6c9378201da16db5135fb2fd7c1b970e17393b5bc05efcde8",
+  "capture": "41e44cf36e3b0238cba5",
+  "merged_from_run": "run-27"
+}

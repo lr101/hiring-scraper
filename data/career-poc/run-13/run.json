@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-10-05T14:22:16.057063+00:00",
+  "arguments": {
+    "seeds": "data/career-poc/seeds-search-validation.json",
+    "out": "data/career-poc/run-13",
+    "cache_from": "data/career-poc/run-12/http",
+    "max_pages": 6,
+    "max_depth": 3,
+    "timeout": 12.0,
+    "delay": 0.0,
+    "max_requests": 300
+  },
+  "git_revision": "bc895bd78614aa50e83d40c335558de54be89e2e",
+  "source_sha256": {
+    "/workspace/hiring-scraper/hiring_scraper/__init__.py": "c1d68e8a1fa2068b634c4278cc2823eb1fd66ca289ec09a05a2e6f6d6f8f15b8",
+    "/workspace/hiring-scraper/hiring_scraper/__main__.py": "3db595be1093e576747b35fb692f1b4aca037baf3cf1709ba9bf5a75d1da2ef8",
+    "/workspace/hiring-scraper/hiring_scraper/ats.py": "fd2482828e3d5258b48cfd405a34cb3cf3ee37f9000c64467faa7c882d928713",
+    "/workspace/hiring-scraper/hiring_scraper/discovery.py": "bf91c725afd12d74051c95ab079aedb81006945461021308bbd591f05a3f93e8",
+    "/workspace/hiring-scraper/hiring_scraper/http.py": "16c7e39d304abd969f52a7af272871cf3a17a024eb90ed7e3e617d361c8c21cd",
+    "/workspace/hiring-scraper/hiring_scraper/pages.py": "33d7849630b26363e05e68e2e179b6ad76bebdd152b774709872a4b31a9f7843"
+  },
+  "git_dirty": true
+}

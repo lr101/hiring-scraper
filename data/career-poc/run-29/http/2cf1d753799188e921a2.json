@@ -1,0 +1,17 @@
+{
+  "url": "https://sva.de/robots.txt",
+  "checked_at": "2026-10-05T23:29:57.590537+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": "W/\"1791179343-gzip\"",
+  "last_modified": "Mon, 05 Oct 2026 05:49:03 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 2743,
+  "state": "ok",
+  "elapsed_seconds": 0.14,
+  "sha256": "18cf22c8957d620b127969a17c880fa82ae0145af842aa43055fa09e6d5b0eb0",
+  "capture": "2cf1d753799188e921a2",
+  "merged_from_run": "run-28"
+}

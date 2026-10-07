@@ -1,0 +1,14 @@
+{
+  "url": "https://www.codewrights.de/robots.txt",
+  "checked_at": "2026-10-05T09:06:48.432647+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "location": null,
+  "bytes": 5044,
+  "state": "http_error",
+  "elapsed_seconds": 0.132,
+  "sha256": "9d19039fcf357efad1e4b5bbddc2e8e020de401b5c8176e68ebbb7d280c7a602",
+  "capture": "73abf15c1fa384ea3c5d",
+  "reused_from": "data/career-poc/run-10/http/73abf15c1fa384ea3c5d.json"
+}

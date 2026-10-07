@@ -1,0 +1,16 @@
+{
+  "url": "https://www.lele-pr.com/jobs",
+  "checked_at": "2026-10-05T23:46:12.554582+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 114,
+  "state": "ok",
+  "elapsed_seconds": 0.984,
+  "sha256": "6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023",
+  "capture": "f5be19820f2bd52e0368"
+}

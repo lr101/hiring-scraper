@@ -1,0 +1,16 @@
+{
+  "url": "https://throm.de/",
+  "checked_at": "2026-10-05T22:56:26.280758+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 15909,
+  "state": "ok",
+  "elapsed_seconds": 1.191,
+  "sha256": "9c461d6b86dcc781ec7b04594ae794b9345c49ee9cf933cb1f14e0707261d437",
+  "capture": "b751edf241bd3a5a0280"
+}

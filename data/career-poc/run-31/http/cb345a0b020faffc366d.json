@@ -1,0 +1,17 @@
+{
+  "url": "https://nem-energy.com/",
+  "checked_at": "2026-10-05T23:28:31.038232+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 130931,
+  "state": "ok",
+  "elapsed_seconds": 1.208,
+  "sha256": "172096d7f8eb6cd94bd8f1c7ff1f31cbf18934b56417cd02b82f42396fa31f0f",
+  "capture": "cb345a0b020faffc366d",
+  "merged_from_run": "run-28"
+}

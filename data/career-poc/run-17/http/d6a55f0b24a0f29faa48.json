@@ -1,0 +1,17 @@
+{
+  "url": "https://www.ionos.de/",
+  "checked_at": "2026-10-05T20:42:10.688802+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html",
+  "etag": "\"e3e5f-65cdaa6b88380\"",
+  "last_modified": "Fri, 02 Oct 2026 12:27:10 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 933471,
+  "state": "ok",
+  "elapsed_seconds": 1.185,
+  "sha256": "df7fa5153b0e8201268e6e8b9c4c797bf8eab6c4f06713b331ca207c89d24841",
+  "capture": "d6a55f0b24a0f29faa48",
+  "reused_from": "data/career-poc/run-14/http/d6a55f0b24a0f29faa48.json"
+}

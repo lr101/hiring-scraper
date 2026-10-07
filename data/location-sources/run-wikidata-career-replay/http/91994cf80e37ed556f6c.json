@@ -1,0 +1,14 @@
+{
+  "url": "https://www.physikinstrumente.com/robots.txt",
+  "checked_at": "2026-10-05T14:48:22.791579+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "location": null,
+  "bytes": 492,
+  "state": "ok",
+  "elapsed_seconds": 0.113,
+  "sha256": "2a35e2a7c4c6bb495bb35d68e283f146b9a6e227fb44c41b65d9ac9d764d2548",
+  "capture": "91994cf80e37ed556f6c",
+  "reused_from": "data/location-sources/run-wikidata-career/http/91994cf80e37ed556f6c.json"
+}

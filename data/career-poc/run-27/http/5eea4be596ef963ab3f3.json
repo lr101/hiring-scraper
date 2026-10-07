@@ -1,0 +1,16 @@
+{
+  "url": "https://www.sparkassenversicherung.de/alexandre.hofman",
+  "checked_at": "2026-10-05T23:01:03.158601+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 317509,
+  "state": "ok",
+  "elapsed_seconds": 2.504,
+  "sha256": "03e3565292ddadb5315765c82bebf60c9bc16a6f84d20ec844fa56276abc771e",
+  "capture": "5eea4be596ef963ab3f3"
+}

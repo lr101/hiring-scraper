@@ -1,0 +1,14 @@
+{
+  "url": "https://www.its-technidata.de/robots.txt",
+  "checked_at": "2026-10-05T09:07:32.881231+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html",
+  "location": "https://www.technidata.de/firmengruppe/technidata-it-service-gmbh",
+  "bytes": 162,
+  "state": "http_error",
+  "elapsed_seconds": 0.139,
+  "sha256": "9e17cb15dd75bbbd5dbb984eda674863c3b10ab72613cf8a39a00c3e11a8492a",
+  "capture": "e26c87ba026deafd2400",
+  "reused_from": "data/career-poc/run-09/http/e26c87ba026deafd2400.json"
+}

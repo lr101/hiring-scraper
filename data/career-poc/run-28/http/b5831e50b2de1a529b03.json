@@ -1,0 +1,16 @@
+{
+  "url": "https://kemper.talentstorm.de/robots.txt",
+  "checked_at": "2026-10-05T23:45:57.872604+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 5727,
+  "state": "ok",
+  "elapsed_seconds": 0.96,
+  "sha256": "15bbea0c9225ddd81f239a4b97e01f87a31b8bcf5b6c82b2db69f40fa1125a51",
+  "capture": "b5831e50b2de1a529b03"
+}

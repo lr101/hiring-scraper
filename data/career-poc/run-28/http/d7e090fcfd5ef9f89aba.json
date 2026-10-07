@@ -1,0 +1,16 @@
+{
+  "url": "https://maler-doldt.de/jobs",
+  "checked_at": "2026-10-05T23:28:52.816487+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 404,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 141032,
+  "state": "http_error",
+  "elapsed_seconds": 1.078,
+  "sha256": "73c5a60b5c6fe030758c2185240726cf4eb6eb977d9c66aeb43030562bd02cb4",
+  "capture": "d7e090fcfd5ef9f89aba"
+}

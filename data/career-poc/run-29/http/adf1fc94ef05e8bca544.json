@@ -1,0 +1,17 @@
+{
+  "url": "https://www.dhu.de/robots.txt",
+  "checked_at": "2026-10-05T23:17:05.682999+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 2474,
+  "state": "ok",
+  "elapsed_seconds": 0.13,
+  "sha256": "969bf6e24a3332de83d31e77f83779b91c13e21e323cb3928ba6db4c5bd7aa61",
+  "capture": "adf1fc94ef05e8bca544",
+  "merged_from_run": "run-28"
+}

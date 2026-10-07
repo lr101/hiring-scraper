@@ -1,0 +1,16 @@
+{
+  "url": "https://www.wuerttembergische.de/robots.txt",
+  "checked_at": "2026-10-05T23:24:35.738507+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 132,
+  "state": "ok",
+  "elapsed_seconds": 0.208,
+  "sha256": "1f44c89a3fab94beaf844f79e07498c7e334d3ab5f5054255abd2c69a1af9246",
+  "capture": "03aa0a1dbeaea4167a85"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://fred-komplizen.de/sitemap.xml",
+  "checked_at": "2026-10-05T23:17:10.294684+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/xml;charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 1807,
+  "state": "ok",
+  "elapsed_seconds": 0.971,
+  "sha256": "8d2218f7e56dd420a7f74d49d05a980a495727fbde003a5f3129f999a4de2bd2",
+  "capture": "45a3125d4492415040b6"
+}

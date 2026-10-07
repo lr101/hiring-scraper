@@ -1,0 +1,17 @@
+{
+  "url": "https://db.jobs/de-de/dein-einstieg/studierende",
+  "checked_at": "2026-10-05T22:56:40.871198+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html;charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 133364,
+  "state": "ok",
+  "elapsed_seconds": 1.217,
+  "sha256": "5b5b7145919ad6530a05133a7ef3dd1efaa9bc4385bbc726b62345df1bd5be8c",
+  "capture": "f97bb78251a8549f7b33",
+  "merged_from_run": "run-27"
+}

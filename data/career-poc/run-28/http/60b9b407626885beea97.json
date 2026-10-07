@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ekistuwei.de/friedrichstal/robots.txt",
+  "checked_at": "2026-10-05T23:43:19.189527+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ekistuwei.de/404",
+  "bytes": 358,
+  "state": "http_error",
+  "elapsed_seconds": 1.109,
+  "sha256": "4f549256d259474899ed48b42c9ea61907a23bc7902f92768ec4f97020d4f15e",
+  "capture": "60b9b407626885beea97"
+}

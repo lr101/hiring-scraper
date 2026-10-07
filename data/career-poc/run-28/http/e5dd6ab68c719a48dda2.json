@@ -1,0 +1,16 @@
+{
+  "url": "https://www.ineratec.de/",
+  "checked_at": "2026-10-05T23:28:59.620210+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 301,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": "https://www.ineratec.de/de",
+  "bytes": 350,
+  "state": "http_error",
+  "elapsed_seconds": 1.014,
+  "sha256": "cdb4e8f9025ffcfbdd1858c1724d2b01b5f66be0ff73d60c0a28d3df756532ad",
+  "capture": "e5dd6ab68c719a48dda2"
+}

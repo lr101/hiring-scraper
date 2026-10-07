@@ -1,0 +1,17 @@
+{
+  "url": "https://www.comebackfilm.de/",
+  "checked_at": "2026-10-05T22:50:57.828423+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 281558,
+  "state": "ok",
+  "elapsed_seconds": 1.518,
+  "sha256": "c080ac12100a6644c6760e44a9d3b66afece6e58c3d05e295ef06cf6b4b2d958",
+  "capture": "37c985362f4870b5be5e",
+  "merged_from_run": "run-27"
+}

@@ -1,0 +1,16 @@
+{
+  "url": "https://www.gartenbau-jeta.de/",
+  "checked_at": "2026-10-05T23:24:08.744034+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": "\"2d4ad948bdfdb8c23363f5e001397efb\"",
+  "last_modified": "Mon, 05 Oct 2026 23:24:09 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 193632,
+  "state": "ok",
+  "elapsed_seconds": 0.686,
+  "sha256": "35507e6392459bc84b670d91c72e797324d98a161351950aa3a6ccc0f1a65277",
+  "capture": "ceb36bdc67b07c796926"
+}

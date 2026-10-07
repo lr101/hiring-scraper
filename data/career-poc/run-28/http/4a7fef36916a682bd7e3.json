@@ -1,0 +1,16 @@
+{
+  "url": "https://www.arconsis.com/",
+  "checked_at": "2026-10-05T23:30:32.331754+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 18 Aug 2026 14:14:37 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 95068,
+  "state": "ok",
+  "elapsed_seconds": 1.072,
+  "sha256": "1aa2bafb3a59eed72f46441f9256850ecf24ad0ed3e4b9f8d18a3c39cf053813",
+  "capture": "4a7fef36916a682bd7e3"
+}

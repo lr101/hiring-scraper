@@ -1,0 +1,16 @@
+{
+  "url": "https://www.solexperts.com/robots.txt",
+  "checked_at": "2026-10-05T23:18:22.296521+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"d8-5dee0889e7763\"",
+  "last_modified": "Fri, 13 May 2022 08:33:49 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 216,
+  "state": "ok",
+  "elapsed_seconds": 0.321,
+  "sha256": "0a7d120e518e7d0c47aefa02034ed40f39a15432ef24ab77b09a54a3fa5ff9d5",
+  "capture": "20071ec9f0ba763561f2"
+}

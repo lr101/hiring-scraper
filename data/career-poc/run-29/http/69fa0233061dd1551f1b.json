@@ -1,0 +1,17 @@
+{
+  "url": "https://www.plasma-spenden.de/",
+  "checked_at": "2026-10-05T23:01:16.898461+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116676,
+  "state": "ok",
+  "elapsed_seconds": 1.585,
+  "sha256": "162d3223731f2fcff48f498ebe9ec4c84819d29ba86b32601da550c713f66ee9",
+  "capture": "69fa0233061dd1551f1b",
+  "merged_from_run": "run-27"
+}

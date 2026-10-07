@@ -1,0 +1,17 @@
+{
+  "url": "https://letsdev.de/jobs/",
+  "checked_at": "2026-10-05T23:16:37.060025+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 67724,
+  "state": "ok",
+  "elapsed_seconds": 0.973,
+  "sha256": "da4087b84c30703e7f6a4309a766759afb689f7336e60a766841759e35ddb13f",
+  "capture": "f1638e4d1567e37e088f",
+  "merged_from_run": "run-28"
+}

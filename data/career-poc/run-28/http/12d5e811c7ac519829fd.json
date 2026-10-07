@@ -1,0 +1,16 @@
+{
+  "url": "https://www.cloudflight.io/robots.txt",
+  "checked_at": "2026-10-05T23:19:51.025497+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain",
+  "etag": "\"3f479cf6732eb73abda0e1f950eeaf65\"",
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 406,
+  "state": "ok",
+  "elapsed_seconds": 0.931,
+  "sha256": "0cc09c97d3d23ab3291131cc81d39e9b32127b9c2d92e86baa591abafaacc1b1",
+  "capture": "12d5e811c7ac519829fd"
+}

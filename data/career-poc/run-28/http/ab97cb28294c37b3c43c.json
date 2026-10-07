@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hitex.com/robots.txt",
+  "checked_at": "2026-10-05T23:35:33.268482+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/plain; charset=utf-8",
+  "etag": null,
+  "last_modified": "Tue, 29 Sep 2026 08:45:14 GMT",
+  "retry_after": null,
+  "location": null,
+  "bytes": 453,
+  "state": "ok",
+  "elapsed_seconds": 0.149,
+  "sha256": "dd6174eb9ea3504465ae37a58c7e011efc3a3820372945530316364740f0e116",
+  "capture": "ab97cb28294c37b3c43c"
+}

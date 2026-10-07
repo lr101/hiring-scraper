@@ -1,0 +1,17 @@
+{
+  "url": "https://www.fiz-karlsruhe.de/de/ueber-uns/fiz-karlsruhe-als-arbeitgeber",
+  "checked_at": "2026-10-05T23:42:12.918786+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 116882,
+  "state": "ok",
+  "elapsed_seconds": 1.069,
+  "sha256": "9bc1fafaaee9a41168212fec8db9a9dfff10d60c361d2644466239b362968914",
+  "capture": "c8c742d6a81ee95ba0ee",
+  "merged_from_run": "run-28"
+}

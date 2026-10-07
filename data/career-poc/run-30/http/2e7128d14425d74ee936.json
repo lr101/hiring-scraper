@@ -1,0 +1,17 @@
+{
+  "url": "https://apleona.com/careers/qa-zu-ihrer-bewerbung/",
+  "checked_at": "2026-10-05T23:42:35.838160+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": null,
+  "last_modified": null,
+  "retry_after": null,
+  "location": null,
+  "bytes": 28051,
+  "state": "ok",
+  "elapsed_seconds": 0.89,
+  "sha256": "f334ef66efab7d1f4ceb0d9fa9b88ac5af901ff95601b94d21d24c6a43be35fe",
+  "capture": "2e7128d14425d74ee936",
+  "merged_from_run": "run-28"
+}

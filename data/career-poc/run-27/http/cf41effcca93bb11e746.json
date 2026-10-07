@@ -1,0 +1,10 @@
+{
+  "url": "https://www.bauer-landschaftsarchitekten.de/robots.txt",
+  "checked_at": "2026-10-05T23:03:10.688492+00:00",
+  "user_agent": "HiringDiscoveryResearch/0.2 (career discovery feasibility study)",
+  "state": "network_error",
+  "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.bauer-landschaftsarchitekten.de'. (_ssl.c:992)>",
+  "elapsed_seconds": 0.377,
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "capture": "cf41effcca93bb11e746"
+}
