@@ -3,6 +3,86 @@ import importlib.util
 import unittest
 
 
+class PairedApplicantDetailTests(unittest.TestCase):
+    duties = '<h3>Du passt zu uns, wenn folgende Aufgaben Dich begeistern:</h3>'
+    qualifications = '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
+    role_text = ('<ul><li>Wir betreiben Linux Server und entwickeln Python Werkzeuge.</li>'
+                 '<li>Wir betreuen die Infrastruktur unserer Kunden und dokumentieren '
+                 'die technische Umsetzung der vereinbarten Lösungen.</li></ul>')
+    applicant_text = ('<ul><li>Du verfügst über Erfahrung mit PostgreSQL.</li>'
+                      '<li>Python Kenntnisse sind erforderlich.</li>'
+                      '<li>Ruby Kenntnisse sind von Vorteil.</li></ul>')
+
+    def body(self, title='Senior LINUX Administrator (all)', scope='main'):
+        return (f'<{scope}><h1>{title}</h1>' + self.duties + self.role_text +
+                self.qualifications + self.applicant_text + f'</{scope}>')
+
+    def updates(self, body, title='Senior LINUX Administrator (all)',
+                url='https://example.org/jobs/linux-administrator'):
+        from hiring_scraper.matching import detail_updates
+        return detail_updates({'title': title, 'url': url, 'description': 'Linux',
+                               'raw_metadata': {'source_page_url': 'https://example.org/jobs'}},
+                              body, url)
+
+    def test_paired_applicant_sections_recover_both_seniority_levels_and_keep_bullets(self):
+        for title, scope in [('Senior LINUX Administrator (all)', 'main'),
+                             ('Junior LINUX Administrator (all)', 'article')]:
+            with self.subTest(title=title, scope=scope):
+                result = self.updates(self.body(title, scope), title)
+                self.assertTrue(result, 'Both applicant cues should verify a matching role scope')
+                description = result['description']
+                self.assertIn('Du verfügst über Erfahrung mit PostgreSQL.', description.splitlines())
+                self.assertIn('Python Kenntnisse sind erforderlich.', description.splitlines())
+                self.assertIn('Ruby Kenntnisse sind von Vorteil.', description.splitlines())
+                raw = result['raw_metadata']
+                self.assertEqual(raw['description_method'], 'verified_detail_html')
+                self.assertEqual(raw['description_evidence_url'], 'https://example.org/jobs/linux-administrator')
+                self.assertEqual(raw['detail_listing_description'], 'Linux')
+                self.assertEqual(raw['source_page_url'], 'https://example.org/jobs')
+
+    def test_single_or_generic_cues_do_not_verify_boilerplate(self):
+        for body in [self.body().replace(self.duties, ''),
+                     self.body().replace(self.qualifications, ''),
+                     self.body().replace(self.duties, '<h3>Aufgaben</h3>')
+                                .replace(self.qualifications, '<h3>Voraussetzungen</h3>')]:
+            with self.subTest(body=body):
+                self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_keep_role_qualifiers_and_reject_ambiguous_headings(self):
+        for title in ['Junior LINUX Administrator (all)', 'LINUX Administrator (all)',
+                      'Senior LINUX Administrator (Backend)']:
+            with self.subTest(title=title):
+                self.assertEqual(self.updates(self.body(), title), {})
+        for extra_heading in ['Senior LINUX Administrator (all)', 'Junior LINUX Administrator (all)']:
+            with self.subTest(extra_heading=extra_heading):
+                body = self.body().replace('</main>', f'<h1>{extra_heading}</h1></main>')
+                self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_require_visible_heading_and_same_visible_narrative_scope(self):
+        self.assertEqual(self.updates(self.body().replace('<h1>', '<h1 hidden>')), {})
+        self.assertEqual(self.updates(self.body().replace('<main>', '<main hidden>')), {})
+        for container in ['nav', 'footer', 'aside', 'form', 'div hidden']:
+            with self.subTest(container=container):
+                wrapped = f'<{container}>{self.qualifications}</{container.split()[0]}>'
+                self.assertEqual(self.updates(self.body().replace(self.qualifications, wrapped)), {})
+        body = self.body().replace(self.qualifications, '') + self.qualifications
+        self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_reject_overview_and_fragment_urls(self):
+        for url in ['https://example.org/jobs', 'https://example.org/jobs#linux',
+                    'https://example.org/jobs/linux-administrator#linux']:
+            with self.subTest(url=url):
+                self.assertEqual(self.updates(self.body(), url=url), {})
+
+    def test_other_jobs_terminate_paired_role_and_cannot_supply_a_missing_cue(self):
+        body = self.body().replace('</main>', '<h2>Other jobs</h2><p>Java accountants</p></main>')
+        result = self.updates(body)
+        self.assertTrue(result)
+        self.assertNotIn('Java', result['description'])
+        body = self.body().replace(self.qualifications, '<h2>Other jobs</h2>' + self.qualifications)
+        self.assertEqual(self.updates(body), {})
+
+
 class ProfileMatchingTests(unittest.TestCase):
     def engine(self):
         self.assertIsNotNone(importlib.util.find_spec('hiring_scraper.matching'),

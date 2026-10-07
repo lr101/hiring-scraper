@@ -97,6 +97,41 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             jobs=session.scalars(select(Job)).all()
             self.assertTrue(all(job.raw_metadata.get('detail_enrichment_attempt') for job in jobs))
 
+    def test_paired_applicant_detail_persists_evidence_with_one_bounded_attempt(self):
+        url = 'https://example.org/jobs/linux-administrator'
+        self.upsert({'id': 'linux', 'title': 'Senior LINUX Administrator (all)', 'url': url,
+                     'location': 'Karlsruhe', 'raw_metadata': {'source_page_url': 'https://example.org/jobs'}})
+        body = ('<main><h1>Senior LINUX Administrator (all)</h1>'
+                '<h3>Wenn folgende Aufgaben Dich begeistern:</h3>'
+                '<p>Wir betreiben Linux Server und dokumentieren Lösungen für unsere Kunden.</p>'
+                '<p>Wir entwickeln die Infrastruktur unserer Kunden und betreuen technische '
+                'Systeme mit nachvollziehbarer Dokumentation der Arbeitsschritte.</p>'
+                '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
+                '<ul><li>Python Kenntnisse sind erforderlich.</li>'
+                '<li>Ruby Kenntnisse sind von Vorteil.</li></ul></main>')
+
+        class OfflineClient:
+            def get(self, requested_url):
+                return {'state': 'ok', 'url': requested_url}, body.encode()
+
+        with patch.object(enrichment, 'SessionLocal', self.factory):
+            result = enrichment.backfill(1, fetch_details=True, client=OfflineClient())
+            self.assertEqual(result['details_attempted'], 1)
+            self.assertEqual(result['descriptions_improved'], 1)
+            repeated = enrichment.backfill(1, fetch_details=True, client=OfflineClient())
+            self.assertEqual(repeated['details_attempted'], 0)
+        with self.factory() as session:
+            job = session.scalar(select(Job))
+            self.assertTrue(job.is_active)
+            self.assertEqual(job.location_text, 'Karlsruhe')
+            self.assertEqual(job.raw_metadata['source_page_url'], 'https://example.org/jobs')
+            self.assertEqual(job.raw_metadata['description_evidence_url'], url)
+            self.assertEqual(job.raw_metadata['description_method'], 'verified_detail_html')
+            self.assertEqual(job.raw_metadata['detail_enrichment_attempt']['status'], 'improved')
+            self.assertIn('Python', [row['name'] for row in job.enrichment['skills']])
+            self.assertIn('Python', [row['value'] for row in job.enrichment['requirements']])
+            self.assertNotIn('Ruby', [row['value'] for row in job.enrichment['requirements']])
+
     def test_changed_supplied_description_replaces_an_old_verified_detail(self):
         data={'id':'1','title':'Developer','url':'https://example.org/jobs/1',
               'description':'Python '*100,'raw_metadata':{'description_method':'verified_detail_jsonld'}}

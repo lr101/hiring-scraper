@@ -731,7 +731,12 @@ def _html_detail_updates(job: dict, body: bytes | str, page_url: str) -> dict:
             continue
         text = text[start:]
         text = re.split(r'other jobs|related jobs|weitere stellen|nicht der richtige job|das ist nicht die passende stelle', text, maxsplit=1, flags=re.I)[0].strip()
-        if len(text) < 350 or not re.search(r'your (?:responsibilities|profile|tasks)|responsibilities|qualifications|dein(?:e)? (?:profil|aufgaben)|ihr(?:e)? (?:profil|aufgaben)|anforderungen',text,re.I):
+        conventional_sections = re.search(r'your (?:responsibilities|profile|tasks)|responsibilities|qualifications|dein(?:e)? (?:profil|aufgaben)|ihr(?:e)? (?:profil|aufgaben)|anforderungen',text,re.I)
+        paired_applicant_sections = (
+            re.search(r'\bfolgende Aufgaben Dich begeistern\b', text, re.I) and
+            re.search(r'\bfolgende Voraussetzungen mitbringst\b', text, re.I)
+        )
+        if len(text) < 350 or not (conventional_sections or paired_applicant_sections):
             continue
         verified = (job.get('raw_metadata') or {}).get('description_method') in {'verified_detail_jsonld','verified_detail_html'}
         if not verified and len(text) <= len(plain_text(job.get('description'))):
