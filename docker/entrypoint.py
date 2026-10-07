@@ -116,7 +116,7 @@ def _ensure_application_role(migration_url: str, application_password: str) -> N
                 "NOCREATEDB NOCREATEROLE PASSWORD %L"
             )
             statement = connection.scalar(
-                text("SELECT format(:role_command, :password)"),
+                text("SELECT format(:role_command, CAST(:password AS text))"),
                 {"role_command": role_command, "password": application_password},
             )
             connection.exec_driver_sql(statement)
