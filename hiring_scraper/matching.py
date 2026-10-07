@@ -15,7 +15,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v11'
+VERSION = 'rules-v12'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -626,10 +626,10 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         score = max(0, min(score, 60) - min(40, sum(gap_penalties.values())))
     if roles and len(substantive_matches) < 2:
         score = min(score, 85)
-        if (substantive_matches and set(substantive_matches) <= {'Customer service', 'Onboarding'}
-                and not _role_match('Customer service', title)
-                and not verified_requirements):
-            score = min(score, 64)
+    if (roles and substantive_matches and set(substantive_matches) <= {'Customer service', 'Onboarding'}
+            and not _role_match('Customer service', title)
+            and not verified_requirements):
+        score = min(score, 64)
     if secondary_roles and not roles:
         score = min(score, 59)
     fit_tier = ('unlikely' if conflicts or score < 30 else

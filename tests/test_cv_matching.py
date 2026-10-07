@@ -568,6 +568,23 @@ class CvMatchingTests(unittest.TestCase):
         self.assertTrue(any(row['kind'] == 'education' for row in enriched['requirements']))
         self.assertFalse(match_job(job, CV, enriched)['eligible'])
 
+    def test_two_generic_transferable_skills_do_not_recommend_project_role(self):
+        result = match_job({'title': 'Project Manager', 'description':
+                            'Customer service and onboarding. ' * 20},
+                           {**CV, 'skills': CV['skills'] + ['Onboarding']})
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+        self.assertLess(result['score'], 65)
+
+    def test_generic_guard_preserves_customer_role_and_substantive_project_evidence(self):
+        customer = match_job({'title': 'Customer Service Manager', 'description':
+                              'Customer service and onboarding. ' * 20},
+                             {**CV, 'desired_roles': ['Customer service']})
+        project = match_job({'title': 'Project Manager', 'description':
+                             'Project management, requirements gathering, customer service and onboarding. ' * 20},
+                            {**CV, 'skills': CV['skills'] + ['Onboarding']})
+        self.assertEqual(customer['fit_tier'], 'recommended')
+        self.assertEqual(project['fit_tier'], 'recommended')
+
     def test_required_language_list_stops_at_explicit_contrast(self):
         for wording in (
             'Your qualifications: English C1, German C1, but French A2 preferred.',
