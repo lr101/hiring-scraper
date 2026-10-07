@@ -3,7 +3,116 @@ import html
 import json
 import re
 import xml.etree.ElementTree as ET
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlsplit, urlunsplit
+
+
+def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=None, pace=None):
+    """Read one feed, retaining the first response and bounded Lever scan evidence.
+
+    ``parsed_feed`` carries aggregated jobs without rewriting the raw capture.
+    Other providers retain their existing single-response parsing behavior.
+    The client's public-feed allowlist, request budget and pacing still apply.
+    """
+    query = None
+    partial = False
+    if provider == 'lever':
+        try:
+            if not isinstance(feed_url, str) or re.search(r'[\s\x00-\x1f\x7f]', feed_url):
+                raise ValueError('Whitespace or control characters in Lever URL')
+            parts = urlsplit(feed_url)
+            if (parts.scheme != 'https' or parts.hostname not in {'api.lever.co', 'api.eu.lever.co'}
+                    or parts.username or parts.password or parts.port not in (None, 443)
+                    or parts.fragment or not re.fullmatch(r'/v0/postings/[A-Za-z0-9][A-Za-z0-9_.-]*', parts.path)
+                    or re.search(r'%(?![0-9a-fA-F]{2})', parts.query)):
+                raise ValueError('Expected an exact-host public Lever postings URL')
+            pairs = parse_qsl(parts.query, keep_blank_values=True, strict_parsing=True)
+            query = dict(pairs)
+            if len(query) != len(pairs) or any(not key or not value for key, value in pairs):
+                raise ValueError('Ambiguous or empty Lever query value')
+            for key in ('limit', 'skip'):
+                if key in query and not re.fullmatch(r'0|[1-9][0-9]*', query[key]):
+                    raise ValueError('Invalid Lever ' + key)
+            if query.get('limit') == '0' or ('mode' in query and query['mode'] != 'json'):
+                raise ValueError('Invalid Lever mode or limit')
+            # Preserve filters and explicitly requested partial pages. Never drop
+            # a filter or equate a short filtered response with a whole board.
+            partial = (query.get('mode') != 'json' or query.get('limit') != '100'
+                       or query.get('skip', '0') != '0'
+                       or bool(set(query) - {'mode', 'limit', 'skip'}))
+        except (ValueError, TypeError) as error:
+            return {'url': feed_url, 'state': 'unsupported_api', 'error': str(error)}, b''
+
+    def request(url, headers=None):
+        if pace:
+            pace(url)
+        if provider in {'schema_org', 'html_jobs'}:
+            return client.get(url)
+        return client.get_feed(url, headers) if headers else client.get_feed(url)
+
+    metadata, body = request(feed_url, conditional_headers)
+    if provider != 'lever' or metadata.get('state') != 'ok' or metadata.get('status') == 304:
+        return metadata, body
+    metadata = dict(metadata)
+    pagination = {'complete': False, 'page_limit': 10, 'pages': [], 'error': None}
+    metadata['pagination'] = pagination
+    jobs, seen = [], set()
+    current_url, page_meta, page_body = feed_url, metadata, body
+    for page_index in range(10):
+        evidence = {key: page_meta[key] for key in ('state', 'status', 'capture') if key in page_meta}
+        evidence['url'] = current_url
+        pagination['pages'].append(evidence)
+        if page_meta.get('state') != 'ok' or page_meta.get('status') == 304:
+            pagination['error'] = 'Lever continuation failed: ' + str(page_meta.get('error') or page_meta.get('state'))
+            break
+        try:
+            parsed = parse_feed(provider, page_body, board_url)
+            # parse_feed stringifies provider IDs; do not mistake a null or
+            # composite value for a stable ID when deciding scan completeness.
+            for row in json.loads(page_body):
+                job_id = row.get('id')
+                if (not isinstance(job_id, (str, int)) or isinstance(job_id, bool)
+                        or not str(job_id).strip()):
+                    raise ValueError('Expected a stable Lever job ID')
+        except (ValueError, TypeError) as error:
+            if page_index == 0:
+                # Consumers keep the existing schema-error handling for page one.
+                pagination['error'] = 'Lever schema error: ' + str(error)
+                metadata['schema_error'] = str(error)
+                return metadata, body
+            pagination['error'] = 'Lever continuation schema error: ' + str(error)
+            break
+        evidence['items'] = len(parsed['jobs'])
+        duplicate = False
+        for job in parsed['jobs']:
+            if job['id'] in seen:
+                duplicate = True
+            else:
+                seen.add(job['id'])
+                jobs.append(job)
+        if duplicate:
+            pagination['error'] = 'Lever duplicate IDs or non-progress during offset enumeration'
+            break
+        if partial:
+            pagination['error'] = 'Lever URL represents a partial or filtered board scan'
+            break
+        if len(parsed['jobs']) > 100:
+            pagination['error'] = 'Lever response exceeded the requested page limit'
+            break
+        if len(parsed['jobs']) < 100:
+            pagination['complete'] = True
+            break
+        if page_index == 9:
+            pagination['error'] = 'Lever pagination page cap reached'
+            break
+        next_query = {**query, 'skip': str((page_index + 1) * 100)}
+        current_url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(next_query), ''))
+        try:
+            # Validators describe page one only; never carry them to later offsets.
+            page_meta, page_body = request(current_url)
+        except (OSError, ValueError, TypeError) as error:
+            page_meta, page_body = {'state': 'network_error', 'error': str(error)}, b''
+    metadata['parsed_feed'] = {'jobs': jobs, 'complete': pagination['complete']}
+    return metadata, body
 
 
 def _plain_text(value):

@@ -6,7 +6,7 @@ import re
 import unicodedata
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
-from .ats import identify, parse_feed
+from .ats import fetch_feed, identify, parse_feed
 from .html_jobs import extract_html_jobs, html_job_key
 from .pages import CAREER, clean_url, inspect_page
 
@@ -320,11 +320,17 @@ def discover(seed, client, max_pages=6, max_depth=3):
                      'complete':False,'jobs':[]}
             result['boards'].append(board)
             if provider['feed_url']:
-                fm,fb = client.get_feed(provider['feed_url'])
+                fm,fb = fetch_feed(client,provider['provider'],provider['feed_url'],provider['board_url'])
                 board.update(feed_state=fm['state'],feed_http_status=fm.get('status'),capture=fm.get('capture'))
+                if fm.get('pagination'):
+                    board['pagination'] = fm['pagination']
                 if fm['state']=='ok':
                     try:
-                        parsed = parse_feed(provider['provider'],fb,provider['board_url'])
+                        if fm.get('schema_error'):
+                            raise ValueError(fm['schema_error'])
+                        parsed = fm.get('parsed_feed')
+                        if parsed is None:
+                            parsed = parse_feed(provider['provider'],fb,provider['board_url'])
                         board.update(jobs=parsed['jobs'],job_count=len(parsed['jobs']),
                                      complete=parsed['complete'],feed_state='parsed')
                     except ValueError as error:

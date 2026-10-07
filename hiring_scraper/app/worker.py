@@ -17,7 +17,7 @@ from sqlalchemy.orm import selectinload
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.models import Job, JobFeed, JobLocation, ScanRun, utcnow
-from hiring_scraper.ats import parse_feed
+from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.http import Client
 
 
@@ -89,17 +89,17 @@ def _backoff(attempt: int, *, incomplete: bool = False) -> datetime:
 
 
 def _request(feed: JobFeed) -> tuple[dict, bytes]:
-    _pace_origin(feed.feed_url)
-    client = Client(CAPTURE_DIR, timeout=20, delay=0, max_requests=8, user_agent=USER_AGENT)
-    if feed.provider in {"schema_org", "html_jobs"}:
-        # Employer-hosted JSON and HTML pages use the robots-aware website path.
-        return client.get(feed.feed_url)
+    client = Client(CAPTURE_DIR, timeout=20, delay=0,
+                    max_requests=10 if feed.provider == "lever" else 8, user_agent=USER_AGENT)
     headers = {}
-    if feed.etag:
+    # A validator for offset zero cannot establish that later offsets are stable.
+    # Lever scans therefore fetch all pages even after a prior complete scan.
+    if feed.etag and feed.provider != "lever":
         headers["If-None-Match"] = feed.etag
-    if feed.last_modified:
+    if feed.last_modified and feed.provider != "lever":
         headers["If-Modified-Since"] = feed.last_modified
-    return client.get_feed(feed.feed_url, headers)
+    return fetch_feed(client, feed.provider, feed.feed_url, feed.board_url or feed.feed_url,
+                      conditional_headers=headers, pace=_pace_origin)
 
 
 def _location_rows(job_data: dict, existing: list[JobLocation]) -> list[dict]:
@@ -159,8 +159,10 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
 
         if state == "not_modified" or status == 304:
             feed.last_checked_at = now
-            feed.last_error = None
-            feed.next_scan_at = now + timedelta(hours=SCAN_INTERVAL_HOURS, minutes=random.randint(0, 30))
+            if feed.status != "incomplete":
+                feed.last_error = None
+            feed.next_scan_at = (_backoff(1, incomplete=True) if feed.status == "incomplete" else
+                                 now + timedelta(hours=SCAN_INTERVAL_HOURS, minutes=random.randint(0, 30)))
             run.finished_at = now
             run.status = "not_modified"
             run.http_status = 304
@@ -181,7 +183,11 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             return
 
         try:
-            parsed = parse_feed(feed.provider, body, feed.board_url or feed.feed_url)
+            if metadata.get("schema_error"):
+                raise ValueError(metadata["schema_error"])
+            parsed = metadata.get("parsed_feed")
+            if parsed is None:
+                parsed = parse_feed(feed.provider, body, feed.board_url or feed.feed_url)
         except (ValueError, TypeError) as error:
             _set_failure(feed, run, "schema_error", metadata, str(error))
             return
@@ -245,7 +251,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
         feed.job_count = len(incoming)
         feed.status = "parsed" if complete and incoming else "complete_empty" if complete else "incomplete"
         feed.last_checked_at = now
-        feed.last_error = None if complete else "Feed returned a partial page. No jobs were closed."
+        feed.last_error = None if complete else (
+            (metadata.get("pagination") or {}).get("error") or
+            "Feed returned a partial page. No jobs were closed.")
         feed.attempt_count = 0
         feed.next_scan_at = (now + timedelta(hours=SCAN_INTERVAL_HOURS, minutes=random.randint(0, 30))
                              if complete else _backoff(1, incomplete=True))
