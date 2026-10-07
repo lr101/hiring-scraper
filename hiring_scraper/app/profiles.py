@@ -1,7 +1,7 @@
 """Single-workspace profile preferences; CV text is parsed transiently, never stored."""
 from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from hiring_scraper.app.database import get_session
@@ -12,7 +12,47 @@ router = APIRouter(prefix='/api/v1/profiles', tags=['Profiles'])
 Term = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
+class Evidence(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    context: str = Field(default='', max_length=120)
+    note: str = Field(default='', max_length=2000)
+
+
+class Education(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    level: Literal['vocational', 'bachelor', 'master', 'doctorate']
+    field: str = Field(default='', max_length=200)
+    note: str = Field(default='', max_length=2000)
+
+
+class SearchArea(BaseModel):
+    model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
+    label: str = Field(default='', max_length=255)
+    city: str | None = Field(default=None, max_length=120)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    radius_km: float = Field(default=35, gt=0, le=200)
+    country_code: Annotated[str, StringConstraints(to_upper=True, pattern=r'^[A-Za-z]{2}$')] | None = None
+
+    @model_validator(mode='after')
+    def coordinate_pair(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError('Provide both latitude and longitude')
+        return self
+
+
+class MatchingDefaults(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    min_match_score: int = Field(default=0, ge=0, le=100)
+    include_unknown: bool = True
+
+
+NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'search_area',
+                   'secondary_roles', 'education', 'certifications', 'matching_defaults'}
+
+
 class ProfileRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
     skills: list[Term] = Field(default_factory=list, max_length=100)
     desired_roles: list[Term] = Field(default_factory=list, max_length=20)
@@ -22,6 +62,14 @@ class ProfileRequest(BaseModel):
     experience_years: float | None = Field(default=None, ge=0, le=60)
     languages: list[Term] = Field(default_factory=list, max_length=20)
     excluded_terms: list[Term] = Field(default_factory=list, max_length=30)
+    language_levels: dict[Term, Literal['A1','A2','B1','B2','C1','C2','native']] = Field(default_factory=dict, max_length=20)
+    skill_evidence: dict[Term, Evidence] = Field(default_factory=dict, max_length=100)
+    summary: str = Field(default='', max_length=5000)
+    search_area: SearchArea | None = None
+    secondary_roles: list[Term] = Field(default_factory=list, max_length=20)
+    education: list[Education] = Field(default_factory=list, max_length=20)
+    certifications: list[Term] = Field(default_factory=list, max_length=50)
+    matching_defaults: MatchingDefaults = Field(default_factory=MatchingDefaults)
 
 
 class CVPreview(BaseModel):
@@ -57,6 +105,10 @@ def _save(profile, request, session):
     if not profile.name:
         raise HTTPException(status_code=422, detail='Enter a profile name')
     data['skills'] = normalize_skills(data['skills'])
+    previous = profile.preferences or {}
+    for key in NEW_PREFERENCES - request.model_fields_set:
+        if key in previous:
+            data[key] = previous[key]
     profile.preferences = data
     profile.updated_at = utcnow()
     session.add(profile)
