@@ -416,6 +416,65 @@ class CvMatchingTests(unittest.TestCase):
         self.assertTrue(any('CAD' in gap for gap in result['requirement_gaps']))
         self.assertNotEqual(result['fit_tier'], 'recommended')
 
+    def test_preferred_qualification_heading_is_optional_until_new_mandatory_heading(self):
+        for description, levels in (
+            ('Qualifications:\nPreferred qualifications:\nGerman C1\nTasks:\n', {}),
+            ('Qualifications:\nPreferred qualifications:\nGerman C1\nRequired qualifications:\nEnglish C1\nTasks:\n', {'English': 'C1'}),
+        ):
+            with self.subTest(description=description):
+                job = {'title': 'Project Coordinator', 'description': description +
+                       'Project management and stakeholder coordination. ' * 20}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']}, levels)
+                self.assertTrue(match_job(job, CV, enriched)['eligible'])
+
+    def test_independent_degree_levels_keep_missing_master_gap(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        job = {'title': 'Project Coordinator', 'description':
+               'Qualifications:\nBachelor degree\nMaster degree\nTasks:\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        enriched = enrich_job(job)
+        self.assertEqual({row['level'] for row in enriched['requirements'] if row['kind'] == 'education'},
+                         {'bachelor', 'master'})
+        result = match_job(job, profile, enriched)
+        self.assertTrue(any('Master' in gap for gap in result['requirement_gaps']))
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_degree_does_not_suppress_independent_gmp_experience(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        job = {'title': 'Project Coordinator', 'description':
+               'Qualifications:\nBachelor degree and GMP experience\nTasks:\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        result = match_job(job, profile)
+        self.assertTrue(any('GMP' in gap for gap in result['requirement_gaps']))
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+        education = enrich_job({'description': 'Qualifications:\nDegree in electrical engineering\nTasks:\n'})
+        self.assertEqual([row['kind'] for row in education['requirements']], ['education', 'skill'])
+
+    def test_strongest_independent_mandatory_language_level_is_kept(self):
+        for text in ('German B2\nGerman C1', 'German C1\nGerman B2',
+                     'German B2\nGerman C1 preferred'):
+            with self.subTest(text=text):
+                job = {'title': 'Project Coordinator', 'description': 'Qualifications:\n' + text + '\nTasks:\n'}
+                result = match_job(job, CV)
+                self.assertEqual(result['eligible'], 'preferred' in text)
+
+    def test_language_or_requires_one_satisfied_alternative_and_preserves_conjunction(self):
+        for text, profile, eligible in (
+            ('German C1 or English C1', CV, True),
+            ('Deutsch C1 oder Englisch C1', CV, True),
+            ('German C1 or English C2', CV, False),
+            ('German C1 and English C1', CV, False),
+            ('German C1 or English C1\nGerman C1', CV, False),
+            ('German C1 or English C1', {**CV, 'language_levels': {'German': 'B2'}}, True),
+        ):
+            with self.subTest(text=text, profile=profile):
+                job = {'title': 'Project Coordinator', 'description': 'Qualifications:\n' + text + '\nTasks:\n'}
+                result = match_job(job, profile)
+                self.assertEqual(result['eligible'], eligible)
+                if eligible and profile['language_levels'].get('English') == 'C1':
+                    self.assertFalse(any('German C1' in conflict for conflict in result['conflicts']))
+
     def test_required_language_list_stops_at_explicit_contrast(self):
         for wording in (
             'Your qualifications: English C1, German C1, but French A2 preferred.',

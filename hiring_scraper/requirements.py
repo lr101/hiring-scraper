@@ -40,7 +40,7 @@ def structured_text(value) -> str:
 
 _REQUIRED_HEADING = re.compile(
     r'^(?:(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
-    r'(?:ihre|deine)\s+qualifikationen|requirements|qualifications|anforderungen|'
+    r'(?:ihre|deine)\s+qualifikationen|required qualifications|requirements|qualifications|anforderungen|'
     r'(?:das|was)\s+(?:sie|du)\s+mitbring(?:en|st)|was wir erwarten|'
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)
 _OTHER_HEADING = re.compile(
@@ -49,7 +49,7 @@ _OTHER_HEADING = re.compile(
     r'das bieten wir|unser angebot|über uns|about us|kontakt|contact|bewerbung|tasks|'
     r'das sind (?:deine|ihre) aufgaben|diese herausforderungen|' 
     r'ihre vorteile|deine vorteile|deine benefits|ihre benefits|das erwartet (?:sie|dich))\b', re.I)
-_OPTIONAL_HEADING = re.compile(r'^(?:nice.to.have|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
+_OPTIONAL_HEADING = re.compile(r'^(?:preferred qualifications|nice.to.have|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
 
 
 def scoped_sentences(text: str, *, structured: bool = False):
@@ -115,8 +115,13 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
     for hit in CERTIFICATE.finditer(clause):
         row('certification', hit.group(), hit)
     for hit in DOMAIN.finditer(clause):
-        # An education field is assessed with the whole degree, not a duplicate gap.
-        if not DEGREE.search(clause):
+        # Suppress only the domain token inside a recognized degree subject; a
+        # separate qualification such as GMP experience must remain a gap.
+        degree_subject = bool(DEGREE.search(clause)) and any(
+            subject.start() <= hit.start() and hit.end() <= subject.end()
+            for pattern in DEGREE_FIELDS.values()
+            for subject in re.finditer(r'\b(?:' + pattern + r')\b', clause, re.I))
+        if not degree_subject:
             row('domain', hit.group(), hit)
     return rows
 

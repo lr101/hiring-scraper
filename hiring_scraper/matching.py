@@ -14,7 +14,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN)
 
-VERSION = 'rules-v8'
+VERSION = 'rules-v9'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -258,17 +258,31 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
                     if not levels[index] and levels[index + 1] and re.fullmatch(r'\s*(?:and|und|or|oder|,)\s*', connector, re.I):
                         levels[index] = levels[index + 1]
+                alternative_groups = {}
+                for index in range(len(language_hits) - 1):
+                    connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
+                    if re.search(r'\b(?:or|oder)\b', connector, re.I) and not re.search(r'\b(?:and|und)\b', connector, re.I):
+                        group = alternative_groups.get(index) or hashlib.sha256(
+                            f'{source}:{clause}:{index}'.encode()).hexdigest()[:16]
+                        alternative_groups[index] = alternative_groups[index + 1] = group
                 for index, (language, found) in enumerate(language_hits):
                     level = levels[index]
                     if scope == 'benefits' and not REQUIREMENT.search(clause):
                         continue
                     if not (level or fluency_term.search(clause)) or not _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(implicit_fluency.search(clause)))):
                         continue
-                    if any(row['value'] == language for row in languages):
+                    group = alternative_groups.get(index)
+                    previous = next((row for row in languages if row['value'] == language
+                                     and row.get('alternative_group') == group), None)
+                    if previous and CEFR_RANK.get(previous.get('level'), 0) >= CEFR_RANK.get(level, 0):
                         continue
+                    if previous:
+                        languages.remove(previous)
                     row = _evidence(language, clause, found, source)
                     row['level'] = level
                     row['kind'] = 'explicit_cefr' if level else 'fluency'
+                    if group:
+                        row['alternative_group'] = group
                     languages.append(row)
                 if _required_context(clause, explicit=requirement_section or bool(APPLICANT_CUE.search(clause))):
                     rows = qualification_rows(clause, source)
@@ -279,7 +293,9 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                             rows.append({**_evidence(name, clause, found, source),
                                          'kind': 'professional_experience' if professional else 'skill'})
                     for row in rows:
-                        key = (row['kind'], str(row['value']).casefold(), json.dumps(row.get('fields', [])))
+                        key = json.dumps({name: (str(value).casefold() if name == 'value' else value)
+                                          for name, value in row.items() if name not in {'source', 'evidence'}},
+                                         sort_keys=True)
                         if key not in seen_qualifications:
                             qualifications.append(row)
                             seen_qualifications.add(key)
@@ -440,18 +456,43 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     known_languages = {x.casefold() for x in profile.get('languages', [])} | set(language_levels)
     if enriched['languages'] and not known_languages:
         unknowns.append('Profile languages not provided')
-    for language in enriched['languages']:
-        name = language['value']
-        level = language.get('level')
-        candidate_level = language_levels.get(name.casefold())
-        if known_languages and name.casefold() not in known_languages:
-            conflicts.append('Language requested: ' + language['value'])
-        elif level and candidate_level in CEFR_RANK and CEFR_RANK[candidate_level] < CEFR_RANK[level]:
-            conflicts.append(f'{name} {level} required; profile has {candidate_level}')
-        elif level and not candidate_level:
-            unknowns.append(f'{name} {level} required; profile level not provided')
-        elif not level and name.casefold() in known_languages:
-            unknowns.append(f'{name} fluency requested; exact level not stated')
+    language_groups = {}
+    for index, language in enumerate(enriched['languages']):
+        language_groups.setdefault(language.get('alternative_group') or f'mandatory:{index}', []).append(language)
+    for group in language_groups.values():
+        outcomes = []
+        for language in group:
+            name = language['value']
+            level = language.get('level')
+            candidate_level = language_levels.get(name.casefold())
+            if known_languages and name.casefold() not in known_languages:
+                outcomes.append(('conflict', 'Language requested: ' + name))
+            elif level and candidate_level in CEFR_RANK and CEFR_RANK[candidate_level] < CEFR_RANK[level]:
+                outcomes.append(('conflict', f'{name} {level} required; profile has {candidate_level}'))
+            elif level and not candidate_level:
+                outcomes.append(('unknown', f'{name} {level} required; profile level not provided'))
+            elif not level and name.casefold() in known_languages:
+                outcomes.append(('unknown', f'{name} fluency requested; exact level not stated'))
+            elif not known_languages:
+                outcomes.append(('unknown', 'Profile languages not provided'))
+            else:
+                outcomes.append(('met', f'{name} {level or "language"}'))
+        if len(group) > 1:
+            # A satisfied OR option resolves the whole clause. An unverified option
+            # prevents hard rejection, while independent mandatory rows still apply.
+            met = next((message for status, message in outcomes if status == 'met'), None)
+            if met:
+                reasons.append('Language alternative met: ' + met)
+            elif any(status == 'unknown' for status, _ in outcomes):
+                unknowns.append('Verify language alternative: ' + ' or '.join(message for _, message in outcomes))
+            else:
+                conflicts.append('Language alternatives unmet: ' + ' or '.join(message for _, message in outcomes))
+        else:
+            status, message = outcomes[0]
+            if status == 'conflict':
+                conflicts.append(message)
+            elif status == 'unknown' and message not in unknowns:
+                unknowns.append(message)
     requirement_gaps = []
     gap_penalties = {}
     verified_requirements = []
