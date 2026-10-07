@@ -43,6 +43,16 @@ def _employer_name(value):
     return re.sub(r'\s+', ' ', unicodedata.normalize('NFKC', value).strip().casefold())
 
 
+def _provenance(metadata):
+    return {key: metadata.get(key) for key in ('source_observed_at', 'source_api_url', 'source_url')}
+
+
+def _location_matches(old, new):
+    return (_employer_name(old['label']) == _employer_name(new['label'])
+            and (not old.get('country_code') or not new.get('country_code')
+                 or old['country_code'] == new['country_code']))
+
+
 def import_snapshot(session: Session, snapshot, observed_at: str | None = None) -> dict:
     """Idempotent employer/reference import; caller owns commit or rollback.
 
@@ -130,21 +140,55 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
             source_record['stellenangebotsBeschreibung'] = job.description
         # Preserve earlier detailed evidence when summary-only refreshes omit it.
         merged = {**prior, **{key: value for key, value in metadata.items() if value is not None and value != [] and value != {}}}
+        merged.setdefault('remote_country_codes', [])
+        merged.setdefault('remote_scope_source', None)
         if prior.get('employer_type') and not any(key in raw_new for key in
                                                    ('istPrivateArbeitsvermittlung', 'istArbeitnehmerUeberlassung')):
             merged['employer_type'] = prior['employer_type']
         merged['source_record'] = source_record
         if keep_description:
             merged['description_preserved_from_previous_capture'] = True
-        job.raw_metadata = merged
+        prior_evidence = prior.get('field_evidence') or {}
+        evidence = dict(prior_evidence)
         job.title = job_data['title']
         job.url = job_data['url']
         for key in ('location_text', 'employment_type', 'date_posted', 'salary'):
             if job_data.get(key):
                 setattr(job, key, job_data[key])
-        if created or any(key in raw_new for key in ('homeofficemoeglich', 'homeofficetyp', 'homeofficeprozent')):
+        # "Home office possible" cannot revoke an earlier explicit percentage.
+        # A new explicit negative, percentage or negotiated type supplies the
+        # evidence needed to replace the previously observed arrangement.
+        explicit_negative = raw_new.get('homeofficemoeglich') is False
+        explicit_percentage = (raw_new.get('homeofficetyp') == 'ANGABE_IN_PROZENT'
+                               and metadata.get('homeoffice_percentage') is not None)
+        explicit_negotiated = raw_new.get('homeofficetyp') == 'NACH_VEREINBARUNG'
+        replace_arrangement = (created or explicit_negative or explicit_percentage or explicit_negotiated
+                               or (prior.get('homeoffice_percentage') is None and prior.get('homeoffice_type') is None
+                                   and 'homeofficemoeglich' in raw_new))
+        if replace_arrangement:
             job.is_remote = bool(job_data.get('is_remote'))
             job.work_arrangement = job_data.get('work_arrangement')
+            if explicit_negative:
+                job.is_remote = False
+                job.work_arrangement = None
+            for key in ('homeoffice_possible', 'homeoffice_type', 'homeoffice_percentage'):
+                merged[key] = metadata.get(key)
+            if explicit_negative or explicit_negotiated:
+                merged['homeoffice_percentage'] = None
+                source_record.pop('homeofficeprozent', None)
+            if explicit_negative:
+                merged['homeoffice_type'] = None
+                source_record.pop('homeofficetyp', None)
+            evidence['work_arrangement'] = {**_provenance(metadata), 'is_remote': job.is_remote,
+                                            'work_arrangement': job.work_arrangement,
+                                            **{key: merged.get(key) for key in
+                                               ('homeoffice_possible', 'homeoffice_type', 'homeoffice_percentage')}}
+        else:
+            for key in ('homeoffice_possible', 'homeoffice_type', 'homeoffice_percentage'):
+                merged[key] = prior.get(key)
+            if 'work_arrangement' not in evidence:
+                evidence['work_arrangement'] = {**_provenance(prior), 'is_remote': job.is_remote,
+                                                'work_arrangement': job.work_arrangement}
         seen = _timestamp(observed_at or metadata.get('source_observed_at'))
         if created:
             job.first_seen_at = seen
@@ -154,11 +198,35 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
         job.closed_at = None
         locations = job_data.get('locations')
         if isinstance(locations, list) and locations:
-            job.locations.clear()
+            old_locations = [{'label': location.label, 'latitude': location.latitude,
+                              'longitude': location.longitude, 'precision': location.precision,
+                              'country_code': location.country_code} for location in job.locations]
+            merged_locations, location_evidence = [], []
             for location in locations:
-                if isinstance(location, dict) and location.get('label'):
-                    job.locations.append(JobLocation(**{key: location.get(key) for key in
-                                                        ('label', 'latitude', 'longitude', 'precision', 'country_code')}))
+                if not isinstance(location, dict) or not location.get('label'):
+                    continue
+                current = {key: location.get(key) for key in
+                           ('label', 'latitude', 'longitude', 'precision', 'country_code')}
+                matching = [old for old in old_locations if _location_matches(old, current)]
+                retained = False
+                if len(matching) == 1 and (current['latitude'] is None or current['longitude'] is None):
+                    old = matching[0]
+                    if old['latitude'] is not None and old['longitude'] is not None:
+                        current.update(latitude=old['latitude'], longitude=old['longitude'], precision=old['precision'])
+                        retained = True
+                    if not current['country_code']:
+                        current['country_code'] = old['country_code']
+                origin = _provenance(metadata)
+                if retained:
+                    previous = [item for item in prior_evidence.get('locations', []) if _location_matches(item, current)]
+                    origin = _provenance(previous[0]) if len(previous) == 1 else _provenance(prior)
+                merged_locations.append(current)
+                location_evidence.append({**origin, **current})
+            job.locations.clear()
+            job.locations.extend(JobLocation(**location) for location in merged_locations)
+            evidence['locations'] = location_evidence
+        merged['field_evidence'] = evidence
+        job.raw_metadata = merged
         session.flush()
     for feed_id in feed_ids:
         feed = session.get(JobFeed, feed_id)

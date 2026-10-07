@@ -28,3 +28,11 @@ Evidence:
 - Captured954 import into temporary in-memory SQLite: 954 jobs,468 employers/feeds,954 full descriptions,170 agency rows,160 salaries,1 explicit remote and112 hybrid. Repeat import creates0 companies/feeds/jobs (954 updates). Scheduled regional feeds:0. No production database was changed by this smoke verification.
 
 Callable interfaces are available for Task 4's explicitly invoked demonstration seed helper. Normal feedworker integration was unnecessary because `next_scan_at=None` already excludes these feeds.
+
+## Scoped review fix, round 1
+
+The review's P2 was reproduced before the fix: a same-reference failed detail refresh containing only `homeofficemoeglich=True` and city/country downgraded explicit100% remote to hybrid, erased paired coordinates, and left stale percentage100 metadata. A second failing control exposed stale percentage metadata after an explicit new `homeofficemoeglich=False` observation.
+
+The importer now preserves a prior explicit percentage/type when the incoming source only says home office is possible or omits the supporting detail fields. An explicit negative, a valid new percentage/type, or negotiated type can replace the prior classification. Explicit negatives clear the superseded percentage/type metadata and merged source fields. Same-label compatible-country locations retain prior paired coordinates when the new location lacks them; new valid coordinates replace old coordinates, and different labels never inherit old coordinates. `raw_metadata.field_evidence` records original observation time/API URL/source URL separately for work arrangement and each coordinate-bearing location, retaining that provenance across sparse refreshes while `source_observed_at` records the latest observation. Unknown remote scope retains canonical empty country codes and null scope evidence; office-country evidence is never used as permission to work remotely.
+
+New regressions verify failed sparse remote/coordinate preservation with original provenance, explicit nonremote plus changed valid coordinates, and a changed location label without inherited coordinates. `.venv/bin/python -m unittest discover -s tests -p 'test_regional*.py'`:21 tests pass after the observed red failures. This round changed only the owned importer, its tests and this report. No live acquisition, full-suite duplication or unrelated edits.

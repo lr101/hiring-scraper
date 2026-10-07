@@ -101,3 +101,51 @@ class RegionalSparseIdentityTests(unittest.TestCase):
             self.assertEqual(counts['jobs_created'], 0)
             self.assertEqual(session.scalar(select(func.count(Job.id))), 1)
         engine.dispose()
+
+class RegionalVerifiedFieldRefreshTests(unittest.TestCase):
+    def setUp(self):
+        self.engine = create_engine('sqlite://')
+        Base.metadata.create_all(self.engine)
+        self.session = Session(self.engine)
+        self.full = {**ROW, 'homeofficemoeglich': True, 'homeofficetyp': 'ANGABE_IN_PROZENT',
+                     'homeofficeprozent': 100, '_checked_at': '2026-10-01T06:00:00Z',
+                     '_detail_url': 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails/MTIz', '_detail_state': 'ok'}
+        import_snapshot(self.session, [self.full])
+    def tearDown(self):
+        self.session.close()
+        self.engine.dispose()
+    def test_failed_sparse_refresh_retains_explicit_remote_and_coordinates_with_original_provenance(self):
+        sparse = {key: value for key, value in ROW.items() if key != 'stellenangebotsBeschreibung'}
+        sparse.update(homeofficemoeglich=True, _detail_state='http_error', _checked_at='2026-10-07T06:00:00Z',
+                      stellenlokationen=[{'adresse': {'ort': 'Heidelberg', 'land': 'DEUTSCHLAND'}}])
+        import_snapshot(self.session, [sparse])
+        job = self.session.scalar(select(Job))
+        self.assertTrue(job.is_remote)
+        self.assertEqual(job.work_arrangement, 'remote')
+        self.assertEqual((job.locations[0].latitude, job.locations[0].longitude), (49.4, 8.7))
+        evidence = job.raw_metadata['field_evidence']
+        self.assertEqual(evidence['work_arrangement']['source_observed_at'], '2026-10-01T06:00:00Z')
+        self.assertEqual(evidence['locations'][0]['source_observed_at'], '2026-10-01T06:00:00Z')
+        self.assertEqual(evidence['locations'][0]['source_api_url'], self.full['_detail_url'])
+        self.assertEqual(job.raw_metadata['source_observed_at'], '2026-10-07T06:00:00Z')
+        self.assertEqual(job.raw_metadata['remote_country_codes'], [])
+
+    def test_explicit_nonremote_and_changed_valid_coordinates_replace_previous_facts(self):
+        changed = {**ROW, 'homeofficemoeglich': False, '_detail_state': 'ok', '_checked_at': '2026-10-07T06:00:00Z',
+                   'stellenlokationen': [{'adresse': {'ort': 'Heidelberg', 'land': 'DEUTSCHLAND'}, 'breite': 49.41, 'laenge': 8.71}]}
+        import_snapshot(self.session, [changed])
+        job = self.session.scalar(select(Job))
+        self.assertFalse(job.is_remote)
+        self.assertIsNone(job.work_arrangement)
+        self.assertIsNone(job.raw_metadata['homeoffice_percentage'])
+        self.assertEqual((job.locations[0].latitude, job.locations[0].longitude), (49.41, 8.71))
+        self.assertEqual(job.raw_metadata['field_evidence']['work_arrangement']['source_observed_at'], '2026-10-07T06:00:00Z')
+
+    def test_sparse_new_location_never_inherits_previous_location_coordinates(self):
+        changed = {**ROW, '_detail_state': 'http_error',
+                   'stellenlokationen': [{'adresse': {'ort': 'Mannheim', 'land': 'DEUTSCHLAND'}}]}
+        import_snapshot(self.session, [changed])
+        job = self.session.scalar(select(Job))
+        self.assertEqual(job.locations[0].label, 'Mannheim')
+        self.assertIsNone(job.locations[0].latitude)
+        self.assertIsNone(job.locations[0].longitude)
