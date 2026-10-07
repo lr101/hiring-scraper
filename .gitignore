@@ -9,8 +9,13 @@ frontend/dist/
 *.egg-info/
 *.sqlite3
 hiring.db
-# Full third-party responses stay local; compact metadata and derived tables are tracked.
+# Scraper captures, caches, and generated working data stay local.
 *.body
+data/**/http/
+data/**/*-http/
+data/career-poc/resume-cache-*/
+data/probes/
+.superpowers/
 # Task-specific regional captures and local private inputs.
 data/local-cv-board/
 .ci-results/
