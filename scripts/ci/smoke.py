@@ -58,13 +58,20 @@ def main() -> None:
     for asset in assets:
         assert read(WEB + asset)
     assert 'id="root"' in read(WEB + '/profile')
-    assert read(WEB + '/api/v1/companies?limit=1')['total'] > 0
 
     before = database_counts()
-    assert before['jobs'] > 0 and before['companies'] > 0
+    assert before == {'companies': 0, 'feeds': 0, 'jobs': 0}, 'Fresh startup imported fixture data'
+    assert read(WEB + '/api/v1/companies?limit=1')['total'] == 0
+
     imported = import_fixture(Path('fixtures/karlsruhe-osm-candidates.csv'),
                               Path('fixtures/karlsruhe-career-enrichment.json'))
-    assert database_counts() == before == imported, 'Repeat import changed record counts'
+    after_import = database_counts()
+    assert imported == after_import and imported['companies'] > 0 and imported['jobs'] > 0
+    assert read(WEB + '/api/v1/companies?limit=1')['total'] > 0
+
+    repeated = import_fixture(Path('fixtures/karlsruhe-osm-candidates.csv'),
+                              Path('fixtures/karlsruhe-career-enrichment.json'))
+    assert database_counts() == after_import == repeated, 'Repeat import changed record counts'
 
     profile = json.loads(Path('fixtures/cv_profile.json').read_text())
     profile_id = None
@@ -113,8 +120,9 @@ def main() -> None:
             assert read(WEB + f'/api/v1/profiles/{profile_id}', method='DELETE')['deleted']
             assert all(row['id'] != profile_id for row in read(WEB + '/api/v1/profiles')['items'])
     print(json.dumps({'result': 'pass', 'database': 'PostgreSQL/PostGIS',
-                      'application_role': 'hiring_app', 'repeat_import': before,
-                      'checks': ['readiness', 'static assets and SPA', 'same-origin API',
+                      'application_role': 'hiring_app', 'fresh_database': before,
+                      'repeat_import': repeated,
+                      'checks': ['empty fresh startup', 'static assets and SPA', 'same-origin API',
                                  'profile create/edit/validation/delete', 'regional defaults',
                                  'unique pagination', 'list/detail agreement', 'country override']}, indent=2))
 
