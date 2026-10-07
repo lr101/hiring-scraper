@@ -43,6 +43,16 @@ Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker comp
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [CI and release guide](docs/ci.md)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+- [Maintainer checklist](docs/maintaining.md)
 - [Research reports](reports/)
+
+## License
+
+The software is licensed under the [MIT License](LICENSE). Third-party data retains
+its respective licenses and attribution requirements.
 
 The Karlsruhe sample includes OpenStreetMap-derived data. See [OpenStreetMap attribution and license](https://www.openstreetmap.org/copyright); other source data retains its respective rights.

@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a reproducible problem with Radius.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. For vulnerabilities, follow SECURITY.md.
+        Remove CVs, personal details, credentials, and private captures from examples and logs.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Include the release tag or commit SHA and whether you use Compose or local development.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal, sanitized example and the commands or UI actions involved.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include sanitized errors or screenshots if useful.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, browser, Docker/Compose versions, or Python and Node versions as applicable.

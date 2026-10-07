@@ -1,0 +1,25 @@
+name: Feature request
+description: Suggest an improvement or describe a missing use case.
+body:
+  - type: markdown
+    attributes:
+      value: Search existing requests first and use sanitized examples without personal data.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: Who needs this and what are they trying to accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed behavior
+      description: Describe the expected outcome and any relevant data or privacy constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include existing workarounds or other approaches.
