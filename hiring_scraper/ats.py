@@ -68,11 +68,25 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
             parsed = parse_feed(provider, page_body, board_url)
             # parse_feed stringifies provider IDs; do not mistake a null or
             # composite value for a stable ID when deciding scan completeness.
-            for row in json.loads(page_body):
+            for row, job in zip(json.loads(page_body), parsed['jobs']):
                 job_id = row.get('id')
                 if (not isinstance(job_id, (str, int)) or isinstance(job_id, bool)
                         or not str(job_id).strip()):
                     raise ValueError('Expected a stable Lever job ID')
+                # Validate the entire page before aggregating it. Persistence
+                # requires text fields; accepting structured values here would
+                # roll back even the valid jobs recovered on earlier pages.
+                if not isinstance(job['title'], str) or not job['title'].strip():
+                    raise ValueError('Expected a nonblank Lever job title')
+                if not isinstance(job['url'], str):
+                    raise ValueError('Expected a Lever job URL string')
+                job_url = urlsplit(job['url'])
+                if job_url.scheme not in {'http', 'https'} or not job_url.hostname:
+                    raise ValueError('Expected an HTTP(S) Lever job URL with a host')
+                if job.get('location') is None:
+                    job['location'] = ''
+                elif not isinstance(job['location'], str):
+                    raise ValueError('Expected a Lever job location string or null')
         except (ValueError, TypeError) as error:
             if page_index == 0:
                 # Consumers keep the existing schema-error handling for page one.

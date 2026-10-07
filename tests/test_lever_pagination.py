@@ -89,6 +89,41 @@ class LeverFeedTests(unittest.TestCase):
                 self.assertTrue(metadata['pagination']['error'])
                 self.assertEqual(len(client.requests), 2)
 
+    def test_malformed_consumer_fields_exclude_entire_continuation_page(self):
+        mutations = [
+            ('location', {'unexpected': 'Berlin'}), ('location', ['Berlin']),
+            ('location', 7), ('location', 0), ('location', False), ('location', []),
+            ('text', {'unexpected': 'Engineer'}), ('text', ['Engineer']), ('text', 7), ('text', '   '),
+            ('hostedUrl', {'unexpected': BOARD}), ('hostedUrl', [BOARD]), ('hostedUrl', 7),
+            ('hostedUrl', 'https://'), ('hostedUrl', 'https:///jobs/100'),
+        ]
+        for field, value in mutations:
+            with self.subTest(field=field, value=value):
+                rows = json.loads(page(100, 2))
+                if field == 'location':
+                    rows[1]['categories']['location'] = value
+                else:
+                    rows[1][field] = value
+                client = FeedClient({FEED: ok(page(0, 100)),
+                                     FEED + '&skip=100': ok(json.dumps(rows).encode())})
+                metadata, _ = self.read(client)
+                jobs = metadata['parsed_feed']['jobs']
+                self.assertEqual(len(jobs), 100)
+                self.assertEqual(len({job['id'] for job in jobs}), 100)
+                self.assertFalse(metadata['parsed_feed']['complete'])
+                self.assertFalse(metadata['pagination']['complete'])
+                self.assertIn('schema', metadata['pagination']['error'].casefold())
+
+    def test_absent_and_null_locations_normalize_to_empty_strings(self):
+        rows = json.loads(page(100, 3))
+        del rows[0]['categories']['location']
+        rows[1]['categories']['location'] = None
+        rows[2]['categories']['location'] = ''
+        metadata, _ = self.read(FeedClient({FEED: ok(page(0, 100)),
+                                          FEED + '&skip=100': ok(json.dumps(rows).encode())}))
+        self.assertEqual([row['location'] for row in metadata['parsed_feed']['jobs'][-3:]], ['', '', ''])
+        self.assertTrue(metadata['parsed_feed']['complete'])
+
     def test_duplicate_or_repeated_page_stops_incomplete_without_duplicate_rows(self):
         for final in [page(0, 100), page(99, 3), page(100, 1)[:-1] + b',' + page(100, 1)[1:]]:
             with self.subTest(final=final):
@@ -245,6 +280,49 @@ class LeverWorkerTests(unittest.TestCase):
             self.assertEqual(feed.job_count, 100)
             self.assertEqual(feed.status, 'incomplete')
             self.assertIn('schema', feed.last_error.casefold())
+
+    def assert_malformed_continuation_preserves_rows_and_closure_counters(self, field, value):
+        rows = json.loads(page(100, 1))
+        if field == 'location':
+            rows[0]['categories']['location'] = value
+        else:
+            rows[0][field] = value
+        self.scan(FeedClient({FEED: ok(page(0, 100)),
+                              FEED + '&skip=100': ok(json.dumps(rows).encode())}))
+        with self.factory() as session:
+            feed = session.get(JobFeed, self.feed_id)
+            self.assertEqual(feed.status, 'incomplete')
+            self.assertEqual(feed.job_count, 100)
+            self.assertIn('schema', feed.last_error.casefold())
+            stored = session.scalars(select(Job)).all()
+            self.assertEqual(len(stored), 101)
+            recovered = {job.external_id for job in stored if job.external_id != 'missing'}
+            self.assertEqual(recovered, {str(i) for i in range(100)})
+            missing = session.get(Job, self.job_id)
+            self.assertEqual(missing.missing_complete_scans, 1)
+            self.assertTrue(missing.is_active)
+            self.assertIsNone(missing.closed_at)
+            run = session.scalar(select(ScanRun))
+            self.assertEqual(run.status, 'incomplete')
+            self.assertEqual(run.item_count, 100)
+            self.assertIn('schema', run.error.casefold())
+
+    def test_malformed_continuation_location_preserves_rows_and_closure_counters(self):
+        self.assert_malformed_continuation_preserves_rows_and_closure_counters('location', {'unexpected': 'Berlin'})
+
+    def test_malformed_continuation_title_preserves_rows_and_closure_counters(self):
+        self.assert_malformed_continuation_preserves_rows_and_closure_counters('text', {'unexpected': 'Engineer'})
+
+    def test_null_location_persists_as_missing_location(self):
+        rows = json.loads(page(0, 1))
+        rows[0]['categories']['location'] = None
+        self.scan(FeedClient({FEED: ok(json.dumps(rows).encode())}))
+        with self.factory() as session:
+            feed = session.get(JobFeed, self.feed_id)
+            self.assertEqual(feed.status, 'parsed')
+            incoming = session.scalar(select(Job).where(Job.external_id == '0'))
+            self.assertIsNone(incoming.location_text)
+            self.assertEqual(incoming.locations, [])
 
     def test_304_keeps_previous_incomplete_data_and_diagnostic(self):
         self.scan(FeedClient({FEED: ({'state': 'not_modified', 'status': 304}, b'')}))
