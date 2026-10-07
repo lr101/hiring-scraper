@@ -4,7 +4,7 @@ import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
-import { profileBoardDefaults } from './profile'
+import { profileBoardDefaults, boardLocationParams } from './profile'
 import type { Profile } from './profile'
 
 type Location = {
@@ -15,6 +15,7 @@ type Location = {
   latitude: number
   longitude: number
   precision: string
+  country_code?: string | null
   type?: string
 }
 
@@ -233,10 +234,9 @@ function DirectoryPage() {
     return () => controller.abort()
   }, [])
 
-  const locationParams = useMemo(() => new URLSearchParams({
-    latitude: String(location.latitude), longitude: String(location.longitude), radius_km: String(radius),
-    place: location.city ?? '',
-  }), [location, radius])
+  const locationParams = useMemo(() => boardLocationParams(location, radius,
+    params.get('country_code'), profiles.find(profile => String(profile.id) === profileId)?.search_area?.country_code),
+  [location, radius, params, profiles, profileId])
 
   useEffect(() => {
     let cancelled = false
@@ -378,6 +378,9 @@ function DirectoryPage() {
     url.searchParams.set('lon', String(location.longitude))
     url.searchParams.set('place', location.city ?? location.label.split(',')[0])
     url.searchParams.set('radius_km', String(radius))
+    const effectiveCountry = locationParams.get('country_code')
+    if (effectiveCountry) url.searchParams.set('country_code', effectiveCountry)
+    else url.searchParams.delete('country_code')
     if (selectedLocationKey) url.searchParams.set('location_key', selectedLocationKey)
     else url.searchParams.delete('location_key')
     if (query.trim()) url.searchParams.set('q', query.trim())
@@ -400,7 +403,7 @@ function DirectoryPage() {
       url.searchParams.set('profile_id', ''); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
     }
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
+  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
 
   function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
     const defaults = profileBoardDefaults(profile, overrides)

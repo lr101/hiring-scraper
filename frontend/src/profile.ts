@@ -48,3 +48,11 @@ export function skillEvidenceKey(skill: string, evidence: Profile['skill_evidenc
   const identity = (name: string) => name.trim().toLocaleLowerCase().replace(/^stakeholder management$/, 'stakeholder coordination')
   return Object.hasOwn(evidence, skill) ? skill : Object.keys(evidence).find(name => identity(name) === identity(skill)) ?? skill
 }
+
+/** Use one effective country for board requests and the URL carried into details. */
+export function boardLocationParams(location: { latitude: number; longitude: number; city?: string | null; country_code?: string | null }, radius: number, countryOverride?: string | null, profileCountry?: string | null) {
+  const params = new URLSearchParams({ latitude: String(location.latitude), longitude: String(location.longitude), radius_km: String(radius), place: location.city ?? '' })
+  const country = countryOverride ?? location.country_code ?? profileCountry
+  if (country) params.set('country_code', country.trim().toUpperCase())
+  return params
+}
