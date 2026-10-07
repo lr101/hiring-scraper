@@ -11,7 +11,7 @@ services:
       - hiring_db:/var/lib/postgresql/data
       - ./docker/init-app-user.sh:/docker-entrypoint-initdb.d/010-app-user.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d hiring"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d hiring"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -59,7 +59,7 @@ services:
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
       interval: 10s
-      timeout: 3s
+      timeout: 10s
       retries: 5
       start_period: 10s
 
@@ -122,7 +122,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "${HIRING_WEB_BIND:-0.0.0.0}:${HIRING_WEB_PORT:-8080}:80"
     depends_on:
       api:
         condition: service_healthy

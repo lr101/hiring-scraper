@@ -13,3 +13,4 @@ hiring.db
 *.body
 # Task-specific regional captures and local private inputs.
 data/local-cv-board/
+.ci-results/

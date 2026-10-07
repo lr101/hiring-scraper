@@ -62,6 +62,8 @@ This requires Docker with Buildx, Docker Compose 2.20+, Bash, and standard shell
 
 The **Container checks** GitHub status runs for pull requests, `main`, `v*` tags, and manual dispatch. Passing checks gate GHCR publishing on `main` and version-tag pushes. Every published image gets the full commit SHA; `latest` follows `main` only. Release tags also get sanitized tag and semver tags. See [CI and release documentation](docs/ci.md) for branch protection, artifacts, dependency updates, image tags, and troubleshooting.
 
+The [2026-10-07 container verification](docs/container-ci-verification.md) records 348 passing Python tests, frontend checks/builds, production image builds, and a successful fresh PostgreSQL/PostGIS smoke with stable repeated-import counts.
+
 ## Preview on the shared development gateway
 
 `scripts/dev/preview.sh` builds the UI with the preview's API origin and starts the static UI, FastAPI, and a location-search worker on reserved loopback ports. The preview worker handles location campaigns and their company checks, while skipping the fixture's unrelated site-wide rescan backlog. Each slug gets its own SQLite copy and crawl captures under `/tmp/serve-dev-worktree/hiring-scraper/`; no shared database is modified. Use a fresh slug for every launch; the adapter rejects a slug whose state, database, or gateway host already exists.
@@ -161,7 +163,18 @@ mise exec -- uv run python -m hiring_scraper.app.cv_board \
   --employer-data data/local-cv-board/employer-supplement.json
 ```
 
-Full job descriptions and source responses stay in ignored local files. For a new bounded Arbeitsagentur acquisition, choose a fresh output directory. This uses the observed public Jobsuche endpoint, whose interface is not a guaranteed stable contract:
+Full job descriptions and source responses stay in ignored local files.
+
+For a running Compose stack, import the same profile into PostgreSQL with a read-only capture mount. The capture stays outside the built image; the profile and imported jobs persist in the deployment's database volume:
+
+```bash
+docker compose run --rm --no-deps \
+  --volume "$PWD/data/local-cv-board/ba-details.json:/input/regional.json:ro" \
+  api python -m hiring_scraper.app.cv_board \
+  --profile fixtures/cv_profile.json --regional-data /input/regional.json
+```
+
+For a new bounded Arbeitsagentur acquisition using the native development environment, choose a fresh output directory. This uses the observed public Jobsuche endpoint, whose interface is not a guaranteed stable contract:
 
 ```bash
 mise exec -- uv run python -m hiring_scraper.app.regional acquire \

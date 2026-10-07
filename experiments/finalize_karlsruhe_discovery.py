@@ -6,7 +6,6 @@ import csv
 import hashlib
 import json
 import os
-import subprocess
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +13,7 @@ from urllib.parse import urlsplit
 
 from hiring_scraper.discovery import trusted_html_jobs
 from hiring_scraper.html_jobs import extract_html_jobs
+from hiring_scraper.provenance import git_metadata
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -454,10 +454,7 @@ def finalize(candidates_path: Path, seed_path: Path, scope_path: Path, run_dirs:
     run = {"started_at": min(run_starts) if run_starts else observed_at,
            "finished_at": max(run_finishes) if run_finishes else observed_at,
            "input_runs": [str(path) for path in run_dirs], "source_scope": str(scope_path),
-           "git_revision": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True,
-                                           text=True).stdout.strip(),
-           "git_dirty": bool(subprocess.run(["git", "status", "--porcelain"], capture_output=True,
-                                            text=True).stdout.strip())}
+           **git_metadata(ROOT)}
     source_files = list((ROOT / "hiring_scraper").rglob("*.py")) + [Path(__file__).resolve()]
     run["source_sha256"] = {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                             for path in sorted(set(source_files))}

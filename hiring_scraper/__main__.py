@@ -3,7 +3,6 @@ import argparse
 import csv
 import json
 import hashlib
-import subprocess
 import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import Counter
@@ -12,6 +11,7 @@ from pathlib import Path
 from threading import Lock
 from .discovery import discover
 from .http import Client, OriginPacer, RequestBudget
+from .provenance import git_metadata
 
 
 def main():
@@ -37,9 +37,8 @@ def main():
     args.out.mkdir(parents=True)
     (args.out/'seeds.json').write_text(json.dumps(seeds,indent=2,ensure_ascii=False)+'\n')
     run={'started_at':datetime.now(timezone.utc).isoformat(),'arguments':{k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()},
-         'git_revision':subprocess.run(['git','rev-parse','HEAD'],capture_output=True,text=True).stdout.strip()}
+         **git_metadata(Path(__file__).resolve().parents[1])}
     run['source_sha256']={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(Path(__file__).parent.glob('*.py'))}
-    run['git_dirty']=bool(subprocess.run(['git','status','--porcelain'],capture_output=True,text=True).stdout.strip())
     (args.out/'run.json').write_text(json.dumps(run,indent=2)+'\n')
     worker_count=min(args.workers,len(seeds))
     budget=RequestBudget(args.max_requests)

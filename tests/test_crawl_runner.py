@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,7 +24,8 @@ class CrawlRunnerTests(unittest.TestCase):
 
             argv = ["hiring-scraper", "--seeds", str(seed_path), "--out", str(out),
                     "--workers", "2", "--checkpoint-every", "1"]
-            with patch("sys.argv", argv), patch.object(runner, "discover", side_effect=fake_discover):
+            with patch("sys.argv", argv), patch.object(runner, "discover", side_effect=fake_discover), \
+                    patch.dict(os.environ, {'PATH': directory}):
                 runner.main()
 
             results = json.loads((out / "results.json").read_text(encoding="utf-8"))
@@ -33,6 +35,10 @@ class CrawlRunnerTests(unittest.TestCase):
             self.assertEqual(summary["statuses"], {"career_content_found": 4})
             self.assertTrue((out / "companies.csv").exists())
             self.assertTrue((out / "run.json").exists())
+            metadata = json.loads((out / 'run.json').read_text())
+            self.assertIsNone(metadata['git_revision'])
+            self.assertIsNone(metadata['git_dirty'])
+            self.assertTrue(metadata['source_sha256'])
 
 
 if __name__ == "__main__":

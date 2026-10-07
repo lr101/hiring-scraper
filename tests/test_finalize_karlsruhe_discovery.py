@@ -2,8 +2,10 @@ import unittest
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 import tempfile
+from unittest.mock import patch
 
 from experiments.finalize_karlsruhe_discovery import build_enrichment, filter_unverified_html, finalize
 
@@ -156,9 +158,14 @@ class FinalizeDiscoveryTests(unittest.TestCase):
                 "boards": []}
             (run_dir / "results.json").write_text(json.dumps([result]), encoding="utf-8")
             enrichment_path.write_text(json.dumps({"companies": []}), encoding="utf-8")
-            summary = finalize(candidates_path, seeds_path, scope_path, [run_dir], out, enrichment_path)
+            with patch.dict(os.environ, {'PATH': directory}):
+                summary = finalize(candidates_path, seeds_path, scope_path, [run_dir], out, enrichment_path)
             self.assertEqual(summary["crawled_candidates"], 1)
             self.assertTrue((out / "run.json").exists())
+            metadata = json.loads((out / 'run.json').read_text())
+            self.assertIsNone(metadata['git_revision'])
+            self.assertIsNone(metadata['git_dirty'])
+            self.assertTrue(metadata['source_sha256'])
             self.assertTrue((out / "http/cap1.body").exists())
             enrichment = json.loads(enrichment_path.read_text(encoding="utf-8"))
             self.assertEqual(enrichment["companies"][0]["career_url"], "https://acme.example/careers")
