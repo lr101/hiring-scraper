@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from dotenv import dotenv_values
+from sqlalchemy import create_engine, text
 
 
 APP_UID = 10001
@@ -87,20 +88,53 @@ def _migration_database_url() -> str:
     return f"postgresql+psycopg://postgres:{quote(password, safe='')}@db:5432/hiring"
 
 
-def _application_database_url() -> str:
+def _application_database_password() -> str:
     _verify_bootstrap_file_permissions()
     values = dotenv_values(BOOTSTRAP_ENV_FILE)
     password = values.get("HIRING_DB_PASSWORD")
     if not password:
         raise RuntimeError("HIRING_DB_PASSWORD is missing from the bootstrap environment file")
+    return password
+
+
+def _application_database_url() -> str:
+    password = _application_database_password()
     return f"postgresql+psycopg://hiring_app:{quote(password, safe='')}@db:5432/hiring"
+
+
+def _ensure_application_role(migration_url: str, application_password: str) -> None:
+    engine = create_engine(migration_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(text("SELECT pg_advisory_xact_lock(85793011, 1)"))
+            role_exists = connection.scalar(
+                text("SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'hiring_app')")
+            )
+            operation = "ALTER" if role_exists else "CREATE"
+            role_command = (
+                f"{operation} ROLE hiring_app WITH LOGIN NOSUPERUSER "
+                "NOCREATEDB NOCREATEROLE PASSWORD %L"
+            )
+            statement = connection.scalar(
+                text("SELECT format(:role_command, CAST(:password AS text))"),
+                {"role_command": role_command, "password": application_password},
+            )
+            connection.exec_driver_sql(statement)
+            connection.exec_driver_sql("GRANT CONNECT ON DATABASE hiring TO hiring_app")
+            connection.exec_driver_sql("GRANT USAGE ON SCHEMA public TO hiring_app")
+    finally:
+        engine.dispose()
 
 
 def _bootstrap() -> str:
     application_url = _application_database_url()
+    migration_url = _migration_database_url()
+    print("Ensuring the application database role exists", flush=True)
+    _ensure_application_role(migration_url, _application_database_password())
+
     print("Applying database migrations", flush=True)
     migration_environment = _runtime_environment(application_url)
-    migration_environment["DATABASE_URL"] = _migration_database_url()
+    migration_environment["DATABASE_URL"] = migration_url
     migration_environment.pop("DATABASE_ADMIN_URL", None)
     migration_environment.pop("POSTGRES_PASSWORD", None)
     subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)

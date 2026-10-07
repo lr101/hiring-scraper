@@ -21,5 +21,9 @@ services:
     init: true
 
   app:
+    image: ${HIRING_APP_IMAGE:-hiring-scraper:ci}
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       RUN_BACKGROUND_WORKERS: "false"
