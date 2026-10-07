@@ -475,6 +475,81 @@ class CvMatchingTests(unittest.TestCase):
                 if eligible and profile['language_levels'].get('English') == 'C1':
                     self.assertFalse(any('German C1' in conflict for conflict in result['conflicts']))
 
+    def test_soft_wrapped_clinical_qualification_bullets_remain_requirements(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        result = match_job({'title': 'Projektkoordinator', 'description':
+                            '- Unterstützung bei der Erstellung von GMP- und\nGCP-relevanten SOPs\n\n'
+                            '- Abgeschlossenes naturwissenschaftliches oder heilberufliches\nStudium (Bachelor oder duales Studium)\n'
+                            '- Erfahrung im Bereich der Entwicklung oder im GMP-/GCP-Umfeld\n'
+                            '- Kenntnisse der GMP-/GCP-Regularien\n\n' +
+                            'Project management and stakeholder coordination. ' * 20}, profile)
+        self.assertTrue(any('GMP' in gap for gap in result['requirement_gaps']))
+        self.assertTrue(any('naturwissenschaftliches' in gap for gap in result['requirement_gaps']))
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_parenthetical_minimum_cefr_survives_abbreviation_and_unknown_heading(self):
+        job = {'title': 'Senior Projektmanager', 'description':
+               '**Lust bekommen?** Wenn Du die folgenden Hard Facts mitbringst:\n'
+               '* Sehr gute Deutschkenntnisse (mind. C1) und gute Englischkenntnisse (mind. B2)\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        result = match_job(job, CV)
+        self.assertFalse(result['eligible'])
+        self.assertTrue(any('German C1' in conflict for conflict in result['conflicts']))
+
+    def test_preferred_degree_specialty_and_optional_english_do_not_remove_mandatory_base(self):
+        job = {'title': 'Technischer Projektleiter', 'description':
+               'Ihr Profil:\n- Elektrotechnik: Studium der Elektrotechnik, bevorzugt im Bereich Energie- oder Automatisierungstechnik, alternativ eine Weiterbildung zum staatlich geprüften Techniker der Elektrotechnik\n'
+               '- Kenntnisse mit sehr guten Deutschkenntnisse (C1 - Level) - gute Englischkenntnisse sind von Vorteil\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        result = match_job(job, {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]})
+        self.assertTrue(any('Elektrotechnik' in gap for gap in result['requirement_gaps']))
+        self.assertFalse(result['eligible'])
+        self.assertTrue(any('German C1' in conflict for conflict in result['conflicts']))
+
+    def test_formal_building_automation_qualification_is_a_specialist_gap(self):
+        job = {'title': 'Projektleiter Gebäudeautomation', 'description':
+               'Ihre Aufgaben bei uns\n- Werkpläne in AutoCAD erstellen\n\nDamit begeistern Sie uns\n'
+               '- Meister, Techniker oder Ingenieur im Bereich der Automatisierungstechnik, Gebäudeautomation, Versorgungstechnik\n'
+               '- Projekterfahrung in der Lüftungs-, Kälte- und Heizungstechnik\n'
+               '- Erfahrung in der Steuer- und Regelungstechnik für HKL-Anlagen\nDafür bieten wir Ihnen\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        result = match_job(job, CV)
+        self.assertTrue(result['requirement_gaps'])
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_physician_training_title_does_not_match_learning_and_development(self):
+        for title in ('Arzt in Weiterbildung für Allgemeinmedizin',
+                      'Facharzt Angiologie / Arzt in Weiterbildung Kardiologie'):
+            with self.subTest(title=title):
+                self.assertEqual(match_job({'title': title}, CV)['fit_tier'], 'unlikely')
+        self.assertGreaterEqual(match_job({'title': 'Weiterbildung Koordinator'}, CV)['score'], 30)
+
+    def test_unnamed_c2_language_stays_explicit_review_gap(self):
+        result = match_job({'title': 'Projektkoordinator', 'description':
+                            'Abgeschlossenes Hochschulstudium. Sprachniveau C2. ' +
+                            'Project management and stakeholder coordination. ' * 20}, CV)
+        self.assertTrue(any('C2' in gap for gap in result['requirement_gaps']))
+        self.assertTrue(result['eligible'])
+        self.assertFalse(any('German C2' in conflict for conflict in result['conflicts']))
+
+    def test_senior_title_with_unknown_relevant_tenure_needs_review(self):
+        result = match_job({'title': 'Senior Projektmanager', 'description':
+                            'Project management and stakeholder coordination. ' * 20}, CV)
+        self.assertEqual(result['fit_tier'], 'possible')
+        self.assertTrue(any('tenure' in gap for gap in result['requirement_gaps']))
+
+    def test_digital_and_event_coordination_positives_keep_supported_qualification_alternatives(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        for description in (
+            'Deine Aufgaben:\nAnforderungsanalyse und Projektmanagement\nMust-have:\nDu verfügst über eine erfolgreich abgeschlossene Berufsausbildung oder ein Studium\nNice-to-have:\nErfahrung in der Softwareentwicklung\n',
+            'Ihr Aufgabenbereich:\nVeranstaltungen und Trainings koordinieren\nIhre Qualifikation:\nEine erfolgreich abgeschlossene Ausbildung oder ein Studium oder eine vergleichbare Qualifikation\nWas wir bieten:\nWeiterbildung\n',
+        ):
+            with self.subTest(description=description):
+                result = match_job({'title': 'Projektkoordinator', 'description': description +
+                                    'Project management and stakeholder coordination. ' * 20}, profile)
+                self.assertTrue(result['eligible'])
+                self.assertNotEqual(result['fit_tier'], 'unlikely')
+
     def test_required_language_list_stops_at_explicit_contrast(self):
         for wording in (
             'Your qualifications: English C1, German C1, but French A2 preferred.',

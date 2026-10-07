@@ -34,27 +34,49 @@ def structured_text(value) -> str:
         doc.feed(chunk)
         texts.append(''.join(doc.text))
     lines = [' '.join(line.split()) for line in '\n'.join(texts).splitlines()]
-    result = '\n'.join(line for line in lines if line)
+    result = re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
+    result = '\n'.join(_logical_lines(result))
     return result if len(result) <= 240000 else result[:120000] + '\n' + result[-120000:]
 
 
 _REQUIRED_HEADING = re.compile(
     r'^(?:(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
-    r'(?:ihre|deine)\s+qualifikationen|required qualifications|requirements|qualifications|anforderungen|'
+    r'(?:ihre|deine)\s+qualifikation(?:en)?|required qualifications|damit begeistern sie uns|must.have|requirements|qualifications|anforderungen|'
     r'(?:das|was)\s+(?:sie|du)\s+mitbring(?:en|st)|was wir erwarten|'
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)
 _OTHER_HEADING = re.compile(
-    r'^(?:(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben|tasks|responsibilities|benefits)|'
-    r'responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|'
+    r'^(?:(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
+    r'responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|was wir bieten|dafür bieten wir ihnen|'
     r'das bieten wir|unser angebot|über uns|about us|kontakt|contact|bewerbung|tasks|'
     r'das sind (?:deine|ihre) aufgaben|diese herausforderungen|' 
     r'ihre vorteile|deine vorteile|deine benefits|ihre benefits|das erwartet (?:sie|dich))\b', re.I)
 _OPTIONAL_HEADING = re.compile(r'^(?:preferred qualifications|nice.to.have|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
 
 
+def _logical_lines(text: str) -> list[str]:
+    # Join source soft-wraps only inside a bullet; blank lines/headings retain
+    # their boundaries. This is distinct from flattening separate requirements.
+    logical_lines = []
+    bullet = False
+    for line in text.splitlines():
+        stripped = line.strip()
+        heading = bool(_REQUIRED_HEADING.search(stripped.strip('*# ')) or
+                       _OTHER_HEADING.search(stripped.strip('*# ')) or
+                       _OPTIONAL_HEADING.search(stripped.strip('*# ')))
+        starts_bullet = bool(re.match(r'^[-*•]\s+', stripped))
+        if bullet and stripped and not starts_bullet and not heading and not stripped.startswith(('#', '**')):
+            logical_lines[-1] += ' ' + stripped
+        else:
+            logical_lines.append(line)
+            bullet = starts_bullet
+        if not stripped:
+            bullet = False
+    return logical_lines
+
+
 def scoped_sentences(text: str, *, structured: bool = False):
     scope = 'requirements' if structured else 'neutral'
-    for part in re.split(r'(?<=[.!?])\s+|\s*[;\n]\s*', text):
+    for part in re.split(r'(?<=[.!?])(?<!mind\.)(?<!min\.)\s+|\s*[;\n]\s*', '\n'.join(_logical_lines(text)), flags=re.I):
         sentence = re.sub(r'^[\s#*•\-]+|[*#]+$', '', part).strip()
         if not sentence:
             continue
@@ -64,16 +86,20 @@ def scoped_sentences(text: str, *, structured: bool = False):
             scope = 'duties' if re.search(r'aufgaben|tasks|responsibilities|duties', sentence, re.I) else 'benefits'
         elif _OPTIONAL_HEADING.search(sentence):
             scope = 'optional'
+        elif re.match(r'^abgeschlossen\w*\b', sentence, re.I) and APPLICANT_CUE.search(sentence):
+            scope = 'requirements'
         yield sentence, scope
 
 
-DEGREE = re.compile(r'\b(?:degree|bachelor\w*|master\w*|doctorate|phd|studium|hochschulabschluss|abschluss|ausbildung)\b', re.I)
+DEGREE = re.compile(r'\b(?:degree|bachelor\w*|master\w*|doctorate|phd|studium|hochschulstudium|hochschulabschluss|abschluss|ausbildung)\b', re.I)
 DEGREE_FIELDS = {
     'electrical engineering': r'elektrotechnik|electrical engineering|elektroingenieur\w*',
     'mechanical engineering': r'maschinenbau|mechanical engineering',
     'civil engineering': r'bauingenieur\w*|bauwesen|civil engineering',
     'computer science': r'informatik|computer science|wirtschaftsinformatik',
     'business administration': r'betriebswirtschaft\w*|business administration|bwl|wirtschaftswissenschaft\w*',
+    'life sciences': r'naturwissenschaft\w*|life sciences?',
+    'health sciences': r'heilberuf\w*|health sciences?|healthcare|medizin',
     'chemistry': r'chemie|chemistry', 'pharmacy': r'pharmazie|pharmacy',
     'innovation engineering': r'innovation and development engineering|innovationsengineering',
     'engineering': r'ingenieurwissenschaft\w*|ingenieurwesen|engineering',
@@ -81,11 +107,11 @@ DEGREE_FIELDS = {
 DOMAIN = re.compile(
     r'\b(?:medical devices?|medizintechnik|PV|photovoltaik|photovoltaics?|solar|'
     r'electrical|elektrotechnik|construction|bauwesen|bauleitung|bauingenieur\w*|'
-    r'insurance|underwriting|versicher\w*|pharma\w*|GMP|GxP|energietechnik|automatisierungstechnik|EMSR|SCADA|versorgungstechnik|SHK|hochbau|tiefbau|ingenieurbau|verkehrsplanung|sicherheitstechnik|SAP(?:\s+[A-Z]{2,5})?|'
+    r'insurance|underwriting|versicher\w*|pharma\w*|GMP|GCP|GxP|gebäudeautomation|steuer. und regelungstechnik|HKL|VOB|energietechnik|automatisierungstechnik|EMSR|SCADA|versorgungstechnik|SHK|hochbau|tiefbau|ingenieurbau|verkehrsplanung|sicherheitstechnik|SAP(?:\s+[A-Z]{2,5})?|'
     r'S/4HANA|HANA|cloud infrastructure|rechenzentrum)\b', re.I)
 CERTIFICATE = re.compile(r'\b(?:PMP|PRINCE2|Scrum\s+(?:Master|certification)|certification|zertifizier(?:ung|t))\b', re.I)
 TENURE = re.compile(r'\b(?:professional\s+(?:experience|\w+\s+experience)|berufserfahrung|mehrjährige\w*\s+erfahrung|extensive\s+experience|langjährige\w*\s+erfahrung)\b', re.I)
-APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|masterstudium|bachelorstudium|ausbildung)|(?:you have|you possess|sie verfügen|du verfügst|verfügst über|verfügen über)\s+(?:\w+\s+){0,4}(?:experience|erfahrung|berufserfahrung|kenntnisse))\b', re.I)
+APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|hochschulstudium|masterstudium|bachelorstudium|ausbildung)|(?:you have|you possess|sie verfügen|du verfügst|verfügst über|verfügen über)\s+(?:\w+\s+){0,4}(?:experience|erfahrung|berufserfahrung|kenntnisse))\b', re.I)
 ENROLMENT = re.compile(r'\b(?:immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
 
 
@@ -112,6 +138,10 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
         unknown_field = field_phrase.group(1).strip(' .') if field_phrase and not fields else None
         row('education', 'Degree', hit, level=level, fields=fields, unknown_field=unknown_field,
             alternative=bool(re.search(r'\b(?:or|oder|alternativ)\b', clause, re.I)))
+    if re.match(r'^(?:Meister|Techniker|Ingenieur)\b', clause, re.I) and re.search(r'im Bereich', clause, re.I):
+        row('qualification', 'Specialist technical qualification', None)
+    if re.search(r'\bSprachniveau\s+(?:C1|C2)\b', clause, re.I):
+        row('qualification', 'Unspecified language level', None)
     for hit in CERTIFICATE.finditer(clause):
         row('certification', hit.group(), hit)
     for hit in DOMAIN.finditer(clause):

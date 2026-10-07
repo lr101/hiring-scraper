@@ -8,13 +8,14 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from functools import lru_cache
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
-                                         education_satisfied, TENURE, APPLICANT_CUE, DOMAIN)
+                                         education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v9'
+VERSION = 'rules-v10'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -88,6 +89,8 @@ ROLE_GROUPS = [
      'business analyse', 'anforderungsmanager', 'anforderungsmanagerin', 'business process analyst'],
     ['cad designer', 'cad konstrukteur', 'cad konstrukteurin', 'konstrukteur', 'konstrukteurin'],
 ]
+# Immutable role groups make bounded query membership caching safe.
+ROLE_GROUPS = tuple(tuple(group) for group in ROLE_GROUPS)
 OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschenswert|bevorzugt|von vorteil|a plus|not required|nicht erforderlich', re.I)
 REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|voraussetzung|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
 NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
@@ -114,6 +117,7 @@ def plain_text(value) -> str:
     return result if len(result) <= 240000 else result[:120000] + ' ' + result[-120000:]
 
 
+@lru_cache(maxsize=4096)
 def _pattern(term: str):
     return re.compile(r'(?<![\w+#])' + re.escape(term) + r'(?![\w+#])', re.I)
 
@@ -204,7 +208,7 @@ def _requirement_clauses(sentence: str) -> list[str]:
 
     # Resolve clause boundaries before splitting coordinated lists: their trailing
     # qualifier must stay with the whole list when deciding the outer scope.
-    barriers = re.split(r'\b(?:but|aber|jedoch)\b', sentence, flags=re.I)
+    barriers = re.split(r'\b(?:but|aber|jedoch)\b|\s+[-–]\s+(?=(?:gute|good|fluent|fließende)\s+(?:englisch|english|deutsch|german))', sentence, flags=re.I)
     clauses = [clause for barrier in barriers for clause in split_scoped(barrier, r',\s*')]
     return [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
 
@@ -235,7 +239,12 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
             requirement_section = scope == 'requirements'
             if scope == 'optional':
                 continue
-            for clause in _requirement_clauses(sentence):
+            clauses = _requirement_clauses(sentence)
+            if requirement_section and DEGREE.search(sentence) and ',' in sentence:
+                base, remainder = sentence.split(',', 1)
+                if DEGREE.search(base) and OPTIONAL.search(remainder):
+                    clauses = _requirement_clauses(base) + _requirement_clauses(remainder)
+            for clause in clauses:
                 for exp in experience_pattern.finditer(clause):
                     minimum = bool(re.search(r'at least|minimum|min\.?|mindestens|\+\s*years?', exp.group(), re.I))
                     if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum)):
@@ -269,7 +278,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     level = levels[index]
                     if scope == 'benefits' and not REQUIREMENT.search(clause):
                         continue
-                    if not (level or fluency_term.search(clause)) or not _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(implicit_fluency.search(clause)))):
+                    if not (level or fluency_term.search(clause)) or not _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(implicit_fluency.search(clause) or re.search(r'\b(?:mind\.|min\.|minimum)\s*(?:A1|A2|B1|B2|C1|C2)\b', clause, re.I)))):
                         continue
                     group = alternative_groups.get(index)
                     previous = next((row for row in languages if row['value'] == language
@@ -284,7 +293,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     if group:
                         row['alternative_group'] = group
                     languages.append(row)
-                if _required_context(clause, explicit=requirement_section or bool(APPLICANT_CUE.search(clause))):
+                if _required_context(clause, explicit=requirement_section or bool(APPLICANT_CUE.search(clause)) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I))):
                     rows = qualification_rows(clause, source)
                     professional = bool(TENURE.search(clause))
                     for name, aliases in SKILLS.items():
@@ -388,6 +397,12 @@ def enrich_job(job: dict) -> dict:
             'quality': 'limited' if len(description) < 350 else 'description_available', 'warnings': warnings}
 
 
+@lru_cache(maxsize=1024)
+def _role_group_indexes(role: str) -> tuple[int, ...]:
+    return tuple(index for index, group in enumerate(ROLE_GROUPS)
+                 if any(_pattern(alias).search(role) for alias in group))
+
+
 def _role_match(role: str, title: str) -> bool:
     role = role.strip().casefold()
     specific_roles = {'backend': ['backend','back-end','back end','full stack','fullstack'],
@@ -397,8 +412,13 @@ def _role_match(role: str, title: str) -> bool:
             return any(_pattern(alias).search(title) for alias in aliases)
     if _pattern(role).search(title):
         return True
-    return any(any(_pattern(alias).search(role) for alias in group) and
-               any(_pattern(alias).search(title) for alias in group) for group in ROLE_GROUPS)
+    for index in _role_group_indexes(role):
+        group = ROLE_GROUPS[index]
+        if 'weiterbildung' in group and re.search(r'\b(?:facharzt|arzt|ärztin|physician)\b', title, re.I):
+            continue
+        if any(_pattern(alias).search(title) for alias in group):
+            return True
+    return False
 
 
 def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
@@ -539,6 +559,11 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         if not any(row['evidence'] == experience['evidence'] and row.get('kind') in {'domain', 'professional_experience'}
                    for row in enriched.get('requirements', [])):
             gap_penalties[gap] = 15
+    if (roles or secondary_roles) and profile.get('experience_years') is None and (enriched.get('seniority') or {}).get('value') in {'senior', 'lead'}:
+        gap = 'Verify senior-level professional tenure: exact relevant CV months not established'
+        requirement_gaps.append(gap)
+        unknowns.append(gap)
+        gap_penalties[gap] = 15
     for term in profile.get('excluded_terms', []):
         if _pattern(term).search(plain_text(job.get('title'))):
             conflicts.append('Excluded title term: ' + term)
