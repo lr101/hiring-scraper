@@ -13,6 +13,6 @@ no historical releases have been reconstructed.
 ### Added
 
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
-- Changelog validation and GitHub Releases using curated notes after container checks and both image publications succeed.
+- Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
 - Maintainer checklist for release preparation and GitHub repository settings.
 - MIT license for the software, with third-party data terms preserved.

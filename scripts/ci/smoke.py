@@ -1,22 +1,31 @@
-"""Exercise the deployed PostgreSQL API through nginx using isolated CI data."""
+"""Exercise the deployed PostgreSQL app using isolated CI data."""
 from __future__ import annotations
 
 import copy
 import json
+import os
 import re
 from pathlib import Path
 from urllib.error import HTTPError
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
+from dotenv import dotenv_values
 from sqlalchemy import func, select, text
+
+database_password = dotenv_values('/run/app-bootstrap.env').get('HIRING_DB_PASSWORD')
+if not database_password:
+    raise RuntimeError('HIRING_DB_PASSWORD is missing from the CI bootstrap environment file')
+os.environ['DATABASE_URL'] = (
+    f"postgresql+psycopg://hiring_app:{quote(database_password, safe='')}@db:5432/hiring"
+)
 
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import Company, Job, JobFeed
 from hiring_scraper.app.seed import import_fixture
 
-WEB = 'http://web'
-API = 'http://api:8000'
+WEB = 'http://app:8000'
+API = 'http://app:8000'
 
 
 def read(url: str, *, method: str = 'GET', payload: dict | None = None):
@@ -41,7 +50,6 @@ def database_counts() -> dict:
 
 def main() -> None:
     assert read(API + '/health/ready') == {'status': 'ready'}
-    assert read(WEB + '/healthz').strip() == 'ok'
     page = read(WEB + '/')
     assert 'id="root"' in page
     assets = re.findall(r'(?:src|href)="([^\"]+\.(?:js|css))"', page)
@@ -106,7 +114,7 @@ def main() -> None:
             assert all(row['id'] != profile_id for row in read(WEB + '/api/v1/profiles')['items'])
     print(json.dumps({'result': 'pass', 'database': 'PostgreSQL/PostGIS',
                       'application_role': 'hiring_app', 'repeat_import': before,
-                      'checks': ['readiness', 'nginx assets and SPA', 'API proxy',
+                      'checks': ['readiness', 'static assets and SPA', 'same-origin API',
                                  'profile create/edit/validation/delete', 'regional defaults',
                                  'unique pagination', 'list/detail agreement', 'country override']}, indent=2))
 

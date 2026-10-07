@@ -18,17 +18,17 @@ project="hiring-ci-$(date +%s)-$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n')"
 results_dir="$repo_dir/.ci-results"
 mkdir -p "$results_dir"
 env_file="$private_dir/ci.env"
+HIRING_DOTENV_FILE="$env_file"
 # Explicit environment overrides prevent a developer's credentials/images from
 # winning Compose interpolation over this invocation's private generated values.
-export POSTGRES_PASSWORD HIRING_DB_PASSWORD HIRING_API_IMAGE HIRING_WEB_IMAGE
-export HIRING_QUALITY_IMAGE HIRING_WEB_BIND HIRING_WEB_PORT
+export POSTGRES_PASSWORD HIRING_DB_PASSWORD HIRING_APP_IMAGE HIRING_QUALITY_IMAGE HIRING_DOTENV_FILE
+export APP_BIND APP_PORT
 POSTGRES_PASSWORD=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
 HIRING_DB_PASSWORD=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
-HIRING_API_IMAGE="$project-api:check"
-HIRING_WEB_IMAGE="$project-web:check"
+HIRING_APP_IMAGE="$project-app:check"
 HIRING_QUALITY_IMAGE="$project-checks:check"
-HIRING_WEB_BIND=127.0.0.1
-HIRING_WEB_PORT=0
+APP_BIND=127.0.0.1
+APP_PORT=0
 printf 'POSTGRES_PASSWORD=%s\nHIRING_DB_PASSWORD=%s\n' \
     "$POSTGRES_PASSWORD" "$HIRING_DB_PASSWORD" > "$env_file"
 compose=(docker compose --env-file "$env_file" --project-name "$project" \
@@ -58,10 +58,9 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 "${compose[@]}" config --quiet
-"${compose[@]}" build --pull quality api web 2>&1 | tee "$results_dir/$project-build.log"
+"${compose[@]}" build --pull quality app 2>&1 | tee "$results_dir/$project-build.log"
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
-# Target web and its dependencies explicitly: CI starts no crawl workers.
-"${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" web
-"${compose[@]}" exec -T web nginx -t
+# The CI override disables live crawl workers while keeping the production app image.
+"${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app
 "${compose[@]}" run --rm --no-deps smoke 2>&1 | tee "$results_dir/$project-smoke.log"
 printf '%s\n' "Container checks passed; logs: $results_dir"

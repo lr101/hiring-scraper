@@ -52,7 +52,7 @@ jobs:
           retention-days: 7
 
   publish:
-    name: Publish ${{ matrix.image }} image
+    name: Publish application image
     needs: checks
     if: >-
       github.event_name == 'push' &&
@@ -63,18 +63,8 @@ jobs:
       contents: read
       packages: write
     concurrency:
-      group: container-publish-${{ github.ref }}-${{ matrix.image }}
+      group: container-publish-${{ github.ref }}
       cancel-in-progress: false
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - image: api
-            context: .
-            file: Dockerfile.api
-          - image: web
-            context: ./frontend
-            file: ./frontend/Dockerfile
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -91,7 +81,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ghcr.io/${{ steps.repository.outputs.name }}/hiring-scraper-${{ matrix.image }}
+          images: ghcr.io/${{ steps.repository.outputs.name }}/hiring-scraper
           flavor: latest=false
           tags: |
             type=raw,value=${{ github.sha }}
@@ -115,14 +105,14 @@ jobs:
       - name: Build and publish
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: ${{ matrix.context }}
-          file: ${{ matrix.file }}
+          context: .
+          file: Dockerfile
           push: true
           platforms: linux/amd64
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          cache-from: type=gha,scope=hiring-scraper-${{ matrix.image }}
-          cache-to: type=gha,mode=max,scope=hiring-scraper-${{ matrix.image }}
+          cache-from: type=gha,scope=hiring-scraper-app
+          cache-to: type=gha,mode=max,scope=hiring-scraper-app
 
   release:
     name: Create GitHub Release
