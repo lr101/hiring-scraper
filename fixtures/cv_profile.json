@@ -171,7 +171,7 @@
     }
   },
   "matching_defaults": {
-    "min_match_score": 30,
+    "min_match_score": 20,
     "include_unknown": true
   },
   "education": [

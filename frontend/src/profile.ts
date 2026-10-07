@@ -27,3 +27,24 @@ export function profileBoardLink(profile: Pick<Profile, 'id' | 'search_area' | '
   }
   return `/?${params}`
 }
+
+/** Persist only visible languages, preserving proficiency across case-only edits. */
+export function selectedLanguageLevels(languages: string[], levels: Record<string, string>) {
+  const selected: Record<string, string> = {}
+  const seen = new Set<string>()
+  for (const text of languages) {
+    const language = text.trim()
+    const identity = language.toLocaleLowerCase()
+    if (!language || seen.has(identity)) continue
+    seen.add(identity)
+    const key = Object.hasOwn(levels, language) ? language : Object.keys(levels).find(name => name.trim().toLocaleLowerCase() === identity)
+    if (key) selected[language] = levels[key]
+  }
+  return selected
+}
+
+/** Match the canonical imported skill to the original evidence entry for editing. */
+export function skillEvidenceKey(skill: string, evidence: Profile['skill_evidence']) {
+  const identity = (name: string) => name.trim().toLocaleLowerCase().replace(/^stakeholder management$/, 'stakeholder coordination')
+  return Object.hasOwn(evidence, skill) ? skill : Object.keys(evidence).find(name => identity(name) === identity(skill)) ?? skill
+}

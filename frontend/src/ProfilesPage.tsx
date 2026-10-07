@@ -3,7 +3,7 @@ import SiteHeader from './SiteHeader'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
-import { profileBoardLink } from './profile'
+import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
 const empty = (): Profile => ({ name: '', summary: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true } })
@@ -47,7 +47,7 @@ export default function ProfilesPage() {
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     try {
-      const { id, ...payload } = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), certifications: terms(certificationsText) }
+      const { id, ...payload } = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       edit(saved); await load(); setNotice('Profile saved. You can now use it to find matching jobs.')
@@ -112,7 +112,7 @@ export default function ProfilesPage() {
         {choices('seniority_levels','Experience levels',[['student','Student / trainee'],['junior','Junior'],['senior','Senior'],['lead','Lead']])}
         <fieldset className="profile-section"><legend>Languages and proficiency</legend>
           <label>Languages <small>Separate with commas; leave a level blank if unknown</small><input value={languageText} onChange={event => setLanguageText(event.target.value)} placeholder="Spanish, English, German, French" /></label>
-          <div className="profile-language-grid">{terms(languageText).map(language => <label key={language}>{language}<select aria-label={`${language} proficiency`} value={form.language_levels[language] ?? ''} onChange={event => { const next = { ...form.language_levels }; if (event.target.value) next[language] = event.target.value; else delete next[language]; setForm({ ...form, language_levels: next }) }}>
+          <div className="profile-language-grid">{terms(languageText).map(language => <label key={language}>{language}<select aria-label={`${language} proficiency`} value={selectedLanguageLevels(terms(languageText), form.language_levels)[language] ?? ''} onChange={event => { const next = selectedLanguageLevels(terms(languageText), form.language_levels); if (event.target.value) next[language] = event.target.value; else delete next[language]; setForm({ ...form, language_levels: next }) }}>
             <option value="">Unknown</option>{['A1','A2','B1','B2','C1','C2','native'].map(level => <option key={level} value={level}>{level === 'native' ? 'Native' : level}</option>)}
           </select></label>)}</div>
         </fieldset>
@@ -128,10 +128,10 @@ export default function ProfilesPage() {
           </div><details><summary>Map coordinates</summary><div className="profile-area-grid">{(['latitude','longitude'] as const).map(key => <label key={key}>{key}<input type="number" step="any" min={key === 'latitude' ? -90 : -180} max={key === 'latitude' ? 90 : 180} value={form.search_area![key] ?? ''} onChange={event => setForm({ ...form, search_area: { ...form.search_area!, [key]: event.target.value === '' ? null : Number(event.target.value) } })} /></label>)}</div></details><button type="button" onClick={() => setForm({ ...form, search_area: null })}>Use board area instead</button></> : <button type="button" onClick={() => setForm({ ...form, search_area: { label: 'Heidelberg, Germany', city: 'Heidelberg', latitude: 49.40936, longitude: 8.69472, radius_km: 35, country_code: 'DE' } })}>Set Heidelberg area</button>}
         </fieldset>
         <fieldset className="profile-section"><legend>Evidence behind your skills</legend><p className="muted">Distinguish employment from academic or research experience. Leave unknown experience unstated.</p>
-          {terms(skillsText).map(skill => <details className="profile-evidence-row" key={skill}><summary>{skill} <small>{form.skill_evidence[skill]?.context || 'Context not recorded'}</small></summary>
-            <label>Experience context<select value={form.skill_evidence[skill]?.context ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [skill]: { note: form.skill_evidence[skill]?.note ?? '', context: event.target.value } } })}><option value="">Unknown</option>{['professional','academic','research'].map(context => <option key={context} value={context}>{context}</option>)}{form.skill_evidence[skill]?.context && !['professional','academic','research'].includes(form.skill_evidence[skill].context) && <option value={form.skill_evidence[skill].context}>{form.skill_evidence[skill].context}</option>}</select></label>
-            <label>Supporting experience<textarea maxLength={2000} value={form.skill_evidence[skill]?.note ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [skill]: { context: form.skill_evidence[skill]?.context ?? '', note: event.target.value } } })} /></label>
-          </details>)}
+          {terms(skillsText).map(skill => { const evidenceKey = skillEvidenceKey(skill, form.skill_evidence); return <details className="profile-evidence-row" key={skill}><summary>{skill} <small>{form.skill_evidence[evidenceKey]?.context || 'Context not recorded'}</small></summary>
+            <label>Experience context<select value={form.skill_evidence[evidenceKey]?.context ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { note: form.skill_evidence[evidenceKey]?.note ?? '', context: event.target.value } } })}><option value="">Unknown</option>{['professional','academic','research'].map(context => <option key={context} value={context}>{context}</option>)}{form.skill_evidence[evidenceKey]?.context && !['professional','academic','research'].includes(form.skill_evidence[evidenceKey].context) && <option value={form.skill_evidence[evidenceKey].context}>{form.skill_evidence[evidenceKey].context}</option>}</select></label>
+            <label>Supporting experience<textarea maxLength={2000} value={form.skill_evidence[evidenceKey]?.note ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { context: form.skill_evidence[evidenceKey]?.context ?? '', note: event.target.value } } })} /></label>
+          </details> })}
         </fieldset>
         <fieldset className="profile-section"><legend>Education and certifications</legend>
           {form.education.map((row,index) => <div className="profile-education-row" key={index}>
