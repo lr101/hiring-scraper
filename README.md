@@ -43,6 +43,7 @@ Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker comp
 
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
+- [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
 - [CI and release guide](docs/ci.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
