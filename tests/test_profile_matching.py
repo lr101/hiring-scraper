@@ -257,3 +257,75 @@ class ProfileMatchingTests(unittest.TestCase):
         self.assertTrue(result['uncertain'])
         self.assertIn('Profile experience not provided',result['unknowns'])
         self.assertIn('Profile languages not provided',result['unknowns'])
+
+
+class QuantifiedScriptingRequirementTests(unittest.TestCase):
+    clause = ('Mindestens eine dieser Skriptsprachen '
+              '(bash, Python, Perl oder Ruby) beherrschst Du aus dem FF')
+
+    def test_quantified_scripting_list_preserves_skill_evidence_without_independent_hard_rows(self):
+        from hiring_scraper.matching import enrich_job
+        for clause in [self.clause, self.clause.upper()]:
+            with self.subTest(clause=clause):
+                signals = enrich_job({'title': 'Administrator', 'description': clause})
+                self.assertEqual(signals['requirements'], [])
+                self.assertEqual({row['name'] for row in signals['skills']}, {'Python', 'Ruby'})
+                for skill in signals['skills']:
+                    self.assertEqual(skill['source'], 'description')
+                    self.assertIn(skill['value'].casefold(), skill['evidence'].casefold())
+
+    def test_independent_required_skills_survive_before_after_and_inside_the_same_sentence(self):
+        from hiring_scraper.matching import enrich_job
+        for description in [self.clause + '\nPython ist erforderlich.',
+                            'Python ist erforderlich.\n' + self.clause,
+                            self.clause + ' und Python ist erforderlich.',
+                            'Python ist erforderlich und ' + self.clause]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual({row['value'] for row in signals['requirements']}, {'Python'})
+
+    def test_unquantified_and_or_and_unrelated_lists_keep_existing_required_rows(self):
+        from hiring_scraper.matching import enrich_job
+        for description, expected in [
+            ('Python und Ruby sind erforderlich.', {'Python', 'Ruby'}),
+            ('Python oder Ruby ist erforderlich.', {'Python', 'Ruby'}),
+            ('Mindestens eine dieser Aufgaben (Python, Ruby) übernimmst Du.', {'Python', 'Ruby'}),
+            ('Mindestens eine dieser Skriptsprachen (Python) beherrschst Du.', {'Python'}),
+            ('Dein Profil:\n' + self.clause + '\nPostgreSQL Kenntnisse erforderlich.', {'PostgreSQL'}),
+        ]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual({row['value'] for row in signals['requirements']}, expected)
+
+    def test_optional_and_duties_lists_do_not_invent_required_list_members(self):
+        from hiring_scraper.matching import enrich_job
+        for description in [self.clause + ' ist von Vorteil.',
+                            'Deine Aufgaben:\n' + self.clause,
+                            'Wir bieten:\n' + self.clause]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual(signals['requirements'], [])
+
+    def test_hydrated_alternative_does_not_create_false_skill_gaps_for_qualified_or_unknown_profiles(self):
+        from hiring_scraper.matching import detail_updates, enrich_job, match_job
+        url = 'https://example.org/jobs/linux-administrator'
+        job = {'title': 'Senior LINUX Administrator (all)', 'url': url}
+        body = ('<main><h1>Senior LINUX Administrator (all)</h1>'
+                '<h3>Wenn folgende Aufgaben Dich begeistern:</h3>'
+                '<p>Wir betreiben Linux Server und dokumentieren technische Lösungen '
+                'für unsere Kunden mit zuverlässigen Abläufen und sorgfältiger Überwachung.</p>'
+                '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
+                '<ul><li>' + self.clause + '</li></ul></main>')
+        hydrated = {**job, **detail_updates(job, body, url)}
+        self.assertIn(self.clause, hydrated['description'])
+        hydrated['enrichment'] = enrich_job(hydrated)
+        for alternative in ['Python', 'Ruby', 'bash', None]:
+            with self.subTest(alternative=alternative):
+                profile = {'skills': ['Linux'] + ([alternative] if alternative else []),
+                           'desired_roles': [job['title']], 'experience_years': 10}
+                result = match_job(hydrated, profile)
+                self.assertEqual(result['requirement_gaps'], [])
+                self.assertEqual(result['conflicts'], [])
+                if alternative in {'bash', None}:
+                    self.assertIn('Python', result['missing_skills'])
+                    self.assertIn('Ruby', result['missing_skills'])

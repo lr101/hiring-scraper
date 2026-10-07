@@ -141,3 +141,22 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             job=session.scalar(select(Job))
             self.assertEqual(job.description,'Java '*80)
             self.assertEqual([row['name'] for row in job.enrichment['skills']],['Java'])
+
+    def test_old_version_cached_alternative_requirements_are_recomputed(self):
+        clause = ('Mindestens eine dieser Skriptsprachen '
+                  '(bash, Python, Perl oder Ruby) beherrschst Du aus dem FF')
+        self.upsert({'id': 'linux', 'title': 'Administrator',
+                     'url': 'https://example.org/jobs/linux', 'description': clause})
+        with self.factory() as session:
+            job = session.scalar(select(Job))
+            cached = dict(job.enrichment)
+            cached['version'] = 'rules-v12'
+            cached['requirements'] = [
+                {'kind': 'skill', 'value': name, 'source': 'description', 'evidence': clause}
+                for name in ['Python', 'Ruby']]
+            job.enrichment = cached
+            updated = enrichment.current_enrichment(job)
+            self.assertEqual(updated['requirements'], [])
+            self.assertNotEqual(updated['version'], 'rules-v12')
+            self.assertEqual(updated['source_hash'], cached['source_hash'])
+            self.assertEqual({row['name'] for row in updated['skills']}, {'Python', 'Ruby'})
