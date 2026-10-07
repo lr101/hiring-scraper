@@ -1,4 +1,5 @@
 export type ProfileMatch = {
+  fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
   matched_skills: string[]; missing_skills: string[]; reasons: string[]; conflicts: string[]; unknowns: string[]
@@ -16,10 +17,11 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">HOW THIS JOB FITS</p>
     {match ? <>
-      <h2>{match.score}/100 · {match.label}</h2>
-      <p className="muted">This score measures overlap with your interests and skills. It is not a prediction of hiring success.</p>
+      <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
+      <p className="muted">This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.</p>
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Outside your preferences</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
+      {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
     </> : <><h2>Skills and requirements found</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}

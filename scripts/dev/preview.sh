@@ -406,6 +406,12 @@ write_state starting
 printf 'Setting up the isolated fixture and production UI bundle...\n'
 (cd "$repo_root" && mise exec -- uv sync --locked)
 (cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run hiring-seed)
+if [[ -n "${HIRING_PREVIEW_PROFILE:-}" || -n "${HIRING_PREVIEW_REGIONAL_SNAPSHOT:-}" ]]; then
+  [[ -n "${HIRING_PREVIEW_PROFILE:-}" && -n "${HIRING_PREVIEW_REGIONAL_SNAPSHOT:-}" ]] || die 'Set both HIRING_PREVIEW_PROFILE and HIRING_PREVIEW_REGIONAL_SNAPSHOT for the optional CV board'
+  cv_board_args=(--profile "$HIRING_PREVIEW_PROFILE" --regional-data "$HIRING_PREVIEW_REGIONAL_SNAPSHOT")
+  if [[ -n "${HIRING_PREVIEW_EMPLOYER_SNAPSHOT:-}" ]]; then cv_board_args+=(--employer-data "$HIRING_PREVIEW_EMPLOYER_SNAPSHOT"); fi
+  (cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run python -m hiring_scraper.app.cv_board "${cv_board_args[@]}")
+fi
   (cd "$repo_root/frontend" && VITE_API_BASE_URL="$api_url" npm run build -- --outDir "$state_dir/web" --emptyOutDir)
 
 api_log="$state_dir/api.log"

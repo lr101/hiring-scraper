@@ -1,0 +1,187 @@
+{
+  "name": "Project & product development · Heidelberg",
+  "summary": "Innovation and development engineering graduate with professional project/product coordination, stakeholder and requirements work, process improvement, training and onboarding delivery. CAD and physical prototyping are supported by academic/research projects. Exact relevant employment months, work authorization, salary and work-style preferences are not established by the CV.",
+  "skills": [
+    "Project management",
+    "Project coordination",
+    "Requirements gathering",
+    "Product development",
+    "Stakeholder management",
+    "Process improvement",
+    "KPI monitoring",
+    "Training and development",
+    "Onboarding",
+    "Figma",
+    "Trello",
+    "Kanban",
+    "User research",
+    "Prototyping",
+    "CAD",
+    "SolidWorks",
+    "Fusion 360",
+    "Technical drawings",
+    "3D printing",
+    "Bill of materials",
+    "Product costing",
+    "Process mapping",
+    "Supplier coordination",
+    "Customer service",
+    "Program coordination"
+  ],
+  "desired_roles": [
+    "Project coordinator",
+    "Project manager",
+    "Product development",
+    "Learning and development",
+    "Training coordinator",
+    "Process improvement",
+    "Innovation engineer",
+    "Program coordinator",
+    "International partnerships coordinator"
+  ],
+  "secondary_roles": [
+    "Executive assistant",
+    "Customer operations",
+    "CAD designer",
+    "Prototyping engineer",
+    "Business analyst",
+    "Product operations"
+  ],
+  "languages": [
+    "Spanish",
+    "English",
+    "German",
+    "French"
+  ],
+  "language_levels": {
+    "Spanish": "native",
+    "English": "C1",
+    "German": "B2",
+    "French": "A2"
+  },
+  "experience_years": null,
+  "work_styles": [],
+  "employment_types": [],
+  "seniority_levels": [],
+  "excluded_terms": [],
+  "search_area": {
+    "label": "Heidelberg, Germany",
+    "city": "Heidelberg",
+    "latitude": 49.40936,
+    "longitude": 8.69472,
+    "radius_km": 35,
+    "country_code": "de"
+  },
+  "skill_evidence": {
+    "Project management": {
+      "context": "professional",
+      "note": "Project/product lead and coordination roles; planning, scope and timeline tracking. Exact months not stated."
+    },
+    "Requirements gathering": {
+      "context": "professional",
+      "note": "Business/user requirements, specifications, user flows and wireframes."
+    },
+    "Product development": {
+      "context": "professional",
+      "note": "Early web-platform product development with stakeholder feedback."
+    },
+    "Training and development": {
+      "context": "professional",
+      "note": "Company-wide training initiative and onboarding programmes, 2023–2025."
+    },
+    "SolidWorks": {
+      "context": "academic",
+      "note": "CNC-system project and Mechanical Design Associate certification."
+    },
+    "Fusion 360": {
+      "context": "academic",
+      "note": "Consumer-product CAD concept and prototyping project."
+    },
+    "CAD": {
+      "context": "academic",
+      "note": "Product-design projects and technical drawings; professional CAD tenure not stated."
+    },
+    "Prototyping": {
+      "context": "academic",
+      "note": "Physical product prototypes; research projects using EEG/eye tracking and RFID. Academic and research exposure, without verified professional prototyping tenure."
+    },
+    "3D printing": {
+      "context": "research",
+      "note": "Inclusive educational resource research with printed models."
+    },
+    "Supplier coordination": {
+      "context": "academic",
+      "note": "Component sourcing and suppliers in the CNC-system project."
+    },
+    "Bill of materials": {
+      "context": "academic",
+      "note": "CNC-system academic project."
+    },
+    "Product costing": {
+      "context": "academic",
+      "note": "Fundamentals in academic manufacturing project."
+    },
+    "Stakeholder management": {
+      "context": "professional",
+      "note": "Cross-functional work with founders, clients, executives, departmental teams, international partners and researchers."
+    },
+    "Process improvement": {
+      "context": "professional",
+      "note": "Standardized training/quality processes and revised SOPs; also an academic process-redesign project."
+    },
+    "KPI monitoring": {
+      "context": "professional",
+      "note": "Tracked performance KPIs with Customer Service stakeholders and Executive Leadership."
+    },
+    "Onboarding": {
+      "context": "professional",
+      "note": "Designed and delivered onboarding programmes in the Learning and Development role."
+    },
+    "Figma": {
+      "context": "professional",
+      "note": "Product specifications, user flows, wireframes and interactive prototypes."
+    },
+    "Trello": {
+      "context": "professional",
+      "note": "Tracked project activities, scope, deliverables and timelines."
+    },
+    "Kanban": {
+      "context": "professional",
+      "note": "Used to plan and prioritize product-development work."
+    },
+    "User research": {
+      "context": "academic",
+      "note": "User research, concept evaluation and feedback in the consumer-product project."
+    },
+    "Technical drawings": {
+      "context": "academic",
+      "note": "Consumer-product and CNC-system design projects."
+    },
+    "Process mapping": {
+      "context": "academic",
+      "note": "As-Is/To-Be process maps, WBS, Gantt, Project Charter and RACI in the process-improvement project."
+    },
+    "Customer service": {
+      "context": "professional",
+      "note": "Multilingual customer support for HVAC products across the US and Canada."
+    },
+    "Program coordination": {
+      "context": "professional",
+      "note": "International programmes, events, partnerships, onboarding and student supervision in the research-institute role."
+    }
+  },
+  "matching_defaults": {
+    "min_match_score": 30,
+    "include_unknown": true
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Innovation and Development Engineering",
+      "note": "B.S. ITESM 2018–2023, Summa Cum Laude; Product Development, Prototyping & Advanced Manufacturing concentrations. Recognition in Germany not established."
+    }
+  ],
+  "certifications": [
+    "SolidWorks Mechanical Design Associate"
+  ]
+}

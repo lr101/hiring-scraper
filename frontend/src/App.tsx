@@ -4,6 +4,8 @@ import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
+import { profileBoardDefaults } from './profile'
+import type { Profile } from './profile'
 
 type Location = {
   label: string
@@ -148,7 +150,7 @@ function hostLabel(value: string | null) {
 function providerLabel(provider: string) {
   const labels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page',
+    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit listing',
   }
   return labels[provider] ?? 'Company job page'
 }
@@ -177,7 +179,7 @@ function locationIdentity(latitude: number, longitude: number, radiusKm: number)
 }
 
 function DirectoryPage() {
-  const params = new URLSearchParams(window.location.search)
+  const params = useMemo(() => new URLSearchParams(window.location.search), [])
   const companyFilters: CompanyDiscoveryFilter[] = ['all', 'domain', 'career', 'feed', 'jobs']
   const requestedCompanyFilter = params.get('company_filter') as CompanyDiscoveryFilter | null
   const initialCompanyFilter = requestedCompanyFilter && companyFilters.includes(requestedCompanyFilter)
@@ -198,7 +200,10 @@ function DirectoryPage() {
     ? params.get('job_sort') as JobSort : 'relevance')
   const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['remote', 'hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
-  const [profiles, setProfiles] = useState<{id: number; name: string}[]>([])
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [profilesReady, setProfilesReady] = useState(false)
+  const [coverage, setCoverage] = useState<{source_count: number; note: string} | null>(null)
+  const [counts, setCounts] = useState<{source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; filtered: Record<string, number>} | null>(null)
   const [profileId, setProfileId] = useState(params.get('profile_id') ?? '')
   const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
   const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
@@ -217,7 +222,14 @@ function DirectoryPage() {
     fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }).then(async response => {
       if (!response.ok) throw new Error('Could not load saved profiles.')
       const data = await response.json(); setProfiles(data.items)
-    }).catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
+      const selected = data.items.find((item: Profile) => String(item.id) === params.get('profile_id'))
+        ?? (!params.has('profile_id') ? data.items[0] : null)
+      if (selected) {
+        applyProfile(selected, params)
+        if (!params.has('view')) setTab('jobs')
+      }
+      setProfilesReady(true)
+    }).catch(reason => { if (!controller.signal.aborted) { setError(reason.message); setProfilesReady(true) } })
     return () => controller.abort()
   }, [])
 
@@ -291,8 +303,8 @@ function DirectoryPage() {
           ?? options.find(option => option.key === 'default')
           ?? options[0]
         if (selected) {
-          setSelectedLocationKey(selected.key)
-          if (!params.has('lat') || !params.has('lon') || selected.key === requestedKey) {
+          setSelectedLocationKey(previous => previous.startsWith('profile:') ? previous : selected.key)
+          if (requestedKey && !params.has('profile_id') && selected.key === requestedKey) {
             setLocation(selected.location)
             if (!params.has('radius_km')) setRadius(selected.radius_km)
           }
@@ -306,6 +318,7 @@ function DirectoryPage() {
   }, [])
 
   const loadData = useCallback(async (signal: AbortSignal) => {
+    if (!profilesReady) return
     setLoading(true)
     setError('')
     const companyParams = new URLSearchParams(locationParams)
@@ -344,12 +357,13 @@ function DirectoryPage() {
       setJobs(jobPage.items)
       setJobTotal(jobPage.total)
       setSummary(summaryData)
+      setCounts(jobPage.counts ?? null); setCoverage(jobPage.coverage ?? null)
     } catch (exception) {
       if (!signal.aborted) setError(exception instanceof Error ? exception.message : 'Could not load company and job results.')
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown])
+  }, [companyFilter, companySort, jobSort, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown, profilesReady])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -358,6 +372,7 @@ function DirectoryPage() {
   }, [loadData])
 
   useEffect(() => {
+    if (!profilesReady) return
     const url = new URL(window.location.href)
     url.searchParams.set('lat', String(location.latitude))
     url.searchParams.set('lon', String(location.longitude))
@@ -382,11 +397,23 @@ function DirectoryPage() {
       url.searchParams.set('min_match_score', minimumScore)
       url.searchParams.set('include_unknown', String(includeUnknown))
     } else {
-      url.searchParams.delete('profile_id'); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
+      url.searchParams.set('profile_id', ''); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
     }
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown])
+  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
 
+  function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
+    const defaults = profileBoardDefaults(profile, overrides)
+    setProfileId(String(profile.id)); setMinimumScore(defaults.minimumScore); setIncludeUnknown(defaults.includeUnknown)
+    if (defaults.location) { setLocation(defaults.location); setSelectedLocationKey(`profile:${profile.id}`) }
+    setRadius(defaults.radius)
+    setOffset(0)
+  }
+  function selectProfile(value: string) {
+    const profile = profiles.find(item => String(item.id) === value)
+    if (profile) applyProfile(profile)
+    else { setProfileId(''); setOffset(0) }
+  }
   function selectLocation(key: string) {
     const option = locationOptions.find(item => item.key === key)
     if (!option) return
@@ -410,7 +437,7 @@ function DirectoryPage() {
           <div>
             <p className="eyebrow">COMPANIES, JOBS, AND PLACES</p>
             <h1>Opportunity, <em>around you.</em></h1>
-            <p className="intro-copy">Find nearby companies and see the open jobs listed on their own websites.</p>
+            <p className="intro-copy">Find nearby opportunities from employer hiring pages and selected public job listings.</p>
           </div>
           <div className="snapshot-pill"><span>{radius}</span> KM SEARCH AREA</div>
         </section>
@@ -438,7 +465,7 @@ function DirectoryPage() {
             <label className="radius-control">
               <span className="control-label">LISTING DISTANCE</span>
               <select aria-label="Listing distance around this place" value={radius} onChange={event => { setRadius(Number(event.target.value)); setOffset(0) }}>
-                {[5, 10, 15, 25, 50, 100, 200].map(value => <option key={value} value={value}>{value} km</option>)}
+                {[...new Set([5, 10, 15, 25, 35, 50, 100, 200, radius])].sort((a,b) => a-b).map(value => <option key={value} value={value}>{value} km</option>)}
               </select>
             </label>
             <a href="/locations" className="configure-locations-link">Configure locations <Icon name="arrow" size={15} /></a>
@@ -517,13 +544,13 @@ function DirectoryPage() {
                 </label>
               </> : <>
                 <label className="discovery-filter"><span>Match to</span>
-                  <select aria-label="Match jobs to a profile" value={profileId} onChange={event => { setProfileId(event.target.value); setOffset(0) }}>
+                  <select aria-label="Match jobs to a profile" value={profileId} onChange={event => selectProfile(event.target.value)}>
                     <option value="">All jobs</option>{profiles.map(profile => <option value={profile.id} key={profile.id}>{profile.name}</option>)}
                   </select>
                 </label>
                 {profileId && <>
-                  <label className="discovery-filter"><span>Overlap</span><select value={minimumScore} onChange={event => { setMinimumScore(event.target.value); setOffset(0) }}>
-                    <option value="0">Any overlap</option><option value="30">Some overlap (30+)</option><option value="65">Strong overlap (65+)</option>
+                  <label className="discovery-filter"><span>Overlap</span><select aria-label="Minimum profile overlap" value={minimumScore} onChange={event => { setMinimumScore(event.target.value); setOffset(0) }}>
+                    <option value="0">All eligible leads (0+)</option>{!['0','30','65'].includes(minimumScore) && <option value={minimumScore}>{minimumScore}+ overlap</option>}<option value="30">Some overlap (30+)</option><option value="65">Strong overlap (65+)</option>
                   </select></label>
                   <label className="unknown-filter"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setOffset(0) }} />Include jobs needing more information</label>
                 </>}
@@ -551,6 +578,13 @@ function DirectoryPage() {
             </div>
           </div>
 
+          {tab === 'jobs' && profileId && <div className="board-coverage" aria-live="polite">
+            <div className="board-tiers"><strong>{counts?.recommended ?? '—'} recommended matches</strong><span>{counts?.possible ?? '—'} possible leads</span></div>
+            <p>Recommended matches have stronger evidence. Possible leads need a closer look at qualifications, location or missing details. Scores are heuristic overlap, never a hiring probability.</p>
+            {counts && <p>{counts.source} source records · {counts.scoped} in scope · {counts.duplicates_removed} duplicates removed · {counts.filtered.below_score} below your overlap filter · {counts.filtered.expired} expired · {counts.filtered.remote_country} incompatible remote country</p>}
+            {coverage && <p>{coverage.source_count} observed job feeds. {coverage.note}</p>}
+            <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
+          </div>}
           {loading ? <div className="loading-state"><span className="spinner" /> Gathering the latest results…</div> : tab === 'companies' ? (
             <div className="table-scroll">
               <table>
@@ -572,19 +606,20 @@ function DirectoryPage() {
               <table className="jobs-table">
                 <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th>{profileId && <th>PROFILE MATCH</th>}<th>POSTED</th><th /></tr></thead>
                 <tbody>
-                  {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}${profileId ? `?profile_id=${profileId}` : ''}` }} className="click-row">
-                    <td><div className="role-cell"><strong>{job.title}</strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
+                  {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}${window.location.search}` }} className="click-row">
+                    <td><div className="role-cell"><strong><a href={`/jobs/${job.id}${window.location.search}`} onClick={event => event.stopPropagation()}>{job.title}</a></strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
                     <td><span className="job-company">{job.company_name}</span>
                       {job.company_website ? <a className="job-domain" href={job.company_website} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{job.company_domain || hostLabel(job.company_website)}</a> : <small className="job-domain">Company website not listed</small>}
+                      {job.raw_metadata.employer_type === 'agency' && <small className="agency-note">Staffing / recruitment agency</small>}
                       <small className="job-source">Job page: <a href={job.board_url || job.url} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{hostLabel(job.board_url || job.url)}</a></small>
                     </td>
                     <td><span className="location-chip"><Icon name="pin" size={13} />{job.location_text || 'Location not listed'}</span></td>
                     <td><span className={`arrangement-chip ${job.is_remote ? 'arrangement-remote' : ''}`}>{job.is_remote ? 'Remote' : job.work_arrangement === 'hybrid' ? 'Hybrid' : job.work_arrangement === 'onsite' ? 'On-site' : 'In area'}</span></td>
-                    {profileId && <td className="match-cell"><strong>{job.profile_match?.score}/100</strong><small>{job.profile_match?.label}</small>
+                    {profileId && <td className="match-cell"><strong>{job.profile_match?.score}/100</strong><span className={`fit-tier fit-${job.profile_match?.fit_tier ?? 'possible'}`}>{job.profile_match?.fit_tier === 'recommended' ? 'Recommended match' : job.profile_match?.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</span>
                       <small>{job.profile_match?.matched_skills.slice(0, 3).join(', ') || 'No skill overlap found'}</small>
-                      {job.profile_match?.uncertain && <small>Information incomplete</small>}
+                      {job.profile_match?.unknowns.slice(0,2).map(gap => <small key={gap}>{gap}</small>)}
                     </td>}
-                    <td><span className="posted-date">{dateLabel(job.date_posted)}</span></td>
+                    <td><span className="posted-date">{dateLabel(job.date_posted)}</span><small className="job-source">Last seen {dateLabel(job.last_seen_at)}</small></td>
                     <td className="row-arrow"><Icon name="chevron" size={17} /></td>
                   </tr>)}
                 </tbody>

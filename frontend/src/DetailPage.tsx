@@ -21,6 +21,7 @@ type Job = {
   provider: string; board_url: string | null; location_text: string | null
   locations: JobLocation[]; is_remote: boolean; work_arrangement: string | null
   employment_type: string | null; schedule: string | null; department: string | null
+  last_seen_at: string; valid_through?: string | null; expired?: boolean; remote_country_codes?: string[]
   seniority: string | null; date_posted: string | null; first_seen_at: string
   salary: string | null; description: string | null; is_active: boolean
   enrichment: Enrichment; profile_match?: ProfileMatch
@@ -46,8 +47,15 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
     let cancelled = false
     setLoading(true)
     setError('')
-    const profileId = new URLSearchParams(window.location.search).get('profile_id')
-    fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}${kind === 'job' && profileId ? `?profile_id=${encodeURIComponent(profileId)}` : ''}`))
+    const boardParams = new URLSearchParams(window.location.search)
+    const detailParams = new URLSearchParams()
+    if (kind === 'job') {
+      for (const [from, to] of [['profile_id','profile_id'],['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code']]) {
+        const value = boardParams.get(from)
+        if (value) detailParams.set(to, value)
+      }
+    }
+    fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}${detailParams.size ? `?${detailParams}` : ''}`))
       .then(async response => {
         const payload = await response.json()
         if (!response.ok) throw new Error(payload.detail ?? `Could not load ${kind} details.`)
@@ -83,7 +91,7 @@ function CompanyPage({ company }: { company: Company }) {
   }
   const providerLabels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page',
+    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
   }
   const feedStatusLabels: Record<string, string> = {
     parsed: 'checked', complete_empty: 'checked · no jobs', incomplete: 'partly checked',
@@ -135,7 +143,7 @@ function JobPage({ job }: { job: Job }) {
   const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
   const providerLabels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page',
+    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
   }
   const precisionLabels: Record<string, string> = {
     point: 'Map point', feature_center: 'Area center', city_centroid: 'City center',
@@ -162,6 +170,10 @@ function JobPage({ job }: { job: Job }) {
         <Meta label="TEAM" value={job.department || 'Not listed'} />
         <Meta label="EXPERIENCE LEVEL" value={job.seniority || 'Not listed'} />
         <Meta label="POSTED" value={formatDate(job.date_posted)} />
+        <Meta label="LAST SEEN" value={formatDate(job.last_seen_at)} />
+        <Meta label="SOURCE DEADLINE" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : 'Not listed'} />
+        <Meta label="REMOTE COUNTRY ELIGIBILITY" value={job.remote_country_codes?.join(', ') || (job.is_remote ? 'Not stated — check with employer' : 'Not a fully remote role')} />
+        <Meta label="EMPLOYER TYPE" value={job.raw_metadata.employer_type === 'agency' ? 'Staffing / recruitment agency' : 'Employer relationship not independently verified'} />
         <Meta label="FIRST SEEN" value={formatDate(job.first_seen_at)} />
         <Meta label="SALARY" value={job.salary || 'Not listed'} />
         <Meta label="LOCATION DETAIL" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ') || 'Not provided'} />

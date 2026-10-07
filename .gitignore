@@ -11,3 +11,5 @@ frontend/dist/
 hiring.db
 # Full third-party responses stay local; compact metadata and derived tables are tracked.
 *.body
+# Task-specific regional captures and local private inputs.
+data/local-cv-board/
