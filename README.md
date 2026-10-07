@@ -29,7 +29,7 @@ Use **Search areas** to add a German city, state center, or postcode and choose 
 
 ## Compose deployment shape
 
-The Compose stack uses PostgreSQL/PostGIS, one-shot migration and fixture-import services, FastAPI, a recurring feed worker, a separate company-discovery worker, and a static React frontend. That worker first finds companies and websites for a location campaign, then checks website-bearing companies for hiring pages and jobs. It claims up to four companies at a time by default and crawls them concurrently; requests to the same origin remain spaced by at least one second. Set `CAREER_DISCOVERY_WORKERS` between 1 and 32 to tune concurrency. Website checks use a six-page, robots-aware crawl; company, homepage, and hiring-page progress survives API or worker restarts. The feed worker refreshes known job sources every six hours. Both workers use leases and retry scheduling. Partial job reads never close postings; closure still requires repeated complete feed scans and a grace period. GitHub Actions gates publication of the shared API/worker and web images on container checks, then publishes to GHCR on pushes to `main` and version tags. Hosted Actions and GHCR publication have not been exercised from this checkout.
+The Compose stack uses PostgreSQL/PostGIS, one-shot migration and fixture-import services, FastAPI, a recurring feed worker, a separate company-discovery worker, and a static React frontend. That worker first finds companies and websites for a location campaign, then checks website-bearing companies for hiring pages and jobs. It claims up to four companies at a time by default and crawls them concurrently; requests to the same origin remain spaced by at least one second. Set `CAREER_DISCOVERY_WORKERS` between 1 and 32 to tune concurrency. Website checks use a six-page, robots-aware crawl; company, homepage, and hiring-page progress survives API or worker restarts. The feed worker refreshes known job sources every six hours. Both workers use leases and retry scheduling. Partial job reads never close postings; closure still requires repeated complete feed scans and a grace period. GitHub Actions gates publication of the shared API/worker and web images on container checks, then publishes to GHCR on pushes to `main` and version tags.
 
 ```bash
 cp .env.example .env
@@ -44,8 +44,8 @@ To manually process one due company, run `docker compose run --rm discovery-work
 For example, on a server with package access:
 
 ```dotenv
-HIRING_API_IMAGE=ghcr.io/OWNER/REPOSITORY/hiring-scraper-api:COMMIT_SHA
-HIRING_WEB_IMAGE=ghcr.io/OWNER/REPOSITORY/hiring-scraper-web:COMMIT_SHA
+HIRING_API_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-api:COMMIT_SHA
+HIRING_WEB_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-web:COMMIT_SHA
 ```
 
 Then run `docker compose pull && docker compose up -d --no-build` to use the runner-built images.
@@ -60,7 +60,7 @@ Run the test suites, frontend production build, production image builds, and iso
 
 This requires Docker with Buildx, Docker Compose 2.20+, Bash, and standard shell utilities; Python, Node.js, and test dependencies run in containers. The script creates its own database and removes its Compose resources after the run. Check logs are saved under `.ci-results/`.
 
-The **Container checks** GitHub status runs for pull requests, `main`, `v*` tags, and manual dispatch. Passing checks gate GHCR publishing on `main` and version-tag pushes. Every published image gets the full commit SHA; `latest` follows `main` only. Release tags also get sanitized tag and semver tags. See [CI and release documentation](docs/ci.md) for branch protection, artifacts, dependency updates, image tags, and troubleshooting.
+The **Container checks** GitHub status runs for pull requests, `main`, `v*` tags, and manual dispatch. Passing checks gate GHCR publishing on `main` and version-tag pushes. Every published image gets the full commit SHA; `latest` follows `main` only. Release tags also get sanitized tag and semver tags. See [CI and release documentation](docs/ci.md) for branch protection, artifacts, dependency updates, image tags, and troubleshooting. Hosted runs are available in [GitHub Actions](https://github.com/lr101/hiring-scraper/actions).
 
 The [2026-10-07 container verification](docs/container-ci-verification.md) records 348 passing Python tests, frontend checks/builds, production image builds, and a successful fresh PostgreSQL/PostGIS smoke with stable repeated-import counts.
 

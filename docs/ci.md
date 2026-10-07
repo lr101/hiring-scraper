@@ -39,8 +39,8 @@ Actions are pinned to verified release commit hashes, with their versions record
 After successful checks, the workflow builds and publishes these `linux/amd64` images to GHCR:
 
 ```text
-ghcr.io/owner/repository/hiring-scraper-api
-ghcr.io/owner/repository/hiring-scraper-web
+ghcr.io/lr101/hiring-scraper/hiring-scraper-api
+ghcr.io/lr101/hiring-scraper/hiring-scraper-web
 ```
 
 The owner and repository are converted to lowercase. The API image also serves the workers. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Ensure repository Actions and package policies permit publishing. For an existing package, grant the repository Actions access in the package settings. Private package consumers need their own read access; public image pulls need no login.
@@ -57,8 +57,8 @@ Release tags never move `latest`. Tag normalization follows the official [Docker
 For deployments, prefer a full commit SHA or digest and set both image references in `.env`:
 
 ```dotenv
-HIRING_API_IMAGE=ghcr.io/owner/repository/hiring-scraper-api:FULL_COMMIT_SHA
-HIRING_WEB_IMAGE=ghcr.io/owner/repository/hiring-scraper-web:FULL_COMMIT_SHA
+HIRING_API_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-api:FULL_COMMIT_SHA
+HIRING_WEB_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper-web:FULL_COMMIT_SHA
 ```
 
 ```bash
@@ -66,4 +66,4 @@ docker compose pull
 docker compose up -d --no-build
 ```
 
-No hosted GitHub Actions run, GHCR publication, or repository ruleset change has been performed from this checkout. A GitHub remote and an enabled workflow are needed to verify the hosted publication path.
+The repository is [lr101/hiring-scraper](https://github.com/lr101/hiring-scraper). Follow [GitHub Actions](https://github.com/lr101/hiring-scraper/actions/workflows/container-images.yml) for check and publication results. Repository administrators configure branch protection or rulesets; the workflow supplies the **Container checks** status.
