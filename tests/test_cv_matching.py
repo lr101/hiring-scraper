@@ -277,6 +277,158 @@ class CvMatchingTests(unittest.TestCase):
         self.assertEqual(duty['fit_tier'], 'recommended')
         self.assertEqual(duty['custom_skill_evidence'][0]['source'], 'description')
 
+    def test_block_sections_keep_optional_benefits_and_duties_out_of_requirements(self):
+        descriptions = (
+            '## Dein Profil\n- French A2 preferred\n- Deutsch C1\n- Abgeschlossenes Studium der Elektrotechnik\n## Deine Aufgaben\n- SAP und CAD einsetzen\n## Wir bieten\n- PMP certification und Deutsch C2 training',
+            '<h2>Dein Profil</h2><ul><li>French A2 preferred</li><li>Deutsch C1</li><li>Abgeschlossenes Studium der Elektrotechnik</li></ul><h2>Deine Aufgaben</h2><p>SAP und CAD einsetzen</p><h2>Wir bieten</h2><p>PMP certification und Deutsch C2 training</p>',
+        )
+        for description in descriptions:
+            with self.subTest(description=description):
+                job = {'title': 'Projektleiterin', 'description': description}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1'})
+                result = match_job(job, CV, enriched)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('Elektrotechnik' in gap for gap in result['requirement_gaps']))
+                self.assertFalse(any('SAP' in gap or 'PMP' in gap for gap in result['requirement_gaps']))
+
+    def test_generic_bachelor_verified_but_specialist_degree_remains_gap(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        for degree, expected_gap in (
+            ('Bachelor degree', False), ('abgeschlossenes Studium', False),
+            ('degree in electrical engineering', True), ('Master degree', True),
+        ):
+            with self.subTest(degree=degree):
+                result = match_job({'title': 'Project Coordinator', 'description':
+                                    'Your qualifications:\n' + degree + '\nYour tasks:\n' +
+                                    'Project management and stakeholder coordination. ' * 20}, profile)
+                self.assertEqual(bool(result['requirement_gaps']), expected_gap)
+                if not expected_gap:
+                    self.assertTrue(any('education' in reason.lower() for reason in result['reasons']))
+
+    def test_separate_mandatory_tool_domain_and_professional_tenure_gaps(self):
+        for requirement in ('Expert SAP knowledge', 'Professional CAD experience',
+                            'Insurance underwriting experience', 'Pharmaceutical GMP experience'):
+            with self.subTest(requirement=requirement):
+                result = match_job({'title': 'Project Manager', 'description':
+                                    'Your qualifications:\n' + requirement + '\nResponsibilities:\n' +
+                                    'Project management and stakeholder coordination. ' * 20}, CV)
+                self.assertTrue(result['requirement_gaps'])
+                self.assertLess(result['score'], 65)
+                self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_experience_range_keeps_minimum_and_unknown_cv_years_reviewable(self):
+        job = {'title': 'Project Manager', 'description':
+               'Requirements:\n3–5 years of project management experience\nResponsibilities:\n' +
+               'Project management and stakeholder coordination. ' * 20}
+        enriched = enrich_job(job)
+        self.assertEqual(enriched['experience_years']['value'], 3)
+        unknown = match_job(job, CV, enriched)
+        self.assertTrue(unknown['eligible'])
+        self.assertTrue(unknown['requirement_gaps'])
+        self.assertLess(unknown['score'], 65)
+        self.assertTrue(match_job(job, {**CV, 'experience_years': 3}, enriched)['eligible'])
+
+    def test_student_enrolment_is_not_inferred_from_past_degree(self):
+        result = match_job({'title': 'Werkstudent Projektmanagement', 'description':
+                            'Ihr Profil:\nImmatrikuliert an einer Hochschule\nIhre Aufgaben:\n' +
+                            'Project management and stakeholder coordination. ' * 20},
+                           {**CV, 'education': [{'level': 'bachelor', 'field': 'Engineering'}]})
+        self.assertTrue(result['eligible'])
+        self.assertTrue(any('enrol' in gap.lower() for gap in result['requirement_gaps']))
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_measured_role_aliases_preserve_career_focus(self):
+        profile = {**CV, 'desired_roles': CV['desired_roles'] + ['Program coordinator', 'Business analyst']}
+        for title in ('Projektleiter', 'Projektassistenz', 'Project Delivery Manager',
+                      'Business Process Analyst', 'Programme Assistant', 'Assistenz Geschäftsleitung',
+                      'Innovationsassistent', 'Projektingenieur'):
+            with self.subTest(title=title):
+                result = match_job({'title': title, 'description':
+                                    'Project management and stakeholder coordination. ' * 20}, profile)
+                self.assertTrue(any(reason.startswith('Role matches ') for reason in result['reasons']))
+
+    def test_one_generic_cv_signal_is_not_a_perfect_role_match(self):
+        result = match_job({'title': 'Project Coordinator', 'description':
+                            'Customer service for highly specialized infrastructure projects. ' * 20}, CV)
+        self.assertLess(result['score'], 100)
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_applicant_qualification_heading_word_orders_and_completed_degree_cues(self):
+        for heading in ('Das bringst du mit', 'Was bringen Sie mit?',
+                        'Überzeuge uns mit deinen Qualifikationen', 'Your qualifications'):
+            with self.subTest(heading=heading):
+                result = match_job({'title': 'Development Engineer', 'description':
+                                    '**' + heading + '**\n- Abgeschlossenes Masterstudium in Maschinenbau\n'
+                                    '- Mehrjährige Berufserfahrung mit CAD\n**Ihre Aufgaben**\n' +
+                                    'Product development and stakeholder coordination. ' * 20}, CV)
+                self.assertTrue(any('Masterstudium' in gap for gap in result['requirement_gaps']))
+                self.assertNotEqual(result['fit_tier'], 'recommended')
+        result = match_job({'title': 'Project Manager', 'description':
+                            'DU…\n- hast ein abgeschlossenes Studium in Pharmazie\n- verfügst über Berufserfahrung in der pharmazeutischen Industrie\n' +
+                            'Project management and stakeholder coordination. ' * 20}, CV)
+        self.assertTrue(result['requirement_gaps'])
+        self.assertLess(result['score'], 65)
+
+    def test_unknown_degree_field_and_degree_alternatives_are_not_generic_degrees(self):
+        profile = {**CV, 'education': [{'level': 'bachelor', 'field': 'Innovation and Development Engineering'}]}
+        for degree, has_gap in (
+            ('Bachelor degree in archaeology', True),
+            ('degree in mechanical engineering or innovation and development engineering', False),
+            ('Master degree or Bachelor degree', False),
+        ):
+            with self.subTest(degree=degree):
+                result = match_job({'title': 'Project Coordinator', 'description':
+                                    'Qualifications:\n' + degree + '\nTasks:\n' +
+                                    'Project management and stakeholder coordination. ' * 20}, profile)
+                self.assertEqual(bool(result['requirement_gaps']), has_gap)
+
+    def test_sparse_specialist_title_explains_domain_uncertainty(self):
+        result = match_job({'title': 'Projektleiter Elektrotechnik'}, CV)
+        self.assertTrue(result['eligible'])
+        self.assertTrue(any('Elektrotechnik' in gap for gap in result['requirement_gaps']))
+        self.assertLess(result['score'], match_job({'title': 'Projektleiter'}, CV)['score'])
+
+    def test_detail_hydration_keeps_qualification_blocks(self):
+        import json
+        url = 'https://example.org/jobs/1'
+        description = '<h2>Your qualifications</h2><ul><li>French A2 preferred</li><li>German C1</li></ul>'
+        posting = {'@type': 'JobPosting', 'url': url, 'title': 'Project Coordinator',
+                   'description': description}
+        updated = matching.detail_updates({'title': 'Project Coordinator', 'url': url},
+                                         '<script type="application/ld+json">' + json.dumps(posting) + '</script>', url)
+        self.assertIn('\n', updated['description'])
+        self.assertFalse(match_job({'title': 'Project Coordinator', **updated}, CV)['eligible'])
+
+    def test_one_known_certificate_does_not_verify_a_different_mandatory_credential(self):
+        profile = {**CV, 'certifications': ['SolidWorks Mechanical Design Associate']}
+        result = match_job({'title': 'Project Coordinator', 'description':
+                            'Requirements:\nPMP and SolidWorks Mechanical Design Associate certification\nResponsibilities:\n' +
+                            'Project management and stakeholder coordination. ' * 20}, profile)
+        self.assertTrue(any('PMP' in gap for gap in result['requirement_gaps']))
+
+    def test_numeric_professional_cad_requirement_does_not_use_academic_exposure(self):
+        result = match_job({'title': 'Project Coordinator', 'description':
+                            'Requirements:\nAt least 3 years of professional CAD experience\nResponsibilities:\n' +
+                            'Project management and stakeholder coordination. ' * 20},
+                           {**CV, 'experience_years': 3})
+        self.assertTrue(any('CAD' in gap for gap in result['requirement_gaps']))
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_required_language_list_stops_at_explicit_contrast(self):
+        for wording in (
+            'Your qualifications: English C1, German C1, but French A2 preferred.',
+            'Ihr Profil: Englisch C1, Deutsch C1, aber Französisch A2 wünschenswert.',
+            'Ihr Profil: Englisch C1, Deutsch C1, jedoch Französisch A2 wünschenswert.',
+        ):
+            with self.subTest(wording=wording):
+                job = {'title': 'Project Coordinator', 'description': wording}
+                enriched = enrich_job(job)
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'English': 'C1', 'German': 'C1'})
+                self.assertFalse(match_job(job, CV, enriched)['eligible'])
+
     def test_shared_required_cefr_list_keeps_both_languages(self):
         enriched = enrich_job({'title': 'Project Coordinator', 'description':
                                'German and English C1 required. Coordinate projects. ' * 10})
