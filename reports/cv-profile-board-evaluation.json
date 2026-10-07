@@ -498,6 +498,179 @@
     }
   },
   "board": {
+    "rule_version": "rules-v12",
+    "app_revision": "39f9bc9f",
+    "total": 242,
+    "location": {
+      "latitude": 49.40936,
+      "longitude": 8.69472,
+      "radius_km": 35,
+      "city": "Heidelberg",
+      "country_code": "DE"
+    },
+    "counts": {
+      "source": 2639,
+      "scoped": 995,
+      "filtered": {
+        "expired": 1,
+        "remote_country": 9,
+        "outside_area": 1633,
+        "profile_conflict": 19,
+        "below_score": 734,
+        "uncertain": 0
+      },
+      "duplicates_removed": 1,
+      "recommended": 9,
+      "possible": 140,
+      "unlikely": 93
+    },
+    "coverage": {
+      "source_count": 679,
+      "note": "Observed active source records; selected sources are not exhaustive market coverage."
+    },
+    "checks": {
+      "profile_defaults": true,
+      "pagination_unique": true,
+      "detail_evidence_and_country": true,
+      "profile_language_area_save": true,
+      "saved_profile_board_link": true,
+      "explicit_country_override": true,
+      "mobile_no_page_overflow": true,
+      "no_browser_exceptions": true,
+      "profile_restored": true,
+      "app_revision": "39f9bc9f",
+      "default_total": 242,
+      "all_evidence_total": 976,
+      "strict_known_total": 62,
+      "list_detail_equal": 5
+    }
+  },
+  "manual_review": {
+    "frozen_judgments": 580,
+    "additional_board_judgments": 30,
+    "double_review_agreement": "18/20",
+    "models": "gpt-6-luna for manual judgments; gpt-6-sol and gpt-6.1-sol for implementation and scoped reviews",
+    "caveat": "Model judgments, not independent human hiring outcomes; samples do not measure market recall."
+  },
+  "post_test_correctness_recheck": {
+    "rule_version": "rules-v12",
+    "app_revision": "39f9bc9f",
+    "matching_sha256": "740e62e957e8e3a7aab12572a3ceeccb87f2666d7ee5ac33dee6d3ff02c5343f",
+    "threshold": 20,
+    "input_sha256": {
+      "jobs": "febd73892b2d2f0a7bc1755234c14fb17a04e48728c0fa72f183c5528d85ff6a",
+      "labels": "03abf963845e3f25f0e0d5d384f40b38cdbed8a623afb01eda04c500a2ddc70a",
+      "profile": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59"
+    },
+    "note": "Browser-discovered generic-only safeguard defect fixed after the rules-v11 final evaluation; unchanged constants and no final-label tuning. Reuses final120 inputs, so this is not a new untouched test. Original v11 selection and measurements retained above.",
+    "algorithms": {
+      "original_rules": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 8,
+        "pooled_precision": 0.625,
+        "pooled_recall": 0.25,
+        "ndcg_10": 0.3028,
+        "precision_10": 0.625,
+        "returned_10": 8,
+        "ndcg_20": 0.2359,
+        "precision_20": 0.625,
+        "returned_20": 8
+      },
+      "current_rules": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.5101,
+        "precision_10": 0.5,
+        "returned_10": 10,
+        "ndcg_20": 0.419,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "literal_keywords": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 29,
+        "pooled_precision": 0.2759,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.1663,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.1713,
+        "precision_20": 0.25,
+        "returned_20": 20
+      },
+      "bm25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 65,
+        "pooled_precision": 0.2154,
+        "pooled_recall": 0.7,
+        "ndcg_10": 0.2164,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.2748,
+        "precision_20": 0.35,
+        "returned_20": 20
+      },
+      "alias_bm25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 113,
+        "pooled_precision": 0.177,
+        "pooled_recall": 1.0,
+        "ndcg_10": 0.1822,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.1628,
+        "precision_20": 0.2,
+        "returned_20": 20
+      },
+      "constraint_fusion_0.25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3549,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.3251,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "constraint_fusion_0.5": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3575,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.3224,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "constraint_fusion_1": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3128,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.285,
+        "precision_20": 0.3,
+        "returned_20": 20
+      }
+    }
+  },
+  "prior_v11_board": {
     "total": 242,
     "offset": 0,
     "limit": 100,
@@ -542,11 +715,36 @@
       "karlsruhe_override_total": 21
     }
   },
-  "manual_review": {
-    "frozen_judgments": 580,
-    "additional_board_judgments": 30,
-    "double_review_agreement": "18/20",
-    "models": "gpt-6-luna for manual judgments; gpt-6-sol and gpt-6.1-sol for implementation and scoped reviews",
-    "caveat": "Model judgments, not independent human hiring outcomes; samples do not measure market recall."
+  "verification": {
+    "python_tests": 344,
+    "python_seconds": 13.129,
+    "python_result": "pass",
+    "frontend_production_build": "pass",
+    "frontend_behavior_checks": "pass",
+    "chromium_workflow": {
+      "profile_defaults": true,
+      "pagination_unique": true,
+      "detail_evidence_and_country": true,
+      "profile_language_area_save": true,
+      "saved_profile_board_link": true,
+      "explicit_country_override": true,
+      "mobile_no_page_overflow": true,
+      "no_browser_exceptions": true,
+      "profile_restored": true
+    },
+    "mobile": {
+      "viewport": 390,
+      "documentWidth": 390
+    },
+    "browser_exceptions": [],
+    "preview_app_revision": "39f9bc9f",
+    "preview_url": "https://web-cv-board-a99f74c3.dev.dell.lr-projects.de/?view=jobs&profile_id=1",
+    "preview_max_seconds": 86400,
+    "final_reviews": {
+      "whole_branch": "c89a50f0..fbacb8bd",
+      "country_fix": "fbacb8bd..7b443a72 PASS",
+      "generic_skill_fix": "7b443a72..39f9bc9f PASS; no established P1/P2 remaining"
+    },
+    "recorded_at": "2026-10-07T12:43:48.353046+00:00"
   }
 }
