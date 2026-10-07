@@ -269,7 +269,10 @@ def parse_feed(provider, body, board_url):
                         code = _country_code(re.sub(r'\s*\([^)]*\)\s*$', '', source_location).strip())
                         if code and code not in remote_scope:
                             remote_scope.append(code)
-                    arrangement = _arrangement(address) or _arrangement(' '.join(item.get('name','') for item in offices if isinstance(item, dict)))
+                    # A localized posting does not inherit remote permission from
+                    # another employer office. Explicit primary remote scope wins.
+                    arrangement = (_arrangement(address) if address.strip() else
+                                   _arrangement(' '.join(item.get('name','') for item in offices if isinstance(item, dict))))
                     posting_meta = row.get('metadata') or []
                     meta_map = {str(item.get('name','')).casefold(): item.get('value')
                                 for item in posting_meta if isinstance(item, dict)}

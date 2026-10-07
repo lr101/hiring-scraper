@@ -12,6 +12,20 @@ class ProviderTests(unittest.TestCase):
                 self.assertEqual(job['raw_metadata']['offices'], [{'name': office, 'country': 'Germany'}])
                 self.assertEqual(job['locations'][0]['country_code'], 'DE')
 
+    def test_greenhouse_city_primary_is_not_upgraded_by_other_remote_office(self):
+        row = {'id': 1, 'title': 'Engineer', 'absolute_url': 'https://example.test/jobs/1', 'location': {'name': 'Berlin'}, 'offices': [{'name': 'United States (Remote)', 'country': 'US'}]}
+        job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]
+        self.assertIsNone(job.get('work_arrangement'))
+        self.assertIsNone(job.get('is_remote'))
+        self.assertNotIn('remote_country_codes', job['raw_metadata'])
+        self.assertEqual(job['raw_metadata']['offices'], row['offices'])
+        self.assertIn({'label': 'Berlin'}, job['locations'])
+        row['location']['name'] = 'Germany (Remote)'
+        job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]
+        self.assertEqual(job['work_arrangement'], 'remote')
+        self.assertTrue(job['is_remote'])
+        self.assertEqual(job['raw_metadata']['remote_country_codes'], ['DE'])
+
     def test_greenhouse_explicit_remote_location_preserves_country_scope(self):
         row = {'id': 1, 'title': 'Engineer', 'absolute_url': 'https://example.test/jobs/1', 'location': {'name': 'Germany (Remote); Netherlands (Remote)'}, 'offices': [{'name': 'United Kingdom (Remote)'}]}
         job = parse_feed('greenhouse', json.dumps({'jobs': [row]}), 'https://example.test')['jobs'][0]

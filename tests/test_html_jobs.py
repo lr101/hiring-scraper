@@ -29,6 +29,18 @@ class HtmlJobExtractionTests(unittest.TestCase):
         self.assertEqual(extract_html_jobs('<h1>Personal Assistant</h1><p>Staff biography.</p>', 'https://example.test/vacancy/staff/')['jobs'], [])
         self.assertEqual(extract_html_jobs('<article class="vacancy"><h1>About us</h1><a href="/apply">Apply</a><p>Our employer story.</p></article>', 'https://example.test/vacancy/about/')['jobs'], [])
 
+    def test_confirmed_detail_stops_at_explicit_team_heading_after_role_text(self):
+        for boundary in ('Our team', 'Unser Team', 'Meet our team', 'Staff members'):
+            with self.subTest(boundary=boundary):
+                body = '<main><h1>Programme Assistant</h1><a href="/apply">Apply</a><p>Manage programme selection rounds with researchers.</p><h2>Team responsibilities</h2><p>Coordinate the programme calendar with colleagues.</p><h2>You have</h2><p>Two years administrative experience.</p><h2>' + boundary + '</h2><p>Meet Rosy, staff biography unrelated to vacancy.</p></main>'
+                job = extract_html_jobs(body, 'https://example.test/vacancy/programme-assistant/')['jobs'][0]
+                self.assertIn('Manage programme selection rounds with researchers.', job['description'])
+                self.assertIn('Team responsibilities', job['description'])
+                self.assertIn('Coordinate the programme calendar with colleagues.', job['description'])
+                self.assertIn('Two years administrative experience.', job['description'])
+                self.assertNotIn('Meet Rosy', job['description'])
+                self.assertNotIn(boundary, job['description'])
+
     def test_schema_preserves_applicant_scope_expiry_country_and_coordinates(self):
         posting = {'@type': 'JobPosting', 'title': 'Engineer', 'url': 'https://example.test/jobs/1', 'jobLocationType': 'TELECOMMUTE', 'validThrough': '2026-10-06', 'applicantLocationRequirements': [{'@type': 'Country', 'name': 'Germany'}], 'jobLocation': {'address': {'addressLocality': 'Heidelberg', 'addressCountry': {'name': 'Germany'}}, 'geo': {'latitude': 49.4, 'longitude': 8.7}}}
         for provider in ('html_jobs', 'schema_org'):

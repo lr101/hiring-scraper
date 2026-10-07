@@ -585,6 +585,9 @@ def _detail_description(heading: _Element) -> str | None:
         if not active or node.hidden or node.tag not in {"p", "li", "h1", "h2", "h3", "h4", "h5", "h6"}:
             continue
         text = node.text()
+        if (node.tag in {"h2", "h3", "h4", "h5", "h6"} and
+                re.fullmatch(r"our team|unser team|meet (?:our )?team|staff members", text.strip(" :·–—-"), re.I)):
+            break
         if re.match(r"^(?:why join us|meet (?:EMBO )?staff|related (?:jobs|content)|other (?:jobs|vacancies))\b", text, re.I):
             break
         if node.tag == "h1":
