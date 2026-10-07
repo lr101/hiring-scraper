@@ -6,6 +6,7 @@ import os
 import threading
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -13,6 +14,8 @@ from urllib.request import Request, urlopen
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -673,3 +676,37 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             "jobs_for_location": job_page["total"],
             "remote_jobs_in_result": remote_job_page["total"],
             "as_of": datetime.now(timezone.utc).isoformat()}
+
+
+FRONTEND_DIR = Path(os.getenv(
+    "HIRING_FRONTEND_DIR", Path(__file__).resolve().parents[2] / "frontend" / "dist"
+))
+FRONTEND_INDEX = FRONTEND_DIR / "index.html"
+FRONTEND_ASSETS = FRONTEND_DIR / "assets"
+if FRONTEND_ASSETS.is_dir():
+    app.mount("/assets", StaticFiles(directory=FRONTEND_ASSETS), name="frontend-assets")
+
+
+@app.get("/", include_in_schema=False)
+def frontend_index() -> FileResponse:
+    if not FRONTEND_INDEX.is_file():
+        raise HTTPException(status_code=404, detail="Frontend is not built")
+    return FileResponse(FRONTEND_INDEX)
+
+
+@app.get("/{frontend_path:path}", include_in_schema=False)
+def frontend_route(frontend_path: str) -> FileResponse:
+    if frontend_path in {"api", "health"} or frontend_path.startswith(("api/", "health/")):
+        raise HTTPException(status_code=404, detail="Not found")
+    if not FRONTEND_INDEX.is_file():
+        raise HTTPException(status_code=404, detail="Not found")
+
+    frontend_root = FRONTEND_DIR.resolve()
+    requested_file = (frontend_root / frontend_path).resolve()
+    try:
+        requested_file.relative_to(frontend_root)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail="Not found") from error
+    if requested_file.is_file():
+        return FileResponse(requested_file)
+    return FileResponse(FRONTEND_INDEX)

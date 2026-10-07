@@ -223,7 +223,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--companies", type=Path, default=FIXTURES / "karlsruhe-osm-candidates.csv")
     parser.add_argument("--careers", type=Path, default=FIXTURES / "karlsruhe-career-enrichment.json")
+    parser.add_argument("--if-empty", action="store_true",
+                        help="skip the import when the database already contains companies")
     args = parser.parse_args()
+    if args.if_empty:
+        if IS_SQLITE:
+            initialize_sqlite_schema(engine)
+        with SessionLocal() as session:
+            existing_companies = session.scalar(select(func.count()).select_from(Company)) or 0
+        if existing_companies:
+            print(json.dumps({"skipped": True, "reason": "database already contains companies"}))
+            return
     print(json.dumps(import_fixture(args.companies, args.careers), ensure_ascii=False))
 
 
