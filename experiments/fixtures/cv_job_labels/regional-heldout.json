@@ -1,0 +1,2315 @@
+[
+  {
+    "id": "ba:10001-1003637616-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Requirements/process analysis is relevant, but this is an automotive solution-architecture role with specialist implementation and strong language demands.",
+    "missing_requirements": [
+      "Requirements/process analysis is relevant, but this is an automotive solution-architecture role with specialist implementation and strong language demands"
+    ],
+    "evidence": [
+      "Erfolgreich abgeschlossenes Studium in Informatik, Wirtschaftsingenieurwesen, Ingenieurwissenschaften oder eine vergleichbare Qualifikation."
+    ],
+    "title": "Business Solution Architect (m/w/d) Automotive (1402)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003637616-S",
+    "document_sha256": "95d50aaf164d9ef98edb039a79e0a83695b8f4ab89c522e1bf6046acdc34d1e8"
+  },
+  {
+    "id": "ba:11864-T2JWI0T442E6QGUF-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Role requires extensive planning/operations experience and SAP material planning, neither shown in the CV.",
+    "missing_requirements": [
+      "Role requires extensive planning/operations experience and SAP material planning, neither shown in the CV"
+    ],
+    "evidence": [
+      "Einarbeitung in die Change-Management-Prozesse an den Standorten Mannheim und Indianapolis sowie Aufbau entsprechender Expertise."
+    ],
+    "title": "Projektmanager Supply Chain & Materialplanung m/w/d - Roche Mannheim",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11864-T2JWI0T442E6QGUF-S",
+    "document_sha256": "c26d8858404e54911d6365bf43e02fa980d87e1d04d9c8c0cb190ff77a74d26d"
+  },
+  {
+    "id": "ba:12362-TR-243799_624853LS-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Innovation engineering and academic prototyping align, but the role asks for multiple years of professional product development.",
+    "missing_requirements": [
+      "Innovation engineering and academic prototyping align, but the role asks for multiple years of professional product development"
+    ],
+    "evidence": [
+      "Wollen Sie in einem Umfeld arbeiten, das sowohl Ihre persönliche als auch fachliche Entwicklung fördert- Freuen Sie sich täglich auf neue Herausforderungen und spannende Aufgaben- Dann bewerben Sie sich noch heute bei Br",
+      "Abgeschlossenes Ingenieurstudium (z.B. Maschinenbau, Elektrotechnik)"
+    ],
+    "title": "Entwicklungsingenieur für zukunftsweisende Technologien",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-243799_624853LS-S",
+    "document_sha256": "440b5995f34ee8592c42afd03a556935df3ee3a738ad8d5b68a8371fe20843b3"
+  },
+  {
+    "id": "ba:19192-250729-48471816-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Electrical-construction project work requires an electrical trade qualification and domain experience.",
+    "missing_requirements": [
+      "Electrical-construction project work requires an electrical trade qualification and domain experience"
+    ],
+    "evidence": [
+      "Projektleiter Baustrom & Elektrotechnik Arbeitgeber: Implenia Deutschland Arbeitsort: 68161 Mannheim Vergütung: 52.954 € bis 67.679 € brutto pro Jahr Die ausgeschriebene Tätigkeit \"Projektleiter Baustrom & Elektrotechnik"
+    ],
+    "title": "Projektleiter Baustrom & Elektrotechnik",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19192-250729-48471816-S",
+    "document_sha256": "9d601c1731d1109bef917b98850642eb76f1a1492a04927027e0fd699202b0bd"
+  },
+  {
+    "id": "ba:10001-1003369547-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Customer service is transferable, but retail flooring sales and product expertise are the job core.",
+    "missing_requirements": [
+      "Customer service is transferable, but retail flooring sales and product expertise are the job core"
+    ],
+    "evidence": [
+      "Die tägliche Vielfalt macht den Unterschied.",
+      "Offener Menschenfreund mit Stil."
+    ],
+    "title": "Verkäufer für Bodenbeläge (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003369547-S",
+    "document_sha256": "113c3fe75989bc0116b48beaeb4f9cfb0a5805f757f96bab67615334e9e45f33"
+  },
+  {
+    "id": "ba:10001-1003349850-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Business analysis and requirements/process work align; C1 German and programming/software architecture expectations are not met.",
+    "missing_requirements": [
+      "C1 German and programming/software architecture expectations are not met"
+    ],
+    "evidence": [
+      "Als IT-Consultant im Bereich Business Analyse werden Sie:**",
+      "Als IT-Consultant im Bereich Business Analyse sollten Sie mitbringen:**"
+    ],
+    "title": "IT-Consultant Business Analyse (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003349850-S",
+    "document_sha256": "c263c62c7f7de7111265df84f6cf00d9be26672491fe8689a8569c282c2c884e"
+  },
+  {
+    "id": "ba:10000-1207589504-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project-office support matches coordination and reporting strengths, but commercial training and very strong German are gaps.",
+    "missing_requirements": [
+      "Project-office support matches coordination and reporting strengths, but commercial training and very strong German are gaps"
+    ],
+    "evidence": [
+      "Persönliche Weiterentwicklungsmöglichkeiten",
+      "Sie haben eine kaufmännische Ausbildung absolviert und bringen Berufserfahrung mit. Ihre Arbeitsweise ist durch Selbstständigkeit und Zielorientierung sowie Sorgfalt geprägt. Sie übernehmen eine vertrauliche Position im "
+    ],
+    "title": "Projektassistenz – Bürofachkraft (m/w/d) in Teil- oder Vollzeit",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207589504-S",
+    "document_sha256": "10300ea196f10bcfbf5fbaaacbeeb804612c0a9996783bed96100cb3fd69396b"
+  },
+  {
+    "id": "ba:10001-1003632008-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Executive coordination maps to prior EA work; commercial vocational qualification is not evidenced.",
+    "missing_requirements": [
+      "commercial vocational qualification is not evidenced"
+    ],
+    "evidence": [
+      "Souveräne und kompetente Unterstützung des Geschäftsführers in allen organisatorischen und administrativen Belangen",
+      "Wir würden uns freuen, wenn wir Dein Interesse geweckt haben und Du Deine Bewerbungsunterlagen am besten per E-Mail übersendest."
+    ],
+    "title": "Assistenz Geschäftsführung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003632008-S",
+    "document_sha256": "283914d445b3f3a68f388db5b05d90075e596a80ab3d77a6757c95cf637a82ef"
+  },
+  {
+    "id": "ba:10001-1003228616-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "The role is manual tank-container cleaning and unrelated to the candidate’s professional evidence.",
+    "missing_requirements": [
+      "The role is manual tank-container cleaning and unrelated to the candidate’s professional evidence"
+    ],
+    "evidence": [
+      "Tankinnen- und Außenreinigungsarbeiten an Tankcontainern und Aufliegern"
+    ],
+    "title": "Reiniger für Tankcontainer (m/w/d) in Ludwigshafen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003228616-S",
+    "document_sha256": "6eee1de553dd55d6994c9948f0a1e89ea80e2f18d259077f3d80fef20921a57a"
+  },
+  {
+    "id": "ba:12117-YF-47389-YF-S",
+    "fit": "recommended",
+    "geographic": "local",
+    "reason": "Strategic-project and PMO work closely matches project coordination and executive-support history; finance is only desirable.",
+    "missing_requirements": [],
+    "evidence": [
+      "Zur Verstärkung unseres Finanzbereichs suchen wir eine proaktive Persönlichkeit, die das Tagesgeschäft unterstützt und die Weiterentwicklung strategischer Themen aktiv mitgestaltet.",
+      "Abgeschlossenes betriebswirtschaftliches Studium oder eine vergleichbare Qualifikation"
+    ],
+    "title": "Assistenz der Geschäftsführung Finanzen (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12117-YF-47389-YF-S",
+    "document_sha256": "2899f529cf447f94f005b67bf1f732446765875ae9d97cc7feb3e4732f735e01"
+  },
+  {
+    "id": "ba:16945-0067305135-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP PP/EWM project leadership and C1 German are required; neither is evidenced.",
+    "missing_requirements": [
+      "neither is evidenced"
+    ],
+    "evidence": [
+      "Du planst und leitest Workshops und führst das Customizing sowie das erste Testing in einer Testumgebung durch"
+    ],
+    "title": "Projektmanager Softwareprojekte (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16945-0067305135-S",
+    "document_sha256": "ab627719b82416b68de0dd31b15c9c3de3f7a0e455b74bb8f099b76044b76935"
+  },
+  {
+    "id": "ba:10001-1003648990-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project coordination and customer-facing work align, but event-management experience and strong German are gaps.",
+    "missing_requirements": [
+      "Project coordination and customer-facing work align, but event-management experience and strong German are gaps"
+    ],
+    "evidence": [
+      "Begleitung und Koordination von Events von der Angebotsphase bis zur finalen Rechnungsstellung",
+      "Abgeschlossene Berufsausbildung im kaufmännischen, Event- oder Bürobereich"
+    ],
+    "title": "Projektkoordination (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003648990-S",
+    "document_sha256": "55a882d3d215810bfeb56a2a09bee29f90cfff028706f4036ec499b21ecbc2d4"
+  },
+  {
+    "id": "ba:10001-1003809015-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Five-plus years senior IT program leadership and team management are absent.",
+    "missing_requirements": [
+      "Five-plus years senior IT program leadership and team management are absent"
+    ],
+    "evidence": [
+      "Du planst und steuerst komplexe IT-Projekten oder IT-Programme",
+      "Abgeschlossenes MINT- oder BWL-Masterstudium mit mehrjähriger (mindestens 5 Jahre) Berufserfahrung, idealerweise in der Energieversorgung, Öffentliche Auftraggeber oder Unternehmen der Daseinsvorsorge"
+    ],
+    "title": "(Senior) Projekt- & Programm-Manager | IT-Management (all genders)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003809015-S",
+    "document_sha256": "c90a775d14fcb3abd9563ad2ab16f16a9d9793cf8d999c80c91e01dfd8519660"
+  },
+  {
+    "id": "ba:10001-1003290177-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Executive coordination matches EA history; formal commercial training and very good German are gaps.",
+    "missing_requirements": [
+      "formal commercial training and very good German are gaps"
+    ],
+    "evidence": [
+      "Direkte Unterstützung der Geschäftsleitung im Tagesgeschäft",
+      "Abgeschlossene kaufmännische Ausbildung (z. B. Rechtsanwaltsfachangestellte/r, Kauffrau/-mann für Büromanagement o. Ä.)"
+    ],
+    "title": "ASSISTENZ DER GECHÄFTSFÜHRUNG (M/W/D)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003290177-S",
+    "document_sha256": "5d1c9128272895d56a4c965112053f516541aab9c3662fe81b8d4c6c20b272ae"
+  },
+  {
+    "id": "ba:10001-1002566195-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Toolmaking requires a mechanical trade qualification and hands-on tooling experience.",
+    "missing_requirements": [
+      "Toolmaking requires a mechanical trade qualification and hands-on tooling experience"
+    ],
+    "evidence": [
+      "Warten, Prüfen und Reparatur von Werkzeugen und Vorrichtungen",
+      "Ausbildung als Werkzeugmacher (m/w/d) oder ähnliches"
+    ],
+    "title": "Werkzeugmechaniker (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002566195-S",
+    "document_sha256": "70be1622731ea95efcb082311fbebc92f66ae3b8abaa5c6d9cac59d39240f486"
+  },
+  {
+    "id": "ba:10001-1003519960-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Training/program coordination is adjacent, but DaF/DaZ, BAMF funding rules and education-program leadership are specialist gaps.",
+    "missing_requirements": [
+      "Training/program coordination is adjacent, but DaF/DaZ, BAMF funding rules and education-program leadership are specialist gaps"
+    ],
+    "evidence": [
+      "Aufbau, strategische Weiterentwicklung und Steuerung des Bereichs „Berufliche Sprachförderung“",
+      "Abgeschlossenes Hochschulstudium, vorzugsweise in den Bereichen Deutsch als Fremd- oder Zweitsprache (DaF/DaZ), Erwachsenenbildung, Bildungsmanagement, Sprachwissenschaften, Sozialwissenschaften, Pädagogik oder einer ver"
+    ],
+    "title": "Bereichskoordination Berufliche Sprachförderung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003519960-S",
+    "document_sha256": "4a4e2dbe15c81cb41df1f702e4b872611cb9766a503f855b990a3f78e173164a"
+  },
+  {
+    "id": "ba:10001-1003809382-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior SAP transformation consulting, team leadership and client advisory experience are absent.",
+    "missing_requirements": [
+      "Senior SAP transformation consulting, team leadership and client advisory experience are absent"
+    ],
+    "evidence": [
+      "Du leitest komplexe SAP-Programme und -Projekte – von der Vorstudie über die Implementierung bis zum Rollout",
+      "Abgeschlossenes MINT-Studium, Berufsausbildung oder eine vergleichbare Qualifikation sowie Erfahrungen mit IT- und Digitalisierungsthemen und/oder in der Energiebranche und SAP-Technologien"
+    ],
+    "title": "(Senior) Projekt- & Programm-Manager | SAP Consulting (all genders)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003809382-S",
+    "document_sha256": "1fcc9e37ffd4f097e094c73ead07adc4177a5900bec47ec4fdf7a0099b1648b8"
+  },
+  {
+    "id": "ba:10001-1001575308-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP technical master-data migration and analytics experience are absent.",
+    "missing_requirements": [
+      "SAP technical master-data migration and analytics experience are absent"
+    ],
+    "evidence": [
+      "Aufbereitung der Stammdaten für die Migration in ein neues SAP-System",
+      "Ein abgeschlossenes Studium (Bachelor oder Master) in Wirtschaftsingenieurwesen oder einem vergleichbaren Studiengang mit technischem Hintergrund"
+    ],
+    "title": "Technischer Sachbearbeiter - Stammdatenmanagement/SAP-Support (m/w/d) ROCHE - bis zu 82.000 €/Jahr",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001575308-S",
+    "document_sha256": "dc119ea199234e25a74c3e776395231564e74c39b00a0db95f30638743b0d1b9"
+  },
+  {
+    "id": "ba:13334-00005f665d0001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP MM customizing, ABAP debugging and C1 German are required but unsupported.",
+    "missing_requirements": [
+      "SAP MM customizing, ABAP debugging and C1 German are required but unsupported"
+    ],
+    "evidence": [
+      "Im Produktteam \"Wareneingang, Bestandsführung, Disposition\" kümmern wir uns um die Bereitstellung von Lösungen rund um die Beschaffungsprozesse der EDEKA-Einzelhandelsmärkte - \"End-to-End\" vom Einkauf bis zur Warenbewegu",
+      "Du hast ein Studium oder eine Ausbildung mit IT-Bezug erfolgreich abgeschlossen oder verfügst über eine gleichwertige Qualifikation."
+    ],
+    "title": "Inhouse Consultant SAP MM (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13334-00005f665d0001-S",
+    "document_sha256": "5ce1d45989724ca6c655c6dfc8ee290cf43b856f136e4fd9e6d6ae25b065e0ac"
+  },
+  {
+    "id": "ba:13334-00005f664c4001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP Retail application support, MM/SD and C1 German are required but unsupported.",
+    "missing_requirements": [
+      "SAP Retail application support, MM/SD and C1 German are required but unsupported"
+    ],
+    "evidence": [
+      "In einem 10-köpfigen Team kümmerst du dich um den SAP-Support für die Verkaufsprozesse der selbständigen EDEKA-Kaufleute, die unseren Endverbraucher:innen bspw. die Möglichkeit von \"Click & Collect\"-Einkäufen, den Verkau",
+      "Du hast eine Ausbildung oder ein Studium mit IT-Bezug erfolgreich abgeschlossen oder verfügst über eine gleichwertige Qualifikation, bspw. aus deiner Berufserfahrung im Einzel- bzw. Großhandel und entsprechender Zusatzqu"
+    ],
+    "title": "Anwendungsbetreuer:in SAP Retail (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13334-00005f664c4001-S",
+    "document_sha256": "a8fcd4cd453a052c533c40c286f63d6fc8e8d1d843f39017133fc287fa77c8c9"
+  },
+  {
+    "id": "ba:10001-1000852548-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Product lifecycle, customer needs and cross-functional coordination match product-development experience; exzellente German and electronics/IT affinity remain concerns.",
+    "missing_requirements": [
+      "exzellente German and electronics/IT affinity remain concerns"
+    ],
+    "evidence": [
+      "Sie übernehmen die Verantwortung für die Spezifizierung, die Entwicklung und das Management von Produkten und Lösungen",
+      "Sie haben ein erfolgreich abgeschlossenes technisches Studium"
+    ],
+    "title": "Produktmanager (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000852548-S",
+    "document_sha256": "da1a22cb9d9f1572240e28152f6273eca3336e2c3579176748944c4a308421c9"
+  },
+  {
+    "id": "ba:15835-0009030046e001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Business analysis is relevant, but senior IT consulting and explicit C1 German requirements exceed evidence.",
+    "missing_requirements": [
+      "Business analysis is relevant, but senior IT consulting and explicit C1 German requirements exceed evidence"
+    ],
+    "evidence": [
+      "Business-Analyse in Kundenprojekten",
+      "Abgeschlossenes Hochschulstudium mit wirtschaftlichem Schwerpunkt oder vergleichbar"
+    ],
+    "title": "Senior IT-Consultant Digital Business and Process (w|m|d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-0009030046e001-S",
+    "document_sha256": "2e642dd29d7578438faf7c90e1416cf574b7d2a32235ac18dc2b8925de013c41"
+  },
+  {
+    "id": "ba:10000-1194527471-S",
+    "fit": "recommended",
+    "geographic": "local",
+    "reason": "Customer-project coordination, schedules and documentation are directly supported; the technical/commercial qualification is comparable to the engineering degree.",
+    "missing_requirements": [],
+    "evidence": [
+      "Dein zukünftiger Arbeitstag\n\nBist Du bereit, die Betreuung unserer Kundenprojekte im deutschsprachigen Raum zu übernehmen?\n\nAls Projektmanager bist Du für die Vorbereitung und reib"
+    ],
+    "title": "Projektmanager (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1194527471-S",
+    "document_sha256": "f123c68a12a670a1c1b4c87672e5d0bdecfe0bf6f8d8bb074df259a12fde8c60"
+  },
+  {
+    "id": "ba:10001-1003671292-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Executive support/process improvement match, but several years of bookkeeping/payroll form a central unsupported duty.",
+    "missing_requirements": [
+      "Executive support/process improvement match, but several years of bookkeeping/payroll form a central unsupported duty"
+    ],
+    "evidence": [
+      "Vorbereitende Lohn-/Buchhaltung in Abstimmung mit dem Steuerberater",
+      "Eigenverantwortliche, sorgfältige und kollegiale Arbeitsweise"
+    ],
+    "title": "Assistenz Geschäftsführung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003671292-S",
+    "document_sha256": "38a80641e42bcfbe72172b62c5d8b44a3168bac0245a47ae5fb090d46fdbc439"
+  },
+  {
+    "id": "ba:10001-1003640241-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "The role centers on strategic/digital marketing and marketing-team buildout, absent from the CV.",
+    "missing_requirements": [
+      "The role centers on strategic/digital marketing and marketing-team buildout, absent from the CV"
+    ],
+    "evidence": [
+      "Entwicklung und Umsetzung einer ganzheitlichen Marketingstrategie",
+      "Abgeschlossenes Studium im Bereich Marketing, Kommunikation, BWL oder vergleichbar"
+    ],
+    "title": "Marketing Manager (m/w/d) – Aufbau Marketingabteilung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003640241-S",
+    "document_sha256": "f660094a9a9c2fcb5e3ea58790ef08622618e290877ac9dea515735a732ce0e0"
+  },
+  {
+    "id": "ba:10001-1003809453-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Sport-field maintenance, machinery and horticulture are unrelated.",
+    "missing_requirements": [
+      "Sport-field maintenance, machinery and horticulture are unrelated"
+    ],
+    "evidence": [
+      "Als Teil einer Arbeitsgruppe für die Sportplatzpflege führen Sie abwechslungsreiche Tätigkeiten zur Unterhaltung und Entwicklung von über 25 Verein, Sport- und Freizeitanlagen durch. Die Arbeiten erfolgen im Team aber au",
+      "in Fachrichtung Garten- und Landschaftsbau (m/w/d), alternativ in einer anderen Fachrichtung des Gartenbaus, als Werker:in im Gartenbau (m/w/d), Landwirt:in (m/w/d) oder eine vergleichbare Qualifikation"
+    ],
+    "title": "Greenkeeper:in / Mitarbeiter:in Sportplatzpflege (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003809453-S",
+    "document_sha256": "3b291d7edb6fcbd4322bdd03b2ff1ffd97eb17cd54994ec68a253d8a95f5fecc"
+  },
+  {
+    "id": "ba:10000-1206539722-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Product management is adjacent, but radiology workflow, clinical IT standards and senior healthcare product expertise are absent.",
+    "missing_requirements": [
+      "Product management is adjacent, but radiology workflow, clinical IT standards and senior healthcare product expertise are absent"
+    ],
+    "evidence": [
+      "Du gestaltest die strategische Weiterentwicklung und Umsetzung der Produkt-Roadmap von MC³ Radiology gemeinsam mit internen und externen Partner:innen"
+    ],
+    "title": "Produktmanager:in - Radiologie (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206539722-S",
+    "document_sha256": "9a3ab99bfee6fe515d9076b6eaf9d71921f6928e8b81e4cf1b3690eb8db50f8d"
+  },
+  {
+    "id": "ba:13334-00005f66aec001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Requires SAP MM/SD customizing and second-line support, absent from the CV.",
+    "missing_requirements": [
+      "Requires SAP MM/SD customizing and second-line support, absent from the CV"
+    ],
+    "evidence": [
+      "Als Teil unseres Teams übernimmst du eine Schlüsselrolle und gestaltest aktiv mit:",
+      "Du hast ein Studium oder eine Ausbildung mit IT-Bezug erfolgreich abgeschlossen oder verfügst über eine gleichwertige Qualifikation."
+    ],
+    "title": "Anwendungsbetreuer:in SAP MM / SD – Schwerpunkt Konditionsmanagement (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13334-00005f66aec001-S",
+    "document_sha256": "77278542694a305b9dedd4585dff6170a2e3544851188d7ac931d5b3ed3fe866"
+  },
+  {
+    "id": "ba:10001-1003502594-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Training/seminar operations, customer care and process documentation align; explicit C2 German is a material gap.",
+    "missing_requirements": [
+      "explicit C2 German is a material gap"
+    ],
+    "evidence": [
+      "Bei dir laufen die Fäden zusammen. Du bist die Verbindung zwischen Teilnehmern, Trainern und Team: Wer eine Frage hat, schreibt oder ruft dich an — und du sorgst dafür, dass am Ende alles zusammenpasst, von der Anmeldung",
+      "Erfahrung im Büromanagement oder einer vergleichbaren Office-Rolle"
+    ],
+    "title": "Operations Assistant (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003502594-S",
+    "document_sha256": "0724a7631daf773d47e0eff6a6b0fb1d0585d3e5cf381b5340a9886edc134908"
+  },
+  {
+    "id": "ba:12265-487258_JB5250311-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project planning, reporting, stakeholder coordination and Trello align; negotiation-level German is not demonstrated.",
+    "missing_requirements": [
+      "negotiation-level German is not demonstrated"
+    ],
+    "evidence": [
+      "Menschen und Technologien zu verbinden, den Perfect Match für unsere Kunden zu gestalten, immer die richtigen Expert:innen für die jeweilige Herausforderung zu finden - das ist uns"
+    ],
+    "title": "Projektkoordinator (m/w/d) Fahrzeugtechnik",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-487258_JB5250311-S",
+    "document_sha256": "8b858d9a7fe2110c8540e47d286c8085aed01bd9e0ebb321542edb7bf2046bad"
+  },
+  {
+    "id": "ba:12362-TR-224554_624906LS-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior IT project delivery and multiple years of IT project management are not supported.",
+    "missing_requirements": [
+      "Senior IT project delivery and multiple years of IT project management are not supported"
+    ],
+    "evidence": [
+      "Sie sind ein erfahrener Projektmanager im IT-Bereich und auf der Suche nach einer neuen Herausforderung- Wir bieten die einzigartige Gelegenheit, als Schlüsselakteur in einem hochspannenden Umfeld der IT-Projektentwicklu",
+      "Abgeschlossenes Studium im Bereich Informatik, Wirtschaftsinformatik oder vergleichbare Qualifikation"
+    ],
+    "title": "Projektmanager für anspruchsvolle IT-Projekte (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-224554_624906LS-S",
+    "document_sha256": "569a5daa4b6956ceb4b1d39126749f67e771b90966237b65b8973feedff543a0"
+  },
+  {
+    "id": "ba:18953-108338X350989-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "School accompaniment requires pedagogical experience or training not in the CV.",
+    "missing_requirements": [
+      "School accompaniment requires pedagogical experience or training not in the CV"
+    ],
+    "evidence": [
+      "Unterstützung und Begleitung von Kindern mit emotionalen und sozialen Entwicklungsbedarfen in der Schule",
+      "Pädagogische Ausbildung bzw. pädagogische Vorerfahrung"
+    ],
+    "title": "Schulbegleitung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18953-108338X350989-S",
+    "document_sha256": "99ecc080f09c37a261324d90624162f2302544187520af8298bf1e45818486a2"
+  },
+  {
+    "id": "ba:12362-TR-010024_624859LS-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Building-services project leadership requires specialist MEP planning and experience.",
+    "missing_requirements": [
+      "Building-services project leadership requires specialist MEP planning and experience"
+    ],
+    "evidence": [
+      "Möchten Sie die nächste Stufe in Ihrer Karriere erreichen- Bei Brunel haben Sie die Möglichkeit, sich bei namhaften Kunden kontinuierlich weiterzuentwickeln - und das branchenübergreifend. Machen Sie noch heute den entsc",
+      "Abgeschlossenes Studium im Bereich Gebäudetechnik, Versorgungstechnik, Elektrotechnik oder vergleichbare Qualifikation"
+    ],
+    "title": "Projektleiter Gebäudetechnik (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-010024_624859LS-S",
+    "document_sha256": "e38ca1a04ae3b8ac16bbc272e8587f87573de7a29e31bc5accf747f7c11ec964"
+  },
+  {
+    "id": "ba:15835-000903004d3001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior finance-transformation consulting requires long finance-domain consulting experience and C1 German.",
+    "missing_requirements": [
+      "Senior finance-transformation consulting requires long finance-domain consulting experience and C1 German"
+    ],
+    "evidence": [
+      "Du gestaltest mit unseren Kunden die digitale Transformation mit Fokus auf Banking, Insurance, Corporate Finance und Public Finance in der Region D-A-CH.",
+      "Erfolgreich abgeschlossenes Studium der Wirtschaftswissenschaften, Wirtschaftsinformatik oder vergleichbar, bevorzugt mit den Schwerpunkten Banking, Finance oder HR."
+    ],
+    "title": "Lead/Senior Consultant Digital Finance Transformation (w|m|d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-000903004d3001-S",
+    "document_sha256": "7c6ed625cdd590288de0c3bc2a45242dca3df927f3d3561f236c4a81c2ed82a5"
+  },
+  {
+    "id": "ba:10001-1003682484-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "GMP batch-record review and pharmaceutical production QA require specialist training/experience absent from CV.",
+    "missing_requirements": [
+      "GMP batch-record review and pharmaceutical production QA require specialist training/experience absent from CV"
+    ],
+    "evidence": [
+      "Qualifikation:** Abgeschlossenes Studium in Biotechnologie oder einer vergleichbaren Fachrichtung."
+    ],
+    "title": "Ingenieur (m/w/d) Qualitätssicherung – Batch Record Review in Mannheim (1604)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003682484-S",
+    "document_sha256": "65be2c1e7bcc61d5b113d92faf8b415d45178c8a1fdc535252f9187b34f4409e"
+  },
+  {
+    "id": "ba:13106-487446143-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Process improvement is adjacent, but GMP validation, sterile pharma manufacturing and engineering ownership are missing.",
+    "missing_requirements": [
+      "Process improvement is adjacent, but GMP validation, sterile pharma manufacturing and engineering ownership are missing"
+    ],
+    "evidence": [
+      "Du hast ein abgeschlossenes naturwissenschaftliches oder technisches Studium (z. B. Verfahrenstechnik, Chemie, Biotechnologie) oder eine vergleichbare Qualifikation als Techniker/Meister mit einschlägiger Berufserfahrung"
+    ],
+    "title": "Process Engineer (m/w/d) am Standort Mannheim *2 Jahre befristet*",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13106-487446143-S",
+    "document_sha256": "6cb636df4c40077624216f3e3c524e2902fbabefaa009fa006827264b4736f00"
+  },
+  {
+    "id": "ba:13645-274703-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Product lifecycle, launches, market/user needs and cross-functional work align; dosing-pump product expertise and fluent German are gaps.",
+    "missing_requirements": [
+      "dosing-pump product expertise and fluent German are gaps"
+    ],
+    "evidence": [
+      "Akademischer Hintergrund: Sie verfügen über ein abgeschlossenes (Fach-)Hochschulstudium, mindestens auf Bachelor-Niveau, vorzugsweise in Wirtschaftsingenieurwesen, Ingenieurwissenschaften mit Interesse an Marketing oder "
+    ],
+    "title": "Produktmanager Dosiertechnik (Dosierpumpen) (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-274703-S",
+    "document_sha256": "01fc40fd99f2c6f21c8466d2c51160e066be5ab3496c9ea08ecdcd5c3917506d"
+  },
+  {
+    "id": "ba:21211-WP13794-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Sales role depends on SAP sales expertise and a sales record not evidenced.",
+    "missing_requirements": [
+      "Sales role depends on SAP sales expertise and a sales record not evidenced"
+    ],
+    "evidence": [
+      "Der Schwerpunkt liegt auf dem aktiven Vertrieb von SAP-Beratungsleistungen, Einführungsprojekten, Erweiterungen und Modernisierungsvorhaben. Sie bearbeiten neue Leads, entwickeln Bestandskunden weiter und schaffen aus er"
+    ],
+    "title": "Sales Manager (m/w/d) SAP Mannheim",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/21211-WP13794-S",
+    "document_sha256": "55be8bd8dbef20369c9d3cc7b07cb7216939d84c76c07380d67fa408054825a2"
+  },
+  {
+    "id": "ba:10000-1205557630-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Product management is adjacent, but electrical/telecom components and technical product-marketing experience are specific gaps.",
+    "missing_requirements": [
+      "Product management is adjacent, but electrical/telecom components and technical product-marketing experience are specific gaps"
+    ],
+    "evidence": [
+      "Sie wirken mit bei Planung, Koordination und Kontrolle der Produkt-, Preis- und Kommunikationspolitik. Sie beobachten und analysieren die Produkte am Markt sowie die Konkurrenzaktivitäten. Sie definieren neue Produkte un",
+      "Abgeschlossene Hochschulausbildung, bevorzugt als Dipl.-Ing. Elektrotechnik/Elektronik/ Nachrichtentechnik"
+    ],
+    "title": "Produktmanager (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205557630-S",
+    "document_sha256": "0a5ef20923b647865bb1727193a49a3b210231370054581a92d49206c7235adc"
+  },
+  {
+    "id": "ba:12362-TR-300622_622388LS-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Data science, Python/R and machine-learning experience are absent.",
+    "missing_requirements": [
+      "Data science, Python/R and machine-learning experience are absent"
+    ],
+    "evidence": [
+      "Möchten Sie die nächste Stufe in Ihrer Karriere erreichen- Bei Brunel haben Sie die Möglichkeit sich bei namhaften Kunden kontinuierlich weiterzuentwickeln. Machen Sie noch heute den entscheidenden Schritt Ihrer Karriere",
+      "Abgeschlossenes Studium in Data Science, Informatik, Mathematik, Statistik, Wirtschaftsinformatik oder einer technischen Fachrichtung"
+    ],
+    "title": "Data Scientist Produktion & Machine Learning (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-300622_622388LS-S",
+    "document_sha256": "0d66fe9b2a0295abbf6290ad7fb43897652f51be134fa443db9192e6e8b14d2e"
+  },
+  {
+    "id": "ba:10001-1003807939-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Academic prototyping is relevant, but pharma production, GMP, technical plant operation and production-engineering tenure are absent.",
+    "missing_requirements": [
+      "Academic prototyping is relevant, but pharma production, GMP, technical plant operation and production-engineering tenure are absent"
+    ],
+    "evidence": [
+      "Sie verfügen über ein abgeschlossenes Ingenieurstudium in den Bereichen Maschinenbau, Mechatronik, Elektrotechnik, Chemie oder eine vergleichbare Weiterbildung als Maschinenbautechniker:in, Mechatroniker:in, Elektrotechn"
+    ],
+    "title": "Ingenieur / Techniker (m/w/d) Entwicklung Disposables Pharma (1522)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003807939-S",
+    "document_sha256": "52af69cd74e62e0d9814e8b24d92ff86266af3936ed4575623b3bb2cc246640b"
+  },
+  {
+    "id": "ba:10001-1003440966-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "CNC metalworking, machine setup and metal trade experience are absent.",
+    "missing_requirements": [
+      "CNC metalworking, machine setup and metal trade experience are absent"
+    ],
+    "evidence": [
+      "Eigenverantwortliches Einrichten, Programmieren und Bedienen moderner CNC-Stanzautomaten und Abkantpressen"
+    ],
+    "title": "Maschinenbediener (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003440966-S",
+    "document_sha256": "cf5d04dc0312beb0d9b11cffaecef7419011a196dbbcc49cd39a737587bf1253"
+  },
+  {
+    "id": "ba:16945-0067612182-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Training and onboarding experience aligns; talent coaching, succession planning and production HR experience are not shown.",
+    "missing_requirements": [
+      "talent coaching, succession planning and production HR experience are not shown"
+    ],
+    "evidence": [
+      "Berufserfahrung in der Personalentwicklung, im Coaching oder in der Weiterbildung – idealerweise in einem produzierenden Unternehmen"
+    ],
+    "title": "Personalentwickler (m/w/d) Produktion",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16945-0067612182-S",
+    "document_sha256": "bf784a2d05688f099931e8d241bfa463639d476621d25f2bc2dfeb0d45e3bcbb"
+  },
+  {
+    "id": "ba:12811-2349646-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Project support is adjacent, but construction claims/contracts, civil-engineering context and C1 German are mandatory gaps.",
+    "missing_requirements": [
+      "Project support is adjacent, but construction claims/contracts, civil-engineering context and C1 German are mandatory gaps"
+    ],
+    "evidence": [
+      "Wir gestalten Bauwerke, die verbinden! Sie wollen nicht nur mitarbeiten, sondern mitgestalten? Bei uns finden Sie spannende Projekte, echte Teamarbeit und die Chance, sich persönli"
+    ],
+    "title": "Projektmanager (w/m/d) / Nachtragsmanager (w/m/d), Heidelberg",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2349646-S",
+    "document_sha256": "f9a4679c7320c8a8747740c6d8b7fe2400026fdc96c5c9573ec02031f1133387"
+  },
+  {
+    "id": "ba:10000-1207522479-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior TypeScript/React and AI-agent engineering requirements are unrelated to the CV.",
+    "missing_requirements": [
+      "Senior TypeScript/React and AI-agent engineering requirements are unrelated to the CV"
+    ],
+    "evidence": [
+      "This is a hands-on individual contributor role. Your work will span two core areas:",
+      "TypeScript & React**. Senior-level proficiency in building production UI applications. You write clean, maintainable TypeScript and are comfortable owning complex React codebases."
+    ],
+    "title": "Senior Frontend & Agent Engineer (f/m/d): Joule Work Desktop",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207522479-S",
+    "document_sha256": "3e4fcb029a3bb4cae50973cf95090a2ab9e0aab1ce6b854ae2fdd654a6af029c"
+  },
+  {
+    "id": "ba:10001-1003045813-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Project coordination is relevant, but an electrical qualification and technical design/costing are central.",
+    "missing_requirements": [
+      "Project coordination is relevant, but an electrical qualification and technical design/costing are central"
+    ],
+    "evidence": [
+      "Technische Beurteilung und Begleitung von Projekten gemeinsam mit dem Projektteam",
+      "Ausbildung oder Weiterbildung im Bereich Elektrotechnik (z. B. Meister, Techniker oder vergleichbare Qualifikation)"
+    ],
+    "title": "Technischer Projektkoordinator Elektrotechnik (m/w/d) – Vollzeit",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003045813-S",
+    "document_sha256": "12bc1cf90599c2bfbd9959815a40b39cd06c6edf0b0412d1caaf7d2601412457"
+  },
+  {
+    "id": "ba:18789-2025v7o308jo-000-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Direct electrical master qualification, planning and installation leadership are required.",
+    "missing_requirements": [
+      "Direct electrical master qualification, planning and installation leadership are required"
+    ],
+    "evidence": [
+      "Projektleitung von Wohn -und Gewerbeobjekten",
+      "Sie haben einen Meister der Elektrotechnik oder eine gleichwertige Qualifikation"
+    ],
+    "title": "Projektleiter Elektro (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18789-2025v7o308jo-000-S",
+    "document_sha256": "479922654c9c2fd45e35ec7ff2feb415d48750bb5a346ad1b5b7fdccc7f11935"
+  },
+  {
+    "id": "ba:17426-0066282198-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Intensive nursing requires nursing qualification and ICU training absent from CV.",
+    "missing_requirements": [
+      "Intensive nursing requires nursing qualification and ICU training absent from CV"
+    ],
+    "evidence": [
+      "Übernahme der allgemeinen und speziellen an Pflegeprozessen orientierten Pflege sowie Konzeption der Pflegemaßnahmen",
+      "Abgeschlossene dreijährige Berufsausbildung zum Gesundheits- und Krankenpfleger (m/w/d)"
+    ],
+    "title": "Gesundheits- und Krankenpfleger Intensivstation (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17426-0066282198-S",
+    "document_sha256": "f0ce204579379a0b66f4b8096085bdac6e9a528f61e8f16da78ba54c7a7e3e95"
+  },
+  {
+    "id": "ba:12265-488146_JB5250349-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Project coordination is adjacent, but five years of pharma project management and technical engineering experience are required.",
+    "missing_requirements": [
+      "Project coordination is adjacent, but five years of pharma project management and technical engineering experience are required"
+    ],
+    "evidence": [
+      "Menschen und Technologien zu verbinden, den Perfect Match für unsere Kunden zu gestalten, immer die richtigen Expert:innen für die jeweilige Herausforderung zu finden - das ist uns"
+    ],
+    "title": "Projektleiter (m/w/d) Pharmaindustrie",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-488146_JB5250349-S",
+    "document_sha256": "ca705b58d6f50ec356c2bad4253ca9238cdac036db96cd11ae2ea1faac889f24"
+  },
+  {
+    "id": "ba:13452-BB-1578411-7878-771-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Product/customer work transfers partially, but account-sales targets and earthmover/relevant product expertise are not evidenced.",
+    "missing_requirements": [
+      "Product/customer work transfers partially, but account-sales targets and earthmover/relevant product expertise are not evidenced"
+    ],
+    "evidence": [
+      "Intensiver Erhalt, Ausbau und individuelle Betreuung des vorhandenen Kundenstamms sowie Betreuung regionaler Key-Account-Kunden im Segment Earthmover.",
+      "Erfolgreich abgeschlossene kaufmännische oder technische Ausbildung (z. B. im Bereich Groß- und Außenhandel, Automobil- oder Reifenbranche) oder vergleichbare Qualifikation."
+    ],
+    "title": "Produktmanager Earthmover (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13452-BB-1578411-7878-771-S",
+    "document_sha256": "0bd7fc5a6f8258c4aac08c27413310120fc376114418ab40137c5e89fd374d13"
+  },
+  {
+    "id": "ba:10001-1003717141-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior civil/rail construction site leadership, VOB and multi-year Bauleitung are absent.",
+    "missing_requirements": [
+      "Senior civil/rail construction site leadership, VOB and multi-year Bauleitung are absent"
+    ],
+    "evidence": [
+      "Führung und Steuerung von Terminen, Personal und Material im Bahnbau – in enger Zusammenarbeit mit dem internen Team aus Arbeitsvorbereitung, Bauleitung und Abrechnung",
+      "Abschluss im Bereich Bauingenieurwesen, Wirtschaftsingenieurwesen, Bautechnik oder vergleichbar"
+    ],
+    "title": "Senior-Bauleiter (m/w/d) im Tief- und Bahnbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003717141-S",
+    "document_sha256": "284b77b20063b2c6d5b309b8d5619fc26799ff4deb21d19e8771cc9e77f0d942"
+  },
+  {
+    "id": "ba:10001-1003644863-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Schedule/cost coordination, presentations and cross-functional work align; technical project context and advanced Excel/qualification are gaps.",
+    "missing_requirements": [
+      "technical project context and advanced Excel/qualification are gaps"
+    ],
+    "evidence": [
+      "Sie verfügen über eine Technikerweiterbildung, einen Abschluss als Technische:r Betriebswirt:inoder über eine vergleichbare Qualifikation."
+    ],
+    "title": "Projektkoordinator (m/w/d) Engineering (760)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003644863-S",
+    "document_sha256": "321a92f905e285182b5da9e4a4e177091c34b2d93da998194af3f4ee1f952d93"
+  },
+  {
+    "id": "ba:10001-1003302173-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Financial statements, forecasting, valuation and finance education are the core and are absent.",
+    "missing_requirements": [
+      "Financial statements, forecasting, valuation and finance education are the core and are absent"
+    ],
+    "evidence": [
+      "Als Analyst unterstützen Sie im Backoffice unser Beraterteam durch:",
+      "Neben einer Affinität zu Zahlen und Interesse an betriebswirtschaftlichen Themenstellungen bringen Sie folgende Qualifikationen mit:"
+    ],
+    "title": "Analyst (w/m/d) in der Unternehmensberatung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003302173-S",
+    "document_sha256": "eafd958b9fdf2b80473dbdb9b8d6d2bf289025eed33276c3e69682d82bb2ac59"
+  },
+  {
+    "id": "ba:12362-CR-031527_622457LS-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "IT/Data Science degree and 5–7 years of CSM systems/analytics work are mandatory gaps despite training/process overlap.",
+    "missing_requirements": [
+      "IT/Data Science degree and 5–7 years of CSM systems/analytics work are mandatory gaps despite training/process overlap"
+    ],
+    "evidence": [
+      "Sie suchen ein Unternehmen, das Sie optimal in Ihrer persönlichen und fachlichen Entwicklung unterstützt- Wir bieten Leistungsträger mit Potential abwechslungsreiche Aufgabengebiete. Dann unterstützen Sie ab sofort unser",
+      "Abgeschlossenes Studium (Bachelor oder Master) im Bereich Informatik, Data Science oder einer vergleichbaren Fachrichtung"
+    ],
+    "title": "Data Analyst / IT-Systemexperte (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-CR-031527_622457LS-S",
+    "document_sha256": "282bffd7f6af13f37b9e0105bf6daa6d991ac6891ebc372e7ca535bc0043b76d"
+  },
+  {
+    "id": "ba:10001-1003751897-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Public-administration qualification and immigration-law adjudication experience are absent.",
+    "missing_requirements": [
+      "Public-administration qualification and immigration-law adjudication experience are absent"
+    ],
+    "evidence": [
+      "selbständige und abschließende Bearbeitung komplexer ausländerrechtlicher Angelegenheiten.",
+      "gesichertes, monatliches Einkommen"
+    ],
+    "title": "Sachbearbeiter/-in Ausländerrecht (m/w/d) in Teilzeit (19,5 Wochenstunden)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003751897-S",
+    "document_sha256": "2890837b5867555a56c94204f15c5986d5170ee30cf2feacfd89cdcd15eef68d"
+  },
+  {
+    "id": "ba:15957-k55444.1973-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior SAP integration program/team leadership experience is absent.",
+    "missing_requirements": [
+      "Senior SAP integration program/team leadership experience is absent"
+    ],
+    "evidence": [
+      "Deine guten Deutsch- und Englischkenntnisse in Wort und Schrift runden Dein Profil ab."
+    ],
+    "title": "Projektmanager / Teamlead (m/w/d) - SAP Integration",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15957-k55444.1973-S",
+    "document_sha256": "50640c68b1c7a74ee1be4ef1056e36168ab2a84b450ec0f879e1370b9cf1bb0d"
+  },
+  {
+    "id": "ba:11119-4934908452-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project coordination and stakeholder/timeline duties align, but clinical-trial supply processes are a domain stretch.",
+    "missing_requirements": [
+      "Project coordination and stakeholder/timeline duties align, but clinical-trial supply processes are a domain stretch"
+    ],
+    "evidence": [
+      "Randstad ist einer der weltweit führenden Personaldienstleister mit\ndem Ziel, so spezialisiert und so fair zu werden wie kein anderes\nUnternehmen in der Welt der Arbeit. Durch die "
+    ],
+    "title": "Projektkoordinator (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11119-4934908452-S",
+    "document_sha256": "ce6b19e54a8437fb1290f9f396c348d9bc67db5a2a464bde12dc38aea53bb7d8"
+  },
+  {
+    "id": "ba:10001-1003015429-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Metal trade repair and welding work are absent.",
+    "missing_requirements": [
+      "Metal trade repair and welding work are absent"
+    ],
+    "evidence": [
+      "Ausführung der Instandhaltungs- und Reparaturarbeiten an Tankcontainern und IBC"
+    ],
+    "title": "Schlosser/Schweißer (m/w/d) in Ludwigshafen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003015429-S",
+    "document_sha256": "5bfb38a066d319969a02605f527ca31735be02c17ff633b76ed292724a977e28"
+  },
+  {
+    "id": "ba:10001-1003799556-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Qualified electrical installation/maintenance is absent.",
+    "missing_requirements": [
+      "Qualified electrical installation/maintenance is absent"
+    ],
+    "evidence": [
+      "Grundsätzlich können im Bereich der Elektrotechnik alle Tätigkeiten anfallen, die das Berufsbild des Elektronikers (m/w/d) umfassen. Darüber hinaus liegt der Schwerpunkt des Aufgabengebietes in den folgenden Arbeiten:",
+      "hohe Motivation, Einsatzbereitschaft und zielgerichtete Arbeitsweise"
+    ],
+    "title": "Elektroniker/in Fachrichtung Energie- und Gebäudetechnik (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003799556-S",
+    "document_sha256": "7f2cb617bd86b62a613a4a3c7095499e4e936f69d4985f9d78eb900eaa1247e4"
+  },
+  {
+    "id": "ba:13517-0000301a2cb001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior TGA project leadership, engineering specialization, VOB and contractor leadership are missing.",
+    "missing_requirements": [
+      "Senior TGA project leadership, engineering specialization, VOB and contractor leadership are missing"
+    ],
+    "evidence": [
+      "Fachliche und disziplinarische Führungsverantwortung"
+    ],
+    "title": "Projektmanager TGA (Mensch)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13517-0000301a2cb001-S",
+    "document_sha256": "a060389aad6a8b3ee9bc2fb2f6d9becc954f281c127f57a75347ae097b88b3a9"
+  },
+  {
+    "id": "ba:10001-1003597852-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Digital process and customer-journey optimization aligns with process-improvement, requirements and product work; web analytics/system integration experience is uncertain.",
+    "missing_requirements": [
+      "web analytics/system integration experience is uncertain"
+    ],
+    "evidence": [
+      "Du verfügst über ein gutes technisches Verständnis für Systemlandschaften, Schnittstellen und digitale Prozessketten."
+    ],
+    "title": "Prozessmanager (m/w/d) Customer Journey & Digital Processes",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003597852-S",
+    "document_sha256": "fcaac2b4aa1775bab96f0e9ad5a09290ac3b0de6db1afd537d70388a13c445c4"
+  },
+  {
+    "id": "ba:10001-1003767341-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Technical project reporting and requirements documentation transfer partially; architecture/whitepaper technical-writing experience is not evidenced.",
+    "missing_requirements": [
+      "architecture/whitepaper technical-writing experience is not evidenced"
+    ],
+    "evidence": [
+      "**Project Manager (m/w/d) Technical Documentation | D6 GR Heidelberg | Hybrid | MMA15006**\n\n**Start:** November 2026\n\n**Dauer:** 7 Monate \n\n**Ort:** D6 GR Heidelberg / Hybrid\n\n**Pr"
+    ],
+    "title": "#15006 Project Manager (m/w/d) Technical Documentation",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003767341-S",
+    "document_sha256": "57344dd5ff198f5468ca70a64dc2f852edf2a48df09b0ae5ee56a9923dfbd1eb"
+  },
+  {
+    "id": "ba:13892-3132410_4057871-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Contract law review and global contract lifecycle expertise are specialist gaps.",
+    "missing_requirements": [
+      "Contract law review and global contract lifecycle expertise are specialist gaps"
+    ],
+    "evidence": [
+      "Sie entwickeln unsere **Contract-Management-** und Vertragsadministrationsprozesse **weltweit** weiter und stellen deren Umsetzung gemäß den Freudenberg Standards sicher.",
+      "Abgeschlossenes Masterstudium der Fachrichtung **(Wirtschafts-) Recht, Wirtschaftswissenschaften** mit **juristischem Schwerpunkt** oder vergleichbar."
+    ],
+    "title": "Global Contract Manager (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13892-3132410_4057871-S",
+    "document_sha256": "acdd7d7d307ccd4f72943c16b24796a1f27be60403ca4be90d70597a7cec8ddf"
+  },
+  {
+    "id": "ba:19146-100014473048-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Construction planning, tendering and claims management require construction credentials/experience absent from CV.",
+    "missing_requirements": [
+      "Construction planning, tendering and claims management require construction credentials/experience absent from CV"
+    ],
+    "evidence": [
+      "Planung und Durchführung von Projekten zur Montage wegweisender Beschilderung",
+      "Abgeschlossene Ausbildung im Bauwesen oder eine vergleichbare Qualifikation"
+    ],
+    "title": "Bauleiter / Projektmanager Hochbau (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19146-100014473048-S",
+    "document_sha256": "ceda484d195a46d4d7ee9ee23dee2f30197ddf25099d250868fbab0d360333cc"
+  },
+  {
+    "id": "ba:12265-341000_JB5246651-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Pharma PM requires a relevant pharma/life-science degree and five years of pharma projects.",
+    "missing_requirements": [
+      "Pharma PM requires a relevant pharma/life-science degree and five years of pharma projects"
+    ],
+    "evidence": [
+      "Planung, Durchführung und Überwachung von Projekten in der Pharmabranche"
+    ],
+    "title": "Projektmanager Pharma / Life-Science (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-341000_JB5246651-S",
+    "document_sha256": "f46b0b3b76f5acacc1107ab5f0dde4aa699c6282d45f3af8915002ef880d2381"
+  },
+  {
+    "id": "ba:10001-1001575584-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Regulatory affairs in pharma is a specialist compliance role absent from CV.",
+    "missing_requirements": [
+      "Regulatory affairs in pharma is a specialist compliance role absent from CV"
+    ],
+    "evidence": [
+      "Kopieren und Scannen von Registrierungsdokumenten",
+      "Ein abgeschlossenes betriebswirtschaftliches oder naturwissenschaftliches Studium oder eine Ausbildung im kaufmännischen oder naturwissenschaftlichen Bereich mit Berufserfahrung von Vorteil"
+    ],
+    "title": "Regulatory Affairs Manager (m/w/d) ROCHE - bis zu 56.400 €/J",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001575584-S",
+    "document_sha256": "067766f120d728eb70a2e78281fba136dac3c9b0d289e42bb650593af14b6bea"
+  },
+  {
+    "id": "ba:10001-1003331435-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Requires a master/doctorate in business/psychology/social science plus analytics; candidate’s engineering bachelor does not match.",
+    "missing_requirements": [
+      "candidate’s engineering bachelor does not match"
+    ],
+    "evidence": [
+      "Unterstützung der Geschäftsleitung bei der strategischen Ausrichtung des Unternehmens",
+      "Sie verfügen über einen sehr guten Studienabschluss (Master oder Promotion) in Wirtschaftswissenschaften, Psychologie oder Sozialwissenschaften"
+    ],
+    "title": "Universitätsabsolventen als Management Associates (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003331435-S",
+    "document_sha256": "8c94ec1175997f7f9137b8cb3ff0f0f1510b875ea347539d875e29f1af255288"
+  },
+  {
+    "id": "ba:17426-0067895997-S",
+    "fit": "recommended",
+    "geographic": "local",
+    "reason": "Training coordination, onboarding and event administration closely match L&D work; commercial-office qualification and German proficiency need confirmation.",
+    "missing_requirements": [],
+    "evidence": [
+      "Pflichtfortbildungen:** Planung, Organisation und Koordination der Pflichtfortbildungen in den Bereichen Arbeitsschutz, Datenschutz, Hygiene und Informationssicherheit",
+      "Kaufmännische Ausbildung oder vergleichbare Qualifikation"
+    ],
+    "title": "Assistenz (m/w/d) Personalentwicklung & Betriebliches Gesundheitsmanagement (BGM)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17426-0067895997-S",
+    "document_sha256": "d63b4879879a45984097431d3b53c90ba3bcdc5637d7638a0aa5e1b4c4758e2b"
+  },
+  {
+    "id": "ba:12632-0c20c687_JB5213466-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Supplier coordination is only academic; strategic sourcing, negotiation and procurement experience are core.",
+    "missing_requirements": [
+      "strategic sourcing, negotiation and procurement experience are core"
+    ],
+    "evidence": [
+      "Verantwortung für die Beschaffung in Neuproduktentwicklungs- und Sonderprojekten – von der Anfrage bis zum erfolgreichen Projektabschluss",
+      "Abgeschlossenes Studium , z. B. Betriebswirtschaft, Wirtschaftsingenieurwesen oder eine vergleichbare technische Qualifikation bzw. Weiterbildung"
+    ],
+    "title": "Strategischer Einkäufer (m/w/d) in Kraichtal-Menzingen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12632-0c20c687_JB5213466-S",
+    "document_sha256": "68f0f528f7934f1978906cec47cd7e4d7e711d98756ed7937f0accdd1e80ad27"
+  },
+  {
+    "id": "ba:10001-1003756381-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP procurement planning, supplier negotiations and sourcing experience are absent.",
+    "missing_requirements": [
+      "SAP procurement planning, supplier negotiations and sourcing experience are absent"
+    ],
+    "evidence": [
+      "abgeschlossene kaufmännische obder betriebswirtschaftliche Ausbildung bzw. vergleichbare Qualifikation"
+    ],
+    "title": "Planner Indirect Sourcing (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003756381-S",
+    "document_sha256": "bba33f3951205c49349cadbacc6c00c6bd60f69a2bea9a273b8127d41c4a5429"
+  },
+  {
+    "id": "ba:11070-1634855-1-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "GxP quality compliance and SAP Digital Manufacturing product expertise are absent.",
+    "missing_requirements": [
+      "GxP quality compliance and SAP Digital Manufacturing product expertise are absent"
+    ],
+    "evidence": [
+      "We are seeking a Senior Product Specialist (f/m/d) to define, lead, and execute upon a product strategy targeted to regulated industries for our SAP Digital Manufacturing solution within SAP’s Autonomous Enterprise. We a",
+      "4+ years’ experience in consulting, product engineering or management of computerized system validation in regulated industries (Pharma, Life Sciences, Biotech, Medical Devices); SAP DM/ Manufacturing Execution System va"
+    ],
+    "title": "Senior Product Specialist:Compliance & Quality for Regulated Industries-Digital Manufacturig (f/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11070-1634855-1-S",
+    "document_sha256": "b8388bd692ee976cb40cec1f4624e49059466ff974cd52c6f74998a657172b8c"
+  },
+  {
+    "id": "ba:15835-00090300366002-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior life-science IT compliance consulting, audits and regulated QA/lab experience are absent.",
+    "missing_requirements": [
+      "Senior life-science IT compliance consulting, audits and regulated QA/lab experience are absent"
+    ],
+    "evidence": [
+      "Entwicklung und Umsetzung von Strategien und Konzepten für Unternehmen der Life Science Industrie (Pharma und Chemie) mit dem Fokus auf Digitalisierung und Datenintegrität"
+    ],
+    "title": "Life Science Senior Consultant für IT Projekte in Labor und QA (w|m|d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-00090300366002-S",
+    "document_sha256": "516782cea69425aeef976c75e6286f56c446fc3f00fa991b5311095f5480d584"
+  },
+  {
+    "id": "ba:13892-3133891_4061339-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior finance partnering, P&L and controlling are unsupported.",
+    "missing_requirements": [
+      "Senior finance partnering, P&L and controlling are unsupported"
+    ],
+    "evidence": [
+      "Sie agieren als vertrauenswürdiger Finance Business Partner für Vileda Professional Deutschland und Österreich, unterstützen die **Managementteams** und sind aktiver Teil davon, um **P&L**, Working Capital, Liquidität un",
+      "Erfolgreich abgeschlossenes Studium der Betriebswirtschaftslehre, Finanzen, Rechnungswesen oder vergleichbar."
+    ],
+    "title": "Senior Finance & Controlling Manager (w/m/d) DACH",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13892-3133891_4061339-S",
+    "document_sha256": "3fc3fdf0d8ac9c02b20a6928493d55957f94517360b5444f2786d9513acf811f"
+  },
+  {
+    "id": "ba:12265-440554_JB5247457-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Technical documentation aligns broadly, but MDR/ISO 13485 medical-device compliance is a core specialist requirement.",
+    "missing_requirements": [
+      "Technical documentation aligns broadly, but MDR/ISO 13485 medical-device compliance is a core specialist requirement"
+    ],
+    "evidence": [
+      "Menschen und Technologien zu verbinden, den Perfect Match für unsere Kunden zu gestalten, immer die richtigen Expert:innen für die jeweilige Herausforderung zu finden - das ist uns"
+    ],
+    "title": "Mitarbeiter (m/w/d) technische Dokumentation nach MDR",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-440554_JB5247457-S",
+    "document_sha256": "5d91ad5220a2f20f743ccfca38f275d558b0ac11f53df0b5f504e4a527bddac2"
+  },
+  {
+    "id": "ba:10000-1207915990-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Customer support, order handling and process coordination transfer; sales-office experience and commercial training are gaps.",
+    "missing_requirements": [
+      "sales-office experience and commercial training are gaps"
+    ],
+    "evidence": [
+      "Idealerweise erste Erfahrung im Innendienst/Kundenservice"
+    ],
+    "title": "Vertriebsinnendienst (m/w/d) in Vollzeit mit Perspektive auf Führungsposition",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207915990-S",
+    "document_sha256": "46dcfe958022a8b0fd7cdeac8f82b708937861fb2ddd95b5932093706ba67532"
+  },
+  {
+    "id": "ba:18750-k62053.1197-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Accounting/controlling, HGB and finance qualification are required; the CV has no finance work.",
+    "missing_requirements": [
+      "the CV has no finance work"
+    ],
+    "evidence": [
+      "Übernahme abwechslungsreicher Aufgaben im Finanz- und Controlling-Umfeld",
+      "Fundierte Kenntnisse in Betriebswirtschaft, idealerweise mit Schwerpunkt Rechnungswesen, Controlling oder Finance – nachgewiesen durch Studium oder eine vergleichbare kaufmännische Aus-/Weiterbildung"
+    ],
+    "title": "Kaufmännischer Mitarbeiter für Finanzprozesse & Controlling (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18750-k62053.1197-S",
+    "document_sha256": "ecf2e9a0dccc22d1a7b406e5043dd249439caa6f5b80c4f4cae3b9537d4cc3a3"
+  },
+  {
+    "id": "ba:10001-1003809089-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior SAP transformation consulting and team leadership are absent.",
+    "missing_requirements": [
+      "Senior SAP transformation consulting and team leadership are absent"
+    ],
+    "evidence": [
+      "Du leitest komplexe SAP S/4HANA-Transformationsprojekte – von der Strategieentwicklung bis zur Umsetzung",
+      "Abgeschlossenes MINT-Studium, Berufsausbildung oder eine vergleichbare Qualifikation sowie Erfahrungen mit IT- und Digitalisierungsthemen und/oder in der Energiebranche und SAP-Technologien"
+    ],
+    "title": "(Senior) Manager | SAP Consulting (all genders)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003809089-S",
+    "document_sha256": "c5b109768220001bd108f6195c7cd1d4dd757baf0bdf390981e50a0bf3790b46"
+  },
+  {
+    "id": "ba:10000-1207188042-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Schlosser trade, tank-container repairs and welding are absent.",
+    "missing_requirements": [
+      "Schlosser trade, tank-container repairs and welding are absent"
+    ],
+    "evidence": [
+      "Ausführung der Instandhaltungs- und Reparaturarbeiten an Tankcontainern und IBC"
+    ],
+    "title": "Schlosser/Schweißer (m/w/d) in Ludwigshafen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207188042-S",
+    "document_sha256": "d7922617bf9a720fc20a8e46837b615a8eca5aca043022fb8a2603adaf08deb5"
+  },
+  {
+    "id": "ba:10001-1003369556-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Customer service transfers partially, but retail sales and home-textile product advising are not evidenced.",
+    "missing_requirements": [
+      "Customer service transfers partially, but retail sales and home-textile product advising are not evidenced"
+    ],
+    "evidence": [
+      "Die tägliche Vielfalt macht den Unterschied.",
+      "Offener Menschenfreund mit Stil."
+    ],
+    "title": "Verkäufer für Heimtextilien (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003369556-S",
+    "document_sha256": "28476146c49912f250ee73b2e885079cadacd53d58cc06e05314786c06728040"
+  },
+  {
+    "id": "ba:10001-1002912393-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP PLM/EH&S consulting and chemistry/physics/chemical-engineering qualification are absent.",
+    "missing_requirements": [
+      "SAP PLM/EH&S consulting and chemistry/physics/chemical-engineering qualification are absent"
+    ],
+    "evidence": [
+      "Aktuell suchen wir Mitarbeiter*innen zum Ausbau unserer Beratungsaktivitäten im Bereich R&D der chemischen und pharmazeutischen Industrie. Hast du Interesse daran, dein chemisches Fachwissen zu nutzen, um Brücken zwische",
+      "Du besitzt ein erfolgreich abgeschlossenes Studium der Fachrichtungen Chemie, Physik, Verfahrenstechnik oder Chemieingenieurwesen"
+    ],
+    "title": "SAP Consultant (m/w/d) Research & Development Chemie / Pharma",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002912393-S",
+    "document_sha256": "8bf7dc742dfeeeafebb4937d001d105d43eec2087d053a20b6a962ff209deef9"
+  },
+  {
+    "id": "ba:17907-44411156-831-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail leadership trainee requires retail operations, shift/store work and relevant vocational experience not shown.",
+    "missing_requirements": [
+      "Retail leadership trainee requires retail operations, shift/store work and relevant vocational experience not shown"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44411156-831-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:18953-108482X352196-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Pedagogical group leadership with children requires experience/training absent from CV.",
+    "missing_requirements": [
+      "Pedagogical group leadership with children requires experience/training absent from CV"
+    ],
+    "evidence": [
+      "Verantwortung für die Betreuung, Bildung und Erziehung der Grundschulkinder",
+      "Abgeschlossene Ausbildung zur pädagogischen Fachkraft oder pädagogische Vorerfahrung"
+    ],
+    "title": "Gruppenleitung (m/w/d) im Rahmen der Ganztagsbetreuung an Grundschulen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18953-108482X352196-S",
+    "document_sha256": "81277a00baa18801acfeaef06dd64bc0984581b907fd0fbe49b74dc8ade4dd70"
+  },
+  {
+    "id": "ba:13644-224292-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP TM architecture and technical implementation experience are absent.",
+    "missing_requirements": [
+      "SAP TM architecture and technical implementation experience are absent"
+    ],
+    "evidence": [
+      "Du hast ein technisches Studium oder eine vergleichbare Qualifikation mit Erfahrung im Aufbau von SAP Architekturen."
+    ],
+    "title": "Development Architect SAP TM (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-224292-S",
+    "document_sha256": "26a1f4f9dd09b234fef3dce778c2e723829c31caeb825e141c2922104f2e774c"
+  },
+  {
+    "id": "ba:10001-1003109458-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Engineering degree, product prototyping/CAD and process-improvement methods are relevant; production-planning, SAP/CREO and assembly-engineering experience are gaps.",
+    "missing_requirements": [
+      "production-planning, SAP/CREO and assembly-engineering experience are gaps"
+    ],
+    "evidence": [
+      "Ingenieur (m/w/d) (TH/FH/BA) im Bereich Maschinenbau, Mechatronik oder eine vergleichbare Qualifikation"
+    ],
+    "title": "Fertigungsplaner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003109458-S",
+    "document_sha256": "406ac10ac9ece8717e411b2fb2e63ad42a9e20023375802f35cb0e89159b91da"
+  },
+  {
+    "id": "ba:17426-0065305051-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Clinical nursing, medication and treatment duties require a nursing qualification absent from CV.",
+    "missing_requirements": [
+      "Clinical nursing, medication and treatment duties require a nursing qualification absent from CV"
+    ],
+    "evidence": [
+      "Eigenverantwortliche Betreuung unserer Patient:innen im Rahmen der tagesklinischen Versorgung",
+      "Abgeschlossene dreijährige Berufsausbildung als Pflegefachkraft (m/w/d)"
+    ],
+    "title": "Pflegefachkraft Therapieraum (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17426-0065305051-S",
+    "document_sha256": "df7ed50e79e8c99dad985f7ca4f4e8d5c1b1491c0919fe5fd82ac7a8e7df7d4c"
+  },
+  {
+    "id": "ba:17426-0066698848-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Cardiology ward leadership requires nursing credentials and clinical leadership absent from CV.",
+    "missing_requirements": [
+      "Cardiology ward leadership requires nursing credentials and clinical leadership absent from CV"
+    ],
+    "evidence": [
+      "Fachliche und organisatorische Leitung der kardiologischen Station",
+      "Abgeschlossene Ausbildung als Pflegefachfrau/Pflegefachmann, Gesundheits- und Krankenpfleger/in oder eine vergleichbare pflegerische Qualifikation"
+    ],
+    "title": "Stationsleitung Kardiologie (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17426-0066698848-S",
+    "document_sha256": "3efb609effa469500219120881c4973d4d72a0c27e5ba1c224e19649e0751dbf"
+  },
+  {
+    "id": "ba:10001-1003797919-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Project coordination transfers, but software project delivery and voice-AI/technical implementation experience are not evidenced.",
+    "missing_requirements": [
+      "Project coordination transfers, but software project delivery and voice-AI/technical implementation experience are not evidenced"
+    ],
+    "evidence": [
+      "Leitung und Koordination von Projekten zur Digitalisierung und Automatisierung des Kundenservice von der Konzeption bis zur Implementierung",
+      "Abgeschlossenes Studium z. B. in der Studienrichtung Computerlinguistik, Informatik, BWL oder einen vergleichbaren Abschluss"
+    ],
+    "title": "Projektleiter/in Voice AI (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003797919-S",
+    "document_sha256": "5a25d76a300fb5a0bdae55407041dd05c9e0696c603b1c2462108ace0f9bc119"
+  },
+  {
+    "id": "ba:10001-1003718376-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Training coordination transfers partially, but medical/MDR quality, clinical business and regulatory expertise are missing.",
+    "missing_requirements": [
+      "Training coordination transfers partially, but medical/MDR quality, clinical business and regulatory expertise are missing"
+    ],
+    "evidence": [
+      "Organisation und Controlling**",
+      "Organisation und Controlling**"
+    ],
+    "title": "Fachkraft Medizinische Assistenz der Geschäftsführung (m/w/d/x)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003718376-S",
+    "document_sha256": "db2a478846bd6699b146cbee84fd0418875d6a0d4822107084bb17aa9e972396"
+  },
+  {
+    "id": "ba:12362-TR-237433_624873LS-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Process improvement, project planning and employee training align; ISO management-system implementation experience is a domain gap.",
+    "missing_requirements": [
+      "ISO management-system implementation experience is a domain gap"
+    ],
+    "evidence": [
+      "Sie suchen ein Unternehmen, bei dem Sie sich täglich auf neue Herausforderungen und spannende Aufgaben freuen können- Wir bieten Leistungsträgern mit Potential abwechslungsreiche Aufgabengebiete. Sie sind Experte im Bere",
+      "Abgeschlossenes Studium im Bereich Ingenieurwesen, Wirtschaftsingenieurwesen, Betriebswirtschaft oder einem vergleichbaren Fachgebiet"
+    ],
+    "title": "Projektmanager für Managementsysteme (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-237433_624873LS-S",
+    "document_sha256": "3dd564e4c58d8c85ea9fc7ac44e2c7b5a5d69884326ca0c29694da6ec98466d5"
+  },
+  {
+    "id": "ba:13644-242324-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Microsoft cloud/server architecture and operations skills are absent.",
+    "missing_requirements": [
+      "Microsoft cloud/server architecture and operations skills are absent"
+    ],
+    "evidence": [
+      "Unterstützung bei der Planung, Migration, Implementierung und Administration von Office /Microsoft 365, Azure Services oder Microsoft Teams inkl. VoIP Telefonie"
+    ],
+    "title": "Cloud Architect Microsoft 365 (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-242324-S",
+    "document_sha256": "a0542f6babeb814dbbb3a9414c7a7dcad90713e4bbcfeaeaa36e9753c101e147"
+  },
+  {
+    "id": "ba:10001-1002210164-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Requires several years of Power BI/data analytics, SQL/data engineering and automotive telemetry visualization, none shown.",
+    "missing_requirements": [
+      "Requires several years of Power BI/data analytics, SQL/data engineering and automotive telemetry visualization, none shown"
+    ],
+    "evidence": [
+      "Mindestens 3 Jahre Erfahrung in **Data Analytics/BI**, idealerweise **im internationalen und Automotive-Umfeld**"
+    ],
+    "title": "PowerBI Experte zur Visualisierung von Telematikdaten",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002210164-S",
+    "document_sha256": "cd750dc62c8dfd43de4b2e9b9b70ab8bfe233652279e09a18481cb1d0cf55e14"
+  },
+  {
+    "id": "ba:10000-1207124764-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project planning, requirements, customer consulting, product rollouts and training align; software implementation and ÖPNV domain experience are gaps.",
+    "missing_requirements": [
+      "software implementation and ÖPNV domain experience are gaps"
+    ],
+    "evidence": [
+      "Flache Hierarchien mit einem Prinzip der offenen Türen bis zur Geschäftsleitung",
+      "Erste praktische Erfahrung in der IT-Beratung oder im IT-Projektumfeld"
+    ],
+    "title": "IT-Projektmanager (m/w/d) mit Schwerpunkt Consulting im ÖPNV-Umfeld",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207124764-S",
+    "document_sha256": "24a7198daceeb34b51d1c07b5775bbb3282e96c4ec88616ba24a4e921907175e"
+  },
+  {
+    "id": "ba:12362-TR-243797_624904LS-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Engineering degree and cross-functional project coordination align; substantial technical-project leadership evidence is not shown.",
+    "missing_requirements": [
+      "substantial technical-project leadership evidence is not shown"
+    ],
+    "evidence": [
+      "Sie suchen ein Unternehmen, das Sie optimal in Ihrer persönlichen und fachlichen Entwicklung unterstützt- Wir bieten abwechslungsreiche Aufgabengebiete für Leistungsträger mit Potential. Machen Sie noch heute den entsche",
+      "Abgeschlossenes Studium im Ingenieurwesen oder vergleichbar"
+    ],
+    "title": "Projektmanager für innovative Ingenieurlösungen (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-243797_624904LS-S",
+    "document_sha256": "a4d2dbd3369271d0e81486882e14890a96e30a3f60e6e8b6a1c8928c10e96309"
+  },
+  {
+    "id": "ba:18750-k62053.1221-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Customer-facing experience transfers, but key-account sales, negotiation, acquisition and sales targets are the core.",
+    "missing_requirements": [
+      "Customer-facing experience transfers, but key-account sales, negotiation, acquisition and sales targets are the core"
+    ],
+    "evidence": [
+      "Eigenverantwortliche Betreuung und Weiterentwicklung von strategisch wichtigen Kunden",
+      "Abgeschlossene kaufmännische Ausbildung oder abgeschlossenes Hochschulstudium"
+    ],
+    "title": "Key Account Manager (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18750-k62053.1221-S",
+    "document_sha256": "0a8f12c41029bb7f508b554d098e61ecc7c2cb51bf7bcacdc8afc27556f264f9"
+  },
+  {
+    "id": "ba:10001-1003759560-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Civil-engineering degree, infrastructure leadership and construction supervision are required and absent.",
+    "missing_requirements": [
+      "Civil-engineering degree, infrastructure leadership and construction supervision are required and absent"
+    ],
+    "evidence": [
+      "stellvertretende Leitung des Fachbereichs Bauwesen und Recht",
+      "abgeschlossenes Hochschulstudium im Bereich Bauingenieurwesen mit mehrjähriger Führungserfahrung sowie Berufserfahrung im Projektmanagement und in der Objektüberwachung"
+    ],
+    "title": "eine stellvertretende Fachbereichsleitung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003759560-S",
+    "document_sha256": "721eed56203379aa5f253c1f9d58d00f3ada25e5ded61b4e7d3031db3c212c60"
+  },
+  {
+    "id": "ba:12704-YRW7N15XHET9LGYT-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Plastic-processing machinery setup/operation and process-mechanic qualification are absent.",
+    "missing_requirements": [
+      "Plastic-processing machinery setup/operation and process-mechanic qualification are absent"
+    ],
+    "evidence": [
+      "Einrichten, Bedienen und Überwachen von Spritzgießmaschinen sowie Rüsten und Anfahren von Produktionsanlagen",
+      "Berufserfahrung in der Kunststoffverarbeitung ist notwendig, idealerweise im Bereich Spritzguss"
+    ],
+    "title": "Verfahrensmechaniker (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12704-YRW7N15XHET9LGYT-S",
+    "document_sha256": "d3a060d2330f5b045a34b2ce42170d5c13b61e0ec29aa7f36b3ddccb38b1a4f8"
+  },
+  {
+    "id": "ba:10000-1206934964-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Direct home-care duties require care experience and availability; unrelated CV.",
+    "missing_requirements": [
+      "unrelated CV"
+    ],
+    "evidence": [
+      "Wir suchen ab sofort für unseren ambulanten Pflegedienst eine Pflegehilfskraft m, w, d\n\nWir erwarten:\n\nErfahrung in der Pflege oder Interesse an dem Beruf (Quereinsteiger)\nEin Führ"
+    ],
+    "title": "Pflegehilfskraft (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206934964-S",
+    "document_sha256": "cdd70499101b5260b533c2492b42df946cf024caeeba21e8e3dc45521749d9fc"
+  },
+  {
+    "id": "ba:13517-0000301a546001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Building-services engineering project leadership, technical discipline and construction expertise are absent.",
+    "missing_requirements": [
+      "Building-services engineering project leadership, technical discipline and construction expertise are absent"
+    ],
+    "evidence": [
+      "Vertragsanalyse und Risikobewertung"
+    ],
+    "title": "Versorgungstechnik (Mensch)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13517-0000301a546001-S",
+    "document_sha256": "f8a9016765eaa496794863b8084268ca089ecbad4a75a3c3900256bcb242c631"
+  },
+  {
+    "id": "ba:12811-2349476-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior construction claims/contract management and civil-engineering domain are absent.",
+    "missing_requirements": [
+      "Senior construction claims/contract management and civil-engineering domain are absent"
+    ],
+    "evidence": [
+      "Wir gestalten Bauwerke, die verbinden! Sie lieben komplexe Projekte und übernehmen gerne Verantwortung? Bei BUNG steuern Sie Infrastrukturvorhaben mit technischem Tiefgang und stra"
+    ],
+    "title": "Senior Projektmanager (w/m/d) / Nachtragsmanager (w/m/d), Heidelberg",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2349476-S",
+    "document_sha256": "726b0b28075bc5b0a05da56d1b0136bec214ad629884eb6e013e3daa0c9edd0b"
+  },
+  {
+    "id": "ba:10001-1003689939-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Product-development/CAD work is adjacent, but electrical PV design, AutoCAD/PVcase and electrical-system expertise are missing.",
+    "missing_requirements": [
+      "Product-development/CAD work is adjacent, but electrical PV design, AutoCAD/PVcase and electrical-system expertise are missing"
+    ],
+    "evidence": [
+      "Du prüfst Kundenanfragen und PV-Anlagendesigns auf technische Machbarkeit und Optimierungsmöglichkeiten.",
+      "Idealerweise Erfahrung in der Planung von PV-Freiflächenanlagen, Solarpark-Layouts, DC-Verkabelungen oder vergleichbaren Infrastrukturprojekten"
+    ],
+    "title": "Technischer Produktmanager / Projektingenieur (m/w/d) PV-Verkabelung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003689939-S",
+    "document_sha256": "1f5f633345c65aff1acad06e1135a1096b8326d00a1bac1eaee1ab93bfa7753e"
+  },
+  {
+    "id": "ba:19470-451969239-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Product lifecycle, requirements and international stakeholders align with product development; e-commerce architecture and SAP integration are not evidenced.",
+    "missing_requirements": [
+      "e-commerce architecture and SAP integration are not evidenced"
+    ],
+    "evidence": [
+      "Bewertung von Anforderungen auf unserem Weg vom Webshop zu einer zukunftsweisenden Digital Experience Platform (DXP) – Composable Commerce, Headless, API‑basierte Services",
+      "Abgeschlossenes Studium (Wirtschafts-) Informatik oder vergleichbare Qualifikation"
+    ],
+    "title": "Product Owner E-Commerce B2B – International (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19470-451969239-S",
+    "document_sha256": "18e27f78c771b33cb0752e11fd1047e385b0d40bbf47da29cf7d637c238482b6"
+  },
+  {
+    "id": "ba:13319-894870/1_624514LS-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Onboarding/HR coordination transfers, but personnel records, contracts/payroll law and HR administration experience are absent.",
+    "missing_requirements": [
+      "Onboarding/HR coordination transfers, but personnel records, contracts/payroll law and HR administration experience are absent"
+    ],
+    "evidence": [
+      "Pflege und Verwaltung von Personalakten",
+      "Erfolgreich abgeschlossene kaufmännische Ausbildung, idealerweise mit Schwerpunkt Personalwesen oder vergleichbare Qualifikation"
+    ],
+    "title": "Personalsachbearbeiter  (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13319-894870/1_624514LS-S",
+    "document_sha256": "2f00f192995ba4ac27d2994811843d80b6e3dfc776296a3d5bc46a0fa81d7199"
+  },
+  {
+    "id": "ba:12265-520738_JB5251097-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Supplier/production planning and ERP/SAP scheduling are not evidenced; only academic sourcing exposure.",
+    "missing_requirements": [
+      "only academic sourcing exposure"
+    ],
+    "evidence": [
+      "Technologien auf das nächste Level zu heben, sich Herausforderungen zu stellen und an den Innovationen von morgen zu arbeiten - dafür benötigen wir bei FERCHAU Expert:innen wie dic"
+    ],
+    "title": "Supply Management Planner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-520738_JB5251097-S",
+    "document_sha256": "375aa8b4ecf68fcc796e6e4d717be3aa7ee4ca07680aac32acc4819c911dd42b"
+  },
+  {
+    "id": "ba:15835-000903005ed001-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project/product coordination and change/training work transfer; AI governance/data-readiness and senior IT/AI project experience are gaps.",
+    "missing_requirements": [
+      "AI governance/data-readiness and senior IT/AI project experience are gaps"
+    ],
+    "evidence": [
+      "IT‑ und AI‑Projekte leiten: Du verantwortest ganzheitliche Digitalisierungsprojekte von der ersten Idee über die Umsetzung bis zum erfolgreichen Abschluss."
+    ],
+    "title": "Project Manager (w|m|d) mit IT & AI Know-how",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-000903005ed001-S",
+    "document_sha256": "c7d58839e7579f09c648ef8a27bd4dcfb91384caa79986ea35c0c94856f77fb0"
+  },
+  {
+    "id": "ba:17907-44411153-831-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail store operations, sales and staff leadership are not supported.",
+    "missing_requirements": [
+      "Retail store operations, sales and staff leadership are not supported"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44411153-831-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:10000-1205177447-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Property leasing, real-estate contracts, permits and collections are specialist requirements absent from CV.",
+    "missing_requirements": [
+      "Property leasing, real-estate contracts, permits and collections are specialist requirements absent from CV"
+    ],
+    "evidence": [
+      "Aktuell prägend für die Stelle ist die Neueinführung einer neuen Immobilien-Verwaltungssoftware. Hierzu sind vermietbare Immobilien in Wirtschafts- und Mieteinheiten strukturiert zu gliedern und die diesbezüglichen Stamm",
+      "Aktuell prägend für die Stelle ist die Neueinführung einer neuen Immobilien-Verwaltungssoftware. Hierzu sind vermietbare Immobilien in Wirtschafts- und Mieteinheiten strukturiert zu gliedern und die diesbezüglichen Stamm"
+    ],
+    "title": "Immobilienexperte*in (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205177447-S",
+    "document_sha256": "400a423e3ed44332c4ef64f58c90bd951846850bc91d20183b2291bf8abb3583"
+  },
+  {
+    "id": "ba:13635-8bd9af73_JB5249250-S",
+    "fit": "recommended",
+    "geographic": "local",
+    "reason": "Digital project lifecycle, requirements, customer advising and web/e-commerce projects closely match product development and coordination evidence.",
+    "missing_requirements": [],
+    "evidence": [
+      "Du übernimmst die Leitung spannender Projekte im E-Commerce und im digitalen Raum",
+      "Du beweist Durchsetzungsvermögen"
+    ],
+    "title": "Projektmanager (w/m/x) Digital",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13635-8bd9af73_JB5249250-S",
+    "document_sha256": "6b18cf8fa953dbd04ece322451376c2fcb17c3c3922ec2e602fe20d768633981"
+  },
+  {
+    "id": "ba:10001-1002704634-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Customer service, coordination, requests and documentation align; technical service knowledge is trainable but not established.",
+    "missing_requirements": [
+      "technical service knowledge is trainable but not established"
+    ],
+    "evidence": [
+      "Einsatz moderner Technologien"
+    ],
+    "title": "Mitarbeiter Innendienst (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002704634-S",
+    "document_sha256": "a94a8d504e6d6db2319b2d670514f9fc0cf45b65683406fea0991ebdd893e554"
+  },
+  {
+    "id": "ba:10001-1002714597-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "People-facing HR/customer coordination transfers partially; recruitment delivery, sales targets and German fluency are gaps.",
+    "missing_requirements": [
+      "recruitment delivery, sales targets and German fluency are gaps"
+    ],
+    "evidence": [
+      "Recruiting & Talentgewinnung**",
+      "Egal ob **Berufseinsteiger, Quereinsteiger** oder **erfahrener HR-Profi** – bei uns zählt Deine Persönlichkeit und Dein Anspruch, Menschen und Unternehmen erfolgreich zusammenzubringen."
+    ],
+    "title": "HR Berater (m/w/d) bei IMPACT Group",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002714597-S",
+    "document_sha256": "7cd1158d8c70475d77607a5b63eb9058cdf1659a09facf4d72f0bd8543ff309a"
+  },
+  {
+    "id": "ba:12117-YF-52192-YF-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "L&D is related, but strategic talent/leadership development, four years of specialist experience and HR analytics are missing.",
+    "missing_requirements": [
+      "L&D is related, but strategic talent/leadership development, four years of specialist experience and HR analytics are missing"
+    ],
+    "evidence": [
+      "Steuerung und strategische Weiterentwicklung unseres internen Talentmanagements",
+      "Studium der (Wirtschafts-)Psychologie, Sozial- oder Wirtschaftswissenschaften oder vergleichbare Qualifikation"
+    ],
+    "title": "Experte Personalentwicklung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12117-YF-52192-YF-S",
+    "document_sha256": "c5d520be1c44f3d676abff87589dda9853bca0e62e26f4e5cc11eedeb92f0204"
+  },
+  {
+    "id": "ba:10000-1206961893-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Executive support and office coordination align with past EA work; fleet/safety-officer duties are additional gaps.",
+    "missing_requirements": [
+      "fleet/safety-officer duties are additional gaps"
+    ],
+    "evidence": [
+      "Abgeschlossene kaufmännische Ausbildung oder eine vergleichbare Qualifikation."
+    ],
+    "title": "Office Manager & Assistenz der Geschäftsführung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206961893-S",
+    "document_sha256": "19f194b30c980fa2eb5b04198eb9e7fa5917a29159a86f29782fb2ad1024de5c"
+  },
+  {
+    "id": "ba:12633-454cf0a7_JB5175094-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Industrial-mechanic trade, equipment maintenance and welding are absent.",
+    "missing_requirements": [
+      "Industrial-mechanic trade, equipment maintenance and welding are absent"
+    ],
+    "evidence": [
+      "Durchführung der mechanischen Instandhaltung inkl. Störungsbehebung",
+      "Abgeschlossene technische Ausbildung als"
+    ],
+    "title": "Industriemechaniker Instandhaltung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12633-454cf0a7_JB5175094-S",
+    "document_sha256": "06b1776ee85a0be3d4c622e6c71fd7c83cb54972998c0f36e5d71f6d4cfebb4b"
+  },
+  {
+    "id": "ba:13644-288948-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP HR solution ownership, customizing and third-level support are absent.",
+    "missing_requirements": [
+      "SAP HR solution ownership, customizing and third-level support are absent"
+    ],
+    "evidence": [
+      "Verantwortung für die SAP-basierte Lösung 'Business Partner Employee' (BPE)",
+      "Abgeschlossenes Studium Wirtschaftsinformatik, Informatik, Wirtschaftsingenieurwesen oder vergleichbar"
+    ],
+    "title": "Solution Owner Business Partner Employee (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-288948-S",
+    "document_sha256": "9f7ef132313a414e421cda21c3b224b2ff7b2f09f7876aa64e7eed74a90b952a"
+  },
+  {
+    "id": "ba:18953-107906X349100-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "School accompaniment needs pedagogical experience not evidenced.",
+    "missing_requirements": [
+      "School accompaniment needs pedagogical experience not evidenced"
+    ],
+    "evidence": [
+      "Unterstützung und Begleitung von Kindern mit emotionalen und sozialen Entwicklungsbedarfen in der Schule",
+      "Pädagogische Ausbildung bzw. pädagogische Vorerfahrung"
+    ],
+    "title": "Schulbegleitung Eppelheim (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18953-107906X349100-S",
+    "document_sha256": "8001f1975ad924d27277f9bb3ab41213907b61cafe84ac62a184bd7c17fe1904"
+  },
+  {
+    "id": "ba:10001-1003511655-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Coordination, reporting/KPIs and process improvement align; hands-on warehouse/logistics and forklift readiness are missing.",
+    "missing_requirements": [
+      "hands-on warehouse/logistics and forklift readiness are missing"
+    ],
+    "evidence": [
+      "Unterstützung der Lager- und Logistikleitung im operativen Tagesgeschäft",
+      "Abgeschlossene kaufmännische oder logistische Ausbildung, idealerweise mit Erfahrung im Lager- oder Transportbereich"
+    ],
+    "title": "ASSISTENZ (m/w/d) - LAGER- & LOGISTIKLEITUNG",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003511655-S",
+    "document_sha256": "33a14222b9203e25f3431dd08d3d5e68b245f75a8cbe9dcbeacfa7f8850b7d1f"
+  },
+  {
+    "id": "ba:18489-j109S16709-46028-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Commercial department leadership, budgeting/forecasting and team management exceed the CV evidence.",
+    "missing_requirements": [
+      "Commercial department leadership, budgeting/forecasting and team management exceed the CV evidence"
+    ],
+    "evidence": [
+      "Ausbildung & Berufserfahrung: Abgeschlossene kaufmännische Ausbildung oder Studium sowie mehrjährige Berufserfahrung in den Bereichen Controlling, Kalkulation oder Abrechnung (idealerweise im Facility-Management-Umfeld)"
+    ],
+    "title": "kaufmännischer Leiter Innendienst m/w/d",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18489-j109S16709-46028-S",
+    "document_sha256": "2eb37429f16d5c324838a438db49841b6e84f95a295f867e7bac023cbf1e21cd"
+  },
+  {
+    "id": "ba:13644-312253-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Requirements gathering, process analysis and specifications align directly; IT architecture/system-landscape consulting and C1 German remain gaps.",
+    "missing_requirements": [
+      "IT architecture/system-landscape consulting and C1 German remain gaps"
+    ],
+    "evidence": [
+      "Als IT-Consultant im Bereich Business Analyse werden Sie:",
+      "Als IT-Consultant im Bereich Business Analyse sollten Sie mitbringen:"
+    ],
+    "title": "IT-Consultant Business Analyse (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-312253-S",
+    "document_sha256": "24b4faab849ce6ea191becb89f27b199ba201fdce92883b5785155404f663f95"
+  },
+  {
+    "id": "ba:14272-20259zum977r-000-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Construction foreman duties and site qualification are absent.",
+    "missing_requirements": [
+      "Construction foreman duties and site qualification are absent"
+    ],
+    "evidence": [
+      "Ausbildung: Sie verfügen über eine erfolgreich abgeschlossene Berufsausbildung zum Meister oder Polier (w/m/d) oder einen vergleichbaren Abschluss."
+    ],
+    "title": "Polier (m/w/d) Bereich Hoch- und Ingenieurbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14272-20259zum977r-000-S",
+    "document_sha256": "1cf334d9c029a6554ef4d82601b64c4c4fbefb516e4b3843440c858f19ba6c5d"
+  },
+  {
+    "id": "ba:19100-lo53rq3Z-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Civil-engineering construction estimating, VOB and field experience are absent.",
+    "missing_requirements": [
+      "Civil-engineering construction estimating, VOB and field experience are absent"
+    ],
+    "evidence": [
+      "Abgeschlossenes Studium als Bauingenieur (w/m/d), vorzugsweise der Fachrichtung Tief- und Straßenbau oder Bautechniker (w/m/d) mit vergleichbaren Kenntnissen"
+    ],
+    "title": "Referent Kalkulation Tief- und Straßenbau (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19100-lo53rq3Z-S",
+    "document_sha256": "cd369c384efa732d45df3f36432207d7c3e1cf6662ed670c8d208d1219795dd9"
+  },
+  {
+    "id": "ba:10000-1205487914-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Executive assistance, office organization and customer care align; legal-office German/written correspondence remains a possible gap.",
+    "missing_requirements": [
+      "legal-office German/written correspondence remains a possible gap"
+    ],
+    "evidence": [
+      "Assistenz der Geschäftsführung",
+      "Erfolgreich abgeschlossenes Studium"
+    ],
+    "title": "Kanzleileiter/in (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205487914-S",
+    "document_sha256": "d1585bb0d84de15800384327ca7b6fd0302281d34ec6b1a5c761c511d6ad7298"
+  },
+  {
+    "id": "ba:17907-44411163-831-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail store operations and prior retail leadership are required; training and coordination do not establish them.",
+    "missing_requirements": [
+      "training and coordination do not establish them"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44411163-831-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:14452-0064215108-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Engineering education and project/customer coordination align partly; plant acoustics, steel-vessel design and plant-construction experience are missing.",
+    "missing_requirements": [
+      "plant acoustics, steel-vessel design and plant-construction experience are missing"
+    ],
+    "evidence": [
+      "Bearbeitung von Kundenanfragen und Erstellen von Kalkulationen sowie Angeboten über die Lieferung von Luftansaugsystemen für Gasturbinen",
+      "Abgeschlossenes Studium im Bereich des Maschinenbaus oder einem ähnlichen Studiengang"
+    ],
+    "title": "Projektleiter m/w/d Kraftwerksschallschutz",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14452-0064215108-S",
+    "document_sha256": "ff562ceea7ac504df67d742996ec9918945acef0d90a6850144271ae98e14e3c"
+  },
+  {
+    "id": "ba:10001-1003695698-S",
+    "fit": "recommended",
+    "geographic": "local",
+    "reason": "Executive coordination, meetings, correspondence, event support and leadership projects strongly match prior EA work.",
+    "missing_requirements": [],
+    "evidence": [
+      "Unterstützung der Geschäftsführung in allen organisatorischen und administrativen Belangen",
+      "Unterstützung der Geschäftsführung in allen organisatorischen und administrativen Belangen"
+    ],
+    "title": "Assistenz der Geschäftsführung (m/w/d/x)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003695698-S",
+    "document_sha256": "76a733349922aac98853c0c604e5ffeef323a15c086792b1b1dd5380920c7d32"
+  },
+  {
+    "id": "ba:12634-BB-645258-7878-2278-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Engineering degree and supplier/process coordination transfer; production planning, ERP/SAP and procurement are gaps.",
+    "missing_requirements": [
+      "production planning, ERP/SAP and procurement are gaps"
+    ],
+    "evidence": [
+      "Alternativ: Techniker/Meister mit relevanter Berufserfahrung im Supply Management"
+    ],
+    "title": "Supply Management Planner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12634-BB-645258-7878-2278-S",
+    "document_sha256": "721a5a51ba85d4aee59a2907ed7f0915764b8497c6bcf6bcf65cfd185d1d487a"
+  },
+  {
+    "id": "ba:10001-1003643700-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project/event/training coordination, communications and documentation align; BGM/BEM and very good German are gaps.",
+    "missing_requirements": [
+      "BGM/BEM and very good German are gaps"
+    ],
+    "evidence": [
+      "Entgegennahme, Bearbeitung und Dokumentation der Bonushefte",
+      "Wünschenswert: Studium (BWL, Gesundheitsmanagement, Eventmanagement oder vergleichbar)"
+    ],
+    "title": "Projektmanager (m/w/d) – BGM/BEM",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003643700-S",
+    "document_sha256": "5198456bcd3b09bf4716e23eaacaa25e610f77f2c40492e0f7a282a5309050c7"
+  },
+  {
+    "id": "ba:10001-1003770272-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Building maintenance and gas/water installer trade are absent.",
+    "missing_requirements": [
+      "Building maintenance and gas/water installer trade are absent"
+    ],
+    "evidence": [
+      "Reparaturen und Instandsetzungen in und an städtischen Gebäuden",
+      "eine abgeschlossene Ausbildung als Gas- und Wasserinstallateuer (m/w/d) oder vergleichbare Ausbildung mit entsprechender Berufserfahrung im vorgenannten Bereich"
+    ],
+    "title": "einen Mitarbeiter (m/w/d) im Bereich Technische Dienste",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003770272-S",
+    "document_sha256": "d2dcba546aea98858fba1a3b423beed14702ba06b2d930c6b64c07bc3fbe6b14"
+  },
+  {
+    "id": "ba:15835-00090300534001-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Requirements/process analysis aligns; energy-utility systems, domain vocabulary and C1 German/consulting experience are gaps.",
+    "missing_requirements": [
+      "energy-utility systems, domain vocabulary and C1 German/consulting experience are gaps"
+    ],
+    "evidence": [
+      "Fachkonzepte: Du bist Teil unseres Teams bei Stadtwerken und Unternehmen der Versorgerbranche und erstellst Fachkonzepte und Umsetzungsvarianten auf Basis digitaler Fähigkeiten und ermöglichst dadurch auch die Adaption v"
+    ],
+    "title": "Consultant IT Business Analyse Future Energy & Utilities (w|m|d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-00090300534001-S",
+    "document_sha256": "6b4758b28569750d42eab8b3a23d07d3c831b2ca3e5bb4762df5948366166e84"
+  },
+  {
+    "id": "ba:13106-484305732-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior manufacturing-science leadership in pharma compounding/coating requires deep GMP/production engineering expertise absent.",
+    "missing_requirements": [
+      "Senior manufacturing-science leadership in pharma compounding/coating requires deep GMP/production engineering expertise absent"
+    ],
+    "evidence": [
+      "Du leitest ein oder mehrere komplexe und funktionsübergreifende Projekte und trägst die End-to-end-Verantwortung für die Projektabwicklung innerhalb von NPC Operations bis zur finalen Umsetzung."
+    ],
+    "title": "Senior Project Lead (m/w/d) MSAT - Compounding & Coating",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13106-484305732-S",
+    "document_sha256": "890d556a050618b47d87cfee4c959c551cefda1244b097ef5bde94ab01f8b2f6"
+  },
+  {
+    "id": "ba:13334-00005f67eea001-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Senior SAP MM/ABAP development and software engineering are absent.",
+    "missing_requirements": [
+      "Senior SAP MM/ABAP development and software engineering are absent"
+    ],
+    "evidence": [
+      "Du verantwortest die kontinuierliche Weiterentwicklung unserer Beschaffungsprozesse auf Basis von SAP S/4HANA.",
+      "Du hast ein Studium oder eine Ausbildung mit IT-Bezug erfolgreich abgeschlossen oder verfügst über eine gleichwertige Qualifikation."
+    ],
+    "title": "Senior Entwickler:in SAP-Produktentwicklung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13334-00005f67eea001-S",
+    "document_sha256": "4ad5b3ad4e8641430a32d8c79db54752b161072515a7ef7d0491292a68debf24"
+  },
+  {
+    "id": "ba:17426-0065352201-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "MFA training and direct clinical procedures are required and absent.",
+    "missing_requirements": [
+      "MFA training and direct clinical procedures are required and absent"
+    ],
+    "evidence": [
+      "Betreuung der Patientinnen und Patienten vor, während und nach der Untersuchung",
+      "Abgeschlossene Ausbildung zur Medizinischen Fachangestellte /MFA, Arzthelferin oder vergleichbare Qualifikation (m/w/d)"
+    ],
+    "title": "MFA interdisziplinäre Sprechstunde Ambulanz (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17426-0065352201-S",
+    "document_sha256": "62125a8e693de487702ae7a326b582d13eb6a33d19f339d4b3127f1110209357"
+  },
+  {
+    "id": "ba:13644-310461-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP CO/CO-PA controlling and finance experience are absent.",
+    "missing_requirements": [
+      "SAP CO/CO-PA controlling and finance experience are absent"
+    ],
+    "evidence": [
+      "## Das erwartet Sie bei uns:\n\nAls Projektmanager IT und Digitalisierung (m/w/d) Schwerpunkt SAP übernehmen Sie die Verantwortung für die Analyse, Optimierung und Weiterentwicklung "
+    ],
+    "title": "Projektmanager IT und Digitalisierung (m/w/d) Schwerpunkt SAP",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-310461-S",
+    "document_sha256": "e76d46fbdfb2ae64cb3e30dfa2201ced63aafc354db4c772dd4b187225c81bd1"
+  },
+  {
+    "id": "ba:13644-296139-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "IT/software development and object-oriented programming are mandatory and not documented; degree alone is insufficient.",
+    "missing_requirements": [
+      "degree alone is insufficient"
+    ],
+    "evidence": [
+      "Du suchst den Einstieg in die IT-Projektwelt?",
+      "Du hast eine abgeschlossene Berufsausbildung, ein abgeschlossenes (Fach-) Hochschulstudium in einem der MINT-Studiengänge oder eine vergleichbare Qualifikation in der Software-Entwicklung, Software-Engineering, einem log"
+    ],
+    "title": "Absolventen und Einsteiger für die SAP-Logistik-Welt (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13644-296139-S",
+    "document_sha256": "12a060a90634d4de5cc9a3e29ce123e0658c3bf37627655ac8ffb423f1df8791"
+  },
+  {
+    "id": "ba:10001-1002781021-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Industrial maintenance and mechatronics/electrical trade are absent.",
+    "missing_requirements": [
+      "Industrial maintenance and mechatronics/electrical trade are absent"
+    ],
+    "evidence": [
+      "Darüber hinaus bringen Sie idealerweise mit:**"
+    ],
+    "title": "Technischer Instandhalter Fördertechnik / Intralogistik (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002781021-S",
+    "document_sha256": "3454f246334b6af73320d34cf271acf1abad60c4b1486a8f6cdcf3f2ed4c5e11"
+  },
+  {
+    "id": "ba:17907-44411158-831-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail store leadership and operations are absent.",
+    "missing_requirements": [
+      "Retail store leadership and operations are absent"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44411158-831-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:12265-295246_JB5257596-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Pharma QA processes, SAP batch systems and GMP expertise are absent.",
+    "missing_requirements": [
+      "Pharma QA processes, SAP batch systems and GMP expertise are absent"
+    ],
+    "evidence": [
+      "Vorbereitung des Verwendungsentscheides durch die Sachkundigen Personen unter Einhaltung der Priorisierung gemäß Durchlaufzeiten und Anforderungen durch Supply Chain, sowie des Restriktionsmanagements",
+      "Erfolgreich abgeschlossene kaufmännische Ausbildung, Ausbildung im Pharmazeutischen Bereich oder vergleichbare Qualifikation"
+    ],
+    "title": "QA Assistant (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-295246_JB5257596-S",
+    "document_sha256": "6a5b79d976bdc93c29035d88c35a5f827c5b679649043787b819aeda438c686b"
+  },
+  {
+    "id": "ba:10000-1205843891-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Product lifecycle, market needs, supplier/cross-functional coordination and technical degree align; sales strategy/revenue ownership and water-treatment domain are gaps.",
+    "missing_requirements": [
+      "sales strategy/revenue ownership and water-treatment domain are gaps"
+    ],
+    "evidence": [
+      "Entwicklung und Umsetzung von Produkt- und Vertriebsstrategien zur Steigerung des Markterfolgs unserer Produkte",
+      "Abgeschlossenes Studium im Bereich Ingenieurwesen, Wirtschaftsingenieurwesen, Betriebswirtschaft oder eine vergleichbare Qualifikation wie z. B.Techniker"
+    ],
+    "title": "Produktmanager & Vertrieb (m/w/d) für Wasseraufbereitung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205843891-S",
+    "document_sha256": "ec81e33f1b0a31042f35faa54dc06c364f1454cc9d399687349c4478915a18db"
+  },
+  {
+    "id": "ba:10001-1003349006-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Project coordination is relevant, but clinical IT architecture, infrastructure/security and system integration ownership are missing.",
+    "missing_requirements": [
+      "Project coordination is relevant, but clinical IT architecture, infrastructure/security and system integration ownership are missing"
+    ],
+    "evidence": [
+      "Verantwortung für Planung, Aufbau und Weiterentwicklung der gesamten IT-Architektur des Zentrums – eingebettet in die bestehende Klinik-IT-Infrastruktur der Universitätsmedizin Mannheim",
+      "Mehrjährige Berufserfahrung im IT-Projektmanagement, idealerweise im Gesundheitswesen oder in einem vergleichbar regulierten Umfeld"
+    ],
+    "title": "IT-Projektmanager (w/m/d) Infrastruktur & Systeme",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003349006-S",
+    "document_sha256": "b2985f7ca1a50b0e337ab528f6683dcf4473ca3c9aae22054d828e82de9f080e"
+  },
+  {
+    "id": "ba:10001-1003416864-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "CNC machine operation and metalworking trade experience are absent.",
+    "missing_requirements": [
+      "CNC machine operation and metalworking trade experience are absent"
+    ],
+    "evidence": [
+      "Ausbildung in der Metalltechnik (z. B. Metallbauer (m/w/d), Mechatroniker(m/w/d) mit einschlägiger Berufserfahrung in der Maschinenbedienung."
+    ],
+    "title": "Maschinenbediener (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003416864-S",
+    "document_sha256": "b449bd8b777c2e1a66ca550f7c24f5c70a1024b4549b7bc57d8ec792af74a2e3"
+  },
+  {
+    "id": "ba:16945-0067355465-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "SAP PP/EWM customizing and production planning consulting are absent.",
+    "missing_requirements": [
+      "SAP PP/EWM customizing and production planning consulting are absent"
+    ],
+    "evidence": [
+      "Business Requirements in technische Lösungen übersetzen"
+    ],
+    "title": "SAP PP Consultant (m/w/d) – optional EWM | S/4HANA",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16945-0067355465-S",
+    "document_sha256": "2b112ff008200e4ee5de37e0945d69b3751e2d32d2c2e2bad0852c55a1dca94a"
+  },
+  {
+    "id": "ba:13635-0c3cbced_JB5263624-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Coordination/process improvement transfer, but PV/electrical/TGA installation knowledge and field technical oversight are required.",
+    "missing_requirements": [
+      "Coordination/process improvement transfer, but PV/electrical/TGA installation knowledge and field technical oversight are required"
+    ],
+    "evidence": [
+      "Du übernimmst die technische Steuerung unserer PV-Projekte von der Projektübernahme bis zum erfolgreichen Abschluss.",
+      "Du hast eine Ausbildung erfolgreich abgeschlossen und idealerweise bereits 1-3 Jahre Berufserfahrung gesammelt."
+    ],
+    "title": "Projektmanager (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13635-0c3cbced_JB5263624-S",
+    "document_sha256": "a047733ff6bc9849c77760f6ea665ab403b4ba960013ffeed1a19c3375f2bc4d"
+  },
+  {
+    "id": "ba:15835-000903002db002-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Requirements, process documentation, user flows and stakeholder bridging align; formal BA/IT architecture and C1 German are not established.",
+    "missing_requirements": [
+      "formal BA/IT architecture and C1 German are not established"
+    ],
+    "evidence": [
+      "Fachkonzeption: Du entwirfst zeitgemäße Lösungen, fachliche Konzepte und Entscheidungsvorlagen in unseren Kundenprojekten."
+    ],
+    "title": "Business Analyst in IT-Projekten (w|m|d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15835-000903002db002-S",
+    "document_sha256": "94b147b13a72ea4f64c595a85dfba6b034ba0eddb4171154aefed6ba2c508d20"
+  },
+  {
+    "id": "ba:17907-44466660-925-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail operations, store leadership and sales experience are absent.",
+    "missing_requirements": [
+      "Retail operations, store leadership and sales experience are absent"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44466660-925-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:10001-1003782023-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "L&D training experience aligns, but strategic talent/leadership development, 4+ years and HR analytics are not evidenced.",
+    "missing_requirements": [
+      "L&D training experience aligns, but strategic talent/leadership development, 4+ years and HR analytics are not evidenced"
+    ],
+    "evidence": [
+      "Steuerung und strategische Weiterentwicklung unseres internen Talentmanagements",
+      "Studium der (Wirtschafts-)Psychologie, Sozial- oder Wirtschaftswissenschaften oder vergleichbare Qualifikation"
+    ],
+    "title": "Experte Personalentwicklung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003782023-S",
+    "document_sha256": "be4d7c07a33567459355b54ade0dc640b0ebfd17c125887334126b562fa84312"
+  },
+  {
+    "id": "ba:19100-b8Eh3JYk-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Road/underground construction trade and site experience are absent.",
+    "missing_requirements": [
+      "Road/underground construction trade and site experience are absent"
+    ],
+    "evidence": [
+      "Sie verfügen über eine erfolgreich abgeschlossene Ausbildung zum Straßen- bzw. Kanalbauer (w/m/d) oder eine vergleichbare Ausbildung."
+    ],
+    "title": "Facharbeiter Tief- und Straßenbau (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19100-b8Eh3JYk-S",
+    "document_sha256": "0fd400e6b0d5d52c48f602823029f759edbf05c10b3212f5943fd7f0bce502d3"
+  },
+  {
+    "id": "ba:17336-0067273970-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project coordination and process improvement align, but senior independent logistics project leadership, years and certification/domain are gaps.",
+    "missing_requirements": [
+      "Project coordination and process improvement align, but senior independent logistics project leadership, years and certification/domain are gaps"
+    ],
+    "evidence": [
+      "Du kombinierst Projektmanagement-Know-how mit einer Leidenschaft für Logistik, behälst unterschiedliche Stakeholder im Blick und treibst die kontinuierliche Verbesserung von Prozes"
+    ],
+    "title": "Senior Projektmanager/in (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17336-0067273970-S",
+    "document_sha256": "8173208ab12c4ffb74b8bceefb2155bc42a410d6c557c63c6527b8216defa470"
+  },
+  {
+    "id": "ba:13334-00005f65c70001-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Project planning, requirements and stakeholder coordination align; intralogistics IT implementation and senior delivery experience are gaps.",
+    "missing_requirements": [
+      "intralogistics IT implementation and senior delivery experience are gaps"
+    ],
+    "evidence": [
+      "Du unterstützt die EDEKA Gruppe aktiv bei der digitalen Transformation ihrer Intralogistik.",
+      "Du hast ein Studium oder eine Ausbildung im Bereich IT oder Logistik erfolgreich abgeschlossen bzw. besitzt eine gleichwertige Qualifikation und mehrjährige Erfahrung im Umgang mit Logistiksystemen."
+    ],
+    "title": "IT-Projektleiter:in Intralogistik (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13334-00005f65c70001-S",
+    "document_sha256": "b1b0764bc76f6ba8ba3bff7301f3c607fc7268c4a961b1ac4fc73b2043094e09"
+  },
+  {
+    "id": "ba:12117-YF-48147-YF-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Product lifecycle/engineering background aligns, but deep gearbox technology expertise is explicitly required.",
+    "missing_requirements": [
+      "Product lifecycle/engineering background aligns, but deep gearbox technology expertise is explicitly required"
+    ],
+    "evidence": [
+      "Verantwortung für das Produktmanagement im Bereich Industriegetriebe mit primärem Fokus auf Planetengetriebe sowie Mitwirkung im Umfeld von Stirnradgetrieben",
+      "Abgeschlossenes Studium Maschinenbau, Wirtschaftsingenieurwesen oder vergleichbare Qualifikation"
+    ],
+    "title": "Produktmanager Industriegetriebe (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12117-YF-48147-YF-S",
+    "document_sha256": "5cd312c0deca98dbe86278b9bd283d32dc7e55357ec228d0709671f7bc52e05a"
+  },
+  {
+    "id": "ba:17907-44386551-818-S",
+    "fit": "unlikely",
+    "geographic": "local",
+    "reason": "Retail operations and first-line store leadership experience are absent.",
+    "missing_requirements": [
+      "Retail operations and first-line store leadership experience are absent"
+    ],
+    "evidence": [
+      "Aktive Unterstützung der Filialleitung und Übernahme erster Führungsaufgaben"
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44386551-818-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:12265-495295_JB5250508-S",
+    "fit": "possible",
+    "geographic": "local",
+    "reason": "Academic CAD/prototyping and technical drawings transfer, but Inventor, FEM calculations and professional mechanical design experience are gaps.",
+    "missing_requirements": [
+      "Academic CAD/prototyping and technical drawings transfer, but Inventor, FEM calculations and professional mechanical design experience are gaps"
+    ],
+    "evidence": [
+      "Erfahrung in der Anwendung mit Autodesk Inventor"
+    ],
+    "title": "Konstrukteur (m/w/d) Autodesk Inventor",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-495295_JB5250508-S",
+    "document_sha256": "0bec884bb58f7a01c086e0e5dcada1674deff7acdce616484012d6ac7a315f6d"
+  }
+]

@@ -1,0 +1,74 @@
+# CV profile board: findings and limits
+
+The supplied CV now has a saved, editable profile and a regional job board. The observed data yields **242 candidate leads: 10 recommended, 139 possible, and 93 with little match evidence** under the broader score-20 setting. These are heuristic categories, not verified eligibility or hiring outcomes. Raise the score filter for a shorter list. The current search uses Heidelberg and a provisional 35 km radius, with country-aware remote eligibility.
+
+The implementation improves ranking and catches important parsing errors. It does **not** yet find every fitting vacancy or produce a consistently precise broad shortlist. The untouched evaluation exposes both missed leads and substantial noise. Full measurements and input/code hashes are preserved in [the evaluation artifact](../reports/cv-profile-board-evaluation.json); refresh and reproduction commands are in [README](../README.md#cv-based-heidelberg-board).
+
+## Profile from the CV
+
+The profile emphasizes professional project/product coordination, requirements and stakeholder work, process improvement, learning and development, onboarding, and international programme coordination. Executive assistance, customer operations, CAD/prototyping, business analysis and product operations are adjacent interests. CAD, SolidWorks, Fusion 360, physical prototyping, supplier coordination and manufacturing projects retain academic/research evidence; they do not establish industrial engineering tenure.
+
+Language levels are Spanish native, English C1, German B2 and French A2. Education is a completed B.S. in Innovation and Development Engineering, with the stated SolidWorks Mechanical Design Associate certification. Exact relevant employment months, German degree recognition, work authorization, salary and preferred employment/work arrangements remain unconfirmed. The filename mentioning Hitachi does not establish Hitachi employment. No master degree, PMP/Scrum credential, current student enrollment or specialist electrical/civil/clinical experience was inferred.
+
+The sanitized fixture omits the applicant's name, contact details and CV text. It is imported explicitly rather than included in every deployment's ordinary seed. Profile edits preserve language proficiency, evidence notes and search settings. Removing a language also removes its proficiency; canonical skill aliases still expose their original evidence notes.
+
+## Data acquired and source coverage
+
+Two bounded Arbeitsagentur search runs used 28 English/German role families around Heidelberg. They made 987 paced requests and captured **954 unique postings with full descriptions**. Coordinates place 950 inside the chosen 35 km circle and four just outside it. The data includes 170 staffing/agency records, 160 salary records, 112 home-office-possible/hybrid records, and one explicitly 100% remote record. Home-office availability is not treated as permission to work remotely from any country.
+
+The public Jobsuche endpoint is an observed interface with no guaranteed stable contract. Searches have request/page limits: notably, Weiterbildung returned a capped 300 of 1,541 reported hits. Results are a selected regional capture, not an exhaustive index. Refreshes save new manifests and source observations, preserve verified descriptions/location facts when detail reads fail, and never close postings merely because an incomplete search omits them. Agency results are labeled; similar anonymous-client vacancies cannot safely be merged by title alone.
+
+A bounded 14-employer investigation made 113 requests and exposed employer-adapter gaps. The verified supplement adds 21 postings: Typeform 14, Turbalance 5, meistro 1, and one expired EMBO Programme Assistant. Open applications/Talent Pool were omitted. EMBO's 6 October 2026 deadline excludes that posting from the board while retaining its source record. Workday/custom careers and some detection-only ATS sources remain incomplete. University robots denial and hospital TLS/robots failure were retained as access gaps; access restrictions were not bypassed.
+
+Together with the existing dated Karlsruhe seed, repeat import yields 2,639 stored jobs, 682 feeds, 2,723 employer records and one profile. At verification, geography/expiry/deduplication retained 995 unique vacancies in scope: one expired record, nine incompatible remote-country records and 1,633 outside-area records were excluded, and one duplicate removed. The profile then excluded 19 conflicts and 734 records below score 20. Ordinary ATS scheduling does not scan the bounded regional or supplemental fixture feeds.
+
+## Manual checks and parsing changes
+
+Cheaper-model reviewers assessed 580 frozen records: 135 baseline, 176 tuning, 149 regional validation and 120 fresh final records. An additional blind sample reviewed 30 displayed jobs; final-120 text hashes were excluded from that sample. These are model-assisted judgments, not human recruitment decisions, and records can overlap across source studies. A 20-case double review agreed on 18 cases; one explicit German-C1 conflict was adjudicated before tuning.
+
+The checks found missing bilingual role vocabulary, generic skills overwhelming actual role fit, and loss of applicant-requirement structure. The resulting matcher distinguishes mandatory/optional requirements, duties and benefits; preserves bullets, headings and soft-wrapped qualification lines; handles repeated CEFR levels and explicit language alternatives; and explains specialist degrees, tools, credentials, enrollment and professional-tenure gaps. Generic Bachelor evidence can satisfy a generic Bachelor requirement, while a Master or specialist field remains unverified. Academic CAD is not promoted to professional CAD experience. Missing exact CV years remain a review issue rather than a fabricated experience conflict.
+
+The extra board audit initially judged 3 recommended, 9 possible and 18 unlikely among 30 selected rows. Several generic project titles concealed building automation, high-voltage, clinical/GMP or senior requirements. Fixes reduced those false recommendations, recovered mandatory C1 evidence, and stopped medical residency titles matching the broad Weiterbildung alias. An unnamed C2 requirement stays an unspecified-language gap rather than an invented German requirement. Digital project management, event coordination and learning-and-development leads remained eligible; event coordination lost an overly confident recommendation after employer-benefit evidence was correctly discounted.
+
+Source parsing also stopped Typeform department navigation from becoming four fake jobs, recovered EMBO's confirmed detail route and 4,674-character role description, bounded staff-biography content, preserved expiry/applicant-country/coordinate fields, and stopped unrelated remote office labels from making an onsite job fully remote. Generic career URLs with locale/search parameters no longer collapse distinct vacancies. List and detail explanations use the same search area and remote-permission evidence, before pagination.
+
+## Algorithm comparison
+
+The original rules are evaluated from Git baseline `c89a50f0`; the selected matcher is `rules-v11`. Alternatives are literal keywords, BM25 with a simple local tokenizer, alias-expanded/title-weighted BM25, and reciprocal-rank fusion with lexical weights 0.25, 0.5 and 1. Fusion preserves the rules' inclusion constraints and changes ordering only. Lexical methods include positive lexical matches; their scores are not comparable to the rules' 0–100 scale. This is not a benchmark of a complete production search engine.
+
+Selection used the baseline/tuning pools and 149-record validation sample. The rule version, source fingerprint, threshold 20 and inclusion of unknowns were locked before running the fresh 120-record final pool. The 149 records are therefore validation, not an untouched final test. Each final input is checked against the document hash saved with its judgment. Metrics rank returned candidates after matching constraints; omitted relevant records receive zero discounted gain. Matching metrics do not additionally simulate the geographic API filter.
+
+| Final 120 records; 20 judged relevant | Returned | Pooled precision | Pooled recall | nDCG@10 |
+| --- | ---: | ---: | ---: | ---: |
+| Original rules | 8 | 62.5% | 25.0% | 0.303 |
+| Selected role/requirement rules | 38 | 21.1% | 40.0% | **0.510** |
+| Literal keywords | 29 | 27.6% | 40.0% | 0.166 |
+| BM25 | 65 | 21.5% | 70.0% | 0.216 |
+| Alias/title BM25 | 113 | 17.7% | 100.0% | 0.182 |
+| Rules + lexical fusion, weight 0.25 | 38 | 21.1% | 40.0% | 0.355 |
+| Rules + lexical fusion, weight 0.5 | 38 | 21.1% | 40.0% | 0.358 |
+| Rules + lexical fusion, weight 1 | 38 | 21.1% | 40.0% | 0.313 |
+
+The selected final list found 8 of 20 judged relevant leads, versus 5 for the original rules, and had 5 relevant results in its top ten. It also returned 30 judged unlikely records: the broader list remains noisy. The original top-list precision uses only eight returned results; it does not establish good coverage. Recall here is **pooled sample recall**, not regional-market recall.
+
+On the 149-record validation pool, the selected rules returned 49 records, with 59.2% precision, 61.7% recall and nDCG@10 0.590, versus original recall 4.3% and nDCG@10 0.156. Fusion variants failed to improve validation ranking, so they were not adopted. The final 120-record pool confirmed their poorer top-ten ranking. On tuning, raising the threshold or suppressing the low-evidence tier improved precision but lost plausible leads; the broader default favors coverage, with transparent tier counts and adjustable filtering.
+
+[Elastic's BM25 documentation](https://www.elastic.co/docs/solutions/search/full-text/how-full-text-works) informed the lexical baseline. A multilingual embedding retriever followed by a cross-encoder is a plausible future comparison, as described in [Sentence Transformers' retrieve/rerank documentation](https://sbert.net/examples/sentence_transformer/applications/retrieve_rerank/README.html) and the [Sentence-BERT paper](https://arxiv.org/abs/1908.10084). That approach was assessed but **not run**; no semantic gains are claimed. Similarity would still require country, language and qualification checks. The current board makes no runtime model calls.
+
+Iteration stopped after the measured parser/qualification defects passed scoped reviews and the tested lexical/fusion variants failed to improve validation/final ranking. This is evidence of a plateau for the variants tested, not proof of an optimal algorithm. Better synonym/occupation coverage, degree equivalence, specialist experience understanding and independently human-reviewed labels remain meaningful next work. No parameters were retuned on the final 120-record result.
+
+## Verification, performance and execution limits
+
+The final Python suite passed **342 tests**. The frontend production build, profile-default/language-removal/evidence-alias behavior checks, Python compilation and preview shell syntax checks passed. Fresh SQLite import and repeat import retained one profile and 2,639 jobs; source feeds stayed unscheduled. API checks covered default area, unique pages, list/detail agreement, explicit Karlsruhe overrides, broadening to score zero, filtering unknowns and expired source records retained without lifecycle closure. PostgreSQL follows the shared application scope policy, but a live PostgreSQL/Compose deployment was not exercised.
+
+Profiling found repeated role-group/regex work dominating scoring of 995 scoped vacancies. Bounded caches store compiled patterns and immutable role-group membership, not jobs, profiles or result lists. A measured warm API request improved from approximately 14.6 seconds to 1.2 seconds after signal backfill. These are local timings, not production load guarantees; the API still evaluates the scoped pool before pagination.
+
+Scoped specification and quality reviews passed Tasks 2, 3, 4 and 6 and the combined language foundation/calibration. The review process caught and fixed optional language scope, lost higher degrees, independent GMP gaps, contrast/OR language handling, sparse-refresh provenance, remote permission, hidden language proficiency and staff-boundary issues. Final broad review and browser verification are recorded in the completion evidence below.
+
+Three execution rulings were needed: (1) the original run hit the subscription limit around 22:41 UTC on 6 October; work resumed only after the user's explicit Continue at 06:16 UTC on 7 October, with a 90-minute continuation bound ending 07:46 UTC; (2) after the five-round language-foundation cap, its remaining contrast defect was resolved in the already planned structured calibration task; (3) source, API and matching work ran in parallel under separate ownership, with integrated tests/reviews afterward. Costs were use after the original subscription window, additional grammar rework and integration risk; concurrent commits briefly required a safe retry. Total active elapsed work stayed below five hours, but completion cannot honestly be claimed within one uninterrupted original subscription window. Exact subscription billing/remaining allowance was not observable.
+
+Full employer responses, the PDF, extracted CV, local databases and raw audit inputs remain local. The repository preserves sanitized profile facts, frozen judgment records and derived metrics. This remains a shared application workspace; per-user ownership, automated PDF import, national coverage and dependable comprehensive refresh are not implemented. The development preview has a maximum 24-hour lifetime.
+
+## Completion evidence
+
+Live browser checks and the final whole-branch review are appended after verification.

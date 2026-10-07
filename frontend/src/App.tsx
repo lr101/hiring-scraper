@@ -203,7 +203,7 @@ function DirectoryPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [profilesReady, setProfilesReady] = useState(false)
   const [coverage, setCoverage] = useState<{source_count: number; note: string} | null>(null)
-  const [counts, setCounts] = useState<{source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; filtered: Record<string, number>} | null>(null)
+  const [counts, setCounts] = useState<{source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number>} | null>(null)
   const [profileId, setProfileId] = useState(params.get('profile_id') ?? '')
   const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
   const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
@@ -579,8 +579,8 @@ function DirectoryPage() {
           </div>
 
           {tab === 'jobs' && profileId && <div className="board-coverage" aria-live="polite">
-            <div className="board-tiers"><strong>{counts?.recommended ?? '—'} recommended matches</strong><span>{counts?.possible ?? '—'} possible leads</span></div>
-            <p>Recommended matches have stronger evidence. Possible leads need a closer look at qualifications, location or missing details. Scores are heuristic overlap, never a hiring probability.</p>
+            <div className="board-tiers"><strong>{counts?.recommended ?? '—'} recommended matches</strong><span>{counts?.possible ?? '—'} possible leads</span><span>{counts?.unlikely ?? '—'} with little match evidence</span></div>
+            <p>Recommended matches have stronger evidence. Possible leads need a closer look at qualifications, location or missing details. Lower-confidence results keep the search broad; raise the overlap filter for a shorter list. Scores measure overlap, never a hiring probability.</p>
             {counts && <p>{counts.source} source records · {counts.scoped} in scope · {counts.duplicates_removed} duplicates removed · {counts.filtered.below_score} below your overlap filter · {counts.filtered.expired} expired · {counts.filtered.remote_country} incompatible remote country</p>}
             {coverage && <p>{coverage.source_count} observed job feeds. {coverage.note}</p>}
             <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
@@ -634,7 +634,7 @@ function DirectoryPage() {
           </div>
         </section>
 
-      <footer className="page-footer"><span>Nearby companies and websites are found from public listings; open jobs are checked on company hiring pages.</span><span>Map listings © OpenStreetMap contributors <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">ODbL</a></span></footer>
+      <footer className="page-footer"><span>Companies come from public listings; jobs come from public job listings and employer hiring pages.</span><span>Map listings © OpenStreetMap contributors <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">ODbL</a></span></footer>
       </main>
 
     </div>

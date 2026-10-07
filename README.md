@@ -135,3 +135,42 @@ docker compose --profile enrichment up -d
 ```
 
 See the [evaluation and repeatable PoC](reports/profile-matching-poc.md) for coverage, matching limitations, deployment commands and next steps. Profiles currently belong to the shared app workspace; multi-user ownership and PDF/DOCX import are not implemented.
+
+## CV-based Heidelberg board
+
+The [CV board findings](docs/cv-profile-board-findings.md) describe the supplied profile, independent cheaper-model audits, ranking comparisons and coverage gaps. The sanitized profile in `fixtures/cv_profile.json` omits the applicant's name, contact details and CV text. It distinguishes professional work from academic/research CAD and prototyping, records language proficiency, and uses an editable Heidelberg 35 km search area. Its broader default score threshold is 20; scores indicate evidence overlap, not hiring probability.
+
+The ordinary seed does not import this profile or regional captures. Import them explicitly into your selected development database:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.cv_board \
+  --profile fixtures/cv_profile.json \
+  --regional-data data/local-cv-board/ba-details.json \
+  --employer-data data/local-cv-board/employer-supplement.json
+```
+
+Full job descriptions and source responses stay in ignored local files. For a new bounded Arbeitsagentur acquisition, choose a fresh output directory. This uses the observed public Jobsuche endpoint, whose interface is not a guaranteed stable contract:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.regional acquire \
+  --profile-json fixtures/cv_profile.json --out data/local-cv-board/refresh-new \
+  --max-pages 3 --max-details 300 --max-requests 500 --import
+```
+
+Check the run manifest for truncation, failed details and request-budget exhaustion. Regional feeds are refreshed through this explicit command; ordinary ATS refreshes do not schedule them. Missing jobs in a partial search never imply closure. The board excludes expired postings, jobs outside the commute area, and explicitly incompatible remote countries before pagination; unknown remote country permission stays a flagged possible lead.
+
+The acquisition writes `snapshot.json` in its output directory. For a fresh installation, supply that file to the profile importer as `--regional-data`; `--employer-data` is optional.
+
+To seed an isolated preview, set `HIRING_PREVIEW_PROFILE`, `HIRING_PREVIEW_REGIONAL_SNAPSHOT`, and optionally `HIRING_PREVIEW_EMPLOYER_SNAPSHOT` to those file paths before starting the documented preview adapter with a fresh slug. Saved-profile links carry the profile area and filters. Language levels, evidence notes and the search area can be edited in **Your profile**.
+
+Reproduce matching comparisons using the original local text captures and frozen judgments:
+
+```bash
+mise exec -- uv run python experiments/cv_profile_evaluation.py \
+  --jobs data/local-cv-board/evaluation/expanded-heldout-input.json \
+  --labels experiments/fixtures/cv_job_labels/expanded-heldout.json \
+  --profile fixtures/cv_profile.json --threshold 20 --output /tmp/cv-evaluation.json
+node tests/frontend_profile_defaults.mjs
+```
+
+Judgment text hashes reject changed inputs. A fresh acquisition observes a changed market and cannot reproduce the dated measurements without the original local captures. Reported recall applies to the judged samples, not every vacancy in the region. The board remains a shared workspace without per-user access control.

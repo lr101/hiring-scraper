@@ -1,0 +1,552 @@
+{
+  "selection": {
+    "rule_version": "rules-v11",
+    "matching_sha256": "dd93f4b611260da4cff3f75e68bfda5016ea8c1597b7584cefc128c427eab7ca",
+    "threshold": 20,
+    "include_unknown": true,
+    "algorithm": "current_rules",
+    "selection": "Selected on baseline/tuning/149 validation before reading expanded120 final results; RRF failed validation ranking, low-tier suppression lost judged relevant leads."
+  },
+  "pools": {
+    "baseline": {
+      "rule_version": "rules-v11",
+      "matching_sha256": "dd93f4b611260da4cff3f75e68bfda5016ea8c1597b7584cefc128c427eab7ca",
+      "threshold": 20,
+      "input_sha256": {
+        "jobs": "3cd61e23c7d67c6673f6e2b541e7c1a3deb022285c9773ff7103a8df6583552e",
+        "labels": "907763fab6084f9f7025fd655e00e56bbbb902ec0235619ab3338d01cedcf2c0",
+        "profile": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59"
+      },
+      "notes": [
+        "Judgments are cheaper-model assessments, not human hiring outcomes.",
+        "Precision and recall apply only to this pooled judgment set; market recall is unknown.",
+        "Ranking metrics use returned candidates after constraints; missing candidates have zero gain.",
+        "Lexical baselines select any positive lexical match; scores are not comparable to 0–100 rules."
+      ],
+      "algorithms": {
+        "original_rules": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 0,
+          "pooled_precision": null,
+          "pooled_recall": 0.0,
+          "ndcg_10": 0.0,
+          "precision_10": null,
+          "returned_10": 0,
+          "ndcg_20": 0.0,
+          "precision_20": null,
+          "returned_20": 0
+        },
+        "current_rules": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 22,
+          "pooled_precision": 0.5,
+          "pooled_recall": 0.25,
+          "ndcg_10": 0.7552,
+          "precision_10": 0.8,
+          "returned_10": 10,
+          "ndcg_20": 0.6454,
+          "precision_20": 0.55,
+          "returned_20": 20
+        },
+        "literal_keywords": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 13,
+          "pooled_precision": 0.3846,
+          "pooled_recall": 0.1136,
+          "ndcg_10": 0.3454,
+          "precision_10": 0.5,
+          "returned_10": 10,
+          "ndcg_20": 0.2617,
+          "precision_20": 0.3846,
+          "returned_20": 13
+        },
+        "bm25": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 57,
+          "pooled_precision": 0.3509,
+          "pooled_recall": 0.4545,
+          "ndcg_10": 0.2094,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.2764,
+          "precision_20": 0.4,
+          "returned_20": 20
+        },
+        "alias_bm25": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 103,
+          "pooled_precision": 0.3883,
+          "pooled_recall": 0.9091,
+          "ndcg_10": 0.2108,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.2556,
+          "precision_20": 0.35,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.25": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 22,
+          "pooled_precision": 0.5,
+          "pooled_recall": 0.25,
+          "ndcg_10": 0.7182,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.6178,
+          "precision_20": 0.5,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.5": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 22,
+          "pooled_precision": 0.5,
+          "pooled_recall": 0.25,
+          "ndcg_10": 0.6767,
+          "precision_10": 0.6,
+          "returned_10": 10,
+          "ndcg_20": 0.6315,
+          "precision_20": 0.55,
+          "returned_20": 20
+        },
+        "constraint_fusion_1": {
+          "judged_records": 135,
+          "relevant_records": 44,
+          "returned": 22,
+          "pooled_precision": 0.5,
+          "pooled_recall": 0.25,
+          "ndcg_10": 0.5269,
+          "precision_10": 0.5,
+          "returned_10": 10,
+          "ndcg_20": 0.5454,
+          "precision_20": 0.55,
+          "returned_20": 20
+        }
+      }
+    },
+    "regional-tuning": {
+      "rule_version": "rules-v11",
+      "matching_sha256": "dd93f4b611260da4cff3f75e68bfda5016ea8c1597b7584cefc128c427eab7ca",
+      "threshold": 20,
+      "input_sha256": {
+        "jobs": "9243e2e2198d77f8f8f6e5b946ef43bb61eaf7ef9d13212b462d65ffb3ca3e81",
+        "labels": "501f228a18e48e4658e4f304e451f3ca90bf10943d6e7c61a08f9d48468860e3",
+        "profile": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59"
+      },
+      "notes": [
+        "Judgments are cheaper-model assessments, not human hiring outcomes.",
+        "Precision and recall apply only to this pooled judgment set; market recall is unknown.",
+        "Ranking metrics use returned candidates after constraints; missing candidates have zero gain.",
+        "Lexical baselines select any positive lexical match; scores are not comparable to 0–100 rules."
+      ],
+      "algorithms": {
+        "original_rules": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 4,
+          "pooled_precision": 1.0,
+          "pooled_recall": 0.0702,
+          "ndcg_10": 0.409,
+          "precision_10": 1.0,
+          "returned_10": 4,
+          "ndcg_20": 0.3342,
+          "precision_20": 1.0,
+          "returned_20": 4
+        },
+        "current_rules": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 59,
+          "pooled_precision": 0.6102,
+          "pooled_recall": 0.6316,
+          "ndcg_10": 0.424,
+          "precision_10": 0.8,
+          "returned_10": 10,
+          "ndcg_20": 0.5101,
+          "precision_20": 0.75,
+          "returned_20": 20
+        },
+        "literal_keywords": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 23,
+          "pooled_precision": 0.4348,
+          "pooled_recall": 0.1754,
+          "ndcg_10": 0.4875,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.438,
+          "precision_20": 0.45,
+          "returned_20": 20
+        },
+        "bm25": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 94,
+          "pooled_precision": 0.3404,
+          "pooled_recall": 0.5614,
+          "ndcg_10": 0.13,
+          "precision_10": 0.2,
+          "returned_10": 10,
+          "ndcg_20": 0.1969,
+          "precision_20": 0.35,
+          "returned_20": 20
+        },
+        "alias_bm25": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 174,
+          "pooled_precision": 0.3276,
+          "pooled_recall": 1.0,
+          "ndcg_10": 0.13,
+          "precision_10": 0.2,
+          "returned_10": 10,
+          "ndcg_20": 0.2164,
+          "precision_20": 0.4,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.25": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 59,
+          "pooled_precision": 0.6102,
+          "pooled_recall": 0.6316,
+          "ndcg_10": 0.4268,
+          "precision_10": 0.8,
+          "returned_10": 10,
+          "ndcg_20": 0.4964,
+          "precision_20": 0.8,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.5": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 59,
+          "pooled_precision": 0.6102,
+          "pooled_recall": 0.6316,
+          "ndcg_10": 0.4469,
+          "precision_10": 0.9,
+          "returned_10": 10,
+          "ndcg_20": 0.5097,
+          "precision_20": 0.85,
+          "returned_20": 20
+        },
+        "constraint_fusion_1": {
+          "judged_records": 176,
+          "relevant_records": 57,
+          "returned": 59,
+          "pooled_precision": 0.6102,
+          "pooled_recall": 0.6316,
+          "ndcg_10": 0.5307,
+          "precision_10": 1.0,
+          "returned_10": 10,
+          "ndcg_20": 0.5453,
+          "precision_20": 0.8,
+          "returned_20": 20
+        }
+      }
+    },
+    "regional-validation": {
+      "rule_version": "rules-v11",
+      "matching_sha256": "dd93f4b611260da4cff3f75e68bfda5016ea8c1597b7584cefc128c427eab7ca",
+      "threshold": 20,
+      "input_sha256": {
+        "jobs": "4b7384db1dc81bec7bed74689321d2c927024ab41a5134182ad243d3f0b12ef0",
+        "labels": "4170c2292c5f3aed10fc2d59f98975c8cb9600236d72129c9f10d988cb1fa669",
+        "profile": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59"
+      },
+      "notes": [
+        "Judgments are cheaper-model assessments, not human hiring outcomes.",
+        "Precision and recall apply only to this pooled judgment set; market recall is unknown.",
+        "Ranking metrics use returned candidates after constraints; missing candidates have zero gain.",
+        "Lexical baselines select any positive lexical match; scores are not comparable to 0–100 rules."
+      ],
+      "algorithms": {
+        "original_rules": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 2,
+          "pooled_precision": 1.0,
+          "pooled_recall": 0.0426,
+          "ndcg_10": 0.1562,
+          "precision_10": 1.0,
+          "returned_10": 2,
+          "ndcg_20": 0.1261,
+          "precision_20": 1.0,
+          "returned_20": 2
+        },
+        "current_rules": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 49,
+          "pooled_precision": 0.5918,
+          "pooled_recall": 0.617,
+          "ndcg_10": 0.5902,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.686,
+          "precision_20": 0.7,
+          "returned_20": 20
+        },
+        "literal_keywords": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 27,
+          "pooled_precision": 0.3704,
+          "pooled_recall": 0.2128,
+          "ndcg_10": 0.1676,
+          "precision_10": 0.4,
+          "returned_10": 10,
+          "ndcg_20": 0.1919,
+          "precision_20": 0.35,
+          "returned_20": 20
+        },
+        "bm25": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 85,
+          "pooled_precision": 0.3647,
+          "pooled_recall": 0.6596,
+          "ndcg_10": 0.1194,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.1342,
+          "precision_20": 0.25,
+          "returned_20": 20
+        },
+        "alias_bm25": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 148,
+          "pooled_precision": 0.3176,
+          "pooled_recall": 1.0,
+          "ndcg_10": 0.1139,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.2249,
+          "precision_20": 0.5,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.25": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 49,
+          "pooled_precision": 0.5918,
+          "pooled_recall": 0.617,
+          "ndcg_10": 0.5199,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.6106,
+          "precision_20": 0.65,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.5": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 49,
+          "pooled_precision": 0.5918,
+          "pooled_recall": 0.617,
+          "ndcg_10": 0.4214,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.5543,
+          "precision_20": 0.6,
+          "returned_20": 20
+        },
+        "constraint_fusion_1": {
+          "judged_records": 149,
+          "relevant_records": 47,
+          "returned": 49,
+          "pooled_precision": 0.5918,
+          "pooled_recall": 0.617,
+          "ndcg_10": 0.3977,
+          "precision_10": 0.7,
+          "returned_10": 10,
+          "ndcg_20": 0.5137,
+          "precision_20": 0.65,
+          "returned_20": 20
+        }
+      }
+    },
+    "expanded-heldout": {
+      "rule_version": "rules-v11",
+      "matching_sha256": "dd93f4b611260da4cff3f75e68bfda5016ea8c1597b7584cefc128c427eab7ca",
+      "threshold": 20,
+      "input_sha256": {
+        "jobs": "febd73892b2d2f0a7bc1755234c14fb17a04e48728c0fa72f183c5528d85ff6a",
+        "labels": "03abf963845e3f25f0e0d5d384f40b38cdbed8a623afb01eda04c500a2ddc70a",
+        "profile": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59"
+      },
+      "notes": [
+        "Judgments are cheaper-model assessments, not human hiring outcomes.",
+        "Precision and recall apply only to this pooled judgment set; market recall is unknown.",
+        "Ranking metrics use returned candidates after constraints; missing candidates have zero gain.",
+        "Lexical baselines select any positive lexical match; scores are not comparable to 0–100 rules."
+      ],
+      "algorithms": {
+        "original_rules": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 8,
+          "pooled_precision": 0.625,
+          "pooled_recall": 0.25,
+          "ndcg_10": 0.3028,
+          "precision_10": 0.625,
+          "returned_10": 8,
+          "ndcg_20": 0.2359,
+          "precision_20": 0.625,
+          "returned_20": 8
+        },
+        "current_rules": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 38,
+          "pooled_precision": 0.2105,
+          "pooled_recall": 0.4,
+          "ndcg_10": 0.5101,
+          "precision_10": 0.5,
+          "returned_10": 10,
+          "ndcg_20": 0.419,
+          "precision_20": 0.3,
+          "returned_20": 20
+        },
+        "literal_keywords": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 29,
+          "pooled_precision": 0.2759,
+          "pooled_recall": 0.4,
+          "ndcg_10": 0.1663,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.1713,
+          "precision_20": 0.25,
+          "returned_20": 20
+        },
+        "bm25": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 65,
+          "pooled_precision": 0.2154,
+          "pooled_recall": 0.7,
+          "ndcg_10": 0.2164,
+          "precision_10": 0.4,
+          "returned_10": 10,
+          "ndcg_20": 0.2748,
+          "precision_20": 0.35,
+          "returned_20": 20
+        },
+        "alias_bm25": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 113,
+          "pooled_precision": 0.177,
+          "pooled_recall": 1.0,
+          "ndcg_10": 0.1822,
+          "precision_10": 0.3,
+          "returned_10": 10,
+          "ndcg_20": 0.1628,
+          "precision_20": 0.2,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.25": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 38,
+          "pooled_precision": 0.2105,
+          "pooled_recall": 0.4,
+          "ndcg_10": 0.3549,
+          "precision_10": 0.4,
+          "returned_10": 10,
+          "ndcg_20": 0.3251,
+          "precision_20": 0.3,
+          "returned_20": 20
+        },
+        "constraint_fusion_0.5": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 38,
+          "pooled_precision": 0.2105,
+          "pooled_recall": 0.4,
+          "ndcg_10": 0.3575,
+          "precision_10": 0.4,
+          "returned_10": 10,
+          "ndcg_20": 0.3224,
+          "precision_20": 0.3,
+          "returned_20": 20
+        },
+        "constraint_fusion_1": {
+          "judged_records": 120,
+          "relevant_records": 20,
+          "returned": 38,
+          "pooled_precision": 0.2105,
+          "pooled_recall": 0.4,
+          "ndcg_10": 0.3128,
+          "precision_10": 0.4,
+          "returned_10": 10,
+          "ndcg_20": 0.285,
+          "precision_20": 0.3,
+          "returned_20": 20
+        }
+      }
+    }
+  },
+  "board": {
+    "total": 242,
+    "offset": 0,
+    "limit": 100,
+    "location": {
+      "latitude": 49.40936,
+      "longitude": 8.69472,
+      "radius_km": 35.0,
+      "city": "Heidelberg",
+      "country_code": "DE"
+    },
+    "profile_id": 1,
+    "counts": {
+      "source": 2639,
+      "scoped": 995,
+      "filtered": {
+        "expired": 1,
+        "remote_country": 9,
+        "outside_area": 1633,
+        "profile_conflict": 19,
+        "below_score": 734,
+        "uncertain": 0
+      },
+      "duplicates_removed": 1,
+      "recommended": 10,
+      "possible": 139,
+      "unlikely": 93
+    },
+    "coverage": {
+      "source_count": 679,
+      "note": "Observed active source records; selected sources are not exhaustive market coverage."
+    },
+    "rule": "work location within radius OR explicitly remote within country scope",
+    "checks": {
+      "idempotent_import_jobs": 2639,
+      "profiles": 1,
+      "default_warm_seconds": 1.229,
+      "next_page_unique": true,
+      "list_detail_agreement": true,
+      "all_evidence_total": 976,
+      "strict_known_total": 62,
+      "expired_retained_active": true,
+      "karlsruhe_override_total": 21
+    }
+  },
+  "manual_review": {
+    "frozen_judgments": 580,
+    "additional_board_judgments": 30,
+    "double_review_agreement": "18/20",
+    "models": "gpt-6-luna for manual judgments; gpt-6-sol and gpt-6.1-sol for implementation and scoped reviews",
+    "caveat": "Model judgments, not independent human hiring outcomes; samples do not measure market recall."
+  }
+}

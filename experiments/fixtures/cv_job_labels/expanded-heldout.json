@@ -1,0 +1,1436 @@
+[
+  {
+    "id": "ba:10001-1003750405-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Facility and equipment upkeep, handling weapons/ammunition, and physical shift work are the core; the CV has no maintenance/material-custodian experience.",
+    "gaps": [
+      "Facility and equipment upkeep, handling weapons/ammunition, and physical shift work are the core; the CV has no maintenance/material-custodian experience."
+    ],
+    "title": "Mitarbeiter/Mitarbeiterin (w/m/d) für das Einsatztrainingszentrum in Eppingen als ETZ - Wart/-in",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003750405-S",
+    "document_sha256": "3a7da03cfab5352bed858aa7bec1144d2f8b105dc183748d8a95a26ad003a154"
+  },
+  {
+    "id": "ba:10001-1000288671-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: The job explicitly requires C1 German and independent first-aid instruction; the candidate has B2 German and no first-aid teaching qualification.",
+    "gaps": [
+      "The job explicitly requires C1 German and independent first-aid instruction; the candidate has B2 German and no first-aid teaching qualification."
+    ],
+    "title": "Ausbilder Erste Hilfe (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000288671-S",
+    "document_sha256": "de6ea0afe81833608acf8eec21359b90518c7efe4cdace6e927a665f4842afa0"
+  },
+  {
+    "id": "ba:10000-1205687678-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Nursing qualification and dialysis/anesthesia patient-care experience are mandatory.",
+    "gaps": [
+      "Nursing qualification and dialysis/anesthesia patient-care experience are mandatory."
+    ],
+    "title": "Pflegefachkraft - Dialyseeinheit (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205687678-S",
+    "document_sha256": "fd9755aad9d0c5bd2ceb02757aa764df722758391f4e44b91950c5cab3ca9258"
+  },
+  {
+    "id": "ba:16916-0066257648-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Completed electrical trade training and electrical measurement/repair capability are required.",
+    "gaps": [
+      "Completed electrical trade training and electrical measurement/repair capability are required."
+    ],
+    "title": "Elektroniker / Elektriker - Messtechnik (m/w/d) im Innendienst",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16916-0066257648-S",
+    "document_sha256": "9a6ba89200c78a910d4e3cf38206f38a8eed1cc8d25bfff279ca939c30d7c973"
+  },
+  {
+    "id": "ba:10000-1206666105-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil/architecture degree, turnkey-construction leadership, VOB and building execution experience are required.",
+    "gaps": [
+      "Civil/architecture degree, turnkey-construction leadership, VOB and building execution experience are required."
+    ],
+    "title": "Projektleiter (m/w/d) schlüsselfertiger Hochbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206666105-S",
+    "document_sha256": "be66024aa0f1947a07582a996606d5c24f6eea94352c99973f03696f12cc7483"
+  },
+  {
+    "id": "ba:10000-1206665251-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction procurement, VOB/contract knowledge and practical purchasing or site experience are central; academic sourcing does not establish them.",
+    "gaps": [
+      "Construction procurement, VOB/contract knowledge and practical purchasing or site experience are central; academic sourcing does not establish them."
+    ],
+    "title": "Projektingenieur (m/w/d) Ausschreibung, Vergabe und Einkauf von Bauleistungen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206665251-S",
+    "document_sha256": "7a1c1394ede135869dc678ff793dfde98d85b858087977e03e42a97a036b5c5e"
+  },
+  {
+    "id": "ba:18213-infmryrd6a-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Nursing qualification and §71 SGB XI/healthcare leadership credentials are mandatory.",
+    "gaps": [
+      "Nursing qualification and §71 SGB XI/healthcare leadership credentials are mandatory."
+    ],
+    "title": "Assistenz der Pflegedienstleitung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18213-infmryrd6a-S",
+    "document_sha256": "b4ba7fb55082d94c7072b5b1bb21b8c4736876c2752e04eb28c07572ffb84c3a"
+  },
+  {
+    "id": "ba:13465-00021a5862c001-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Transferable project/client/team coordination is relevant, but landscape operations, field-team leadership and demonstrated budget responsibility are not established.",
+    "gaps": [
+      "Transferable project/client/team coordination is relevant, but landscape operations, field-team leadership and demonstrated budget responsibility are not established."
+    ],
+    "title": "Projektleiter | Quereinsteiger (m/w/d) Garten- und Landschaftspflege",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13465-00021a5862c001-S",
+    "document_sha256": "8dbc55cf13a88264fb585fa7b80ca7c24623516d8e3954db62dff3abf0298ff7"
+  },
+  {
+    "id": "ba:10001-1002481031-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Operating-room nursing qualification/OTA credential and clinical experience are mandatory.",
+    "gaps": [
+      "Operating-room nursing qualification/OTA credential and clinical experience are mandatory."
+    ],
+    "title": "examinierte Pflegefachkräfte (m/w/d) im OP/ Operationstechnische Assistenten (OTA) (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002481031-S",
+    "document_sha256": "e731e5b37ae1c8e62b4d64f1c0d7f7542c5b590d18f382e718f80e8c6ecb7db3"
+  },
+  {
+    "id": "ba:10001-1002463705-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction-drafting training, HOAI experience and architectural CAD (AutoCAD/Revit) are required; academic product CAD is not a substitute.",
+    "gaps": [
+      "Construction-drafting training, HOAI experience and architectural CAD (AutoCAD/Revit) are required; academic product CAD is not a substitute."
+    ],
+    "title": "Bauzeichner / CAD-Zeichner / Konstrukteur m/w/d",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002463705-S",
+    "document_sha256": "b229faeeba1b0208e8c836361287935740f6a68a744b47b6e0939a23bb1015c4"
+  },
+  {
+    "id": "ba:10001-1000550634-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: HVAC/building or electrical service trade training and field repair/commissioning experience are required.",
+    "gaps": [
+      "HVAC/building or electrical service trade training and field repair/commissioning experience are required."
+    ],
+    "title": "Mitarbeiter im Service-Außendienst (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000550634-S",
+    "document_sha256": "1395f64f9dcaadff92084ca82d6c91bef555b1b753d93bc1a94ed0d4f3da4986"
+  },
+  {
+    "id": "ba:10000-1203627749-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Chemikant qualification plus hazardous-material/tank operations are required.",
+    "gaps": [
+      "Chemikant qualification plus hazardous-material/tank operations are required."
+    ],
+    "title": "Mitarbeiter - Tanklager (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1203627749-S",
+    "document_sha256": "68deb04d519d8f2d9e7119b0a7f9b9ccf4ab715627b01b5d1587dc59804c97d8"
+  },
+  {
+    "id": "ba:10001-1002983915-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Professional cooking and HACCP kitchen experience are required.",
+    "gaps": [
+      "Professional cooking and HACCP kitchen experience are required."
+    ],
+    "title": "Koch/Köchin (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002983915-S",
+    "document_sha256": "2cb5d41619635f8b955ec73050078fbbfd2e701cd2448e7755c0380d04ccccdc"
+  },
+  {
+    "id": "ba:10001-1003754741-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/energy technician apprenticeship, technical grid vocabulary and fluent German are required for this specialist project support role.",
+    "gaps": [
+      "Electrical/energy technician apprenticeship, technical grid vocabulary and fluent German are required for this specialist project support role."
+    ],
+    "title": "Projektsupporter Energieversorgung und -verteilung(w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003754741-S",
+    "document_sha256": "388297943bedb9a72a78f436c25949ae978045842ad33dfacc70ed7b61bd118b"
+  },
+  {
+    "id": "ba:10001-1002988360-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Long-term mechanical construction experience and machine-component design/calculation exceed the academic prototyping evidence.",
+    "gaps": [
+      "Long-term mechanical construction experience and machine-component design/calculation exceed the academic prototyping evidence."
+    ],
+    "title": "Entwicklungskonstrukteur/Entwicklungsingenieur (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002988360-S",
+    "document_sha256": "358aacbe33acea0efcf725d9f212ec8d6e0f4fd1e004a323e0273680b740c304"
+  },
+  {
+    "id": "ba:15888-k53301.1779-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Refrigeration mechanic qualification, technician/master training and refrigeration project leadership are required.",
+    "gaps": [
+      "Refrigeration mechanic qualification, technician/master training and refrigeration project leadership are required."
+    ],
+    "title": "Techniker/Meister als Projektleiter Kältetechnik (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15888-k53301.1779-S",
+    "document_sha256": "d381092cd10a67297638566742f505647862f82353ef43f13382f678938930aa"
+  },
+  {
+    "id": "ba:10000-1206265061-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil/building qualification, construction-site leadership and VOB/HOAI experience are required.",
+    "gaps": [
+      "Civil/building qualification, construction-site leadership and VOB/HOAI experience are required."
+    ],
+    "title": "Bau-/Projektleiter (m/w/d) Instandsetzung von Bestandsimmobilien",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206265061-S",
+    "document_sha256": "ab1dc871d36818fc117fa7d5fba42486d8055ae00edf90ef50ebdbf553481d9e"
+  },
+  {
+    "id": "ba:10001-1003191466-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Mechanical engineering construction, component calculations and manufacturing drawings are core; academic CAD alone does not establish production design experience.",
+    "gaps": [
+      "Mechanical engineering construction, component calculations and manufacturing drawings are core; academic CAD alone does not establish production design experience."
+    ],
+    "title": "Konstrukteur Maschinenbau (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003191466-S",
+    "document_sha256": "2d78dde2c0579a42cfa96f218a6977356db6ac1030a3ab1901c9abd86414f9f0"
+  },
+  {
+    "id": "ba:12456-1509058-1-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Rail operations credential, train-dispatcher experience and railway rule/simulator expertise are required.",
+    "gaps": [
+      "Rail operations credential, train-dispatcher experience and railway rule/simulator expertise are required."
+    ],
+    "title": "Trainer:in Bahnbetrieb",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12456-1509058-1-S",
+    "document_sha256": "9a7d1d5abc8b6210d698e2a9471eb53c3427058c42047273349cbbdd091c989f"
+  },
+  {
+    "id": "ba:19805-QD139QF6QFP92XVA-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/automation technician trade training and schematic/wiring experience are mandatory.",
+    "gaps": [
+      "Electrical/automation technician trade training and schematic/wiring experience are mandatory."
+    ],
+    "title": "Elektroniker für Automatisierungtechnik  (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19805-QD139QF6QFP92XVA-S",
+    "document_sha256": "e86fc7454b4eacf1daa364bf324539416e03b16c04e124ba69fce30d4dfa0537"
+  },
+  {
+    "id": "ba:10001-1000229924-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/building-services engineering degree, HOAI/VOB, CAD/AVA and multi-year TGA project leadership are required.",
+    "gaps": [
+      "Electrical/building-services engineering degree, HOAI/VOB, CAD/AVA and multi-year TGA project leadership are required."
+    ],
+    "title": "Projektleiter (m/w/d) Technische Gebäudeausrüstung - Elektrotechnik Eppingen",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000229924-S",
+    "document_sha256": "a401a342637e168b795f5ac46e4f2b283a497f0ea448e1be2c0fa57d0f3fe8c1"
+  },
+  {
+    "id": "ba:10001-1003639185-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical engineering/technician qualification and ELCAD electrical/hydraulic schematics are required.",
+    "gaps": [
+      "Electrical engineering/technician qualification and ELCAD electrical/hydraulic schematics are required."
+    ],
+    "title": "Hardwarekonstrukteur (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003639185-S",
+    "document_sha256": "6377059a5d4e8bc4c0149de1cfbcd19bc40b0a66e138186ccebb9f3ccf16cf19"
+  },
+  {
+    "id": "ba:17628-44427160-99-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Refrigeration master qualification and technical building-services experience are mandatory.",
+    "gaps": [
+      "Refrigeration master qualification and technical building-services experience are mandatory."
+    ],
+    "title": "Meister (w/m/d) im Bereich Kältetechnik - JobID 23443",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17628-44427160-99-S",
+    "document_sha256": "a96ff1ab5c51e09e74341f317112b1b52d8a594c58b544996268185636d45454"
+  },
+  {
+    "id": "ba:10001-1002892261-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/TGA degree, multi-year project/team leadership, HOAI public works and specialist engineering software are required.",
+    "gaps": [
+      "Electrical/TGA degree, multi-year project/team leadership, HOAI public works and specialist engineering software are required."
+    ],
+    "title": "Projektleiter TGA-Elektro (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002892261-S",
+    "document_sha256": "63e2fce2acd9e79e352e47ac8f2f9108692090cfad732d63af9826e9280d11cb"
+  },
+  {
+    "id": "ba:19554-uytyE3Qs-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Project lifecycle, requirements, cross-functional teams and process work align; insurance-domain experience and very good German are gaps.",
+    "gaps": [
+      "Project lifecycle, requirements, cross-functional teams and process work align; insurance-domain experience and very good German are gaps."
+    ],
+    "title": "Projektleiter End-to-End Insurance (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19554-uytyE3Qs-S",
+    "document_sha256": "6fd37e3dbb9cf21189d79ac5bfb8830c8d281faa2b2e4e2dfbb3da4ad8da1504"
+  },
+  {
+    "id": "ba:10001-1002053875-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Professional visual-merchandising/decorator training and retail display experience are required.",
+    "gaps": [
+      "Professional visual-merchandising/decorator training and retail display experience are required."
+    ],
+    "title": "Dekorateur / Gestalter für visuelles Marketing (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002053875-S",
+    "document_sha256": "f30de411823ac58ecebc925c98b432332e70bda7918c34583db008ff1533a4e4"
+  },
+  {
+    "id": "ba:11956-2968501790028001-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: SAP development leadership and SAP technical project expertise are specialist requirements absent from the CV.",
+    "gaps": [
+      "SAP development leadership and SAP technical project expertise are specialist requirements absent from the CV."
+    ],
+    "title": "NTT DATA Business Solutions Global Managed Services GmbH: SAP (Teil-)Projektleiter:in Development",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11956-2968501790028001-S",
+    "document_sha256": "90f20e880755305fd8f63f907c752299c2c6a8eb3c68c6e636992fad522497b3"
+  },
+  {
+    "id": "ba:10000-1206344097-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction-sector training/qualification and site foreman experience are required.",
+    "gaps": [
+      "Construction-sector training/qualification and site foreman experience are required."
+    ],
+    "title": "Polier/in /Vorarbeiter/in (m/w/d) 📍 für anspruchsvolle und interessante Projekte 📍",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1206344097-S",
+    "document_sha256": "84421cc5c9e155ee205caf8d1fec4332e03ed7a637f5b641447c394468b55080"
+  },
+  {
+    "id": "ba:10001-1002747379-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction/architecture qualification, construction-sector project delivery and subcontractor/build-site experience are required.",
+    "gaps": [
+      "Construction/architecture qualification, construction-sector project delivery and subcontractor/build-site experience are required."
+    ],
+    "title": "Projektleiter Ausbau / GU (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002747379-S",
+    "document_sha256": "0956b36511513fa5518ec6695469045ccbca826308c626f69b952ea405a4ff8c"
+  },
+  {
+    "id": "ba:17628-44483302-105-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: EA/customer coordination, documentation and scheduling transfer well; commercial office training is the listed qualification and German correspondence remains a gap.",
+    "gaps": [
+      "EA/customer coordination, documentation and scheduling transfer well; commercial office training is the listed qualification and German correspondence remains a gap."
+    ],
+    "title": "Teamassistenz (w/m/d) - JobID 27315",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17628-44483302-105-S",
+    "document_sha256": "51be6851a0a25e616bf4804ffeabefc25e745a43939ffbbbbccd9a869a8da84b"
+  },
+  {
+    "id": "ba:10001-1001575648-S",
+    "fit": "recommended",
+    "geo": "local",
+    "reason": "Strong direct match: Process improvement, requirements, project/change coordination, documentation and the engineering bachelor align; SAP is only advantageous and German level is unspecified.",
+    "gaps": [],
+    "title": "Prozessmanager (m/w/d) bei ROCHE Mannheim - bis zu 5.200 €/Monat",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001575648-S",
+    "document_sha256": "633737c3ab6b044d90855e9a51f5b4edf226b33c216f4bed5b04d499eff9f0b4"
+  },
+  {
+    "id": "ba:16022-k56330.1431-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Commercial purchasing qualification, ERP purchase-order handling and technical procurement experience are required.",
+    "gaps": [
+      "Commercial purchasing qualification, ERP purchase-order handling and technical procurement experience are required."
+    ],
+    "title": "Mitarbeiter Einkauf im technischen Handel  (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16022-k56330.1431-S",
+    "document_sha256": "b048e2165980dafcec752870787738fd336d772ad2dbb5e6b4bf95d1d5db4e69"
+  },
+  {
+    "id": "ba:10001-1001277295-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Technical-drafter vocational training, machine/plant drawings and Autodesk Inventor are required; candidate’s CAD is academic and in different tools.",
+    "gaps": [
+      "Technical-drafter vocational training, machine/plant drawings and Autodesk Inventor are required; candidate’s CAD is academic and in different tools."
+    ],
+    "title": "Technischer Zeichner im Sondermaschinenbau (m/w/d/x) in Vollzeit",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001277295-S",
+    "document_sha256": "e8a4bf32a0952e61cdf6b4e81a0b046e96d70b99a504a0cf762e66f5a2dad924"
+  },
+  {
+    "id": "ba:10001-1003635100-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Long professional layout-planning experience in conveyor/intralogistics and technical-drafter/technician qualification are required.",
+    "gaps": [
+      "Long professional layout-planning experience in conveyor/intralogistics and technical-drafter/technician qualification are required."
+    ],
+    "title": "Layouter / CAD-Konstrukteur* für die Aufstellplanung im Förderanlagenbau - 36-CA3S",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003635100-S",
+    "document_sha256": "70dd1def48512a88e25db0d5f09ba9df1fdf3ffd641fc93a7c6ea08e74ecd669"
+  },
+  {
+    "id": "ba:10001-1003431630-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electromeister license and electrical installation/testing experience are mandatory.",
+    "gaps": [
+      "Electromeister license and electrical installation/testing experience are mandatory."
+    ],
+    "title": "Elektromeister (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003431630-S",
+    "document_sha256": "5e73c4d3740570f9526a5e4866d07bf12c5df57a77e4fcd32ca0a8c25e151d3e"
+  },
+  {
+    "id": "ba:10001-1002675756-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil-engineering degree and channel/water infrastructure design under HOAI/VOB/DWA are required.",
+    "gaps": [
+      "Civil-engineering degree and channel/water infrastructure design under HOAI/VOB/DWA are required."
+    ],
+    "title": "Projektleitung (m/w/d) Siedlungswasserwirtschaft",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002675756-S",
+    "document_sha256": "dd0234c7be2f7868b48f2f1ece81484aeb130e7e747fa6ac5ee288dd04fbb709"
+  },
+  {
+    "id": "ba:12265-485125_JB5250193-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: CAD, engineering degree and technical drawing/prototyping exposure transfer; professional drafting and manufacturing standards are not established.",
+    "gaps": [
+      "CAD, engineering degree and technical drawing/prototyping exposure transfer; professional drafting and manufacturing standards are not established."
+    ],
+    "title": "Technischer Zeichner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-485125_JB5250193-S",
+    "document_sha256": "7599ee0e746446927483a12e2e490cd942f0bf14d740f2b25a7feaf0cd02782f"
+  },
+  {
+    "id": "ba:10001-1003267003-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Power/electrical engineering degree and multi-year substation design/primary technology expertise are mandatory.",
+    "gaps": [
+      "Power/electrical engineering degree and multi-year substation design/primary technology expertise are mandatory."
+    ],
+    "title": "Projektleiter Umspannwerke (m/w/d) – Energieinfrastruktur in Erlangen / Kassel / Hamburg / Mannheim",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003267003-S",
+    "document_sha256": "c8965f8c63d63f4c9f267e05e4cc7ddd8d1d2377423d4abfdf330097a118c69e"
+  },
+  {
+    "id": "ba:12951-182e5a19-b430-41e4--S",
+    "fit": "recommended",
+    "geo": "local",
+    "reason": "Strong direct match: Customer support, appointment coordination and administrative service directly match past customer-service and coordination work; auto knowledge is only desirable.",
+    "gaps": [],
+    "title": "Mitarbeiter (m/w/d) Kundenempfang / Serviceassistenz",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12951-182e5a19-b430-41e4--S",
+    "document_sha256": "3e7e26f7582d95a0e84920938da4e83b13214875ccbebf5d9680203040f64077"
+  },
+  {
+    "id": "ba:10001-1003812659-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Product requirements, user stories, stakeholder coordination and digital product experience align; the 3-year Product Owner requirement and software/intralogistics experience are not established.",
+    "gaps": [
+      "Product requirements, user stories, stakeholder coordination and digital product experience align; the 3-year Product Owner requirement and software/intralogistics experience are not established."
+    ],
+    "title": "Product Owner (m/w/d) Materialflusssysteme / WCS",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003812659-S",
+    "document_sha256": "9a813d90fb230b9a0c78336f9abc5f30461aff9f399e7b87eb334ec55766b061"
+  },
+  {
+    "id": "ba:10000-1203077857-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Waste-management expertise and customer acquisition/sales experience are required alongside project leadership.",
+    "gaps": [
+      "Waste-management expertise and customer acquisition/sales experience are required alongside project leadership."
+    ],
+    "title": "Projektleiter/in (m/w/d) im Bereich Entsorgung und Vertrieb",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1203077857-S",
+    "document_sha256": "4a8f283e2b9a49781b1c512f421c36031ea7759247c73066184478baab704f98"
+  },
+  {
+    "id": "ba:17560-9199b4955a8149c-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Control-technician vocational qualification, hands-on machinery operation and shift readiness are required.",
+    "gaps": [
+      "Control-technician vocational qualification, hands-on machinery operation and shift readiness are required."
+    ],
+    "title": "Steuerungstechniker (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17560-9199b4955a8149c-S",
+    "document_sha256": "2b153dffcd2f625eff54a0d5502b9f15c55e39799fbb82724d9950b3b63f7c91"
+  },
+  {
+    "id": "ba:10001-1003808293-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Second legal state exam, legal practice and business/contract law expertise are mandatory.",
+    "gaps": [
+      "Second legal state exam, legal practice and business/contract law expertise are mandatory."
+    ],
+    "title": "Rechtsanwalt (m/w/d) in Heidelberg / Ladenburg",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003808293-S",
+    "document_sha256": "194eeb6336be6da3fb7310aa7857063496f22c34d36df3cca4438166424002a2"
+  },
+  {
+    "id": "ba:15707-1589138-1-S",
+    "fit": "possible",
+    "geo": "remote_de",
+    "reason": "Transferable but incomplete match: International partnership and customer coordination plus project delivery align; EV infrastructure sales, commercial targets and Dutch-market expertise are gaps.",
+    "gaps": [
+      "International partnership and customer coordination plus project delivery align; EV infrastructure sales, commercial targets and Dutch-market expertise are gaps."
+    ],
+    "title": "Sales und Project Manager (m/w/d) e-Infrastruktur Europa mit Schwerpunkt Niederlande -...",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15707-1589138-1-S",
+    "document_sha256": "d2b3228f6573f974c6efb44fee9327153722c1b1865e784ad161bb02fa0a7f56"
+  },
+  {
+    "id": "ba:10000-1207188106-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil/architecture qualification, construction law and practical TGA/HLS project experience are required.",
+    "gaps": [
+      "Civil/architecture qualification, construction law and practical TGA/HLS project experience are required."
+    ],
+    "title": "Projektleiter / Bauingenieur TGA (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1207188106-S",
+    "document_sha256": "c6886b94cf80664a62bdb0a6bb43f8b8b7c11f747824b2d1e38d81f3f19707ab"
+  },
+  {
+    "id": "ba:10001-1003109300-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Production/supply planning, SAP/ERP and supplier operations are required; academic sourcing exposure does not establish professional planning experience.",
+    "gaps": [
+      "Production/supply planning, SAP/ERP and supplier operations are required; academic sourcing exposure does not establish professional planning experience."
+    ],
+    "title": "Supply Management Planner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003109300-S",
+    "document_sha256": "cc98804a5c3b6b3e9f540609ff4bc5e2e9070ec29bbf88568062072936ce2531"
+  },
+  {
+    "id": "ba:13645-287743-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: R&D/project and requirements work with English C1 aligns; embedded IoT, software engineering and Azure DevOps are substantial gaps.",
+    "gaps": [
+      "R&D/project and requirements work with English C1 aligns; embedded IoT, software engineering and Azure DevOps are substantial gaps."
+    ],
+    "title": "R&D Project Manager – IoT & Grid Monitoring Solutions (f/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-287743-S",
+    "document_sha256": "d64dc5a6a414913d5e5bd9dc1093b82fad72d264d49fc1fc89af82cdb47f8a50"
+  },
+  {
+    "id": "ba:14929-k39451.1170-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: This is a current-student internship requiring an ongoing Informatics/Business degree and O365/Power Platform or programming exposure; candidate graduated in 2023.",
+    "gaps": [
+      "This is a current-student internship requiring an ongoing Informatics/Business degree and O365/Power Platform or programming exposure; candidate graduated in 2023."
+    ],
+    "title": "Praktikant Service & Prozessmanagement (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14929-k39451.1170-S",
+    "document_sha256": "1ecbd03dfddf9d6bf34c80e4be7e275e3ab61b40bb32177491bdca15d1ce8aa2"
+  },
+  {
+    "id": "ba:10001-1003663371-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Event/project, partnerships and university/company coordination are relevant; strong acquisition/sales and very good German (candidate B2) are gaps.",
+    "gaps": [
+      "Event/project, partnerships and university/company coordination are relevant; strong acquisition/sales and very good German (candidate B2) are gaps."
+    ],
+    "title": "Projektleiter/in (w/m/d) für berufsorientierende Veranstaltungen in Sinsheim und Heilbronn",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003663371-S",
+    "document_sha256": "dbb7a563d685fc41258730778c34c6df047fe0ca6bdf44ff32538b65333fe418"
+  },
+  {
+    "id": "ba:10000-1205653222-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Professional nursing credential and oncology treatment/medication practice are mandatory.",
+    "gaps": [
+      "Professional nursing credential and oncology treatment/medication practice are mandatory."
+    ],
+    "title": "Pflegefachkraft - vorzugsweise mit Expertise in der Onkologie (m/w/d",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205653222-S",
+    "document_sha256": "358e6b16b855a2521f55a221e4ba81d73883c8d60909dbd08e7dfd095edfdf88"
+  },
+  {
+    "id": "ba:10001-1003805648-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: PhD entry requires a relevant master’s degree and laboratory biophysics/biology research; candidate has an engineering bachelor and no such lab profile.",
+    "gaps": [
+      "PhD entry requires a relevant master’s degree and laboratory biophysics/biology research; candidate has an engineering bachelor and no such lab profile."
+    ],
+    "title": "PhD Position in reproductive mechanobiology (m/f/div)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003805648-S",
+    "document_sha256": "e69271fbd9f31d79a489f41b28dbb7a42969c14bb1e196d81298b88a6bd6723b"
+  },
+  {
+    "id": "ba:10000-1205868312-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: German dental licensure/Approbation and dentistry training are explicitly required.",
+    "gaps": [
+      "German dental licensure/Approbation and dentistry training are explicitly required."
+    ],
+    "title": "Assistenzzahnarzt (w/m/d) ab sofort",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205868312-S",
+    "document_sha256": "bb64ae07a256b225b3803d5effd9b7e7a53d093d4d2c4d7c8ba2cac1d5c89441"
+  },
+  {
+    "id": "ba:18489-j109S16262-46194-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Customer-facing service is transferable and food-service experience is preferred; HACCP and hospitality familiarity are gaps.",
+    "gaps": [
+      "Customer-facing service is transferable and food-service experience is preferred; HACCP and hospitality familiarity are gaps."
+    ],
+    "title": "Servicekraft Bistro w/m/d",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/18489-j109S16262-46194-S",
+    "document_sha256": "3c0e83af5169dcf9eeedaf46cb46f1b56afeedf4abca4c42297de2489bfd0c92"
+  },
+  {
+    "id": "ba:19395-0065903599-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Nursing license, residential-care experience and care-team leadership are mandatory.",
+    "gaps": [
+      "Nursing license, residential-care experience and care-team leadership are mandatory."
+    ],
+    "title": "Stellvertretende Wohnbereichsleitung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/19395-0065903599-S",
+    "document_sha256": "8fe47b8476d689ee56bffa4d2d49745e7fb8cd9d01c1af613d85d40ceb854fab"
+  },
+  {
+    "id": "ba:12811-2345887-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil-engineering degree in transportation and multi-year road/rail design/HOAI experience are required.",
+    "gaps": [
+      "Civil-engineering degree in transportation and multi-year road/rail design/HOAI experience are required."
+    ],
+    "title": "Projektleiter (w/m/d) Verkehrsanlagenplanung,Heidelberg,Köln",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2345887-S",
+    "document_sha256": "81518d2000491f4bf4c4600a827e0750b572739bcbf7452b01bf9ddd728fe56e"
+  },
+  {
+    "id": "ba:14456-k11173.27501-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Stuckateurmeister credential, trade experience and construction-team leadership are mandatory.",
+    "gaps": [
+      "Stuckateurmeister credential, trade experience and construction-team leadership are mandatory."
+    ],
+    "title": "Stuckateurmeister/in (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14456-k11173.27501-S",
+    "document_sha256": "5dd35460d419ef9d116a3abd497f8b321b9e9d4e42a8a8c74783657bc650248a"
+  },
+  {
+    "id": "ba:11956-2971041781474401-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: SAP data migration tools, SAP module expertise and data-governance consulting are not established.",
+    "gaps": [
+      "SAP data migration tools, SAP module expertise and data-governance consulting are not established."
+    ],
+    "title": "NTT DATA Business Solutions Global Managed Services GmbH: Data Migration Lead SAP (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11956-2971041781474401-S",
+    "document_sha256": "9a738ca011e03562aa16c782f2069f6f8704341a4a521f28ecdde549f0d106a0"
+  },
+  {
+    "id": "ba:10001-1000115490-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: State-certified process/electrical technician qualification and electrical instrumentation design are mandatory.",
+    "gaps": [
+      "State-certified process/electrical technician qualification and electrical instrumentation design are mandatory."
+    ],
+    "title": "Techniker für Prozesstechnik/E-Technik (m/w/d).",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000115490-S",
+    "document_sha256": "37d328d1469e638b9ef6450f50d0d7ab016575a0e21bc0f3b3570316c2ae7fcc"
+  },
+  {
+    "id": "ba:10001-1002888418-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: CE driving license and commercial driving are mandatory.",
+    "gaps": [
+      "CE driving license and commercial driving are mandatory."
+    ],
+    "title": "Kraftfahrer (m/w/d) Verteilerverkehre/Nah- & Schichtverkehr/Int. Fernverkehr Frankenthal",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1002888418-S",
+    "document_sha256": "5e29cc0046b24aa9d68db9f27030899310c7eb30e2b4b08d3b7199997d8bc86e"
+  },
+  {
+    "id": "ba:10001-1000396811-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Energy/TGA consulting, energy audits and DIN modelling expertise are required.",
+    "gaps": [
+      "Energy/TGA consulting, energy audits and DIN modelling expertise are required."
+    ],
+    "title": "PROJEKTLEITER/IN CONSULTING 📉💡 (M/W/D) in Vollzeit - Standort Heidelberg",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1000396811-S",
+    "document_sha256": "10a83e3ed3b689a94a7cdc0c851591c8993ad2d448a21ce69b5eea4e564fd537"
+  },
+  {
+    "id": "ba:10001-1003538841-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Process-plant engineering, apparatus design, ERP material lists and verhandlungssicher German/English are required; academic product CAD is not plant-design experience.",
+    "gaps": [
+      "Process-plant engineering, apparatus design, ERP material lists and verhandlungssicher German/English are required; academic product CAD is not plant-design experience."
+    ],
+    "title": "Konstrukteur (m/w/d) im Bereich Verfahrenstechnik",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003538841-S",
+    "document_sha256": "dc333db46d7f87f3e63b864b7a248be408f05203f6453e12917f0b268b75e3e4"
+  },
+  {
+    "id": "ba:10001-1003132778-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Physiotherapy qualification and patient treatment practice are mandatory.",
+    "gaps": [
+      "Physiotherapy qualification and patient treatment practice are mandatory."
+    ],
+    "title": "Physiotherapeut/in (m/w/d) für moderne Praxis mit Trainingstherapie gesucht",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003132778-S",
+    "document_sha256": "4193e1e118a7d774343c55982103fc7652685f4e77d566f90edd39c897228dbe"
+  },
+  {
+    "id": "ba:10001-1003767566-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Physiotherapy qualification and clinical treatment experience are mandatory.",
+    "gaps": [
+      "Physiotherapy qualification and clinical treatment experience are mandatory."
+    ],
+    "title": "Physiopraxis im Herzen von Mannheim sucht Verstärkung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003767566-S",
+    "document_sha256": "163c46fdb6865a1a5ee3b45cfebaf203bba66114665941fcb2bb9a7fe2cf8184"
+  },
+  {
+    "id": "ba:13645-285891-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: High-voltage route engineering, transmission-line project history and specialist software are required.",
+    "gaps": [
+      "High-voltage route engineering, transmission-line project history and specialist software are required."
+    ],
+    "title": "Project Manager Hochspannungsverteilung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-285891-S",
+    "document_sha256": "7a7bc4f86c7baa3343f9625c8fe450f506c6460d0dae96eb3eca7ee834d01a5e"
+  },
+  {
+    "id": "ba:10001-1003807549-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electromeister qualification, VDE expertise and electrical installation experience are mandatory.",
+    "gaps": [
+      "Electromeister qualification, VDE expertise and electrical installation experience are mandatory."
+    ],
+    "title": "Elektromeister (m/w/d) gesucht",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003807549-S",
+    "document_sha256": "26e3dbaf10138b94112689269145151ec74d02c183d5c8034c16c3d2de726cdb"
+  },
+  {
+    "id": "ba:10001-1001260366-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Pediatric school-assistance experience and formal pedagogical training are required.",
+    "gaps": [
+      "Pediatric school-assistance experience and formal pedagogical training are required."
+    ],
+    "title": "Integrationshilfe / Teilhabeassistenz / Schulbegleitung - päd. Fachkraft (m/w/d) TZ Vormittag 💜",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001260366-S",
+    "document_sha256": "f39fe703d5f07c586eb2324b27420094a27f5196b7808051f15686ec2c41e0d2"
+  },
+  {
+    "id": "ba:15548-1422697-1-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Actuarial/insurance consulting, relevant quantitative degree and 5+ years of insurance experience are mandatory.",
+    "gaps": [
+      "Actuarial/insurance consulting, relevant quantitative degree and 5+ years of insurance experience are mandatory."
+    ],
+    "title": "(Senior) Manager Risk & Actuarial - Consulting (Financial Services) (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15548-1422697-1-S",
+    "document_sha256": "51193f6af3d303ace7921cc0431e2f12bd42ed2822bc714a58355f7d68657c8e"
+  },
+  {
+    "id": "ba:10000-1204614139-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Paramedic qualification and emergency-care competencies are mandatory.",
+    "gaps": [
+      "Paramedic qualification and emergency-care competencies are mandatory."
+    ],
+    "title": "Notfallsanitäter*in für den Aufnahmedienst (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1204614139-S",
+    "document_sha256": "46ca9babb8f687d90bdb4b19ac5c57ed78090b9fc160c74b9bf7b6d8b9e88c2e"
+  },
+  {
+    "id": "ba:13645-272247-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction-project management and insulation/industrial works experience are required; general project coordination alone is insufficient.",
+    "gaps": [
+      "Construction-project management and insulation/industrial works experience are required; general project coordination alone is insufficient."
+    ],
+    "title": "Projektleiter m/w/d im Projektmanagement/Sales",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-272247-S",
+    "document_sha256": "146d7e19d92337740e13b3eeb0a58cf0f7c1c5f5dc17e391244d6379cabc82e1"
+  },
+  {
+    "id": "ba:14011-44278803-629-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Product-development experience transfers, but C1 German, multiple years of digital process work, ECM architecture and IBM FileNet expertise are required.",
+    "gaps": [
+      "Product-development experience transfers, but C1 German, multiple years of digital process work, ECM architecture and IBM FileNet expertise are required."
+    ],
+    "title": "Product Owner - Digitalisierung (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14011-44278803-629-S",
+    "document_sha256": "ca43ea9d1262896e7e506557cedff3c42d99abe166f2d655e5842bfadc26a071"
+  },
+  {
+    "id": "ba:10001-1001182846-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Digital-project and requirements coordination transfer; HTML/JavaScript and digital analytics implementation experience are missing.",
+    "gaps": [
+      "Digital-project and requirements coordination transfer; HTML/JavaScript and digital analytics implementation experience are missing."
+    ],
+    "title": "Technical Project Manager",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001182846-S",
+    "document_sha256": "80a988527a0f4566b04d6b643c0f7104e26442542f6fdae9e231bf11f14a62d1"
+  },
+  {
+    "id": "ba:12362-TR-234428_624913LS-S",
+    "fit": "recommended",
+    "geo": "local",
+    "reason": "Strong direct match: Junior project coordination, technical engineering degree, reporting and stakeholder work align; renewables experience is preferred rather than mandatory.",
+    "gaps": [],
+    "title": "Junior Projektleiter Erneuerbare Energien (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-234428_624913LS-S",
+    "document_sha256": "24359372cdeb2e1ff5af9a5e0d23b60f4c9b4c20ec229b5f5c350379c61caff9"
+  },
+  {
+    "id": "ba:10000-1205082623-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Structural/civil-engineering degree, structural calculations and Tragwerksplanung experience are mandatory.",
+    "gaps": [
+      "Structural/civil-engineering degree, structural calculations and Tragwerksplanung experience are mandatory."
+    ],
+    "title": "Projektleiter/-in Tragwerksplanung/Statik",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205082623-S",
+    "document_sha256": "7a74122cf10337ee1776760d1d7f31a21cb0be92c207228997eaf55aaae2f397"
+  },
+  {
+    "id": "ba:15079-k28811.3704-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: One-year certified nursing qualification and direct clinical care are mandatory.",
+    "gaps": [
+      "One-year certified nursing qualification and direct clinical care are mandatory."
+    ],
+    "title": "1-jährig examinierte Pflegefachkraft (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15079-k28811.3704-S",
+    "document_sha256": "3731db3de2247e9d09219ce2e61fc5b563793ef304ec4b34fbcf26b9bc36aadf"
+  },
+  {
+    "id": "ba:10001-1003474573-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: TGA/HVAC engineering, public-project HOAI leadership and specialist systems/norms are mandatory.",
+    "gaps": [
+      "TGA/HVAC engineering, public-project HOAI leadership and specialist systems/norms are mandatory."
+    ],
+    "title": "Projektleiter TGA - HKLS (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003474573-S",
+    "document_sha256": "79ed5ec33456eb8ceda3fdb65ffbfd42291143df78f99def5ca11c58e8ebcc4c"
+  },
+  {
+    "id": "ba:10001-1003394473-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/automation engineering or technician credentials and PLC/automation software are required.",
+    "gaps": [
+      "Electrical/automation engineering or technician credentials and PLC/automation software are required."
+    ],
+    "title": "Projektingenieur/in (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003394473-S",
+    "document_sha256": "8581404455deaf3d025df77147056362e6858130a886624f4cb536aae1d3fdab"
+  },
+  {
+    "id": "ba:12946-3026-1796302-0-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical/metals trade qualification, high-voltage cable installation and extensive travel are mandatory.",
+    "gaps": [
+      "Electrical/metals trade qualification, high-voltage cable installation and extensive travel are mandatory."
+    ],
+    "title": "Kabelmonteur (m/w/d)  (KZ 3026)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12946-3026-1796302-0-S",
+    "document_sha256": "4811851c3c22f2b6f3a5cf83e2615597c83f97cbadff5028c72f894d4d10f6a3"
+  },
+  {
+    "id": "ba:12811-2333260-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction/architecture/FM qualification and real-estate construction project experience are required.",
+    "gaps": [
+      "Construction/architecture/FM qualification and real-estate construction project experience are required."
+    ],
+    "title": "Technical Project Manager Real Estate (m/w/d), Zentrale",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2333260-S",
+    "document_sha256": "4ac333a2780b1a5faf7359f1254e192c8aea9e97c62627c0a617aa0fc110dd0f"
+  },
+  {
+    "id": "ba:10001-1003268821-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Senior HR-controlling, HRIS administration, team leadership and employment/labor-relations knowledge are required.",
+    "gaps": [
+      "Senior HR-controlling, HRIS administration, team leadership and employment/labor-relations knowledge are required."
+    ],
+    "title": "HR Manager - Controlling & Prozesse (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003268821-S",
+    "document_sha256": "c818ac42a8ac69fb38037d2c198f0579c3d3e9f23c8dc2fb54bd159046a1f205"
+  },
+  {
+    "id": "ba:10001-1003322139-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Professional accounting/tax qualification, five years of accounting and DATEV/HGB expertise are mandatory.",
+    "gaps": [
+      "Professional accounting/tax qualification, five years of accounting and DATEV/HGB expertise are mandatory."
+    ],
+    "title": "Buchhalter (m/w/d) Family Office",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003322139-S",
+    "document_sha256": "9d9d5f31a187de4f0fcfbeb11b62936d78c0b3de2575b8290f4eae3b33914f5b"
+  },
+  {
+    "id": "ba:10001-1003709125-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Construction trade qualification and demolition/foreman site experience are required.",
+    "gaps": [
+      "Construction trade qualification and demolition/foreman site experience are required."
+    ],
+    "title": "Polier (m/w/d/k.A.) Rückbau Standort Heidelberg",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003709125-S",
+    "document_sha256": "a6f485ff1811c6487f39156cc982357c88effffca0eed56240ba78f53b0f5af4"
+  },
+  {
+    "id": "ba:12811-2303677-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Concrete production supervision, workforce leadership and DIN 1045/structural production knowledge are required.",
+    "gaps": [
+      "Concrete production supervision, workforce leadership and DIN 1045/structural production knowledge are required."
+    ],
+    "title": "Gruppenleiter Flachproduktion und Dachausbau (m/w/d), GRITEC GmbH Waghäusel",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2303677-S",
+    "document_sha256": "4eb5cd7543a5eba369dbeea8835c6a45d4274d24a3860e58b28cf25015fef3a1"
+  },
+  {
+    "id": "ba:10001-1003418463-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Data/AI Product Owner experience, technical data-platform depth and explicit C1 German are mandatory and absent.",
+    "gaps": [
+      "Data/AI Product Owner experience, technical data-platform depth and explicit C1 German are mandatory and absent."
+    ],
+    "title": "(Senior) Product Owner (w/m/d) - Data & AI Solutions",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003418463-S",
+    "document_sha256": "c2696a285830b6f8186ea94e31a58e86a400a0d558b84ffd3a1a10696a46cff2"
+  },
+  {
+    "id": "ba:10001-1003225570-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Dental assistant/prophylaxis professional qualification is mandatory.",
+    "gaps": [
+      "Dental assistant/prophylaxis professional qualification is mandatory."
+    ],
+    "title": "🔹Propylaxeassistenz (ZMP)🔹DH🔹ZFA mit Weiterbildung Prohpylaxe",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003225570-S",
+    "document_sha256": "f54d39f27fa20929ff00be8dc5c2af2d32f6a4c4e32d5ee500564d795cbf8b83"
+  },
+  {
+    "id": "ba:12117-YF-49655-YF-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Mechanical fixture design, CAD and prototyping are a close academic match; formal product-designer/technician credentials and production build experience remain gaps.",
+    "gaps": [
+      "Mechanical fixture design, CAD and prototyping are a close academic match; formal product-designer/technician credentials and production build experience remain gaps."
+    ],
+    "title": "Konstrukteur (m/w/d) Prüfplätze und Betriebsmittelentwicklung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12117-YF-49655-YF-S",
+    "document_sha256": "2fd1a577a18e83d17e95dea118e2bfa33358ed3d5cef7289014afcfdcffab1cf"
+  },
+  {
+    "id": "ba:11852-956327039-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Factory filling, machine operation and shift work are outside documented employment; previous production work is preferred but not required.",
+    "gaps": [
+      "Factory filling, machine operation and shift work are outside documented employment; previous production work is preferred but not required."
+    ],
+    "title": "Produktionsmitarbeiter (m/w/d) Abfüllung",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/11852-956327039-S",
+    "document_sha256": "539f0e63eb5f0e94d20f3a73ce4eac74e5c5ca5128cb52be7254f074fac10f9a"
+  },
+  {
+    "id": "ba:12811-2316046-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Carpentry trade qualification, woodshop machinery and production-team leadership are required.",
+    "gaps": [
+      "Carpentry trade qualification, woodshop machinery and production-team leadership are required."
+    ],
+    "title": "Gruppenleiter/ Vorarbeiter Schreinerei (m/w/d), GRITEC GmbH Waghäusel",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12811-2316046-S",
+    "document_sha256": "6cea0e03bee7c6de08d6b32544dbf3dd2619ab9055dc3d2d4dccac521def7cf7"
+  },
+  {
+    "id": "ba:10001-1001883846-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: HLS master/trade qualification and HVAC construction project leadership are required.",
+    "gaps": [
+      "HLS master/trade qualification and HVAC construction project leadership are required."
+    ],
+    "title": "Suche Projektleiter:in Bauprojekte Sanitär-, Heizung- und Klimatechnik",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001883846-S",
+    "document_sha256": "12c435fac72e8410aead8a0d95474f5a24a93ea34584b275b2fb6b9013c422c9"
+  },
+  {
+    "id": "ba:17628-44483306-105-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Refrigeration/HVAC technical trade training and facility maintenance experience are required.",
+    "gaps": [
+      "Refrigeration/HVAC technical trade training and facility maintenance experience are required."
+    ],
+    "title": "Haustechniker (w/m/d) Kältetechnik - JobID 27317",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17628-44483306-105-S",
+    "document_sha256": "b143530ff20b70a12ea47bfe1747b397af21ad3d509f908a4a37c417d7089b76"
+  },
+  {
+    "id": "ba:13645-276502-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Engineering CAD/product-construction work is relevant; architecture/civil qualification and technical drawing standards are gaps.",
+    "gaps": [
+      "Engineering CAD/product-construction work is relevant; architecture/civil qualification and technical drawing standards are gaps."
+    ],
+    "title": "Architekt als Konstrukteur im Technischen Produktmanagement (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-276502-S",
+    "document_sha256": "f79538bdc86bfdfe41805071873f216480fe4bbdad5dd727c13e9e5f96cce601"
+  },
+  {
+    "id": "ba:13645-280112-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Rotating-machinery engineering, turbomachinery experience, SAP R/3 and technical repair sales are specialist requirements.",
+    "gaps": [
+      "Rotating-machinery engineering, turbomachinery experience, SAP R/3 and technical repair sales are specialist requirements."
+    ],
+    "title": "Project Manager Repairs (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13645-280112-S",
+    "document_sha256": "154e6ec778473e25cc18518502bfbc54ac9e91288940bd12caa4ec0691428512"
+  },
+  {
+    "id": "ba:10000-1208113955-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Metalworking trade qualification, welding and onsite fabrication are required.",
+    "gaps": [
+      "Metalworking trade qualification, welding and onsite fabrication are required."
+    ],
+    "title": "Metallbauer (m/w/d) Konstruktionstechnik ab sofort gesucht (Schwetzingen)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1208113955-S",
+    "document_sha256": "578cfbf112835fb66095bdf09818266432ed6a0514b47e537988733ae3d307ac"
+  },
+  {
+    "id": "ba:10001-1003692274-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: State-certified civil technician/Tiefbau qualification and public-infrastructure work are required.",
+    "gaps": [
+      "State-certified civil technician/Tiefbau qualification and public-infrastructure work are required."
+    ],
+    "title": "Bautechniker (m/w/d) gesucht!",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003692274-S",
+    "document_sha256": "adeb8cc12f16fab213fa3238a8905b0f8fb8ef19b892ffe4377e5eb56b47d35c"
+  },
+  {
+    "id": "ba:10001-1003173976-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Project coordination and S/4 transformation align, but practical SAP project delivery and multi-year PM experience are not documented.",
+    "gaps": [
+      "Project coordination and S/4 transformation align, but practical SAP project delivery and multi-year PM experience are not documented."
+    ],
+    "title": "SAP Project Manager (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003173976-S",
+    "document_sha256": "31b6896766d687d3a1025f8b2d27b1b0cb9576e12604870238efdb22b7b6f500"
+  },
+  {
+    "id": "ba:10001-1003531033-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Metal/glass construction estimating, tender takeoffs and commercial bid experience are specialist gaps; academic costing/sourcing is limited.",
+    "gaps": [
+      "Metal/glass construction estimating, tender takeoffs and commercial bid experience are specialist gaps; academic costing/sourcing is limited."
+    ],
+    "title": "Kalkulator (m/w/d) Metallbau / Glasbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003531033-S",
+    "document_sha256": "00346a12f9142ebd5db9be78d712a8dfdbfaf2bf23f01c66f41cb2b6f7fbefc2"
+  },
+  {
+    "id": "ba:10001-1003789247-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: Onboarding, HR coordination and process improvement align; multiple years of HR operations, contracts and absence administration are not established.",
+    "gaps": [
+      "Onboarding, HR coordination and process improvement align; multiple years of HR operations, contracts and absence administration are not established."
+    ],
+    "title": "Mitarbeiterin (m/w/d) / Mitarbeiter (m/w/d) im Bereich Personal",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003789247-S",
+    "document_sha256": "a5903393cd74283e90d0994341f5e46f569a6d6c16bb8bbec88aba17b0a561ee"
+  },
+  {
+    "id": "ba:10001-1003728437-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Pflegedienstleitung credential and nursing qualification are mandatory.",
+    "gaps": [
+      "Pflegedienstleitung credential and nursing qualification are mandatory."
+    ],
+    "title": "Pflegedienstleitung (m/w/d) für unsere Intensivpflege WG in Mannheim",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003728437-S",
+    "document_sha256": "e9ae7741c8044c2a077335385287fb5fe64b2e15d48616b1b25a06795a02e9e4"
+  },
+  {
+    "id": "ba:10001-1003652546-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: CAD/technical drawings align academically, but completed product-designer/drafter training and production-ready tolerance/PDM experience are required.",
+    "gaps": [
+      "CAD/technical drawings align academically, but completed product-designer/drafter training and production-ready tolerance/PDM experience are required."
+    ],
+    "title": "Technischer Produktdesigner/ technischer Zeichner (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003652546-S",
+    "document_sha256": "081aaaf1089dea49f2f98d5feb7e20637a15ac1dba52114571d9dcb8bbce8359"
+  },
+  {
+    "id": "ba:16460-0060161290-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil-engineering degree and road-construction site supervision/contract experience are required.",
+    "gaps": [
+      "Civil-engineering degree and road-construction site supervision/contract experience are required."
+    ],
+    "title": "Projektleiter / Projektingenieur (m/w/d) Tief- und Straßenbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16460-0060161290-S",
+    "document_sha256": "44b139009e00eb42b51609c9641e5ecf0c2a33c96e28f4040aca2c0ffcde5445"
+  },
+  {
+    "id": "ba:14471-F37TBW3LVDIHYQ9J-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Mechanical engineering or technician education plus two years’ mechanical construction experience are required.",
+    "gaps": [
+      "Mechanical engineering or technician education plus two years’ mechanical construction experience are required."
+    ],
+    "title": "Konstrukteur (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/14471-F37TBW3LVDIHYQ9J-S",
+    "document_sha256": "157f1863c5ab1dc98f64e1658698cdc0cc68d27ca3c863987828826d03fb2c31"
+  },
+  {
+    "id": "ba:12280-2026-78483-0-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Restaurant shift-leader history, McDonald’s curriculum and food-service operations are required.",
+    "gaps": [
+      "Restaurant shift-leader history, McDonald’s curriculum and food-service operations are required."
+    ],
+    "title": "Assistant Manager:in - VZ",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12280-2026-78483-0-S",
+    "document_sha256": "27b91979668a15f0bd46e3bcbce1c200f0e6067477bd651ecb0c611678934e09"
+  },
+  {
+    "id": "ba:15707-1523860-2-S",
+    "fit": "possible",
+    "geo": "remote_de",
+    "reason": "Transferable but incomplete match: International partnerships, customer work and project coordination transfer; e-infrastructure sales, technical EV solutions and commercial pipeline ownership are gaps.",
+    "gaps": [
+      "International partnerships, customer work and project coordination transfer; e-infrastructure sales, technical EV solutions and commercial pipeline ownership are gaps."
+    ],
+    "title": "Sales & Project Manager e-Infrastruktur Europa (m/w/d) - deutschlandweit hybrid",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15707-1523860-2-S",
+    "document_sha256": "63056e39e2712f8cafba5a6024caa3a72f2fc12489aa19b7d582ad7ec12260bd"
+  },
+  {
+    "id": "ba:12265-502897_JB5253717-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Electrical engineering/technician qualification, EPLAN design and automation controls experience are mandatory.",
+    "gaps": [
+      "Electrical engineering/technician qualification, EPLAN design and automation controls experience are mandatory."
+    ],
+    "title": "Elektrokonstrukteur (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12265-502897_JB5253717-S",
+    "document_sha256": "657a1c427b054fdba31a6fe8251aba567abf910a618d29428b1b816c87adc754"
+  },
+  {
+    "id": "ba:13106-484991656-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: SAP financial compliance/authorizations, accounting-related degree and five years’ SAP authorization experience are mandatory.",
+    "gaps": [
+      "SAP financial compliance/authorizations, accounting-related degree and five years’ SAP authorization experience are mandatory."
+    ],
+    "title": "SAP Financial Compliance & Authorizations Deployment Specialist (m/f/d) - 2 years fixed term",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13106-484991656-S",
+    "document_sha256": "1240e654cdab8c12afd09d927e6d95740014410acca800c596767edba0aa8887"
+  },
+  {
+    "id": "ba:10001-1003797353-S",
+    "fit": "possible",
+    "geo": "local",
+    "reason": "Transferable but incomplete match: The role is factory filling/chemical production; prior production exposure is desirable but not mandatory, and the candidate has only academic manufacturing exposure.",
+    "gaps": [
+      "The role is factory filling/chemical production; prior production exposure is desirable but not mandatory, and the candidate has only academic manufacturing exposure."
+    ],
+    "title": "Produktionsmitarbeiter (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003797353-S",
+    "document_sha256": "e7c03553b69edfbd887deaed781c55a20ac029b03787fb12fa1411811faeaa20"
+  },
+  {
+    "id": "ba:16460-0060161315-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil/building qualification and multiple years’ road/civil project leadership are mandatory.",
+    "gaps": [
+      "Civil/building qualification and multiple years’ road/civil project leadership are mandatory."
+    ],
+    "title": "Projektleiter / Projektingenieur (m/w/d) Tief- und Straßenbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/16460-0060161315-S",
+    "document_sha256": "7b5edaa0f77e9e7781f7772cd373a1d758c8da470b180a44c394402f532f762f"
+  },
+  {
+    "id": "ba:12362-TR-234431_624876LS-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Senior project success, team leadership and renewable energy implementation experience are missing.",
+    "gaps": [
+      "Senior project success, team leadership and renewable energy implementation experience are missing."
+    ],
+    "title": "Senior Projektleiter Erneuerbare Energien (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/12362-TR-234431_624876LS-S",
+    "document_sha256": "01ac51660675ffa28130d587b14810ab4e6379f1044b182cf77c71842ed4e99c"
+  },
+  {
+    "id": "ba:10001-1001634481-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Fitness-trainer B license or equivalent fitness coaching experience is required.",
+    "gaps": [
+      "Fitness-trainer B license or equivalent fitness coaching experience is required."
+    ],
+    "title": "Fitnesstrainer (m,w,d) auf 603,- € Basis",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1001634481-S",
+    "document_sha256": "b0f0d1ddb7de6219a51815ebb6e34d7ba27a5792a4e07ae6f59c686475a536be"
+  },
+  {
+    "id": "ba:10000-1205654492-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Professional nursing qualification and gastroenterology inpatient-care experience are mandatory.",
+    "gaps": [
+      "Professional nursing qualification and gastroenterology inpatient-care experience are mandatory."
+    ],
+    "title": "Pflegefachkraft - Gastroenterologische Allgemeinstation (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10000-1205654492-S",
+    "document_sha256": "fa342abf3758a264c3c5c11b49d9e4730d6144474f72dca3fdf26cb8bb62432e"
+  },
+  {
+    "id": "ba:15888-k53301.1778-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: SHK/building-services technical qualification and facility project leadership are required.",
+    "gaps": [
+      "SHK/building-services technical qualification and facility project leadership are required."
+    ],
+    "title": "Projektleiter - SHK / Technisches Gebäudemanagement (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/15888-k53301.1778-S",
+    "document_sha256": "89391b56404e373cfec2c86541d8ff8b41315fe0bc41fcb3ac06b5c9b30caf98"
+  },
+  {
+    "id": "ba:10001-1003737171-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Civil-engineering/structural qualification and construction management for substations are required.",
+    "gaps": [
+      "Civil-engineering/structural qualification and construction management for substations are required."
+    ],
+    "title": "Bauingenieur als Projektleiter (m/w/d) für den Bau von Umspannwerken (1548)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003737171-S",
+    "document_sha256": "eebb7a3723d568de305391e8fe1444740d18eb823b7fe2704e4ef3a9847d60df"
+  },
+  {
+    "id": "ba:10001-1003347376-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Parkettlegermeister credential, flooring trade and construction-team experience are mandatory.",
+    "gaps": [
+      "Parkettlegermeister credential, flooring trade and construction-team experience are mandatory."
+    ],
+    "title": "Bauleiter/Projektleiter (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003347376-S",
+    "document_sha256": "6e593b35809fe886a3f5f7210ad43ff3ee21774d5fa99f68ff9aeb86469dab6f"
+  },
+  {
+    "id": "ba:10001-1003696852-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Fitness practice/training expertise is required; the candidate has no fitness-coaching background.",
+    "gaps": [
+      "Fitness practice/training expertise is required; the candidate has no fitness-coaching background."
+    ],
+    "title": "Fitnesstrainer (m/w/d) Flächentrainer / Personal Trainer für Gym10 Frankenthal gesucht",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003696852-S",
+    "document_sha256": "71f96afeb4fba32e981170d9adf44d4847376cb1af2da6ce2e8ed025e0663fc5"
+  },
+  {
+    "id": "ba:17907-44391647-820-S",
+    "fit": "unlikely",
+    "geo": "outside",
+    "reason": "Core-role gap: Retail vocational qualification and first-line store-leadership experience are required; this location is also just outside the 35 km radius.",
+    "gaps": [
+      "Retail vocational qualification and first-line store-leadership experience are required; this location is also just outside the 35 km radius."
+    ],
+    "title": "Nachwuchsführungskraft Verkauf (m/w/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17907-44391647-820-S",
+    "document_sha256": "7767f78a2d00dd6758606e124cedf96d5e90970d0b0f0dff3acb0df2d62f737f"
+  },
+  {
+    "id": "ba:13106-414718112-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Pharmacy/natural-science master’s, pharmaceutical production and GMP/SAP/MES expertise are mandatory.",
+    "gaps": [
+      "Pharmacy/natural-science master’s, pharmaceutical production and GMP/SAP/MES expertise are mandatory."
+    ],
+    "title": "Pharmazeutischer Assistent (w/m/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/13106-414718112-S",
+    "document_sha256": "5beb2994803cf4a8295fe1c389d61c21cb9371a044954cb925da771fb7faf2ab"
+  },
+  {
+    "id": "ba:10001-1003394057-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Industrial insulation trade qualification, multiple years in insulation and business-unit leadership are mandatory.",
+    "gaps": [
+      "Industrial insulation trade qualification, multiple years in insulation and business-unit leadership are mandatory."
+    ],
+    "title": "Technischer Leiter Isolierung (m/w/d) - Führungsposition im Industrieanlagenbau",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003394057-S",
+    "document_sha256": "451f0fd00778ee016286de3a89920e0ee3a0bc22575b9d4cebb1baf3d3625f72"
+  },
+  {
+    "id": "ba:10001-1003613215-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Master’s-level science, 10+ years industry and semiconductor metrology/product-marketing leadership are mandatory.",
+    "gaps": [
+      "Master’s-level science, 10+ years industry and semiconductor metrology/product-marketing leadership are mandatory."
+    ],
+    "title": "Head of Product Marketing (m/f/d)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003613215-S",
+    "document_sha256": "ca2aeff243e0f61fb6ddc9a72b0f169ac3da154d859a6d3028f703a9c376bed4"
+  },
+  {
+    "id": "ba:10001-1003572254-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: This is hands-on vehicle cleaning/transfer work and requires a valid class B license, which is not established; CV duties do not overlap.",
+    "gaps": [
+      "This is hands-on vehicle cleaning/transfer work and requires a valid class B license, which is not established; CV duties do not overlap."
+    ],
+    "title": "Mitarbeiter:in (m/w/d) für den Fuhrpark-Service",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003572254-S",
+    "document_sha256": "5fa352741c885a561fc37a7e50bb081773edd6cabee38adf047f4c334fe7d43f"
+  },
+  {
+    "id": "ba:17628-44432025-99-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: HKLS trade qualification, maintenance and building-systems fault-finding are mandatory.",
+    "gaps": [
+      "HKLS trade qualification, maintenance and building-systems fault-finding are mandatory."
+    ],
+    "title": "Haustechniker HKLS (w/m/d) - JobID 26721",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/17628-44432025-99-S",
+    "document_sha256": "8a2b81d3d1afb985218fd6f2e5b219eeabacc93aa7cfdb650c5be60bbe47187f"
+  },
+  {
+    "id": "ba:10001-1003807846-S",
+    "fit": "unlikely",
+    "geo": "local",
+    "reason": "Core-role gap: Diagnostic test systems, C/NI LabView/TestStand, metrology/electronics and software validation are central requirements absent from the CV.",
+    "gaps": [
+      "Diagnostic test systems, C/NI LabView/TestStand, metrology/electronics and software validation are central requirements absent from the CV."
+    ],
+    "title": "Projektleiter (m/w/d) Entwicklung diagnostischer Testsysteme in Mannheim (1582)",
+    "source_url": "https://www.arbeitsagentur.de/jobsuche/jobdetail/10001-1003807846-S",
+    "document_sha256": "2a79f2c0a9abc9b2e0515368be78220dc599f80403d453b41a3621aeb6e0403a"
+  }
+]
