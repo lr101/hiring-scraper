@@ -8,7 +8,7 @@ Run the same checks locally and in GitHub Actions:
 
 Use a running Docker Engine with Buildx and Docker Compose 2.20+, Bash, and standard shell utilities. No host Python, Node.js, database, or `.env` is required. Initial builds download base images and locked dependencies; application checks use the committed fixtures rather than live hiring-site crawls.
 
-Stack startup has a five-minute timeout. For slower Docker hosts, including software-emulated virtual machines, give migrations and the full fixture import more time:
+Stack startup has a five-minute health-check timeout. For slower Docker hosts, including software-emulated virtual machines, give PostgreSQL startup and migrations more time:
 
 ```bash
 HIRING_CI_WAIT_TIMEOUT=1200 ./scripts/ci/run.sh

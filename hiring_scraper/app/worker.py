@@ -12,6 +12,7 @@ from threading import Lock
 from urllib.parse import urlsplit
 
 from sqlalchemy import select, or_
+from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine

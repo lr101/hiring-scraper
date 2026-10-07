@@ -140,9 +140,6 @@ def _bootstrap() -> str:
     subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
     del migration_environment
 
-    print("Importing the bundled fixture into an empty database", flush=True)
-    subprocess.run(["hiring-seed", "--if-empty"], check=True,
-                   env=_runtime_environment(application_url), preexec_fn=_drop_privileges)
     return application_url
 
 
