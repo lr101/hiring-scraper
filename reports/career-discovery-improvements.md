@@ -32,7 +32,7 @@ The parser records job locations but does not geocode them, resolve postal-code/
 
 ## Reproducibility and next test
 
-`run-12` contains the live 26-seed result and HTTP metadata: **17 new requests and 146 reused captures**. `run-13` replays all 163 captured responses against the final code with **0 new requests**. Its recorded source hashes match the code. Response bodies remain local and gitignored, as in the original study, so a fresh clone can inspect metadata/results but cannot independently re-parse the captured third-party pages without new requests.
+`run-12` recorded the live 26-seed result: **17 new requests and 146 reused captures**. `run-13` replayed all 163 captured responses against the final code with **0 new requests**. Its recorded source hashes match the code. Request capture indexes and response bodies stay local and are not committed, so a fresh clone can inspect the derived results but must reacquire pages to re-parse them.
 
 The changes have fixture coverage for German hiring vocabulary, legal-page false positives, redirect deduplication, Greenhouse application evidence, linked Schema.org feeds and hosted-vendor false positives. The next valuable experiment is a larger stratified set across German regions and industries, comparing OSM/directory seeds with documented search results while labeling “career page verified,” “feed parsed,” “jobs matching location,” and “blocked/unresolved” separately. A global page-limit increase is not supported by these results.
 

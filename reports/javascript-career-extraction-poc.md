@@ -20,9 +20,9 @@ per capture from saved page metadata for career/job-like successful HTML pages
 without an ATS marker and with `jobposting_count=0`; it orders them by
 `SHA-256(page URL + newline + capture ID)` and takes the first 250. It loads
 only those 250 bodies. Replaying requires the local saved
-`data/career-poc/run-31` capture directory, including its large response bodies;
-that directory is intentionally not committed. The compact replay JSON is
-committed and remains reviewable without those bodies.
+`data/career-poc/run-31/http` capture directory, including its large response
+bodies. Capture directories are intentionally not committed; the run summary,
+manifest and compact replay JSON remain reviewable in Git.
 
 ## Results
 

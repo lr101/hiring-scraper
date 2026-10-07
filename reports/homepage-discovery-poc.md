@@ -28,7 +28,7 @@ The six preview additions are Autobahn GmbH Außenstelle Karlsruhe → `autobahn
 
 One validation pass covered the original nine email/name candidates (the seven strict candidates plus the two later-demoted partial matches), using the existing `Client`: 12-second timeout, one-second per-origin pacing, 45-request cap, and robots checks on every hop. It made 23 requests: 13 HTTP 200, six redirects, one 404, and three network/TLS/DNS failures. Six of the seven strict candidates returned public HTML whose title/body corroborated the mapped identity. R3DT redirected to `xr-easy.com`, whose body still names R3DT; Autobahn showed its parent Die Autobahn GmbH. No fetched strict candidate was a false identity match (6/6 directly checkable).
 
-`joas-immobilien.de` could not be checked because its HTTPS robots request failed a TLS handshake. MatSec had DNS failure and Stober had TLS failure; both were already review-only because their name/domain scores were partial. These are access observations, not evidence that a domain is absent. Local capture metadata is in `data/location-sources/homepage-poc-2026-10/email-domain-http/`; there were no retries, proxies, authentication, or challenge handling.
+`joas-immobilien.de` could not be checked because its HTTPS robots request failed a TLS handshake. MatSec had DNS failure and Stober had TLS failure; both were already review-only because their name/domain scores were partial. These are access observations, not evidence that a domain is absent. Capture metadata stays local in `data/location-sources/homepage-poc-2026-10/email-domain-http/` and is not committed; there were no retries, proxies, authentication, or challenge handling.
 
 ## Rejected-suggestion sample
 

@@ -30,7 +30,7 @@ The positive count is a discovery yield, not a measured precision score: the who
 
 ## Repeatable app and scheduled scans
 
-`data/career-poc/run-29/` contains the merged seeds, results, company CSV, summary, source manifest and HTTP metadata/body captures. `fixtures/karlsruhe-career-enrichment.json` was refreshed atomically from that run while preserving prior manually verified associations and positive evidence. Run the deterministic merge again with:
+`data/career-poc/run-29/` contains the merged seeds, results, company CSV, summary and source manifest. Per-request capture indexes and response bodies stay local and are not committed. `fixtures/karlsruhe-career-enrichment.json` was refreshed atomically from that run while preserving prior manually verified associations and positive evidence. Run the deterministic merge again with:
 
 ```bash
 mise exec -- uv run python experiments/finalize_karlsruhe_discovery.py
