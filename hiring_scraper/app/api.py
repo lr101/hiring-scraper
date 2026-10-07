@@ -486,6 +486,20 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
             "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
 
 
+def _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code):
+    area = (profile.preferences.get('search_area') or {}) if profile else {}
+    explicit = any(isinstance(value, (int, float)) for value in (latitude, longitude, radius_km)) or isinstance(place, str) or isinstance(country_code, str)
+    latitude = latitude if isinstance(latitude, (int, float)) else area.get('latitude')
+    longitude = longitude if isinstance(longitude, (int, float)) else area.get('longitude')
+    radius_km = radius_km if isinstance(radius_km, (int, float)) else area.get('radius_km')
+    return {'latitude': latitude if latitude is not None else 49.0068705,
+            'longitude': longitude if longitude is not None else 8.4034195,
+            'radius_km': radius_km if radius_km is not None else 15,
+            'place': place if isinstance(place, str) else area.get('city'),
+            'country': country_code.upper() if isinstance(country_code, str) else area.get('country_code') or 'DE',
+            'profile_area': bool(area), 'explicit': explicit}
+
+
 def _profile_match(job, profile, scope):
     match = match_job(job_input(job), profile.preferences, current_enrichment(job))
     if scope is not None:
@@ -565,19 +579,13 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
               session: Session = Depends(get_session),
               profile_id: Annotated[int | None, Query(ge=1)] = None,
               min_match_score: Annotated[int | None, Query(ge=0, le=100)] = None,
-              include_unknown: bool | None = None) -> dict[str, Any]:
+              include_unknown: bool | None = None,
+              country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None) -> dict[str, Any]:
     profile = require_profile(profile_id, session) if profile_id is not None else None
-    area = (profile.preferences.get('search_area') or {}) if profile else {}
+    resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
     defaults = (profile.preferences.get('matching_defaults') or {}) if profile else {}
-    # Direct internal calls retain support for the historic Query defaults.
-    latitude = latitude if isinstance(latitude, (int, float)) else area.get('latitude')
-    longitude = longitude if isinstance(longitude, (int, float)) else area.get('longitude')
-    radius_km = radius_km if isinstance(radius_km, (int, float)) else area.get('radius_km')
-    latitude = latitude if latitude is not None else 49.0068705
-    longitude = longitude if longitude is not None else 8.4034195
-    radius_km = radius_km if radius_km is not None else 15
-    place = place if isinstance(place, str) else area.get('city')
-    country = area.get('country_code') or 'DE'
+    latitude, longitude, radius_km = (resolved[key] for key in ('latitude', 'longitude', 'radius_km'))
+    place, country = resolved['place'], resolved['country']
     min_match_score = defaults.get('min_match_score', 0) if min_match_score is None else min_match_score
     include_unknown = defaults.get('include_unknown', True) if include_unknown is None else include_unknown
     if profile is None and min_match_score:
@@ -599,12 +607,18 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     # One evidence policy for both database engines, applied before any pagination.
     rows = session.scalars(statement.where(*filters).order_by(Job.id.asc())).unique().all()
     return _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
-                      profile, min_match_score, include_unknown, place, country if area else None)
+                      profile, min_match_score, include_unknown, place,
+                      country if resolved['profile_area'] or isinstance(country_code, str) else None)
 
 
 @app.get("/api/v1/jobs/{job_id}")
 def get_job(job_id: int, session: Session = Depends(get_session),
-            profile_id: Annotated[int | None, Query(ge=1)] = None) -> dict[str, Any]:
+            profile_id: Annotated[int | None, Query(ge=1)] = None,
+            latitude: Annotated[float | None, Query(ge=-90, le=90)] = None,
+            longitude: Annotated[float | None, Query(ge=-180, le=180)] = None,
+            radius_km: Annotated[float | None, Query(gt=0, le=200)] = None,
+            place: Annotated[str | None, Query(max_length=120)] = None,
+            country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None) -> dict[str, Any]:
     statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
                                     selectinload(Job.locations)).where(Job.id == job_id)
     job = session.scalars(statement).unique().first()
@@ -613,10 +627,10 @@ def get_job(job_id: int, session: Session = Depends(get_session),
     data = _job_json(job, include_description=True)
     if profile_id is not None:
         profile = require_profile(profile_id, session)
-        area = profile.preferences.get('search_area') or {}
-        scope = geographic_scope(job, area.get('latitude'), area.get('longitude'),
-                                 area.get('radius_km', 35), area.get('city'),
-                                 area.get('country_code') or 'DE') if area else None
+        resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
+        scope = geographic_scope(job, resolved['latitude'], resolved['longitude'],
+                                 resolved['radius_km'], resolved['place'],
+                                 resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None) if resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
         data['profile_match'] = _profile_match(job, profile, scope)
     return data

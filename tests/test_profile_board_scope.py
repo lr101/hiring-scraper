@@ -136,6 +136,60 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.job('b', url='https://example.org/jobs/123?ref=two&utm_source=x')
         self.assertEqual(self.board()['total'], 2)
 
+    def test_board_override_area_is_preserved_in_detail_explanation(self):
+        profile = self.profile(search_area=AREA)
+        job = self.job('berlin', locations=[models.JobLocation(label='Berlin',
+            latitude=52.52, longitude=13.4, country_code='DE')])
+        board = api.list_jobs(52.52, 13.4, 20, None, None, 'Berlin', 0, 10,
+            session=self.session, profile_id=profile['id'], country_code='DE')
+        detail = api.get_job(job.id, self.session, profile_id=profile['id'],
+            latitude=52.52, longitude=13.4, radius_km=20, place='Berlin', country_code='DE')
+        self.assertEqual(board['total'], 1)
+        self.assertEqual(detail['geography'], board['items'][0]['geography'])
+        self.assertEqual(detail['profile_match'], board['items'][0]['profile_match'])
+
+    def test_remote_country_query_override_is_consistent_with_details(self):
+        profile = self.profile(search_area=AREA)
+        job = self.job('us-only', remote=True, style='remote', metadata={'remote_country':'United States'})
+        self.assertEqual(self.board(profile)['total'], 0)
+        board = self.board(profile, country_code='US')
+        self.assertEqual(board['total'], 1)
+        detail = api.get_job(job.id, self.session, profile_id=profile['id'], country_code='US')
+        self.assertEqual(detail['profile_match'], board['items'][0]['profile_match'])
+        self.assertEqual(detail['geography'], board['items'][0]['geography'])
+
+    def test_localized_overview_queries_do_not_establish_vacancy_identity(self):
+        for suffix in ['lang=en', 'locale=de&page=1', 'sort=newest&search=project']:
+            self.job('a'+suffix, url='https://example.org/careers?'+suffix)
+            self.job('b'+suffix, url='https://example.org/careers?'+suffix)
+        self.assertEqual(self.board()['total'], 6)
+
+    def test_explicit_canada_nested_country_and_unparsed_restrictions_exclude_germany(self):
+        profile = self.profile(search_area=AREA)
+        for key, restriction in [('canada', {'@type':'Country', 'name':'Canada'}),
+                                 ('nested', {'addressCountry':{'@type':'Country', 'name':'Canada'}}),
+                                 ('unknown-restriction', {'@type':'Country', 'name':'Unrecognized foreign country'})]:
+            self.job(key, remote=True, style='remote',
+                metadata={'applicantLocationRequirements':[restriction]})
+        self.assertEqual(self.board(profile)['total'], 0)
+
+    def test_regional_full_homeoffice_office_country_does_not_prove_remote_permission(self):
+        from hiring_scraper.app.regional import import_snapshot
+        profile = self.profile(search_area=AREA)
+        for code in ['DEUTSCHLAND', 'USA']:
+            import_snapshot(self.session, [{'referenznummer':'remote-'+code,
+                'stellenangebotsTitel':'Project manager', 'firma':'Remote employer '+code,
+                'stellenangebotsBeschreibung':'Project management and coordination. '*30,
+                'homeofficemoeglich':True, 'homeofficetyp':'ANGABE_IN_PROZENT', 'homeofficeprozent':100,
+                'stellenlokationen':[{'adresse':{'ort':'Office', 'land':code}}]}])
+        self.session.commit()
+        board = self.board(profile)
+        self.assertEqual(board['total'], 2)
+        for item in board['items']:
+            self.assertEqual(item['remote_country_codes'], [])
+            self.assertTrue(item['geography']['unknowns'])
+            self.assertEqual(item['profile_match']['fit_tier'], 'possible')
+
     def test_saved_area_and_matching_defaults_apply_and_can_be_overridden(self):
         profile = self.profile(search_area=AREA,
             matching_defaults={'min_match_score':100, 'include_unknown':True})

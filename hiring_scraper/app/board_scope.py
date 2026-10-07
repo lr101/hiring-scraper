@@ -5,12 +5,22 @@ from hiring_scraper.geography import haversine_m
 
 _COUNTRIES = {'germany':'DE', 'deutschland':'DE', 'united states':'US', 'united states of america':'US',
               'usa':'US', 'united kingdom':'GB', 'uk':'GB', 'france':'FR', 'switzerland':'CH',
-              'schweiz':'CH', 'austria':'AT', 'österreich':'AT', 'spain':'ES', 'españa':'ES'}
+              'schweiz':'CH', 'austria':'AT', 'österreich':'AT', 'spain':'ES', 'españa':'ES',
+              'canada':'CA', 'kanada':'CA', 'australia':'AU', 'australien':'AU',
+              'netherlands':'NL', 'niederlande':'NL', 'italy':'IT', 'italien':'IT',
+              'belgium':'BE', 'belgien':'BE', 'poland':'PL', 'polen':'PL', 'ireland':'IE',
+              'irland':'IE', 'india':'IN', 'indien':'IN', 'china':'CN', 'japan':'JP',
+              'brazil':'BR', 'brasilien':'BR', 'portugal':'PT', 'sweden':'SE', 'schweden':'SE',
+              'denmark':'DK', 'dänemark':'DK', 'norway':'NO', 'norwegen':'NO', 'finland':'FI',
+              'finnland':'FI', 'mexico':'MX', 'mexiko':'MX', 'new zealand':'NZ', 'neuseeland':'NZ'}
 
 
 def country_code(value):
     if isinstance(value, dict):
-        value = value.get('addressCountry') or value.get('name') or value.get('country_code')
+        for key in ('addressCountry', 'country_code', 'name', 'address'):
+            if code := country_code(value.get(key)):
+                return code
+        return None
     if not isinstance(value, str):
         return None
     value = value.strip()
@@ -37,28 +47,34 @@ def fully_remote(job):
     return job.work_arrangement in {None, 'remote'} and (job.is_remote or job.work_arrangement == 'remote')
 
 
-def remote_countries(job):
-    """Source scope only applies to explicit full remote; no text guessing."""
+def _remote_scope(job):
+    """Office addresses do not establish applicant permission to work remotely."""
     if not fully_remote(job):
-        return set()
+        return set(), False
     raw = job.raw_metadata or {}
-    for key in ('remote_country_codes', 'applicantLocationRequirements', 'applicant_location_requirements'):
+    for key in ('remote_country_codes', 'applicantLocationRequirements',
+                'applicant_location_requirements', 'remote_country'):
         values = raw.get(key)
         if values:
             values = values if isinstance(values, list) else [values]
             codes = {code for item in values if (code := country_code(item))}
-            if codes:
-                return codes
-    # An explicitly country-scoped remote office remains country-scoped.
-    codes = {code for location in job.locations if (code := country_code(location.country_code))}
-    for key in ('country_code', 'country', 'office_country_code', 'remote_country'):
-        if code := country_code(raw.get(key)):
-            codes.add(code)
-    office = raw.get('office')
-    if isinstance(office, dict):
-        if code := country_code(office.get('country_code') or office.get('country')):
-            codes.add(code)
-    return codes
+            # Explicit unrecognized restrictions cannot be treated as absent scope.
+            return codes, not bool(codes)
+    if raw.get('remote_scope_source'):
+        codes = {code for location in job.locations if (code := country_code(location.country_code))}
+        for key in ('country_code', 'country', 'office_country_code'):
+            if code := country_code(raw.get(key)):
+                codes.add(code)
+        office = raw.get('office')
+        if isinstance(office, dict):
+            if code := country_code(office.get('country_code') or office.get('country')):
+                codes.add(code)
+        return codes, False
+    return set(), False
+
+
+def remote_countries(job):
+    return _remote_scope(job)[0]
 
 
 def geographic_scope(job, latitude, longitude, radius_km, place=None, country=None):
@@ -66,8 +82,8 @@ def geographic_scope(job, latitude, longitude, radius_km, place=None, country=No
     if expiry(job)['expired']:
         return {'eligible': False, 'reason': 'expired', 'unknowns': [], 'match_kind': None}
     if fully_remote(job):
-        countries = remote_countries(job)
-        if country and countries and country not in countries:
+        countries, unresolved_restriction = _remote_scope(job)
+        if country and (unresolved_restriction or countries and country not in countries):
             return {'eligible': False, 'reason': 'remote_country', 'unknowns': [], 'match_kind': 'remote'}
         gaps = ['Remote country eligibility not stated'] if country and not countries else []
         return {'eligible': True, 'reason': None, 'unknowns': gaps, 'match_kind': 'remote'}
@@ -103,7 +119,11 @@ def canonical_vacancy_url(url):
     generic = {'', 'jobs', 'job', 'careers', 'career', 'stellenangebote', 'stellen', 'vacancies',
                'openings', 'positions', 'open-positions', 'job-openings', 'all-jobs', 'join-us',
                'careers.html', 'career.html', 'jobs.html', 'index.html', 'index.php'}
-    if path.rsplit('/', 1)[-1].casefold() in generic and not query and not fragment:
+    identity_keys = {'id', 'ref', 'jobid', 'job_id', 'job-id', 'gh_jid', 'gh_job', 'jid',
+                     'requisitionid', 'requisition_id', 'reqid', 'req_id', 'vacancyid',
+                     'vacancy_id', 'positionid', 'position_id', 'reference', 'referenznummer'}
+    has_identity = any(key.casefold() in identity_keys and value.strip() for key, value in query)
+    if path.rsplit('/', 1)[-1].casefold() in generic and not has_identity and not fragment:
         return None
     return urlunsplit((parsed.scheme.casefold(), parsed.netloc.casefold(), path,
                        urlencode(sorted(query)), fragment))
