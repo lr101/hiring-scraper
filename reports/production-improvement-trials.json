@@ -2546,9 +2546,9 @@
     },
     "unpromoted_trials": "No semantic model, ranking weight or automatic email resolver changes."
   },
-  "latest_main_revision": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159",
+  "latest_main_revision": "7fe1c512ad483ca5d0ade92a040f32e3fbdd401e",
   "source_trial_baseline_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
-  "integration_revision": "pending merge commit for current main54243bcc",
+  "integration_revision": "2fcdd37a (integrates current main 7fe1c512)",
   "preview": {
     "slug": "accuracy-71aaa584",
     "runtime_revision": "c9cbdfc5",
@@ -2563,7 +2563,9 @@
   "worktree_handoff": {
     "branch": "t3code/improve-scraper-matching-accuracy-1",
     "final_head_before_trial_report_commit": "c9cbdfc5",
-    "latest_main_base": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159",
+    "candidate_head_before_publication_refresh": "2fcdd37a",
+    "latest_main_base": "7fe1c512ad483ca5d0ade92a040f32e3fbdd401e",
+    "status_snapshot": "Before the requested push and merge",
     "branch_clean_before_trial_report_commit": true,
     "shared_main_updated": false,
     "pushed_or_deployed": false
