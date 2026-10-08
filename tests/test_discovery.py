@@ -180,6 +180,61 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(result['status'],'ats_identified')
         self.assertIsNone(result['boards'][0]['job_count'])
 
+    def test_malformed_recruitee_ports_preserve_valid_sibling_feed_discovery(self):
+        class TrackingFixtureClient(FixtureClient):
+            def __init__(self, pages):
+                super().__init__(pages)
+                self.page_requests = []
+                self.feed_requests = []
+
+            def get(self, url):
+                self.page_requests.append(url)
+                meta, body = super().get(url)
+                return {**meta, 'capture': 'homepage-capture'}, body
+
+            def get_feed(self, url):
+                self.feed_requests.append(url)
+                meta, body = super().get(url)
+                return {**meta, 'capture': 'lever-feed-capture'}, body
+
+        home = 'https://acme.de/'
+        board_url = 'https://jobs.lever.co/acme'
+        feed_url = 'https://api.lever.co/v0/postings/acme?mode=json&limit=100'
+        job_url = 'https://jobs.lever.co/acme/engineer-1'
+        for port in ('bad', '65536'):
+            with self.subTest(port=port):
+                malformed = 'https://example.recruitee.com:' + port + '/'
+                client = TrackingFixtureClient({
+                    home: f'<a href="{malformed}">Careers</a><a href="{board_url}">Jobs</a>',
+                    feed_url: json.dumps([{'id': 'engineer-1', 'text': 'Engineer',
+                                          'hostedUrl': job_url,
+                                          'categories': {'location': 'Karlsruhe'}}]),
+                })
+                result = discover({'name': 'Acme', 'website': home}, client, max_pages=2)
+                self.assertEqual(result['status'], 'jobs_feed_found')
+                self.assertEqual(len(result['boards']), 1)
+                board = result['boards'][0]
+                self.assertEqual((board['provider'], board['tenant']), ('lever', 'acme'))
+                self.assertEqual((board['board_url'], board['feed_url']), (board_url, feed_url))
+                self.assertEqual((board['evidence_url'], board['evidence_kind'], board['discovered_on']),
+                                 (board_url, 'link', home))
+                self.assertEqual((board['feed_state'], board['job_count'], board['complete']),
+                                 ('parsed', 1, True))
+                self.assertEqual(board['jobs'], [{'id': 'engineer-1', 'title': 'Engineer',
+                                                  'url': job_url, 'location': 'Karlsruhe',
+                                                  'categories': {'location': 'Karlsruhe'},
+                                                  'raw_metadata': {'categories': {'location': 'Karlsruhe'}}}])
+                self.assertEqual(board['capture'], 'lever-feed-capture')
+                self.assertEqual(board['pagination']['pages'], [{
+                    'state': 'ok', 'status': 200, 'capture': 'lever-feed-capture',
+                    'url': feed_url, 'items': 1,
+                }])
+                self.assertEqual(len(result['pages']), 1)
+                self.assertEqual(result['pages'][0]['capture'], 'homepage-capture')
+                self.assertEqual([ats['board_url'] for ats in result['pages'][0]['ats']], [board_url])
+                self.assertEqual(client.page_requests, [home])
+                self.assertEqual(client.feed_requests, [feed_url])
+
     def test_page_budget_bounds_fallback_probing(self):
         result=discover({'name':'Acme','website':'https://acme.de/'},FixtureClient({'https://acme.de/':'<h1>Welcome</h1>'}),max_pages=2)
         self.assertEqual(len(result['pages']),2)

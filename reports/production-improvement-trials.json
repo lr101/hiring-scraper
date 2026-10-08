@@ -1,0 +1,2591 @@
+{
+  "base_revision": "63cc97a4a14266445b9d9db9f88d5dd47b44b7cf",
+  "trial_date_utc": "2026-10-07",
+  "lever": {
+    "baseline_jobs": 100,
+    "candidate_jobs": 337,
+    "unique_extra": 237,
+    "pages": [
+      {
+        "url": "https://api.eu.lever.co/v0/postings/engelvoelkers?mode=json&limit=100",
+        "state": "ok",
+        "status": 200,
+        "capture": "8600c8a5eaf486c10ca0",
+        "jobs": 100,
+        "new_ids": 100,
+        "overlap": 0,
+        "checked_at": "2026-10-07T22:27:47.328279+00:00",
+        "sha256": "8922b0e6cbd0d29e1ea686aa5c00c987dc280a2806b4e266061c60b4433c512c"
+      },
+      {
+        "url": "https://api.eu.lever.co/v0/postings/engelvoelkers?mode=json&limit=100&skip=100",
+        "state": "ok",
+        "status": 200,
+        "capture": "e4492fac1599bf39726b",
+        "jobs": 100,
+        "new_ids": 100,
+        "overlap": 0,
+        "checked_at": "2026-10-07T22:27:48.338297+00:00",
+        "sha256": "c11c3479d2876e55c30d2a7974da45b9d71998056921f7497a541a7632bdb709"
+      },
+      {
+        "url": "https://api.eu.lever.co/v0/postings/engelvoelkers?mode=json&limit=100&skip=200",
+        "state": "ok",
+        "status": 200,
+        "capture": "ed0ee37799f31be690dd",
+        "jobs": 100,
+        "new_ids": 100,
+        "overlap": 0,
+        "checked_at": "2026-10-07T22:30:11.474168+00:00",
+        "sha256": "44487e94b17cf637cd32159ed69657a33b6abce3885fa2f39ee621b1fc75a138"
+      },
+      {
+        "url": "https://api.eu.lever.co/v0/postings/engelvoelkers?mode=json&limit=100&skip=300",
+        "state": "ok",
+        "status": 200,
+        "capture": "8be29e5a31424b918623",
+        "jobs": 37,
+        "new_ids": 37,
+        "overlap": 0,
+        "checked_at": "2026-10-07T22:30:11.832656+00:00",
+        "sha256": "687339ded939622192d472416bb1070b6966743e3f2857c7ac710b0f100702e2"
+      }
+    ],
+    "interpretation": "Feed coverage on one board, not global or locally eligible jobs"
+  },
+  "details": {
+    "cohort": 56,
+    "before": 20,
+    "after": 22,
+    "results": [
+      {
+        "url": "https://www.schullv.de/jobs/ai-content-creator-mathe",
+        "title": "AI Content Creator Mathe 🤖 📐 Working Student Content (Entwicklung von Lerninhalten) Working Student · Content (Entwicklung von Lerninhalten)",
+        "sha256": "6381836ca3f6a2af2b543dc5e1488f8123a56e6a78c3feff797ca83e4e229db7",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://full-smile.de/job/vertriebsprofi-aussendienst-m-w-d-norddeutschland-3/",
+        "title": "Vertriebsprofi/Außendienst m/w/d - Westen",
+        "sha256": "c6577c5ae092e6db86165045ce0326ef871573014f591320d1239053c1635036",
+        "before": true,
+        "after": true,
+        "chars": 1179
+      },
+      {
+        "url": "https://jobs.elosmedtech.com/jobs/8483407-manufacturing-engineer",
+        "title": "Manufacturing Engineer",
+        "sha256": "391f90e385d9c002dbe786bec03c2e31b34b5d00af2798bee3a3b8fbedf2e55a",
+        "before": true,
+        "after": true,
+        "chars": 897
+      },
+      {
+        "url": "https://www.awo-karlsruhe.de/stellenangebote/ausbildung-studium/",
+        "title": "Ausbildung / Studium",
+        "sha256": "f97641a5ff4b7fcbed82ed6baf61b9cf230671e5ad0f02db2ff9dfa2e658bf2c",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.concordia.de/karriere/stellenangebote/stellenangebot/?tx_digitlyjobs_jobs%5Baction%5D=show&tx_digitlyjobs_jobs%5Bjob%5D=873&cHash=ac39cc3d8a04e5c7fca0de843c81ab28",
+        "title": "IT-Unternehmensarchitekt (m/w/d)",
+        "sha256": "9e2e45a78758e6828dfcc2fdfad14f6623508fe3dd7c196fa00e8bf5afdf7e35",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://hd-zahntechnik.com/job/zahntechniker-in/",
+        "title": "Zahntechniker*in – Allroundtalent",
+        "sha256": "7df791ce08c5084bc467f4c873dac3a5145b30f7059c578360cfd7a426188f0b",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.sweco-gmbh.de/Stellenangebote/sales-manager/",
+        "title": "View vacancy: Account Manager PM Software BIM-CDE PKS NETPlan (m/w/x)",
+        "sha256": "66cf4845bc335021d6b82e79386fac7cf70019bd630bfded0ff9b481bbb9baab",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.roeser-medienhaus.de/karriere/stellenangebote/sales-manager-m-w-d-im-aussendienst-grossraum-mannheim-und-heidelberg/",
+        "title": "Sales Manager (m/w/d) im Außendienst, Großraum Mannheim / Heidelberg",
+        "sha256": "66b9bf62e19673acfa6a292da1c943bc46f36ee103bcb4528d0f565d6ed6d1fc",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.roeser-medienhaus.de/karriere/stellenangebote/sales-manager-m-w-d-im-aussendienst-pforzheim/",
+        "title": "Sales Manager (m/w/d) im Außendienst, Großraum Pforzheim",
+        "sha256": "b72759a179113b1a7cd14bf90aa4500f640d1acd07156a5f6920543510aa5c57",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://energy4u.org/job/werkstudenten-gesucht/",
+        "title": "Werkstudenten (m/w/d)",
+        "sha256": "7229622dadcf9fe25aae3eeed5595e33af2fa88197a61479f1cd477dbe419b96",
+        "before": true,
+        "after": true,
+        "chars": 2108
+      },
+      {
+        "url": "https://www.karlsruhe-erleben.de/kme/jobs/praktikum-eventmanagement",
+        "title": "PRAKTIKUM EVENTMANAGEMENT",
+        "sha256": "2145d9d276e1daed77003347a572afc3c8bf2372e22e87dbce09ba28184022a6",
+        "before": true,
+        "after": true,
+        "chars": 2223
+      },
+      {
+        "url": "https://www.schullv.de/jobs/trainee-software-engineer",
+        "title": "Trainee AI & Software Engineering 🤖 🧑🏼💻 Full-time AI & Software Engineering Trainee · AI & Software Engineering",
+        "sha256": "74064e5afb9e228347f6d37a6d53b4837c4a4453216c8e8e45b9bceefeff6fa4",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://gfk-ingenieure.de/job/projektmanager-hochbau-m-w-d/",
+        "title": "Projektmanager Hochbau (all genders)",
+        "sha256": "8c25d476e346dcf1c028fadf2ffcfd26b2aea7c2ee8f466c8025eb20af8b6d5e",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://raumfabrik-durlach.de/jobs/lizenzmanager-gn/",
+        "title": "Lizenzmanager (gn)",
+        "sha256": "2c4eb2335c6fd402c687874519f07d03d4e6aa37558df0025ffcf5d276919610",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.lohmeyer.de/ueber-uns/stellenangebote/studentische-hilfskraft/",
+        "title": "Studentische Hilfskraft",
+        "sha256": "aaee34d45c3bcfaaf829a275929205fd42266a3275975cd404ac20b8425caba3",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.roeser-medienhaus.de/karriere/stellenangebote/sales-manager-m-w-d-saarland-pfalz/",
+        "title": "Sales Manager (m/w/d) im Außendienst, Großraum Saarland / Pfalz",
+        "sha256": "1a8797e3a14d83603d7345b2d0608fc5819328a35844959a37d03b7ef567d75b",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.inovex.de/de/karriere/stellenangebote/office-manager-in-muenchen/",
+        "title": "Office Manager:in* München",
+        "sha256": "95162fb82ef8b80e543985646879c1ab7c17adef3725cb12d883e20b8800445c",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://full-smile.de/job/vertriebsprofi-aussendienst-m-w-d-norddeutschland-2-2/",
+        "title": "Vertriebsprofi/Außendienst m/w/d - Süden",
+        "sha256": "ce10cacba5b5ea20cc952485af64aea738bcae478d98015a3d4d3c4d2807c683",
+        "before": true,
+        "after": true,
+        "chars": 1179
+      },
+      {
+        "url": "https://ochs-gruppe.com/job/ausbildung-2027/",
+        "title": "Ausbildung 2027",
+        "sha256": "9bbbf15462c7505b31bc9b4e85b5badb5f709b52eb98b7162961bab475e728c2",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.qwertiko.de/jobs/senior-linux-administrator-all/",
+        "title": "Senior LINUX Administrator (all)",
+        "sha256": "a5d2a852162ff48b8c4225ddc05774a49428b686f471f2381e780071f6333697",
+        "before": false,
+        "after": true,
+        "chars": 3015
+      },
+      {
+        "url": "https://www.gut-gruppe.de/unternehmen/keilhauer/karriere/stellenangebote/vertriebsinnendienst-mwd-11198",
+        "title": "Vertriebsinnendienst (m/w/d)",
+        "sha256": "5feb7ccc9caf9e4387286122439954d3462f0056d58bf7e4479380e72323b006",
+        "before": true,
+        "after": true,
+        "chars": 1456
+      },
+      {
+        "url": "https://www.zimmer-group.com/de/karriere/stellenangebote/stellenangebote-international",
+        "title": "Stellenangebote international",
+        "sha256": "f146b400ad2059510ab8bbce603c973879f3d3b5d27441b20d5fec510d1d6a0a",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.brinkmann-pflegevermittlung.de/jobs/it-talent-fuer-dynamics365-m-w-d-mit-homeoffice-option/",
+        "title": "IT-Talent für Dynamics 365 (m/w/d) mit Home-Office Option",
+        "sha256": "8b3695becb874b433b708dc0c20fde2b22b6c2d1ca6d90f2481bce405a68ab37",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.tk.de/stellenangebote/Teamleitung-Data-Platform-m-w-d-TK25678",
+        "title": "Teamleitung Data Platform (m/w/d)",
+        "sha256": "b399220a4da9fdef37fac55dacd052df8f883bce4ccbd355473ac355efa2a455",
+        "before": true,
+        "after": true,
+        "chars": 422
+      },
+      {
+        "url": "https://www.inovex.de/de/karriere/stellenangebote/sales-operations-manager-in/",
+        "title": "Sales Operations Manager:in*",
+        "sha256": "f7b1ac25ac29d2c3dd23e2ead53dd41fdfc859dca77f1adb8520dbf1031a9505",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://full-smile.de/job/vertriebsprofi-aussendienst-m-w-d-norddeutschland-4/",
+        "title": "Vertriebsprofi/Außendienst m/w/d - Norden",
+        "sha256": "8ed38c76d474588e082991d8788168e41a80ed01c0a2e8ba99872d603b1e64df",
+        "before": true,
+        "after": true,
+        "chars": 1179
+      },
+      {
+        "url": "https://www.hitex.com/de/unternehmen/karriere/stellenangebote/system-test-engineer",
+        "title": "System Test Engineer",
+        "sha256": "bab341cbfc6b721227c32c6fe3fa33ab030b421bba8f81fe6cb4471be89362fb",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.awo-karlsruhe.de/stellenangebote/praktikum/",
+        "title": "AKTUELLE STELLENANGEBOTE – Praktikum",
+        "sha256": "5f48cb02fee6c0e782ee71c679de5b88aed2f87a4e1164f243bf4e58001ded8e",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://karriere.vema-eg.de/jobs/devops-engineer/?stelle=DevOps+Engineer",
+        "title": "Standort Heinersreuth DevOps Engineer [M /W /D]",
+        "sha256": "5a8e3e1a36c680d3f195f3b184ec7ece30e5d10a835cd9d8b5397f8c1ed74624",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.ensecur.de/karriere/stellenangebote/werkstudent-datenschutz-datensicherheit-m-w-d-in-karlsruhe/",
+        "title": "Werkstudent Datenschutz & Datensicherheit (m/w/d)",
+        "sha256": "4bd1bb5b96eec62012b52673ff5b18975008badaddde27262955ff292138ce78",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.tk.de/stellenangebote/Teamleitung-Cloud-Platform-m-w-d-TK25676",
+        "title": "Teamleitung Cloud Platform (m/w/d)",
+        "sha256": "80c1617605521c22bdb70e3453dc0638c700e2feca44519a25592a0f0b7384e5",
+        "before": true,
+        "after": true,
+        "chars": 494
+      },
+      {
+        "url": "https://www.karlsruhe-erleben.de/kme/jobs/praktikum-stadtwerke-karlsruhe-winterzeit",
+        "title": "PRAKTIKUM BEI DER STADTWERKE KARLSRUHE WINTERZEIT",
+        "sha256": "fccbed4cd11009ec9b1334a21e1d45a059cab16f33af87305b4d3f40d0209c46",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://full-smile.de/job/vertriebsprofi-aussendienst-m-w-d-norddeutschland-2/",
+        "title": "Vertriebsprofi/Außendienst m/w/d - Osten",
+        "sha256": "c16e813d11156a6e7303c598d3de9016683d7c468baf700d4a15c53638cc74c3",
+        "before": true,
+        "after": true,
+        "chars": 1179
+      },
+      {
+        "url": "https://raumfabrik-durlach.de/jobs/produktmanager-rechenzentrum-cloud-gn/",
+        "title": "Produktmanager Rechenzentrum & Cloud (gn)",
+        "sha256": "731c2cd4f1e8dcdd69453d26bafed41d942edde62316fbe46c393e631cf0d935",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.unic.com/de/jobs/test-manager",
+        "title": "Test Manager & Test Engineer",
+        "sha256": "17bbb41ac75db78526691d75a1161138decca0408c1e2f092c9b0342e200ecb6",
+        "before": true,
+        "after": true,
+        "chars": 5598
+      },
+      {
+        "url": "https://raumfabrik-durlach.de/jobs/sen-engineer-corporate-it-gn/",
+        "title": "(Sen.) Engineer Corporate IT (gn)",
+        "sha256": "4d6a6b7c513580cd78c5695d6c183d5fe11e6135ef0a0d1da244465958448a26",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.roeser-medienhaus.de/karriere/stellenangebote/sales-manager-m-w-d-im-aussendienst-grossraum-koblenz-und-mayen/",
+        "title": "Sales Manager (m/w/d) im Außendienst, Großraum Koblenz / Mayen",
+        "sha256": "52e37fa4e8662a915593225c8c3f215fb04ab57169ab252041ab6f650752b11f",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://buchmann-elektro.de/jobs/elektroniker-energie-gebaeudetechnik/",
+        "title": "Elektroniker für Energie- & Gebäudetechnik m/w/d",
+        "sha256": "c17b786b92b3c8c1186a043f5e93f5cf7700d08b595ea41d062236fdce132f2a",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.cik-solutions.com/jobs/account-manager/",
+        "title": "Vertriebsmitarbeiter (m/w/d)* - Inside Sales im Technischen Vertrieb",
+        "sha256": "1174beee4d86f6508b4a9febe892b6ec5cc5b6800a11a7eff551a0224ee9fe48",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.bell.de/jobs/vertriebsleiter-m-w-d-bonn",
+        "title": "Vertriebsleiter (m/w/d)",
+        "sha256": "fa2161263119e9fdf3c964f02d27f91ab446817536cfede23c953149c7882d21",
+        "before": true,
+        "after": true,
+        "chars": 3621
+      },
+      {
+        "url": "https://punkt.de/de/stellenangebote/stellenangebote/dhbw-student-in.html",
+        "title": "DHBW-Student:in",
+        "sha256": "28138f80e01acdb688906bb3ee202e352fc26a5826f55f9067d4144c223812e2",
+        "before": true,
+        "after": true,
+        "chars": 3968
+      },
+      {
+        "url": "https://www.kieback-peter.com/de/karriere/stellenangebote/job/mitarbeiter-mwd-technischer-vertriebsinnendienst-trier-1-002108/",
+        "title": "Mitarbeiter (m/w/d) technischer Vertriebsinnendienst",
+        "sha256": "c0a9c72a1abe9dafbb636cea7b90b794e2f3ec455de839d503fd6d0a7c713bc9",
+        "before": true,
+        "after": true,
+        "chars": 4127
+      },
+      {
+        "url": "https://www.bell.de/jobs/system-engineer-m-w-d",
+        "title": "System Engineer (m/w/d)",
+        "sha256": "b23c4bf2c3b8e2cb3712f4bc81b82583a89b16e77e1756800e02bcb8a21226f5",
+        "before": true,
+        "after": true,
+        "chars": 4259
+      },
+      {
+        "url": "https://www.concordia.de/karriere/stellenangebote/stellenangebot/?tx_digitlyjobs_jobs%5Baction%5D=show&tx_digitlyjobs_jobs%5Bjob%5D=872&cHash=0c480906e1f4a00158beaf0bad416431",
+        "title": "IT-Dienstleistermanager - Operative Steuerung (m/w/d)",
+        "sha256": "fc2fa4c0bc284ae994ca50203eb04221666702cd89a0eb656d46b5264183a07b",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.qwertiko.de/jobs/junior-linux-administrator-all/",
+        "title": "Junior LINUX Administrator (all)",
+        "sha256": "31f7ea8c32eb209a2a621d603abbc6bdabeaf2e0ad50a692525f70b754650a55",
+        "before": false,
+        "after": true,
+        "chars": 2928
+      },
+      {
+        "url": "https://www.hilzinger.de/jobs/ausbildungsstellen/",
+        "title": "Ausbildungsstellen",
+        "sha256": "718f8c0a87b72add57b798175e3086d92223d2da457332abed8ddd86f43ba30d",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://volkswohnung.de/karriere/stellenangebote/stellenangebote.html",
+        "title": "Stellenangebote und Ausbildungsplätze",
+        "sha256": "1246be04b7ca1e333a9a20dc72f975e9df89e09cbae4ef594a497f7a1d2c7cde",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.zimmer-group.com/de/karriere/stellenangebote/sales-support-marketing-netherlands",
+        "title": "Sales Support & Marketing",
+        "sha256": "cbb50b2d0222a53f5e99f8d4941f575468143970a2454237b429112979bc13b5",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://galabau-ka.de/landschaftsgaertner-karlsruhe/stellenangebote/Ingenieur-Techniker-m-w-d-im-Garten-und-Landschaftsbau.php",
+        "title": "Ingenieur / Techniker (m/w/d) im Garten- und Landschaftsbau",
+        "sha256": "e00b48d3e84ee91f650c92a2450cba82d05f19c36f6383ec74cf2f6f200df2b4",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://www.bell.de/jobs/system-engineer-m-w-d-hannover",
+        "title": "System Engineer (m/w/d) – Hannover",
+        "sha256": "2f1b03b83ac19b74902e4dbe0df392aa42df2ee411b5d75f5dead39520d2b6c5",
+        "before": true,
+        "after": true,
+        "chars": 4109
+      },
+      {
+        "url": "https://energy4u.org/job/sales-manager-m-w-d-worldgrid/",
+        "title": "(Senior) Sales Manager (m/w/d) für Worldgrid",
+        "sha256": "c00a9c0738fcf49b4b3282a1605563d5a0de1d072f4e8de058b4d2ec8074bc76",
+        "before": true,
+        "after": true,
+        "chars": 3405
+      },
+      {
+        "url": "https://trautmann-bauunternehmen.de/jobs-karriere/Stellenangebote/Ausbildungsplaetze-m-w-d.php",
+        "title": "Ausbildungsplätze (m/w/d)",
+        "sha256": "730b5d79dcd903b10dde716fbaca6292e97181e2c4b31a4a1dad5c8bdb63bd3e",
+        "before": false,
+        "after": false,
+        "chars": 0
+      },
+      {
+        "url": "https://energy4u.org/job/senior-sap-developer-m-w-d/",
+        "title": "Senior Developer / Architekt (m/w/d)",
+        "sha256": "67b74b548118c0a5518a40763c30ff67ed891fa33c676fd091ff87f420bc0219",
+        "before": true,
+        "after": true,
+        "chars": 3404
+      },
+      {
+        "url": "https://siegrist.de/jobs/teamassistenz-fuer-den-vertriebsinnendienst-m-w-d/",
+        "title": "Teamassistenz für den Vertriebsinnendienst",
+        "sha256": "52081d511806aee7e112e88c46b101c52a6257c1dc364d9fdeaf1de2126e8b59",
+        "before": true,
+        "after": true,
+        "chars": 3435
+      },
+      {
+        "url": "https://www.gut-gruppe.de/unternehmen/keilhauer/karriere/stellenangebote/vertriebsassistenz-teilzeit-mwd-15786",
+        "title": "Vertriebsassistenz in Teilzeit (m/w/d)",
+        "sha256": "5f8b8421f8e7e1ded7664187fd5200b67e5e78e0c0d8a045664009f557f3a73f",
+        "before": true,
+        "after": true,
+        "chars": 2001
+      },
+      {
+        "url": "https://www.concordia.de/karriere/stellenangebote/stellenangebot/?tx_digitlyjobs_jobs%5Baction%5D=show&tx_digitlyjobs_jobs%5Bjob%5D=878&cHash=54372f5241378360b863ec6b7a3fbc35",
+        "title": "Referent IT-Steuerung (m/w/d)",
+        "sha256": "daa3c6d910163d34e5994b7e48f253f30e8f5bcf863f3fa345e286257ff2bbf1",
+        "before": false,
+        "after": false,
+        "chars": 0
+      }
+    ],
+    "existing_updates_preserved": true,
+    "lost": 0,
+    "status": "Recovery20→22 approved; alternative false gaps and uncertainty fixes scoped spec/quality approved",
+    "alternative_dependency": {
+      "base_commit": "b7973155",
+      "baseline_matching_sha256": "7503c628c2c028337c3c6f74678790326f854cc2efc910f676531e5d1072c53c",
+      "candidate_matching_sha256": "2634eb70ef1e595795cfb01a476dec7b0e8afb31f3e48d027c3d607810421b2d",
+      "capture_body_sha256": "a5d2a852162ff48b8c4225ddc05774a49428b686f471f2381e780071f6333697",
+      "description_sha256": "2da7aacbbbf45b23c42e30e6a7e06cc0d27336f0977d324a1791fb24ef23a25d",
+      "before_version": "rules-v13",
+      "after_version": "rules-v14",
+      "deferred_requirements": [
+        {
+          "value": "bash, Python, Perl oder Ruby",
+          "source": "description",
+          "evidence": "Mindestens eine dieser Skriptsprachen (bash, Python, Perl oder Ruby) beherrschst Du aus dem FF",
+          "kind": "scripting_alternative"
+        }
+      ],
+      "results": [
+        {
+          "profile": "Python",
+          "before": {
+            "score": 89,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "unknowns": []
+          },
+          "after": {
+            "score": 89,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "missing_skills": [
+              "Ruby"
+            ],
+            "unknowns": []
+          }
+        },
+        {
+          "profile": "Ruby",
+          "before": {
+            "score": 89,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "unknowns": []
+          },
+          "after": {
+            "score": 89,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "missing_skills": [
+              "Python"
+            ],
+            "unknowns": []
+          }
+        },
+        {
+          "profile": "bash",
+          "before": {
+            "score": 85,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "unknowns": []
+          },
+          "after": {
+            "score": 85,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "missing_skills": [
+              "Python",
+              "Ruby"
+            ],
+            "unknowns": []
+          }
+        },
+        {
+          "profile": "unknown scripting skill",
+          "before": {
+            "score": 82,
+            "fit_tier": "recommended",
+            "uncertain": false,
+            "requirement_gaps": [],
+            "unknowns": []
+          },
+          "after": {
+            "score": 82,
+            "fit_tier": "recommended",
+            "uncertain": true,
+            "requirement_gaps": [],
+            "missing_skills": [
+              "Python",
+              "Ruby"
+            ],
+            "unknowns": [
+              "Verify scripting alternative: Mindestens eine dieser Skriptsprachen (bash, Python, Perl oder Ruby) beherrschst Du aus dem FF"
+            ]
+          }
+        }
+      ],
+      "limitation": "Hard interpretation of the bounded quantified list is deferred; applicants without explicit supported alternative evidence retain a source-backed verification unknown. Constructed controls measure false gaps and uncertainty, not population precision."
+    }
+  },
+  "matching": {
+    "selection": {
+      "selection": "First 80 sorted SHA256(fixed salt + ID), excluding every available prior label ID/text hash; no score-based selection",
+      "excluded_ids": 609,
+      "selected": 80,
+      "input_sha256": "beb34f565a28ffa03a4409bf2aa0f130326b4841122403302dea397639e7d004",
+      "selected_sha256": "73fd64bb2e447cfabbcd6e06fe82332394aea8dfadd92aceacd114f9fb4b1a59"
+    },
+    "methods": {
+      "locked_before_reading_new_labels": true,
+      "baseline": "rules-v12 eligible score>=20",
+      "lexical": "alias BM25 title weight3, primary/professional/secondary profile query; top30",
+      "dense": "intfloat/multilingual-e5-small query/passage prefixes, normalized embeddings; chunks300 words from title+requirements/duties/optional/neutral, max-pool job cosine; top30",
+      "reranker": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1; title plus scoped text first384 tokens; rerank union baseline+top30lexical+top30dense",
+      "constraints": "All experimental outputs preserve rules-v12 eligible; missing qualification evidence is a gap, never invented qualification; experimental similarity scores do not change eligibility",
+      "evaluation": "80 fresh hash-selected jobs; independent blind source-description labels; no post-label tuning. Precision@10, nDCG@10, recall; promotion only if substantive ordering and recall gain plus checks. One-profile pilot cannot establish multi-profile production readiness."
+    },
+    "input_sha256": "73fd64bb2e447cfabbcd6e06fe82332394aea8dfadd92aceacd114f9fb4b1a59",
+    "profile_sha256": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59",
+    "labels_sha256": "340551d273635387b945a7b6ead06235886c7f139a742dc51224cd821023558a",
+    "labels_path": "experiments/fixtures/cv_job_labels/production-holdout-2026-10.json",
+    "model_revisions": {
+      "intfloat/multilingual-e5-small": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+      "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1": "1427fd652930e4ba29e8149678df786c240d8825"
+    },
+    "dense_seconds": 39.559,
+    "rerank_seconds": 29.399,
+    "rankings": {
+      "rules": [
+        "ba:10000-1207608358-S",
+        "ba:10001-1002692783-S",
+        "ba:12362-TR-230714_624917LS-S",
+        "ba:17526-86d45b909cb008b4ecd-S",
+        "ba:10001-1001574659-S",
+        "ba:10001-1002723932-S",
+        "ba:12117-YF-50142-YF-S",
+        "ba:10001-1002520478-S",
+        "ba:15548-1427948-1-S",
+        "ba:10000-1207692121-S",
+        "ba:10001-1003796732-S",
+        "ba:19422-k61548.1010-S",
+        "ba:10001-1003741579-S",
+        "ba:12362-TR-303086_624357LS-S",
+        "ba:14537-00066605481001-S"
+      ],
+      "lexical_top30": [
+        "ba:13106-427701125-S",
+        "ba:10001-1003745153-S",
+        "ba:15548-1427948-1-S",
+        "ba:10001-1003796732-S",
+        "ba:10001-1001574659-S",
+        "ba:10001-1003759233-S",
+        "ba:10001-1003808250-S",
+        "ba:17102-44434786-910-S",
+        "ba:16852-44060873-325-S",
+        "ba:10000-1208050983-S",
+        "ba:12362-TR-303086_624357LS-S",
+        "ba:10001-1003809626-S",
+        "ba:10001-1003109050-S",
+        "ba:12811-2351254-S",
+        "ba:17645-BB-633707-7878-8412-S",
+        "ba:12456-1601905-1-S",
+        "ba:12811-2289242-S",
+        "ba:10001-1003375568-S",
+        "ba:10001-1003480796-S",
+        "ba:12362-TR-277845_624910LS-S",
+        "ba:10001-1003741579-S",
+        "ba:10001-1002723932-S",
+        "ba:12117-YF-50142-YF-S",
+        "ba:15957-k55444.2745-S",
+        "ba:16460-0063942933-S",
+        "ba:10001-1003709687-S",
+        "ba:10000-1206687505-S",
+        "ba:10001-1003773090-S",
+        "ba:19422-k61548.1015-S",
+        "ba:19422-k61548.1010-S"
+      ],
+      "dense_top30": [
+        "ba:17102-44434786-910-S",
+        "ba:10001-1003745153-S",
+        "ba:15548-1427948-1-S",
+        "ba:10001-1002692783-S",
+        "ba:10000-1206687505-S",
+        "ba:13106-427701125-S",
+        "ba:10000-1208051685-S",
+        "ba:16852-44060873-325-S",
+        "ba:10001-1003759233-S",
+        "ba:10001-1003808250-S",
+        "ba:12456-1601905-1-S",
+        "ba:10001-1002520478-S",
+        "ba:10001-1003709687-S",
+        "ba:15957-k55444.2745-S",
+        "ba:10001-1003109050-S",
+        "ba:12117-YF-50142-YF-S",
+        "ba:10000-1208050983-S",
+        "ba:10001-1003809626-S",
+        "ba:10001-1002723932-S",
+        "ba:12362-TR-303086_624357LS-S",
+        "ba:12811-2351254-S",
+        "ba:10001-1003361017-S",
+        "ba:10001-1003289785-S",
+        "ba:14537-00066605481001-S",
+        "ba:10001-1003375568-S",
+        "ba:10001-1003796732-S",
+        "ba:10000-1208045452-S",
+        "ba:10001-1001574659-S",
+        "ba:12362-TR-230714_624917LS-S",
+        "ba:12362-TR-011701_624898LS-S"
+      ],
+      "union_reranked": [
+        "ba:10001-1003109050-S",
+        "ba:10001-1002520478-S",
+        "ba:10001-1002692783-S",
+        "ba:12362-TR-230714_624917LS-S",
+        "ba:17526-86d45b909cb008b4ecd-S",
+        "ba:10001-1003289785-S",
+        "ba:16460-0063942933-S",
+        "ba:12811-2351254-S",
+        "ba:10001-1003808250-S",
+        "ba:10000-1207608358-S",
+        "ba:10001-1003809626-S",
+        "ba:10000-1206687505-S",
+        "ba:10001-1003709687-S",
+        "ba:10000-1208051685-S",
+        "ba:10000-1208045452-S",
+        "ba:15548-1427948-1-S",
+        "ba:16852-44060873-325-S",
+        "ba:17102-44434786-910-S",
+        "ba:10001-1003745153-S",
+        "ba:17645-BB-633707-7878-8412-S",
+        "ba:12362-TR-303086_624357LS-S",
+        "ba:10001-1003796732-S",
+        "ba:10000-1208050983-S",
+        "ba:10001-1003375568-S",
+        "ba:10001-1003759233-S",
+        "ba:12456-1601905-1-S",
+        "ba:14537-00066605481001-S",
+        "ba:12117-YF-50142-YF-S",
+        "ba:10001-1003773090-S",
+        "ba:12362-TR-277845_624910LS-S",
+        "ba:12362-TR-011701_624898LS-S",
+        "ba:10000-1207692121-S",
+        "ba:10001-1002723932-S",
+        "ba:19422-k61548.1015-S",
+        "ba:10001-1003361017-S",
+        "ba:10001-1001574659-S",
+        "ba:15957-k55444.2745-S",
+        "ba:19422-k61548.1010-S",
+        "ba:10001-1003741579-S",
+        "ba:10001-1003480796-S",
+        "ba:12811-2289242-S",
+        "ba:13106-427701125-S"
+      ]
+    },
+    "scores": {
+      "ba:10001-1003809626-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8218146562576294,
+        "lexical": 16.100995220935093,
+        "rerank": 6.5105767250061035
+      },
+      "ba:10000-1207018029-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7926574945449829,
+        "lexical": 0.8020881178280999,
+        "rerank": null
+      },
+      "ba:10000-1207891143-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7784298062324524,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:12811-2181609-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7717770934104919,
+        "lexical": 1.856311645138308,
+        "rerank": null
+      },
+      "ba:10000-1204373734-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7819404602050781,
+        "lexical": 1.5973099288888244,
+        "rerank": null
+      },
+      "ba:10000-1208045452-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8108087778091431,
+        "lexical": 2.1375677381877196,
+        "rerank": 6.395177364349365
+      },
+      "ba:12811-2181617-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7607670426368713,
+        "lexical": 1.9532384024585907,
+        "rerank": null
+      },
+      "ba:10001-1002723932-S": {
+        "rule": 40,
+        "eligible": true,
+        "dense": 0.8215364217758179,
+        "lexical": 9.29319761316917,
+        "rerank": 5.458141326904297
+      },
+      "ba:10001-1003745153-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8313122987747192,
+        "lexical": 24.857236576752364,
+        "rerank": 6.278035640716553
+      },
+      "ba:12362-TR-230714_624917LS-S": {
+        "rule": 55,
+        "eligible": true,
+        "dense": 0.8102056980133057,
+        "lexical": 6.706319092191119,
+        "rerank": 7.504465103149414
+      },
+      "ba:10000-1206687505-S": {
+        "rule": 15,
+        "eligible": true,
+        "dense": 0.8305375576019287,
+        "lexical": 8.873624663647718,
+        "rerank": 6.487984657287598
+      },
+      "ba:12362-TR-277845_624910LS-S": {
+        "rule": 5,
+        "eligible": true,
+        "dense": 0.8028784394264221,
+        "lexical": 9.529291328314269,
+        "rerank": 5.736271858215332
+      },
+      "ba:16460-0063942933-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8040231466293335,
+        "lexical": 9.07139134209575,
+        "rerank": 6.948916912078857
+      },
+      "ba:15548-1427948-1-S": {
+        "rule": 30,
+        "eligible": true,
+        "dense": 0.830877423286438,
+        "lexical": 22.240308073499516,
+        "rerank": 6.335773944854736
+      },
+      "ba:10001-1003695476-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7837808132171631,
+        "lexical": 2.0266564257477966,
+        "rerank": null
+      },
+      "ba:10001-1003709687-S": {
+        "rule": 5,
+        "eligible": true,
+        "dense": 0.8228871822357178,
+        "lexical": 8.9959078818103,
+        "rerank": 6.458887100219727
+      },
+      "ba:10001-1001574659-S": {
+        "rule": 40,
+        "eligible": true,
+        "dense": 0.810766339302063,
+        "lexical": 19.521669056008463,
+        "rerank": 5.27514123916626
+      },
+      "ba:10001-1003109050-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8225294351577759,
+        "lexical": 15.499253528030188,
+        "rerank": 8.076844215393066
+      },
+      "ba:19422-k61548.1014-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7983349561691284,
+        "lexical": 5.440007061771661,
+        "rerank": null
+      },
+      "ba:12362-TR-221072_624856LS-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7912336587905884,
+        "lexical": 1.310581961182794,
+        "rerank": null
+      },
+      "ba:10000-1208050983-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8220013380050659,
+        "lexical": 16.78217551470878,
+        "rerank": 6.1832709312438965
+      },
+      "ba:12117-YF-50142-YF-S": {
+        "rule": 37,
+        "eligible": true,
+        "dense": 0.8225055932998657,
+        "lexical": 9.121211929880312,
+        "rerank": 5.78858757019043
+      },
+      "ba:12362-TR-011701_624898LS-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8094384670257568,
+        "lexical": 3.454226313481202,
+        "rerank": 5.575473785400391
+      },
+      "ba:10000-1207608358-S": {
+        "rule": 55,
+        "eligible": true,
+        "dense": 0.7851948142051697,
+        "lexical": 2.1493596893885534,
+        "rerank": 6.745856285095215
+      },
+      "ba:10001-1002161718-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7767478823661804,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:21079-r22605-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7999269366264343,
+        "lexical": 2.9998067336163645,
+        "rerank": null
+      },
+      "ba:10001-1001716074-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7728993892669678,
+        "lexical": 3.45848184342685,
+        "rerank": null
+      },
+      "ba:17526-86d45b909cb008b4ecd-S": {
+        "rule": 55,
+        "eligible": true,
+        "dense": 0.8070751428604126,
+        "lexical": 6.061023173810138,
+        "rerank": 7.302250385284424
+      },
+      "ba:11864-R3WQ8ZUYQMRY9YV2-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7967138290405273,
+        "lexical": 5.044732247666457,
+        "rerank": null
+      },
+      "ba:13106-427701125-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8304251432418823,
+        "lexical": 31.881646668299776,
+        "rerank": 1.6584351062774658
+      },
+      "ba:12811-2289242-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8086229562759399,
+        "lexical": 10.154829531072496,
+        "rerank": 4.846785068511963
+      },
+      "ba:19422-k61548.1010-S": {
+        "rule": 25,
+        "eligible": true,
+        "dense": 0.8006266355514526,
+        "lexical": 7.843386728010682,
+        "rerank": 5.1143059730529785
+      },
+      "ba:10001-1003755684-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7894116640090942,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10001-1003607166-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7743655443191528,
+        "lexical": 1.8589124083504267,
+        "rerank": null
+      },
+      "ba:12362-TR-302890_624212LS-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8075687885284424,
+        "lexical": 5.8798710066723405,
+        "rerank": null
+      },
+      "ba:10000-1203543539-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7919995784759521,
+        "lexical": 1.0805055916558897,
+        "rerank": null
+      },
+      "ba:10001-1002987130-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.800527811050415,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10000-1207986738-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7612597346305847,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:12362-TR-303086_624357LS-S": {
+        "rule": 20,
+        "eligible": true,
+        "dense": 0.8179234266281128,
+        "lexical": 16.28597109707365,
+        "rerank": 6.246311664581299
+      },
+      "ba:10001-1003015370-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8037286996841431,
+        "lexical": 1.0870110872363985,
+        "rerank": null
+      },
+      "ba:10001-1003086765-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7770974040031433,
+        "lexical": 2.2204520121693996,
+        "rerank": null
+      },
+      "ba:10001-1003480796-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7950897216796875,
+        "lexical": 9.535393688522259,
+        "rerank": 4.857879161834717
+      },
+      "ba:10001-1003517279-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7982977032661438,
+        "lexical": 1.7605521680154967,
+        "rerank": null
+      },
+      "ba:10001-1003349754-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8021928071975708,
+        "lexical": 4.594232667811035,
+        "rerank": null
+      },
+      "ba:16852-44060873-325-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8278158903121948,
+        "lexical": 18.236132696956492,
+        "rerank": 6.324793338775635
+      },
+      "ba:10000-1207344198-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7962193489074707,
+        "lexical": 5.974273778441966,
+        "rerank": null
+      },
+      "ba:10001-1003773090-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.779872477054596,
+        "lexical": 8.335671007539599,
+        "rerank": 5.775074481964111
+      },
+      "ba:10001-1003042973-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7760701775550842,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10001-1003710977-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8031362295150757,
+        "lexical": 7.276647225167184,
+        "rerank": null
+      },
+      "ba:12811-2351254-S": {
+        "rule": 15,
+        "eligible": true,
+        "dense": 0.8155921697616577,
+        "lexical": 14.486218791306094,
+        "rerank": 6.895454406738281
+      },
+      "ba:10001-1003808250-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8253252506256104,
+        "lexical": 18.87384229813329,
+        "rerank": 6.851132869720459
+      },
+      "ba:10001-1002520478-S": {
+        "rule": 30,
+        "eligible": true,
+        "dense": 0.8247108459472656,
+        "lexical": 3.962650919251668,
+        "rerank": 7.537969589233398
+      },
+      "ba:10001-1002975844-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7959295511245728,
+        "lexical": 2.3527855961071555,
+        "rerank": null
+      },
+      "ba:10001-1000098032-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7959961295127869,
+        "lexical": 4.574953405768495,
+        "rerank": null
+      },
+      "ba:10001-1003690518-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7977116107940674,
+        "lexical": 7.390548127588568,
+        "rerank": null
+      },
+      "ba:19422-k61548.1015-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7880048751831055,
+        "lexical": 7.8684345236988795,
+        "rerank": 5.439284324645996
+      },
+      "ba:14537-00066605481001-S": {
+        "rule": 20,
+        "eligible": true,
+        "dense": 0.8128756284713745,
+        "lexical": 6.790687483498397,
+        "rerank": 5.915889263153076
+      },
+      "ba:10000-1208141728-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7830930948257446,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10001-1002888327-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7684816718101501,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:12362-TR-279641_625095LS-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7919215559959412,
+        "lexical": 5.339639557288887,
+        "rerank": null
+      },
+      "ba:10001-1003741579-S": {
+        "rule": 20,
+        "eligible": true,
+        "dense": 0.8014340400695801,
+        "lexical": 9.386720280863708,
+        "rerank": 5.009988307952881
+      },
+      "ba:17645-BB-633707-7878-8412-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8087189197540283,
+        "lexical": 12.919521213711036,
+        "rerank": 6.2560272216796875
+      },
+      "ba:10001-1003375568-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.812153697013855,
+        "lexical": 9.906729668188927,
+        "rerank": 6.056555271148682
+      },
+      "ba:10001-1002809231-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7783870697021484,
+        "lexical": 2.805420677958062,
+        "rerank": null
+      },
+      "ba:10001-1002746829-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7844664454460144,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10000-1205652503-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7945356369018555,
+        "lexical": 1.3520841284557903,
+        "rerank": null
+      },
+      "ba:12456-1601905-1-S": {
+        "rule": 15,
+        "eligible": true,
+        "dense": 0.8247933387756348,
+        "lexical": 10.631567041464738,
+        "rerank": 5.93088960647583
+      },
+      "ba:10001-1003289785-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8131561279296875,
+        "lexical": 0.0,
+        "rerank": 7.133066654205322
+      },
+      "ba:10001-1003796732-S": {
+        "rule": 25,
+        "eligible": true,
+        "dense": 0.8112176060676575,
+        "lexical": 21.65934590943714,
+        "rerank": 6.243366718292236
+      },
+      "ba:10001-1002301248-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8005610108375549,
+        "lexical": 6.711383093777806,
+        "rerank": null
+      },
+      "ba:15957-k55444.2745-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8225615620613098,
+        "lexical": 9.083475479868817,
+        "rerank": 5.177334785461426
+      },
+      "ba:17102-44434786-910-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8330093026161194,
+        "lexical": 18.28318473249455,
+        "rerank": 6.297755718231201
+      },
+      "ba:10000-1208051685-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8298794031143188,
+        "lexical": 7.374684311766183,
+        "rerank": 6.4278950691223145
+      },
+      "ba:10000-1207692121-S": {
+        "rule": 25,
+        "eligible": true,
+        "dense": 0.7773734331130981,
+        "lexical": 3.3685213298170993,
+        "rerank": 5.539844036102295
+      },
+      "ba:10001-1002835373-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7886055707931519,
+        "lexical": 1.0573040031875018,
+        "rerank": null
+      },
+      "ba:10001-1002793409-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7951841354370117,
+        "lexical": 2.1174150095502755,
+        "rerank": null
+      },
+      "ba:10001-1003759233-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8277294635772705,
+        "lexical": 19.463885859500135,
+        "rerank": 5.975194931030273
+      },
+      "ba:10000-1206240686-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.7991805076599121,
+        "lexical": 0.0,
+        "rerank": null
+      },
+      "ba:10001-1003361017-S": {
+        "rule": 0,
+        "eligible": true,
+        "dense": 0.8139351010322571,
+        "lexical": 2.547808277237977,
+        "rerank": 5.347057819366455
+      },
+      "ba:10001-1002692783-S": {
+        "rule": 55,
+        "eligible": true,
+        "dense": 0.8305925130844116,
+        "lexical": 6.044809743621229,
+        "rerank": 7.508434772491455
+      }
+    },
+    "metrics": {
+      "rules": {
+        "judged_records": 80,
+        "relevant_records": 9,
+        "returned": 15,
+        "pooled_precision": 0.2667,
+        "pooled_recall": 0.4444,
+        "ndcg_10": 0.4172,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.45,
+        "precision_20": 0.2667,
+        "returned_20": 15
+      },
+      "lexical_top30": {
+        "judged_records": 80,
+        "relevant_records": 9,
+        "returned": 30,
+        "pooled_precision": 0.2,
+        "pooled_recall": 0.6667,
+        "ndcg_10": 0.2287,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.2558,
+        "precision_20": 0.2,
+        "returned_20": 20
+      },
+      "dense_top30": {
+        "judged_records": 80,
+        "relevant_records": 9,
+        "returned": 30,
+        "pooled_precision": 0.2333,
+        "pooled_recall": 0.7778,
+        "ndcg_10": 0.1871,
+        "precision_10": 0.2,
+        "returned_10": 10,
+        "ndcg_20": 0.2796,
+        "precision_20": 0.15,
+        "returned_20": 20
+      },
+      "union_reranked": {
+        "judged_records": 80,
+        "relevant_records": 9,
+        "returned": 42,
+        "pooled_precision": 0.2143,
+        "pooled_recall": 1.0,
+        "ndcg_10": 0.2685,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.3611,
+        "precision_20": 0.2,
+        "returned_20": 20
+      }
+    },
+    "decision": "Reject runtime changes: broader recall but worse nDCG@10; frozen single-profile model-assisted pooled judgments",
+    "method_clarification": "The pre-label lock describes the lexical query as primary/professional/secondary. The actual frozen lexical implementation calls expanded_query(profile), including all profile skills; the semantic query uses professional-context skills. No predictions were retuned after labels.",
+    "experimental_library_versions": {
+      "torch": "2.14.1+cpu",
+      "sentence-transformers": "6.1.0",
+      "transformers": "5.19.0",
+      "numpy": "2.4.6",
+      "tokenizers": "0.23.2",
+      "huggingface-hub": "1.33.0"
+    }
+  },
+  "company_email": {
+    "current_checks": [
+      {
+        "source_id": "node/10819436841",
+        "name": "Autobahn GmbH Außenstelle Karlsruhe",
+        "url": "https://autobahn.de/",
+        "state": "ok",
+        "status": 200,
+        "capture": "d201edbb274f1c517d42",
+        "sha256": "98527e4cc4849522da0d06fcdf0a31286eb34c24793649f1308a35f08a8884c5",
+        "checked_at": "2026-10-07T22:37:32.637728+00:00",
+        "final_url": "https://www.autobahn.de/",
+        "name_tokens": [
+          "aussenstelle",
+          "autobahn"
+        ],
+        "heading_tokens": [
+          "autobahn",
+          "bundes",
+          "des",
+          "die",
+          "hero",
+          "home"
+        ],
+        "prototype_heading_identity": false,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "parent_brand"
+      },
+      {
+        "source_id": "node/11349271931",
+        "name": "R3DT GmbH",
+        "url": "https://r3dt.com/",
+        "state": "ok",
+        "status": 200,
+        "capture": "fc3b72acea6def6b97cc",
+        "sha256": "6abaf0abed425f17b70280fd7cef0bd28c43e8e5dcdaf1ad1945bffa71589648",
+        "checked_at": "2026-10-07T22:37:35.933866+00:00",
+        "final_url": "https://xr-easy.com",
+        "name_tokens": [
+          "r3dt"
+        ],
+        "heading_tokens": [
+          "easy",
+          "home",
+          "meet",
+          "reality",
+          "xr",
+          "your"
+        ],
+        "prototype_heading_identity": false,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "body_after_custom_redirect"
+      },
+      {
+        "source_id": "node/13738591748",
+        "name": "Buderus",
+        "url": "https://buderus.de/",
+        "state": "ok",
+        "status": 200,
+        "capture": "72f0d530e18a844f1d2b",
+        "sha256": "07320cd0b3d0acc9fe2294974c9897006854732d1d6443604b94c59e7a7307c2",
+        "checked_at": "2026-10-07T22:37:41.038158+00:00",
+        "final_url": "https://www.buderus.de/de",
+        "name_tokens": [
+          "buderus"
+        ],
+        "heading_tokens": [
+          "buderus",
+          "fu",
+          "heizsysteme",
+          "heizung",
+          "heute",
+          "moderne",
+          "morgen",
+          "rmepumpen",
+          "solar",
+          "sungen",
+          "systemlo",
+          "und",
+          "wa"
+        ],
+        "prototype_heading_identity": true,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "brand_identity"
+      },
+      {
+        "source_id": "node/4410545233",
+        "name": "a3architekten",
+        "url": "https://a3architekten.com/",
+        "state": "ok",
+        "status": 200,
+        "capture": "e885dbdb85de025e4623",
+        "sha256": "1e7186a3dfc5f970a4c866722330dffcd9fe7b4993f2b96bd545da0fe77cf3c7",
+        "checked_at": "2026-10-07T22:37:42.378324+00:00",
+        "final_url": "https://a3architekten.com/",
+        "name_tokens": [
+          "a3architekten"
+        ],
+        "heading_tokens": [
+          "a3architekten",
+          "form",
+          "funktion",
+          "geben",
+          "raum",
+          "und",
+          "wir"
+        ],
+        "prototype_heading_identity": true,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "brand_identity"
+      },
+      {
+        "source_id": "node/4841370429",
+        "name": "kr3m. media GmbH",
+        "url": "https://kr3m.com/",
+        "state": "ok",
+        "status": 200,
+        "capture": "edc5bce3a0f72e270380",
+        "sha256": "e977124c5650a161e592a76fa076dc95b2d7bf2428f6d998a343ae27f3c728b5",
+        "checked_at": "2026-10-07T22:37:43.786985+00:00",
+        "final_url": "https://kr3m.com/",
+        "name_tokens": [
+          "kr3m",
+          "media"
+        ],
+        "heading_tokens": [
+          "and",
+          "as",
+          "digital",
+          "games",
+          "kr3m",
+          "of",
+          "part",
+          "publishing",
+          "puzzles",
+          "strategic"
+        ],
+        "prototype_heading_identity": false,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "brand_identity"
+      },
+      {
+        "source_id": "node/7277910391",
+        "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+        "url": "https://schrifthof.de/",
+        "state": "ok",
+        "status": 200,
+        "capture": "a90a76bafa11e40406a3",
+        "sha256": "f275965a17f010844013d9911241645c24493d9ef81c69f1a7019a45cb7e0d03",
+        "checked_at": "2026-10-07T22:37:45.697264+00:00",
+        "final_url": "https://schrifthof.de/",
+        "name_tokens": [
+          "experimentelle",
+          "fu",
+          "kalligraphie",
+          "schrifthof",
+          "werkstatt"
+        ],
+        "heading_tokens": [
+          "aktuelles",
+          "begegnungsraum",
+          "projektfo",
+          "rderung",
+          "schrifthof",
+          "sichtbarkeit",
+          "soziokultureller"
+        ],
+        "prototype_heading_identity": false,
+        "brand_present_in_public_page": true,
+        "current_identity_review": "brand_identity"
+      }
+    ],
+    "decision": "Do not promote automatic resolver: narrow heading identity prototype only2/6 positives; negative attribution benchmark absent"
+  },
+  "limitations": [
+    "Offset pagination is not an atomic snapshot.",
+    "Source board posting counts are not market recall or unique local eligible jobs.",
+    "Sparse detail recovery measures evidence availability, not recruitment suitability.",
+    "Matching labels are blind model-assisted judgments, not human outcomes."
+  ],
+  "fresh_source_worker_persistence": {
+    "actual_source_rows_persisted": 351,
+    "reimport_duplicates": 0,
+    "feeds": [
+      {
+        "provider": "lever",
+        "tenant": "engelvoelkers",
+        "iteration": 1,
+        "stored_unique_jobs": 337,
+        "status": "parsed"
+      },
+      {
+        "provider": "lever",
+        "tenant": "engelvoelkers",
+        "iteration": 2,
+        "stored_unique_jobs": 337,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "cluetecgmbh",
+        "iteration": 1,
+        "stored_unique_jobs": 3,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "cluetecgmbh",
+        "iteration": 2,
+        "stored_unique_jobs": 3,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "nemenergy",
+        "iteration": 1,
+        "stored_unique_jobs": 2,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "nemenergy",
+        "iteration": 2,
+        "stored_unique_jobs": 2,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "virtual7jobs",
+        "iteration": 1,
+        "stored_unique_jobs": 9,
+        "status": "parsed"
+      },
+      {
+        "provider": "recruitee",
+        "tenant": "virtual7jobs",
+        "iteration": 2,
+        "stored_unique_jobs": 9,
+        "status": "parsed"
+      }
+    ],
+    "interpretation": "Fresh company state without legacy HTML records; does not test or claim HTML-to-ATS alias migration."
+  },
+  "recruitee": {
+    "mixed_snapshot_discovery": [
+      [
+        {
+          "company": "cluetec",
+          "version": "baseline",
+          "status": "career_content_found",
+          "boards": [
+            [
+              "recruitee",
+              "cluetecgmbh",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "cluetecgmbh",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "cluetecgmbh",
+              null,
+              "not_supported"
+            ]
+          ],
+          "job_count": 0,
+          "jobs": [],
+          "pages": [
+            [
+              "https://cluetec-audit.de/",
+              "ok"
+            ],
+            [
+              "https://cluetec-audit.de/karriere/",
+              "ok"
+            ],
+            [
+              "https://cluetecgmbh.recruitee.com/",
+              "ok"
+            ],
+            [
+              "https://cluetecgmbh.recruitee.com/o/account-manager-mwd",
+              "ok"
+            ],
+            [
+              "https://cluetecgmbh.recruitee.com/o/initiativbewerbungen-keine-zuordnung-zu-aktueller-ausschreibung",
+              "ok"
+            ],
+            [
+              "https://cluetec-audit.de/en/career/",
+              "ok"
+            ]
+          ],
+          "discovered_on": [
+            "https://cluetec-audit.de/karriere/",
+            "https://cluetecgmbh.recruitee.com/",
+            "https://cluetecgmbh.recruitee.com/"
+          ]
+        },
+        {
+          "company": "cluetec",
+          "version": "new",
+          "status": "jobs_feed_found",
+          "boards": [
+            [
+              "recruitee",
+              "cluetecgmbh",
+              3,
+              "parsed"
+            ]
+          ],
+          "job_count": 3,
+          "jobs": [
+            [
+              "2732449",
+              "https://cluetecgmbh.recruitee.com/o/it-systemadministrator-mwd-1",
+              "IT-Systemadministrator (m/w/d)"
+            ],
+            [
+              "2732440",
+              "https://cluetecgmbh.recruitee.com/o/sales-development-representative",
+              "Sales Development Representative (m/w/d)"
+            ],
+            [
+              "2513967",
+              "https://cluetecgmbh.recruitee.com/o/account-manager-mwd",
+              "Account Manager (m/w/d)"
+            ]
+          ],
+          "pages": [
+            [
+              "https://cluetec-audit.de/",
+              "ok"
+            ],
+            [
+              "https://cluetec-audit.de/karriere/",
+              "ok"
+            ]
+          ],
+          "discovered_on": [
+            "https://cluetec-audit.de/karriere/"
+          ]
+        }
+      ],
+      [
+        {
+          "company": "Balcke Dürr",
+          "version": "baseline",
+          "status": "ats_identified",
+          "boards": [
+            [
+              "recruitee",
+              "nemenergy",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "nemenergy",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "nemenergy",
+              null,
+              "not_supported"
+            ]
+          ],
+          "job_count": 0,
+          "jobs": [],
+          "pages": [
+            [
+              "https://nem-energy.com/",
+              "ok"
+            ],
+            [
+              "https://nemenergy.recruitee.com/",
+              "ok"
+            ],
+            [
+              "https://nemenergy.recruitee.com/l/de/",
+              "ok"
+            ],
+            [
+              "https://nemenergy.recruitee.com/l/nl/",
+              "ok"
+            ],
+            [
+              "https://nem-energy.com/sitemap_index.xml",
+              "ok"
+            ],
+            [
+              "https://nem-energy.com/post-sitemap.xml",
+              "ok"
+            ]
+          ],
+          "discovered_on": [
+            "https://nem-energy.com/",
+            "https://nemenergy.recruitee.com/",
+            "https://nemenergy.recruitee.com/"
+          ]
+        },
+        {
+          "company": "Balcke Dürr",
+          "version": "new",
+          "status": "jobs_feed_found",
+          "boards": [
+            [
+              "recruitee",
+              "nemenergy",
+              2,
+              "parsed"
+            ]
+          ],
+          "job_count": 2,
+          "jobs": [
+            [
+              "2737106",
+              "https://nemenergy.recruitee.com/o/structual-engineer-mwd",
+              "Structual Engineer (M/W/D)"
+            ],
+            [
+              "2154012",
+              "https://nemenergy.recruitee.com/o/nem-balcke-durr-gmbh-industriemeister-metall-fur-europaweite-kessel-und-apparatemontagen-mwd",
+              "NEM Balcke-Dürr GmbH - Industriemeister Metall für europaweite Kessel- und Apparatemontagen (m/w/d)"
+            ]
+          ],
+          "pages": [
+            [
+              "https://nem-energy.com/",
+              "ok"
+            ]
+          ],
+          "discovered_on": [
+            "https://nem-energy.com/"
+          ]
+        }
+      ],
+      [
+        {
+          "company": "virtual7",
+          "version": "baseline",
+          "status": "jobs_extracted",
+          "boards": [
+            [
+              "recruitee",
+              "virtual7jobs",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "virtual7jobs",
+              null,
+              "not_supported"
+            ],
+            [
+              "recruitee",
+              "virtual7jobs",
+              null,
+              "not_supported"
+            ],
+            [
+              "html_jobs",
+              "virtual7.de",
+              7,
+              "parsed"
+            ]
+          ],
+          "job_count": 7,
+          "jobs": [
+            [
+              "591220d53c5e59b7f75c",
+              "https://virtual7.de/jobs/senior-java-fullstack-developer-m-w-d-2/",
+              "(Senior) Java Fullstack Developer (m/w/d)"
+            ],
+            [
+              "e7f7da604beeb54e3187",
+              "https://virtual7.de/jobs/senior-oracle-data-warehouse-bi-developer-m-w-d/",
+              "(Senior) Oracle Data Warehouse / BI-Developer (m/w/d)"
+            ],
+            [
+              "c1230d22e6c2060c84f6",
+              "https://virtual7.de/jobs/application-server-admin-with-german/",
+              "Application Server Admin with German"
+            ],
+            [
+              "7dc3f6873f5221a8ef4a",
+              "https://virtual7.de/jobs/kubernetes-administrator-private-cloud-engineer-m-w-d/",
+              "Kubernetes Administrator/Private Cloud Engineer (m/w/d)"
+            ],
+            [
+              "e531cd1f84d44666a5c9",
+              "https://virtual7.de/jobs/senior-java-backend-developer-m-w-d/",
+              "Senior Java Backend Developer (m/w/d)"
+            ],
+            [
+              "1610a4fa64b5439fdf9b",
+              "https://virtual7.de/jobs/senior-fullstack-developer-m-w-d-4/",
+              "Senior Java Fullstack Developer (m/w/d)"
+            ],
+            [
+              "eeb8dacbecf16457c128",
+              "https://virtual7.de/jobs/senior-oracle-data-engineer-m-w-d/",
+              "Senior Oracle Data Engineer (m/w/d)"
+            ]
+          ],
+          "pages": [
+            [
+              "https://virtual7.de/",
+              "ok"
+            ],
+            [
+              "https://virtual7.de/jobs/",
+              "ok"
+            ],
+            [
+              "https://virtual7jobs.recruitee.com/o/initiativbewerbung",
+              "ok"
+            ],
+            [
+              "https://virtual7jobs.recruitee.com/",
+              "ok"
+            ],
+            [
+              "https://virtual7jobs.recruitee.com/o/initiativbewerbung?lang=de",
+              "ok"
+            ],
+            [
+              "https://https://virtual7.onlyfy.jobs/apply/pm2sdah2fp7urwvhfw2clqjhm6zojx",
+              "robots_unavailable"
+            ]
+          ],
+          "discovered_on": [
+            "https://virtual7.de/jobs/",
+            "https://virtual7jobs.recruitee.com/o/initiativbewerbung",
+            "https://virtual7jobs.recruitee.com/o/initiativbewerbung",
+            "https://virtual7.de/jobs/"
+          ]
+        },
+        {
+          "company": "virtual7",
+          "version": "new",
+          "status": "jobs_feed_found",
+          "boards": [
+            [
+              "recruitee",
+              "virtual7jobs",
+              9,
+              "parsed"
+            ]
+          ],
+          "job_count": 9,
+          "jobs": [
+            [
+              "2759913",
+              "https://virtual7jobs.recruitee.com/o/application-server-admin-with-german",
+              "Application Server Admin with German"
+            ],
+            [
+              "2759221",
+              "https://virtual7jobs.recruitee.com/o/senior-oracle-data-warehouse-bi-developer-mwd",
+              "(Senior) Oracle Data Warehouse / BI-Developer (m/w/d)"
+            ],
+            [
+              "2758483",
+              "https://virtual7jobs.recruitee.com/o/senior-java-fullstack-developer-mwd-4",
+              "(Senior) Java Fullstack Developer (m/w/d)"
+            ],
+            [
+              "2739489",
+              "https://virtual7jobs.recruitee.com/o/senior-java-fullstack-developer-mwd-3",
+              "Senior Java Fullstack Developer (m/w/d)"
+            ],
+            [
+              "2735493",
+              "https://virtual7jobs.recruitee.com/o/senior-oracle-data-engineer-mwd",
+              "Senior Oracle Data Engineer (m/w/d)"
+            ],
+            [
+              "2714761",
+              "https://virtual7jobs.recruitee.com/o/senior-java-backend-developer-mwd",
+              "Senior Java Backend Developer (m/w/d)"
+            ],
+            [
+              "2709565",
+              "https://virtual7jobs.recruitee.com/o/senior-it-architect-mwd-3",
+              "Senior IT Architect (m/w/d)"
+            ],
+            [
+              "2676903",
+              "https://virtual7jobs.recruitee.com/o/ai-solution-architect-mwd",
+              "AI Solution Architect (m/w/d)"
+            ],
+            [
+              "2459020",
+              "https://virtual7jobs.recruitee.com/o/kubernetes-administratorprivate-cloud-engineer-mwd",
+              "Kubernetes Administrator/Private Cloud Engineer (m/w/d)"
+            ]
+          ],
+          "pages": [
+            [
+              "https://virtual7.de/",
+              "ok"
+            ],
+            [
+              "https://virtual7.de/jobs/",
+              "ok"
+            ]
+          ],
+          "discovered_on": [
+            "https://virtual7.de/jobs/"
+          ]
+        }
+      ]
+    ],
+    "source_captures": [
+      {
+        "url": "https://cluetecgmbh.recruitee.com/",
+        "checked_at": "2026-10-05T23:23:15.523692+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "d3c0df2f187890579145fc868249e0a162b9e0de79518b095b2af824d593719a",
+        "capture": "006ee10e47def12aa7bd"
+      },
+      {
+        "url": "http://cluetec-audit.de/robots.txt",
+        "checked_at": "2026-10-05T23:23:04.654100+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "bd7e5c15d3f769cace831606c6288a4834231d0a273dfd146f295add895ebbc1",
+        "capture": "0f9e9bb69ca7cd9e770f"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/robots.txt",
+        "checked_at": "2026-10-07T22:38:52.393797+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "581b3645c0ff4c4ba86f228a603b523a4f5d204a2187fae18ff4d420491f317d",
+        "capture": "0fca0c376dc0111dda67"
+      },
+      {
+        "url": "https://https:/robots.txt",
+        "checked_at": "2026-10-05T23:30:54.718097+00:00",
+        "status": null,
+        "state": "network_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "144635274e2372000813"
+      },
+      {
+        "url": "https://cluetec-audit.de/robots.txt",
+        "checked_at": "2026-10-05T23:23:09.099035+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "bd7e5c15d3f769cace831606c6288a4834231d0a273dfd146f295add895ebbc1",
+        "capture": "2775785ced3785c54867"
+      },
+      {
+        "url": "https://www.cluetec-audit.de/robots.txt",
+        "checked_at": "2026-10-05T23:23:07.621818+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "2ed916823bded316495a"
+      },
+      {
+        "url": "https://nem-energy.com/sitemap.xml",
+        "checked_at": "2026-10-05T23:28:36.044784+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "59605f081343952d67ab"
+      },
+      {
+        "url": "https://nem-energy.com/robots.txt",
+        "checked_at": "2026-10-05T23:28:30.569045+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "a55c4bc301f49e7ad87df4818a96d6df9e67f580bed85146026f8339066a3b65",
+        "capture": "5a96572fa9fe2096f3c5"
+      },
+      {
+        "url": "https://virtual7.de/robots.txt",
+        "checked_at": "2026-10-05T23:30:48.536770+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "d5b06537ab6c6673b805fc4f05fa71b9adf186ce647ba8ca00c653ac5ab68455",
+        "capture": "5f05d470ff17290e773d"
+      },
+      {
+        "url": "https://nem-energy.com/sitemap_index.xml",
+        "checked_at": "2026-10-05T23:28:36.979905+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "f0327cac17485ce766bf3ba6ea73c298466136be23be6cc120c8e20e13f55ec9",
+        "capture": "6bb1c89e3daf54f89eea"
+      },
+      {
+        "url": "https://cluetec-audit.de/",
+        "checked_at": "2026-10-05T23:23:12.819934+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "41ea4b049c98c43027177fa4fde9374832dc12a4de18990f247ebbdd812f5a93",
+        "capture": "846235e5838d515da39c"
+      },
+      {
+        "url": "https://nemenergy.recruitee.com/l/de/",
+        "checked_at": "2026-10-05T23:28:34.057190+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "052330f083d0aba1ffd71b615beee7a330beda2934da7a7b6de056d2b2291fa8",
+        "capture": "85cb27b3c42386a99610"
+      },
+      {
+        "url": "https://nemenergy.recruitee.com/",
+        "checked_at": "2026-10-05T23:28:32.876122+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "4b2a3cc8a1acf25d119df7222b3433c55aefa82850981deb522710417089b727",
+        "capture": "887ce9c4bb62a902105a"
+      },
+      {
+        "url": "https://cluetecgmbh.recruitee.com/o/account-manager-mwd",
+        "checked_at": "2026-10-05T23:23:16.613883+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "67c392907575a058f542f622e66e705bf690c85df0788564128d2df4f274ad31",
+        "capture": "94761062a4e42e0ddcde"
+      },
+      {
+        "url": "https://nemenergy.recruitee.com/robots.txt",
+        "checked_at": "2026-10-07T22:27:50.886651+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "b72acf2b01ea181a143e706a926ebc18204f1cb2b579de5102301524d1e53bdd",
+        "capture": "972e6703bd78335def81"
+      },
+      {
+        "url": "https://virtual7.de/",
+        "checked_at": "2026-10-05T23:30:48.650643+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "7bbeb8771a2a54650fc5f1adf14c9e64e0ace68d7ec3ec9d2029c3135e1902ad",
+        "capture": "974f2239409a8b92aad0"
+      },
+      {
+        "url": "https://www.balcke-duerr.com/",
+        "checked_at": "2026-10-05T23:28:29.578994+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "9e61660d4a2a9f64cba4"
+      },
+      {
+        "url": "https://cluetecgmbh.recruitee.com/o/initiativbewerbungen-keine-zuordnung-zu-aktueller-ausschreibung",
+        "checked_at": "2026-10-05T23:23:17.686275+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "a9c5f86a5c4d795c7ac207e025f22df1d6a08bf3126142a7c53cd4325fa6c5b5",
+        "capture": "9ebd4c1cfa8351ed2ac2"
+      },
+      {
+        "url": "https://www.balcke-duerr.com/robots.txt",
+        "checked_at": "2026-10-05T23:28:27.707664+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "9ede95dc55c8968ca4ca"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/o/initiativbewerbung",
+        "checked_at": "2026-10-05T23:30:51.515407+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "27ca186361466587d177a6bb0e7bb6d5f2132e1ef4bd0ecfd148dacf47450027",
+        "capture": "a9d0beebf80407c87ebf"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/",
+        "checked_at": "2026-10-05T23:30:52.820198+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "aab88838bb6dbe7abfad1f1819107f8015a419a80f6fb808ba2cb823c146cf89",
+        "capture": "ada8f9f1d52f33ec6545"
+      },
+      {
+        "url": "https://cluetecgmbh.recruitee.com/robots.txt",
+        "checked_at": "2026-10-07T22:27:49.528796+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "7317a9f1cf9d6aae565d88ee3562cb3f25adcaa1fe496b85ad65354af404e14c",
+        "capture": "ae139093cc0d18241481"
+      },
+      {
+        "url": "https://virtual7.de/jobs/",
+        "checked_at": "2026-10-05T23:30:49.793098+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "1721c3abc11371be803aacfb84bbfdeba7813ed38dac9fd34ca05d54c222c640",
+        "capture": "b16335e6d1522902d389"
+      },
+      {
+        "url": "https://cluetecgmbh.recruitee.com/api/feeds/offers.xml",
+        "checked_at": "2026-10-07T22:27:49.787011+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "6b616a2467726ff187055126c2d95b52b182358a9f790cfbfc2bd4b087f3ab11",
+        "capture": "b16fd07c15ea848f749e"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/o/application-server-admin-with-german",
+        "checked_at": "2026-10-07T22:38:52.468869+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "7146d24f0d11cf8d01b4687eef8bdf35b10ea4ee681f4d9d0a135041bbc8fea9",
+        "capture": "c60fe7359cfb4a21e907"
+      },
+      {
+        "url": "https://www.cluetec.de/",
+        "checked_at": "2026-10-05T23:23:06.543539+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "247b9853e46bce5d69183afe1c2c7a689cff67bb473ac67645c6be1f8244c61d",
+        "capture": "c7fde7e76cc22b83b371"
+      },
+      {
+        "url": "https://nem-energy.com/",
+        "checked_at": "2026-10-05T23:28:31.038232+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "172096d7f8eb6cd94bd8f1c7ff1f31cbf18934b56417cd02b82f42396fa31f0f",
+        "capture": "cb345a0b020faffc366d"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/api/feeds/offers.xml",
+        "checked_at": "2026-10-07T22:27:52.387447+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "9d853af8e9e3f7218a422fb9d2f4b00fd97840f9ededb760a647689bd64d4763",
+        "capture": "cb6fbfd13b8c1721a709"
+      },
+      {
+        "url": "https://nem-energy.com/post-sitemap.xml",
+        "checked_at": "2026-10-05T23:28:37.983298+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "1129eb923f58650a8d973786beba148633036f2eec78ab24bfb67cfa006bd2f3",
+        "capture": "d43cc8479c25579a95b5"
+      },
+      {
+        "url": "https://nemenergy.recruitee.com/api/feeds/offers.xml",
+        "checked_at": "2026-10-07T22:27:51.212189+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "57c552b8928636b1d4c1f2939c3e63564f59a876060f51e7aeafd5c62d8c4874",
+        "capture": "d533aae33afcfeef6e70"
+      },
+      {
+        "url": "https://cluetec-audit.de/karriere/",
+        "checked_at": "2026-10-05T23:23:13.812089+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "596f9ad33d3477314e6903ea5e579b892f10faab40b1bd406e50471be9571217",
+        "capture": "d72b1b541a4c69850ba1"
+      },
+      {
+        "url": "https://cluetec-audit.de/en/career/",
+        "checked_at": "2026-10-05T23:23:18.684930+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "84c99bcb1a19dcdf889bf77f892adf5fab1380dce25055c470deb54a8d28e3ab",
+        "capture": "d80156b6b9c5ae56d5d3"
+      },
+      {
+        "url": "https://www.cluetec.de/robots.txt",
+        "checked_at": "2026-10-05T23:23:02.640377+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "e042bb2acda0a6478595"
+      },
+      {
+        "url": "https://nemenergy.recruitee.com/l/nl/",
+        "checked_at": "2026-10-05T23:28:35.041825+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "61ccd1a38df8af84768d9d06aca77f9264c3f3df1d6d58b8be3d5628909c22ce",
+        "capture": "e5b37ce5ce870f032e64"
+      },
+      {
+        "url": "https://www.cluetec-audit.de/",
+        "checked_at": "2026-10-05T23:23:10.940555+00:00",
+        "status": 301,
+        "state": "http_error",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "capture": "e92a23cfd2003c3f7340"
+      },
+      {
+        "url": "https://balcke-duerr.com/robots.txt",
+        "checked_at": "2026-10-05T23:28:28.600073+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "7932ac58f99ddf371017f61b2b2ad10def558468648975a03778279b27f0b8f6",
+        "capture": "efd564dad0bf19c9493a"
+      },
+      {
+        "url": "https://virtual7jobs.recruitee.com/o/initiativbewerbung?lang=de",
+        "checked_at": "2026-10-05T23:30:53.598213+00:00",
+        "status": 200,
+        "state": "ok",
+        "sha256": "423e1c00e37d4e571dc47927ab44e5843da4dff4301a8c23ab8a8e575f64bdda",
+        "capture": "fb7d8344195534498efc"
+      }
+    ],
+    "parser_active_rows": 14,
+    "initiative_rows_excluded": 1,
+    "legacy_persistence": {
+      "baseline_active_jobs": 7,
+      "unguarded_virtual7_rows": 16,
+      "guarded_virtual7_rows": 7,
+      "guarded_total_active_jobs": 12,
+      "net_extra_jobs": 5,
+      "limitation": "New Recruitee feeds deferred for employers with active HTML jobs; verified alias migration unavailable"
+    },
+    "provider_corpus": {
+      "input_sha256": "56094e734ac90be16bed6fa74cd0b6560c0c4815b9549861dad0a9e70db8ea4d",
+      "unique_urls": 120,
+      "unchanged_provider_tenant": 105,
+      "utility_urls_rejected": 8,
+      "employer_attributions_corrected": 7,
+      "known_false_tenant_before": 15,
+      "known_false_tenant_after": 0
+    },
+    "latest_main_legacy_replay": {
+      "mode": "Manual/new discovery; scheduled refresh does not migrate saved HTML sources",
+      "baseline_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
+      "companies": [
+        {
+          "company": "cluetec",
+          "website": "https://cluetec-audit.de/",
+          "baseline_discovered": 0,
+          "candidate_discovered": 3,
+          "baseline_active": 0,
+          "candidate_active": 3
+        },
+        {
+          "company": "Balcke Dürr",
+          "website": "https://nem-energy.com/",
+          "baseline_discovered": 0,
+          "candidate_discovered": 2,
+          "baseline_active": 0,
+          "candidate_active": 2
+        },
+        {
+          "company": "virtual7",
+          "website": "https://virtual7.de/",
+          "baseline_discovered": 7,
+          "candidate_discovered": 9,
+          "baseline_active": 7,
+          "candidate_active": 7
+        }
+      ],
+      "baseline_active": 7,
+      "candidate_active": 12
+    }
+  },
+  "verification": {
+    "baseline_python_tests": 355,
+    "frontend_build": {
+      "command": "npm run build",
+      "result": "passed; TypeScript and Vite production bundle",
+      "dependencies": "npm ci, 25 packages, zero reported vulnerabilities"
+    },
+    "source_persistence": {
+      "rows": 351,
+      "repeat_import_duplicates": 0,
+      "interpretation": "Fresh employers without legacy HTML; separate legacy-state guard trial applies."
+    },
+    "model_metric_recalculation": "Frozen 80 document hashes validated; all four metrics reproduce exactly.",
+    "final_runtime_revision": "c9cbdfc5",
+    "final_python_suite": {
+      "command": ".venv/bin/python -m unittest discover -s tests -q",
+      "tests": 431,
+      "seconds": 18.838,
+      "result": "OK",
+      "date_utc": "2026-10-08",
+      "baseline_main": "1030d159"
+    },
+    "source_replay": {
+      "command": ".venv/bin/python experiments/production_improvement_trials.py --captures <local-http-cache> --details <local-detail-manifest.json> --provider-corpus <local-provider-url-corpus.json> --discovery-cache <local-bounded-company-cache> --output <local-report.json>",
+      "result": "Passed assertions: Lever100→337unique complete; XML3/2/9; details20→22, no losses, all prior updates equal; provider105unchanged/8rejected/7corrected.",
+      "baseline_main": "1030d159",
+      "legacy_active_counts": [
+        7,
+        12
+      ],
+      "final_fix_revision": "d0b39f29"
+    },
+    "holdout_after_extraction_fix": {
+      "jobs": 80,
+      "rule_version": "rules-v14",
+      "changed_score_or_eligibility": [],
+      "frozen_metrics_reproduce": true
+    },
+    "latest_main_integration_initial": "428tests,3failures confined to guard tests assuming superseded automatic saved-feed rediscovery; test adaptation pending, main runtime scheduling unchanged.",
+    "latest_main_integration_resolution": {
+      "commit": "bb4de0e7",
+      "targeted_tests": 47,
+      "review": "Scoped spec/quality APPROVED; actual manual campaign and recurring feed refresh covered, main runtime scheduling preserved."
+    },
+    "final_malformed_port_regression": {
+      "tests_added": 3,
+      "candidate_cases": [
+        "nonnumeric port",
+        "port out of range"
+      ],
+      "controls": [
+        "default HTTPS",
+        "443 HTTPS accepted",
+        "80 disallowed",
+        "8443 disallowed"
+      ],
+      "sibling_provider": "Lever job/feed/capture retained; one homepage and one feed request; malformed lead makes zero requests"
+    },
+    "latest_main_source_replay_final": {
+      "baseline": "1030d1593c48c979f8bd839817e9f19baa757868",
+      "lever_baseline": 100,
+      "lever_candidate_unique": 337,
+      "recruitee_discovered": [
+        0,
+        0,
+        7,
+        3,
+        2,
+        9
+      ],
+      "recruitee_legacy_active": [
+        7,
+        12
+      ],
+      "details": [
+        56,
+        20,
+        22,
+        0
+      ],
+      "existing_updates_preserved": true,
+      "provider_attribution": [
+        105,
+        8,
+        7
+      ]
+    },
+    "repeat_import": {
+      "source_rows": 351,
+      "duplicates": 0
+    },
+    "historical_metric_correction": {
+      "reported": "0.1822",
+      "source_reports": [
+        "reports/poc-review-analysis.json:263",
+        "reports/cv-profile-board-evaluation.json:451"
+      ]
+    },
+    "final_scoped_fix_review": "APPROVED: P2 malformed Recruitee port can no longer abort sibling provider discovery; P3 historical metric matches both source artifacts; no new findings.",
+    "whole_branch_review": "Review at99d34ac4 requested P2/P3 fixes; final scoped re-review afterd0b39f29 approved both with no new findings.",
+    "fix_wave": {
+      "commit": "d0b39f29",
+      "tests_first_errors": 4,
+      "new_tests_passed": 3,
+      "focused_tests_passed": 127,
+      "full_suite_passed": 431,
+      "changed_behavior": "Invalid Recruitee ports reject only the malformed lead; a valid sibling Lever board still completes with provenance."
+    },
+    "full_current_main_suite": {
+      "command": ".venv/bin/python -m unittest discover -s tests -q",
+      "tests": 469,
+      "seconds": 33.957,
+      "result": "OK",
+      "date_utc": "2026-10-08",
+      "baseline_main": "54243bcc"
+    },
+    "current_main_company_discovery_tests": "Current-main added Tavily website discovery and owner-verification tests are part of the passing469 suite.",
+    "final_rereview_scope": "Final fix wave based on runtime ATS change d0b39f29 was independently approved; subsequent current-main integration adds Tavily homepage discovery validated in the 469-test current-main suite."
+  },
+  "controller_decisions": [
+    {
+      "decision": "Use isolated branch based on fetched origin/main; do not modify shared main or deploy.",
+      "cost_if_wrong": "A separate integration step remains."
+    },
+    {
+      "decision": "Reuse known prior captures read-only and label dates/hashes.",
+      "cost_if_wrong": "Older HTML may not reflect current live listings."
+    },
+    {
+      "decision": "Defer a new Recruitee feed where active legacy HTML jobs exist; require verified aliases before migration.",
+      "cost_if_wrong": "Two observed virtual7 extra roles and XML evidence migration are deferred."
+    },
+    {
+      "decision": "Defer automatic email-domain resolver promotion without an independent negative benchmark.",
+      "cost_if_wrong": "Two automatically confirmed extra websites remain research-only."
+    },
+    {
+      "decision": "Bounded correction defers independent hard rows from explicit quantified one-of skill lists, retaining source and general skills.",
+      "cost_if_wrong": "Hard verification of an incompletely represented alternative is deferred."
+    },
+    {
+      "decision": "Retain a source-backed informational verification unknown for unverified scripting alternatives, without new penalties or score weights.",
+      "cost_if_wrong": "Qualified but unrecognized alternative evidence may still need manual verification."
+    },
+    {
+      "decision": "Integrate main1030d159 saved-source refresh into the isolated branch and repeat combined source/integration checks.",
+      "cost_if_wrong": "Integration can expose new regressions and extend validation."
+    }
+  ],
+  "task_acceptance": {
+    "lever": {
+      "commits": [
+        "b7941513",
+        "df994995",
+        "771d852d"
+      ],
+      "tdd_and_review": "Required consumer-field and nullable SQL-field regressions reproduced, corrected and scoped spec/quality reviews approved. Final shared replay covers337unique rows."
+    },
+    "recruitee": {
+      "commit": "24af444e",
+      "tests_added": 19,
+      "full_suite_at_commit": 399,
+      "review": "Spec PASS and quality APPROVE; actual legacy duplicate trial prompted the narrow new-feed guard."
+    },
+    "details": {
+      "initial_commit": "d5c807d1",
+      "full_suite_at_initial_commit": 412,
+      "initial_review": "Changes requested: captured one-of clause caused false independent mandatory gaps; not accepted until dependency correction passes.",
+      "fix_commit": "b7973155",
+      "fix_full_suite": 418,
+      "fix1_review": "Original false-gap P1 addressed; new blocking finding: omitted alternative clears unknown-profile uncertainty. Fix2 required informational verification evidence.",
+      "fix2_commit": "ecc4b764",
+      "fix2_full_suite": 420,
+      "final_scoped_review": "Approved: false independent mandatory rows removed, source-backed alternative uncertainty retained; cache rules-v14.",
+      "fix2_review": "Scoped spec/quality APPROVED; actual unknown applicant retains informational verification unknown."
+    },
+    "unpromoted_trials": "No semantic model, ranking weight or automatic email resolver changes."
+  },
+  "latest_main_revision": "7fe1c512ad483ca5d0ade92a040f32e3fbdd401e",
+  "source_trial_baseline_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
+  "integration_revision": "2fcdd37a (integrates current main 7fe1c512)",
+  "preview": {
+    "slug": "accuracy-71aaa584",
+    "runtime_revision": "c9cbdfc5",
+    "isolated_database": true,
+    "frontend_url": "https://web-accuracy-71aaa584.dev.dell.lr-projects.de/",
+    "api_health_url": "https://api-accuracy-71aaa584.dev.dell.lr-projects.de/health/ready",
+    "frontend_status": 200,
+    "api_health_status": 200,
+    "state": "running",
+    "verified_head": "c9cbdfc5"
+  },
+  "worktree_handoff": {
+    "branch": "t3code/improve-scraper-matching-accuracy-1",
+    "final_head_before_trial_report_commit": "c9cbdfc5",
+    "candidate_head_before_publication_refresh": "2fcdd37a",
+    "latest_main_base": "7fe1c512ad483ca5d0ade92a040f32e3fbdd401e",
+    "status_snapshot": "Before the requested push and merge",
+    "branch_clean_before_trial_report_commit": true,
+    "shared_main_updated": false,
+    "pushed_or_deployed": false
+  },
+  "current_main_company_website_discovery": {
+    "revision": "54243bcc",
+    "feature": "Bounded Tavily homepage search with same-host owner verification for missing company websites.",
+    "independent_main_evidence": "reports/expanded-homepage-discovery-poc.md and reports/production-homepage-implementation.md",
+    "expanded_cohort_records": 120,
+    "existing_policy_verified_homepages": 15,
+    "expanded_policy_verified_homepages": 24,
+    "additional_reviewed_homepages": 9,
+    "relative_additional_recoveries_pct": 60,
+    "population_precision_claimed": false,
+    "production_caps": {
+      "companies": 100,
+      "basic_searches": 50,
+      "website_request_attempts": 180
+    },
+    "relevance_to_this_work": "Inherited from current main after its commit during this task; independent of the six positive email-domain validation experiment, which remains unpromoted."
+  },
+  "source_trial_cli_default_baseline": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159"
+}

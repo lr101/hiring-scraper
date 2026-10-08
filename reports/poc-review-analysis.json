@@ -1,0 +1,330 @@
+{
+  "study_date": "2026-10-07",
+  "method": "Offline aggregation of committed derived artifacts; no HTTP or model calls.",
+  "input_sha256": {
+    "data/career-poc/run-31/results.json": "1c69150ea84b7b69cebc75b662a6429f2d29504af74a96db8f7e99fc146cda8c",
+    "data/career-poc/run-31/summary.json": "1b910dd03c67ca7c63a272cdff873d32bc06e6327e7f9d7835a31d3f9ab67713",
+    "data/location-sources/homepage-poc-2026-10/summary.json": "a432a28fc65d87bea70d482881d31ec25e9757b7a9abd91093af81a8adac838e",
+    "data/career-poc/js-extraction-poc-2026-10/replay.json": "f94f0a70fa890c72a73b13b315cae74c07b55cf814fa5c72ff861c47bbc9dc20",
+    "reports/cv-profile-board-evaluation.json": "c410ef8d35bbb2db2ec93f46268f3d8b3521599b396f083844a2901ecf35c3a4",
+    "reports/profile-matching-poc-results.json": "851acf1e87fa812c5d4e9b24e3f696513db74b05631154baaafd236318f00e21"
+  },
+  "analysis_source_sha256": "2cd2d266046875e17cd5d06eca3fcb8053739a64e326e712141e6f8e99663fe7",
+  "limits": [
+    "Snapshots differ by date, source population, and algorithm version; counts are not additive.",
+    "Exact URL/source-ID repetition is observation duplication, not verified legal-entity linkage.",
+    "Unsupported tenant labels include asset, login, and generic routes; they are unverified leads.",
+    "Description length measures field coverage, not requirement-extraction accuracy.",
+    "Matching judgments are model-assisted and pooled; they do not establish market recall.",
+    "No new scraper, embedding, reranker, or company-resolution improvement was benchmarked."
+  ],
+  "company_discovery": {
+    "osm_candidates": 2251,
+    "website_seed_records": 1606,
+    "missing_osm_website_records": 645,
+    "positive_page_feed_provider_records": 669,
+    "statuses": {
+      "ats_identified": 5,
+      "career_content_found": 468,
+      "jobs_extracted": 154,
+      "jobs_feed_found": 42,
+      "unresolved": 937
+    },
+    "unresolved_initial_page_states": {
+      "body_too_large": 2,
+      "http_error": 52,
+      "ok": 574,
+      "robots_disallowed": 26,
+      "robots_unavailable": 283
+    },
+    "unresolved_records_reaching_six_pages": 259,
+    "homepage_poc": {
+      "baseline_selected_domains": 13,
+      "wikidata_direct_coordinate_matches": 0,
+      "ba_exact_name_matches": 0,
+      "ted_exact_name_matches": 0,
+      "email_domain_suggestions": 40,
+      "email_domain_selected": 6,
+      "combined_selected_domains": 19
+    },
+    "homepage_poc_email_identity_checks": {
+      "candidate_count": 9,
+      "request_count": 23,
+      "http_200": 13,
+      "redirects": 6,
+      "http_404": 1,
+      "network_or_tls_or_dns_failures": 3,
+      "strict_candidates_with_identity_corroborated_html": 6,
+      "strict_candidates_unavailable_at_robots_check": 1,
+      "observed_identity_false_positives": 0,
+      "policy": "12 second timeout; one second per origin; 45 request cap; robots checked per hop; no retries, proxy, authentication, or challenge handling"
+    }
+  },
+  "job_extraction": {
+    "accepted_source_rows": 1632,
+    "exact_distinct_posting_urls": 1424,
+    "exact_distinct_provider_tenant_posting_ids": 1424,
+    "repeated_url_observations": 208,
+    "repeated_url_observation_fraction": 0.127451,
+    "parsed_feed_observations": 202,
+    "exact_distinct_provider_tenant_feed_urls": 173,
+    "incomplete_feed_observations": 29,
+    "exact_distinct_incomplete_feeds": 25,
+    "descriptions": {
+      "at_least_350_characters": 1162,
+      "missing": 307,
+      "under_350_characters": 163
+    },
+    "short_or_missing_descriptions_by_provider": {
+      "html_jobs": 431,
+      "lever": 14,
+      "personio": 25
+    },
+    "rows_without_location_text_or_array": 375,
+    "html_extraction_methods": {
+      "html_job_detail": 25,
+      "html_job_link": 261,
+      "html_role_heading": 111,
+      "open_positions_heading": 93,
+      "schema_org_jobposting": 51
+    },
+    "unsupported_provider_leads": {
+      "greenhouse": {
+        "board_observations": 1,
+        "raw_distinct_tenant_labels": 1,
+        "tenant_labels": [
+          "None"
+        ],
+        "osm_source_records": 1
+      },
+      "onlyfy": {
+        "board_observations": 6,
+        "raw_distinct_tenant_labels": 2,
+        "tenant_labels": [
+          "anexia",
+          "rechnungshof-baden-wuerttemberg"
+        ],
+        "osm_source_records": 2
+      },
+      "recruitee": {
+        "board_observations": 9,
+        "raw_distinct_tenant_labels": 3,
+        "tenant_labels": [
+          "cluetecgmbh",
+          "nemenergy",
+          "virtual7jobs"
+        ],
+        "osm_source_records": 3
+      },
+      "smartrecruiters": {
+        "board_observations": 12,
+        "raw_distinct_tenant_labels": 7,
+        "tenant_labels": [
+          "Coface",
+          "DreesSommerSE",
+          "Tipico",
+          "cdn-cgi",
+          "external-referrals",
+          "oneclick-ui",
+          "synava"
+        ],
+        "osm_source_records": 7
+      },
+      "softgarden": {
+        "board_observations": 33,
+        "raw_distinct_tenant_labels": 14,
+        "tenant_labels": [
+          "actemium",
+          "andrena",
+          "designoffices",
+          "diakonie-kork",
+          "eiferkit",
+          "enventa",
+          "hoepfner",
+          "hwk-karlsruhe",
+          "iz-karriere",
+          "jhfiles",
+          "jobdb",
+          "lantzerath-group",
+          "objektkultur",
+          "streit"
+        ],
+        "osm_source_records": 14
+      },
+      "successfactors": {
+        "board_observations": 2,
+        "raw_distinct_tenant_labels": 2,
+        "tenant_labels": [
+          "keyencedeu",
+          "wwinformat"
+        ],
+        "osm_source_records": 2
+      },
+      "workday": {
+        "board_observations": 14,
+        "raw_distinct_tenant_labels": 8,
+        "tenant_labels": [
+          "allegion",
+          "cloudflight",
+          "csl",
+          "diconium",
+          "jci",
+          "stark",
+          "tibco",
+          "zeppelin"
+        ],
+        "osm_source_records": 8
+      }
+    },
+    "personio_failed_board_observations": 12,
+    "lever_capped_tenants": [
+      "engelvoelkers"
+    ],
+    "javascript_slice": {
+      "sample_size": 250,
+      "eligible_unique_captures": 1775,
+      "embedded_json_active_jobs": 0,
+      "new_stable_detail_identity_count": 9,
+      "new_title_novelty_count": 7
+    },
+    "older_hydration_poc": {
+      "rule_version": "rules-v1",
+      "detail_pass": {
+        "checked": 1664,
+        "updated": 0,
+        "details_attempted": 20,
+        "descriptions_improved": 7
+      },
+      "description_count_increment": 7
+    }
+  },
+  "profile_matching": {
+    "locked_version": "rules-v11",
+    "post_test_recheck_version": "rules-v12",
+    "final_pool_algorithms": {
+      "original_rules": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 8,
+        "pooled_precision": 0.625,
+        "pooled_recall": 0.25,
+        "ndcg_10": 0.3028,
+        "precision_10": 0.625,
+        "returned_10": 8,
+        "ndcg_20": 0.2359,
+        "precision_20": 0.625,
+        "returned_20": 8
+      },
+      "current_rules": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.5101,
+        "precision_10": 0.5,
+        "returned_10": 10,
+        "ndcg_20": 0.419,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "literal_keywords": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 29,
+        "pooled_precision": 0.2759,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.1663,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.1713,
+        "precision_20": 0.25,
+        "returned_20": 20
+      },
+      "bm25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 65,
+        "pooled_precision": 0.2154,
+        "pooled_recall": 0.7,
+        "ndcg_10": 0.2164,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.2748,
+        "precision_20": 0.35,
+        "returned_20": 20
+      },
+      "alias_bm25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 113,
+        "pooled_precision": 0.177,
+        "pooled_recall": 1.0,
+        "ndcg_10": 0.1822,
+        "precision_10": 0.3,
+        "returned_10": 10,
+        "ndcg_20": 0.1628,
+        "precision_20": 0.2,
+        "returned_20": 20
+      },
+      "constraint_fusion_0.25": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3549,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.3251,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "constraint_fusion_0.5": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3575,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.3224,
+        "precision_20": 0.3,
+        "returned_20": 20
+      },
+      "constraint_fusion_1": {
+        "judged_records": 120,
+        "relevant_records": 20,
+        "returned": 38,
+        "pooled_precision": 0.2105,
+        "pooled_recall": 0.4,
+        "ndcg_10": 0.3128,
+        "precision_10": 0.4,
+        "returned_10": 10,
+        "ndcg_20": 0.285,
+        "precision_20": 0.3,
+        "returned_20": 20
+      }
+    },
+    "board_counts": {
+      "source": 2639,
+      "scoped": 995,
+      "filtered": {
+        "expired": 1,
+        "remote_country": 9,
+        "outside_area": 1633,
+        "profile_conflict": 19,
+        "below_score": 734,
+        "uncertain": 0
+      },
+      "duplicates_removed": 1,
+      "recommended": 9,
+      "possible": 140,
+      "unlikely": 93
+    },
+    "current_rules_final_false_positive_count": 30,
+    "current_rules_final_missed_relevant_count": 12,
+    "fusion_limitation": "Fusion ranks only current_rules candidates; inclusion and hence recall are unchanged."
+  }
+}

@@ -3,7 +3,142 @@ import html
 import json
 import re
 import xml.etree.ElementTree as ET
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlsplit, urlunsplit
+
+
+def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=None, pace=None):
+    """Read one feed, retaining the first response and bounded Lever scan evidence.
+
+    ``parsed_feed`` carries aggregated jobs without rewriting the raw capture.
+    Other providers retain their existing single-response parsing behavior.
+    The client's public-feed allowlist, request budget and pacing still apply.
+    """
+    query = None
+    partial = False
+    if provider == 'lever':
+        try:
+            if not isinstance(feed_url, str) or re.search(r'[\s\x00-\x1f\x7f]', feed_url):
+                raise ValueError('Whitespace or control characters in Lever URL')
+            parts = urlsplit(feed_url)
+            if (parts.scheme != 'https' or parts.hostname not in {'api.lever.co', 'api.eu.lever.co'}
+                    or parts.username or parts.password or parts.port not in (None, 443)
+                    or parts.fragment or not re.fullmatch(r'/v0/postings/[A-Za-z0-9][A-Za-z0-9_.-]*', parts.path)
+                    or re.search(r'%(?![0-9a-fA-F]{2})', parts.query)):
+                raise ValueError('Expected an exact-host public Lever postings URL')
+            pairs = parse_qsl(parts.query, keep_blank_values=True, strict_parsing=True)
+            query = dict(pairs)
+            if len(query) != len(pairs) or any(not key or not value for key, value in pairs):
+                raise ValueError('Ambiguous or empty Lever query value')
+            for key in ('limit', 'skip'):
+                if key in query and not re.fullmatch(r'0|[1-9][0-9]*', query[key]):
+                    raise ValueError('Invalid Lever ' + key)
+            if query.get('limit') == '0' or ('mode' in query and query['mode'] != 'json'):
+                raise ValueError('Invalid Lever mode or limit')
+            # Preserve filters and explicitly requested partial pages. Never drop
+            # a filter or equate a short filtered response with a whole board.
+            partial = (query.get('mode') != 'json' or query.get('limit') != '100'
+                       or query.get('skip', '0') != '0'
+                       or bool(set(query) - {'mode', 'limit', 'skip'}))
+        except (ValueError, TypeError) as error:
+            return {'url': feed_url, 'state': 'unsupported_api', 'error': str(error)}, b''
+
+    def request(url, headers=None):
+        if pace:
+            pace(url)
+        if provider in {'schema_org', 'html_jobs'}:
+            return client.get(url)
+        return client.get_feed(url, headers) if headers else client.get_feed(url)
+
+    metadata, body = request(feed_url, conditional_headers)
+    if provider != 'lever' or metadata.get('state') != 'ok' or metadata.get('status') == 304:
+        return metadata, body
+    metadata = dict(metadata)
+    pagination = {'complete': False, 'page_limit': 10, 'pages': [], 'error': None}
+    metadata['pagination'] = pagination
+    jobs, seen = [], set()
+    current_url, page_meta, page_body = feed_url, metadata, body
+    for page_index in range(10):
+        evidence = {key: page_meta[key] for key in ('state', 'status', 'capture') if key in page_meta}
+        evidence['url'] = current_url
+        pagination['pages'].append(evidence)
+        if page_meta.get('state') != 'ok' or page_meta.get('status') == 304:
+            pagination['error'] = 'Lever continuation failed: ' + str(page_meta.get('error') or page_meta.get('state'))
+            break
+        try:
+            parsed = parse_feed(provider, page_body, board_url)
+            # parse_feed stringifies provider IDs; do not mistake a null or
+            # composite value for a stable ID when deciding scan completeness.
+            for row, job in zip(json.loads(page_body), parsed['jobs']):
+                job_id = row.get('id')
+                if (not isinstance(job_id, (str, int)) or isinstance(job_id, bool)
+                        or not str(job_id).strip()):
+                    raise ValueError('Expected a stable Lever job ID')
+                # Validate the entire page before aggregating it. Persistence
+                # requires text fields; accepting structured values here would
+                # roll back even the valid jobs recovered on earlier pages.
+                if not isinstance(job['title'], str) or not job['title'].strip():
+                    raise ValueError('Expected a nonblank Lever job title')
+                if not isinstance(job['url'], str):
+                    raise ValueError('Expected a Lever job URL string')
+                job_url = urlsplit(job['url'])
+                if job_url.scheme not in {'http', 'https'} or not job_url.hostname:
+                    raise ValueError('Expected an HTTP(S) Lever job URL with a host')
+                if job.get('location') is None:
+                    job['location'] = ''
+                elif not isinstance(job['location'], str):
+                    raise ValueError('Expected a Lever job location string or null')
+                # Category fallbacks can hide falsy malformed values during
+                # parsing. Validate their source types before accepting a page.
+                categories = row.get('categories') or {}
+                for field in ('department', 'team', 'commitment'):
+                    value = categories.get(field)
+                    if value is not None and not isinstance(value, str):
+                        raise ValueError('Expected a Lever ' + field + ' string or null')
+                for field in ('description', 'department', 'employment_type', 'schedule',
+                              'seniority', 'date_posted', 'salary', 'work_arrangement'):
+                    value = job.get(field)
+                    if value is not None and not isinstance(value, str):
+                        raise ValueError('Expected a normalized Lever ' + field + ' string or null')
+        except (ValueError, TypeError) as error:
+            if page_index == 0:
+                # Consumers keep the existing schema-error handling for page one.
+                pagination['error'] = 'Lever schema error: ' + str(error)
+                metadata['schema_error'] = str(error)
+                return metadata, body
+            pagination['error'] = 'Lever continuation schema error: ' + str(error)
+            break
+        evidence['items'] = len(parsed['jobs'])
+        duplicate = False
+        for job in parsed['jobs']:
+            if job['id'] in seen:
+                duplicate = True
+            else:
+                seen.add(job['id'])
+                jobs.append(job)
+        if duplicate:
+            pagination['error'] = 'Lever duplicate IDs or non-progress during offset enumeration'
+            break
+        if partial:
+            pagination['error'] = 'Lever URL represents a partial or filtered board scan'
+            break
+        if len(parsed['jobs']) > 100:
+            pagination['error'] = 'Lever response exceeded the requested page limit'
+            break
+        if len(parsed['jobs']) < 100:
+            pagination['complete'] = True
+            break
+        if page_index == 9:
+            pagination['error'] = 'Lever pagination page cap reached'
+            break
+        next_query = {**query, 'skip': str((page_index + 1) * 100)}
+        current_url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(next_query), ''))
+        try:
+            # Validators describe page one only; never carry them to later offsets.
+            page_meta, page_body = request(current_url)
+        except (OSError, ValueError, TypeError) as error:
+            page_meta, page_body = {'state': 'network_error', 'error': str(error)}, b''
+    metadata['parsed_feed'] = {'jobs': jobs, 'complete': pagination['complete']}
+    return metadata, body
 
 
 def _plain_text(value):
@@ -65,6 +200,119 @@ def _iso_date(value):
     return None
 
 
+def _recruitee_host(host):
+    """A single employer tenant label, excluding vendor infrastructure."""
+    return (bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.recruitee\.com', host))
+            and host.split('.')[0] not in {'api', 'app', 'static', 'cdn', 'www', 'assets'})
+
+
+def _recruitee_url(value):
+    if not isinstance(value, str) or re.search(r'[\s\x00-\x1f\x7f\\]', value):
+        raise ValueError('Invalid Recruitee URL')
+    parts = urlsplit(value)
+    if (parts.scheme != 'https' or not parts.hostname or parts.username or parts.password
+            or parts.port not in (None, 443) or parts.query or parts.fragment
+            or not re.fullmatch(r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,63}', parts.hostname)):
+        raise ValueError('Expected an unambiguous public HTTPS Recruitee URL')
+    return parts
+
+
+def _recruitee_description(row):
+    sections = []
+    for key in ('description', 'requirements'):
+        value = row.findtext(key) or ''
+        value = re.sub(r'<(script|style)\b[^>]*>.*?</\1\s*>', '', value, flags=re.I | re.S)
+        value = re.sub(r'<li\b[^>]*>\s*(?:<p\b[^>]*>)?', '\n- ', value, flags=re.I)
+        value = re.sub(r'</?(?:p|h[1-6]|ul|ol|div|li)\b[^>]*>|<br\b[^>]*>', '\n', value, flags=re.I)
+        value = html.unescape(re.sub(r'<[^>]*>', '', value))
+        lines = [' '.join(line.split()) for line in value.splitlines() if line.strip()]
+        if lines:
+            sections.append('\n'.join(lines))
+    return '\n\n'.join(sections) or None
+
+
+def _parse_recruitee(body, board_url):
+    board = _recruitee_url(board_url)
+    if not _recruitee_host(board.hostname) or board.path not in ('', '/'):
+        raise ValueError('Expected the canonical Recruitee tenant board')
+    # This feed contract has no pagination metadata or XML entities.
+    text = body.decode('utf-8-sig') if isinstance(body, bytes) else body
+    if re.search(r'<!DOCTYPE|<!ENTITY', text, re.I):
+        raise ValueError('Unexpected Recruitee XML declaration')
+    root = ET.fromstring(text)
+    if root.tag != 'offers' or root.attrib or (root.text or '').strip():
+        raise ValueError('Expected complete Recruitee offers XML')
+    fields = set('id slug title description requirements highlight location country city country_code state_code postal_code remote hybrid on_site department employment_type_code category experience_code education_code salary tags min_hours max_hours min_hours_per_week max_hours_per_week company_name careers_url apply_url mailbox_email created_at updated_at published_at close_at locations'.split())
+    jobs, seen, slugs = [], set(), set()
+    for row in root:
+        if (row.tag != 'offer' or row.attrib or (row.text or '').strip() or (row.tail or '').strip()
+                or any(node.tag not in fields or node.attrib or (node.tail or '').strip() for node in row)
+                or len({node.tag for node in row}) != len(row)):
+            raise ValueError('Unexpected Recruitee offer schema or pagination')
+        for node in row:
+            if node.tag not in {'locations', 'salary', 'tags'} and len(node):
+                raise ValueError('Expected scalar Recruitee field')
+            if node.tag in {'locations', 'salary', 'tags'}:
+                allowed = {'locations': {'location'}, 'salary': {'min', 'max', 'currency', 'period'}, 'tags': {'tag'}}[node.tag]
+                if (node.text or '').strip() or any(child.tag not in allowed or child.attrib or (child.tail or '').strip() for child in node):
+                    raise ValueError('Unexpected Recruitee collection')
+                for child in node:
+                    if node.tag == 'locations':
+                        location_fields = {'id', 'country_code', 'state_code', 'country', 'state', 'name', 'street', 'postal_code', 'city', 'note'}
+                        if ((child.text or '').strip() or len({field.tag for field in child}) != len(child)
+                                or any(field.tag not in location_fields or field.attrib or len(field) or (field.tail or '').strip() for field in child)):
+                            raise ValueError('Unexpected Recruitee location')
+                    elif len(child):
+                        raise ValueError('Expected scalar Recruitee collection item')
+        values = {node.tag: (node.text or '').strip() for node in row}
+        job_id, slug, title = (values.get(key, '') for key in ('id', 'slug', 'title'))
+        if not re.fullmatch(r'[1-9][0-9]*', job_id) or job_id in seen or slug in slugs or not title or not re.fullmatch(r'[a-z0-9][a-z0-9-]*', slug):
+            raise ValueError('Missing or ambiguous Recruitee job identity')
+        seen.add(job_id)
+        slugs.add(slug)
+        careers = _recruitee_url(values.get('careers_url'))
+        apply = _recruitee_url(values.get('apply_url'))
+        if (careers.path != '/o/' + slug or apply.path != careers.path + '/c/new'
+                or careers.hostname != apply.hostname
+                or (careers.hostname.endswith('.recruitee.com') and careers.hostname != board.hostname)):
+            raise ValueError('Recruitee job URLs disagree with their tenant or slug')
+        for flag in ('remote', 'hybrid', 'on_site'):
+            if values.get(flag, '') not in ('', 'true', 'false'):
+                raise ValueError('Unexpected Recruitee work arrangement flag')
+        if values.get('close_at'):
+            raise ValueError('Unsupported Recruitee closing-date evidence')
+        # Initiative/talent rows are feed members but are not active vacancies.
+        if re.search(r'\binitiativ(?:bewerbung(?:en)?|application)\b', title, re.I) or re.fullmatch(
+                r'(?:initiative|unsolicited|general|speculative|open)\s+application(?:\s*\([^)]*\))?|(?:join (?:our )?)?talent (?:pool|community|network)(?:\s*\([^)]*\))?', title, re.I):
+            continue
+        locations = []
+        for source in [row, *row.findall('./locations/location')]:
+            label, country = (source.findtext('city') or '').strip(), (source.findtext('country_code') or '').strip()
+            if country and not re.fullmatch(r'[A-Z]{2}', country):
+                raise ValueError('Invalid Recruitee country code')
+            if label:
+                location = {'label': label, **({'country_code': country} if country else {})}
+                if location not in locations:
+                    locations.append(location)
+        arrangement = next((name for flag, name in [('hybrid', 'hybrid'), ('remote', 'remote'), ('on_site', 'onsite')]
+                            if values.get(flag) == 'true'), None)
+        date = values.get('published_at')
+        if date:
+            from datetime import datetime
+            date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S UTC').date().isoformat()
+        job = {'id': job_id, 'title': title, 'url': 'https://' + board.hostname + '/o/' + slug,
+               'location': values.get('location') or values.get('city') or ''}
+        _add_metadata(job, {
+            'description': _recruitee_description(row), 'locations': locations or None,
+            'department': values.get('department'), 'employment_type': values.get('employment_type_code'),
+            'date_posted': date, 'work_arrangement': arrangement,
+            'is_remote': arrangement == 'remote' if arrangement else None,
+            **{key: values.get(key) for key in ('careers_url', 'apply_url', 'company_name', 'country', 'country_code', 'remote', 'hybrid', 'on_site')},
+        })
+        jobs.append(job)
+    return {'jobs': jobs, 'complete': True}
+
+
 def identify(url):
     p = urlsplit(url)
     host = (p.hostname or '').lower()
@@ -108,15 +356,28 @@ def identify(url):
         provider = 'ashby'
         board = f'https://{host}/{tenant}'
         feed = f'https://api.ashbyhq.com/posting-api/job-board/{tenant}'
+    elif host.endswith('.recruitee.com'):
+        try:
+            port = p.port
+        except ValueError:
+            return None
+        if (not _recruitee_host(host) or p.scheme not in {'http', 'https'} or p.username or p.password
+                or port not in (None, 443) or re.search(r'[\s\x00-\x1f\x7f\\]', url)
+                or not (re.fullmatch(r'/(?:l/[a-z]{2}/)?(?:o/[a-z0-9][a-z0-9-]*/?)?', p.path or '/')
+                        or (p.path == '/api/feeds/offers.xml' and not p.query and not p.fragment))):
+            return None
+        provider, tenant, board = 'recruitee', host.split('.')[0], f'https://{host}'
+        feed = board + '/api/feeds/offers.xml'
     else:
         # Discovery-only support: do not invent undocumented APIs.
         suffixes = {'myworkdayjobs.com':'workday', 'softgarden.io':'softgarden',
-                    'softgarden.de':'softgarden', 'recruitee.com':'recruitee',
+                    'softgarden.de':'softgarden',
                     'helixjobs.com':'helix', 'onlyfy.jobs':'onlyfy',
                     'successfactors.eu':'successfactors', 'successfactors.com':'successfactors'}
         for suffix, name in suffixes.items():
             if host.endswith('.' + suffix):
                 if host.split('.')[0] in {'api','app','static','cdn','www','assets'}: continue
+                if name == 'softgarden' and host in {'jhfiles.s3.softgarden.de', 'jobdb.softgarden.de'}: continue
                 if name == 'softgarden' and (host.split('.')[0] == 'certificate' or re.search(r'/(?:imprint|impressum|data-security|privacy|datenschutz|agb|terms?)(?:/|$)',p.path,re.I)): continue
                 if name == 'workday' and (not re.fullmatch(r'[\w-]+\.wd[0-9]+\.myworkdayjobs\.com', host) or p.path.startswith('/wday/') or not p.path.strip('/')): continue
                 if name == 'successfactors':
@@ -127,6 +388,15 @@ def identify(url):
                 provider, board = name, url
                 break
         if host in {'jobs.smartrecruiters.com', 'careers.smartrecruiters.com'} and tenant:
+            utilities = {'cdn-cgi', 'external-referrals', 'oneclick-ui'}
+            if tenant.casefold() in utilities:
+                if (tenant.casefold() not in {'external-referrals', 'oneclick-ui'} or len(parts) != 5
+                        or parts[1] != 'company' or parts[3] != 'publication'
+                        or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', parts[2])
+                        or parts[2].casefold() in utilities
+                        or not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', parts[4])):
+                    return None
+                tenant = parts[2]
             provider, board = 'smartrecruiters', f'https://careers.smartrecruiters.com/{tenant}'
     if not provider:
         return None
@@ -138,6 +408,8 @@ def parse_feed(provider, body, board_url):
     jobs = []
     complete = True
     try:
+        if provider == 'recruitee':
+            return _parse_recruitee(body, board_url)
         if provider == 'html_jobs':
             from .html_jobs import extract_html_jobs
             parsed = extract_html_jobs(body, board_url)

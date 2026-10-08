@@ -14,6 +14,7 @@ no historical releases have been reconstructed.
 
 - Per-profile application tracking with New, Open, Not interested, Waiting for reply, Interview, Rejected, and Accepted statuses, plus a status-filtered application overview that retains closed and expired postings. PostgreSQL deployments apply the new job application migration during startup.
 - Mobile result cards, bottom navigation, compact status filters, and larger touch controls for applications, job browsing, profiles, and search areas.
+- Documented public Recruitee XML feeds with employer provenance checks and safeguards for active legacy HTML jobs.
 - Missing company homepages can be discovered with Tavily basic search, bounded query fallbacks, and current-owner verification; regional search hints support listings without city or postcode.
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
@@ -26,6 +27,9 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Lever discovery and refresh enumerate bounded posting pages while preserving incomplete-scan lifecycle protection.
+- Shared ATS utility URLs no longer become false employer tenants.
+- Sparse applicant sections gain bounded detail recovery; explicit one-of scripting lists retain verification uncertainty instead of separate mandatory skills.
 - Scheduled job refreshes revisit saved feeds and career pages instead of repeating company and homepage discovery; failed fetches retry the saved source with backoff.
 
 - Feed scans import the SQLAlchemy relationship loader used to load existing job locations.

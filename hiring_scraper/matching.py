@@ -15,7 +15,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v12'
+VERSION = 'rules-v14'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -94,6 +94,8 @@ ROLE_GROUPS = tuple(tuple(group) for group in ROLE_GROUPS)
 OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschenswert|bevorzugt|von vorteil|a plus|not required|nicht erforderlich', re.I)
 REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|voraussetzung|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
 NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
+QUANTIFIED_SCRIPTING_LIST = re.compile(
+    r'\bmindestens eine dieser Skriptsprachen\s*\(([^()\n]{1,300})\)', re.I)
 CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
 LANGUAGE_PATTERNS = {
     'German': re.compile(r'\b(?:german|deutsch(?:kenntnisse)?)\b', re.I),
@@ -178,8 +180,21 @@ def _sentences(text: str) -> list[str]:
     return [part.strip() for part in re.split(r'(?<=[.!?])\s+|\s*[;\n]\s*', text) if part.strip()]
 
 
+def _quantified_scripting_lists(text: str):
+    return [match for match in QUANTIFIED_SCRIPTING_LIST.finditer(text)
+            if re.search(r',|\b(?:and|und|or|oder)\b', match.group(1), re.I)]
+
+
 def _requirement_clauses(sentence: str) -> list[str]:
     """Keep shared wording together, but separate independently qualified clauses."""
+    # Keep this measured one-of list intact: its commas cannot create independent
+    # requirements or detach an optional qualifier from the end of the clause.
+    protected = {}
+    for index, match in reversed(list(enumerate(_quantified_scripting_lists(sentence)))):
+        marker = f'\ue000{index}\ue001'
+        protected[marker] = match.group(1)
+        sentence = sentence[:match.start(1)] + marker + sentence[match.end(1):]
+
     def split_scoped(text: str, separator: str) -> list[str]:
         parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
         if not parts:
@@ -210,7 +225,10 @@ def _requirement_clauses(sentence: str) -> list[str]:
     # qualifier must stay with the whole list when deciding the outer scope.
     barriers = re.split(r'\b(?:but|aber|jedoch)\b|\s+[-–]\s+(?=(?:gute|good|fluent|fließende)\s+(?:englisch|english|deutsch|german))', sentence, flags=re.I)
     clauses = [clause for barrier in barriers for clause in split_scoped(barrier, r',\s*')]
-    return [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
+    parts = [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
+    for marker, original in protected.items():
+        parts = [part.replace(marker, original) for part in parts]
+    return parts
 
 
 def _required_context(sentence: str, *, explicit: bool = False) -> bool:
@@ -219,11 +237,12 @@ def _required_context(sentence: str, *, explicit: bool = False) -> bool:
     return explicit or bool(REQUIREMENT.search(sentence))
 
 
-def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[dict], list[dict]]:
+def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[dict], list[dict], list[dict]]:
     """Extract stated requirements from the sentence containing the evidence."""
     experience = None
     languages = []
     qualifications = []
+    deferred = []
     seen_qualifications = set()
     experience_pattern = re.compile(
         r'(?:(\d{1,2})\s*[–—-]\s*\d{1,2}\s*(?:years?|jahren?)\s+(?:of\s+)?[\w -]{0,55}?(?:experience|erfahrung)|'
@@ -296,8 +315,20 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 if _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(APPLICANT_CUE.search(clause))) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I))):
                     rows = qualification_rows(clause, source)
                     professional = bool(TENURE.search(clause))
+                    alternative_lists = _quantified_scripting_lists(clause)
+                    alternative_spans = [match.span(1) for match in alternative_lists]
+                    for match in alternative_lists:
+                        if scope in {'neutral', 'requirements'} and not any(
+                                row['value'].casefold() == match.group(1).casefold() for row in deferred):
+                            deferred.append({**_evidence(match.group(1), clause, match, source),
+                                             'kind': 'scripting_alternative'})
                     for name, aliases in SKILLS.items():
-                        found = next((hit for alias in aliases if (hit := _pattern(alias).search(clause))), None)
+                        # General skill evidence still uses the original text. Defer
+                        # hard list-member interpretation when some alternatives
+                        # (such as bash/Perl) are outside our skill vocabulary.
+                        found = next((hit for alias in aliases for hit in _pattern(alias).finditer(clause)
+                                      if not any(start <= hit.start() and hit.end() <= end
+                                                 for start, end in alternative_spans)), None)
                         if found and (professional or not experience_pattern.search(clause)):
                             rows.append({**_evidence(name, clause, found, source),
                                          'kind': 'professional_experience' if professional else 'skill'})
@@ -308,7 +339,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         if key not in seen_qualifications:
                             qualifications.append(row)
                             seen_qualifications.add(key)
-    return experience, languages, qualifications
+    return experience, languages, qualifications, deferred
 
 
 def enrich_job(job: dict) -> dict:
@@ -352,7 +383,7 @@ def enrich_job(job: dict) -> dict:
     level = seniority_levels[0] if seniority_levels else None
     if level:
         seniority = {'value': level, 'source': 'seniority' if job.get('seniority') else 'title', 'evidence': level_text[:180]}
-    experience, languages, requirements = _job_requirements(texts)
+    experience, languages, requirements, deferred = _job_requirements(texts)
     for domain in DOMAIN.finditer(texts[0][1]):
         if not any(_pattern(domain.group()).search(row['evidence']) for row in requirements):
             requirements.append({'kind': 'title_domain', 'value': domain.group(),
@@ -391,6 +422,7 @@ def enrich_job(job: dict) -> dict:
     return {'version': VERSION, 'source_hash': source_hash, 'skills': skills, 'seniority': seniority,
             'seniority_levels': seniority_levels,
             'experience_years': experience, 'languages': languages, 'requirements': requirements,
+            'deferred_requirements': deferred,
             'employment_type': employment,
             'employment_types': employment_types,
             'work_style': arrangement, 'description_chars': len(description),
@@ -519,6 +551,17 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     evidence_by_skill = {normalize_skills([name])[0].casefold(): row
                          for name, row in (profile.get('skill_evidence') or {}).items()}
     profile_skill_names = {skill.casefold() for skill in profile_skills}
+    for requirement in enriched.get('deferred_requirements', []):
+        # Preserve the unresolved condition without making it a hard gap or
+        # affecting scores. Only explicitly named profile evidence can clear it.
+        members = normalize_skills(re.split(r',|\b(?:and|und|or|oder)\b', requirement['value'], flags=re.I))
+        satisfied = any(member.casefold() in profile_skill_names or
+                        str(evidence_by_skill.get(member.casefold(), {}).get('context', '')).casefold() == 'professional'
+                        for member in members)
+        if not satisfied:
+            unknown = 'Verify scripting alternative: ' + requirement['evidence']
+            if unknown not in unknowns:
+                unknowns.append(unknown)
     for requirement in enriched.get('requirements', []):
         value = str(requirement['value'])
         kind = requirement.get('kind', 'qualification')
@@ -731,7 +774,12 @@ def _html_detail_updates(job: dict, body: bytes | str, page_url: str) -> dict:
             continue
         text = text[start:]
         text = re.split(r'other jobs|related jobs|weitere stellen|nicht der richtige job|das ist nicht die passende stelle', text, maxsplit=1, flags=re.I)[0].strip()
-        if len(text) < 350 or not re.search(r'your (?:responsibilities|profile|tasks)|responsibilities|qualifications|dein(?:e)? (?:profil|aufgaben)|ihr(?:e)? (?:profil|aufgaben)|anforderungen',text,re.I):
+        conventional_sections = re.search(r'your (?:responsibilities|profile|tasks)|responsibilities|qualifications|dein(?:e)? (?:profil|aufgaben)|ihr(?:e)? (?:profil|aufgaben)|anforderungen',text,re.I)
+        paired_applicant_sections = (
+            re.search(r'\bfolgende Aufgaben Dich begeistern\b', text, re.I) and
+            re.search(r'\bfolgende Voraussetzungen mitbringst\b', text, re.I)
+        )
+        if len(text) < 350 or not (conventional_sections or paired_applicant_sections):
             continue
         verified = (job.get('raw_metadata') or {}).get('description_method') in {'verified_detail_jsonld','verified_detail_html'}
         if not verified and len(text) <= len(plain_text(job.get('description'))):

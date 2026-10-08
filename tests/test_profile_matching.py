@@ -3,6 +3,86 @@ import importlib.util
 import unittest
 
 
+class PairedApplicantDetailTests(unittest.TestCase):
+    duties = '<h3>Du passt zu uns, wenn folgende Aufgaben Dich begeistern:</h3>'
+    qualifications = '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
+    role_text = ('<ul><li>Wir betreiben Linux Server und entwickeln Python Werkzeuge.</li>'
+                 '<li>Wir betreuen die Infrastruktur unserer Kunden und dokumentieren '
+                 'die technische Umsetzung der vereinbarten Lösungen.</li></ul>')
+    applicant_text = ('<ul><li>Du verfügst über Erfahrung mit PostgreSQL.</li>'
+                      '<li>Python Kenntnisse sind erforderlich.</li>'
+                      '<li>Ruby Kenntnisse sind von Vorteil.</li></ul>')
+
+    def body(self, title='Senior LINUX Administrator (all)', scope='main'):
+        return (f'<{scope}><h1>{title}</h1>' + self.duties + self.role_text +
+                self.qualifications + self.applicant_text + f'</{scope}>')
+
+    def updates(self, body, title='Senior LINUX Administrator (all)',
+                url='https://example.org/jobs/linux-administrator'):
+        from hiring_scraper.matching import detail_updates
+        return detail_updates({'title': title, 'url': url, 'description': 'Linux',
+                               'raw_metadata': {'source_page_url': 'https://example.org/jobs'}},
+                              body, url)
+
+    def test_paired_applicant_sections_recover_both_seniority_levels_and_keep_bullets(self):
+        for title, scope in [('Senior LINUX Administrator (all)', 'main'),
+                             ('Junior LINUX Administrator (all)', 'article')]:
+            with self.subTest(title=title, scope=scope):
+                result = self.updates(self.body(title, scope), title)
+                self.assertTrue(result, 'Both applicant cues should verify a matching role scope')
+                description = result['description']
+                self.assertIn('Du verfügst über Erfahrung mit PostgreSQL.', description.splitlines())
+                self.assertIn('Python Kenntnisse sind erforderlich.', description.splitlines())
+                self.assertIn('Ruby Kenntnisse sind von Vorteil.', description.splitlines())
+                raw = result['raw_metadata']
+                self.assertEqual(raw['description_method'], 'verified_detail_html')
+                self.assertEqual(raw['description_evidence_url'], 'https://example.org/jobs/linux-administrator')
+                self.assertEqual(raw['detail_listing_description'], 'Linux')
+                self.assertEqual(raw['source_page_url'], 'https://example.org/jobs')
+
+    def test_single_or_generic_cues_do_not_verify_boilerplate(self):
+        for body in [self.body().replace(self.duties, ''),
+                     self.body().replace(self.qualifications, ''),
+                     self.body().replace(self.duties, '<h3>Aufgaben</h3>')
+                                .replace(self.qualifications, '<h3>Voraussetzungen</h3>')]:
+            with self.subTest(body=body):
+                self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_keep_role_qualifiers_and_reject_ambiguous_headings(self):
+        for title in ['Junior LINUX Administrator (all)', 'LINUX Administrator (all)',
+                      'Senior LINUX Administrator (Backend)']:
+            with self.subTest(title=title):
+                self.assertEqual(self.updates(self.body(), title), {})
+        for extra_heading in ['Senior LINUX Administrator (all)', 'Junior LINUX Administrator (all)']:
+            with self.subTest(extra_heading=extra_heading):
+                body = self.body().replace('</main>', f'<h1>{extra_heading}</h1></main>')
+                self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_require_visible_heading_and_same_visible_narrative_scope(self):
+        self.assertEqual(self.updates(self.body().replace('<h1>', '<h1 hidden>')), {})
+        self.assertEqual(self.updates(self.body().replace('<main>', '<main hidden>')), {})
+        for container in ['nav', 'footer', 'aside', 'form', 'div hidden']:
+            with self.subTest(container=container):
+                wrapped = f'<{container}>{self.qualifications}</{container.split()[0]}>'
+                self.assertEqual(self.updates(self.body().replace(self.qualifications, wrapped)), {})
+        body = self.body().replace(self.qualifications, '') + self.qualifications
+        self.assertEqual(self.updates(body), {})
+
+    def test_paired_sections_reject_overview_and_fragment_urls(self):
+        for url in ['https://example.org/jobs', 'https://example.org/jobs#linux',
+                    'https://example.org/jobs/linux-administrator#linux']:
+            with self.subTest(url=url):
+                self.assertEqual(self.updates(self.body(), url=url), {})
+
+    def test_other_jobs_terminate_paired_role_and_cannot_supply_a_missing_cue(self):
+        body = self.body().replace('</main>', '<h2>Other jobs</h2><p>Java accountants</p></main>')
+        result = self.updates(body)
+        self.assertTrue(result)
+        self.assertNotIn('Java', result['description'])
+        body = self.body().replace(self.qualifications, '<h2>Other jobs</h2>' + self.qualifications)
+        self.assertEqual(self.updates(body), {})
+
+
 class ProfileMatchingTests(unittest.TestCase):
     def engine(self):
         self.assertIsNotNone(importlib.util.find_spec('hiring_scraper.matching'),
@@ -177,3 +257,102 @@ class ProfileMatchingTests(unittest.TestCase):
         self.assertTrue(result['uncertain'])
         self.assertIn('Profile experience not provided',result['unknowns'])
         self.assertIn('Profile languages not provided',result['unknowns'])
+
+
+class QuantifiedScriptingRequirementTests(unittest.TestCase):
+    clause = ('Mindestens eine dieser Skriptsprachen '
+              '(bash, Python, Perl oder Ruby) beherrschst Du aus dem FF')
+
+    def test_quantified_scripting_list_preserves_skill_evidence_without_independent_hard_rows(self):
+        from hiring_scraper.matching import enrich_job
+        for clause in [self.clause, self.clause.upper()]:
+            with self.subTest(clause=clause):
+                signals = enrich_job({'title': 'Administrator', 'description': clause})
+                self.assertEqual(signals['requirements'], [])
+                self.assertEqual(len(signals.get('deferred_requirements', [])), 1)
+                deferred = signals['deferred_requirements'][0]
+                self.assertEqual(deferred['source'], 'description')
+                self.assertIn(clause, deferred['evidence'])
+                self.assertEqual(deferred['value'].casefold(), 'bash, python, perl oder ruby')
+                self.assertEqual({row['name'] for row in signals['skills']}, {'Python', 'Ruby'})
+                for skill in signals['skills']:
+                    self.assertEqual(skill['source'], 'description')
+                    self.assertIn(skill['value'].casefold(), skill['evidence'].casefold())
+
+    def test_independent_required_skills_survive_before_after_and_inside_the_same_sentence(self):
+        from hiring_scraper.matching import enrich_job
+        for description in [self.clause + '\nPython ist erforderlich.',
+                            'Python ist erforderlich.\n' + self.clause,
+                            self.clause + ' und Python ist erforderlich.',
+                            'Python ist erforderlich und ' + self.clause]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual({row['value'] for row in signals['requirements']}, {'Python'})
+
+    def test_unquantified_and_or_and_unrelated_lists_keep_existing_required_rows(self):
+        from hiring_scraper.matching import enrich_job
+        for description, expected in [
+            ('Python und Ruby sind erforderlich.', {'Python', 'Ruby'}),
+            ('Python oder Ruby ist erforderlich.', {'Python', 'Ruby'}),
+            ('Mindestens eine dieser Aufgaben (Python, Ruby) übernimmst Du.', {'Python', 'Ruby'}),
+            ('Mindestens eine dieser Skriptsprachen (Python) beherrschst Du.', {'Python'}),
+            ('Dein Profil:\n' + self.clause + '\nPostgreSQL Kenntnisse erforderlich.', {'PostgreSQL'}),
+        ]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual({row['value'] for row in signals['requirements']}, expected)
+
+    def test_optional_and_duties_lists_do_not_invent_required_list_members(self):
+        from hiring_scraper.matching import enrich_job
+        for description in [self.clause + ' ist von Vorteil.',
+                            'Deine Aufgaben:\n' + self.clause,
+                            'Wir bieten:\n' + self.clause]:
+            with self.subTest(description=description):
+                signals = enrich_job({'title': 'Administrator', 'description': description})
+                self.assertEqual(signals['requirements'], [])
+                self.assertEqual(signals.get('deferred_requirements', []), [])
+
+    def test_hydrated_alternative_does_not_create_false_skill_gaps_for_qualified_or_unknown_profiles(self):
+        from hiring_scraper.matching import detail_updates, enrich_job, match_job
+        url = 'https://example.org/jobs/linux-administrator'
+        job = {'title': 'Senior LINUX Administrator (all)', 'url': url}
+        body = ('<main><h1>Senior LINUX Administrator (all)</h1>'
+                '<h3>Wenn folgende Aufgaben Dich begeistern:</h3>'
+                '<p>Wir betreiben Linux Server und dokumentieren technische Lösungen '
+                'für unsere Kunden mit zuverlässigen Abläufen und sorgfältiger Überwachung.</p>'
+                '<h3>Wenn Du folgende Voraussetzungen mitbringst:</h3>'
+                '<ul><li>' + self.clause + '</li></ul></main>')
+        hydrated = {**job, **detail_updates(job, body, url)}
+        self.assertIn(self.clause, hydrated['description'])
+        hydrated['enrichment'] = enrich_job(hydrated)
+        for alternative in ['Python', 'Ruby', 'bash', None]:
+            with self.subTest(alternative=alternative):
+                profile = {'skills': ['Linux'] + ([alternative] if alternative else []),
+                           'desired_roles': [job['title']], 'experience_years': 10}
+                result = match_job(hydrated, profile)
+                self.assertEqual(result['requirement_gaps'], [])
+                self.assertEqual(result['conflicts'], [])
+                self.assertEqual(result['uncertain'], alternative is None)
+                self.assertEqual(len(result['unknowns']), int(alternative is None))
+                if alternative is None:
+                    self.assertIn(self.clause, result['unknowns'][0])
+                if alternative in {'bash', None}:
+                    self.assertIn('Python', result['missing_skills'])
+                    self.assertIn('Ruby', result['missing_skills'])
+
+    def test_deferred_alternative_needs_explicit_skill_or_professional_evidence(self):
+        from hiring_scraper.matching import match_job
+        job = {'title': 'Administrator', 'description': self.clause + '\n' + 'Linux administration. ' * 20}
+        for evidence, skills, desired_roles, uncertain in [
+            ({'Perl': {'context': 'professional'}}, ['Linux'], [], False),
+            ({'Perl': {'context': 'incidental'}}, ['Linux'], [], True),
+            ({'Python': {'context': 'academic'}}, ['Linux'], [], True),
+            ({}, ['Linux', 'python'], [], False),
+            ({}, ['Linux', 'Python tooling'], ['Python Administrator'], True),
+        ]:
+            with self.subTest(evidence=evidence, skills=skills, roles=desired_roles):
+                result = match_job(job, {'skills': skills, 'skill_evidence': evidence,
+                                         'desired_roles': desired_roles, 'experience_years': 10})
+                self.assertEqual(result['uncertain'], uncertain)
+                self.assertEqual(result['requirement_gaps'], [])
+                self.assertEqual(result['conflicts'], [])
