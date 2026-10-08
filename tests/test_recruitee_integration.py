@@ -11,7 +11,9 @@ from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker, worker
 from hiring_scraper.app.api import get_company
-from hiring_scraper.app.models import Base, Company, DiscoveryRun, Job, JobFeed, utcnow
+from hiring_scraper.app.discovery_jobs import create_discovery_job
+from hiring_scraper.app.models import (Base, Company, ConfiguredLocation, DiscoveryJob,
+                                       DiscoveryJobCompany, DiscoveryRun, Job, JobFeed, ScanRun, utcnow)
 from hiring_scraper.http import Client
 
 
@@ -57,6 +59,7 @@ class RecruiteeIntegrationTests(unittest.TestCase):
             item.start()
         with self.factory.begin() as session:
             company = Company(source='test', source_id='1', name='Example GmbH', website_url=HOME,
+                              latitude=49.0, longitude=8.4,
                               career_status='provider_detected', career_url=BOARD + '/',
                               next_discovery_at=utcnow() - timedelta(minutes=1))
             session.add(company)
@@ -77,6 +80,46 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         self.assertIsNotNone(claim)
         with patch.object(discovery_worker, 'Client', return_value=self.client('discovery')):
             self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+
+    def manually_rediscover(self, expected_jobs):
+        # Saved feeds belong to the feed worker; an explicit campaign can revisit the homepage.
+        with self.factory() as session:
+            run_count = len(session.scalars(select(DiscoveryRun)).all())
+        self.assertIsNone(discovery_worker._claim_due_company())
+        with self.factory.begin() as session:
+            self.assertEqual(len(session.scalars(select(DiscoveryRun)).all()), run_count)
+            campaign = create_discovery_job(session, label='Example manual rediscovery',
+                                            latitude=49.0, longitude=8.4, radius_km=5,
+                                            stage='career_page_discovery')
+            campaign.candidate_total = 1
+            session.flush()
+            item = DiscoveryJobCompany(discovery_job_id=campaign.id, company_id=self.company_id,
+                                       status='queued')
+            session.add(item)
+            session.flush()
+            campaign_id, item_id = campaign.id, item.id
+        claim = discovery_worker._claim_campaign_company()
+        self.assertIsNotNone(claim)
+        self.assertEqual((claim[0], claim[2], claim[3]), (self.company_id, item_id, campaign_id))
+        with patch.object(discovery_worker, 'Client', return_value=self.client('manual-discovery')):
+            self.assertTrue(discovery_worker._process_claimed_company(claim))
+        with self.factory() as session:
+            campaign = session.get(DiscoveryJob, campaign_id)
+            item = session.get(DiscoveryJobCompany, item_id)
+            run = session.get(DiscoveryRun, claim[1])
+            self.assertEqual((campaign.kind, campaign.status, campaign.processed_count,
+                              campaign.succeeded_count, campaign.failed_count, campaign.jobs_found),
+                             ('manual', 'completed', 1, 1, 0, expected_jobs))
+            self.assertEqual((item.status, item.discovery_run_id, item.jobs_found),
+                             ('completed', run.id, expected_jobs))
+            self.assertEqual((run.status, run.jobs_found), ('jobs_feed_found', expected_jobs))
+            self.assertIsNotNone(campaign.finished_at)
+            self.assertIsNotNone(item.finished_at)
+            self.assertIsNotNone(run.finished_at)
+            self.assertIsNone(session.get(Company, self.company_id).discovery_lease_until)
+            evidence = run.evidence['boards'][0]
+            self.assertEqual((evidence['discovered_on'], evidence['evidence_url'], evidence['feed_url']),
+                             (HOME, BOARD + '/', FEED))
 
     def test_normal_rediscovery_revisits_detection_only_company_and_preserves_provenance(self):
         self.rediscover()
@@ -131,7 +174,8 @@ class RecruiteeIntegrationTests(unittest.TestCase):
     def legacy_html_jobs(self, active=True):
         with self.factory.begin() as session:
             legacy = JobFeed(company_id=self.company_id, provider='html_jobs', board_url=HOME + 'jobs/',
-                             feed_url=HOME + 'jobs/', status='parsed', job_count=7)
+                             feed_url=HOME + 'jobs/', status='parsed', job_count=7,
+                             attempt_count=1, next_scan_at=utcnow() + timedelta(hours=6))
             legacy.jobs = [Job(external_id='html-' + str(i), title='Existing role ' + str(i),
                                url=HOME + 'jobs/role-' + str(i), is_active=active,
                                missing_complete_scans=1) for i in range(7)]
@@ -141,7 +185,7 @@ class RecruiteeIntegrationTests(unittest.TestCase):
 
     def test_new_recruitee_ingestion_is_deferred_when_active_html_jobs_already_exist(self):
         legacy_id = self.legacy_html_jobs()
-        self.rediscover()
+        self.manually_rediscover(expected_jobs=0)
         with self.factory() as session:
             self.assertEqual(len(session.scalars(select(JobFeed)).all()), 1)
             self.assertEqual(len(session.scalars(select(Job)).all()), 7)
@@ -151,19 +195,58 @@ class RecruiteeIntegrationTests(unittest.TestCase):
             self.assertEqual(session.scalars(select(DiscoveryRun)).one().jobs_found, 0)
 
     def test_inactive_html_history_does_not_block_new_supported_feed(self):
-        self.legacy_html_jobs(active=False)
-        self.rediscover()
+        legacy_id = self.legacy_html_jobs(active=False)
+        self.manually_rediscover(expected_jobs=3)
         with self.factory() as session:
             self.assertEqual(session.scalars(select(JobFeed).where(JobFeed.feed_url == FEED)).one().job_count, 3)
             self.assertEqual(get_company(self.company_id, session)['active_job_count'], 3)
+            self.assertEqual(len(session.scalars(select(JobFeed)).all()), 2)
+            legacy = session.get(JobFeed, legacy_id)
+            self.assertEqual(legacy.job_count, 7)
+            self.assertTrue(all(not job.is_active and job.missing_complete_scans == 1 for job in legacy.jobs))
 
     def test_existing_supported_recruitee_feed_refreshes_with_active_html_history(self):
-        self.legacy_html_jobs()
+        legacy_id = self.legacy_html_jobs()
         with self.factory.begin() as session:
-            session.add(JobFeed(company_id=self.company_id, provider='recruitee', tenant='example', board_url=BOARD,
-                                feed_url=FEED, status='parsed', job_count=0))
-        self.rediscover()
+            supported = JobFeed(company_id=self.company_id, provider='recruitee', tenant='example',
+                                board_url=BOARD, feed_url=FEED, status='parsed', job_count=0)
+            session.add(supported)
+            session.add(ConfiguredLocation(label='Example recurring refresh', latitude=49.0,
+                                           longitude=8.4, radius_km=5, interval_days=1,
+                                           enabled=True, next_run_at=utcnow() - timedelta(minutes=1)))
+            session.flush()
+            feed_id = supported.id
+            legacy_due = session.get(JobFeed, legacy_id).next_scan_at
+        self.assertIsNone(discovery_worker._claim_due_company())
+        self.assertEqual(discovery_worker.schedule_due_locations(), 1)
         with self.factory() as session:
-            self.assertEqual(session.scalars(select(JobFeed).where(JobFeed.feed_url == FEED)).one().job_count, 3)
+            recurring = session.scalars(select(DiscoveryJob)).one()
+            self.assertEqual((recurring.kind, recurring.status, recurring.stage),
+                             ('recurring', 'completed', 'complete'))
+            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+            self.assertIsNotNone(session.get(JobFeed, feed_id).next_scan_at)
+            self.assertEqual(session.get(JobFeed, legacy_id).next_scan_at, legacy_due)
+        with patch.object(worker, 'Client', return_value=self.client('recurring-feed-refresh')):
+            self.assertTrue(worker.scan_once())
+        with self.factory() as session:
+            scan = session.scalars(select(ScanRun)).one()
+            self.assertEqual((scan.feed_id, scan.status, scan.item_count), (feed_id, 'parsed', 3))
+            self.assertIsNotNone(scan.finished_at)
+            original_jobs = {job.external_id: (job.id, job.first_seen_at)
+                             for job in session.get(JobFeed, feed_id).jobs}
+        self.manually_rediscover(expected_jobs=3)
+        with self.factory() as session:
+            supported = session.get(JobFeed, feed_id)
+            self.assertEqual((supported.status, supported.job_count), ('parsed', 3))
+            self.assertEqual({job.external_id: (job.id, job.first_seen_at) for job in supported.jobs}, original_jobs)
+            engineer = next(job for job in supported.jobs if job.external_id == '2732449')
+            self.assertEqual((engineer.feed_id, engineer.url), (feed_id, BOARD + '/o/engineer'))
+            self.assertEqual(engineer.raw_metadata['careers_url'], HOME + 'o/engineer')
+            self.assertTrue(all(job.is_active and job.missing_complete_scans == 0 and job.closed_at is None
+                                for job in supported.jobs))
+            legacy = session.get(JobFeed, legacy_id)
+            self.assertEqual(legacy.job_count, 7)
+            self.assertTrue(all(job.is_active and job.missing_complete_scans == 1 for job in legacy.jobs))
             self.assertEqual(len(session.scalars(select(JobFeed)).all()), 2)
+            self.assertEqual(len(session.scalars(select(Job)).all()), 10)
             self.assertEqual(get_company(self.company_id, session)['active_job_count'], 10)
