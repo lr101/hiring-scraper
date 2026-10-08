@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
-    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobFeed, JobLocation,
+    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobApplication, JobFeed, JobLocation,
     LocationCache, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
@@ -31,6 +31,7 @@ from hiring_scraper.app.discovery_jobs import (
 from hiring_scraper.geography import haversine_m, normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
+from hiring_scraper.app.applications import APPLICATION_STATUSES, ApplicationRequest, ApplicationStatus, application_json
 from hiring_scraper.matching import match_job
 from hiring_scraper.app.board_scope import (
     deduplicate_jobs, expiry, geographic_scope, remote_countries, vacancy_keys,
@@ -610,9 +611,67 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         filters.append(Job.work_arrangement == work_style)
     # One evidence policy for both database engines, applied before any pagination.
     rows = session.scalars(statement.where(*filters).order_by(Job.id.asc())).unique().all()
-    return _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
+    page = _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
                       profile, min_match_score, include_unknown, place,
                       country if resolved['profile_area'] or isinstance(country_code, str) else None)
+    if profile is not None:
+        applications = {row.job_id: application_json(row) for row in session.scalars(
+            select(JobApplication).where(JobApplication.profile_id == profile.id,
+                                        JobApplication.job_id.in_([item['id'] for item in page['items']])))}
+        for item in page['items']:
+            item['application'] = applications.get(item['id'])
+    return page
+
+
+@app.put('/api/v1/profiles/{profile_id}/applications/{job_id}')
+def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
+                        session: Session = Depends(get_session)) -> dict[str, Any]:
+    require_profile(profile_id, session)
+    if session.get(Job, job_id) is None:
+        raise HTTPException(status_code=404, detail='Job not found')
+    # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
+    if session.get_bind().dialect.name == 'sqlite':
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
+    now = utcnow()
+    statement = insert(JobApplication).values(profile_id=profile_id, job_id=job_id,
+        status=request.status, created_at=now, updated_at=now).on_conflict_do_update(
+            index_elements=['profile_id', 'job_id'], set_={'status': request.status, 'updated_at': now})
+    session.execute(statement)
+    session.commit()
+    application = session.scalar(select(JobApplication).where(
+        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)
+        .execution_options(populate_existing=True))
+    return application_json(application)
+
+
+@app.get('/api/v1/profiles/{profile_id}/applications')
+def list_job_applications(profile_id: int,
+                          status: ApplicationStatus | None = None,
+                          offset: Annotated[int, Query(ge=0)] = 0,
+                          limit: Annotated[int, Query(ge=1, le=100)] = 40,
+                          session: Session = Depends(get_session)) -> dict[str, Any]:
+    require_profile(profile_id, session)
+    counts = dict.fromkeys(APPLICATION_STATUSES, 0)
+    counts.update(dict(session.execute(select(JobApplication.status, func.count()).where(
+        JobApplication.profile_id == profile_id).group_by(JobApplication.status)).all()))
+    statement = select(JobApplication).where(JobApplication.profile_id == profile_id)
+    if status is not None:
+        statement = statement.where(JobApplication.status == status)
+    applications = session.scalars(statement.options(
+        joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
+        joinedload(JobApplication.job).selectinload(Job.locations))
+        .order_by(JobApplication.updated_at.desc(), JobApplication.id.desc())
+        .offset(offset).limit(limit)).unique().all()
+    items = []
+    for application in applications:
+        item = _job_json(application.job)
+        item['application'] = application_json(application)
+        items.append(item)
+    return {'profile_id': profile_id, 'items': items, 'counts': counts,
+            'total': counts[status] if status is not None else sum(counts.values()),
+            'offset': offset, 'limit': limit}
 
 
 @app.get("/api/v1/jobs/{job_id}")
@@ -637,6 +696,9 @@ def get_job(job_id: int, session: Session = Depends(get_session),
                                  resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None) if resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
         data['profile_match'] = _profile_match(job, profile, scope)
+        application = session.scalar(select(JobApplication).where(
+            JobApplication.profile_id == profile.id, JobApplication.job_id == job.id))
+        data['application'] = application_json(application) if application else None
     return data
 
 

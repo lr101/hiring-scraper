@@ -95,6 +95,7 @@ export default function ProfilesPage() {
       <section className="detail-panel"><h2>Saved profiles</h2>{loading ? <p>Loading profiles…</p> : profiles.length ? profiles.map(profile =>
         <article className="saved-profile" key={profile.id}><h3>{profile.name}</h3><p>{profile.summary || profile.skills.join(', ') || 'No skills entered'}</p><p className="muted">{profile.search_area ? `${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km + eligible remote roles` : 'Choose an area on the board'} · {Object.entries(profile.language_levels ?? {}).map(([language, level]) => `${language} ${level}`).join(' · ')}</p>
           <div className="detail-links"><a className="page-link" href={profileBoardLink(profile)}>Find matching jobs →</a>
+            <a className="page-link" href={`/applications?profile_id=${profile.id}`}>My applications →</a>
             <button type="button" disabled={busy} onClick={() => edit(profile)}>Edit</button>
             <button type="button" disabled={busy} onClick={() => void remove(profile.id!)}>Delete profile</button></div></article>) : <p className="muted">Create your first profile to see which jobs fit.</p>}
         <button type="button" disabled={busy} onClick={() => edit(empty())}>Create another profile</button>
