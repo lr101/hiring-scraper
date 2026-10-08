@@ -1,0 +1,38 @@
+{
+  "source": "Manually recorded web search leads, 2026-10-08; not Brave API responses",
+  "results": {
+    "node/4726157504": [
+      {
+        "url": "https://www.mosaik-digital-network.de/"
+      }
+    ],
+    "node/2392730442": [
+      {
+        "url": "https://consultive.net/"
+      },
+      {
+        "url": "https://consultive.ch/"
+      }
+    ],
+    "node/7514369649": [
+      {
+        "url": "https://sme.promatis.com/impressum/"
+      }
+    ],
+    "node/2031854098": [
+      {
+        "url": "https://vi2vi.com/kontakt/"
+      }
+    ],
+    "node/1547914554": [
+      {
+        "url": "https://www.curious-about.xyz/"
+      }
+    ],
+    "node/7514307665": [
+      {
+        "url": "https://www3.orgakom.biz/analyse-beratung"
+      }
+    ]
+  }
+}

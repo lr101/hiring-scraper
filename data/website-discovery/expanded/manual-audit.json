@@ -1,0 +1,326 @@
+{
+  "review_date": "2026-10-08",
+  "scope": "Audit of proposed positive company-homepage associations; unresolved records have no complete ground truth. One reviewer; not a population precision/recall estimate.",
+  "entries": [
+    {
+      "source_id": "node/13159956405",
+      "name": "BGV",
+      "website_url": "https://www.bgv.de",
+      "status": "confirmed",
+      "evidence_url": "https://www.wikidata.org/wiki/Q795911",
+      "note": "Source OSM brand/operator/organization Wikidata relation resolves official P856; organization homepage, not a separate branch site."
+    },
+    {
+      "source_id": "node/4086852009",
+      "name": "LVM",
+      "website_url": "https://www.lvm.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1798429",
+      "note": "Source OSM brand/operator/organization Wikidata relation resolves official P856; organization homepage, not a separate branch site."
+    },
+    {
+      "source_id": "node/9070530368",
+      "name": "Allianz",
+      "website_url": "https://www.allianz.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.wikidata.org/wiki/Q487292",
+      "note": "Source OSM brand/operator/organization Wikidata relation resolves official P856; organization homepage, not a separate branch site."
+    },
+    {
+      "source_id": "node/9369517965",
+      "name": "IG BAU Mitgliederbüro Karlsruhe",
+      "website_url": "https://www.igbau.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.wikidata.org/wiki/Q896472",
+      "note": "Source OSM brand/operator/organization Wikidata relation resolves official P856; organization homepage, not a separate branch site."
+    },
+    {
+      "source_id": "relation/1551481",
+      "name": "Agentur für Arbeit",
+      "website_url": "https://www.arbeitsagentur.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1478016",
+      "note": "Source OSM brand/operator/organization Wikidata relation resolves official P856; organization homepage, not a separate branch site."
+    },
+    {
+      "source_id": "node/4410545199",
+      "name": "Corpoccino",
+      "website_url": "https://www.corpoccino.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.corpoccino.de/unser-team",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "facb6395cbadb03f5c24a9b4821c93406344b930250a51272cea6914c862954c",
+      "capture_checked_at": "2026-10-08T07:20:03.482788+00:00"
+    },
+    {
+      "source_id": "node/4756332032",
+      "name": "Stadt Karlsruhe Stadtkämmerei",
+      "website_url": "https://www.karlsruhe.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "cd8ac22414f78c17bac98fdca119ff2fcaadf46be0aa1cf382a728fb70c7727b",
+      "capture_checked_at": "2026-10-08T07:20:19.317038+00:00"
+    },
+    {
+      "source_id": "node/13665841694",
+      "name": "Espinea",
+      "website_url": "https://www.espinea.org/",
+      "status": "confirmed",
+      "evidence_url": "https://www.espinea.org/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "5cc2807787898ac56b18759d430a54e460892f1d9375be38cdefd082458741a5",
+      "capture_checked_at": "2026-10-08T07:20:19.842254+00:00"
+    },
+    {
+      "source_id": "node/13808007066",
+      "name": "Malerbetrieb Albert Doldt GmbH",
+      "website_url": "https://maler-doldt.de/",
+      "status": "confirmed",
+      "evidence_url": "https://maler-doldt.de/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "91636b354a622e9537d854c166953f08d654c988eb2b6eba66a735439cac0984",
+      "capture_checked_at": "2026-10-08T07:20:32.543155+00:00"
+    },
+    {
+      "source_id": "node/5844471297",
+      "name": "Drobny's Maler- und Stuckateurbetrieb",
+      "website_url": "https://www.maler-drobny.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.maler-drobny.de/impressum.html",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "1ae74a9933da58cb1a4ae296d23f25c36326866e4f662e1006e8f4a9c60f2094",
+      "capture_checked_at": "2026-10-08T07:21:34.566412+00:00"
+    },
+    {
+      "source_id": "node/3620742819",
+      "name": "Grabmale Heinz Schmidt",
+      "website_url": "https://www.grabmale-heinz-schmidt.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.grabmale-heinz-schmidt.de/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "a4cadb4d6afa9d54a45e28f731a235a4c5dad8b852a51648de3d57d689f1f66a",
+      "capture_checked_at": "2026-10-08T07:22:05.247865+00:00"
+    },
+    {
+      "source_id": "node/4841370429",
+      "name": "kr3m. media GmbH",
+      "website_url": "https://kr3m.com/",
+      "status": "confirmed",
+      "evidence_url": "https://kr3m.com/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "e977124c5650a161e592a76fa076dc95b2d7bf2428f6d998a343ae27f3c728b5",
+      "capture_checked_at": "2026-10-08T06:34:11.635065+00:00"
+    },
+    {
+      "source_id": "node/4410545233",
+      "name": "a3architekten",
+      "website_url": "https://a3architekten.com/",
+      "status": "confirmed",
+      "evidence_url": "https://a3architekten.com/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "1e7186a3dfc5f970a4c866722330dffcd9fe7b4993f2b96bd545da0fe77cf3c7",
+      "capture_checked_at": "2026-10-08T06:34:10.804565+00:00"
+    },
+    {
+      "source_id": "node/7277910391",
+      "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+      "website_url": "https://schrifthof.de/",
+      "status": "confirmed",
+      "evidence_url": "https://schrifthof.de/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "f7e408f0911204df0b8437559fbff8b36a149b30588b30bea920243ce277e223",
+      "capture_checked_at": "2026-10-08T06:34:13.067840+00:00"
+    },
+    {
+      "source_id": "node/1547914554",
+      "name": "Curious About",
+      "website_url": "https://curious-about.xyz/",
+      "status": "confirmed",
+      "evidence_url": "https://curious-about.xyz/",
+      "note": "Company-owned page reviewed for source identity; production verifier also requires name, locality/address or source-email-domain evidence. Original diagnostic positives retained from prior audit.",
+      "capture_sha256": "9d94224335bf0364850b7387e6d748215238b84bfd7bd2b06ef2d4dba5318106",
+      "capture_checked_at": "2026-10-08T07:05:51.434747+00:00"
+    },
+    {
+      "source_id": "node/8356609535",
+      "name": "Falc Immobilien",
+      "website_url": "https://www.falcimmo.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+      "note": "FALC-owned branch page lists Pfinztalstraße 59, 76227 Karlsruhe-Durlach; exact source address.",
+      "capture_sha256": "7209939d402bccb8f5c766446bd0d4f911d8f759f11e7543ef1d6b478270a13d",
+      "capture_checked_at": "2026-10-08T07:20:40.076237+00:00"
+    },
+    {
+      "source_id": "node/13978522951",
+      "name": "Stober Metallbau",
+      "website_url": "https://metallbauer.io/",
+      "status": "false_match",
+      "evidence_url": "https://metallbauer.io/2703-stober-u",
+      "note": "metallbauer.io is a directory; imprint operator is Rolland Szalai in Rastatt, not Stober. Generic industry token metallbau matched directory domain.",
+      "capture_sha256": "900b34a0019c785488c1a4f257fd70b140305d34bdfaadedfb7d53f2ad41cdfb",
+      "capture_checked_at": "2026-10-08T07:21:24.418536+00:00"
+    },
+    {
+      "source_id": "node/2031854098",
+      "name": "Vi2vi GmbH",
+      "website_url": "https://vi2vi-systems.com/",
+      "status": "review_needed",
+      "evidence_url": "https://vi2vi-systems.com/impressum",
+      "note": "Historical vi2vi GmbH mentions and Durmersheim footer are mixed with current operator vi2vi Retail Solution GmbH, Dieselstraße 11, Malsch. Source is Vi2vi GmbH, Daimlerstraße 27; related entity does not establish ownership.",
+      "capture_sha256": "c50de6db4954bc07069f31d865cf3d2684159c768728c6077c78c98908ae2fbf",
+      "capture_checked_at": "2026-10-08T07:23:23.322005+00:00"
+    },
+    {
+      "source_id": "node/3489585141",
+      "name": "Rechnungshof",
+      "website_url": "https://rechnungshof.baden-wuerttemberg.de/",
+      "status": "confirmed",
+      "evidence_url": "https://rechnungshof.baden-wuerttemberg.de/kontakt",
+      "note": "Official Rechnungshof Baden-Württemberg contact page lists Karlsruhe and Moltkestraße. Building number differs (source 50, current 80); confirmed organization homepage, not exact current branch location.",
+      "capture_sha256": "140a1c8fbba1d12f16bcb2ed11000f4863c8199d1d91df39e778c4e11b92f676",
+      "capture_checked_at": "2026-10-08T07:24:45.160011+00:00"
+    },
+    {
+      "source_id": "way/28884673",
+      "name": "BKV-Logistik GmbH & Co. KG",
+      "website_url": "https://www.bkv-logistik.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.bkv-logistik.de/impressum",
+      "note": "Imprint explicitly names BKV-Logistik GmbH & Co. KG, Herrenalber Straße 7, 76287 Rheinstetten; exact source legal entity and address.",
+      "capture_sha256": "b34b2f35accc590a975927700babb27717ba724594101b9d2e2d3026f1bdc2c4",
+      "capture_checked_at": "2026-10-08T07:27:24.447723+00:00"
+    },
+    {
+      "source_id": "way/221198012",
+      "name": "Wolfgang Schmitt Elektrotechnik",
+      "website_url": "https://www.wschmitt-elektro.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.wschmitt-elektro.de/",
+      "note": "Own site names Wolfgang Schmitt Elektrotechnik OHG, Am Hasenbiel 18, 76297 Stutensee; source number 18a. Organization identity confirmed, suffix discrepancy retained.",
+      "capture_sha256": "2828012bf8d76384dcd8127e4db0cc0fedf760e2f6fe4e6b490788c634c456d7",
+      "capture_checked_at": "2026-10-08T07:31:08.248860+00:00"
+    },
+    {
+      "source_id": "node/5643610462",
+      "name": "STUMPF OHG Allianz",
+      "website_url": "https://www.stumpf-ohg.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.stumpf-ohg.de/impressum",
+      "note": "Imprint operator STUMPF OHG, Grünhutstr. 6, 76187 Karlsruhe matches source; site includes Allianz partner identity.",
+      "capture_sha256": "d334308cce4944026ca807e0baa283d5e9d84e99a3e0530b521f0534c947de54",
+      "capture_checked_at": "2026-10-08T07:31:11.131032+00:00"
+    },
+    {
+      "source_id": "node/6597572768",
+      "name": "Urich Transporte",
+      "website_url": "http://urich-transporte.de/",
+      "status": "confirmed",
+      "evidence_url": "http://urich-transporte.de/impressum/",
+      "note": "Imprint names Alexander Urich Transporte, Am Storrenacker 1B, 76139 Karlsruhe; exact source company and address.",
+      "capture_sha256": "47ea1e30160c6bcc1cd7765fae42d9b26aa32af64381fd8c0837c06a3fd3f19e",
+      "capture_checked_at": "2026-10-08T07:31:11.687737+00:00"
+    },
+    {
+      "source_id": "way/441438844",
+      "name": "Zimmerei und Holzbau Stengel GmbH",
+      "website_url": "https://www.holzbaustengel.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.holzbaustengel.de/kontakt/",
+      "note": "Own contact page names Zimmerei und Holzbau Stengel GmbH, Im Hölderle 3, 75196 Remchingen; exact source legal entity and address.",
+      "capture_sha256": "d36250f4b08bcd91f5480fbdc53098e8a53a16b58057686544dc5f1cf4254229",
+      "capture_checked_at": "2026-10-08T07:31:14.503431+00:00"
+    },
+    {
+      "source_id": "node/11349271920",
+      "name": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI",
+      "website_url": "https://www.steinbeis.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+      "note": "Official Steinbeis center page gives exact source center name, Haid-und-Neu-Straße 7, 76131 Karlsruhe, and phone +49 721 964916-80. Organization homepage with official center evidence.",
+      "capture_sha256": "5c284b02cfaa06dc5e41af864cf690e14cb341ff3c4040101e31500b225d5390",
+      "capture_checked_at": "2026-10-08T07:32:36.686115+00:00"
+    },
+    {
+      "source_id": "node/3071631069",
+      "name": "Gastronomie-Service Thomas Glaser",
+      "website_url": "https://www.gastronomie-service-glaser.de/",
+      "status": "confirmed",
+      "evidence_url": "https://www.gastronomie-service-glaser.de/kontakt/",
+      "note": "Own contact page names Gastronomie Service Glaser / Thomas Glaser and phone 0721/9200815, matching source contact:phone exactly; city is corroborative, not an inferred approval criterion.",
+      "capture_sha256": "9c14eab1f9e51547d3262e8ed956bac98ca98b125f9629c6d801cd50f0a1617b",
+      "capture_checked_at": "2026-10-08T07:32:39.307574+00:00"
+    },
+    {
+      "source_id": "way/171575126",
+      "name": "Architekten Lenzstraße Dreizehn",
+      "website_url": "https://www.houzz.de/",
+      "status": "false_match",
+      "evidence_url": "https://www.houzz.de/experten/architekten/architekten-lenzstrasse-dreizehn-pfvwde-pf~1922162926",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "0f5aa3e9eab3806b4177a0e59b1ac6ab4f047000713ffffe5ede1e024d9dea3b",
+      "capture_checked_at": "2026-10-08T07:20:15.576464+00:00"
+    },
+    {
+      "source_id": "node/5856882940",
+      "name": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein",
+      "website_url": "https://minanner.de/",
+      "status": "false_match",
+      "evidence_url": "https://minanner.de/unternehmen/toto-lotto-bezirksdirektion-mittlerer-oberrhein-475174/",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "19326c3740222a2d26e91e903edfebbbc2cf4333d88d9137cdc1216125bdc671",
+      "capture_checked_at": "2026-10-08T07:20:38.791504+00:00"
+    },
+    {
+      "source_id": "node/7997438272",
+      "name": "Lid's Catering und Partyservice",
+      "website_url": "https://lokalatlas.de/",
+      "status": "false_match",
+      "evidence_url": "https://lokalatlas.de/firma.php?id=2361189",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "efad93292c6cf91015c2c95f1c821cca6246b093b3de3d53a553458f841ce722",
+      "capture_checked_at": "2026-10-08T07:20:51.612055+00:00"
+    },
+    {
+      "source_id": "node/6254552790",
+      "name": "SWG Objektgesellschaft mbH",
+      "website_url": "https://handelsregister.ai/",
+      "status": "false_match",
+      "evidence_url": "https://handelsregister.ai/de/organizations/karlsruhe/verwaltung-von-gewerbegrundstuecken-und-nichtwohngebaeuden-fuer-dritte/swg-objektgesellschaft-mbh-b2cfe95e804896862d78dc8e33ba3f3c",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "8721c055c63d9dfaa19018e522e083a3d7a741b026838fa541bb0d0a2dc3dbd6",
+      "capture_checked_at": "2026-10-08T07:21:24.121610+00:00"
+    },
+    {
+      "source_id": "node/3620742819",
+      "name": "Grabmale Heinz Schmidt",
+      "website_url": "https://www.fallswaspassiert.de/",
+      "status": "false_match",
+      "evidence_url": "https://www.fallswaspassiert.de/dienstleister/steinmetz/karlsruhe/grabmale-heinz-schmidt",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "5caeda0a07f1693955e387c974c3e1d102672844cc01bfe3ca77ebcd69cad05b",
+      "capture_checked_at": "2026-10-08T07:22:01.494269+00:00"
+    },
+    {
+      "source_id": "node/6468167351",
+      "name": "avee GmbH",
+      "website_url": "https://itsbetter.com/",
+      "status": "false_match",
+      "evidence_url": "https://itsbetter.com/firmeneintrag/avee-gmbh/",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "0e4aac96e18051a0c7044c51997b9dacd4aba45f1e497e9f9d8d0f77e01dde59",
+      "capture_checked_at": "2026-10-08T07:22:09.879932+00:00"
+    },
+    {
+      "source_id": "node/4909416891",
+      "name": "Böhling Rohrleitungs- und Apparatebau GmbH",
+      "website_url": "https://lokalatlas.de/",
+      "status": "false_match",
+      "evidence_url": "https://lokalatlas.de/firma.php?id=2346292",
+      "note": "Third-party directory/profile/registry page. Exact JSON-LD name and full address describe the listed company; schema url points to the profile, not its owned homepage.",
+      "capture_sha256": "d04c258642449f792101d652ab317a808265ce8193f56a641bc250112d6312c1",
+      "capture_checked_at": "2026-10-08T07:22:10.102525+00:00"
+    }
+  ]
+}

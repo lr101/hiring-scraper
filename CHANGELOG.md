@@ -12,6 +12,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Missing company homepages can be discovered with Tavily basic search, bounded query fallbacks, and current-owner verification; regional search hints support listings without city or postcode.
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
 - Maintainer checklist for release preparation and GitHub repository settings.
