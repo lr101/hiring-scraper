@@ -1,0 +1,378 @@
+{
+  "cohort_size": 14,
+  "methods": {
+    "domain_guessing": [
+      {
+        "source_id": "node/4622655478",
+        "lead_url": "https://centermanagement.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4726157504",
+        "lead_url": "https://digitalmosaiknetwork.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/2392730442",
+        "lead_url": "https://consultive.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4793460912",
+        "lead_url": "https://matsecsecuritytransport.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4841370429",
+        "lead_url": "https://kr3mmedia.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4410545233",
+        "lead_url": "https://a3architekten.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/11349271931",
+        "lead_url": "https://r3dt.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/7277910391",
+        "lead_url": "https://experimentellefurkalligraphieschrifthofwerkstatt.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/1254138518",
+        "lead_url": "https://immobilienjoas.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/6448028040",
+        "lead_url": "https://conceptpersona.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/7514369649",
+        "lead_url": "https://promatissoftware.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/2031854098",
+        "lead_url": "https://vi2vi.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/1547914554",
+        "lead_url": "https://aboutcurious.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/7514307665",
+        "lead_url": "https://orgakom.de/",
+        "method": "guess",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      }
+    ],
+    "email": [
+      {
+        "source_id": "node/4793460912",
+        "lead_url": "https://matsec-sec.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4841370429",
+        "lead_url": "https://kr3m.com/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://kr3m.com/",
+        "evidence_url": "https://kr3m.com/"
+      },
+      {
+        "source_id": "node/4410545233",
+        "lead_url": "https://a3architekten.com/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://a3architekten.com/",
+        "evidence_url": "https://a3architekten.com/"
+      },
+      {
+        "source_id": "node/11349271931",
+        "lead_url": "https://r3dt.com/",
+        "method": "email",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/7277910391",
+        "lead_url": "https://schrifthof.de/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://schrifthof.de/",
+        "evidence_url": "https://schrifthof.de/"
+      },
+      {
+        "source_id": "node/1254138518",
+        "lead_url": "https://joas-immobilien.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/6448028040",
+        "lead_url": "https://personaconcept.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      }
+    ],
+    "search": [
+      {
+        "source_id": "node/4726157504",
+        "lead_url": "https://www.mosaik-digital-network.de/",
+        "method": "search",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/2392730442",
+        "lead_url": "https://consultive.net/",
+        "method": "search",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/2392730442",
+        "lead_url": "https://consultive.ch/",
+        "method": "search",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/2031854098",
+        "lead_url": "https://vi2vi.com/kontakt/",
+        "method": "search",
+        "accepted": false,
+        "reason": "cache_miss"
+      },
+      {
+        "source_id": "node/1547914554",
+        "lead_url": "https://www.curious-about.xyz/",
+        "method": "search",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://curious-about.xyz/",
+        "evidence_url": "https://curious-about.xyz/"
+      }
+    ],
+    "combined": [
+      {
+        "source_id": "node/4726157504",
+        "lead_url": "https://www.mosaik-digital-network.de/",
+        "method": "search",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/2392730442",
+        "lead_url": "https://consultive.net/",
+        "method": "search",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/2392730442",
+        "lead_url": "https://consultive.ch/",
+        "method": "search",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/4793460912",
+        "lead_url": "https://matsec-sec.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/4841370429",
+        "lead_url": "https://kr3m.com/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://kr3m.com/",
+        "evidence_url": "https://kr3m.com/"
+      },
+      {
+        "source_id": "node/4410545233",
+        "lead_url": "https://a3architekten.com/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://a3architekten.com/",
+        "evidence_url": "https://a3architekten.com/"
+      },
+      {
+        "source_id": "node/11349271931",
+        "lead_url": "https://r3dt.com/",
+        "method": "email",
+        "accepted": false,
+        "reason": "identity_not_verified"
+      },
+      {
+        "source_id": "node/7277910391",
+        "lead_url": "https://schrifthof.de/",
+        "method": "email",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://schrifthof.de/",
+        "evidence_url": "https://schrifthof.de/"
+      },
+      {
+        "source_id": "node/1254138518",
+        "lead_url": "https://joas-immobilien.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/6448028040",
+        "lead_url": "https://personaconcept.de/",
+        "method": "email",
+        "accepted": false,
+        "reason": "robots_unavailable"
+      },
+      {
+        "source_id": "node/2031854098",
+        "lead_url": "https://vi2vi.com/kontakt/",
+        "method": "search",
+        "accepted": false,
+        "reason": "cache_miss"
+      },
+      {
+        "source_id": "node/1547914554",
+        "lead_url": "https://www.curious-about.xyz/",
+        "method": "search",
+        "accepted": true,
+        "reason": "verified_identity",
+        "website_url": "https://curious-about.xyz/",
+        "evidence_url": "https://curious-about.xyz/"
+      }
+    ]
+  },
+  "resolved": {
+    "email": [
+      {
+        "source_id": "node/4841370429",
+        "name": "kr3m. media GmbH",
+        "website_url": "https://kr3m.com/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://kr3m.com/"
+      },
+      {
+        "source_id": "node/4410545233",
+        "name": "a3architekten",
+        "website_url": "https://a3architekten.com/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://a3architekten.com/"
+      },
+      {
+        "source_id": "node/7277910391",
+        "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+        "website_url": "https://schrifthof.de/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://schrifthof.de/"
+      }
+    ],
+    "search": [
+      {
+        "source_id": "node/1547914554",
+        "name": "Curious About",
+        "website_url": "https://curious-about.xyz/",
+        "domain_match_method": "web_search_verified_page",
+        "domain_evidence_url": "https://curious-about.xyz/"
+      }
+    ],
+    "combined": [
+      {
+        "source_id": "node/4841370429",
+        "name": "kr3m. media GmbH",
+        "website_url": "https://kr3m.com/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://kr3m.com/"
+      },
+      {
+        "source_id": "node/4410545233",
+        "name": "a3architekten",
+        "website_url": "https://a3architekten.com/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://a3architekten.com/"
+      },
+      {
+        "source_id": "node/7277910391",
+        "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+        "website_url": "https://schrifthof.de/",
+        "domain_match_method": "osm_email_verified_page",
+        "domain_evidence_url": "https://schrifthof.de/"
+      },
+      {
+        "source_id": "node/1547914554",
+        "name": "Curious About",
+        "website_url": "https://curious-about.xyz/",
+        "domain_match_method": "web_search_verified_page",
+        "domain_evidence_url": "https://curious-about.xyz/"
+      }
+    ]
+  },
+  "requests": 45,
+  "summary": {
+    "domain_guessing": {
+      "checked": 14,
+      "accepted": 0
+    },
+    "email": {
+      "checked": 7,
+      "accepted": 3
+    },
+    "search": {
+      "checked": 5,
+      "accepted": 1
+    },
+    "combined": {
+      "checked": 12,
+      "accepted": 4
+    }
+  }
+}

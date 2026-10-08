@@ -24,7 +24,7 @@ from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
     Job, JobFeed, JobLocation, utcnow,
 )
-from hiring_scraper.discovery import discover, trusted_html_jobs
+from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client, OriginPacer
 from hiring_scraper.location_discovery import fetch_location_companies
 
@@ -61,7 +61,7 @@ def _claim_due_company() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         statement = (select(Company)
-                     .where(Company.website_url.is_not(None),
+                     .where(Company.website_url.is_not(None), ~Company.feeds.any(),
                             or_(Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
                             or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
                      .order_by(Company.next_discovery_at.asc().nullsfirst(), Company.id).limit(1))
@@ -251,11 +251,15 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
         if fresh_status != "unresolved" or company.career_status not in _POSITIVE_CAREER_STATUSES:
             company.career_status = fresh_status
 
+        seed = {"name": company.name, "website": company.website_url}
         page_by_url = {page.get("url"): page for page in result.get("pages", [])}
         career_pages = [page for page in result.get("pages", [])
                         if page.get("classification") in {"career_content", "jobposting"} and
                         page.get("html_extraction_trust") != "unverified_external_source"]
-        career_url = next((page.get("url") for page in career_pages if page.get("url")), None)
+        career_url = next((page.get("url") for page in career_pages if page.get("url") and
+                           (page.get("html_extraction_trust") in
+                            {"first_party", "branded_external", "linked_external_verified"} or
+                            trusted_html_source(seed, page, result.get("pages", [])))), None)
         parsed_boards = [board for board in result.get("boards", [])
                          if board.get("feed_state") == "parsed" and board.get("feed_url")]
         if career_url is None and parsed_boards:
@@ -265,12 +269,24 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
 
         feed_by_key = {(feed.provider, feed.feed_url): feed for feed in session.scalars(
             select(JobFeed).where(JobFeed.company_id == company_id)).all()}
+        # Career listings with no current postings still need direct future checks.
+        # Do not turn individual vacancy pages or untrusted pages into listings.
+        if not parsed_boards:
+            for page in career_pages:
+                url = page.get("url")
+                key = ("html_jobs", url)
+                if (page.get("classification") != "career_content" or not url or key in feed_by_key or
+                        not trusted_html_source(seed, page, result.get("pages", []))):
+                    continue
+                feed = JobFeed(company_id=company_id, provider="html_jobs", board_url=url,
+                               feed_url=url, status="pending", job_count=0, next_scan_at=now)
+                session.add(feed)
+                feed_by_key[key] = feed
         total_jobs = 0
         for board in parsed_boards:
             jobs = board.get("jobs", [])
             if board.get("provider") == "html_jobs":
                 source_page = page_by_url.get(board.get("discovered_on"), {})
-                seed = {"name": company.name, "website": company.website_url}
                 jobs, trust = trusted_html_jobs(seed, source_page, result.get("pages", []), jobs)
                 source_page["html_extraction_trust"] = trust
                 if not jobs:
@@ -346,6 +362,7 @@ def _claim_location_company_search(now=None) -> tuple[int, str] | None:
     with SessionLocal.begin() as session:
         statement = (select(DiscoveryJob)
                      .where(DiscoveryJob.stage == "company_homepage_discovery",
+                            DiscoveryJob.kind != "recurring",
                             or_(DiscoveryJob.status == "queued",
                                 ((DiscoveryJob.status == "scheduled") &
                                  or_(DiscoveryJob.scheduled_for.is_(None),
@@ -491,6 +508,76 @@ def _fail_location_company_search(job_id: int, attempt_token: str, error: Except
         job.progress_updated_at = now
 
 
+def _register_known_career_pages(session, now, company_ids=None) -> None:
+    """Upgrade saved career-only discoveries to directly refreshable sources."""
+    statement = select(Company).where(
+        Company.career_url.is_not(None), Company.career_url != "",
+        Company.career_status.in_(_POSITIVE_CAREER_STATUSES), ~Company.feeds.any(),
+    )
+    if company_ids is not None:
+        statement = statement.where(Company.id.in_(company_ids))
+    for company in session.scalars(statement.with_for_update()).all():
+        session.add(JobFeed(company_id=company.id, provider="html_jobs",
+                            board_url=company.career_url, feed_url=company.career_url,
+                            status="pending", job_count=0, next_scan_at=now))
+    session.flush()
+
+
+def _enqueue_known_sources(session, job, now) -> None:
+    company_ids = company_ids_in_radius(session, job.latitude, job.longitude, job.radius_km)
+    _register_known_career_pages(session, now, company_ids)
+    feeds = session.scalars(select(JobFeed).where(JobFeed.company_id.in_(company_ids))).all()
+    scheduled = 0
+    for feed in feeds:
+        # Preserve HTTP backoff and active leases; retries stay with the feed worker.
+        if feed.attempt_count or feed.lease_until is not None:
+            continue
+        due = feed.next_scan_at
+        if due is not None and due.tzinfo is None:
+            due = due.replace(tzinfo=timezone.utc)
+        if due is None or due > now:
+            feed.next_scan_at = now
+        scheduled += 1
+    job.status = "completed"
+    job.stage = "complete"
+    job.started_at = job.started_at or now
+    job.finished_at = now
+    job.progress_message = f"Scheduled {scheduled} known feeds and career pages for refresh"
+    job.progress_updated_at = now
+
+
+def _refresh_queued_recurring_jobs(now=None) -> None:
+    """Convert legacy recurring campaigns without restarting expired crawls."""
+    now = now or utcnow()
+    with SessionLocal.begin() as session:
+        jobs = session.scalars(select(DiscoveryJob).where(
+            DiscoveryJob.kind == "recurring", DiscoveryJob.status.in_(("queued", "scheduled", "running")),
+            or_(DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
+        ).with_for_update()).all()
+        for job in jobs:
+            leases = [job.location_scan_lease_until]
+            leases.extend(item.company.discovery_lease_until for item in job.companies
+                          if item.status == "running")
+            if job.status == "running" and any(
+                    lease is not None and
+                    (lease if lease.tzinfo else lease.replace(tzinfo=timezone.utc)) > now
+                    for lease in leases):
+                continue
+            _enqueue_known_sources(session, job, now)
+            job.location_scan_lease_until = None
+            job.location_scan_token = None
+            for item in job.companies:
+                if item.status in {"queued", "running"}:
+                    item.status = "cancelled"
+                    item.finished_at = now
+                    run = item.discovery_run
+                    if run is not None and run.status == "running":
+                        run.status = "cancelled"
+                        run.finished_at = now
+                        item.company.discovery_lease_until = None
+        _register_known_career_pages(session, now)
+
+
 def schedule_due_locations(now=None) -> int:
     """Materialize due recurring location schedules into durable discovery jobs."""
     now = now or utcnow()
@@ -511,12 +598,13 @@ def schedule_due_locations(now=None) -> int:
                 DiscoveryJob.status.in_(("scheduled", "queued", "running")),
             ).limit(1))
             if active is None:
-                create_discovery_job(
+                job = create_discovery_job(
                     session, label=location.label, city=location.city, state=location.state,
                     postcode=location.postcode, latitude=location.latitude, longitude=location.longitude,
                     radius_km=location.radius_km, configured_location_id=location.id,
-                    kind="recurring", scheduled_for=now, now=now,
+                    kind="recurring", scheduled_for=now, now=now, stage="feed_refresh",
                 )
+                _enqueue_known_sources(session, job, now)
                 created += 1
             advance_location_schedule(location, now)
     return created
@@ -531,6 +619,7 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                            .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                            .where(DiscoveryJobCompany.status == "running",
                                   DiscoveryJob.stage == "career_page_discovery",
+                                  DiscoveryJob.kind != "recurring",
                                   DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                                   DiscoveryJobCompany.started_at < stale_before)
                            .order_by(DiscoveryJobCompany.started_at, DiscoveryJobCompany.id)
@@ -567,6 +656,7 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
                      .where(DiscoveryJobCompany.status == "queued",
                             DiscoveryJob.stage == "career_page_discovery",
+                            DiscoveryJob.kind != "recurring",
                             DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                             or_(DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
                             or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
@@ -675,6 +765,7 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
 def _prepare_cycle() -> tuple[int, str] | None:
     try:
         schedule_due_locations()
+        _refresh_queued_recurring_jobs()
         _complete_due_empty_jobs()
     except Exception:
         LOG.exception("could not materialize scheduled location discovery jobs")

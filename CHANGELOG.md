@@ -14,6 +14,7 @@ no historical releases have been reconstructed.
 
 - Per-profile application tracking with New, Open, Not interested, Waiting for reply, Interview, Rejected, and Accepted statuses, plus a status-filtered application overview that retains closed and expired postings. PostgreSQL deployments apply the new job application migration during startup.
 - Mobile result cards, bottom navigation, compact status filters, and larger touch controls for applications, job browsing, profiles, and search areas.
+- Missing company homepages can be discovered with Tavily basic search, bounded query fallbacks, and current-owner verification; regional search hints support listings without city or postcode.
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
 - Maintainer checklist for release preparation and GitHub repository settings.
@@ -24,5 +25,7 @@ no historical releases have been reconstructed.
 - Fresh Compose deployments start with an empty database; searches begin after a user adds a location in the app.
 
 ### Fixed
+
+- Scheduled job refreshes revisit saved feeds and career pages instead of repeating company and homepage discovery; failed fetches retry the saved source with backoff.
 
 - Feed scans import the SQLAlchemy relationship loader used to load existing job locations.
