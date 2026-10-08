@@ -23,4 +23,6 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Scheduled job refreshes revisit saved feeds and career pages instead of repeating company and homepage discovery; failed fetches retry the saved source with backoff.
+
 - Feed scans import the SQLAlchemy relationship loader used to load existing job locations.
