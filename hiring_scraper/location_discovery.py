@@ -6,11 +6,14 @@ import logging
 import os
 import re
 import time
+from tempfile import TemporaryDirectory
 from collections.abc import Callable
 from threading import Lock
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
+from hiring_scraper.http import Client, OriginPacer
+from hiring_scraper.website_discovery import configured_website_search, discover_missing_websites
 from hiring_scraper.geography import build_osm_radius_query, haversine_m, osm_element_coordinates
 from hiring_scraper.osm_websites import (
     fetch_wikidata_entities,
@@ -27,6 +30,7 @@ USER_AGENT = "HiringScraper/0.2 (German company and homepage discovery)"
 OVERPASS_DELAY_SECONDS = max(1.0, float(os.getenv("OVERPASS_REQUEST_DELAY_SECONDS", "2")))
 _OVERPASS_LOCK = Lock()
 _LAST_OVERPASS_REQUEST = 0.0
+_HOMEPAGE_PACER = OriginPacer()
 
 
 def _safe_homepage(value: object) -> str | None:
@@ -85,6 +89,7 @@ def _candidate(element: dict, latitude: float, longitude: float, radius_m: float
 
 def resolve_location_candidates(payload: dict, latitude: float, longitude: float,
                                 radius_m: float, *, entities: dict | None = None,
+                                homepage_resolver: Callable | None = None,
                                 progress_callback: Callable[..., None] | None = None) -> list[dict]:
     """Parse an Overpass response and attach directly listed or verified Wikidata homepages."""
     if not isinstance(payload, dict) or not isinstance(payload.get("elements"), list):
@@ -127,6 +132,9 @@ def resolve_location_candidates(payload: dict, latitude: float, longitude: float
         candidate["domain_evidence_url"] = (
             candidate["source_url"] if direct else resolved.get("evidence_url") if website and resolved else None
         )
+    if homepage_resolver:
+        homepage_resolver(candidates)
+    for candidate in candidates:
         candidate.pop("website", None)
         candidate.pop("tags", None)
     if progress_callback:
@@ -158,5 +166,30 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
         _LAST_OVERPASS_REQUEST = time.monotonic()
     with (opener or urlopen)(request, timeout=110) as response:
         payload = json.loads(response.read(20_000_000))
+    # A shared request cap includes robots and redirects. No search credentials are
+    # required for email-domain verification; API lookup is enabled when configured.
+    def enrich(candidates):
+        if not any(not row.get("website_url") for row in candidates):
+            return
+        search = configured_website_search()
+        # The nearest mapped city's name is a search-area hint, never a source tag
+        # or an acceptance criterion for a company whose address is missing.
+        tagged = [row for row in candidates if isinstance((row.get('tags') or {}).get('addr:city'), str)
+                  and row['tags']['addr:city'].strip()]
+        nearest = min(tagged, key=lambda row: haversine_m(latitude, longitude,
+                                                        row['latitude'], row['longitude'])) if tagged else None
+        search_area_hint = nearest['tags']['addr:city'].strip() + ' Region' if nearest else None
+        max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
+        with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
+            client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
+                            user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER)
+            decisions = discover_missing_websites(
+                candidates, client, search=search,
+                max_companies=min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100")))),
+                max_searches=min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50")))),
+                search_area_hint=search_area_hint,
+                progress_callback=progress_callback)
+            LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
+                     len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
     return resolve_location_candidates(payload, latitude, longitude, radius_m,
-                                       progress_callback=progress_callback)
+                                       homepage_resolver=enrich, progress_callback=progress_callback)

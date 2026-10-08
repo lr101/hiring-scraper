@@ -1,0 +1,5459 @@
+{
+  "observed_at": "2026-10-08T08:22:52.365267+00:00",
+  "offline": false,
+  "corpus_size": 120,
+  "recovered": 20,
+  "search_api_credits_spent": 0,
+  "query_requests": 295,
+  "cached_basic_queries": 183,
+  "unavailable_basic_queries": 112,
+  "live_website_attempts": 151,
+  "queries": [
+    {
+      "query": "\"Autobahn GmbH Außenstelle Karlsruhe\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Steinbeis-Beratungszentrum Unternehmensentwicklung und KI\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"R3DT GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Joas Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Stober Metallbau\" 76351 Linkenheim-Hochstetten Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"IWI Informatik\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"IWI International IT Business\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Jürgen Hemmann\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"MatSec Security & Transport GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Persona Concept GmbH\" Ettlingen Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Dipl. Psych. Birgit Kaiser\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Lehmann & Nagel GmbH\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"BB Zerspanungstechnik\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Rappold & Rappold GbR\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Deutsche Beratungsgesellschaft für Finanzplanung GmbH\" 76275 Ettlingen Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Polsterei Gattke\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Pius Ochs und Söhne\" 76275 Ettlingen Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"atelier der schönen schneiderkünste\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"West Stadt Service\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Ortsverwaltung\" 76327 Pfinztal Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Espinea\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Malerbetrieb Albert Doldt GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Evangelisches Pfarramt Hochstetten\" 76351 Linkenheim-Hochstetten Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"BGV Badische Versicherungen\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Curious About\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Vi2vi GmbH\" 76316 Malsch Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Energetisches Heiler- & Lichtzentrum\" 76744 Wörth am Rhein Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Geißer GmbH Sanitärfachmarkt\" 76744 Wörth am Rhein Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"consultive gmbh\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Imkerei Stiefel\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Gastronomie-Service Thomas Glaser\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Ralf Gurock\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Pfarramt Heilig-Geist-Gemeinde Büchig\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Schreinerei Klöbel\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Atelier 77\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Rechnungshof\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Brennerei Reiter\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Änderungsschneiderei Ercan\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Grabmale Heinz Schmidt\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Microchip Technology\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"DB Fernverkehr AG\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"DB InfraGO AG\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Domicilia Hausverwaltung\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Corpoccino\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"DB Schenker Rail Deutschland AG\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Kaufland Warenannahme\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Klotz-Immobilien\" 76646 Bruchsal Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Schuhmachermeister Haffner\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Mosaik Digital Network GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Krankengymnastikpraxis A. Klohe\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Stadt Karlsruhe Stadtkämmerei\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Südwestbus Betrieb Karlsruhe\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Böhling Rohrleitungs- und Apparatebau GmbH\" 76149 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Wertholzlager Landesforsten RLP\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"MiNo\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Bürgerbüro\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Intel Deutschland GmbH PFZ1 Building E\" 76139 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Siemens-Betriebskrankenkasse\" 76187 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"STUMPF OHG Allianz\" 76187 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Feinkost Kirbas\" 76229 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Heinz Kutt e.K. Generalagentur\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Drobny's Maler- und Stuckateurbetrieb\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Toto-Lotto Bezirksdirektion Mittlerer Oberrhein\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Schreinerei Sonfheimer\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"merz kley partner\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Rhenus Port Logistics Karlsruhe Verwaltungs GmbH\" 76189 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Goldschmied Günter Ketterer\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"DB Bahnbau Gruppe\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Alber Fensterbau GmbH\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"GUF Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"SWG Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"medienundwerk\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Dr. Willmar Schwabe Business Services\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"avee GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Messebau Gleich GmbH\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"dm-drogerie markt GmbH + Co. KG\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Urich Transporte\" 76139 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"dm-Vermögensverwaltungsgesellschaft mbH\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Malerfachbetrieb Leibold\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Carrier\" 76139 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"ORGAKOM\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"PROMATIS software GmbH\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Lid's Catering und Partyservice\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Brüder Schmidt GmbH\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Falc Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"B.M Gartengestaltung\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Ingenieurbüro Thomas Hill\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Bürgert & Richter\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Deutsche Bahn AG\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Augenblick Werbeagentur\" 76133 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Informatik Studiengangservice\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Hausmeister\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Roos Spedition GmbH\" 76448 Durmersheim Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Peter Knobloch\" 76344 Eggenstein-Leopoldshafen Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Architekten Lenzstraße Dreizehn\" 76137 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"visuell GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Wima Tische\" 76316 Malsch Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Reisebüro Anita Deigentasch-Stein\" 76751 Jockgrim Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Wolfgang Schmitt Elektrotechnik\" 76297 Stutensee Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Welcome Desk\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Serviceplätze 10-18\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Atruvia\" Karlsruhe Region Unternehmen Website",
+      "captured": false
+    },
+    {
+      "query": "\"Zimmerei und Holzbau Stengel GmbH\" 75196 Remchingen Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Bundesanstalt für Immobilienaufgaben\" 76149 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "\"Gemeinsame Dienststelle für Flurneuordnung\" 76135 Karlsruhe Unternehmen Website",
+      "captured": true
+    },
+    {
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "R3DT Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Stober Metallbau Linkenheim-Hochstetten Kontakt Impressum",
+      "captured": false
+    },
+    {
+      "query": "IWI Informatik Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "IWI International IT Business Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Jürgen Hemmann Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "MatSec Security & Transport Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Persona Concept Ettlingen Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Dipl. Psych. Birgit Kaiser Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Lehmann & Nagel Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "BB Zerspanungstechnik Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Rappold & Rappold Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Deutsche Beratungsgesellschaft für Finanzplanung Ettlingen Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Polsterei Gattke Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Pius Ochs und Söhne Ettlingen Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "atelier der schönen schneiderkünste Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "West Stadt Service Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Ortsverwaltung Pfinztal Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Evangelisches Pfarramt Hochstetten Linkenheim-Hochstetten Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "BGV Badische Versicherungen Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Vi2vi Malsch Kontakt Impressum",
+      "captured": false
+    },
+    {
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Geißer Sanitärfachmarkt Wörth am Rhein Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "consultive Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Imkerei Stiefel Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Ralf Gurock Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Pfarramt Heilig-Geist-Gemeinde Büchig Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Schreinerei Klöbel Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Atelier 77 Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Brennerei Reiter Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Änderungsschneiderei Ercan Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Microchip Technology Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "DB Fernverkehr Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "DB InfraGO Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Domicilia Hausverwaltung Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "DB Schenker Rail Deutschland Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Kaufland Warenannahme Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Klotz-Immobilien Bruchsal Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Schuhmachermeister Haffner Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Mosaik Digital Network Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Stadt Karlsruhe Stadtkämmerei Karlsruhe Kontakt Impressum",
+      "captured": false
+    },
+    {
+      "query": "Südwestbus Betrieb Karlsruhe Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Böhling Rohrleitungs- und Apparatebau Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Wertholzlager Landesforsten RLP Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "MiNo Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Bürgerbüro Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Intel Deutschland PFZ1 Building E Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Siemens-Betriebskrankenkasse Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "STUMPF Allianz Karlsruhe Kontakt Impressum",
+      "captured": false
+    },
+    {
+      "query": "Feinkost Kirbas Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Heinz Kutt e.K. Generalagentur Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Schreinerei Sonfheimer Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "merz kley partner Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Rhenus Port Logistics Karlsruhe Verwaltungs Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Goldschmied Günter Ketterer Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "DB Bahnbau Gruppe Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Alber Fensterbau Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "GUF Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "SWG Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "medienundwerk Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Dr. Willmar Schwabe Business Services Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "avee Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Messebau Gleich Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "dm-drogerie markt + Co. Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Urich Transporte Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "dm-Vermögensverwaltungsgesellschaft Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Malerfachbetrieb Leibold Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Carrier Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "ORGAKOM Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "PROMATIS software Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Lid's Catering und Partyservice Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Brüder Schmidt Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "B.M Gartengestaltung Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Ingenieurbüro Thomas Hill Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Bürgert & Richter Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Deutsche Bahn Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Augenblick Werbeagentur Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Informatik Studiengangservice Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Hausmeister Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Roos Spedition Durmersheim Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Peter Knobloch Eggenstein-Leopoldshafen Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Architekten Lenzstraße Dreizehn Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "visuell Rheinstetten Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Wima Tische Malsch Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Reisebüro Anita Deigentasch-Stein Jockgrim Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Wolfgang Schmitt Elektrotechnik Stutensee Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Welcome Desk Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Serviceplätze 10-18 Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Atruvia Karlsruhe Region Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Zimmerei und Holzbau Stengel Remchingen Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Bundesanstalt für Immobilienaufgaben Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Gemeinsame Dienststelle für Flurneuordnung Karlsruhe Kontakt Impressum",
+      "captured": true
+    },
+    {
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "R3DT GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Stober Metallbau Linkenheim-Hochstetten offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "IWI Informatik Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "IWI International IT Business Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Jürgen Hemmann Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "MatSec Security & Transport GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Persona Concept GmbH Ettlingen offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Dipl. Psych. Birgit Kaiser Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Lehmann & Nagel GmbH Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "BB Zerspanungstechnik Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Rappold & Rappold GbR Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Deutsche Beratungsgesellschaft für Finanzplanung GmbH Ettlingen offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Polsterei Gattke Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Pius Ochs und Söhne Ettlingen offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "atelier der schönen schneiderkünste Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "West Stadt Service Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Ortsverwaltung Pfinztal offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Evangelisches Pfarramt Hochstetten Linkenheim-Hochstetten offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "BGV Badische Versicherungen Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Vi2vi GmbH Malsch offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Geißer GmbH Sanitärfachmarkt Wörth am Rhein offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "consultive gmbh Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Imkerei Stiefel Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Ralf Gurock Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Pfarramt Heilig-Geist-Gemeinde Büchig Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Schreinerei Klöbel Stutensee offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Atelier 77 Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Brennerei Reiter Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Änderungsschneiderei Ercan Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Microchip Technology Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "DB Fernverkehr AG Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "DB InfraGO AG Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Domicilia Hausverwaltung Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "DB Schenker Rail Deutschland AG Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Kaufland Warenannahme Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Klotz-Immobilien Bruchsal offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Schuhmachermeister Haffner Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Mosaik Digital Network GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Stadt Karlsruhe Stadtkämmerei Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Südwestbus Betrieb Karlsruhe Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Böhling Rohrleitungs- und Apparatebau GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Wertholzlager Landesforsten RLP Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "MiNo Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Bürgerbüro Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Intel Deutschland GmbH PFZ1 Building E Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Siemens-Betriebskrankenkasse Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "STUMPF OHG Allianz Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Heinz Kutt e.K. Generalagentur Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Schreinerei Sonfheimer Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "merz kley partner Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Rhenus Port Logistics Karlsruhe Verwaltungs GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Goldschmied Günter Ketterer Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "DB Bahnbau Gruppe Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Alber Fensterbau GmbH Karlsruhe Region offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "GUF Objektgesellschaft mbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "SWG Objektgesellschaft mbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "medienundwerk Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Dr. Willmar Schwabe Business Services Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "avee GmbH Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Messebau Gleich GmbH Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "dm-drogerie markt GmbH + Co. KG Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "dm-Vermögensverwaltungsgesellschaft mbH Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Malerfachbetrieb Leibold Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Carrier Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "ORGAKOM Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "PROMATIS software GmbH Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Lid's Catering und Partyservice Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Brüder Schmidt GmbH Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "B.M Gartengestaltung Stutensee offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Ingenieurbüro Thomas Hill Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Bürgert & Richter Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Deutsche Bahn AG Karlsruhe offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Augenblick Werbeagentur Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Informatik Studiengangservice Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Hausmeister Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Roos Spedition GmbH Durmersheim offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Peter Knobloch Eggenstein-Leopoldshafen offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Architekten Lenzstraße Dreizehn Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "visuell GmbH Rheinstetten offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Wima Tische Malsch offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Reisebüro Anita Deigentasch-Stein Jockgrim offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Welcome Desk Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Serviceplätze 10-18 Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Atruvia Karlsruhe Region offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Zimmerei und Holzbau Stengel GmbH Remchingen offizielle Website Kontakt",
+      "captured": true
+    },
+    {
+      "query": "Bundesanstalt für Immobilienaufgaben Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    },
+    {
+      "query": "Gemeinsame Dienststelle für Flurneuordnung Karlsruhe offizielle Website Kontakt",
+      "captured": false
+    }
+  ],
+  "prior_audited_positives_retained": 19,
+  "prior_audited_positives_unresolved": [
+    "node/3489585141",
+    "node/4756332032",
+    "node/5643610462",
+    "way/28884673",
+    "way/441438844"
+  ],
+  "new_proposals_requiring_audit": [
+    "node/10819436841"
+  ],
+  "decisions": [
+    {
+      "source_id": "node/10819436841",
+      "lead_url": "https://autobahn.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://stw.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://r3dt.com/",
+      "method": "email",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "https://joas-immobilien.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/13978522951",
+      "lead_url": "https://stober-mw.com/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/13999845476",
+      "lead_url": "https://h-ka.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/13999845478",
+      "lead_url": "https://h-ka.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/13999845480",
+      "lead_url": "https://h-ka.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/4410545233",
+      "lead_url": "https://a3architekten.com/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://a3architekten.com/",
+      "evidence_url": "https://a3architekten.com/impressum/"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://matsec-sec.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/4841370429",
+      "lead_url": "https://kr3m.com/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://kr3m.com/",
+      "evidence_url": "https://kr3m.com/imprint/"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://personaconcept.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/7277910391",
+      "lead_url": "https://schrifthof.de/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://schrifthof.de/",
+      "evidence_url": "https://schrifthof.de/allgemeines/impressum-2"
+    },
+    {
+      "source_id": "node/10819436841",
+      "lead_url": "https://www.autobahn.de/ueber-uns/niederlassungen/suedwest",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.autobahn.de/",
+      "evidence_url": "https://www.autobahn.de/ueber-uns/niederlassungen/suedwest",
+      "query": "\"Autobahn GmbH Außenstelle Karlsruhe\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/10819436841",
+      "lead_url": "https://www.connecticum.de/arbeitgeber/die-autobahn-gmbh-des-bundes-197693",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Autobahn GmbH Außenstelle Karlsruhe\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/katinno",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Steinbeis-Beratungszentrum Unternehmensentwicklung und KI\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://www.wissensmanagement-beratung.com/ueber-uns",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Steinbeis-Beratungszentrum Unternehmensentwicklung und KI\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://xr-easy.com/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"R3DT GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://r3dt.com/wp-content/uploads/2020/02/R3DT-Presse_V1.6_202001a-en.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html",
+      "query": "\"R3DT GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://www.htgf.de/meet-your-reality-htgf-investiert-in-vr-startup-r3dt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"R3DT GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "https://durlacherleben.de/joas-immobilien",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Joas Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "http://www.peter-joas.de/index.php?id=0",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://www.peter-joas.de/",
+      "evidence_url": "http://www.peter-joas.de/index.php?id=1",
+      "query": "\"Joas Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://www.joas-immobilien.de/",
+      "evidence_url": "http://www.joas-immobilien.de/index.php?id=1",
+      "query": "\"Joas Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13978522951",
+      "lead_url": "https://linkenheim-hochstetten.de/verzeichnis/stobermetallbau",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Stober Metallbau\" 76351 Linkenheim-Hochstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13978522951",
+      "lead_url": "https://metallbauer.io/2703-stober-u",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Stober Metallbau\" 76351 Linkenheim-Hochstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13978522951",
+      "lead_url": "https://www.stoeber.de/en",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Stober Metallbau\" 76351 Linkenheim-Hochstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3147893527",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/juergen-hemmann-43114",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Jürgen Hemmann\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3147893527",
+      "lead_url": "https://firmeneintrag.creditreform.de/76297/7110297575/JUERGEN_HEMMANN_MALERBETRIEB",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Jürgen Hemmann\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3147893527",
+      "lead_url": "https://www.chemie.de/firmen/2523/iwk-verpackungstechnik-gmbh.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Jürgen Hemmann\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://firmeneintrag.creditreform.de/76133/7110536603/MATSEC_SECURITY_TRANSPORT_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"MatSec Security & Transport GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.mass-security.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"MatSec Security & Transport GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.tresec-security.com/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"MatSec Security & Transport GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://www.persona-part.de/kontakt/standorte/persona-part-ettlingen",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Persona Concept GmbH\" Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://web.arbeitsagentur.de/vermittlung/ag-darstellung-ui/anzeigen/jUtMun3VLazjlWcGY3RB1ZRLyi6DmUTSf9WUKjCY9Dg=",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Persona Concept GmbH\" Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://www.i-group.de/ettlingen.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Persona Concept GmbH\" Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://www.dachdecker.com/stutensee/lehmann-und-nagel-gmbh-dachdecker-fachbetrieb-aULA1F",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Lehmann & Nagel GmbH\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/lehmann-nagel-gmbh-203860",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Lehmann & Nagel GmbH\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://www.stadtplan.net/branchenbuch/lehmann-und-nagel-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Lehmann & Nagel GmbH\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/10614949310",
+      "lead_url": "https://www.dbfp.de/deutsche-beratungsgesellschaft-fuer-finanzplanung",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Deutsche Beratungsgesellschaft für Finanzplanung GmbH\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/10614949310",
+      "lead_url": "https://spitzen-arbeitgeber.de/unternehmen/dbfp-ag-anlageberatung-fuer-die-fuerst-fugger-privatbank",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Deutsche Beratungsgesellschaft für Finanzplanung GmbH\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/10614949310",
+      "lead_url": "https://firmeneintrag.creditreform.de/70191/7330911466/DBFP_DEUTSCHE_BERATUNGSGESELLSCHAFT_FUER_FINANZPLANUNG_AG",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Deutsche Beratungsgesellschaft für Finanzplanung GmbH\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/12070619725",
+      "lead_url": "https://ettlingen.branchen-info.net/pius-ochs-soehne-gmbh-fliesenlegergeschaeft/2894598",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Pius Ochs und Söhne\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/12070619725",
+      "lead_url": "https://www.fussbodenleger.org/ettlingen/pius-ochs-soehne-gmbh-1675683.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Pius Ochs und Söhne\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/12070619725",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/pius-ochs-soehne-gmbh-34715",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Pius Ochs und Söhne\" 76275 Ettlingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13245616590",
+      "lead_url": "https://pfinztal.de/rathaus-service",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Ortsverwaltung\" 76327 Pfinztal Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13245616590",
+      "lead_url": "https://www.service-bw.de/zufi/organisationseinheiten/6035763",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Ortsverwaltung\" 76327 Pfinztal Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13665841694",
+      "lead_url": "https://www.espinea.org/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.espinea.org/",
+      "evidence_url": "https://www.espinea.org/contact-us/",
+      "query": "\"Espinea\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13665841694",
+      "lead_url": "https://www.joimax.com/de/joimax-updates-espinea-training-facility-2",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Espinea\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13808007066",
+      "lead_url": "https://firmeneintrag.creditreform.de/76287/7110027901/MALERBETRIEB_ALBERT_DOLDT_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Malerbetrieb Albert Doldt GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13808007066",
+      "lead_url": "https://maler-doldt.de/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://maler-doldt.de/",
+      "evidence_url": "https://maler-doldt.de/impressum",
+      "query": "\"Malerbetrieb Albert Doldt GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/13808007066",
+      "lead_url": "https://www.maler.org/karlsruhe/malerbetrieb-albert-doldt-gmbh-aULbzi",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Malerbetrieb Albert Doldt GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://curious-about.xyz/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://curious-about.xyz/",
+      "evidence_url": "https://curious-about.xyz/",
+      "query": "\"Curious About\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://www.karlsruhe-erleben.de/en",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Curious About\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://www.baunetz.de/meldungen/Meldungen-Einfamilienhaus_von_Curious_About_in_der_Pfalz_9573262.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Curious About\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://vi2vi.com/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Vi2vi GmbH\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://vi2vi-systems.com/fakten",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Vi2vi GmbH\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://karriere.vi2vi.com/people",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Vi2vi GmbH\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.ifthm.de/de/unser-unternehmen/anfahrt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Energetisches Heiler- & Lichtzentrum\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.woerth.de/sv_woerth",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Energetisches Heiler- & Lichtzentrum\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://portal-energie.de/index.php?id=62",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"Energetisches Heiler- & Lichtzentrum\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697757",
+      "lead_url": "https://woerth-am-rhein.branchen-info.net/geisser-gmbh/1594203",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Geißer GmbH Sanitärfachmarkt\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697757",
+      "lead_url": "https://www.sanitaer.org/woerth/geisser-gmbh-sanitaer-installation-aULI3p",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Geißer GmbH Sanitärfachmarkt\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2344697757",
+      "lead_url": "https://firmeneintrag.creditreform.de/76744/7310136218/UWE_GEISSER_GAS_WASSER_HEIZUNG",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Geißer GmbH Sanitärfachmarkt\" 76744 Wörth am Rhein Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.ortner-consulting.de/erstinformationen",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"consultive gmbh\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.pape.de/personalberatung-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"consultive gmbh\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.ah-consulting.eu/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"consultive gmbh\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2819486449",
+      "lead_url": "https://www.meinstutensee.de/tag/stiefel",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Imkerei Stiefel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2819486449",
+      "lead_url": "https://regional-bei-dir.de/merchants/imkerei-stiefel-stutensee",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Imkerei Stiefel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/2819486449",
+      "lead_url": "https://www.hofladenfinder.org/farmshop/details/imkerei-stiefel-in-stutensee-blankenloch__42693",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Imkerei Stiefel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3196094989",
+      "lead_url": "https://gewerbeverein-stutensee.org/mitglieder/branchenverzeichnis/1995/schreinerei-kloebel",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Schreinerei Klöbel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3196094989",
+      "lead_url": "https://www.schukraft.de/schreinerei-stutensee",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Schreinerei Klöbel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3196094989",
+      "lead_url": "https://www.schreiner-tischler.de/stutensee",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Schreinerei Klöbel\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3424873322",
+      "lead_url": "https://www.fachanwalt.de/strafrecht/karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3424873322",
+      "lead_url": "https://www.rak-karlsruhe.de/mitglied/yildiz-oezdemir-buket-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3424873322",
+      "lead_url": "https://www.anwalt-suchservice.de/nam/yildiz-oezdemir_buket_karlsruhe.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3489585141",
+      "lead_url": "https://www.baden-wuerttemberg.de/de/unser-land/rechnungshof",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Rechnungshof\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3489585141",
+      "lead_url": "http://www.rechnungshof.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://www.rechnungshof.de/",
+      "evidence_url": "http://www.rechnungshof.de/",
+      "query": "\"Rechnungshof\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3489585141",
+      "lead_url": "https://rechnungshof.baden-wuerttemberg.de/karriere/standorte",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "https://rechnungshof.baden-wuerttemberg.de/",
+      "evidence_url": "https://rechnungshof.baden-wuerttemberg.de/impressum/",
+      "query": "\"Rechnungshof\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://areiter.shop/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Brennerei Reiter\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://regioliebe.app/stutensee/brennerei-heidt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Brennerei Reiter\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://www.reiter-braeu.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"Brennerei Reiter\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3578191193",
+      "lead_url": "https://schneiderei-karlsruhe.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Änderungsschneiderei Ercan\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3578191193",
+      "lead_url": "https://schneiderei-ercan.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Änderungsschneiderei Ercan\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3578191193",
+      "lead_url": "https://meinka.de/schneiderei-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Änderungsschneiderei Ercan\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3620742819",
+      "lead_url": "https://www.fallswaspassiert.de/dienstleister/steinmetz/karlsruhe/grabmale-heinz-schmidt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Grabmale Heinz Schmidt\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3620742819",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/heinz-schmidt-29211",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Grabmale Heinz Schmidt\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/3620742819",
+      "lead_url": "https://www.grabmale-heinz-schmidt.de/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.grabmale-heinz-schmidt.de/",
+      "evidence_url": "https://www.grabmale-heinz-schmidt.de/index.php/impressum",
+      "query": "\"Grabmale Heinz Schmidt\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.db-fernverkehr.com/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"DB Fernverkehr AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.deutschebahn.com/de",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB Fernverkehr AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.dbsystel.de/dbsystel",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB Fernverkehr AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213509",
+      "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"DB InfraGO AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213509",
+      "lead_url": "https://www.deutschebahn.com/de/konzern/konzernprofil/Konzernunternehmen/DB-InfraGO-AG-12598696",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB InfraGO AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213509",
+      "lead_url": "https://www.mannheim-karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB InfraGO AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://www.kennstdueinen.de/hausverwaltung-karlsruhe-domicilia-hausverwaltungs-und-immobiliengesellschaft-mbh-d57774.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Domicilia Hausverwaltung\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://www.openpr.de/news/683556/Domicilia-Hausverwaltung-in-Karlsruhe-seit-35-Jahre-erfolgreich-fuer-die-Kunden.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Domicilia Hausverwaltung\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://www.jacasa.de/hausverwaltung/domicilia-hausverwaltungs-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Domicilia Hausverwaltung\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4410545199",
+      "lead_url": "https://www.corpoccino.de/unser-team",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.corpoccino.de/",
+      "evidence_url": "https://www.corpoccino.de/impressum",
+      "query": "\"Corpoccino\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4410545199",
+      "lead_url": "https://www.wellnissimo.de/standorte/d-physiotherapie-karlsruhe-oststadt-corpoccino-praxis-fuer-physiotherapie-879465675",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Corpoccino\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://www.immowelt.de/profil/52af956a281f48789e60b01fd476c127",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Klotz-Immobilien\" 76646 Bruchsal Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://firmeneintrag.creditreform.de/76646/7050117192/SILKE_KLOTZ_IMMOBILIENMAKLER_KLOTZ_IMMOBILIEN",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Klotz-Immobilien\" 76646 Bruchsal Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://www.jacasa.de/immobilienmakler/klotz-immobilien-bruchsal",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Klotz-Immobilien\" 76646 Bruchsal Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://www.agentur.de/karlsruhe/mosaik-digital-network-gmbh-aUPESe",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Mosaik Digital Network GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://online-optimierung.com/dienstleistungen-handwerk/karlsruhe-baden/mosaik-digital-network-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"Mosaik Digital Network GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://firmeneintrag.creditreform.de/76133/7110406534/MOSAIK_DIGITAL_NETWORK_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Mosaik Digital Network GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4729773096",
+      "lead_url": "https://karlsruhe.branchen-info.net/fp_5547486.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Krankengymnastikpraxis A. Klohe\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4729773096",
+      "lead_url": "https://www.krankengymnastik-klohe.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Krankengymnastikpraxis A. Klohe\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4756332032",
+      "lead_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Stadt Karlsruhe Stadtkämmerei\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4756332032",
+      "lead_url": "https://web1.karlsruhe.de/service/Buergerdienste/organisation.php?id=6027883",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Stadt Karlsruhe Stadtkämmerei\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4756332032",
+      "lead_url": "https://www.service-bw.de/zufi/organisationseinheiten/6010995",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Stadt Karlsruhe Stadtkämmerei\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://www.wer-zu-wem.de/firma/sbg.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Südwestbus Betrieb Karlsruhe\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://www.bus-bild.de/name/galerie/kategorie/Deutschland~DB+Stadtverkehr+GmbH~Karlsruhe+-+SudWestBus/digitalfotografie/72.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"Südwestbus Betrieb Karlsruhe\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://sl.busti.me/karlsruhe/company/6988",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Südwestbus Betrieb Karlsruhe\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://lokalatlas.de/firma.php?id=2346292",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Böhling Rohrleitungs- und Apparatebau GmbH\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://karlsruhe.branchen-info.net/tag/rohrbiegerei/54742",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Böhling Rohrleitungs- und Apparatebau GmbH\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://www.european-business-connect.de/Katalog/4-Industrie/4600-Rohrleitungs_und_Metallbau/31789-B_hling_Rohrleitungs__und_Apparatebau_GmbH/firmen_detail.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Böhling Rohrleitungs- und Apparatebau GmbH\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/niemann-leichtbeton-gmbh-14254",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"MiNo\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://bnn.de/sonderthemen/unternehmen/stutensee",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"MiNo\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://abbund-center.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"MiNo\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://www.techpark.de/der-technologiepark/unternehmen-im-tpk/unternehmen-h-r.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Intel Deutschland GmbH PFZ1 Building E\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://halbleiter-scout.de/intel-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Intel Deutschland GmbH PFZ1 Building E\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://www.date-conference.com/company-profile/intel-germany",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Intel Deutschland GmbH PFZ1 Building E\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5637277508",
+      "lead_url": "https://www.krankenkassen.de/krankenkassen-geschaeftsstellen/sbk/karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Siemens-Betriebskrankenkasse\" 76187 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5637277508",
+      "lead_url": "https://www.sbk.org/",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"Siemens-Betriebskrankenkasse\" 76187 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5643610462",
+      "lead_url": "https://vertretung.allianz.de/stumpf",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"STUMPF OHG Allianz\" 76187 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5643610462",
+      "lead_url": "https://firmeneintrag.creditreform.de/76187/7110421789/STUMPF_OHG",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"STUMPF OHG Allianz\" 76187 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5643610462",
+      "lead_url": "https://www.mapquest.com/de/allianz-versicherung-stumpf-ohg-generalvertretung-in-karlsruhe-knielingen-514623192",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"STUMPF OHG Allianz\" 76187 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "https://www.wochenmarkt-kl.de/spezialitaeten/kirbas",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Feinkost Kirbas\" 76229 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "https://durlachcenter.de/shops/feinkost-kirbas",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Feinkost Kirbas\" 76229 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "https://coolibri.de/restaurant/feinkost-kirbas-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Feinkost Kirbas\" 76229 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://web2.cylex.de/firma-home/versicherungsagentur-heinz-kutt-e-k--5164176.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Heinz Kutt e.K. Generalagentur\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://karlsruhe.branchen-info.net/heinz-kutt-ek/1744831",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Heinz Kutt e.K. Generalagentur\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://lebenlokal.de/services/84239",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Heinz Kutt e.K. Generalagentur\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5844471297",
+      "lead_url": "https://www.nussbaum.de/entdecken/profile/drobny-s-maler-und-stuckateurbetrieb-91467",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Drobny's Maler- und Stuckateurbetrieb\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5844471297",
+      "lead_url": "https://firmeneintrag.creditreform.de/76297/7050289356/ZBIGNIEV_VIKTOR_DROBNY_MALERBETRIEB",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Drobny's Maler- und Stuckateurbetrieb\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5844471297",
+      "lead_url": "https://www.maler-drobny.de/index.php/impressum",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.maler-drobny.de/",
+      "evidence_url": "https://www.maler-drobny.de/impressum.html",
+      "query": "\"Drobny's Maler- und Stuckateurbetrieb\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5856882940",
+      "lead_url": "https://minanner.de/unternehmen/toto-lotto-bezirksdirektion-mittlerer-oberrhein-475174",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Toto-Lotto Bezirksdirektion Mittlerer Oberrhein\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5856882940",
+      "lead_url": "https://karlsruhe.branchen-info.net/toto-lotto-bezirksdirektion-mittlerer-oberrhein-gmbh/2489939",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Toto-Lotto Bezirksdirektion Mittlerer Oberrhein\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5856882940",
+      "lead_url": "https://de.abasix.com/l/karlsruhe/toto-lotto-bez-5c18b3f6363e8",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Toto-Lotto Bezirksdirektion Mittlerer Oberrhein\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/5896664839",
+      "lead_url": "https://www.rhenus.group/de/de",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Rhenus Port Logistics Karlsruhe Verwaltungs GmbH\" 76189 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6090397017",
+      "lead_url": "https://www.deutschebahn.com/de/konzern/konzernprofil/Konzernunternehmen/db_bahnbaugruppe-6879546",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB Bahnbau Gruppe\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6090397017",
+      "lead_url": "https://www.bahnbaugruppe.de/bahnbaugruppe-de",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"DB Bahnbau Gruppe\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "https://www.webvalid.de/company/GUF+Objektgesellschaft+mbH,+Karlsruhe/HRB+703944",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"GUF Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "https://www.giggmbh.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"GUF Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "http://www.hug-ka.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"GUF Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552790",
+      "lead_url": "https://handelsregister.ai/de/organizations/karlsruhe/verwaltung-von-gewerbegrundstuecken-und-nichtwohngebaeuden-fuer-dritte/swg-objektgesellschaft-mbh-b2cfe95e804896862d78dc8e33ba3f3c",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"SWG Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552790",
+      "lead_url": "https://firmeneintrag.creditreform.de/76139/7110396876/SWG_OBJEKTGESELLSCHAFT_MBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"SWG Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6254552790",
+      "lead_url": "https://www.unternehmensverzeichnis.org/swg-objektgesellschaft-mbh-karlsruhe-2501103146377",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"SWG Objektgesellschaft mbH\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://itsbetter.com/firmeneintrag/avee-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"avee GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://www.ave-online.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"avee GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://www.avee.no/support-1708",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"avee GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597207390",
+      "lead_url": "https://www.creditsafe.com/business-index/en-ie/company/dm-drogerie-markt-gmbh-co-kg-de01940213",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"dm-drogerie markt GmbH + Co. KG\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597207390",
+      "lead_url": "https://www.dm.de/impressum-43984",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"dm-drogerie markt GmbH + Co. KG\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597207390",
+      "lead_url": "https://newsroom.dm.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"dm-drogerie markt GmbH + Co. KG\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597572768",
+      "lead_url": "https://for-driver.info/de/review-company/alexander-urich-transporte.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Urich Transporte\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597572768",
+      "lead_url": "https://firmeneintrag.creditreform.de/76139/7110231975/ALEXANDER_URICH_GUETERKRAFTVERKEHR",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Urich Transporte\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6597572768",
+      "lead_url": "https://frachtindex.de/unternehmen/urich-transporte-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Urich Transporte\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6848347044",
+      "lead_url": "https://www.dhbw-stuttgart.de/liste-dualer-partner/unternehmen/dm-vermoegensverwaltungsgesellschaft-gmbh-13689",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"dm-Vermögensverwaltungsgesellschaft mbH\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6848347044",
+      "lead_url": "https://www.dm.de/impressum-43984",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"dm-Vermögensverwaltungsgesellschaft mbH\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/6848347044",
+      "lead_url": "https://dm-vermoegen.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"dm-Vermögensverwaltungsgesellschaft mbH\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://careers-ccr-ge.icims.com/jobs/5622/bauleiter-%28m-w-d%29/job",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Carrier\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.carrier.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Carrier\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.ccr.com/de",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Carrier\" 76139 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7997438272",
+      "lead_url": "https://minanner.de/unternehmen/lids-catering-und-partyservice-435166",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Lid's Catering und Partyservice\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7997438272",
+      "lead_url": "https://lidskueche.eatbu.com/?lang=en",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Lid's Catering und Partyservice\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/7997438272",
+      "lead_url": "https://lokalatlas.de/firma.php?id=2361189",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Lid's Catering und Partyservice\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/8356609535",
+      "lead_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.falcimmo.de/",
+      "evidence_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+      "query": "\"Falc Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/8356609535",
+      "lead_url": "https://www.clever-immobilien.de/immobilienanzeigen/FALC-Immobilien-Karlsruhe-Ost/18899:9493133553::::mr5.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Falc Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/8356609535",
+      "lead_url": "https://www.franchiseportal.de/franchise-unternehmen/falc-immobilien-m-16474",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Falc Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9159054311",
+      "lead_url": "https://www.gartenbau.org/stutensee/michael-paulus-gartengestaltung-aUMdJ1",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"B.M Gartengestaltung\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9159054311",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/b-m-gartengestaltung-161527",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"B.M Gartengestaltung\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9159054311",
+      "lead_url": "http://www.hkr-garten.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"B.M Gartengestaltung\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Deutsche Bahn AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://www.bahnhof.de/karlsruhe-hbf",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Deutsche Bahn AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://www.deutschebahn.com/de",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"Deutsche Bahn AG\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/110539711",
+      "lead_url": "https://augenblick-werbeagentur.de/karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "\"Augenblick Werbeagentur\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/110539711",
+      "lead_url": "https://www.raumkontakt.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html",
+      "query": "\"Augenblick Werbeagentur\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/110539711",
+      "lead_url": "https://www.sun-concept.de/werbeagentur-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Augenblick Werbeagentur\" 76133 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/144255121",
+      "lead_url": "https://wfh5c645f.hier-im-netz.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Roos Spedition GmbH\" 76448 Durmersheim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/144255121",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/roos-spedition-gmbh-90056",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Roos Spedition GmbH\" 76448 Durmersheim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/144255121",
+      "lead_url": "https://www.roos-spedition.com/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Roos Spedition GmbH\" 76448 Durmersheim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/169027647",
+      "lead_url": "http://www.eggenstein.de/de/umwelt-wirtschaft/wirtschaft/unternehmensverzeichnis/unternehmen/Peter-Knobloch-GmbH.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Peter Knobloch\" 76344 Eggenstein-Leopoldshafen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/169027647",
+      "lead_url": "https://www.beste-badstudios.de/eggenstein-leopoldshafen/peter-knobloch",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Peter Knobloch\" 76344 Eggenstein-Leopoldshafen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/169027647",
+      "lead_url": "https://www.wasserwaermeluft.de/handwerkersuche/peter-knobloch-sanitaer-und-heiztechnik-gmbh-76344-eggenstein",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Peter Knobloch\" 76344 Eggenstein-Leopoldshafen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/171575126",
+      "lead_url": "https://www.heinze.de/expertenprofil/architekten-lenzstrasse-dreizehn/12710467",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Architekten Lenzstraße Dreizehn\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/171575126",
+      "lead_url": "https://lenz13.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Architekten Lenzstraße Dreizehn\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/171575126",
+      "lead_url": "https://www.houzz.de/experten/architekten/architekten-lenzstrasse-dreizehn-pfvwde-pf~1922162926",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Architekten Lenzstraße Dreizehn\" 76137 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192161447",
+      "lead_url": "https://www.feinedrucke.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"visuell GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192161447",
+      "lead_url": "https://www.visuellverstehen.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"visuell GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192161447",
+      "lead_url": "https://www.wendweb.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"visuell GmbH\" 76287 Rheinstetten Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192415649",
+      "lead_url": "https://www.schreiner-innung-karlsruhe.de/verzeichnis/wima-tische-gmbhrobert-wickenhaeuser-malsch",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Wima Tische\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192415649",
+      "lead_url": "https://www.schreiner-tischler.de/malsch-kreis-karlsruhe/wima-tische-robert-wickenhaeuser",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Wima Tische\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/192415649",
+      "lead_url": "https://www.tischler-schreiner.org/malsch/wima-tische-gmbh-robert-wickenhaeuser-aUOVGK",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Wima Tische\" 76316 Malsch Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/216257091",
+      "lead_url": "https://onlinestreet.de/poi/L2VtNTZHYkVNODFhY3B5aXkzSlVJUT09",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Reisebüro Anita Deigentasch-Stein\" 76751 Jockgrim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/216257091",
+      "lead_url": "https://www.starofservice.de/liste/rheinland-pfalz/germersheim/jockgrim/reiseburo",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Reisebüro Anita Deigentasch-Stein\" 76751 Jockgrim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/216257091",
+      "lead_url": "https://sonnenklartv-reisebuero.de/jockgrim/Sarah.Hoffmann",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "\"Reisebüro Anita Deigentasch-Stein\" 76751 Jockgrim Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221198012",
+      "lead_url": "https://gewerbeverein-stutensee.org/mitglieder/branchenverzeichnis/1847/elektrotechnik-schmitt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Wolfgang Schmitt Elektrotechnik\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221198012",
+      "lead_url": "https://www.elektriker.org/stutensee/wolfgang-schmitt-elektrotechnik-aUO9jt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Wolfgang Schmitt Elektrotechnik\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/221198012",
+      "lead_url": "https://firmeneintrag.creditreform.de/76297/7110536518/WOLFGANG_SCHMITT_ELEKTROTECHNIK_OHG",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Wolfgang Schmitt Elektrotechnik\" 76297 Stutensee Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/441438844",
+      "lead_url": "https://www.zi-ka.de/mitgliedersuche/business-listing/stengel-zimmerei-holzbau-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Zimmerei und Holzbau Stengel GmbH\" 75196 Remchingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/441438844",
+      "lead_url": "https://www.dachdecker.com/remchingen/stengel-zimmerei-und-holzbau-gmbh-aUP5sq",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "\"Zimmerei und Holzbau Stengel GmbH\" 75196 Remchingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/441438844",
+      "lead_url": "https://directory.cosuno.com/en/germany/companies/stengel-zimmerei-und-holzbau-gmbh-350844",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Zimmerei und Holzbau Stengel GmbH\" 75196 Remchingen Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Bundesvermoegen/Privatisierungs_und_Beteiligungspolitik/Beteiligungspolitik/bundesanstalt-fuer-immobilienaufgaben.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Bundesanstalt für Immobilienaufgaben\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://www.service.bund.de/Content/DE/DEBehoerden/B/BImA/Bundesanstalt-fuer-Immobilienaufgaben.html?nn=4641496",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "\"Bundesanstalt für Immobilienaufgaben\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://exporo.de/wiki/bundesanstalt-fuer-immobilienaufgaben",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Bundesanstalt für Immobilienaufgaben\" 76149 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://www.enzkreis.de/Landratsamt/%C3%84mter-Dezernate/Dezernat-3-Landwirtschaft-Forsten-%C3%B6ffentliche-Ordnung/Vermessungs-und-Flurneuordnungsamt/Flurneuordnung",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "\"Gemeinsame Dienststelle für Flurneuordnung\" 76135 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://www.bretten.de/sites/default/files/press/Flurbereinigung%20Knittlingen-Freudenstein.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html",
+      "query": "\"Gemeinsame Dienststelle für Flurneuordnung\" 76135 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://fno-verfahren.lgl-bw.de/FISInternet/DateiServlet/datei/2149/10481",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "\"Gemeinsame Dienststelle für Flurneuordnung\" 76135 Karlsruhe Unternehmen Website",
+      "query_strategy": "exact"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://llmsmap.me/de/site/ddim-de",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://kreativ.mfg.de/files/18_KreativLand_BW/Publikation/Kreativland_BW_Digitalfassung_FIN.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://www.haufe.de/download/immobilienwirtschaft-32019-immobilienwirtschaft-fachmagazin-fuer-management-recht-praxis-484382.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://karlsruhe.digital/en/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "R3DT Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://www.tlb.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "R3DT Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845478",
+      "lead_url": "https://iwi-hka.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "IWI Informatik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845478",
+      "lead_url": "https://www.h-ka.de/informatik-und-wirtschaftsinformatik/gremien-menschen",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "IWI Informatik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845478",
+      "lead_url": "https://www.wirtschaftsinformatik.kit.edu/impressum.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "IWI Informatik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845480",
+      "lead_url": "https://iwi-hka.de/contact",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "IWI International IT Business Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845480",
+      "lead_url": "https://www.h-ka.de/iibb",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "IWI International IT Business Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13999845480",
+      "lead_url": "https://hisinone.extern-hs-karlsruhe.de/qisserver/pages/cs/sys/portal/imprint/imprint.faces",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "IWI International IT Business Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3147893527",
+      "lead_url": "https://www.stutensee.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Jürgen Hemmann Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.tresec.com/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "MatSec Security & Transport Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.informatik.kit.edu/english/impressum.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "MatSec Security & Transport Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9629083773",
+      "lead_url": "https://www.hwk-karlsruhe.de/kontakte/birgit-kaiser-63,0,dadetail_SERVICE.html?id=207",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dipl. Psych. Birgit Kaiser Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9629083773",
+      "lead_url": "https://psychotherapiekarlsruhe.com/impressum-%2F-kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dipl. Psych. Birgit Kaiser Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9629083773",
+      "lead_url": "https://www.doctena.de/en/practitioner/birgit-kaiser",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dipl. Psych. Birgit Kaiser Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://www.dkg.eu/wp-content/uploads/2022/03/kuas_2005_6_opt.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Lehmann & Nagel Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://www.cossma.com/fileadmin/all/cossma/Archiv/2012/10/COD1210_PDF_D.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Lehmann & Nagel Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/221201827",
+      "lead_url": "https://journal.sternfreunde.de/html/j32.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Lehmann & Nagel Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10061398287",
+      "lead_url": "https://lepold-maschinenbau.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BB Zerspanungstechnik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10061398287",
+      "lead_url": "https://www.backes-zerspanungstechnik.de/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BB Zerspanungstechnik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10061398287",
+      "lead_url": "https://www.schmidt-tec.com/en/legal",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BB Zerspanungstechnik Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://www.rw-electronic.de/pages/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://www.autohaus-rappold.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://www.ihk.de/karlsruhe/services/einfach-wir/team-standort-interessenvertretung-6707306",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10614949310",
+      "lead_url": "https://www.dbfp.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Deutsche Beratungsgesellschaft für Finanzplanung Ettlingen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10789909705",
+      "lead_url": "http://www.polsterwerkstatt-gattke.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Polsterei Gattke Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/10789909705",
+      "lead_url": "https://www.raumausstattung-blum.de/polsterarbeiten.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Polsterei Gattke Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/12070619725",
+      "lead_url": "https://www.fliesenleger.net/ettlingen/pius-ochs-und-soehne-gmbh-fliesenlegergeschaeft-aULiIR",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Pius Ochs und Söhne Ettlingen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/12070619725",
+      "lead_url": "https://www.pp-tech.de/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Pius Ochs und Söhne Ettlingen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/12913063100",
+      "lead_url": "https://marina-alexandrowna.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "atelier der schönen schneiderkünste Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/12913063100",
+      "lead_url": "https://www.besteadressen.com/inserent/atelier-der-schoenen-schneiderkuenste-3",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "atelier der schönen schneiderkünste Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/12913063100",
+      "lead_url": "https://mode-schneiderei.de/sample-page",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "atelier der schönen schneiderkünste Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13016102159",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "West Stadt Service Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13016102159",
+      "lead_url": "https://rpk.baden-wuerttemberg.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "West Stadt Service Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13016102159",
+      "lead_url": "https://www.landkreis-karlsruhe.de/Quicknavigation/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "West Stadt Service Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13245616590",
+      "lead_url": "https://www.schwarzwald-tourismus.info/attraktionen/rathaus-pfinztal-4d98bae835",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ortsverwaltung Pfinztal Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13245616590",
+      "lead_url": "https://termin-online-buchen.de/live/booking?cfid=000886001312",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ortsverwaltung Pfinztal Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13955153030",
+      "lead_url": "https://www.ekg-linkenheim.de/kontaktaufnahme",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Evangelisches Pfarramt Hochstetten Linkenheim-Hochstetten Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13955153030",
+      "lead_url": "https://ekg-hochstetten.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Evangelisches Pfarramt Hochstetten Linkenheim-Hochstetten Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/13955153030",
+      "lead_url": "https://www.feg-hochstetten.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Evangelisches Pfarramt Hochstetten Linkenheim-Hochstetten Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/14119791823",
+      "lead_url": "https://www.bgv.de/ueber-den-bgv/rechtliches/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BGV Badische Versicherungen Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/14119791823",
+      "lead_url": "https://www.gdv.de/gdv/der-gdv/unsere-mitglieder/badische-rechtsschutzversicherung-aktiengesellschaft-47248",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BGV Badische Versicherungen Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/14119791823",
+      "lead_url": "https://www.datenanfragen.de/company/bgv-de",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "BGV Badische Versicherungen Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://mwenergy.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html",
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.sozialstation-woerth.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2344697757",
+      "lead_url": "https://geiser-haustechnik.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Geißer Sanitärfachmarkt Wörth am Rhein Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://rechtsmittel.consulting/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "consultive Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.qaps-consulting.com/Impressum-Datenschutz.html?i18n=en",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "consultive Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.ortner-consulting.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "consultive Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/2819486449",
+      "lead_url": "https://www.stutensee-honig.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Imkerei Stiefel Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3074620171",
+      "lead_url": "https://www.whofinance.de/berater/ralf-gurock",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ralf Gurock Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3074620171",
+      "lead_url": "https://vertretung.allianz.de/agentur.aksoy-aksoy",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Ralf Gurock Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3096522311",
+      "lead_url": "https://www.stutensee.de/de/leben-lernen/Kirchen-Glaubensgemeinschaften/Glaubensgemeinschaft?view=publish&item=denomination&id=1020",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Pfarramt Heilig-Geist-Gemeinde Büchig Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3096522311",
+      "lead_url": "https://www.ekistuwei.de/gemeinden/heilig-geist-gemeinde-buechig",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Pfarramt Heilig-Geist-Gemeinde Büchig Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3096522311",
+      "lead_url": "https://heiliggeist-bergstrasse.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Pfarramt Heilig-Geist-Gemeinde Büchig Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3196094989",
+      "lead_url": "https://www.schreinerei-obenauf.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Klöbel Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3424873322",
+      "lead_url": "https://www.martin-anwaelte.de/team",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Rechtsanwältin Buket Yildiz-Özdemir Fachanwältin für Strafrecht Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://www.stadtteil-portal.de/images/stadtteilzeitungen/pdf/NONA/NONA_04_24.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Atelier 77 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://epaper.wittich.de/frontend/catalogs/552021/1/pdf/complete.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Atelier 77 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://www.dvs-gap-netzwerk.de/fileadmin/Redaktion/Seiten/Service/Publikationen/LandInForm/2013/LandInForm_2013_2_Gesamt.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "body_too_large",
+      "query": "Atelier 77 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://www.kaufenundhandeln.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Brennerei Reiter Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://feuerwehr-stutensee.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "Brennerei Reiter Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3547680499",
+      "lead_url": "https://www.philipitsch.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Brennerei Reiter Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3578191193",
+      "lead_url": "https://www.mapquest.com/de/baden-wurttemberg/schneiderei-ercan-804220350",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "Änderungsschneiderei Ercan Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.informatik.kit.edu/english/impressum.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Microchip Technology Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.microchip.com/en-us/about/careers/microchip-around-the-world/europe-and-the-middle-east/germany",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Microchip Technology Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.emmtrix.com/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Microchip Technology Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "DB Fernverkehr Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.mannheim-karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "DB Fernverkehr Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213508",
+      "lead_url": "https://www.db-fernverkehr.com/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "DB Fernverkehr Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213509",
+      "lead_url": "https://newsletter.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "DB InfraGO Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213509",
+      "lead_url": "https://www.dbinfrago.com/web/Reisende-11212422",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "DB InfraGO Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/domicilia-171980",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Domicilia Hausverwaltung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://domicilia.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Domicilia Hausverwaltung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4004213513",
+      "lead_url": "https://barth-hausverwaltung.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Domicilia Hausverwaltung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4417968603",
+      "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "DB Schenker Rail Deutschland Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4417968603",
+      "lead_url": "https://db-engineering-consulting.com/de/standorte-und-kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "DB Schenker Rail Deutschland Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4417968603",
+      "lead_url": "https://www.deutschebahn.com/de/impressum-6898126",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "DB Schenker Rail Deutschland Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4609654425",
+      "lead_url": "https://www.kauflandglobalmarketplace.com/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Kaufland Warenannahme Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4609654425",
+      "lead_url": "https://business-partner.kaufland.com/de/legal-notice.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Kaufland Warenannahme Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4609654425",
+      "lead_url": "https://jobs.kaufland.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Kaufland Warenannahme Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://klotz-immo.de/kontakt/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Klotz-Immobilien Bruchsal Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://www.fraenkle-immo.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Klotz-Immobilien Bruchsal Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4720618322",
+      "lead_url": "https://suedstadt.org/2011/11/22/schuhmacher-haffner-2",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schuhmachermeister Haffner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4720618322",
+      "lead_url": "https://meinka.de/schuhmacher-schuster-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schuhmachermeister Haffner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4720618322",
+      "lead_url": "https://www.holzbau-schuhmacher.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schuhmachermeister Haffner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://www.werbeagentur.de/en/a/mosaik-digital-network-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Mosaik Digital Network Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://www.mosaik-online.eu/kontakt/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Mosaik Digital Network Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://karlsruhe.digital/en/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Mosaik Digital Network Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://www.pforzheimfaehrtbus.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Südwestbus Betrieb Karlsruhe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://www.dbregiobus-bawue.de/home/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Südwestbus Betrieb Karlsruhe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4825738743",
+      "lead_url": "https://abo.kvv.de/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Südwestbus Betrieb Karlsruhe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://www.bmw-motorrad.de/bohling-eisele-karlsruhe/de/public-pool/content-pool/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Böhling Rohrleitungs- und Apparatebau Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://www.chemie.de/firmen/1294/boehling-rohrleitungs-und-apparatebau-gmbh.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Böhling Rohrleitungs- und Apparatebau Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://www.stutensee.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "MiNo Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://www.meinstutensee.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "MiNo Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5298221194",
+      "lead_url": "https://www.jugend-schloss.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "MiNo Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/531860225",
+      "lead_url": "https://web1.karlsruhe.de/service/Buergerdienste/organisation.php?id=6006603",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "Bürgerbüro Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/531860225",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "Bürgerbüro Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/531860225",
+      "lead_url": "https://rpk.baden-wuerttemberg.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bürgerbüro Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://www.informatik.kit.edu/english/impressum.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Intel Deutschland PFZ1 Building E Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://rpk.baden-wuerttemberg.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Intel Deutschland PFZ1 Building E Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5387912392",
+      "lead_url": "https://www.fzi.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Intel Deutschland PFZ1 Building E Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5637277508",
+      "lead_url": "https://www.sbk.org/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "Siemens-Betriebskrankenkasse Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "http://kirbas-food.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://kirbas-food.de/",
+      "evidence_url": "http://kirbas-food.de/impressum.html",
+      "query": "Feinkost Kirbas Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "http://kirbas-gourmet.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://kirbas-gourmet.de/",
+      "evidence_url": "http://kirbas-gourmet.de/",
+      "query": "Feinkost Kirbas Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5659366531",
+      "lead_url": "https://itsbetter.kundkconnect.de/firmeneintrag/feinkost-kirbas-gmbh-2",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Feinkost Kirbas Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://firmeneintrag.creditreform.de/76307/7110145615/HEINZ_KUTT_E_K_INHABER_FABIAN_MATZKE",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Heinz Kutt e.K. Generalagentur Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://ig.al/matzke",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Heinz Kutt e.K. Generalagentur Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5821280062",
+      "lead_url": "https://www.unternehmensverzeichnis.org/heinz-kutt-ek-inhaber-fabian-matzke-karlsbad-2500338440359",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Heinz Kutt e.K. Generalagentur Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5856882940",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5856882940",
+      "lead_url": "https://www.lobbyregister.bundestag.de/suche/R005496",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Toto-Lotto Bezirksdirektion Mittlerer Oberrhein Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://holzwerkschreinerei.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://www.schreinereikalesse.de/datenschutz-impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://www.schreinerei-brugger-karlsruhe.de/de/kontakt/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://oberlandesgericht-karlsruhe.justiz-bw.de/pb/,Lde/Startseite/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "merz kley partner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://www.messe-karlsruhe.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "merz kley partner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "merz kley partner Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/5896664839",
+      "lead_url": "https://www.rhenus.group/at/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rhenus Port Logistics Karlsruhe Verwaltungs Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6053265633",
+      "lead_url": "https://www.jobs-in-bonn.info/branchenbuch/guenter-ketterer-goldschmiedemeister-164848.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Goldschmied Günter Ketterer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6053265633",
+      "lead_url": "https://ketterer-restaurant.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Goldschmied Günter Ketterer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6053265633",
+      "lead_url": "https://www.deutsche-digitale-bibliothek.de/item/GNWB7FVZVLLAIAAGRPOXKC75QPOAYNOZ",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Goldschmied Günter Ketterer Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6090397017",
+      "lead_url": "https://www.mannheim-karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "DB Bahnbau Gruppe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6090397017",
+      "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "DB Bahnbau Gruppe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6090397017",
+      "lead_url": "https://www.bahnbaugruppe.de/bahnbaugruppe-de/Impressum-4959626",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "DB Bahnbau Gruppe Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.alfodasfenster.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Alber Fensterbau Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.fensterhaeberer.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Alber Fensterbau Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.trueb-fensterbau.de/kontakt/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Alber Fensterbau Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "https://www.giggmbh.de/impressum.htm",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "GUF Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "https://www.crif.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "GUF Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6254552788",
+      "lead_url": "https://ggh-immobilien.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "GUF Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6254552790",
+      "lead_url": "https://www.sw-ka.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "SWG Objektgesellschaft Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6391993761",
+      "lead_url": "https://www.medienundwerk.de/policy.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "medienundwerk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6391993761",
+      "lead_url": "https://www.cityofmediaarts.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "medienundwerk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6391993761",
+      "lead_url": "https://karlsruhe.digital/en/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "medienundwerk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6467977271",
+      "lead_url": "https://www.schwabe.de/service/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dr. Willmar Schwabe Business Services Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6467977271",
+      "lead_url": "https://www.hametum.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dr. Willmar Schwabe Business Services Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6467977271",
+      "lead_url": "https://www.phyto-innovation.com/contact-us",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Dr. Willmar Schwabe Business Services Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://avesophos.com/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "avee Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://www.vitrea-gesundheit.de/reha/karlsruhe/ueber-uns/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "avee Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://www.raumkontakt.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "avee Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6547234096",
+      "lead_url": "https://www.messebau-gleich.de/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Messebau Gleich Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6547234096",
+      "lead_url": "https://protec-messebau.de/messestandort/messebau-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Messebau Gleich Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6547234096",
+      "lead_url": "https://www.messebau.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Messebau Gleich Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6597207390",
+      "lead_url": "https://foto.dm.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "dm-drogerie markt + Co. Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6597207390",
+      "lead_url": "https://produkttester.dm.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "dm-drogerie markt + Co. Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6597572768",
+      "lead_url": "http://urich-transporte.de/impressum",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "http://urich-transporte.de/",
+      "evidence_url": "http://urich-transporte.de/impressum/",
+      "query": "Urich Transporte Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6597572768",
+      "lead_url": "https://www.provenexpert.com/de-de/urich-transporte-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Urich Transporte Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/6848347044",
+      "lead_url": "https://foto.dm.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "dm-Vermögensverwaltungsgesellschaft Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7141276789",
+      "lead_url": "https://www.malerbetrieb-leibold.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Malerfachbetrieb Leibold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7141276789",
+      "lead_url": "https://www.malerbetrieb-selbmann.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Malerfachbetrieb Leibold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7141276789",
+      "lead_url": "https://www.maler-weinbrecht.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Malerfachbetrieb Leibold Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://jobcenter-stadt-karlsruhe.de/impressum.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.carrier.de/de/wohngebaeude/kontakt/partner-vor-ort-suche.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.connect-personal.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7514307665",
+      "lead_url": "https://www2.orgakom.biz/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "ORGAKOM Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7514307665",
+      "lead_url": "https://www.deutsches-pflegeportal.de/bildungseinrichtung/orgakom-managment-+-beteiligung-gmbh-im-ermlisgrund-20-24-76337-waldbronn",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "ORGAKOM Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7514307665",
+      "lead_url": "https://karlsruhe.digital/en/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "ORGAKOM Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7997438272",
+      "lead_url": "https://gewerbeverein-stutensee.org/mitglieder/branchenverzeichnis/1926/lids-catering-partyservice",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Lid's Catering und Partyservice Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/7997438272",
+      "lead_url": "https://www.nussbaum.de/entdecken/profile/lid-s-kueche-157707",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Lid's Catering und Partyservice Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/8012933800",
+      "lead_url": "https://www.baeckerei-schmidt-karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Brüder Schmidt Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/8012933800",
+      "lead_url": "https://www.schmidt-eger.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Brüder Schmidt Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/8012933800",
+      "lead_url": "https://www.fellowork.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Brüder Schmidt Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9159054311",
+      "lead_url": "https://www.gartengestaltung-mayr.de/impressum-datenschutz",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "B.M Gartengestaltung Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9159054311",
+      "lead_url": "http://www.bmgartenbau.de/index.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "B.M Gartengestaltung Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9490951594",
+      "lead_url": "https://www.ib-holzbau.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ingenieurbüro Thomas Hill Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9490951594",
+      "lead_url": "https://www.bueschel-ingenieure.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ingenieurbüro Thomas Hill Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9490951594",
+      "lead_url": "https://www.ib-dreher.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Ingenieurbüro Thomas Hill Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9718412518",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "Bürgert & Richter Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9718412518",
+      "lead_url": "https://www.drb-bw.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bürgert & Richter Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9718412518",
+      "lead_url": "https://www.hamm-und-partner.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bürgert & Richter Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://www.deutschebahn.com/de/impressum-6898126",
+      "method": "search",
+      "accepted": false,
+      "reason": "verification_failed",
+      "query": "Deutsche Bahn Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://www.dbinfrago.com/web/bahnhoefe/leistungen/stationsnutzung/stationshalt/stationsausstattung/Karlsruhe-Hbf-12677310",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Deutsche Bahn Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/110539711",
+      "lead_url": "https://www.provenexpert.com/de-de/augenblick-werbeagentur-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Augenblick Werbeagentur Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/110539711",
+      "lead_url": "https://www.homepage-ka.de/kontakt/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Augenblick Werbeagentur Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/1134006884",
+      "lead_url": "https://www.hausheuberger.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Hausmeister Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/1134006884",
+      "lead_url": "https://stein-gruppe.com/hausmeisterservice",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Hausmeister Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/1134006884",
+      "lead_url": "https://hausmeisterkarlsruhe.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Hausmeister Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/169027647",
+      "lead_url": "https://www.wer-zu-wem.de/firma/peterknobloch.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Peter Knobloch Eggenstein-Leopoldshafen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/169027647",
+      "lead_url": "https://www.sanitaer.org/eggenstein-leopoldshafen/peter-knobloch-gmbh-sanitaer--und-heizungstechnik-aULY2L",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Peter Knobloch Eggenstein-Leopoldshafen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/171575126",
+      "lead_url": "https://lenz13.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Architekten Lenzstraße Dreizehn Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/192161447",
+      "lead_url": "https://bnn.de/sonderthemen/unternehmen/visuell-gmbh-168508",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "visuell Rheinstetten Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/216257091",
+      "lead_url": "https://die-reiselust.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Reisebüro Anita Deigentasch-Stein Jockgrim Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/216257091",
+      "lead_url": "https://reisebuero-in-stein.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Reisebüro Anita Deigentasch-Stein Jockgrim Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/221198012",
+      "lead_url": "https://www.wschmitt-elektro.de/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.wschmitt-elektro.de/",
+      "evidence_url": "https://www.wschmitt-elektro.de/impressum/",
+      "query": "Wolfgang Schmitt Elektrotechnik Stutensee Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606278",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "Welcome Desk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606278",
+      "lead_url": "https://welcome.region-stuttgart.de/netzwerke/welcome-center-in-baden-wuerttemberg",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Welcome Desk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606278",
+      "lead_url": "https://rpk.baden-wuerttemberg.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Welcome Desk Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606279",
+      "lead_url": "https://www.landkreis-karlsruhe.de/Quicknavigation/Impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Serviceplätze 10-18 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606279",
+      "lead_url": "https://www.ka-gestalten.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Serviceplätze 10-18 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/256606279",
+      "lead_url": "https://www.karlsruhe.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "network_error",
+      "query": "Serviceplätze 10-18 Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/39505249",
+      "lead_url": "https://atruvia.de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Atruvia Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/39505249",
+      "lead_url": "https://vr.mein-check-in.de/atruvia/imprint",
+      "method": "search",
+      "accepted": false,
+      "reason": "different_owner_host",
+      "query": "Atruvia Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/39505249",
+      "lead_url": "https://maps.apple.com/place?place-id=ID0A599486156DE7B",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Atruvia Karlsruhe Region Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/441438844",
+      "lead_url": "https://www.holzbaustengel.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Zimmerei und Holzbau Stengel Remchingen Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://resources.bundesimmobilien.de/bima/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bundesanstalt für Immobilienaufgaben Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://www.datenanfragen.de/company/bundesimmobilien",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bundesanstalt für Immobilienaufgaben Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/584930935",
+      "lead_url": "https://fragdenstaat.de/behoerde/289/bundesanstalt-fur-immobilienaufgaben",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Bundesanstalt für Immobilienaufgaben Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://www.landkreis-karlsruhe.de/Service-Verwaltung/Verwaltung/Unser-Team/Gemeinsame-Dienststelle-f%C3%BCr-Flurneuordnung.php?ModID=9&FID=3051.47.1",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Gemeinsame Dienststelle für Flurneuordnung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://www.lgl-bw.de/export/sites/lgl/Ueber-Uns/Galerien/Dokumente/Untere_Flurbereinigungsbehoerden_Landratsaemter.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html",
+      "query": "Gemeinsame Dienststelle für Flurneuordnung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "way/97377636",
+      "lead_url": "https://www.landkreis-rastatt.de/einweihung+der+gemeinsamen+dienststelle+fuer+flurneuordnung+in+karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Gemeinsame Dienststelle für Flurneuordnung Karlsruhe Kontakt Impressum",
+      "query_strategy": "contact_fallback"
+    },
+    {
+      "source_id": "node/11349271920",
+      "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.steinbeis.de/",
+      "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/vermessungsbuero-rappold-rappold-gbr-113201",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold GbR Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://www.badische-zeitung.de/sonderthemen/unternehmen/vermessungsbuero-rappold-rappold-151576",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold GbR Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/10586503926",
+      "lead_url": "https://rappold-vermessung.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Rappold & Rappold GbR Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/10789909705",
+      "lead_url": "https://karlsruhe.branchen-info.net/fp_1967499.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Polsterei Gattke Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/10789909705",
+      "lead_url": "https://www.raumausstatter.biz/karlsruhe/georg-gattke-5295070.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Polsterei Gattke Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.new-gmbh.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.verbraucherzentrale-rlp.de/beratungsstellen/woerth-energieberatung",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/2344697754",
+      "lead_url": "https://www.heid-energieberatung.de/Woerth-am-Rhein",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3071631069",
+      "lead_url": "https://www.gastronomie-service-glaser.de/kontakt",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://www.gastronomie-service-glaser.de/",
+      "evidence_url": "https://www.gastronomie-service-glaser.de/impressum/",
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3071631069",
+      "lead_url": "https://firmeneintrag.creditreform.de/76133/7110159694/THOMAS_GLASER_GASTRONOMIE_SERVICE_GLASER",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3071631069",
+      "lead_url": "https://www.wlw.de/de/firma/thomas-glaser-1539254",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed",
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3196094989",
+      "lead_url": "https://www.tischlerei.biz/stutensee/siegfried-kloebel-6499254.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Klöbel Stutensee offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://www.salon-77.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "Atelier 77 Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://www.fuer-gestaltung.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Atelier 77 Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3461277945",
+      "lead_url": "https://www.atelier-kuechen.com/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Atelier 77 Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.messweb.de/anbieter/microchip-technology",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Microchip Technology Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.drivesweb.com/providers/microchip-technology",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Microchip Technology Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/3972340715",
+      "lead_url": "https://www.elektronikpraxis.de/microchip-eroeffnet-niederlassung-in-karlsruhe-a-491428",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Microchip Technology Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/klotz-immobilien-81175",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Klotz-Immobilien Bruchsal offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4705996153",
+      "lead_url": "https://www.cityvisits.de/index.cfm/Stutensee/Immobilien/Immobilienmakler/Klotz-Immobilien%2C%20Silke%20Klotz",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Klotz-Immobilien Bruchsal offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4729773096",
+      "lead_url": "https://www.krankengymnastik-klohe.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4729773096",
+      "lead_url": "https://www.ziegler-physiotherapie.de/praxis-fuer-physiotherapie-andrea-klohe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4729773096",
+      "lead_url": "https://www.jameda.de/profil/andrea-klohe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://karlsruhe.branchen-info.net/fp_3380888.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Böhling Rohrleitungs- und Apparatebau GmbH Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/4909416891",
+      "lead_url": "https://www.be-moto.de/kontakt-anfahrt",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Böhling Rohrleitungs- und Apparatebau GmbH Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5141477623",
+      "lead_url": "https://www.wald.rlp.de/forstamt-kaiserslautern/service/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Wertholzlager Landesforsten RLP Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5141477623",
+      "lead_url": "https://wald.fnr.de/ansprechpartner",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Wertholzlager Landesforsten RLP Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5643610462",
+      "lead_url": "https://koomio.com/geschaeft/allianz-versicherung-stumpf-ohg-generalvertretung-gruenhutstrasse-6-karlsruhe-1?ref=14",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "STUMPF OHG Allianz Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://karlsruhe.branchen-info.net/fp_1798121.php",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://www.schreiner-tischler.de/unteregg/schreinerei-sontheimer",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5863209799",
+      "lead_url": "https://schreinerei-sontheimer.de/unternehmen",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Schreinerei Sonfheimer Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://www.mkp-ing.com/buero",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "merz kley partner Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://merz-immobilien.com/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "merz kley partner Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/5890338959",
+      "lead_url": "https://www.nextroom.at/actor.php?id=2001",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "merz kley partner Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.heinze.de/expertenprofil/alber-fensterbau/16992616",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Alber Fensterbau GmbH Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.fensterbau.org/rheinstetten/alber-fensterbau-gmbh-aUOx27",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Alber Fensterbau GmbH Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/6142917488",
+      "lead_url": "https://www.alfodasfenster.de/kontakt.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Alber Fensterbau GmbH Karlsruhe Region offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/6468167351",
+      "lead_url": "https://www.avea.de/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "http_error",
+      "query": "avee GmbH Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.sanitaer-finden.de/karlsruhe/carrier-kaeltetechnik-deutschland-gmbh-4100619.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://careers-ccr-ge.icims.com/jobs/5515/servicetechniker---mechatroniker-%28m-w-d%29-f%C3%BCr-k%C3%A4ltetechnik---gro%C3%9Fraum-karlsruhe/job",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/7294970490",
+      "lead_url": "https://www.carrier.de/de/wohngebaeude/kontakt/partner-vor-ort-suche.suffix.html/areaId=Karlsruhe.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Carrier Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://mediendienste.extranet.deutschebahn.com/DBPortal/Footer_Statisch4Internet.htm",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified",
+      "query": "Deutsche Bahn AG Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "node/9789239365",
+      "lead_url": "https://bahnhofkarlsruhe.de/informationen/zahlen-fakten",
+      "method": "search",
+      "accepted": false,
+      "reason": "owner_not_verified",
+      "query": "Deutsche Bahn AG Karlsruhe offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    },
+    {
+      "source_id": "way/441438844",
+      "lead_url": "https://firmeneintrag.creditreform.de/75196/7230357198/STENGEL_ZIMMEREI_UND_HOLZBAU_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable",
+      "query": "Zimmerei und Holzbau Stengel GmbH Remchingen offizielle Website Kontakt",
+      "query_strategy": "official_fallback"
+    }
+  ],
+  "resolved": [
+    {
+      "source_id": "node/4410545199",
+      "name": "Corpoccino",
+      "website_url": "https://www.corpoccino.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.corpoccino.de/impressum"
+    },
+    {
+      "source_id": "node/9070530368",
+      "name": "Allianz",
+      "website_url": "https://www.allianz.de/",
+      "domain_match_method": null,
+      "domain_evidence_url": null
+    },
+    {
+      "source_id": "node/13665841694",
+      "name": "Espinea",
+      "website_url": "https://www.espinea.org/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.espinea.org/contact-us/"
+    },
+    {
+      "source_id": "node/13808007066",
+      "name": "Malerbetrieb Albert Doldt GmbH",
+      "website_url": "https://maler-doldt.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://maler-doldt.de/impressum"
+    },
+    {
+      "source_id": "node/10819436841",
+      "name": "Autobahn GmbH Außenstelle Karlsruhe",
+      "website_url": "https://www.autobahn.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.autobahn.de/ueber-uns/niederlassungen/suedwest"
+    },
+    {
+      "source_id": "node/4086852009",
+      "name": "LVM",
+      "website_url": "https://www.lvm.de/",
+      "domain_match_method": null,
+      "domain_evidence_url": null
+    },
+    {
+      "source_id": "node/8356609535",
+      "name": "Falc Immobilien",
+      "website_url": "https://www.falcimmo.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html"
+    },
+    {
+      "source_id": "node/11349271920",
+      "name": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI",
+      "website_url": "https://www.steinbeis.de/",
+      "domain_match_method": "web_search_verified_official_fallback",
+      "domain_evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki"
+    },
+    {
+      "source_id": "relation/1551481",
+      "name": "Agentur für Arbeit",
+      "website_url": "https://www.arbeitsagentur.de/",
+      "domain_match_method": null,
+      "domain_evidence_url": null
+    },
+    {
+      "source_id": "node/9369517965",
+      "name": "IG BAU Mitgliederbüro Karlsruhe",
+      "website_url": "https://www.igbau.de/",
+      "domain_match_method": null,
+      "domain_evidence_url": null
+    },
+    {
+      "source_id": "node/5844471297",
+      "name": "Drobny's Maler- und Stuckateurbetrieb",
+      "website_url": "https://www.maler-drobny.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.maler-drobny.de/impressum.html"
+    },
+    {
+      "source_id": "node/3071631069",
+      "name": "Gastronomie-Service Thomas Glaser",
+      "website_url": "https://www.gastronomie-service-glaser.de/",
+      "domain_match_method": "web_search_verified_official_fallback",
+      "domain_evidence_url": "https://www.gastronomie-service-glaser.de/impressum/"
+    },
+    {
+      "source_id": "node/13159956405",
+      "name": "BGV",
+      "website_url": "https://www.bgv.de",
+      "domain_match_method": null,
+      "domain_evidence_url": null
+    },
+    {
+      "source_id": "way/221198012",
+      "name": "Wolfgang Schmitt Elektrotechnik",
+      "website_url": "https://www.wschmitt-elektro.de/",
+      "domain_match_method": "web_search_verified_contact_fallback",
+      "domain_evidence_url": "https://www.wschmitt-elektro.de/impressum/"
+    },
+    {
+      "source_id": "node/3620742819",
+      "name": "Grabmale Heinz Schmidt",
+      "website_url": "https://www.grabmale-heinz-schmidt.de/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://www.grabmale-heinz-schmidt.de/index.php/impressum"
+    },
+    {
+      "source_id": "node/6597572768",
+      "name": "Urich Transporte",
+      "website_url": "http://urich-transporte.de/",
+      "domain_match_method": "web_search_verified_contact_fallback",
+      "domain_evidence_url": "http://urich-transporte.de/impressum/"
+    },
+    {
+      "source_id": "node/4841370429",
+      "name": "kr3m. media GmbH",
+      "website_url": "https://kr3m.com/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://kr3m.com/imprint/"
+    },
+    {
+      "source_id": "node/4410545233",
+      "name": "a3architekten",
+      "website_url": "https://a3architekten.com/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://a3architekten.com/impressum/"
+    },
+    {
+      "source_id": "node/7277910391",
+      "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+      "website_url": "https://schrifthof.de/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://schrifthof.de/allgemeines/impressum-2"
+    },
+    {
+      "source_id": "node/1547914554",
+      "name": "Curious About",
+      "website_url": "https://curious-about.xyz/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://curious-about.xyz/"
+    }
+  ]
+}

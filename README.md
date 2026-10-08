@@ -41,6 +41,31 @@ Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker comp
 
 Scheduled refreshes revisit saved job feeds and career listing pages to find new postings. Recurring search-area schedules queue these known sources without repeating company, homepage, or career-page discovery. Feed failures retry the same saved URL with backoff. Use a manual discovery job to find additional companies or rediscover their career sources.
 
+Company discovery fills missing websites from linked Wikidata entries and public,
+identity-verified email domains. Set `TAVILY_API_KEY` in `.env` to enable an
+additional company-name and location search fallback. Tavily uses basic searches
+and takes precedence over the optional `BRAVE_SEARCH_API_KEY` alternative. For
+local development, start Uvicorn with `--env-file .env` to load the key. Search results are checked
+against current company identity before acceptance. Unresolved companies get basic
+contact/imprint and official-website query fallbacks. Searches without source
+locality use the nearest mapped city's name as a regional hint; acceptance still
+requires source identity evidence. Verification checks up to four same-host pages,
+prefers current imprint/contact evidence, and rejects conflicting legal owners or
+ambiguous domains. Run a manual discovery job on an existing search area to
+fill missing websites on saved companies. Each job defaults to 100 missing companies,
+50 searches, and 180 website requests (including robots and redirects), configurable
+with `HOMEPAGE_DISCOVERY_MAX_COMPANIES`, `HOMEPAGE_DISCOVERY_MAX_SEARCHES`, and
+`HOMEPAGE_DISCOVERY_MAX_REQUESTS`. Each query pass reserves a third of its remaining
+search allowance for later fallbacks, within the same total budget; consequently,
+large batches may give fewer companies an initial search. Search stops when the
+website request budget is exhausted. See the [website discovery experiment](reports/website-discovery-poc.md)
+for measured results and limitations.
+
+The [expanded 120-record homepage benchmark](reports/expanded-homepage-discovery-poc.md)
+compares query fallbacks, page verification, directory links, structured data,
+and paired basic/advanced Tavily searches. Recompute its audited results without
+network access using `.venv/bin/python -m experiments.summarize_expanded_homepages`.
+
 ## Documentation
 
 - [Architecture and implementation plan](docs/implementation-plan.md)
