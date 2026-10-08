@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobEvidence from './JobEvidence'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
+import ApplicationStatusControl from './ApplicationStatusControl'
+import type { Application } from './applications'
+import type { Profile } from './profile'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -25,6 +28,7 @@ type Job = {
   seniority: string | null; date_posted: string | null; first_seen_at: string
   salary: string | null; description: string | null; is_active: boolean
   enrichment: Enrichment; profile_match?: ProfileMatch
+  application?: Application | null
   raw_metadata: Record<string, unknown>
 }
 
@@ -42,18 +46,39 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
   const [record, setRecord] = useState<Company | Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [profileId, setProfileId] = useState(() => new URLSearchParams(window.location.search).get('profile_id') ?? '')
+  const [profilesReady, setProfilesReady] = useState(kind === 'company')
+  const [profileError, setProfileError] = useState('')
 
   useEffect(() => {
+    if (kind !== 'job') return
+    const controller = new AbortController()
+    fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }).then(async response => {
+      if (!response.ok) throw new Error('Could not load application profiles.')
+      const data = await response.json()
+      setProfiles(data.items)
+      const requested = new URLSearchParams(window.location.search).get('profile_id')
+      const selected = data.items.find((profile: Profile) => String(profile.id) === requested) ?? data.items[0]
+      setProfileId(selected ? String(selected.id) : '')
+      setProfilesReady(true)
+    }).catch(reason => { if (!controller.signal.aborted) { setProfileError(reason.message); setProfilesReady(true) } })
+    return () => controller.abort()
+  }, [kind])
+
+  useEffect(() => {
+    if (!profilesReady) return
     let cancelled = false
     setLoading(true)
     setError('')
     const boardParams = new URLSearchParams(window.location.search)
     const detailParams = new URLSearchParams()
     if (kind === 'job') {
-      for (const [from, to] of [['profile_id','profile_id'],['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code']]) {
+      for (const [from, to] of [['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code']]) {
         const value = boardParams.get(from)
         if (value) detailParams.set(to, value)
       }
+      if (profileId) detailParams.set('profile_id', profileId)
     }
     fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}${detailParams.size ? `?${detailParams}` : ''}`))
       .then(async response => {
@@ -65,12 +90,26 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
       .catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : 'Could not load this record.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [id, kind])
+  }, [id, kind, profileId, profilesReady])
+
+  const fromApplications = kind === 'job' && new URLSearchParams(window.location.search).get('from') === 'applications'
 
   return <div className="app-shell">
-    <SiteHeader active="directory" />
+    <SiteHeader active={fromApplications ? 'applications' : 'directory'} />
     <main className="content detail-page">
-      <a className="back-link" href={kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← Back to companies and jobs</a>
+      <a className="back-link" href={fromApplications ? `/applications?profile_id=${profileId}` : kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to companies and jobs'}</a>
+      {kind === 'job' && <section className="detail-panel job-tracking-panel" aria-label="Track application">
+        <div><p className="eyebrow">YOUR APPLICATION</p><h2>Track this opportunity</h2></div>
+        {profileError ? <p className="application-error" role="alert">{profileError}</p> : !profilesReady ? <p>Loading profiles…</p> : profiles.length ? <>
+          <label className="tracking-profile-label">Job profile <select aria-label="Track application for profile" value={profileId} onChange={event => {
+            setProfileId(event.target.value); setLoading(true)
+            const url = new URL(window.location.href); url.searchParams.set('profile_id', event.target.value); window.history.replaceState({}, '', url)
+          }}>{profiles.map(profile => <option value={profile.id} key={profile.id}>{profile.name}</option>)}</select></label>
+          {!loading && record && !error && <ApplicationStatusControl key={`${profileId}:${id}`} profileId={Number(profileId)} jobId={id} title={(record as Job).title}
+            application={(record as Job).application} onSaved={application => setRecord(current => current ? { ...current, application } : current)} />}
+          <a className="page-link" href={`/applications?profile_id=${profileId}`}>My applications →</a>
+        </> : <a className="page-link" href="/profile">Create a profile to track applications →</a>}
+      </section>}
       {loading ? <div className="loading-state"><span className="spinner" /> Loading details…</div>
           : error ? <div className="error-banner" role="alert">{error}<a href="/">Return to companies and jobs</a></div>
           : kind === 'company' && record ? <CompanyPage company={record as Company} />

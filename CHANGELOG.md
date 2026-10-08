@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Per-profile application tracking with New, Open, Not interested, Waiting for reply, Interview, Rejected, and Accepted statuses, plus a status-filtered application overview that retains closed and expired postings. PostgreSQL deployments apply the new job application migration during startup.
+- Mobile result cards, bottom navigation, compact status filters, and larger touch controls for applications, job browsing, profiles, and search areas.
 - Missing company homepages can be discovered with Tavily basic search, bounded query fallbacks, and current-owner verification; regional search hints support listings without city or postcode.
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
