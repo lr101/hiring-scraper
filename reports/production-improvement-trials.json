@@ -2381,11 +2381,11 @@
       "interpretation": "Fresh employers without legacy HTML; separate legacy-state guard trial applies."
     },
     "model_metric_recalculation": "Frozen 80 document hashes validated; all four metrics reproduce exactly.",
-    "final_runtime_revision": "bb4de0e7",
+    "final_runtime_revision": "d0b39f29620b5031146e0336df9fd861b202384c",
     "final_python_suite": {
       "command": ".venv/bin/python -m unittest discover -s tests -q",
-      "tests": 428,
-      "seconds": 18.012,
+      "tests": 431,
+      "seconds": 18.838,
       "result": "OK",
       "date_utc": "2026-10-08",
       "baseline_main": "1030d159"
@@ -2397,7 +2397,8 @@
       "legacy_active_counts": [
         7,
         12
-      ]
+      ],
+      "final_fix_revision": "d0b39f29"
     },
     "holdout_after_extraction_fix": {
       "jobs": 80,
@@ -2410,6 +2411,70 @@
       "commit": "bb4de0e7",
       "targeted_tests": 47,
       "review": "Scoped spec/quality APPROVED; actual manual campaign and recurring feed refresh covered, main runtime scheduling preserved."
+    },
+    "final_malformed_port_regression": {
+      "tests_added": 3,
+      "candidate_cases": [
+        "nonnumeric port",
+        "port out of range"
+      ],
+      "controls": [
+        "default HTTPS",
+        "443 HTTPS accepted",
+        "80 disallowed",
+        "8443 disallowed"
+      ],
+      "sibling_provider": "Lever job/feed/capture retained; one homepage and one feed request; malformed lead makes zero requests"
+    },
+    "latest_main_source_replay_final": {
+      "baseline": "1030d1593c48c979f8bd839817e9f19baa757868",
+      "lever_baseline": 100,
+      "lever_candidate_unique": 337,
+      "recruitee_discovered": [
+        0,
+        0,
+        7,
+        3,
+        2,
+        9
+      ],
+      "recruitee_legacy_active": [
+        7,
+        12
+      ],
+      "details": [
+        56,
+        20,
+        22,
+        0
+      ],
+      "existing_updates_preserved": true,
+      "provider_attribution": [
+        105,
+        8,
+        7
+      ]
+    },
+    "repeat_import": {
+      "source_rows": 351,
+      "duplicates": 0
+    },
+    "historical_metric_correction": {
+      "reported": "0.1822",
+      "source_reports": [
+        "reports/poc-review-analysis.json:263",
+        "reports/cv-profile-board-evaluation.json:451"
+      ]
+    },
+    "final_scoped_fix_review": "APPROVED: P2 malformed Recruitee port can no longer abort sibling provider discovery; P3 historical metric matches both source artifacts; no new findings.",
+    "whole_branch_review": "Review at99d34ac4 requested P2/P3 fixes; final scoped re-review afterd0b39f29 approved both with no new findings.",
+    "fix_wave": {
+      "commit": "d0b39f29",
+      "tests_first_errors": 4,
+      "new_tests_passed": 3,
+      "focused_tests_passed": 127,
+      "full_suite_passed": 431,
+      "changed_behavior": "Invalid Recruitee ports reject only the malformed lead; a valid sibling Lever board still completes with provenance."
     }
   },
   "controller_decisions": [
@@ -2473,5 +2538,23 @@
   },
   "latest_main_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
   "source_trial_baseline_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
-  "integration_revision": "0c51f56fee3f5d85a433115c7a9910ee624d8d81"
+  "integration_revision": "0c51f56fee3f5d85a433115c7a9910ee624d8d81",
+  "preview": {
+    "slug": "accuracy-0d075ba2",
+    "runtime_revision": "d0b39f29",
+    "isolated_database": true,
+    "started_utc": "2026-10-08T12:15:52Z",
+    "frontend_url": "https://web-accuracy-0d075ba2.dev.dell.lr-projects.de/",
+    "api_health_url": "https://api-accuracy-0d075ba2.dev.dell.lr-projects.de/health/ready",
+    "frontend_status": 200,
+    "api_health_status": 200,
+    "state": "running"
+  },
+  "worktree_handoff": {
+    "branch": "t3code/improve-scraper-matching-accuracy-1",
+    "branch_head_before_final_report_commit": "d0b39f29620b5031146e0336df9fd861b202384c",
+    "latest_main_base": "1030d1593c48c979f8bd839817e9f19baa757868",
+    "shared_main_updated": false,
+    "pushed_or_deployed": false
+  }
 }
