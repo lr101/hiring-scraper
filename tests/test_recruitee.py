@@ -30,6 +30,19 @@ def feed(*rows):
 
 
 class RecruiteeTests(unittest.TestCase):
+    def test_malformed_and_disallowed_ports_do_not_establish_a_tenant(self):
+        for port in ('bad', '65536', '8443', '80'):
+            with self.subTest(port=port):
+                self.assertIsNone(identify('https://example.recruitee.com:' + port + '/'))
+
+    def test_default_and_explicit_https_ports_preserve_the_public_feed(self):
+        for authority in ('example.recruitee.com', 'example.recruitee.com:443'):
+            with self.subTest(authority=authority):
+                self.assertEqual(identify('https://' + authority + '/'), {
+                    'provider': 'recruitee', 'tenant': 'example', 'board_url': BOARD,
+                    'feed_url': BOARD + '/api/feeds/offers.xml',
+                })
+
     def test_public_board_and_localized_job_routes_construct_documented_feed(self):
         for path in ('/', '/l/de/', '/o/system-engineer', '/l/en/o/system-engineer?lang=de', '/api/feeds/offers.xml'):
             with self.subTest(path=path):

@@ -357,8 +357,12 @@ def identify(url):
         board = f'https://{host}/{tenant}'
         feed = f'https://api.ashbyhq.com/posting-api/job-board/{tenant}'
     elif host.endswith('.recruitee.com'):
+        try:
+            port = p.port
+        except ValueError:
+            return None
         if (not _recruitee_host(host) or p.scheme not in {'http', 'https'} or p.username or p.password
-                or p.port not in (None, 443) or re.search(r'[\s\x00-\x1f\x7f\\]', url)
+                or port not in (None, 443) or re.search(r'[\s\x00-\x1f\x7f\\]', url)
                 or not (re.fullmatch(r'/(?:l/[a-z]{2}/)?(?:o/[a-z0-9][a-z0-9-]*/?)?', p.path or '/')
                         or (p.path == '/api/feeds/offers.xml' and not p.query and not p.fragment))):
             return None
