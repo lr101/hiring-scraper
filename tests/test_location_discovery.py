@@ -149,6 +149,34 @@ class LocationCompanyDiscoveryTests(unittest.TestCase):
         self.assertIn("around:5000,49,8.4", parse_qs(request.data.decode())["data"][0])
         self.assertEqual(timeout, 110)
 
+    def test_retries_overpass_gateway_timeout(self):
+        import json
+        from unittest.mock import patch
+        from urllib.error import HTTPError
+
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *_): return False
+            def read(self, _limit): return json.dumps({"elements": []}).encode()
+
+        calls = []
+
+        def opener(request, timeout):
+            calls.append((request, timeout))
+            if len(calls) == 1:
+                raise HTTPError(request.full_url, 504, "Gateway Timeout", {}, None)
+            return Response()
+
+        with patch("hiring_scraper.location_discovery.time.sleep"):
+            try:
+                rows = fetch_location_companies(49.0, 8.4, 5000, opener=opener)
+            except HTTPError:
+                self.fail("a transient Overpass 504 should be retried")
+
+        self.assertEqual(rows, [])
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(all(timeout == 110 for _, timeout in calls))
+
     def test_reports_company_and_homepage_counts_as_location_results_are_enriched(self):
         payload = {"elements": [
             {"type": "node", "id": 7, "lat": 49.0, "lon": 8.4,

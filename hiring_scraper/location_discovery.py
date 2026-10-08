@@ -1,13 +1,17 @@
 """Find named local employers and conservative homepage evidence from public OSM data."""
 from __future__ import annotations
 
+import http.client
 import json
 import logging
 import os
 import re
 import time
+import urllib.error
 from tempfile import TemporaryDirectory
 from collections.abc import Callable
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from threading import Lock
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
@@ -28,9 +32,40 @@ LOG = logging.getLogger(__name__)
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 USER_AGENT = "HiringScraper/0.2 (German company and homepage discovery)"
 OVERPASS_DELAY_SECONDS = max(1.0, float(os.getenv("OVERPASS_REQUEST_DELAY_SECONDS", "2")))
+OVERPASS_RETRIES = min(5, max(0, int(os.getenv("OVERPASS_RETRIES", "2"))))
+OVERPASS_RETRY_DELAY_SECONDS = min(
+    10.0, max(0.0, float(os.getenv("OVERPASS_RETRY_DELAY_SECONDS", "1"))))
+OVERPASS_RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _OVERPASS_LOCK = Lock()
 _LAST_OVERPASS_REQUEST = 0.0
 _HOMEPAGE_PACER = OriginPacer()
+
+
+def _wait_for_overpass_slot() -> None:
+    """Keep every Overpass attempt within the shared request pacing limit."""
+    global _LAST_OVERPASS_REQUEST
+    with _OVERPASS_LOCK:
+        wait = OVERPASS_DELAY_SECONDS - (time.monotonic() - _LAST_OVERPASS_REQUEST)
+        if wait > 0:
+            time.sleep(wait)
+        _LAST_OVERPASS_REQUEST = time.monotonic()
+
+
+def _overpass_retry_delay(attempt: int, retry_after: str | None = None) -> float:
+    delay = min(10.0, OVERPASS_RETRY_DELAY_SECONDS * (attempt + 1))
+    if not retry_after:
+        return delay
+    try:
+        requested = float(retry_after)
+    except ValueError:
+        try:
+            retry_at = parsedate_to_datetime(retry_after)
+            if retry_at.tzinfo is None:
+                retry_at = retry_at.replace(tzinfo=timezone.utc)
+            requested = (retry_at - datetime.now(timezone.utc)).total_seconds()
+        except (TypeError, ValueError, OverflowError):
+            return delay
+    return max(delay, min(300.0, max(0.0, requested)))
 
 
 def _safe_homepage(value: object) -> str | None:
@@ -158,14 +193,29 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
                  "Content-Type": "application/x-www-form-urlencoded"},
         method="POST",
     )
-    global _LAST_OVERPASS_REQUEST
-    with _OVERPASS_LOCK:
-        wait = OVERPASS_DELAY_SECONDS - (time.monotonic() - _LAST_OVERPASS_REQUEST)
-        if wait > 0:
-            time.sleep(wait)
-        _LAST_OVERPASS_REQUEST = time.monotonic()
-    with (opener or urlopen)(request, timeout=110) as response:
-        payload = json.loads(response.read(20_000_000))
+    transport = opener or urlopen
+    for attempt in range(OVERPASS_RETRIES + 1):
+        _wait_for_overpass_slot()
+        try:
+            with transport(request, timeout=110) as response:
+                response_body = response.read(20_000_000)
+            break
+        except urllib.error.HTTPError as error:
+            if error.code not in OVERPASS_RETRYABLE_STATUSES or attempt == OVERPASS_RETRIES:
+                raise
+            retry_after = error.headers.get("Retry-After") if error.headers else None
+            error.close()
+            failure = error
+        except (urllib.error.URLError, OSError, http.client.HTTPException) as error:
+            if attempt == OVERPASS_RETRIES:
+                raise
+            retry_after = None
+            failure = error
+        delay = _overpass_retry_delay(attempt, retry_after)
+        LOG.warning("Overpass request failed attempt=%s/%s; retrying in %.1fs: %s",
+                    attempt + 1, OVERPASS_RETRIES + 1, delay, failure)
+        time.sleep(delay)
+    payload = json.loads(response_body)
     # A shared request cap includes robots and redirects. No search credentials are
     # required for email-domain verification; API lookup is enabled when configured.
     def enrich(candidates):
