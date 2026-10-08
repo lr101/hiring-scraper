@@ -161,7 +161,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--baseline', default='1030d1593c48c979f8bd839817e9f19baa757868')
+    parser.add_argument('--baseline', default='54243bcce34b7a2b31c7d6d18a9a24d1c7453159')
     parser.add_argument('--captures', required=True, type=Path)
     parser.add_argument('--details', type=Path)
     parser.add_argument('--provider-corpus', type=Path)

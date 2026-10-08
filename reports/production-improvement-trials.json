@@ -2381,7 +2381,7 @@
       "interpretation": "Fresh employers without legacy HTML; separate legacy-state guard trial applies."
     },
     "model_metric_recalculation": "Frozen 80 document hashes validated; all four metrics reproduce exactly.",
-    "final_runtime_revision": "d0b39f29620b5031146e0336df9fd861b202384c",
+    "final_runtime_revision": "c9cbdfc5",
     "final_python_suite": {
       "command": ".venv/bin/python -m unittest discover -s tests -q",
       "tests": 431,
@@ -2484,7 +2484,8 @@
       "date_utc": "2026-10-08",
       "baseline_main": "54243bcc"
     },
-    "current_main_company_discovery_tests": "Current-main added Tavily website discovery and owner-verification tests are part of the passing469 suite."
+    "current_main_company_discovery_tests": "Current-main added Tavily website discovery and owner-verification tests are part of the passing469 suite.",
+    "final_rereview_scope": "Final fix wave based on runtime ATS change d0b39f29 was independently approved; subsequent current-main integration adds Tavily homepage discovery validated in the 469-test current-main suite."
   },
   "controller_decisions": [
     {
@@ -2549,23 +2550,23 @@
   "source_trial_baseline_revision": "1030d1593c48c979f8bd839817e9f19baa757868",
   "integration_revision": "pending merge commit for current main54243bcc",
   "preview": {
-    "slug": "accuracy-0d075ba2",
-    "runtime_revision": "d0b39f29",
+    "slug": "accuracy-71aaa584",
+    "runtime_revision": "c9cbdfc5",
     "isolated_database": true,
-    "started_utc": "2026-10-08T12:15:52Z",
-    "frontend_url": "https://web-accuracy-0d075ba2.dev.dell.lr-projects.de/",
-    "api_health_url": "https://api-accuracy-0d075ba2.dev.dell.lr-projects.de/health/ready",
+    "frontend_url": "https://web-accuracy-71aaa584.dev.dell.lr-projects.de/",
+    "api_health_url": "https://api-accuracy-71aaa584.dev.dell.lr-projects.de/health/ready",
     "frontend_status": 200,
     "api_health_status": 200,
-    "state": "running"
+    "state": "running",
+    "verified_head": "c9cbdfc5"
   },
   "worktree_handoff": {
     "branch": "t3code/improve-scraper-matching-accuracy-1",
-    "branch_head_before_final_report_commit": "d0b39f29620b5031146e0336df9fd861b202384c",
-    "latest_main_base": "1030d1593c48c979f8bd839817e9f19baa757868",
+    "final_head_before_trial_report_commit": "c9cbdfc5",
+    "latest_main_base": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159",
+    "branch_clean_before_trial_report_commit": true,
     "shared_main_updated": false,
-    "pushed_or_deployed": false,
-    "latest_main_still": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159"
+    "pushed_or_deployed": false
   },
   "current_main_company_website_discovery": {
     "revision": "54243bcc",
@@ -2583,5 +2584,6 @@
       "website_request_attempts": 180
     },
     "relevance_to_this_work": "Inherited from current main after its commit during this task; independent of the six positive email-domain validation experiment, which remains unpromoted."
-  }
+  },
+  "source_trial_cli_default_baseline": "54243bcce34b7a2b31c7d6d18a9a24d1c7453159"
 }
