@@ -23,6 +23,12 @@ npm run dev
 
 Open <http://localhost:5173>.
 
+Save a job profile under **Your profile**, then choose an application status on a
+job in the results or job details. **My applications** shows tracked postings for
+each profile, with counts and filters for New, Open, Not interested, Waiting for
+reply, Interview, Rejected, and Accepted. Statuses persist independently of the
+source posting; closed and expired postings remain in your application overview.
+
 ## Compose deployment
 
 Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role, applies migrations, and serves the UI, API, and idle background workers without adding companies, feeds, or jobs. Open **Search areas** in the app and add a location to create the first discovery job. PostgreSQL data persists in a named volume.

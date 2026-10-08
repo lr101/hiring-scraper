@@ -3,6 +3,9 @@ import DetailPage from './DetailPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
+import ApplicationsPage from './ApplicationsPage'
+import ApplicationStatusControl from './ApplicationStatusControl'
+import type { Application } from './applications'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import { profileBoardDefaults, boardLocationParams } from './profile'
 import type { Profile } from './profile'
@@ -83,6 +86,7 @@ type Job = {
   raw_metadata: Record<string, unknown>
   enrichment: Enrichment
   profile_match?: ProfileMatch
+  application?: Application | null
   match_kind?: 'remote' | 'in_area'
 }
 
@@ -558,6 +562,7 @@ function DirectoryPage() {
                   <label className="unknown-filter"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setOffset(0) }} />Include jobs needing more information</label>
                 </>}
                 <a className="page-link" href="/profile">Edit profile</a>
+                {profileId && <a className="page-link" href={`/applications?profile_id=${profileId}`}>My applications →</a>}
                 <label className="discovery-filter"><span>Work style</span>
                   <select aria-label="Filter jobs by work style" value={jobWorkStyle}
                     onChange={event => { setJobWorkStyle(event.target.value as JobWorkStyleFilter); setOffset(0) }}>
@@ -589,15 +594,15 @@ function DirectoryPage() {
             <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
           </div>}
           {loading ? <div className="loading-state"><span className="spinner" /> Gathering the latest results…</div> : tab === 'companies' ? (
-            <div className="table-scroll">
-              <table>
+            <div className="table-scroll mobile-results-scroll">
+              <table className="companies-table mobile-results-table">
                 <thead><tr><th>COMPANY</th><th>WEBSITE</th><th>HIRING PAGE</th><th>DISTANCE</th><th /></tr></thead>
                 <tbody>
                   {companies.map(company => <tr key={company.id} onClick={() => { window.location.href = `/companies/${company.id}` }} className="click-row">
-                    <td><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong>{company.name}</strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
-                    <td>{company.domain ? <span className="domain-cell"><a className="domain-link" href={company.website_url ?? '#'} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{company.domain}<Icon name="external" size={12} /></a><small>{domainMatchLabel(company.domain_match_method)}</small></span> : <span className="muted">Website not found yet</span>}</td>
-                    <td><span className={`status-badge ${['jobs_feed_found','jobs_extracted'].includes(company.career_status) ? 'status-success' : company.career_status === 'career_page_found' ? 'status-career' : 'status-muted'}`}><span />{statusLabel(company.career_status)}</span></td>
-                    <td><span className="distance-text"><Icon name="pin" size={14} />{distanceLabel(company.distance_m)}</span></td>
+                    <td className="result-primary"><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong><a href={`/companies/${company.id}`} onClick={event => event.stopPropagation()}>{company.name}</a></strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
+                    <td className="result-secondary"><span className="mobile-field-label">Website</span>{company.domain ? <span className="domain-cell"><a className="domain-link" href={company.website_url ?? '#'} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{company.domain}<Icon name="external" size={12} /></a><small>{domainMatchLabel(company.domain_match_method)}</small></span> : <span className="muted">Website not found yet</span>}</td>
+                    <td className="result-meta"><span className="mobile-field-label">Hiring status</span><span className={`status-badge ${['jobs_feed_found','jobs_extracted'].includes(company.career_status) ? 'status-success' : company.career_status === 'career_page_found' ? 'status-career' : 'status-muted'}`}><span />{statusLabel(company.career_status)}</span></td>
+                    <td className="result-meta"><span className="mobile-field-label">Distance</span><span className="distance-text"><Icon name="pin" size={14} />{distanceLabel(company.distance_m)}</span></td>
                     <td className="row-arrow"><Icon name="chevron" size={17} /></td>
                   </tr>)}
                 </tbody>
@@ -605,24 +610,26 @@ function DirectoryPage() {
               {companies.length === 0 && <EmptyState title="No companies listed in this area yet" body="Add this place on the search areas page to find nearby companies and their websites." />}
             </div>
           ) : (
-            <div className="table-scroll">
-              <table className="jobs-table">
-                <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th>{profileId && <th>PROFILE MATCH</th>}<th>POSTED</th><th /></tr></thead>
+            <div className="table-scroll mobile-results-scroll">
+              <table className="jobs-table mobile-results-table">
+                <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th>{profileId && <><th>PROFILE MATCH</th><th>APPLICATION STATUS</th></>}<th>POSTED</th><th /></tr></thead>
                 <tbody>
                   {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}${window.location.search}` }} className="click-row">
-                    <td><div className="role-cell"><strong><a href={`/jobs/${job.id}${window.location.search}`} onClick={event => event.stopPropagation()}>{job.title}</a></strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
-                    <td><span className="job-company">{job.company_name}</span>
+                    <td className="result-primary"><div className="role-cell"><strong><a href={`/jobs/${job.id}${window.location.search}`} onClick={event => event.stopPropagation()}>{job.title}</a></strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
+                    <td className="result-secondary"><span className="job-company">{job.company_name}</span>
                       {job.company_website ? <a className="job-domain" href={job.company_website} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{job.company_domain || hostLabel(job.company_website)}</a> : <small className="job-domain">Company website not listed</small>}
                       {job.raw_metadata.employer_type === 'agency' && <small className="agency-note">Staffing / recruitment agency</small>}
                       <small className="job-source">Job page: <a href={job.board_url || job.url} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{hostLabel(job.board_url || job.url)}</a></small>
                     </td>
-                    <td><span className="location-chip"><Icon name="pin" size={13} />{job.location_text || 'Location not listed'}</span></td>
-                    <td><span className={`arrangement-chip ${job.is_remote ? 'arrangement-remote' : ''}`}>{job.is_remote ? 'Remote' : job.work_arrangement === 'hybrid' ? 'Hybrid' : job.work_arrangement === 'onsite' ? 'On-site' : 'In area'}</span></td>
-                    {profileId && <td className="match-cell"><strong>{job.profile_match?.score}/100</strong><span className={`fit-tier fit-${job.profile_match?.fit_tier ?? 'possible'}`}>{job.profile_match?.fit_tier === 'recommended' ? 'Recommended match' : job.profile_match?.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</span>
+                    <td className="result-meta"><span className="mobile-field-label">Work location</span><span className="location-chip"><Icon name="pin" size={13} />{job.location_text || 'Location not listed'}</span></td>
+                    <td className="result-meta"><span className="mobile-field-label">Work style</span><span className={`arrangement-chip ${job.is_remote ? 'arrangement-remote' : ''}`}>{job.is_remote ? 'Remote' : job.work_arrangement === 'hybrid' ? 'Hybrid' : job.work_arrangement === 'onsite' ? 'On-site' : 'In area'}</span></td>
+                    {profileId && <td className="match-cell result-match"><span className="mobile-field-label">Profile match</span><strong>{job.profile_match?.score}/100</strong><span className={`fit-tier fit-${job.profile_match?.fit_tier ?? 'possible'}`}>{job.profile_match?.fit_tier === 'recommended' ? 'Recommended match' : job.profile_match?.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</span>
                       <small>{job.profile_match?.matched_skills.slice(0, 3).join(', ') || 'No skill overlap found'}</small>
                       {job.profile_match?.unknowns.slice(0,2).map(gap => <small key={gap}>{gap}</small>)}
                     </td>}
-                    <td><span className="posted-date">{dateLabel(job.date_posted)}</span><small className="job-source">Last seen {dateLabel(job.last_seen_at)}</small></td>
+                    {profileId && <td className="result-status"><span className="mobile-field-label">Application status</span><ApplicationStatusControl key={`${profileId}:${job.id}`} profileId={Number(profileId)} jobId={job.id} title={job.title} application={job.application}
+                      onSaved={application => setJobs(current => current.map(item => item.id === job.id ? { ...item, application } : item))} /></td>}
+                    <td className="result-date"><span className="mobile-field-label">Posted</span><span className="posted-date">{dateLabel(job.date_posted)}</span><small className="job-source">Last seen {dateLabel(job.last_seen_at)}</small></td>
                     <td className="row-arrow"><Icon name="chevron" size={17} /></td>
                   </tr>)}
                 </tbody>
@@ -651,6 +658,7 @@ function EmptyState({ title, body }: { title: string; body: string }) {
 function App() {
   const path = window.location.pathname
   if (path === '/profile' || path === '/profile/') return <ProfilesPage />
+  if (path === '/applications' || path === '/applications/') return <ApplicationsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />
