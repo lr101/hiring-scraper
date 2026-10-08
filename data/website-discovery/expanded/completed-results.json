@@ -1,0 +1,2385 @@
+{
+  "complete": true,
+  "counts": {
+    "mapped_wikidata": {
+      "incremental_resolved_raw": 5,
+      "eligible_count": 120,
+      "cumulative_resolved_raw": 5,
+      "sample_resolved": 5,
+      "diagnostic_resolved": 0,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    "production_baseline": {
+      "incremental_resolved_raw": 10,
+      "eligible_count": 115,
+      "cumulative_resolved_raw": 15,
+      "sample_resolved": 11,
+      "diagnostic_resolved": 4,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 72,
+      "search_queries_unavailable": 0
+    },
+    "exact_name_existing_map": {
+      "incremental_resolved_raw": 0,
+      "eligible_count": 105,
+      "cumulative_resolved_raw": 15,
+      "sample_resolved": 11,
+      "diagnostic_resolved": 4,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    "combined_pages_and_brand_normalization": {
+      "incremental_resolved_raw": 3,
+      "eligible_count": 105,
+      "cumulative_resolved_raw": 18,
+      "sample_resolved": 13,
+      "diagnostic_resolved": 5,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    "simplified_query_and_regional_hint": {
+      "incremental_resolved_raw": 6,
+      "eligible_count": 102,
+      "cumulative_resolved_raw": 24,
+      "sample_resolved": 19,
+      "diagnostic_resolved": 5,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 102,
+      "search_queries_unavailable": 0
+    },
+    "directory_outbound_links": {
+      "incremental_resolved_raw": 0,
+      "eligible_count": 96,
+      "cumulative_resolved_raw": 24,
+      "sample_resolved": 19,
+      "diagnostic_resolved": 5,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    "advanced_search_25_residuals": {
+      "incremental_resolved_raw": 2,
+      "eligible_count": 25,
+      "cumulative_resolved_raw": 26,
+      "sample_resolved": 21,
+      "diagnostic_resolved": 5,
+      "credits_spent_this_run": 0,
+      "live_website_requests": 0,
+      "censored_by_http_cap": false,
+      "search_queries_available": 22,
+      "search_queries_unavailable": 3
+    }
+  },
+  "stages": {
+    "mapped_wikidata": {
+      "node/13159956405": {
+        "source_id": "node/13159956405",
+        "website_url": "https://www.bgv.de",
+        "evidence_url": "https://www.wikidata.org/wiki/Q795911",
+        "method": "osm_brand_wikidata_p856"
+      },
+      "node/4086852009": {
+        "source_id": "node/4086852009",
+        "website_url": "https://www.lvm.de/",
+        "evidence_url": "https://www.wikidata.org/wiki/Q1798429",
+        "method": "osm_brand_wikidata_p856"
+      },
+      "node/9070530368": {
+        "source_id": "node/9070530368",
+        "website_url": "https://www.allianz.de/",
+        "evidence_url": "https://www.wikidata.org/wiki/Q487292",
+        "method": "osm_brand_wikidata_p856"
+      },
+      "node/9369517965": {
+        "source_id": "node/9369517965",
+        "website_url": "https://www.igbau.de/",
+        "evidence_url": "https://www.wikidata.org/wiki/Q896472",
+        "method": "osm_brand_wikidata_p856"
+      },
+      "relation/1551481": {
+        "source_id": "relation/1551481",
+        "website_url": "https://www.arbeitsagentur.de/",
+        "evidence_url": "https://www.wikidata.org/wiki/Q1478016",
+        "method": "osm_brand_wikidata_p856"
+      }
+    },
+    "production_baseline": {
+      "node/4410545199": {
+        "source_id": "node/4410545199",
+        "name": "Corpoccino",
+        "website_url": "https://www.corpoccino.de/",
+        "domain_evidence_url": "https://www.corpoccino.de/unser-team",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/4756332032": {
+        "source_id": "node/4756332032",
+        "name": "Stadt Karlsruhe Stadtkämmerei",
+        "website_url": "https://www.karlsruhe.de/",
+        "domain_evidence_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/13665841694": {
+        "source_id": "node/13665841694",
+        "name": "Espinea",
+        "website_url": "https://www.espinea.org/",
+        "domain_evidence_url": "https://www.espinea.org/",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/13808007066": {
+        "source_id": "node/13808007066",
+        "name": "Malerbetrieb Albert Doldt GmbH",
+        "website_url": "https://maler-doldt.de/",
+        "domain_evidence_url": "https://maler-doldt.de/",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/5844471297": {
+        "source_id": "node/5844471297",
+        "name": "Drobny's Maler- und Stuckateurbetrieb",
+        "website_url": "https://www.maler-drobny.de/",
+        "domain_evidence_url": "https://www.maler-drobny.de/impressum.html",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/3620742819": {
+        "source_id": "node/3620742819",
+        "name": "Grabmale Heinz Schmidt",
+        "website_url": "https://www.grabmale-heinz-schmidt.de/",
+        "domain_evidence_url": "https://www.grabmale-heinz-schmidt.de/",
+        "domain_match_method": "web_search_verified_page"
+      },
+      "node/4841370429": {
+        "source_id": "node/4841370429",
+        "name": "kr3m. media GmbH",
+        "website_url": "https://kr3m.com/",
+        "domain_evidence_url": "https://kr3m.com/",
+        "domain_match_method": "osm_email_verified_page"
+      },
+      "node/4410545233": {
+        "source_id": "node/4410545233",
+        "name": "a3architekten",
+        "website_url": "https://a3architekten.com/",
+        "domain_evidence_url": "https://a3architekten.com/",
+        "domain_match_method": "osm_email_verified_page"
+      },
+      "node/7277910391": {
+        "source_id": "node/7277910391",
+        "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+        "website_url": "https://schrifthof.de/",
+        "domain_evidence_url": "https://schrifthof.de/",
+        "domain_match_method": "osm_email_verified_page"
+      },
+      "node/1547914554": {
+        "source_id": "node/1547914554",
+        "name": "Curious About",
+        "website_url": "https://curious-about.xyz/",
+        "domain_evidence_url": "https://curious-about.xyz/",
+        "domain_match_method": "web_search_verified_page"
+      }
+    },
+    "exact_name_existing_map": {},
+    "combined_pages_and_brand_normalization": {
+      "node/8356609535": {
+        "website_url": "https://www.falcimmo.de/",
+        "evidence_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+        "reason": "combined_identity",
+        "source_id": "node/8356609535",
+        "lead_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+        "method": "extended_verification"
+      },
+      "node/13978522951": {
+        "website_url": "https://metallbauer.io/",
+        "evidence_url": "https://metallbauer.io/2703-stober-u",
+        "reason": "combined_identity",
+        "source_id": "node/13978522951",
+        "lead_url": "https://metallbauer.io/2703-stober-u",
+        "method": "extended_verification"
+      },
+      "node/2031854098": {
+        "website_url": "https://vi2vi-systems.com/",
+        "evidence_url": "https://vi2vi-systems.com/fakten",
+        "reason": "combined_identity",
+        "source_id": "node/2031854098",
+        "lead_url": "https://vi2vi-systems.com/fakten",
+        "method": "extended_verification"
+      }
+    },
+    "simplified_query_and_regional_hint": {
+      "node/3489585141": {
+        "website_url": "https://rechnungshof.baden-wuerttemberg.de/",
+        "evidence_url": "https://rechnungshof.baden-wuerttemberg.de/kontakt",
+        "reason": "combined_identity",
+        "source_id": "node/3489585141",
+        "lead_url": "https://rechnungshof.baden-wuerttemberg.de/kontakt",
+        "method": "extended_verification"
+      },
+      "way/28884673": {
+        "website_url": "https://www.bkv-logistik.de/",
+        "evidence_url": "https://www.bkv-logistik.de/kontakt",
+        "reason": "combined_identity",
+        "source_id": "way/28884673",
+        "lead_url": "https://www.bkv-logistik.de/kontakt",
+        "method": "extended_verification"
+      },
+      "way/221198012": {
+        "website_url": "https://www.wschmitt-elektro.de/",
+        "evidence_url": "https://www.wschmitt-elektro.de/",
+        "reason": "combined_identity",
+        "source_id": "way/221198012",
+        "lead_url": "https://www.wschmitt-elektro.de/",
+        "method": "extended_verification"
+      },
+      "node/5643610462": {
+        "website_url": "https://www.stumpf-ohg.de/",
+        "evidence_url": "https://www.stumpf-ohg.de/agentur-1200",
+        "reason": "combined_identity",
+        "source_id": "node/5643610462",
+        "lead_url": "https://www.stumpf-ohg.de/agentur-1200",
+        "method": "extended_verification"
+      },
+      "node/6597572768": {
+        "website_url": "http://urich-transporte.de/",
+        "evidence_url": "http://urich-transporte.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "node/6597572768",
+        "lead_url": "http://urich-transporte.de/kontakt",
+        "method": "extended_verification"
+      },
+      "way/441438844": {
+        "website_url": "https://www.holzbaustengel.de/",
+        "evidence_url": "https://www.holzbaustengel.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "way/441438844",
+        "lead_url": "https://www.holzbaustengel.de/kontakt",
+        "method": "extended_verification"
+      }
+    },
+    "directory_outbound_links": {},
+    "advanced_search_25_residuals": {
+      "node/11349271920": {
+        "website_url": "https://www.steinbeis.de/",
+        "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "reason": "combined_identity",
+        "source_id": "node/11349271920",
+        "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "method": "extended_verification"
+      },
+      "node/3071631069": {
+        "website_url": "https://www.gastronomie-service-glaser.de/",
+        "evidence_url": "https://www.gastronomie-service-glaser.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "node/3071631069",
+        "lead_url": "https://www.gastronomie-service-glaser.de/kontakt",
+        "method": "extended_verification"
+      }
+    }
+  },
+  "details": {
+    "node/5141477623": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/5863209799": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/5896664839": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5896664839",
+          "lead_url": "https://www.rhenus.group/de/de",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4410545199": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4410545199",
+          "lead_url": "https://www.corpoccino.de/unser-team",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://www.corpoccino.de/",
+          "evidence_url": "https://www.corpoccino.de/unser-team"
+        },
+        {
+          "source_id": "node/4410545199",
+          "lead_url": "https://www.wellnissimo.de/standorte/d-physiotherapie-karlsruhe-oststadt-corpoccino-praxis-fuer-physiotherapie-879465675",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "way/171575126": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/171575126",
+          "lead_url": "https://www.heinze.de/expertenprofil/architekten-lenzstrasse-dreizehn/12710467",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/171575126",
+          "lead_url": "https://lenz13.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/171575126",
+          "lead_url": "https://www.houzz.de/experten/architekten/architekten-lenzstrasse-dreizehn-pfvwde-pf~1922162926",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/7294970490": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/7294970490",
+          "lead_url": "https://careers-ccr-ge.icims.com/jobs/5622/bauleiter-%28m-w-d%29/job",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/7294970490",
+          "lead_url": "https://www.carrier.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/7294970490",
+          "lead_url": "https://www.ccr.com/de",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.carrier.com/",
+        "https://www.carrier.com/",
+        "https://www.carrier.de/"
+      ]
+    },
+    "node/6547234096": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/6391993761": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/10614949313": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/gbm%20Gesellschaft%20f%C3%BCr%20Baugeologie%20und%20-me%C3%9Ftechnik%20mbH%20Baugrundinstitut,%20Ettlingen/Amtsgericht%20Mannheim%20HRB%20361234"
+      ]
+    },
+    "way/1134006884": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "way/216257091": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/216257091",
+          "lead_url": "https://onlinestreet.de/poi/L2VtNTZHYkVNODFhY3B5aXkzSlVJUT09",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/216257091",
+          "lead_url": "https://www.starofservice.de/liste/rheinland-pfalz/germersheim/jockgrim/reiseburo",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "way/216257091",
+          "lead_url": "https://sonnenklartv-reisebuero.de/jockgrim/Sarah.Hoffmann",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/256606279": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/3147893527": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3147893527",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/juergen-hemmann-43114",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3147893527",
+          "lead_url": "https://firmeneintrag.creditreform.de/76297/7110297575/JUERGEN_HEMMANN_MALERBETRIEB",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/3147893527",
+          "lead_url": "https://www.chemie.de/firmen/2523/iwk-verpackungstechnik-gmbh.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/5476258025": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/4756332032": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4756332032",
+          "lead_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://www.karlsruhe.de/",
+          "evidence_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei"
+        },
+        {
+          "source_id": "node/4756332032",
+          "lead_url": "https://web1.karlsruhe.de/service/Buergerdienste/organisation.php?id=6027883",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4756332032",
+          "lead_url": "https://www.service-bw.de/zufi/organisationseinheiten/6010995",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/5659366531": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5659366531",
+          "lead_url": "https://www.wochenmarkt-kl.de/spezialitaeten/kirbas",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5659366531",
+          "lead_url": "https://durlachcenter.de/shops/feinkost-kirbas",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5659366531",
+          "lead_url": "https://coolibri.de/restaurant/feinkost-kirbas-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13665841694": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13665841694",
+          "lead_url": "https://www.espinea.org/",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://www.espinea.org/",
+          "evidence_url": "https://www.espinea.org/"
+        },
+        {
+          "source_id": "node/13665841694",
+          "lead_url": "https://www.joimax.com/de/joimax-updates-espinea-training-facility-2",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/4720618322": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/14119791823": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/3489585141": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3489585141",
+          "lead_url": "https://www.baden-wuerttemberg.de/de/unser-land/rechnungshof",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3489585141",
+          "lead_url": "http://www.rechnungshof.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "ambiguous_domains",
+          "website_url": "http://www.rechnungshof.de/",
+          "evidence_url": "http://www.rechnungshof.de/"
+        },
+        {
+          "source_id": "node/3489585141",
+          "lead_url": "https://rechnungshof.baden-wuerttemberg.de/karriere/standorte",
+          "method": "search",
+          "accepted": false,
+          "reason": "ambiguous_domains",
+          "website_url": "https://rechnungshof.baden-wuerttemberg.de/",
+          "evidence_url": "https://rechnungshof.baden-wuerttemberg.de/karriere/standorte"
+        }
+      ]
+    },
+    "node/10061398287": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/4417968603": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/2344697757": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/2344697757",
+          "lead_url": "https://woerth-am-rhein.branchen-info.net/geisser-gmbh/1594203",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2344697757",
+          "lead_url": "https://www.sanitaer.org/woerth/geisser-gmbh-sanitaer-installation-aULI3p",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2344697757",
+          "lead_url": "https://firmeneintrag.creditreform.de/76744/7310136218/UWE_GEISSER_GAS_WASSER_HEIZUNG",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/3074620171": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/4609654425": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/6597207390": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6597207390",
+          "lead_url": "https://www.creditsafe.com/business-index/en-ie/company/dm-drogerie-markt-gmbh-co-kg-de01940213",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6597207390",
+          "lead_url": "https://www.dm.de/impressum-43984",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6597207390",
+          "lead_url": "https://newsroom.dm.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.dm.de/"
+      ]
+    },
+    "node/12913063100": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/13808007066": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13808007066",
+          "lead_url": "https://firmeneintrag.creditreform.de/76287/7110027901/MALERBETRIEB_ALBERT_DOLDT_GMBH",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/13808007066",
+          "lead_url": "https://maler-doldt.de/",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://maler-doldt.de/",
+          "evidence_url": "https://maler-doldt.de/"
+        },
+        {
+          "source_id": "node/13808007066",
+          "lead_url": "https://www.maler.org/karlsruhe/malerbetrieb-albert-doldt-gmbh-aULbzi",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/6142917488": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/6254552788": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6254552788",
+          "lead_url": "https://www.webvalid.de/company/GUF+Objektgesellschaft+mbH,+Karlsruhe/HRB+703944",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/6254552788",
+          "lead_url": "https://www.giggmbh.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6254552788",
+          "lead_url": "http://www.hug-ka.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/GUF%20Objektgesellschaft%20mbH,%20Karlsruhe/Amtsgericht%20Mannheim%20HRB%20703944"
+      ]
+    },
+    "node/3461277945": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "way/39505249": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": [
+        "https://www.fiduciagad.de/unternehmen.html"
+      ]
+    },
+    "way/256606278": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/10819436841": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/10819436841",
+          "lead_url": "https://autobahn.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/10819436841",
+          "lead_url": "https://www.autobahn.de/ueber-uns/niederlassungen/suedwest",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/10819436841",
+          "lead_url": "https://www.connecticum.de/arbeitgeber/die-autobahn-gmbh-des-bundes-197693",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/5856882940": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5856882940",
+          "lead_url": "https://minanner.de/unternehmen/toto-lotto-bezirksdirektion-mittlerer-oberrhein-475174",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5856882940",
+          "lead_url": "https://karlsruhe.branchen-info.net/toto-lotto-bezirksdirektion-mittlerer-oberrhein-gmbh/2489939",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5856882940",
+          "lead_url": "https://de.abasix.com/l/karlsruhe/toto-lotto-bez-5c18b3f6363e8",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/192161447": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/192161447",
+          "lead_url": "https://www.feinedrucke.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/192161447",
+          "lead_url": "https://www.visuellverstehen.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/192161447",
+          "lead_url": "https://www.wendweb.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "http://www.ghr.de/"
+      ]
+    },
+    "way/1120093826": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/7141276789": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/3096522311": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/9718412518": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/4004213508": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4004213508",
+          "lead_url": "https://www.db-fernverkehr.com/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4004213508",
+          "lead_url": "https://www.deutschebahn.com/de",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4004213508",
+          "lead_url": "https://www.dbsystel.de/dbsystel",
+          "method": "search",
+          "accepted": false,
+          "reason": "network_error"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.deutschebahn.com/",
+        "https://netzpolitik.org/wp-upload/datenschutz_bei_der_bahn.pdf"
+      ]
+    },
+    "node/8356609535": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/8356609535",
+          "lead_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/8356609535",
+          "lead_url": "https://www.clever-immobilien.de/immobilienanzeigen/FALC-Immobilien-Karlsruhe-Ost/18899:9493133553::::mr5.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/8356609535",
+          "lead_url": "https://www.franchiseportal.de/franchise-unternehmen/falc-immobilien-m-16474",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/6467977271": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/6090397017": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6090397017",
+          "lead_url": "https://www.deutschebahn.com/de/konzern/konzernprofil/Konzernunternehmen/db_bahnbaugruppe-6879546",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6090397017",
+          "lead_url": "https://www.bahnbaugruppe.de/bahnbaugruppe-de",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.bahnbaugruppe.de/",
+        "https://www.bahnbaugruppe.de/"
+      ]
+    },
+    "node/7997438272": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/7997438272",
+          "lead_url": "https://minanner.de/unternehmen/lids-catering-und-partyservice-435166",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/7997438272",
+          "lead_url": "https://lidskueche.eatbu.com/?lang=en",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/7997438272",
+          "lead_url": "https://lokalatlas.de/firma.php?id=2361189",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/3424873322": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3424873322",
+          "lead_url": "https://www.fachanwalt.de/strafrecht/karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3424873322",
+          "lead_url": "https://www.rak-karlsruhe.de/mitglied/yildiz-oezdemir-buket-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3424873322",
+          "lead_url": "https://www.anwalt-suchservice.de/nam/yildiz-oezdemir_buket_karlsruhe.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/11349271920": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/11349271920",
+          "lead_url": "https://stw.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/11349271920",
+          "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/katinno",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/11349271920",
+          "lead_url": "https://www.wissensmanagement-beratung.com/ueber-uns",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13999845480": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13999845480",
+          "lead_url": "https://h-ka.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4004213513": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4004213513",
+          "lead_url": "https://www.kennstdueinen.de/hausverwaltung-karlsruhe-domicilia-hausverwaltungs-und-immobiliengesellschaft-mbh-d57774.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4004213513",
+          "lead_url": "https://www.openpr.de/news/683556/Domicilia-Hausverwaltung-in-Karlsruhe-seit-35-Jahre-erfolgreich-fuer-die-Kunden.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/4004213513",
+          "lead_url": "https://www.jacasa.de/hausverwaltung/domicilia-hausverwaltungs-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/Domicilia%20Hausverwaltungs-%20und%20Immobiliengesellschaft%20mbH,%20Karlsruhe/Amtsgericht%20Mannheim%20HRB%20102373"
+      ]
+    },
+    "node/10586503926": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/13999845478": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13999845478",
+          "lead_url": "https://h-ka.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13016102159": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "way/169027647": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/169027647",
+          "lead_url": "http://www.eggenstein.de/de/umwelt-wirtschaft/wirtschaft/unternehmensverzeichnis/unternehmen/Peter-Knobloch-GmbH.php",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "way/169027647",
+          "lead_url": "https://www.beste-badstudios.de/eggenstein-leopoldshafen/peter-knobloch",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/169027647",
+          "lead_url": "https://www.wasserwaermeluft.de/handwerkersuche/peter-knobloch-sanitaer-und-heiztechnik-gmbh-76344-eggenstein",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13245616590": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13245616590",
+          "lead_url": "https://pfinztal.de/rathaus-service",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/13245616590",
+          "lead_url": "https://www.service-bw.de/zufi/organisationseinheiten/6035763",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/97377636": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/97377636",
+          "lead_url": "https://www.enzkreis.de/Landratsamt/%C3%84mter-Dezernate/Dezernat-3-Landwirtschaft-Forsten-%C3%B6ffentliche-Ordnung/Vermessungs-und-Flurneuordnungsamt/Flurneuordnung",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/97377636",
+          "lead_url": "https://www.bretten.de/sites/default/files/press/Flurbereinigung%20Knittlingen-Freudenstein.pdf",
+          "method": "search",
+          "accepted": false,
+          "reason": "not_html"
+        },
+        {
+          "source_id": "way/97377636",
+          "lead_url": "https://fno-verfahren.lgl-bw.de/FISInternet/DateiServlet/datei/2149/10481",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4896970965": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4896970965",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/iwk-verpackungstechnik-gmbh-64897",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4896970965",
+          "lead_url": "https://www.chemie.de/firmen/2523/iwk-verpackungstechnik-gmbh.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4896970965",
+          "lead_url": "https://iwk.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/28884673": {
+      "baseline_decisions": []
+    },
+    "way/110539711": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/110539711",
+          "lead_url": "https://augenblick-werbeagentur.de/karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        },
+        {
+          "source_id": "way/110539711",
+          "lead_url": "https://www.raumkontakt.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/110539711",
+          "lead_url": "https://www.sun-concept.de/werbeagentur-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/9789239365": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/9789239365",
+          "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/9789239365",
+          "lead_url": "https://www.bahnhof.de/karlsruhe-hbf",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/9789239365",
+          "lead_url": "https://www.deutschebahn.com/de",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.deutschebahn.com/",
+        "https://netzpolitik.org/wp-upload/datenschutz_bei_der_bahn.pdf"
+      ]
+    },
+    "node/4825738743": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4825738743",
+          "lead_url": "https://www.wer-zu-wem.de/firma/sbg.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4825738743",
+          "lead_url": "https://www.bus-bild.de/name/galerie/kategorie/Deutschland~DB+Stadtverkehr+GmbH~Karlsruhe+-+SudWestBus/digitalfotografie/72.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        },
+        {
+          "source_id": "node/4825738743",
+          "lead_url": "https://sl.busti.me/karlsruhe/company/6988",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/9159054311": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/9159054311",
+          "lead_url": "https://www.gartenbau.org/stutensee/michael-paulus-gartengestaltung-aUMdJ1",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/9159054311",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/b-m-gartengestaltung-161527",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/9159054311",
+          "lead_url": "http://www.hkr-garten.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/6053265633": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/2819486449": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/2819486449",
+          "lead_url": "https://www.meinstutensee.de/tag/stiefel",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2819486449",
+          "lead_url": "https://regional-bei-dir.de/merchants/imkerei-stiefel-stutensee",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2819486449",
+          "lead_url": "https://www.hofladenfinder.org/farmshop/details/imkerei-stiefel-in-stutensee-blankenloch__42693",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13955153030": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/5821280062": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5821280062",
+          "lead_url": "https://web2.cylex.de/firma-home/versicherungsagentur-heinz-kutt-e-k--5164176.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "node/5821280062",
+          "lead_url": "https://karlsruhe.branchen-info.net/heinz-kutt-ek/1744831",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5821280062",
+          "lead_url": "https://lebenlokal.de/services/84239",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/13999845476": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13999845476",
+          "lead_url": "https://h-ka.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/10789909705": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": [
+        "http://www.georg-gattke.de/",
+        "http://www.polsterwerkstatt-gattke.de/",
+        "http://www.polsterwerkstatt-gattke.de/"
+      ]
+    },
+    "node/5890338959": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/6254552790": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6254552790",
+          "lead_url": "https://handelsregister.ai/de/organizations/karlsruhe/verwaltung-von-gewerbegrundstuecken-und-nichtwohngebaeuden-fuer-dritte/swg-objektgesellschaft-mbh-b2cfe95e804896862d78dc8e33ba3f3c",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6254552790",
+          "lead_url": "https://firmeneintrag.creditreform.de/76139/7110396876/SWG_OBJEKTGESELLSCHAFT_MBH",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/6254552790",
+          "lead_url": "https://www.unternehmensverzeichnis.org/swg-objektgesellschaft-mbh-karlsruhe-2501103146377",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/SWG%20Objektgesellschaft%20mbH,%20Karlsruhe/Amtsgericht%20Mannheim%20HRB%20721173"
+      ]
+    },
+    "node/531860225": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/13978522951": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/13978522951",
+          "lead_url": "https://stober-mw.com/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/13978522951",
+          "lead_url": "https://linkenheim-hochstetten.de/verzeichnis/stobermetallbau",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/13978522951",
+          "lead_url": "https://metallbauer.io/2703-stober-u",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/13978522951",
+          "lead_url": "https://www.stoeber.de/en",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/2344697754": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/2344697754",
+          "lead_url": "https://www.ifthm.de/de/unser-unternehmen/anfahrt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2344697754",
+          "lead_url": "https://www.woerth.de/sv_woerth",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2344697754",
+          "lead_url": "https://portal-energie.de/index.php?id=62",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/3547680499": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3547680499",
+          "lead_url": "https://areiter.shop/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3547680499",
+          "lead_url": "https://regioliebe.app/stutensee/brennerei-heidt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3547680499",
+          "lead_url": "https://www.reiter-braeu.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/5844471297": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5844471297",
+          "lead_url": "https://www.nussbaum.de/entdecken/profile/drobny-s-maler-und-stuckateurbetrieb-91467",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "node/5844471297",
+          "lead_url": "https://firmeneintrag.creditreform.de/76297/7050289356/ZBIGNIEV_VIKTOR_DROBNY_MALERBETRIEB",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/5844471297",
+          "lead_url": "https://www.maler-drobny.de/index.php/impressum",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://www.maler-drobny.de/",
+          "evidence_url": "https://www.maler-drobny.de/impressum.html"
+        }
+      ]
+    },
+    "node/5298221194": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5298221194",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/niemann-leichtbeton-gmbh-14254",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5298221194",
+          "lead_url": "https://bnn.de/sonderthemen/unternehmen/stutensee",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5298221194",
+          "lead_url": "https://abbund-center.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/584930935": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/584930935",
+          "lead_url": "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Bundesvermoegen/Privatisierungs_und_Beteiligungspolitik/Beteiligungspolitik/bundesanstalt-fuer-immobilienaufgaben.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "way/584930935",
+          "lead_url": "https://www.service.bund.de/Content/DE/DEBehoerden/B/BImA/Bundesanstalt-fuer-Immobilienaufgaben.html?nn=4641496",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "way/584930935",
+          "lead_url": "https://exporo.de/wiki/bundesanstalt-fuer-immobilienaufgaben",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/12070619725": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/12070619725",
+          "lead_url": "https://ettlingen.branchen-info.net/pius-ochs-soehne-gmbh-fliesenlegergeschaeft/2894598",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/12070619725",
+          "lead_url": "https://www.fussbodenleger.org/ettlingen/pius-ochs-soehne-gmbh-1675683.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/12070619725",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/pius-ochs-soehne-gmbh-34715",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/3972340715": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/3071631069": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/5637277508": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5637277508",
+          "lead_url": "https://www.krankenkassen.de/krankenkassen-geschaeftsstellen/sbk/karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5637277508",
+          "lead_url": "https://www.sbk.org/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "http://www.sbk.org/"
+      ]
+    },
+    "node/9629083773": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "way/221201827": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/221201827",
+          "lead_url": "https://www.dachdecker.com/stutensee/lehmann-und-nagel-gmbh-dachdecker-fachbetrieb-aULA1F",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/221201827",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/lehmann-nagel-gmbh-203860",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/221201827",
+          "lead_url": "https://www.stadtplan.net/branchenbuch/lehmann-und-nagel-gmbh",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "way/144255121": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/144255121",
+          "lead_url": "https://wfh5c645f.hier-im-netz.de/kontakt",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "way/144255121",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/roos-spedition-gmbh-90056",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/144255121",
+          "lead_url": "https://www.roos-spedition.com/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4705996153": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4705996153",
+          "lead_url": "https://www.immowelt.de/profil/52af956a281f48789e60b01fd476c127",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        },
+        {
+          "source_id": "node/4705996153",
+          "lead_url": "https://firmeneintrag.creditreform.de/76646/7050117192/SILKE_KLOTZ_IMMOBILIENMAKLER_KLOTZ_IMMOBILIEN",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/4705996153",
+          "lead_url": "https://www.jacasa.de/immobilienmakler/klotz-immobilien-bruchsal",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/9490951594": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/3196094989": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3196094989",
+          "lead_url": "https://gewerbeverein-stutensee.org/mitglieder/branchenverzeichnis/1995/schreinerei-kloebel",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3196094989",
+          "lead_url": "https://www.schukraft.de/schreinerei-stutensee",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3196094989",
+          "lead_url": "https://www.schreiner-tischler.de/stutensee",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4004213509": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4004213509",
+          "lead_url": "https://www.karlsruhe-basel.de/impressum.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4004213509",
+          "lead_url": "https://www.deutschebahn.com/de/konzern/konzernprofil/Konzernunternehmen/DB-InfraGO-AG-12598696",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4004213509",
+          "lead_url": "https://www.mannheim-karlsruhe.de/impressum",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.dbinfrago.com/web"
+      ]
+    },
+    "node/3578191193": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3578191193",
+          "lead_url": "https://schneiderei-karlsruhe.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3578191193",
+          "lead_url": "https://schneiderei-ercan.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/3578191193",
+          "lead_url": "https://meinka.de/schneiderei-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4729773096": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4729773096",
+          "lead_url": "https://karlsruhe.branchen-info.net/fp_5547486.php",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4729773096",
+          "lead_url": "https://www.krankengymnastik-klohe.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/5643610462": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5643610462",
+          "lead_url": "https://vertretung.allianz.de/stumpf",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/5643610462",
+          "lead_url": "https://firmeneintrag.creditreform.de/76187/7110421789/STUMPF_OHG",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/5643610462",
+          "lead_url": "https://www.mapquest.com/de/allianz-versicherung-stumpf-ohg-generalvertretung-in-karlsruhe-knielingen-514623192",
+          "method": "search",
+          "accepted": false,
+          "reason": "http_error"
+        }
+      ]
+    },
+    "way/221198012": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/221198012",
+          "lead_url": "https://gewerbeverein-stutensee.org/mitglieder/branchenverzeichnis/1847/elektrotechnik-schmitt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/221198012",
+          "lead_url": "https://www.elektriker.org/stutensee/wolfgang-schmitt-elektrotechnik-aUO9jt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/221198012",
+          "lead_url": "https://firmeneintrag.creditreform.de/76297/7110536518/WOLFGANG_SCHMITT_ELEKTROTECHNIK_OHG",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ]
+    },
+    "node/5387912392": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/5387912392",
+          "lead_url": "https://www.techpark.de/der-technologiepark/unternehmen-im-tpk/unternehmen-h-r.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5387912392",
+          "lead_url": "https://halbleiter-scout.de/intel-gmbh",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/5387912392",
+          "lead_url": "https://www.date-conference.com/company-profile/intel-germany",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/6848347044": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6848347044",
+          "lead_url": "https://www.dhbw-stuttgart.de/liste-dualer-partner/unternehmen/dm-vermoegensverwaltungsgesellschaft-gmbh-13689",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6848347044",
+          "lead_url": "https://www.dm.de/impressum-43984",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6848347044",
+          "lead_url": "https://dm-vermoegen.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/dm-Verm%C3%B6gensverwaltungsgesellschaft%20mbH,%20Karlsruhe/Amtsgericht%20Mannheim%20HRB%20105065"
+      ]
+    },
+    "node/3620742819": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/3620742819",
+          "lead_url": "https://www.fallswaspassiert.de/dienstleister/steinmetz/karlsruhe/grabmale-heinz-schmidt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3620742819",
+          "lead_url": "https://www.nussbaum.de/entdecken/unternehmen/heinz-schmidt-29211",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/3620742819",
+          "lead_url": "https://www.grabmale-heinz-schmidt.de/",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://www.grabmale-heinz-schmidt.de/",
+          "evidence_url": "https://www.grabmale-heinz-schmidt.de/"
+        }
+      ]
+    },
+    "node/10614949310": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/10614949310",
+          "lead_url": "https://www.dbfp.de/deutsche-beratungsgesellschaft-fuer-finanzplanung",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/10614949310",
+          "lead_url": "https://spitzen-arbeitgeber.de/unternehmen/dbfp-ag-anlageberatung-fuer-die-fuerst-fugger-privatbank",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/10614949310",
+          "lead_url": "https://firmeneintrag.creditreform.de/70191/7330911466/DBFP_DEUTSCHE_BERATUNGSGESELLSCHAFT_FUER_FINANZPLANUNG_AG",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/6597572768": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6597572768",
+          "lead_url": "https://for-driver.info/de/review-company/alexander-urich-transporte.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6597572768",
+          "lead_url": "https://firmeneintrag.creditreform.de/76139/7110231975/ALEXANDER_URICH_GUETERKRAFTVERKEHR",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/6597572768",
+          "lead_url": "https://frachtindex.de/unternehmen/urich-transporte-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "way/192415649": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/192415649",
+          "lead_url": "https://www.schreiner-innung-karlsruhe.de/verzeichnis/wima-tische-gmbhrobert-wickenhaeuser-malsch",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/192415649",
+          "lead_url": "https://www.schreiner-tischler.de/malsch-kreis-karlsruhe/wima-tische-robert-wickenhaeuser",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/192415649",
+          "lead_url": "https://www.tischler-schreiner.org/malsch/wima-tische-gmbh-robert-wickenhaeuser-aUOVGK",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/8012933800": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/Br%C3%BCder%20Schmidt%20GmbH,%20Karlsruhe/Amtsgericht%20Gie%C3%9Fen%20HRB%20654"
+      ]
+    },
+    "node/4622655478": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/4726157504": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4726157504",
+          "lead_url": "https://www.agentur.de/karlsruhe/mosaik-digital-network-gmbh-aUPESe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4726157504",
+          "lead_url": "https://online-optimierung.com/dienstleistungen-handwerk/karlsruhe-baden/mosaik-digital-network-gmbh",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        },
+        {
+          "source_id": "node/4726157504",
+          "lead_url": "https://firmeneintrag.creditreform.de/76133/7110406534/MOSAIK_DIGITAL_NETWORK_GMBH",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        }
+      ],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/Mosaik%20Digital%20Network%20GmbH,%20Karlsruhe/Amtsgericht%20Mannheim%20HRB%20722811"
+      ]
+    },
+    "way/441438844": {
+      "baseline_decisions": [
+        {
+          "source_id": "way/441438844",
+          "lead_url": "https://www.zi-ka.de/mitgliedersuche/business-listing/stengel-zimmerei-holzbau-gmbh",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/441438844",
+          "lead_url": "https://www.dachdecker.com/remchingen/stengel-zimmerei-und-holzbau-gmbh-aUP5sq",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "way/441438844",
+          "lead_url": "https://directory.cosuno.com/en/germany/companies/stengel-zimmerei-und-holzbau-gmbh-350844",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/4909416891": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4909416891",
+          "lead_url": "https://lokalatlas.de/firma.php?id=2346292",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4909416891",
+          "lead_url": "https://karlsruhe.branchen-info.net/tag/rohrbiegerei/54742",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4909416891",
+          "lead_url": "https://www.european-business-connect.de/Katalog/4-Industrie/4600-Rohrleitungs_und_Metallbau/31789-B_hling_Rohrleitungs__und_Apparatebau_GmbH/firmen_detail.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/6468167351": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6468167351",
+          "lead_url": "https://itsbetter.com/firmeneintrag/avee-gmbh",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_disallowed"
+        },
+        {
+          "source_id": "node/6468167351",
+          "lead_url": "https://www.ave-online.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6468167351",
+          "lead_url": "https://www.avee.no/support-1708",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/4410545233": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4410545233",
+          "lead_url": "https://a3architekten.com/",
+          "method": "email",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://a3architekten.com/",
+          "evidence_url": "https://a3architekten.com/"
+        }
+      ]
+    },
+    "node/4841370429": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4841370429",
+          "lead_url": "https://kr3m.com/",
+          "method": "email",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://kr3m.com/",
+          "evidence_url": "https://kr3m.com/"
+        }
+      ]
+    },
+    "node/7277910391": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/7277910391",
+          "lead_url": "https://schrifthof.de/",
+          "method": "email",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://schrifthof.de/",
+          "evidence_url": "https://schrifthof.de/"
+        }
+      ]
+    },
+    "node/4793460912": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/4793460912",
+          "lead_url": "https://matsec-sec.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/4793460912",
+          "lead_url": "https://firmeneintrag.creditreform.de/76133/7110536603/MATSEC_SECURITY_TRANSPORT_GMBH",
+          "method": "search",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/4793460912",
+          "lead_url": "https://www.mass-security.de/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/4793460912",
+          "lead_url": "https://www.tresec-security.com/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/2392730442": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/2392730442",
+          "lead_url": "https://www.ortner-consulting.de/erstinformationen",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2392730442",
+          "lead_url": "https://www.pape.de/personalberatung-karlsruhe",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2392730442",
+          "lead_url": "https://www.ah-consulting.eu/",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/7514369649": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": []
+    },
+    "node/1254138518": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/1254138518",
+          "lead_url": "https://joas-immobilien.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/1254138518",
+          "lead_url": "https://durlacherleben.de/joas-immobilien",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/1254138518",
+          "lead_url": "http://www.peter-joas.de/index.php?id=0",
+          "method": "search",
+          "accepted": false,
+          "reason": "ambiguous_domains",
+          "website_url": "http://www.peter-joas.de/",
+          "evidence_url": "http://www.peter-joas.de/index.php?id=0"
+        },
+        {
+          "source_id": "node/1254138518",
+          "lead_url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler",
+          "method": "search",
+          "accepted": false,
+          "reason": "ambiguous_domains",
+          "website_url": "http://www.joas-immobilien.de/",
+          "evidence_url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/6448028040": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/6448028040",
+          "lead_url": "https://personaconcept.de/",
+          "method": "email",
+          "accepted": false,
+          "reason": "robots_unavailable"
+        },
+        {
+          "source_id": "node/6448028040",
+          "lead_url": "https://www.persona-part.de/kontakt/standorte/persona-part-ettlingen",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6448028040",
+          "lead_url": "https://web.arbeitsagentur.de/vermittlung/ag-darstellung-ui/anzeigen/jUtMun3VLazjlWcGY3RB1ZRLyi6DmUTSf9WUKjCY9Dg=",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/6448028040",
+          "lead_url": "https://www.i-group.de/ettlingen.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/7514307665": {
+      "baseline_decisions": [],
+      "directory_outbound_targets": [
+        "https://www.northdata.com/ORGAKOM%20Analyse%20+%20Beratung%20GmbH,%20Waldbronn/Amtsgericht%20Mannheim%20HRB%20361630"
+      ]
+    },
+    "node/11349271931": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/11349271931",
+          "lead_url": "https://r3dt.com/",
+          "method": "email",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/11349271931",
+          "lead_url": "https://xr-easy.com/de/impressum",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/11349271931",
+          "lead_url": "https://r3dt.com/wp-content/uploads/2020/02/R3DT-Presse_V1.6_202001a-en.pdf",
+          "method": "search",
+          "accepted": false,
+          "reason": "not_html"
+        },
+        {
+          "source_id": "node/11349271931",
+          "lead_url": "https://www.htgf.de/meet-your-reality-htgf-investiert-in-vr-startup-r3dt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ],
+      "directory_outbound_targets": []
+    },
+    "node/2031854098": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/2031854098",
+          "lead_url": "https://vi2vi.com/kontakt",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2031854098",
+          "lead_url": "https://vi2vi-systems.com/fakten",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/2031854098",
+          "lead_url": "https://karriere.vi2vi.com/people",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "node/1547914554": {
+      "baseline_decisions": [
+        {
+          "source_id": "node/1547914554",
+          "lead_url": "https://curious-about.xyz/",
+          "method": "search",
+          "accepted": true,
+          "reason": "verified_identity",
+          "website_url": "https://curious-about.xyz/",
+          "evidence_url": "https://curious-about.xyz/"
+        },
+        {
+          "source_id": "node/1547914554",
+          "lead_url": "https://www.karlsruhe-erleben.de/en",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        },
+        {
+          "source_id": "node/1547914554",
+          "lead_url": "https://www.baunetz.de/meldungen/Meldungen-Einfamilienhaus_von_Curious_About_in_der_Pfalz_9573262.html",
+          "method": "search",
+          "accepted": false,
+          "reason": "identity_not_verified"
+        }
+      ]
+    },
+    "advanced_subset": [
+      "node/10586503926",
+      "node/2344697754",
+      "node/3461277945",
+      "node/7294970490",
+      "node/5890338959",
+      "node/3196094989",
+      "node/6468167351",
+      "way/192161447",
+      "node/6142917488",
+      "node/4909416891",
+      "node/10819436841",
+      "node/5141477623",
+      "node/9789239365",
+      "node/4705996153",
+      "node/2344697757",
+      "node/10789909705",
+      "node/5476258025",
+      "node/11349271920",
+      "node/3071631069",
+      "node/4729773096",
+      "node/3972340715",
+      "node/5863209799",
+      "node/13999845478",
+      "node/6848347044",
+      "node/9490951594"
+    ]
+  },
+  "offline": true,
+  "http_limit": 1800,
+  "historical_new_search_credits": 231,
+  "historical_prior_search_credits": 8,
+  "search_credits_spent_this_run": 0,
+  "search_cache_hits": 196,
+  "live_website_requests": 0,
+  "http_budget_reached": false
+}

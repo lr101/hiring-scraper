@@ -1,0 +1,190 @@
+{
+  "offline": false,
+  "paired": {
+    "way/221198012": {
+      "query": "Wolfgang Schmitt Elektrotechnik Stutensee offizielle Website Kontakt",
+      "basic": {
+        "website_url": "https://www.wschmitt-elektro.de/",
+        "evidence_url": "https://www.wschmitt-elektro.de/impressum/",
+        "reason": "combined_identity",
+        "source_id": "way/221198012",
+        "lead_url": "https://www.wschmitt-elektro.de/impressum",
+        "method": "extended_verification"
+      },
+      "advanced": {
+        "website_url": "https://www.wschmitt-elektro.de/",
+        "evidence_url": "https://www.wschmitt-elektro.de/impressum/",
+        "reason": "combined_identity",
+        "source_id": "way/221198012",
+        "lead_url": "https://www.wschmitt-elektro.de/impressum",
+        "method": "extended_verification"
+      }
+    },
+    "node/10586503926": {
+      "query": "Rappold & Rappold GbR Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/2344697754": {
+      "query": "Energetisches Heiler- & Lichtzentrum Wörth am Rhein offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/3461277945": {
+      "query": "Atelier 77 Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/7294970490": {
+      "query": "Carrier Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/5890338959": {
+      "query": "merz kley partner Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/3196094989": {
+      "query": "Schreinerei Klöbel Stutensee offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/6468167351": {
+      "query": "avee GmbH Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "way/192161447": {
+      "query": "visuell GmbH Rheinstetten offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/6142917488": {
+      "query": "Alber Fensterbau GmbH Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/4909416891": {
+      "query": "Böhling Rohrleitungs- und Apparatebau GmbH Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/10819436841": {
+      "query": "Autobahn GmbH Außenstelle Karlsruhe Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/5141477623": {
+      "query": "Wertholzlager Landesforsten RLP Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/5643610462": {
+      "query": "STUMPF OHG Allianz Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/9789239365": {
+      "query": "Deutsche Bahn AG Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/4705996153": {
+      "query": "Klotz-Immobilien Bruchsal offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/2344697757": {
+      "query": "Geißer GmbH Sanitärfachmarkt Wörth am Rhein offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/10789909705": {
+      "query": "Polsterei Gattke Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "way/441438844": {
+      "query": "Zimmerei und Holzbau Stengel GmbH Remchingen offizielle Website Kontakt",
+      "basic": {
+        "website_url": "https://www.holzbaustengel.de/",
+        "evidence_url": "https://www.holzbaustengel.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "way/441438844",
+        "lead_url": "https://www.holzbaustengel.de/kontakt",
+        "method": "extended_verification"
+      },
+      "advanced": {
+        "website_url": "https://www.holzbaustengel.de/",
+        "evidence_url": "https://www.holzbaustengel.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "way/441438844",
+        "lead_url": "https://www.holzbaustengel.de/kontakt",
+        "method": "extended_verification"
+      }
+    },
+    "node/5476258025": {
+      "query": "SAM Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/11349271920": {
+      "query": "Steinbeis-Beratungszentrum Unternehmensentwicklung und KI Karlsruhe offizielle Website Kontakt",
+      "basic": {
+        "website_url": "https://www.steinbeis.de/",
+        "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "reason": "combined_identity",
+        "source_id": "node/11349271920",
+        "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "method": "extended_verification"
+      },
+      "advanced": {
+        "website_url": "https://www.steinbeis.de/",
+        "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "reason": "combined_identity",
+        "source_id": "node/11349271920",
+        "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+        "method": "extended_verification"
+      }
+    },
+    "node/3071631069": {
+      "query": "Gastronomie-Service Thomas Glaser Karlsruhe Region offizielle Website Kontakt",
+      "basic": {
+        "website_url": "https://www.gastronomie-service-glaser.de/",
+        "evidence_url": "https://www.gastronomie-service-glaser.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "node/3071631069",
+        "lead_url": "https://www.gastronomie-service-glaser.de/kontakt",
+        "method": "extended_verification"
+      },
+      "advanced": {
+        "website_url": "https://www.gastronomie-service-glaser.de/",
+        "evidence_url": "https://www.gastronomie-service-glaser.de/kontakt/",
+        "reason": "combined_identity",
+        "source_id": "node/3071631069",
+        "lead_url": "https://www.gastronomie-service-glaser.de/kontakt",
+        "method": "extended_verification"
+      }
+    },
+    "node/4729773096": {
+      "query": "Krankengymnastikpraxis A. Klohe Karlsruhe offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/3972340715": {
+      "query": "Microchip Technology Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    },
+    "node/5863209799": {
+      "query": "Schreinerei Sonfheimer Karlsruhe Region offizielle Website Kontakt",
+      "basic": null,
+      "advanced": null
+    }
+  },
+  "basic_accepted": 4,
+  "advanced_accepted": 4,
+  "new_search_credits": 25,
+  "live_website_requests": 7
+}

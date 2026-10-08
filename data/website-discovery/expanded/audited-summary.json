@@ -1,0 +1,308 @@
+{
+  "complete": true,
+  "corpus_size": 120,
+  "population_missing": 645,
+  "baseline_confirmed": 15,
+  "combined_confirmed": 24,
+  "additional_confirmed": 9,
+  "baseline_missing": 105,
+  "combined_missing": 96,
+  "sample": {
+    "size": 106,
+    "baseline_confirmed": 11,
+    "combined_confirmed": 20
+  },
+  "diagnostic": {
+    "size": 14,
+    "baseline_confirmed": 4,
+    "combined_confirmed": 4
+  },
+  "stages": [
+    {
+      "method": "mapped_wikidata",
+      "residual_rows_considered": 120,
+      "raw_proposals": 5,
+      "confirmed_added": 5,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 5,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "production_baseline",
+      "residual_rows_considered": 115,
+      "raw_proposals": 10,
+      "confirmed_added": 10,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 15,
+      "search_queries_available": 72,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "exact_name_existing_map",
+      "residual_rows_considered": 105,
+      "raw_proposals": 0,
+      "confirmed_added": 0,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 15,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "combined_pages_and_brand_normalization",
+      "residual_rows_considered": 105,
+      "raw_proposals": 3,
+      "confirmed_added": 1,
+      "false_matches": 1,
+      "review_needed": 1,
+      "cumulative_confirmed": 16,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "simplified_query_and_regional_hint",
+      "residual_rows_considered": 102,
+      "raw_proposals": 6,
+      "confirmed_added": 6,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 22,
+      "search_queries_available": 102,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "directory_outbound_links",
+      "residual_rows_considered": 96,
+      "raw_proposals": 0,
+      "confirmed_added": 0,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 22,
+      "search_queries_available": 0,
+      "search_queries_unavailable": 0
+    },
+    {
+      "method": "advanced_search_25_residuals",
+      "residual_rows_considered": 25,
+      "raw_proposals": 2,
+      "confirmed_added": 2,
+      "false_matches": 0,
+      "review_needed": 0,
+      "cumulative_confirmed": 24,
+      "search_queries_available": 22,
+      "search_queries_unavailable": 3
+    }
+  ],
+  "paired_search_depth": {
+    "basic": {
+      "tested_companies": 25,
+      "confirmed_homepages": 4,
+      "reported_acquisition_credits": 25
+    },
+    "advanced": {
+      "tested_companies": 25,
+      "confirmed_homepages": 4,
+      "reported_acquisition_credits": 50
+    }
+  },
+  "structured_data_hypothesis": {
+    "eligible_companies": 79,
+    "raw_proposals": 7,
+    "confirmed_homepages": 0,
+    "directory_false_matches": 7
+  },
+  "cost": {
+    "search_api_calls_including_reused_prior": 224,
+    "reported_credits_new_study": 231,
+    "reported_credits_prior_reused": 8,
+    "reported_credits_total_acquisition": 239,
+    "nominal_credits_at_basic_1_advanced_2": 249,
+    "live_website_attempts_including_robots_redirects": 2254,
+    "osm_multiget_requests": 5
+  },
+  "confirmed_homepages": {
+    "node/13159956405": {
+      "source_id": "node/13159956405",
+      "website_url": "https://www.bgv.de",
+      "evidence_url": "https://www.wikidata.org/wiki/Q795911",
+      "method": "osm_brand_wikidata_p856"
+    },
+    "node/4086852009": {
+      "source_id": "node/4086852009",
+      "website_url": "https://www.lvm.de/",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1798429",
+      "method": "osm_brand_wikidata_p856"
+    },
+    "node/9070530368": {
+      "source_id": "node/9070530368",
+      "website_url": "https://www.allianz.de/",
+      "evidence_url": "https://www.wikidata.org/wiki/Q487292",
+      "method": "osm_brand_wikidata_p856"
+    },
+    "node/9369517965": {
+      "source_id": "node/9369517965",
+      "website_url": "https://www.igbau.de/",
+      "evidence_url": "https://www.wikidata.org/wiki/Q896472",
+      "method": "osm_brand_wikidata_p856"
+    },
+    "relation/1551481": {
+      "source_id": "relation/1551481",
+      "website_url": "https://www.arbeitsagentur.de/",
+      "evidence_url": "https://www.wikidata.org/wiki/Q1478016",
+      "method": "osm_brand_wikidata_p856"
+    },
+    "node/4410545199": {
+      "source_id": "node/4410545199",
+      "name": "Corpoccino",
+      "website_url": "https://www.corpoccino.de/",
+      "domain_evidence_url": "https://www.corpoccino.de/unser-team",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/4756332032": {
+      "source_id": "node/4756332032",
+      "name": "Stadt Karlsruhe Stadtkämmerei",
+      "website_url": "https://www.karlsruhe.de/",
+      "domain_evidence_url": "https://www.karlsruhe.de/stadt-rathaus/verwaltung-stadtpolitik/aemter-dienststellen/detailseite/11-stadtkaemmerei",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/13665841694": {
+      "source_id": "node/13665841694",
+      "name": "Espinea",
+      "website_url": "https://www.espinea.org/",
+      "domain_evidence_url": "https://www.espinea.org/",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/13808007066": {
+      "source_id": "node/13808007066",
+      "name": "Malerbetrieb Albert Doldt GmbH",
+      "website_url": "https://maler-doldt.de/",
+      "domain_evidence_url": "https://maler-doldt.de/",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/5844471297": {
+      "source_id": "node/5844471297",
+      "name": "Drobny's Maler- und Stuckateurbetrieb",
+      "website_url": "https://www.maler-drobny.de/",
+      "domain_evidence_url": "https://www.maler-drobny.de/impressum.html",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/3620742819": {
+      "source_id": "node/3620742819",
+      "name": "Grabmale Heinz Schmidt",
+      "website_url": "https://www.grabmale-heinz-schmidt.de/",
+      "domain_evidence_url": "https://www.grabmale-heinz-schmidt.de/",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/4841370429": {
+      "source_id": "node/4841370429",
+      "name": "kr3m. media GmbH",
+      "website_url": "https://kr3m.com/",
+      "domain_evidence_url": "https://kr3m.com/",
+      "domain_match_method": "osm_email_verified_page"
+    },
+    "node/4410545233": {
+      "source_id": "node/4410545233",
+      "name": "a3architekten",
+      "website_url": "https://a3architekten.com/",
+      "domain_evidence_url": "https://a3architekten.com/",
+      "domain_match_method": "osm_email_verified_page"
+    },
+    "node/7277910391": {
+      "source_id": "node/7277910391",
+      "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+      "website_url": "https://schrifthof.de/",
+      "domain_evidence_url": "https://schrifthof.de/",
+      "domain_match_method": "osm_email_verified_page"
+    },
+    "node/1547914554": {
+      "source_id": "node/1547914554",
+      "name": "Curious About",
+      "website_url": "https://curious-about.xyz/",
+      "domain_evidence_url": "https://curious-about.xyz/",
+      "domain_match_method": "web_search_verified_page"
+    },
+    "node/8356609535": {
+      "website_url": "https://www.falcimmo.de/",
+      "evidence_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+      "reason": "combined_identity",
+      "source_id": "node/8356609535",
+      "lead_url": "https://www.falcimmo.de/immobilienmakler-in-karlsruhe-ost.html",
+      "method": "extended_verification"
+    },
+    "node/3489585141": {
+      "website_url": "https://rechnungshof.baden-wuerttemberg.de/",
+      "evidence_url": "https://rechnungshof.baden-wuerttemberg.de/kontakt",
+      "reason": "combined_identity",
+      "source_id": "node/3489585141",
+      "lead_url": "https://rechnungshof.baden-wuerttemberg.de/kontakt",
+      "method": "extended_verification"
+    },
+    "way/28884673": {
+      "website_url": "https://www.bkv-logistik.de/",
+      "evidence_url": "https://www.bkv-logistik.de/kontakt",
+      "reason": "combined_identity",
+      "source_id": "way/28884673",
+      "lead_url": "https://www.bkv-logistik.de/kontakt",
+      "method": "extended_verification"
+    },
+    "way/221198012": {
+      "website_url": "https://www.wschmitt-elektro.de/",
+      "evidence_url": "https://www.wschmitt-elektro.de/",
+      "reason": "combined_identity",
+      "source_id": "way/221198012",
+      "lead_url": "https://www.wschmitt-elektro.de/",
+      "method": "extended_verification"
+    },
+    "node/5643610462": {
+      "website_url": "https://www.stumpf-ohg.de/",
+      "evidence_url": "https://www.stumpf-ohg.de/agentur-1200",
+      "reason": "combined_identity",
+      "source_id": "node/5643610462",
+      "lead_url": "https://www.stumpf-ohg.de/agentur-1200",
+      "method": "extended_verification"
+    },
+    "node/6597572768": {
+      "website_url": "http://urich-transporte.de/",
+      "evidence_url": "http://urich-transporte.de/kontakt/",
+      "reason": "combined_identity",
+      "source_id": "node/6597572768",
+      "lead_url": "http://urich-transporte.de/kontakt",
+      "method": "extended_verification"
+    },
+    "way/441438844": {
+      "website_url": "https://www.holzbaustengel.de/",
+      "evidence_url": "https://www.holzbaustengel.de/kontakt/",
+      "reason": "combined_identity",
+      "source_id": "way/441438844",
+      "lead_url": "https://www.holzbaustengel.de/kontakt",
+      "method": "extended_verification"
+    },
+    "node/11349271920": {
+      "website_url": "https://www.steinbeis.de/",
+      "evidence_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+      "reason": "combined_identity",
+      "source_id": "node/11349271920",
+      "lead_url": "https://www.steinbeis.de/kompetenzen/expertensuche/detail/unternehmensentwicklung-und-ki",
+      "method": "extended_verification"
+    },
+    "node/3071631069": {
+      "website_url": "https://www.gastronomie-service-glaser.de/",
+      "evidence_url": "https://www.gastronomie-service-glaser.de/kontakt/",
+      "reason": "combined_identity",
+      "source_id": "node/3071631069",
+      "lead_url": "https://www.gastronomie-service-glaser.de/kontakt",
+      "method": "extended_verification"
+    }
+  },
+  "limitations": [
+    "Sequential residual pipeline, except paired-depth control; stage figures are incremental yields.",
+    "Three changed advanced-stage selections lack cached queries; use complete fixed 25-company paired control for depth comparison.",
+    "Single-reviewer audit of proposed positives; no full negative ground truth, no recall estimate.",
+    "Organization homepage counts include official parent/brand sites; exact branch address is not always current.",
+    "Censored first crawl retained for provenance; final matches reproduced with additional crawl allowance.",
+    "Baseline uses production matching policy with expanded research budgets, not production batch caps."
+  ]
+}

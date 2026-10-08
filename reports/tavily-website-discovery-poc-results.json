@@ -1,0 +1,474 @@
+{
+  "observed_at": "2026-10-08T07:08:09.575486+00:00",
+  "provider": "tavily",
+  "cohort_size": 14,
+  "search_depth": "basic",
+  "search_queries": 8,
+  "credits_used": 8,
+  "provider_disabled": false,
+  "offline_verification_replay": true,
+  "requests_or_reused_captures": 75,
+  "queries": [
+    {
+      "query": "\"R3DT GmbH\" 76131 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://xr-easy.com/de/impressum",
+          "title": "Impressum"
+        },
+        {
+          "url": "https://r3dt.com/wp-content/uploads/2020/02/R3DT-Presse_V1.6_202001a-en.pdf",
+          "title": "Cardboard Engineering 4.0 in the virtual space saves 30 % ..."
+        },
+        {
+          "url": "https://www.htgf.de/meet-your-reality-htgf-investiert-in-vr-startup-r3dt",
+          "title": "MEET YOUR REALITY: HTGF investiert in VR-Startup R3DT"
+        },
+        {
+          "url": "https://www.cyberforum.de/mitglieder/r3dt-gmbh-meet-your-reality",
+          "title": "R3DT GmbH – MEET YOUR REALITY"
+        },
+        {
+          "url": "https://de.linkedin.com/company/xr-easy",
+          "title": "XR-EASY® | Meet Your Reality"
+        }
+      ]
+    },
+    {
+      "query": "\"Joas Immobilien\" 76227 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://durlacherleben.de/joas-immobilien",
+          "title": "Joas Immobilien"
+        },
+        {
+          "url": "http://www.peter-joas.de/index.php?id=0",
+          "title": "JOAS Immobilien"
+        },
+        {
+          "url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler",
+          "title": "JOAS Immobilien"
+        },
+        {
+          "url": "https://www.immobilienscout24.de/anbieter/profil/joas-immobilien-76227-karlsruhe-2/peter-joas",
+          "title": "Peter Joas: Makler aus Karlsruhe"
+        },
+        {
+          "url": "https://k-immo.de",
+          "title": "Krüger Immobilien: Immobilienmakler Karlsruhe & Durlach"
+        }
+      ]
+    },
+    {
+      "query": "\"MatSec Security & Transport GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://firmeneintrag.creditreform.de/76133/7110536603/MATSEC_SECURITY_TRANSPORT_GMBH",
+          "title": "MatSec Security & Transport GmbH, Karlsruhe"
+        },
+        {
+          "url": "https://www.companyhouse.de/Aleksandar-Matijevic",
+          "title": "Aleksandar Matijevic aus Karlsruhe - Manager-Profil"
+        },
+        {
+          "url": "https://www.mass-security.de",
+          "title": "M.A.S.S.-Security GmbH – Sicherheit nach Maß"
+        },
+        {
+          "url": "https://www.tresec-security.com",
+          "title": "TRESEC | Security & Transport"
+        },
+        {
+          "url": "https://almas-industries.de",
+          "title": "Almas Industries - Sicherheitstechnik für Unternehmen"
+        }
+      ]
+    },
+    {
+      "query": "\"Persona Concept GmbH\" Ettlingen Unternehmen Website",
+      "results": [
+        {
+          "url": "https://www.persona-part.de/kontakt/standorte/persona-part-ettlingen",
+          "title": "Standort Ettlingen"
+        },
+        {
+          "url": "https://web.arbeitsagentur.de/vermittlung/ag-darstellung-ui/anzeigen/jUtMun3VLazjlWcGY3RB1ZRLyi6DmUTSf9WUKjCY9Dg=",
+          "title": "persona part GmbH Niederlassung Ettlingen im Portal der BA"
+        },
+        {
+          "url": "https://de.indeed.com/q-persona-part-personaldienstleistungen-l-ettlingen-jobs.html",
+          "title": "Persona Part Personaldienstleistungen Jobs in Ettlingen"
+        },
+        {
+          "url": "https://www.i-group.de/ettlingen.html",
+          "title": "TYPO3 Agentur Ettlingen : igroup Internetagentur"
+        },
+        {
+          "url": "https://www.persona.de",
+          "title": "persona service Deutschland"
+        }
+      ]
+    },
+    {
+      "query": "\"Curious About\" 76133 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://curious-about.xyz",
+          "title": "Curious About"
+        },
+        {
+          "url": "https://www.karlsruhe-erleben.de/en",
+          "title": "Experience Karlsruhe - Your city at a glance!"
+        },
+        {
+          "url": "https://www.baunetz.de/meldungen/Meldungen-Einfamilienhaus_von_Curious_About_in_der_Pfalz_9573262.html",
+          "title": "Einfamilienhaus von Curious About in der Pfalz"
+        },
+        {
+          "url": "https://k3-karlsruhe.de/kreative/curious-about-bengert-bessai-schaaf-architekten-partgmbb",
+          "title": "CURIOUS ABOUT Bengert Bessai Schaaf Architekten ..."
+        },
+        {
+          "url": "https://www.startbase.de/events/fast-curious-circle-karlsruhe-und-umgebung-2023-07-rintheimer-str-15",
+          "title": "FAST & CURIOUS Circle Karlsruhe und Umgebung"
+        }
+      ]
+    },
+    {
+      "query": "\"Vi2vi GmbH\" 76316 Malsch Unternehmen Website",
+      "results": [
+        {
+          "url": "https://vi2vi.com/kontakt",
+          "title": "Kontakt"
+        },
+        {
+          "url": "https://vi2vi.com",
+          "title": "Startseite - vi2vi Gruppe"
+        },
+        {
+          "url": "https://vi2vi-systems.com/fakten",
+          "title": "Fakten – vi2vi – die neue Webseite"
+        },
+        {
+          "url": "https://de.linkedin.com/company/vi2vi-retail-solution-gmbh",
+          "title": "Heer | vi2vi Retail Solution GmbH"
+        },
+        {
+          "url": "https://karriere.vi2vi.com/people",
+          "title": "People - vi2vi | Heer"
+        }
+      ]
+    },
+    {
+      "query": "\"consultive gmbh\" 76133 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://www.ortner-consulting.de/erstinformationen",
+          "title": "Erstinformationen"
+        },
+        {
+          "url": "https://www.pape.de/personalberatung-karlsruhe",
+          "title": "Personalberatung - Karlsruhe - PAPE Consulting Group"
+        },
+        {
+          "url": "https://www.ah-consulting.eu",
+          "title": "ah-consulting GmbH | IT-Consulting fr Ihr Unternehmen"
+        },
+        {
+          "url": "https://www.consulting.de/anbieterverzeichnis",
+          "title": "Anbieterverzeichnis | CONSULTING.de"
+        },
+        {
+          "url": "https://amiconsult.de",
+          "title": "amiconsult - Shaping the digital identity of tomorrow"
+        }
+      ]
+    },
+    {
+      "query": "\"Mosaik Digital Network GmbH\" 76133 Karlsruhe Unternehmen Website",
+      "results": [
+        {
+          "url": "https://www.agentur.de/karlsruhe/mosaik-digital-network-gmbh-aUPESe",
+          "title": "Mosaik Digital Network GmbH » Top Agentur in Karlsruhe"
+        },
+        {
+          "url": "https://online-optimierung.com/dienstleistungen-handwerk/karlsruhe-baden/mosaik-digital-network-gmbh",
+          "title": "Mosaik Digital Network GmbH | 76133 Karlsruhe, Baden"
+        },
+        {
+          "url": "https://firmeneintrag.creditreform.de/76133/7110406534/MOSAIK_DIGITAL_NETWORK_GMBH",
+          "title": "Mosaik Digital Network GmbH, Karlsruhe"
+        },
+        {
+          "url": "https://feedbax.de/anbieter/mosaik-digital-network-gmbh",
+          "title": "Mosaik Digital Network GmbH"
+        },
+        {
+          "url": "https://www.werbeagentur.de/en/a/mosaik-digital-network-gmbh",
+          "title": "Mosaik Digital Network Gmbh"
+        }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://r3dt.com/",
+      "method": "email",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://xr-easy.com/de/impressum",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://r3dt.com/wp-content/uploads/2020/02/R3DT-Presse_V1.6_202001a-en.pdf",
+      "method": "search",
+      "accepted": false,
+      "reason": "not_html"
+    },
+    {
+      "source_id": "node/11349271931",
+      "lead_url": "https://www.htgf.de/meet-your-reality-htgf-investiert-in-vr-startup-r3dt",
+      "method": "search",
+      "accepted": false,
+      "reason": "cache_miss"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "https://joas-immobilien.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "https://durlacherleben.de/joas-immobilien",
+      "method": "search",
+      "accepted": false,
+      "reason": "cache_miss"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "http://www.peter-joas.de/index.php?id=0",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://www.peter-joas.de/",
+      "evidence_url": "http://www.peter-joas.de/index.php?id=0"
+    },
+    {
+      "source_id": "node/1254138518",
+      "lead_url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler",
+      "method": "search",
+      "accepted": false,
+      "reason": "ambiguous_domains",
+      "website_url": "http://www.joas-immobilien.de/",
+      "evidence_url": "http://www.joas-immobilien.de/index.php?id=0%3Futm_source%3Dallemakler"
+    },
+    {
+      "source_id": "node/4410545233",
+      "lead_url": "https://a3architekten.com/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://a3architekten.com/",
+      "evidence_url": "https://a3architekten.com/"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://matsec-sec.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://firmeneintrag.creditreform.de/76133/7110536603/MATSEC_SECURITY_TRANSPORT_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.mass-security.de/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/4793460912",
+      "lead_url": "https://www.tresec-security.com/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/4841370429",
+      "lead_url": "https://kr3m.com/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://kr3m.com/",
+      "evidence_url": "https://kr3m.com/"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://personaconcept.de/",
+      "method": "email",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://www.persona-part.de/kontakt/standorte/persona-part-ettlingen",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://web.arbeitsagentur.de/vermittlung/ag-darstellung-ui/anzeigen/jUtMun3VLazjlWcGY3RB1ZRLyi6DmUTSf9WUKjCY9Dg=",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/6448028040",
+      "lead_url": "https://www.i-group.de/ettlingen.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/7277910391",
+      "lead_url": "https://schrifthof.de/",
+      "method": "email",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://schrifthof.de/",
+      "evidence_url": "https://schrifthof.de/"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://curious-about.xyz/",
+      "method": "search",
+      "accepted": true,
+      "reason": "verified_identity",
+      "website_url": "https://curious-about.xyz/",
+      "evidence_url": "https://curious-about.xyz/"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://www.karlsruhe-erleben.de/en",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/1547914554",
+      "lead_url": "https://www.baunetz.de/meldungen/Meldungen-Einfamilienhaus_von_Curious_About_in_der_Pfalz_9573262.html",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://vi2vi.com/kontakt",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://vi2vi-systems.com/fakten",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2031854098",
+      "lead_url": "https://karriere.vi2vi.com/people",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.ortner-consulting.de/erstinformationen",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.pape.de/personalberatung-karlsruhe",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/2392730442",
+      "lead_url": "https://www.ah-consulting.eu/",
+      "method": "search",
+      "accepted": false,
+      "reason": "identity_not_verified"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://www.agentur.de/karlsruhe/mosaik-digital-network-gmbh-aUPESe",
+      "method": "search",
+      "accepted": false,
+      "reason": "cache_miss"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://online-optimierung.com/dienstleistungen-handwerk/karlsruhe-baden/mosaik-digital-network-gmbh",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_disallowed"
+    },
+    {
+      "source_id": "node/4726157504",
+      "lead_url": "https://firmeneintrag.creditreform.de/76133/7110406534/MOSAIK_DIGITAL_NETWORK_GMBH",
+      "method": "search",
+      "accepted": false,
+      "reason": "robots_unavailable"
+    }
+  ],
+  "resolved": [
+    {
+      "source_id": "node/4841370429",
+      "name": "kr3m. media GmbH",
+      "website_url": "https://kr3m.com/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://kr3m.com/"
+    },
+    {
+      "source_id": "node/4410545233",
+      "name": "a3architekten",
+      "website_url": "https://a3architekten.com/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://a3architekten.com/"
+    },
+    {
+      "source_id": "node/7277910391",
+      "name": "Schrifthof - Werkstatt für experimentelle Kalligraphie",
+      "website_url": "https://schrifthof.de/",
+      "domain_match_method": "osm_email_verified_page",
+      "domain_evidence_url": "https://schrifthof.de/"
+    },
+    {
+      "source_id": "node/1547914554",
+      "name": "Curious About",
+      "website_url": "https://curious-about.xyz/",
+      "domain_match_method": "web_search_verified_page",
+      "domain_evidence_url": "https://curious-about.xyz/"
+    }
+  ]
+}

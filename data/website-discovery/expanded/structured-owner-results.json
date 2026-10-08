@@ -1,0 +1,51 @@
+{
+  "eligible_rows": 79,
+  "inspected_page_row_pairs": 1378,
+  "jsonld_page_row_pairs": 782,
+  "accepted": {
+    "way/171575126": {
+      "source_id": "way/171575126",
+      "website_url": "https://www.houzz.de/",
+      "evidence_url": "https://www.houzz.de/experten/architekten/architekten-lenzstrasse-dreizehn-pfvwde-pf~1922162926",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/5856882940": {
+      "source_id": "node/5856882940",
+      "website_url": "https://minanner.de/",
+      "evidence_url": "https://minanner.de/unternehmen/toto-lotto-bezirksdirektion-mittlerer-oberrhein-475174/",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/7997438272": {
+      "source_id": "node/7997438272",
+      "website_url": "https://lokalatlas.de/",
+      "evidence_url": "https://lokalatlas.de/firma.php?id=2361189",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/6254552790": {
+      "source_id": "node/6254552790",
+      "website_url": "https://handelsregister.ai/",
+      "evidence_url": "https://handelsregister.ai/de/organizations/karlsruhe/verwaltung-von-gewerbegrundstuecken-und-nichtwohngebaeuden-fuer-dritte/swg-objektgesellschaft-mbh-b2cfe95e804896862d78dc8e33ba3f3c",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/3620742819": {
+      "source_id": "node/3620742819",
+      "website_url": "https://www.fallswaspassiert.de/",
+      "evidence_url": "https://www.fallswaspassiert.de/dienstleister/steinmetz/karlsruhe/grabmale-heinz-schmidt",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/6468167351": {
+      "source_id": "node/6468167351",
+      "website_url": "https://itsbetter.com/",
+      "evidence_url": "https://itsbetter.com/firmeneintrag/avee-gmbh/",
+      "method": "jsonld_exact_owner_and_full_address"
+    },
+    "node/4909416891": {
+      "source_id": "node/4909416891",
+      "website_url": "https://lokalatlas.de/",
+      "evidence_url": "https://lokalatlas.de/firma.php?id=2346292",
+      "method": "jsonld_exact_owner_and_full_address"
+    }
+  },
+  "new_search_credits": 0,
+  "live_website_requests": 0
+}

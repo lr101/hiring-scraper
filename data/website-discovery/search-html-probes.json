@@ -1,0 +1,16 @@
+[
+  {
+    "engine": "duckduckgo",
+    "status": 202,
+    "title": "\n        DuckDuckGo\n    ",
+    "challenge": true,
+    "links": 2
+  },
+  {
+    "engine": "google",
+    "status": 200,
+    "title": "Google Search",
+    "challenge": true,
+    "links": 3
+  }
+]
