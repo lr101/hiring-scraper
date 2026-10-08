@@ -269,6 +269,11 @@ class QuantifiedScriptingRequirementTests(unittest.TestCase):
             with self.subTest(clause=clause):
                 signals = enrich_job({'title': 'Administrator', 'description': clause})
                 self.assertEqual(signals['requirements'], [])
+                self.assertEqual(len(signals.get('deferred_requirements', [])), 1)
+                deferred = signals['deferred_requirements'][0]
+                self.assertEqual(deferred['source'], 'description')
+                self.assertIn(clause, deferred['evidence'])
+                self.assertEqual(deferred['value'].casefold(), 'bash, python, perl oder ruby')
                 self.assertEqual({row['name'] for row in signals['skills']}, {'Python', 'Ruby'})
                 for skill in signals['skills']:
                     self.assertEqual(skill['source'], 'description')
@@ -305,6 +310,7 @@ class QuantifiedScriptingRequirementTests(unittest.TestCase):
             with self.subTest(description=description):
                 signals = enrich_job({'title': 'Administrator', 'description': description})
                 self.assertEqual(signals['requirements'], [])
+                self.assertEqual(signals.get('deferred_requirements', []), [])
 
     def test_hydrated_alternative_does_not_create_false_skill_gaps_for_qualified_or_unknown_profiles(self):
         from hiring_scraper.matching import detail_updates, enrich_job, match_job
@@ -326,6 +332,27 @@ class QuantifiedScriptingRequirementTests(unittest.TestCase):
                 result = match_job(hydrated, profile)
                 self.assertEqual(result['requirement_gaps'], [])
                 self.assertEqual(result['conflicts'], [])
+                self.assertEqual(result['uncertain'], alternative is None)
+                self.assertEqual(len(result['unknowns']), int(alternative is None))
+                if alternative is None:
+                    self.assertIn(self.clause, result['unknowns'][0])
                 if alternative in {'bash', None}:
                     self.assertIn('Python', result['missing_skills'])
                     self.assertIn('Ruby', result['missing_skills'])
+
+    def test_deferred_alternative_needs_explicit_skill_or_professional_evidence(self):
+        from hiring_scraper.matching import match_job
+        job = {'title': 'Administrator', 'description': self.clause + '\n' + 'Linux administration. ' * 20}
+        for evidence, skills, desired_roles, uncertain in [
+            ({'Perl': {'context': 'professional'}}, ['Linux'], [], False),
+            ({'Perl': {'context': 'incidental'}}, ['Linux'], [], True),
+            ({'Python': {'context': 'academic'}}, ['Linux'], [], True),
+            ({}, ['Linux', 'python'], [], False),
+            ({}, ['Linux', 'Python tooling'], ['Python Administrator'], True),
+        ]:
+            with self.subTest(evidence=evidence, skills=skills, roles=desired_roles):
+                result = match_job(job, {'skills': skills, 'skill_evidence': evidence,
+                                         'desired_roles': desired_roles, 'experience_years': 10})
+                self.assertEqual(result['uncertain'], uncertain)
+                self.assertEqual(result['requirement_gaps'], [])
+                self.assertEqual(result['conflicts'], [])
