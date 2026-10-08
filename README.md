@@ -46,6 +46,7 @@ Scheduled refreshes revisit saved job feeds and career listing pages to find new
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
+- [Production improvement trials and retained changes](reports/production-improvement-trials.md)
 - [CI and release guide](docs/ci.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)

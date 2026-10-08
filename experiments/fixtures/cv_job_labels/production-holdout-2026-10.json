@@ -1,0 +1,846 @@
+[
+  {
+    "external_id": "10001-1003809626-S",
+    "fit": "unlikely",
+    "reason": "Strategic SAP finance analytics leadership needs expertise beyond documented project and KPI work.",
+    "critical_gaps": [
+      "SAP Finance, S/4HANA and data-warehouse expertise absent",
+      "Energy finance/controlling specialization absent",
+      "Long specialist tenure not established",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "5f0b96435793d3c489404e6fa5916fbfb6d31ee97208dbc59c79b78f07e10a67"
+  },
+  {
+    "external_id": "10000-1207018029-S",
+    "fit": "unlikely",
+    "reason": "Clinical radiology requires medical credentials absent from the engineering profile.",
+    "critical_gaps": [
+      "Medical degree and German medical license absent",
+      "Radiology specialist qualification absent"
+    ],
+    "document_sha256": "7716e2b33ad3ea2c635dd0e04b35981ffa027008d8a7c9635b2258094935ee06"
+  },
+  {
+    "external_id": "10000-1207891143-S",
+    "fit": "unlikely",
+    "reason": "Insolvency-table administration depends on legal knowledge and named specialist software absent from the profile.",
+    "critical_gaps": [
+      "Insolvency-law experience absent",
+      "Winsolvenz.p4 and LEXolution experience absent"
+    ],
+    "document_sha256": "6258de5454f11bfa0a6c91ba43839887d2a058c4db82c018b58853152684462b"
+  },
+  {
+    "external_id": "12811-2181609-S",
+    "fit": "unlikely",
+    "reason": "A general-practice physician role requires medical licensure rather than coordination skills.",
+    "critical_gaps": [
+      "German medical license absent",
+      "Clinical training absent"
+    ],
+    "document_sha256": "543779be95f5015cb3d3540ea247e22b730c51cc8f7df0f5cbf3be4c1f796992"
+  },
+  {
+    "external_id": "10000-1204373734-S",
+    "fit": "unlikely",
+    "reason": "Dental chairside assistance requires a completed dental-assistant qualification.",
+    "critical_gaps": [
+      "Dental-assistant vocational qualification absent",
+      "Patient-care experience absent"
+    ],
+    "document_sha256": "32fd5013e58ba6388255a0d96560575e0f642379e4dc48b1cf130266980109f9"
+  },
+  {
+    "external_id": "10000-1208045452-S",
+    "fit": "unlikely",
+    "reason": "Software architecture and implementation require development expertise absent from product coordination evidence.",
+    "critical_gaps": [
+      "Software architecture/development experience absent",
+      "JEE, DevOps and Kubernetes expertise absent"
+    ],
+    "document_sha256": "cd8fbf0dbfae7862d2cfa4ed17e1a4bfbc7916cf9ac11c59227c3d7ae69e517c"
+  },
+  {
+    "external_id": "12811-2181617-S",
+    "fit": "unlikely",
+    "reason": "Independent patient treatment requires German physician licensure.",
+    "critical_gaps": [
+      "German medical license absent",
+      "Clinical training absent"
+    ],
+    "document_sha256": "2c84727fd4496a8cccc5c72c560c9ffc8d512694f5b05a44f26f06e04f0ad9a0"
+  },
+  {
+    "external_id": "10001-1002723932-S",
+    "fit": "unlikely",
+    "reason": "Road-construction leadership requires civil engineering and roadworks regulatory expertise.",
+    "critical_gaps": [
+      "Road/civil-engineering qualification absent",
+      "Professional road-construction experience absent",
+      "HOAI, VOB and roadworks standards absent",
+      "Negotiation-level German not established at B2",
+      "Class B license unknown"
+    ],
+    "document_sha256": "25f1adeed53f545f9c591a4be708869e18ae73eaf925b57dce054d39c970cb95"
+  },
+  {
+    "external_id": "10001-1003745153-S",
+    "fit": "unlikely",
+    "reason": "Lab organization overlaps, but core molecular-biology bench work requires distinct specialist preparation.",
+    "critical_gaps": [
+      "Biological-laboratory qualification absent",
+      "Cell culture and molecular biology experience absent",
+      "Mouse-handling experience absent"
+    ],
+    "document_sha256": "7fe89e0dc327484b0a1255b137478befc0d08e15173ee46c12fd4f4e08739197"
+  },
+  {
+    "external_id": "12362-TR-230714_624917LS-S",
+    "fit": "possible",
+    "reason": "Documented project leadership, stakeholder work and engineering degree support general project delivery.",
+    "critical_gaps": [
+      "Excellent German negotiation ability not established at B2",
+      "Budget ownership and team leadership depth require confirmation",
+      "Exact relevant tenure unknown"
+    ],
+    "document_sha256": "8aeeb440a183be8a43905e38454bd887f330468a527c1c797454190715242f30"
+  },
+  {
+    "external_id": "10000-1206687505-S",
+    "fit": "unlikely",
+    "reason": "Turnkey-building procurement requires construction tendering and contract expertise beyond academic sourcing.",
+    "critical_gaps": [
+      "Civil-engineering/architecture or construction-technician qualification absent",
+      "Construction tender/award experience absent",
+      "VOB and construction contract knowledge absent"
+    ],
+    "document_sha256": "3b95d0a13efb40a05eae937f610ddaef1ba57b3a959ee4f0d8e437ddd9bb324d"
+  },
+  {
+    "external_id": "12362-TR-277845_624910LS-S",
+    "fit": "unlikely",
+    "reason": "Manufacturing leadership requires factory-management experience beyond academic manufacturing projects.",
+    "critical_gaps": [
+      "Professional machine/plant-production experience absent",
+      "Factory staff-management experience absent",
+      "Industrial assembly experience absent"
+    ],
+    "document_sha256": "b97b357f9a9d6da585231f75de907a245e8dd292aa2aa507fb2244ffd417b437"
+  },
+  {
+    "external_id": "16460-0063942933-S",
+    "fit": "unlikely",
+    "reason": "Pipeline construction supervision requires civil-works qualification and site-management experience.",
+    "critical_gaps": [
+      "Civil-engineering/construction qualification absent",
+      "Professional underground/pipeline site experience absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "2b02cd2dc2faaa95ec66dfa38576a09801863f22dfc3103963fae89df9cf2f77"
+  },
+  {
+    "external_id": "15548-1427948-1-S",
+    "fit": "unlikely",
+    "reason": "Project experience transfers, but technical SAP leadership explicitly requires SAP experience and C1 German.",
+    "critical_gaps": [
+      "SAP technology experience absent",
+      "German B2 below explicit C1 requirement"
+    ],
+    "document_sha256": "0f9fbf2ec52e912903c16309bfd6f0a381e94af0ecc424dec0ba4538ba392954"
+  },
+  {
+    "external_id": "10001-1003695476-S",
+    "fit": "unlikely",
+    "reason": "Clinical occupational therapy requires a completed occupational-therapist qualification.",
+    "critical_gaps": [
+      "Occupational-therapy qualification absent"
+    ],
+    "document_sha256": "b5d8c6a53e8339dee06b67e06e12c1016c3c15dda21d911601b60e43f22e1799"
+  },
+  {
+    "external_id": "10001-1003709687-S",
+    "fit": "recommended",
+    "reason": "Professional training, onboarding, international programme coordination and KPI/process work directly support these duties.",
+    "critical_gaps": [
+      "German presentation and writing standard should be confirmed at B2",
+      "Budget, procurement and travel-expense administration not documented"
+    ],
+    "document_sha256": "e0543f1395ebab39c1b05d1fa9c5bd45ece9902f78532126693199d7b324a68d"
+  },
+  {
+    "external_id": "10001-1001574659-S",
+    "fit": "recommended",
+    "reason": "Professional project coordination and stakeholder communication directly support scheduling, presentations and project assistance.",
+    "critical_gaps": [
+      "Equivalence to commercial vocational qualification should be confirmed"
+    ],
+    "document_sha256": "91d0187a8742e4a960a693dec6d3795ae1b31e13492ba3588af558ba451ea95c"
+  },
+  {
+    "external_id": "10001-1003109050-S",
+    "fit": "unlikely",
+    "reason": "Data-science logistics work needs programming and quantitative modelling beyond KPI monitoring.",
+    "critical_gaps": [
+      "Python, SQL and machine-learning expertise absent",
+      "Professional logistics-planning experience absent"
+    ],
+    "document_sha256": "18e71bdc1b891ebb349bfc70605358605082b8ac1032c7bf5ec76d6480a5203d"
+  },
+  {
+    "external_id": "19422-k61548.1014-S",
+    "fit": "unlikely",
+    "reason": "Skilled finishing trades require a journeyman qualification absent from academic product-design evidence.",
+    "critical_gaps": [
+      "Painter/plasterer/interior-fitter journeyman qualification absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "5590b6b21a2ae13adf205b063d2984ad849e1e4c9124ddff899c6c1769947170"
+  },
+  {
+    "external_id": "12362-TR-221072_624856LS-S",
+    "fit": "unlikely",
+    "reason": "Electrical-system design and installation require specialist electrical education and practice.",
+    "critical_gaps": [
+      "Electrical-engineering qualification absent",
+      "Professional electrical-engineering experience absent"
+    ],
+    "document_sha256": "1986db5cc9717c8c607fe68384a3d258889d8ee8aadb42ee3a403a06c5a0156d"
+  },
+  {
+    "external_id": "10000-1208050983-S",
+    "fit": "unlikely",
+    "reason": "Requirements work overlaps, but this senior software analysis role requires extensive modelling and engineering methods.",
+    "critical_gaps": [
+      "BPMN, UML, ERM, DSL and DDD expertise absent",
+      "Software architecture/testing and object-oriented development experience absent",
+      "Senior specialist depth not established"
+    ],
+    "document_sha256": "46a0b942659cef37592c0982ccb4716e932641065ecf830e5fc37009f248bfe1"
+  },
+  {
+    "external_id": "12117-YF-50142-YF-S",
+    "fit": "unlikely",
+    "reason": "Infrastructure-building and electrical project delivery requires specialist qualifications, regulations and practical experience.",
+    "critical_gaps": [
+      "Civil/infrastructure or electrical-trade qualification absent",
+      "Infrastructure/energy-construction experience absent",
+      "Technical energy regulations absent",
+      "Negotiation-level German not established at B2",
+      "Class B license unknown"
+    ],
+    "document_sha256": "a21b6557e6ea28c11d3e7a19ea1feaed2cc6462b520af3d9fe0398a8c18886e9"
+  },
+  {
+    "external_id": "12362-TR-011701_624898LS-S",
+    "fit": "unlikely",
+    "reason": "Industrial automation requires controls programming and plant implementation rather than generic process improvement.",
+    "critical_gaps": [
+      "Electrical/automation qualification absent",
+      "SPS/SCADA controls-programming experience absent",
+      "Professional automated-plant experience absent"
+    ],
+    "document_sha256": "c77e2479d6131056cd1fb328626afacf8e588995cfb54a85bc95a7349325b2b4"
+  },
+  {
+    "external_id": "10000-1207608358-S",
+    "fit": "unlikely",
+    "reason": "Delivering kitchen-installation training requires mastery of a trade, not only general training experience.",
+    "critical_gaps": [
+      "Carpentry/joinery vocational qualification absent",
+      "Professional kitchen-installation experience absent",
+      "Electrical and water permits absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "73947a8596df35f80aec6280080b5b9db99224d8adb8dfe3698b47b332320656"
+  },
+  {
+    "external_id": "10001-1002161718-S",
+    "fit": "unlikely",
+    "reason": "Residential disability support and basic care need relevant care training or experience absent from the profile.",
+    "critical_gaps": [
+      "Care/support qualification absent",
+      "Professional pedagogical or nursing-support experience absent"
+    ],
+    "document_sha256": "82af7c87ad132c31bafea56607c7ddd9b9e9c507535648c8070474bfc81261c8"
+  },
+  {
+    "external_id": "21079-r22605-S",
+    "fit": "unlikely",
+    "reason": "ADHD school support explicitly requires child-focused experience and training absent from adult onboarding evidence.",
+    "critical_gaps": [
+      "Child-support/participation-assistance qualification or experience absent",
+      "Oppositional and social-emotional-disorder experience absent"
+    ],
+    "document_sha256": "4fc3b4954e457d979a2c0615bb3383862ee39f9de966ce715aa810689ffd6d8f"
+  },
+  {
+    "external_id": "10001-1001716074-S",
+    "fit": "unlikely",
+    "reason": "Rail excavator operation is a specialist machinery occupation without supporting practical evidence.",
+    "critical_gaps": [
+      "Rail-road excavator operation experience not established",
+      "Class B license unknown"
+    ],
+    "document_sha256": "503228d2bf9c5673b52cf0a0f511691fa3c8f2b02ccb69f5b2a0bfab22861ac6"
+  },
+  {
+    "external_id": "17526-86d45b909cb008b4ecd-S",
+    "fit": "unlikely",
+    "reason": "The advert explicitly excludes general engineering without TGA/HLS specialization or planning experience.",
+    "critical_gaps": [
+      "TGA/HLS degree focus absent",
+      "Heating, ventilation and sanitary-system planning experience absent",
+      "HOAI and relevant technical standards absent"
+    ],
+    "document_sha256": "7c1ab3c0547cb8c4b9d90efd2e1fc0efca4aeffca80ff80163e05c7765d99c0e"
+  },
+  {
+    "external_id": "11864-R3WQ8ZUYQMRY9YV2-S",
+    "fit": "unlikely",
+    "reason": "Training experience is relevant, but logistics-process knowledge and explicit C1 German are unmet.",
+    "critical_gaps": [
+      "German B2 below explicit C1 requirement",
+      "Solid logistics-process knowledge absent",
+      "Degree-field equivalence requires confirmation",
+      "SAP EWM knowledge absent, although described as ideal"
+    ],
+    "document_sha256": "3ca2dff39604cdf03c6a332f6eb44c0aa6a9002699f99c175b422377ac4fcf35"
+  },
+  {
+    "external_id": "13106-427701125-S",
+    "fit": "unlikely",
+    "reason": "Technical support transfers only partly; fluent Dutch and medical-technology experience are required.",
+    "critical_gaps": [
+      "Dutch/Flemish C1 absent from documented languages",
+      "Professional medical-technology or laboratory experience absent",
+      "Medical-analysis system/network knowledge absent"
+    ],
+    "document_sha256": "a3b40bbb41c267aeece5c7275c8bdf2850cf43942427c0bbe2fa8182297cbd37"
+  },
+  {
+    "external_id": "12811-2289242-S",
+    "fit": "unlikely",
+    "reason": "Technical construction sales requires energy-building solution competence and negotiation German beyond the evidence.",
+    "critical_gaps": [
+      "Infrastructure/electrical solution expertise absent",
+      "SAP S/4HANA experience absent",
+      "Negotiation-level German not established at B2",
+      "Relevant technical-sales tenure unknown"
+    ],
+    "document_sha256": "0a8f7c45d6ba9659870572a73bba7e91dd70f168aea0934f0dcc72483ef66818"
+  },
+  {
+    "external_id": "19422-k61548.1010-S",
+    "fit": "unlikely",
+    "reason": "Construction-trade leadership requires an explicit master craftsman credential.",
+    "critical_gaps": [
+      "Painter/plasterer master qualification absent",
+      "VOB/B and trade costing expertise absent"
+    ],
+    "document_sha256": "cba2a926acc235879b40f5459d272f745fef59bf4e7258f84d87a06261d9fae4"
+  },
+  {
+    "external_id": "10001-1003755684-S",
+    "fit": "unlikely",
+    "reason": "Home-based intensive youth care requires a pedagogical qualification absent from the profile.",
+    "critical_gaps": [
+      "Educator/social-pedagogy qualification absent",
+      "Special-needs child-care experience not established"
+    ],
+    "document_sha256": "d5f10fba0df45ea370a257fcbf6a54c85d4060aea4460607082f68cb81fec181"
+  },
+  {
+    "external_id": "10001-1003607166-S",
+    "fit": "unlikely",
+    "reason": "Geriatric clinical occupational therapy requires specialist vocational preparation.",
+    "critical_gaps": [
+      "Occupational-therapy qualification absent"
+    ],
+    "document_sha256": "8df446fdf7f4d952bbadbab662eb17488d6783bb0ca54b3fafe0476642a1ccab"
+  },
+  {
+    "external_id": "12362-TR-302890_624212LS-S",
+    "fit": "unlikely",
+    "reason": "Technical drawings transfer, but factory production assistance explicitly asks for professional production experience.",
+    "critical_gaps": [
+      "Professional production-environment experience absent; academic projects do not establish industrial tenure",
+      "Desired role alignment weak"
+    ],
+    "document_sha256": "dae23596174547243100dc4b0cdbb6630debfdca6a75985995e343e994420e78"
+  },
+  {
+    "external_id": "10000-1203543539-S",
+    "fit": "unlikely",
+    "reason": "Residential youth education requires a recognized educator or social-pedagogy credential.",
+    "critical_gaps": [
+      "Recognized youth-education/social-pedagogy qualification absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "f263b596212345cf4825fa31cd3b15653ee49a7db9da99164b03e070e2447e2c"
+  },
+  {
+    "external_id": "10001-1002987130-S",
+    "fit": "unlikely",
+    "reason": "Roller-shutter installation requires trade training and installation practice absent from the profile.",
+    "critical_gaps": [
+      "Shutter/interior-fitter vocational qualification absent",
+      "Professional installation experience absent"
+    ],
+    "document_sha256": "936e7f784bd6bfea5152c89c20000dfaefd6bf45c6ba3709c92d4c2717cb169b"
+  },
+  {
+    "external_id": "10000-1207986738-S",
+    "fit": "unlikely",
+    "reason": "The position is qualified ambulatory nursing, without matching nursing preparation.",
+    "critical_gaps": [
+      "Nursing qualification absent",
+      "Detailed requirements are not present in supplied description"
+    ],
+    "document_sha256": "f0fe89877e92a2e9f68e0379cf79875ac77d35db57ffd506e6292e2c7521712c"
+  },
+  {
+    "external_id": "12362-TR-303086_624357LS-S",
+    "fit": "unlikely",
+    "reason": "Robot project coordination overlaps, but core industrial robotics expertise is unsupported.",
+    "critical_gaps": [
+      "Industrial robot/cobot, AMR and machine-vision knowledge absent",
+      "Professional automation implementation experience absent",
+      "Exact project tenure unknown"
+    ],
+    "document_sha256": "41c5459cce004de3424533decc51aef63109a0725d7242084314306055c4ce43"
+  },
+  {
+    "external_id": "10001-1003015370-S",
+    "fit": "unlikely",
+    "reason": "This school-assistance advert explicitly requires pedagogical training and directs career changers elsewhere.",
+    "critical_gaps": [
+      "Pedagogical qualification absent",
+      "Child/disability-support experience not established",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "8298712f4ec99189202d55db3c61ae60ea8a5b56c5a6e85c4af123edef214808"
+  },
+  {
+    "external_id": "10001-1003086765-S",
+    "fit": "unlikely",
+    "reason": "Heat-pump installation is a master-level plumbing/heating trade role.",
+    "critical_gaps": [
+      "SHK master qualification absent",
+      "Professional hydraulic/heating installation experience absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "d5b6f8e4a61c745384bb6f35641ca5199432052aed6437fac098af79d93cc1fc"
+  },
+  {
+    "external_id": "10001-1003480796-S",
+    "fit": "possible",
+    "reason": "Entry-level technical drawing with training offers a plausible transfer from engineering design, CAD and drawings.",
+    "critical_gaps": [
+      "Facade/metallbau specialization not documented",
+      "Acceptance of engineering degree as comparable technical qualification uncertain",
+      "Professional CAD tenure not established; advert welcomes beginners"
+    ],
+    "document_sha256": "3efe0ebe5c469710abf07ac2ef4fe3d5ab0295420a81f3fffb3022dee7d15fe1"
+  },
+  {
+    "external_id": "10001-1003517279-S",
+    "fit": "unlikely",
+    "reason": "Patient physiotherapy requires vocational training or state recognition.",
+    "critical_gaps": [
+      "Physiotherapy qualification/state recognition absent"
+    ],
+    "document_sha256": "1d04ab9987149a7ca7a83d5b6b952fba02b42946a41cf14b0fccccbb7dd1f709"
+  },
+  {
+    "external_id": "10001-1003349754-S",
+    "fit": "unlikely",
+    "reason": "IT test leadership needs specialist testing practice and explicit advanced German absent from the profile.",
+    "critical_gaps": [
+      "Test-management and test-automation expertise absent",
+      "Experience coordinating larger test teams absent",
+      "German B2 below explicit C-level requirement"
+    ],
+    "document_sha256": "124094f7022dc81b2991b2e7299ebc77d6e7157ed66ec3fe3ca38f825236bbc0"
+  },
+  {
+    "external_id": "16852-44060873-325-S",
+    "fit": "unlikely",
+    "reason": "External financial reporting requires accounting specialization and IFRS practice beyond KPI reporting.",
+    "critical_gaps": [
+      "Finance/accounting qualification absent",
+      "IFRS and consolidated-reporting expertise absent",
+      "Five years of specialist reporting/audit tenure not established"
+    ],
+    "document_sha256": "c936d71aff03652a67e74e07d23e1dc28e63d4c12b1f9707d4095bb2207701bb"
+  },
+  {
+    "external_id": "10000-1207344198-S",
+    "fit": "unlikely",
+    "reason": "Disability-supported living requires a care/pedagogical qualification rather than general training skills.",
+    "critical_gaps": [
+      "Heilerziehungspflege or equivalent qualification absent",
+      "Ambulatory disability-support experience absent"
+    ],
+    "document_sha256": "fabd768cfd273533b92f808a8301ba225fbe0e4667a9fcef158c12bbb3660f4b"
+  },
+  {
+    "external_id": "10001-1003773090-S",
+    "fit": "possible",
+    "reason": "Administrative coordination, customer communication and organized stakeholder support transfer to office management.",
+    "critical_gaps": [
+      "Commercial qualification equivalence uncertain",
+      "Invoice preparation and bookkeeping-support experience not documented",
+      "Microsoft 365 proficiency not explicitly documented"
+    ],
+    "document_sha256": "295f5b6434931caf401c3b14afa97dc6abe70646c5a37d3e459a591e424f74ce"
+  },
+  {
+    "external_id": "10001-1003042973-S",
+    "fit": "unlikely",
+    "reason": "Tax returns, payroll and financial statements need tax/accounting expertise absent from the profile.",
+    "critical_gaps": [
+      "Tax/accounting-background qualification absent",
+      "Tax-return and payroll/accounting experience absent"
+    ],
+    "document_sha256": "c8bf79780a5af33c054a120f908dd12b0d069d75abef7cffde1787ada70424fd"
+  },
+  {
+    "external_id": "10001-1003710977-S",
+    "fit": "unlikely",
+    "reason": "Training and Figma support parts of the role, but professional graphic and media-production skills are central.",
+    "critical_gaps": [
+      "Media-design degree orientation not established",
+      "InDesign, Illustrator and Photoshop proficiency absent",
+      "Typography/layout, CMS and Articulate experience absent"
+    ],
+    "document_sha256": "bcae67ca7de684b7d7d77e13b6c71bed125de57559ca4a09663c2dfd09d4758d"
+  },
+  {
+    "external_id": "12811-2351254-S",
+    "fit": "unlikely",
+    "reason": "Infrastructure drawing requires civil-design training and explicit C1 German rather than general academic CAD.",
+    "critical_gaps": [
+      "Civil/road-construction drawing qualification absent",
+      "AutoCAD and infrastructure tool proficiency absent",
+      "German B2 below explicit C1 requirement"
+    ],
+    "document_sha256": "dcd16b42dd3a3357db1062f69e42e894f38b49dd87740f3abdf69d090138dd9f"
+  },
+  {
+    "external_id": "10001-1003808250-S",
+    "fit": "unlikely",
+    "reason": "Process and project experience overlap, but senior implementation of automation products needs developer expertise.",
+    "critical_gaps": [
+      "RPA/AI implementation and developer-team leadership experience absent",
+      "Programming and RPA tool knowledge not documented, although desirable",
+      "Three years in a similar automation environment not established",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "a2c8a8865f81151f1f5688b3efd8b254dd3b8c0c5a084481ed2f2368443ce070"
+  },
+  {
+    "external_id": "10001-1002520478-S",
+    "fit": "unlikely",
+    "reason": "Electrical site-project delivery requires a recognized electrical qualification and specialist practice.",
+    "critical_gaps": [
+      "Electrical/mechatronic/TGA vocational qualification absent",
+      "Electrical technician/master qualification absent",
+      "Relevant electrical-site experience absent"
+    ],
+    "document_sha256": "2138b591d27e22f74cc94967bd952eb02a3ecff47078bb57a02af13a8e8fb08c"
+  },
+  {
+    "external_id": "10001-1002975844-S",
+    "fit": "unlikely",
+    "reason": "The development path begins with industrial electrical maintenance, for which the profile lacks preparation.",
+    "critical_gaps": [
+      "Electrical/mechatronic vocational qualification absent",
+      "Industrial maintenance and machinery troubleshooting experience absent"
+    ],
+    "document_sha256": "6a20ea71cd585e186957625b64acb6ae0dd09f2e60d49c1833b1ea506dac8ca7"
+  },
+  {
+    "external_id": "10001-1000098032-S",
+    "fit": "unlikely",
+    "reason": "Youth vocational counselling permits career changers only with relevant experience not established by adult L&D.",
+    "critical_gaps": [
+      "Social-work/social-science qualification absent",
+      "Professional youth social-support/case-management experience absent"
+    ],
+    "document_sha256": "2123153fdb0133501087173e78a44e8e50eb39e0ffb8a983d1c3c80dfd0b6d3d"
+  },
+  {
+    "external_id": "10001-1003690518-S",
+    "fit": "unlikely",
+    "reason": "TGA drawing requires specialized system-planning education and AutoCAD competence absent from general product CAD.",
+    "critical_gaps": [
+      "TGA/HKL system-planning qualification absent",
+      "AutoCAD proficiency absent"
+    ],
+    "document_sha256": "562fc53a14f34f692cce00e19ae2227ba4261093f4046536a538a58962550657"
+  },
+  {
+    "external_id": "19422-k61548.1015-S",
+    "fit": "unlikely",
+    "reason": "Painter/plasterer management requires the explicit master craftsman credential.",
+    "critical_gaps": [
+      "Painter/plasterer master qualification absent",
+      "VOB/B and trade costing expertise absent"
+    ],
+    "document_sha256": "c827f707549b1c343d1daf7cce220aed15c9deb21861b95a8477df93eb6988a6"
+  },
+  {
+    "external_id": "14537-00066605481001-S",
+    "fit": "unlikely",
+    "reason": "Junior entry is offered, but construction degree and procurement-law knowledge remain essential gaps.",
+    "critical_gaps": [
+      "Architecture/civil-engineering/real-estate project degree absent",
+      "VgV, VOB, HOAI and AHO knowledge absent"
+    ],
+    "document_sha256": "8b2d4a41a56282276e0d8a53ca663c55d341de16f042e35fd95e0fc44d886240"
+  },
+  {
+    "external_id": "10000-1208141728-S",
+    "fit": "unlikely",
+    "reason": "Dental prophylaxis requires completed specialist vocational training.",
+    "critical_gaps": [
+      "Dental-assistant/prophylaxis qualification absent"
+    ],
+    "document_sha256": "45b11382af6c741c291761f119b01c54a79009595ee6af5cf302a1407ac16959"
+  },
+  {
+    "external_id": "10001-1002888327-S",
+    "fit": "unlikely",
+    "reason": "Commercial gas-tanker driving requires licenses and professional driving evidence absent from the profile.",
+    "critical_gaps": [
+      "Class C/CE license not documented",
+      "Professional truck-driving experience absent",
+      "ADR tank certificate not documented, although desirable"
+    ],
+    "document_sha256": "42056bcec4d2b63b8537d3de11e6149b9d74012eb2e6b953aa4f3231ef0041c9"
+  },
+  {
+    "external_id": "12362-TR-279641_625095LS-S",
+    "fit": "unlikely",
+    "reason": "Industrial maintenance and controls troubleshooting require specialist qualifications and extensive practical competence.",
+    "critical_gaps": [
+      "Automation/mechatronics technician/master qualification absent",
+      "Industrial maintenance experience absent",
+      "Beckhoff SPS, electronics and sensor expertise absent",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "386ee5f07ab6a7ed19aea8a159ea3b68c7abb5b8af26a7f5e4bfd4d9caf7ff10"
+  },
+  {
+    "external_id": "10001-1003741579-S",
+    "fit": "unlikely",
+    "reason": "High-voltage project leadership requires a specific electrical or mechanical technical background beyond generic coordination.",
+    "critical_gaps": [
+      "Electrical-energy or mechanical-engineering qualification equivalence not established",
+      "High-voltage switchgear domain preparation absent",
+      "Class B license unknown"
+    ],
+    "document_sha256": "14e88a744a67f5a99150dc23072125857388bffe1bd047bf4ee6cc0953a41e96"
+  },
+  {
+    "external_id": "17645-BB-633707-7878-8412-S",
+    "fit": "unlikely",
+    "reason": "Process improvement transfers, but this fleet-management role requires occupation-specific experience and market knowledge.",
+    "critical_gaps": [
+      "Fleet/mobility-management experience absent",
+      "Vehicle-market and fleet billing knowledge absent"
+    ],
+    "document_sha256": "943fd62f6212e31b60e2a403d7a132d93b7b485bf961b65c9d46eeed24a698f1"
+  },
+  {
+    "external_id": "10001-1003375568-S",
+    "fit": "unlikely",
+    "reason": "AI-agent workflow implementation requires programming and integration skills absent from the profile.",
+    "critical_gaps": [
+      "Python, agent-framework and API-development expertise absent",
+      "Git, Azure and Salesforce integration experience absent",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "bc159276b02deb0283e2939ae91299f6a023de8e86e5cd5bc38d340908fa2bc6"
+  },
+  {
+    "external_id": "10001-1002809231-S",
+    "fit": "unlikely",
+    "reason": "Software implementation requires programming and a specialist master degree absent from the profile.",
+    "critical_gaps": [
+      "Master degree in computing, physics or mathematics absent",
+      "Programming/Linux, Docker and Git experience absent"
+    ],
+    "document_sha256": "e9e0c35d3a8d6a9910571a3493696bb169a2fa5fd77d823b87e790ef7a6b4ba6"
+  },
+  {
+    "external_id": "10001-1002746829-S",
+    "fit": "unlikely",
+    "reason": "Roofing assistance has modest formal barriers but little occupational alignment or practical supporting evidence.",
+    "critical_gaps": [
+      "Roofing/construction-site work not documented",
+      "Fitness for physical work at heights unknown",
+      "Desired role alignment weak"
+    ],
+    "document_sha256": "0a9110281403d71372190ddc648bc7955609bf463b0e7b599cf31ad76b3cac64"
+  },
+  {
+    "external_id": "10000-1205652503-S",
+    "fit": "unlikely",
+    "reason": "Paediatric intensive nursing requires a pediatric nursing credential and clinical competence.",
+    "critical_gaps": [
+      "Pediatric nursing qualification absent",
+      "Clinical intensive-care experience absent"
+    ],
+    "document_sha256": "e5d66000ae0157d4eff5fd6b1cc42278870179a1fb7c32c9531cc1cd5091868d"
+  },
+  {
+    "external_id": "12456-1601905-1-S",
+    "fit": "unlikely",
+    "reason": "Electrical building-project management requires electrical qualifications and construction-law knowledge.",
+    "critical_gaps": [
+      "Electrical-engineering or electrical master/technician qualification absent",
+      "HOAI, VOB and BGB knowledge absent"
+    ],
+    "document_sha256": "28a5a2b3eb2437d7f667a446a36da6cebfe3d8d973d613c295133cfbaf00cc84"
+  },
+  {
+    "external_id": "10001-1003289785-S",
+    "fit": "possible",
+    "reason": "The advert permits another accredited bachelor; structured analysis, customer communication and administrative work are transferable.",
+    "critical_gaps": [
+      "German recognition/accreditation of bachelor not established",
+      "Social-insurance recourse law and claims-calculation experience absent; substantial training needed"
+    ],
+    "document_sha256": "4998556c77dfbd3db124d7c36d010ed41b42e399b296c2767cf4ed57e02e3a06"
+  },
+  {
+    "external_id": "10001-1003796732-S",
+    "fit": "possible",
+    "reason": "Academic CAD/drawing and engineering design support a junior transfer where electrical knowledge is explicitly optional.",
+    "critical_gaps": [
+      "Named AutoCAD proficiency absent",
+      "Vocational CAD/system-planning qualification equivalence uncertain",
+      "Professional CAD tenure not established",
+      "BIM/Revit knowledge absent, although desirable"
+    ],
+    "document_sha256": "6cb2faffe5dbacdda7616e28f841cc1a5e04fc69f29b89504e8b0f2751984f27"
+  },
+  {
+    "external_id": "10001-1002301248-S",
+    "fit": "unlikely",
+    "reason": "PLC installation and commissioning require a specialist controls occupation without supporting evidence.",
+    "critical_gaps": [
+      "Electrical/process-engineering qualification absent",
+      "PLC and industrial commissioning experience absent",
+      "Siemens, Rockwell and Codesys tool expertise absent",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "1c3e50995ea1928af56fbabeca15de561d4b0e0030f91ec7af240a9325e4d919"
+  },
+  {
+    "external_id": "15957-k55444.2745-S",
+    "fit": "unlikely",
+    "reason": "SAP security project leadership requires IAM/security expertise that generic project leadership does not establish.",
+    "critical_gaps": [
+      "SAP security and IAM expertise absent",
+      "Professional SAP security project experience absent"
+    ],
+    "document_sha256": "dac32c54417bb9f66182edcba519628e854254a2c0f24d8a852e78d61cac55ef"
+  },
+  {
+    "external_id": "17102-44434786-910-S",
+    "fit": "unlikely",
+    "reason": "Telecom fault resolution is a technical service occupation needing network competence and negotiation German.",
+    "critical_gaps": [
+      "IT/network technical qualification equivalence not established",
+      "Network/voice fault-resolution experience absent",
+      "Negotiation-level German not established at B2"
+    ],
+    "document_sha256": "affcb4a42b6a1615a671c8c1f5a79b14e9767b443109d6acd085236513aea4d7"
+  },
+  {
+    "external_id": "10000-1208051685-S",
+    "fit": "unlikely",
+    "reason": "DevOps infrastructure engineering requires coding and deployment-tool expertise absent from product coordination.",
+    "critical_gaps": [
+      "DevOps, Linux and CI/CD operational experience absent",
+      "Scripting and infrastructure-as-code expertise absent",
+      "Software/database development experience absent"
+    ],
+    "document_sha256": "5c069ac982bf4eff802e720915ef63204f2cf49bf9b1299ec8aa461212b17d4d"
+  },
+  {
+    "external_id": "10000-1207692121-S",
+    "fit": "unlikely",
+    "reason": "Construction truck transport requires a driving license and professional driving practice absent from the profile.",
+    "critical_gaps": [
+      "Truck license not documented",
+      "Professional truck-driving experience absent"
+    ],
+    "document_sha256": "1555987b8c0d669f3955086b4e91fb97fdd16d318b846b6d9c4935b5ab84ebdc"
+  },
+  {
+    "external_id": "10001-1002835373-S",
+    "fit": "unlikely",
+    "reason": "Vehicle upholstery requires a trade foundation that academic engineering prototypes do not establish.",
+    "critical_gaps": [
+      "Vehicle-upholstery or comparable craft qualification absent",
+      "Upholstery practice not documented"
+    ],
+    "document_sha256": "d6e0921e44051059eb1cdcb67e14ec905c74fab5d7165dad7c4620d70a96ea8c"
+  },
+  {
+    "external_id": "10001-1002793409-S",
+    "fit": "unlikely",
+    "reason": "Corporate training does not establish swimming or sports-coaching competence.",
+    "critical_gaps": [
+      "Swimming/fitness/sport trainer experience absent",
+      "Water-safety and first-aid certificates not documented; employer can support acquisition"
+    ],
+    "document_sha256": "9727fd9da3048e9566f36f19d2a81873ff4a4da20f5309bd0e11bc9efde7be02"
+  },
+  {
+    "external_id": "10001-1003759233-S",
+    "fit": "possible",
+    "reason": "Multilingual customer contact, stakeholder communication and engineering understanding support entry-level inside sales.",
+    "critical_gaps": [
+      "Outbound B2B prospecting and sales-pipeline experience not documented",
+      "Very good German may exceed documented B2",
+      "MS Office and CRM proficiency require confirmation"
+    ],
+    "document_sha256": "7002e846c3c4bcf814809903fb8db0f3e0517162b70edbe32119c8ce9342ff12"
+  },
+  {
+    "external_id": "10000-1206240686-S",
+    "fit": "unlikely",
+    "reason": "Powder-coating equipment operation needs specialist production experience beyond academic product work.",
+    "critical_gaps": [
+      "Professional powder-coating/Meeh equipment experience absent",
+      "Technical-production qualification equivalence uncertain"
+    ],
+    "document_sha256": "8fa7e74c4aaa3017521c3c4084a14341f4eb652c362696c11b0f2e123717123e"
+  },
+  {
+    "external_id": "10001-1003361017-S",
+    "fit": "unlikely",
+    "reason": "SAP archiving consulting requires implementation expertise absent from general requirements/process work.",
+    "critical_gaps": [
+      "SAP archiving and data-management implementation experience absent",
+      "Data-management compliance expertise absent",
+      "Very good German may exceed documented B2"
+    ],
+    "document_sha256": "3f89103341f5169d2955e9f7ecb7b29eaf91f454482031abef7de23b0795bc37"
+  },
+  {
+    "external_id": "10001-1002692783-S",
+    "fit": "recommended",
+    "reason": "Technical customer service and professional coordination directly support customer contact, scheduling and issue handling.",
+    "critical_gaps": [
+      "Invoice/offer preparation experience not documented",
+      "MS Office proficiency requires confirmation"
+    ],
+    "document_sha256": "07f2128d10ec66d56cec5ae3efe63983e94abd919974299e69907397904d34c1"
+  }
+]

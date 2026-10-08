@@ -12,6 +12,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Documented public Recruitee XML feeds with employer provenance checks and safeguards for active legacy HTML jobs.
 - Contributor guide, community conduct policy, security reporting guidance, and structured bug and feature request forms.
 - Changelog validation and GitHub Releases using curated notes after container checks and application image publication succeed.
 - Maintainer checklist for release preparation and GitHub repository settings.
@@ -23,6 +24,9 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Lever discovery and refresh enumerate bounded posting pages while preserving incomplete-scan lifecycle protection.
+- Shared ATS utility URLs no longer become false employer tenants.
+- Sparse applicant sections gain bounded detail recovery; explicit one-of scripting lists retain verification uncertainty instead of separate mandatory skills.
 - Scheduled job refreshes revisit saved feeds and career pages instead of repeating company and homepage discovery; failed fetches retry the saved source with backoff.
 
 - Feed scans import the SQLAlchemy relationship loader used to load existing job locations.
