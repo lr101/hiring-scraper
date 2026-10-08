@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from datetime import timedelta, timezone
@@ -8,6 +9,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker as worker
+from hiring_scraper.app import worker as feed_worker
 from hiring_scraper.app.models import Base, Company, DiscoveryRun, Job, JobFeed, utcnow
 
 
@@ -69,6 +71,83 @@ class DiscoveryWorkerTests(unittest.TestCase):
             new_run = session.get(DiscoveryRun, claimed[1])
             self.assertEqual(old_run.status, "failed")
             self.assertEqual(new_run.status, "running")
+
+    def test_empty_discovered_career_pages_are_saved_for_direct_refresh(self):
+        company_id = self._company()
+        claimed = worker._claim_due_company()
+        result = {"status": "career_content_found", "pages": [
+            {"url": "https://acme.example/careers", "classification": "career_content"},
+            {"url": "https://acme.example/jobs", "classification": "career_content"},
+            {"url": "https://untrusted.example/jobs", "classification": "career_content",
+             "html_extraction_trust": "unverified_external_source"},
+            {"url": "https://generic.example/jobs", "classification": "career_content"}], "boards": []}
+        worker._persist_discovery(company_id, claimed[1], result)
+        with self.factory() as session:
+            feeds = session.scalars(select(JobFeed).where(JobFeed.company_id == company_id)).all()
+            self.assertEqual({feed.feed_url for feed in feeds},
+                             {"https://acme.example/careers", "https://acme.example/jobs"})
+            self.assertTrue(all(feed.provider == "html_jobs" and feed.next_scan_at for feed in feeds))
+        self.assertIsNone(worker._claim_due_company())
+
+    def test_known_feed_is_not_claimed_for_homepage_rediscovery(self):
+        company_id = self._company(career_status="jobs_feed_found")
+        with self.factory.begin() as session:
+            session.add(JobFeed(company_id=company_id, provider="greenhouse",
+                                feed_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs",
+                                status="failed", next_scan_at=utcnow()))
+        self.assertIsNone(worker._claim_due_company())
+        with self.factory() as session:
+            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+
+    def test_existing_career_page_is_registered_for_direct_refresh(self):
+        company_id = self._company(career_status="career_page_found",
+                                   career_url="https://acme.example/careers")
+        with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
+            self.assertFalse(worker.process_once())
+        with self.factory() as session:
+            feed = session.scalar(select(JobFeed).where(JobFeed.company_id == company_id))
+            self.assertIsNotNone(feed)
+            self.assertEqual(feed.provider, "html_jobs")
+            self.assertEqual(feed.feed_url, "https://acme.example/careers")
+            self.assertIsNotNone(feed.next_scan_at)
+            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+
+    def test_direct_career_refresh_finds_new_jobs_after_a_failed_attempt(self):
+        company_id = self._company(career_status="career_page_found",
+                                   career_url="https://acme.example/careers")
+        with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
+            self.assertFalse(worker.process_once())
+        requested = []
+        responses = iter([({"state": "failed", "status": 503}, b""),
+                          ({"state": "ok", "status": 200}, b'<script type="application/ld+json">' +
+                           json.dumps({"@type": "JobPosting", "title": "Python Developer",
+                                       "url": "https://acme.example/jobs/new"}).encode() + b'</script>')])
+
+        class OfflineClient:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def get(self, url):
+                requested.append(url)
+                return next(responses)
+
+        with patch.object(feed_worker, "SessionLocal", self.factory), \
+                patch.object(feed_worker, "engine", self.engine), \
+                patch.object(feed_worker, "Client", OfflineClient), \
+                patch.object(feed_worker, "_pace_origin"):
+            self.assertTrue(feed_worker.scan_once())
+            with self.factory.begin() as session:
+                feed = session.scalar(select(JobFeed).where(JobFeed.company_id == company_id))
+                self.assertEqual(feed.status, "failed")
+                self.assertEqual(feed.attempt_count, 1)
+                feed.next_scan_at = utcnow() - timedelta(seconds=1)
+            self.assertTrue(feed_worker.scan_once())
+        with self.factory() as session:
+            jobs = session.scalars(select(Job)).all()
+            self.assertEqual([job.title for job in jobs], ["Python Developer"])
+            self.assertTrue(jobs[0].is_active)
+            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+        self.assertEqual(requested, ["https://acme.example/careers", "https://acme.example/careers"])
 
     def test_job_location_alias_gets_pilot_city_point(self):
         locations = worker._job_locations({"locations": [{"label": "Karlsruhe - Mail & Media"}]}, [])

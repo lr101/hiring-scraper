@@ -492,44 +492,131 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertIsNone(company.discovery_error)
             self.assertIsNone(company.discovery_lease_until)
 
-    def test_due_configured_location_creates_one_campaign_and_advances_schedule(self):
-        self.assertIsNotNone(getattr(models, "ConfiguredLocation", None),
-                             "The database should persist configured locations")
-        self.assertIsNotNone(getattr(worker, "schedule_due_locations", None),
-                             "The worker should materialize due location schedules")
-        ConfiguredLocation = models.ConfiguredLocation
-        DiscoveryJob = models.DiscoveryJob
-        DiscoveryJobCompany = models.DiscoveryJobCompany
+    def test_recurring_location_schedules_known_sources_without_discovery(self):
         now = utcnow()
         with self.factory.begin() as session:
-            company = Company(source="openstreetmap", source_id="node/2", name="Nearby GmbH",
-                              website_url="https://nearby.example/", latitude=49.0, longitude=8.4,
-                              career_status="not_checked")
-            location = ConfiguredLocation(label="Karlsruhe", city="Karlsruhe", latitude=49.0,
-                                          longitude=8.4, radius_km=15, interval_days=7,
-                                          enabled=True, next_run_at=now - timedelta(minutes=1))
-            session.add_all([company, location])
+            companies = [Company(source="test", source_id=str(index), name=f"Company {index}",
+                                 website_url=f"https://company-{index}.example/",
+                                 latitude=49.0 if index < 3 else 52.0, longitude=8.4,
+                                 career_status="not_checked") for index in range(4)]
+            companies[1].career_status = "career_page_found"
+            companies[1].career_url = "https://company-1.example/careers"
+            session.add_all(companies)
+            session.flush()
+            feeds = [JobFeed(company_id=companies[index].id, provider="greenhouse",
+                            feed_url=f"https://boards-api.greenhouse.io/v1/boards/company-{index}/jobs",
+                            next_scan_at=now + timedelta(days=1), status="parsed") for index in (0, 3)]
+            session.add_all(feeds)
+            location = models.ConfiguredLocation(label="Karlsruhe", latitude=49.0, longitude=8.4,
+                radius_km=15, interval_days=7, enabled=True, next_run_at=now - timedelta(minutes=1))
+            session.add(location)
             session.flush()
             location_id = location.id
-
-        self.assertEqual(worker.schedule_due_locations(now=now), 1)
-        self.assertEqual(worker.schedule_due_locations(now=now), 0)
-
+            nearby_feed_id, distant_feed_id = feeds[0].id, feeds[1].id
+            career_company_id = companies[1].id
+        with patch.object(worker, "fetch_location_companies", side_effect=AssertionError("Location rediscovery")), \
+                patch.object(worker, "discover", side_effect=AssertionError("Homepage rediscovery")):
+            self.assertEqual(worker.schedule_due_locations(now=now), 1)
+            self.assertEqual(worker.schedule_due_locations(now=now), 0)
+            self.assertFalse(worker.process_once(location_jobs_only=True))
         with self.factory() as session:
-            jobs = session.scalars(select(DiscoveryJob).where(
-                DiscoveryJob.configured_location_id == location_id)).all()
-            tasks = session.scalars(select(DiscoveryJobCompany).where(
-                DiscoveryJobCompany.discovery_job_id == jobs[0].id)).all()
-            location = session.get(ConfiguredLocation, location_id)
+            jobs = session.scalars(select(models.DiscoveryJob).where(
+                models.DiscoveryJob.configured_location_id == location_id)).all()
             self.assertEqual(len(jobs), 1)
-            self.assertEqual(jobs[0].status, "queued")
-            self.assertEqual(jobs[0].stage, "company_homepage_discovery")
-            self.assertEqual(jobs[0].candidate_total, 0)
-            self.assertEqual(len(tasks), 0)
-            next_run_at = location.next_run_at
-            if next_run_at.tzinfo is None:
-                next_run_at = next_run_at.replace(tzinfo=now.tzinfo)
-            self.assertGreater(next_run_at, now)
+            self.assertEqual(jobs[0].status, "completed")
+            self.assertEqual(jobs[0].stage, "complete")
+            self.assertEqual(session.scalars(select(DiscoveryJobCompany)).all(), [])
+            self.assertLessEqual(session.get(JobFeed, nearby_feed_id).next_scan_at.replace(tzinfo=now.tzinfo), now)
+            self.assertGreater(session.get(JobFeed, distant_feed_id).next_scan_at.replace(tzinfo=now.tzinfo), now)
+            page_feed = session.scalar(select(JobFeed).where(JobFeed.company_id == career_company_id))
+            self.assertIsNotNone(page_feed)
+            self.assertEqual(page_feed.feed_url, "https://company-1.example/careers")
+            self.assertGreater(session.get(models.ConfiguredLocation, location_id).next_run_at.replace(tzinfo=now.tzinfo), now)
+
+    def test_recurring_jobs_cannot_be_claimed_for_discovery(self):
+        with self.factory.begin() as session:
+            company = Company(source="test", source_id="recurring", name="Known company",
+                              website_url="https://known.example/", latitude=49.0, longitude=8.4)
+            session.add(company)
+            session.flush()
+            for stage in ("company_homepage_discovery", "career_page_discovery"):
+                job = models.DiscoveryJob(kind="recurring", label="Area", latitude=49.0,
+                    longitude=8.4, radius_km=15, status="queued", stage=stage, candidate_total=1)
+                session.add(job)
+                session.flush()
+                if stage == "career_page_discovery":
+                    session.add(DiscoveryJobCompany(discovery_job_id=job.id, company_id=company.id,
+                                                   status="queued"))
+        self.assertIsNone(worker._claim_location_company_search())
+        self.assertIsNone(worker._claim_campaign_company())
+
+    def test_expired_recurring_campaign_refreshes_sources_instead_of_retrying_discovery(self):
+        now = utcnow()
+        with self.factory.begin() as session:
+            company = Company(source="test", source_id="expired-recurring", name="Known company",
+                website_url="https://known.example/", latitude=49.0, longitude=8.4,
+                discovery_lease_until=now - timedelta(minutes=1))
+            session.add(company)
+            session.flush()
+            run = DiscoveryRun(company_id=company.id, status="running", started_at=now - timedelta(hours=1))
+            job = models.DiscoveryJob(kind="recurring", label="Area", latitude=49.0,
+                longitude=8.4, radius_km=15, status="running", stage="career_page_discovery",
+                candidate_total=1, started_at=now - timedelta(hours=1))
+            session.add_all([run, job])
+            session.flush()
+            session.add(DiscoveryJobCompany(discovery_job_id=job.id, company_id=company.id,
+                discovery_run_id=run.id, status="running", started_at=now - timedelta(hours=1)))
+            session.add(JobFeed(company_id=company.id, provider="greenhouse", status="parsed",
+                feed_url="https://boards-api.greenhouse.io/v1/boards/known/jobs", next_scan_at=now + timedelta(days=1)))
+            job_id, company_id, run_id = job.id, company.id, run.id
+        with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
+            self.assertFalse(worker.process_once(location_jobs_only=True))
+        with self.factory() as session:
+            self.assertEqual(session.get(models.DiscoveryJob, job_id).status, "completed")
+            self.assertIsNone(session.get(Company, company_id).discovery_lease_until)
+            self.assertEqual(session.get(DiscoveryRun, run_id).status, "cancelled")
+            self.assertEqual(session.scalar(select(DiscoveryJobCompany)).status, "cancelled")
+            self.assertLess(session.scalar(select(JobFeed)).next_scan_at.replace(tzinfo=now.tzinfo), utcnow())
+
+    def test_live_recurring_location_lease_is_not_cancelled_during_upgrade(self):
+        now = utcnow()
+        with self.factory.begin() as session:
+            job = models.DiscoveryJob(kind="recurring", label="Area", latitude=49.0,
+                longitude=8.4, radius_km=15, status="running", stage="company_homepage_discovery",
+                started_at=now, location_scan_lease_until=now + timedelta(minutes=10),
+                location_scan_token="live-attempt")
+            session.add(job)
+            session.flush()
+            job_id = job.id
+        worker._refresh_queued_recurring_jobs(now)
+        with self.factory() as session:
+            job = session.get(models.DiscoveryJob, job_id)
+            self.assertEqual(job.status, "running")
+            self.assertEqual(job.location_scan_token, "live-attempt")
+            self.assertIsNone(job.finished_at)
+
+    def test_recurring_refresh_preserves_failed_feed_backoff(self):
+        now = utcnow()
+        retry_at = now + timedelta(hours=2)
+        with self.factory.begin() as session:
+            company = Company(source="test", source_id="retry", name="Known company",
+                              website_url="https://known.example/", latitude=49.0, longitude=8.4)
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="greenhouse",
+                feed_url="https://boards-api.greenhouse.io/v1/boards/known/jobs", status="throttled",
+                attempt_count=2, next_scan_at=retry_at)
+            location = models.ConfiguredLocation(label="Area", latitude=49.0, longitude=8.4,
+                radius_km=15, enabled=True, next_run_at=now - timedelta(minutes=1))
+            session.add_all([feed, location])
+            session.flush()
+            feed_id = feed.id
+        worker.schedule_due_locations(now=now)
+        with self.factory() as session:
+            feed = session.get(JobFeed, feed_id)
+            self.assertEqual(feed.next_scan_at.replace(tzinfo=now.tzinfo), retry_at)
+            self.assertEqual(feed.attempt_count, 2)
+            self.assertEqual(feed.status, "throttled")
 
     def test_due_empty_scheduled_job_finishes_without_waiting_for_a_company_task(self):
         now = utcnow()
