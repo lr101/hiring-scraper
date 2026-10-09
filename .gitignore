@@ -20,3 +20,5 @@ data/probes/
 data/local-cv-board/
 data/production-trials/
 .ci-results/
+data/bonn-discovery/raw/
+data/bonn-public/raw/

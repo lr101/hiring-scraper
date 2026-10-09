@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import os
 import random
+import re
 import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -19,6 +20,7 @@ from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.models import Job, JobFeed, JobLocation, ScanRun, utcnow
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.http import Client
+from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 
 
 LOG = logging.getLogger("hiring_scraper.worker")
@@ -89,7 +91,7 @@ def _backoff(attempt: int, *, incomplete: bool = False) -> datetime:
 
 
 def _request(feed: JobFeed) -> tuple[dict, bytes]:
-    client = Client(CAPTURE_DIR, timeout=20, delay=0,
+    client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER, respect_robots=RESPECT_ROBOTS,
                     max_requests=10 if feed.provider == "lever" else 8, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
@@ -187,12 +189,32 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
                 raise ValueError(metadata["schema_error"])
             parsed = metadata.get("parsed_feed")
             if parsed is None:
-                parsed = parse_feed(feed.provider, body, feed.board_url or feed.feed_url)
+                board_url = feed.board_url or feed.feed_url
+                parts = urlsplit(board_url)
+                scope = re.fullmatch(r'/job/(\d+)/?', parts.path) if feed.provider == 'personio' else None
+                if scope:
+                    # Several explicitly linked postings can share one XML feed.
+                    # Preserve every authorized scope without admitting group jobs.
+                    authorized = {scope[1]}
+                    for existing in session.scalars(select(Job).where(Job.feed_id == feed.id)).all():
+                        marker = (existing.raw_metadata or {}).get('personio_posting_scope')
+                        if marker == existing.external_id and re.fullmatch(r'\d+', marker):
+                            authorized.add(marker)
+                    parsed = parse_feed('personio', body, f'{parts.scheme}://{parts.netloc}')
+                    parsed = {'jobs':[job for job in parsed['jobs'] if job['id'] in authorized], 'complete':False}
+                    for job in parsed['jobs']:
+                        job.setdefault('raw_metadata', {})['personio_posting_scope'] = job['id']
+                else:
+                    parsed = parse_feed(feed.provider, body, board_url)
         except (ValueError, TypeError) as error:
             _set_failure(feed, run, "schema_error", metadata, str(error))
             return
 
         incoming = parsed.get("jobs", [])
+        if feed.provider == 'telekom':
+            from hiring_scraper.discovery import _employer_matches
+            seed = {'name':feed.company.name, 'website':feed.company.website_url}
+            incoming = [data for data in incoming if _employer_matches(seed, data)]
         complete = bool(parsed.get("complete"))
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}

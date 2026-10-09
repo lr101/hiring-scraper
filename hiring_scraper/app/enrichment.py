@@ -16,7 +16,8 @@ from sqlalchemy import select
 
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import Job, utcnow
-from hiring_scraper.http import Client, OriginPacer
+from hiring_scraper.http import Client
+from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.matching import VERSION, detail_updates, enrich_job
 
 SOURCE_FIELDS = ('title','url','description','raw_metadata','seniority','employment_type','schedule',
@@ -91,7 +92,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
     if not candidates:
         return counts
     client = client or Client(Path('/tmp/hiring-scraper-enrichment'), timeout=12, delay=1,
-                              max_requests=limit*8, origin_pacer=OriginPacer(),
+                              max_requests=limit*8, origin_pacer=ORIGIN_PACER, respect_robots=RESPECT_ROBOTS,
                               user_agent=os.getenv("HIRING_USER_AGENT", "HiringScraper/0.3 (public job-detail enrichment)"))
     for job_id in candidates:
         with SessionLocal() as session:

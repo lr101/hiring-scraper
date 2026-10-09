@@ -74,3 +74,82 @@ class HttpTests(unittest.TestCase):
             self.assertEqual(meta['state'],'cache_miss')
             self.assertEqual(body,b'')
             self.assertEqual(client.records,[])
+
+class PublicCrawlTests(unittest.TestCase):
+    def test_explicit_robots_skip_follows_public_redirect_without_policy_request(self):
+        records = {'https://example.org/': ({'status': 302, 'state': 'http_error', 'location': '/jobs'}, b''),
+                   'https://example.org/jobs': ({'status': 200, 'state': 'ok'}, b'Jobs')}
+        with tempfile.TemporaryDirectory() as folder:
+            client = Client(folder, respect_robots=False)
+            def request(url):
+                self.assertIn(url, records)
+                return records[url]
+            with patch.object(client, '_raw', side_effect=request):
+                meta, body = client.get('https://example.org/')
+            self.assertEqual(body, b'Jobs')
+            self.assertEqual(meta['final_url'], 'https://example.org/jobs')
+            self.assertEqual(meta['access_mode'], 'public_without_robots')
+
+    def test_robots_skip_retains_private_destination_rejection(self):
+        with tempfile.TemporaryDirectory() as folder:
+            client = Client(folder, respect_robots=False, delay=0)
+            with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('127.0.0.1', 80))]):
+                meta, body = client.get('http://localhost/private')
+            self.assertEqual(meta['state'], 'network_error')
+            self.assertIn('Non-public', meta['error'])
+            self.assertEqual(body, b'')
+
+    def test_retry_after_pauses_other_clients_on_same_origin_only(self):
+        import io
+        from email.message import Message
+        class Response(io.BytesIO):
+            code = 429
+            headers = Message()
+        response = Response(b'Busy')
+        response.headers['Retry-After'] = '120'
+        pacer = OriginPacer()
+        with tempfile.TemporaryDirectory() as folder:
+            first = Client(folder+'/one', origin_pacer=pacer, delay=0)
+            second = Client(folder+'/two', origin_pacer=pacer, delay=0)
+            with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('8.8.8.8', 443))]), patch.object(first.opener, 'open', return_value=response), patch('hiring_scraper.http.time.monotonic', return_value=10.0):
+                self.assertEqual(first._raw('https://example.org/jobs')[0]['status'], 429)
+                meta, body = second._raw('https://example.org/another')
+                self.assertEqual(meta['state'], 'origin_backoff')
+                self.assertEqual(meta['retry_after_seconds'], 120)
+                self.assertEqual(body, b'')
+                self.assertIsNone(pacer.backoff_remaining(('https', 'other.example')))
+
+    def test_queued_origin_request_observes_cooldown_set_while_waiting(self):
+        import io
+        from email.message import Message
+        class Response(io.BytesIO):
+            code = 429
+            headers = Message()
+        response = Response(b'Busy')
+        response.headers['Retry-After'] = '120'
+        network_started, release_network = Event(), Event()
+        queued, release_queue = Event(), Event()
+        pacer = OriginPacer()
+        def open_response(*args, **kwargs):
+            network_started.set()
+            release_network.wait(2)
+            return response
+        def sleep(delay):
+            queued.set()
+            release_queue.wait(2)
+        with tempfile.TemporaryDirectory() as folder:
+            first = Client(folder+'/first', origin_pacer=pacer, delay=1)
+            second = Client(folder+'/second', origin_pacer=pacer, delay=1)
+            with patch('hiring_scraper.http.time.monotonic',return_value=10.0), patch('hiring_scraper.http.time.sleep',side_effect=sleep), patch('hiring_scraper.http.socket.getaddrinfo',return_value=[(2,1,6,'',('8.8.8.8',443))]), patch.object(first.opener,'open',side_effect=open_response), patch.object(second.opener,'open',side_effect=AssertionError('Request sent during cooldown')):
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    a=pool.submit(first._raw,'https://example.org/a')
+                    self.assertTrue(network_started.wait(1))
+                    b=pool.submit(second._raw,'https://example.org/b')
+                    try:
+                        self.assertTrue(queued.wait(1))
+                        release_network.set()
+                        self.assertEqual(a.result(timeout=1)[0]['status'],429)
+                        release_queue.set()
+                        self.assertEqual(b.result(timeout=1)[0]['state'],'origin_backoff')
+                    finally:
+                        release_network.set();release_queue.set()

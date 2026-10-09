@@ -3,7 +3,7 @@ import html
 import json
 import re
 from html.parser import HTMLParser
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 from .ats import identify
 
 CAREER = re.compile(r'karriere|careers?|\bjobs?\b|jobangebote?|stellenangebote?|stellenmarkt|arbeitgeber|employer|vacanc|open.positions|offene.stellen|arbeiten.bei|join.us|jobboerse|traumjobs?|werde.teil|we.re.hiring|join.our.team|work\s+at|apply.now|open.roles', re.I)
@@ -29,6 +29,8 @@ def clean_url(base, href):
     except ValueError:
         return None
     if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password:
+        return None
+    if '{{' in unquote(p.path) or '}}' in unquote(p.path):
         return None
     query = urlencode([(k,v) for k,v in parse_qsl(p.query, keep_blank_values=True)
                        if not k.startswith('utm_') and k not in {'gh_src','source'}])
@@ -146,7 +148,33 @@ def inspect_page(url, source):
     postings = 0
     for kind, script in doc.scripts:
         if kind == 'application/ld+json':
-            try: postings += count_postings(json.loads(script))
+            try:
+                structured = json.loads(script)
+                postings += count_postings(structured)
+                # A publisher's explicit search target can be absent from visible
+                # navigation (Phenom uses a hidden anchor and a JS search form).
+                values = structured if isinstance(structured, list) else [structured]
+                for item in values:
+                    if not isinstance(item, dict) or item.get('@type') != 'WebSite':
+                        continue
+                    actions = item.get('potentialAction', [])
+                    for action in actions if isinstance(actions, list) else [actions]:
+                        if not isinstance(action, dict) or action.get('@type') != 'SearchAction':
+                            continue
+                        raw = action.get('target')
+                        if isinstance(raw, dict):
+                            raw = raw.get('urlTemplate')
+                        if not isinstance(raw, str):
+                            continue
+                        target = clean_url(url, raw.replace('{search_term_string}', ''))
+                        if not target or re.search(r'[{}]', target):
+                            continue
+                        parts, origin = urlsplit(target), urlsplit(url)
+                        if ((parts.scheme, parts.netloc) != (origin.scheme, origin.netloc) or
+                                not re.search(r'/(?:search-results|jobs|jobsuche|job-search)/?$', parts.path, re.I)):
+                            continue
+                        candidates.setdefault(target, {'url':target, 'label':'Job search', 'score':96,
+                                                       'evidence_kind':'schema_org_searchaction'})
             except (ValueError, TypeError): pass
         unescaped = html.unescape(script.replace('\\/', '/').replace('\\u0026','&'))
         for target in re.findall(r'https?://[^\s"\'<>\\]+', unescaped):

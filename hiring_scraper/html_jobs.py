@@ -6,9 +6,9 @@ import json
 import math
 import re
 import unicodedata
-from datetime import date
+from datetime import date, datetime
 from html.parser import HTMLParser
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
@@ -389,6 +389,7 @@ def _candidate_title(value: str) -> bool:
     clean = _clean_text(value).strip(" ·|–—-:")
     return bool(clean and len(clean) <= 150 and clean.casefold() not in _GENERIC_HEADINGS
                 and not re.match(r"^(?:spezialfragen|faq|häufige fragen|frequently asked questions?)\b", clean, re.I)
+                and not re.match(r"^(?:stellenangebote|aktuelle stellenangebote|jobs|vacancies|open positions)\s+(?:für|for|in|at)\b", clean, re.I)
                 and _ROLE_WORDS.search(clean))
 
 
@@ -488,6 +489,14 @@ def _true_data_flag(attrs: dict[str, str], name: str) -> bool:
     return attrs.get(name, "").strip().casefold() in _TRUE_DATA_FLAG_VALUES
 
 
+def _softgarden_job_id(url: str) -> str | None:
+    parts = urlsplit(url)
+    if not re.fullmatch(r'[a-z0-9-]+\.softgarden\.(io|de)', parts.hostname or '', re.I):
+        return None
+    match = re.fullmatch(r'/job/([0-9]+)/[^/]+/?', parts.path)
+    return match[1] if match else None
+
+
 def _inactive_card_class(classes: set[str]) -> bool:
     return any(
         _INACTIVE_CARD_CLASS.search(name) and not name.startswith(("not-", "not_"))
@@ -541,11 +550,21 @@ def html_job_key(job: dict) -> tuple[str, ...]:
     metadata = job.get("raw_metadata") or {}
     method = metadata.get("extraction_method") if isinstance(metadata, dict) else None
     url = job.get("url", "")
+    softgarden_id = _softgarden_job_id(url)
+    if softgarden_id and method in {'schema_org_jobposting', 'schema_org_microdata', 'softgarden_job_link', 'softgarden_job_detail'}:
+        return "softgarden", urlsplit(url).netloc.casefold(), softgarden_id
+    if method == "phenom_public_job":
+        return "phenom", urlsplit(url).netloc.casefold(), str(job["id"])
     try:
         parsed = urlsplit(url)
         path = parsed.path.rstrip("/")
     except ValueError:
         parsed, path = None, ""
+    if method in {'schema_org_jobposting', 'schema_org_microdata'}:
+        if metadata.get('schema_identifier'):
+            return 'schema', (parsed.hostname or '').casefold(), metadata['schema_identifier']
+        if not metadata.get('microdata_page_fallback'):
+            return 'destination', _normalized_destination(url)
     if method == "structured_job_card":
         return "destination", _normalized_destination(url)
     if (parsed and method in {"html_job_link", "html_job_detail"} and _DETAIL_ROUTE.search(path)):
@@ -601,7 +620,6 @@ def _application_deadline(text: str) -> str | None:
     match = re.search(r"application deadline\s*:?\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})", text, re.I)
     if not match:
         return None
-    from datetime import datetime
     try:
         return datetime.strptime(" ".join(match.groups()), "%d %B %Y").date().isoformat()
     except ValueError:
@@ -672,6 +690,150 @@ def _merge(jobs: list[dict]) -> list[dict]:
     return list(merged.values())
 
 
+def _phenom_public_jobs(nodes: list[_Element], page_url: str) -> tuple[list[dict], bool]:
+    """Read literal public Phenom DDOs, without running JS or following apply APIs.
+
+    Only the captured search/detail contracts are recognized. Search selections
+    and single detail pages never establish a complete inventory.
+    """
+    scripts = ["".join(child for child in node.children if isinstance(child, str))
+               for node in nodes if node.tag == "script" and
+               node.attrs.get("type", "").lower() in {"", "text/javascript", "application/javascript"}]
+
+    def literal(pattern):
+        found = []
+        for script in scripts:
+            for match in re.finditer(pattern, script):
+                try:
+                    value, end = json.JSONDecoder().raw_decode(script[match.end():])
+                    tail = script[match.end()+end:].lstrip()
+                    if isinstance(value, dict) and (not tail or tail.startswith(';')):
+                        found.append(value)
+                except (ValueError, TypeError):
+                    pass
+        return found[0] if len(found) == 1 else None
+
+    config = literal(r'\bvar\s+phApp\s*=\s*phApp\s*\|\|\s*(?=\{)')
+    ddo = literal(r'\bphApp\.ddo\s*=\s*(?=\{)')
+    routes = literal(r'\bphApp\.urlMap\s*=\s*(?=\{)')
+    if not ddo or not any(key in ddo for key in ('eagerLoadRefineSearch', 'jobDetail')):
+        return [], False
+    if not config or not routes or routes.get('job') != 'job/:jobSeqNo/:title':
+        return [], True
+    base = _absolute_http(config.get('baseUrl'), page_url)
+    if (not base or not _same_origin(base, page_url) or config.get('siteType') != 'external' or
+            urlsplit(base).query or urlsplit(base).fragment or
+            not urlsplit(page_url).path.startswith(urlsplit(base).path.rstrip('/')+'/')):
+        return [], True
+    rows = []
+    for key in ('eagerLoadRefineSearch', 'jobDetail'):
+        result = ddo.get(key)
+        if not isinstance(result, dict) or result.get('status') != 200 or not isinstance(result.get('data'), dict):
+            continue
+        items = result['data'].get('jobs') if key == 'eagerLoadRefineSearch' else [result['data'].get('job')]
+        if isinstance(items, list):
+            rows.extend(items)
+    jobs, seen = [], set()
+    for row in rows:
+        if (not isinstance(row, dict) or _inactive_framework_row(row) or row.get('siteType') != 'external' or
+                row.get('visibilityType') != 'External' or
+                any(str(row.get(key, '')).lower() in _TRUE_DATA_FLAG_VALUES for key in ('isPrivate', 'isConfidential'))):
+            continue
+        title, job_id = _plain(row.get('title')), row.get('jobSeqNo')
+        if (not title or len(title) > 200 or title.casefold() in _GENERIC_HEADINGS or
+                _INITIATIVE_APPLICATION.search(title) or _TALENT_POOL.search(title) or
+                not isinstance(job_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', job_id) or job_id in seen):
+            continue
+        slug = re.sub(r'[^\w-]+', '-', title, flags=re.UNICODE).strip('-')
+        target = base.rstrip('/')+'/job/'+job_id+'/'+quote(slug)
+        structure = row.get('structureData')
+        job = None
+        if isinstance(structure, dict) and 'JobPosting' in _types(structure) and structure.get('title') == row.get('title'):
+            job = _schema_posting({**structure, 'url':target}, page_url)
+        if not job:
+            job = _job(title, target, 'phenom_public_job', location=_plain(row.get('location')),
+                       description=_plain(row.get('descriptionTeaser')), date_posted=row.get('postedDate'),
+                       employment_type=_plain(row.get('workHours')))
+            city, country = _plain(row.get('city')), _country_code(row.get('country'))
+            if city and country:
+                job['locations'] = [{'label':city, 'country_code':country}]
+        job['id'] = job_id
+        job.setdefault('raw_metadata', {})['extraction_method'] = 'phenom_public_job'
+        job['raw_metadata']['posting_identity'] = job_id
+        # Machine-generated skills/teasers do not establish mandatory requirements.
+        job['raw_metadata']['description_scope'] = 'job_detail' if isinstance(structure, dict) else 'teaser'
+        jobs.append(job)
+        seen.add(job_id)
+    return jobs, True
+
+
+def _microdata_jobs(nodes, page_url):
+    """Read scoped Schema.org microdata without mixing adjacent organizations."""
+    def properties(scope):
+        result = {}
+        def visit(node):
+            if node.hidden:
+                return
+            names = node.attrs.get('itemprop', '').split()
+            nested = 'itemscope' in node.attrs
+            if names:
+                value = properties(node) if nested else next(
+                    (node.attrs[key] for key in ('content', 'datetime', 'href') if node.attrs.get(key)), node.text())
+                for name in names:
+                    result.setdefault(name, []).append(value)
+            if not nested and not names:
+                for child in node.children:
+                    if isinstance(child, _Element):
+                        visit(child)
+        for child in scope.children:
+            if isinstance(child, _Element):
+                visit(child)
+        return {key: values[0] if len(values) == 1 else values for key, values in result.items()}
+
+    scopes = [node for node in nodes if 'itemscope' in node.attrs and any(
+        re.fullmatch(r'https?://schema\.org/JobPosting/?', item)
+        for item in node.attrs.get('itemtype', '').split())]
+    jobs = []
+    for scope in scopes:
+        if scope.hidden:
+            continue
+        posting = properties(scope)
+        title, description = posting.get('title'), posting.get('description')
+        if (not isinstance(title, str) or not title.strip() or len(title) > 200 or
+                title.casefold() in _GENERIC_HEADINGS or _INITIATIVE_APPLICATION.search(title) or
+                _TALENT_POOL.search(title) or not isinstance(description, str) or not description.strip()):
+            continue
+        explicit_url = posting.get('url')
+        target = _absolute_http(explicit_url or page_url, page_url) if isinstance(explicit_url or page_url, str) else None
+        if not target or not _same_origin(target, page_url):
+            continue
+        posted = posting.get('datePosted')
+        if isinstance(posted, str):
+            try:
+                posting['datePosted'] = datetime.fromisoformat(posted.replace('Z', '+00:00')).date().isoformat()
+            except ValueError:
+                try:
+                    posting['datePosted'] = datetime.strptime(posted, '%a %b %d %H:%M:%S %Z %Y').date().isoformat()
+                except ValueError:
+                    posting.pop('datePosted', None)
+        # Some public SuccessFactors pages put the full address in streetAddress.
+        places = posting.get('jobLocation')
+        for place in places if isinstance(places, list) else [places]:
+            address = place.get('address') if isinstance(place, dict) else None
+            if isinstance(address, dict) and not address.get('addressLocality'):
+                match = re.fullmatch(r'([^,]{2,100}),\s*([A-Z]{2}),\s*(\d{4,6})', str(address.get('streetAddress', '')))
+                if match:
+                    address.update(addressLocality=match[1].strip(), addressCountry=match[2], postalCode=match[3])
+        job = _schema_posting({**posting, 'url': target}, page_url)
+        if job:
+            if not posting.get('identifier'):
+                job['id'] = _stable_id(title, job['url'], destination_identity=bool(explicit_url))
+            job['raw_metadata']['extraction_method'] = 'schema_org_microdata'
+            job['raw_metadata']['microdata_page_fallback'] = not bool(explicit_url)
+            jobs.append(job)
+    return jobs, bool(scopes)
+
+
 def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     """Extract high-confidence vacancy data and separately retain role-list hints."""
     if _ARTICLE_ROUTE.search(urlsplit(page_url).path):
@@ -690,6 +852,10 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     jobs = []
     role_candidates = []
     json_payloads = []
+    phenom_jobs, phenom_partial = _phenom_public_jobs(nodes, page_url)
+    jobs.extend(phenom_jobs)
+    microdata_jobs, microdata_partial = _microdata_jobs(nodes, page_url)
+    jobs.extend(microdata_jobs)
 
     for node in nodes:
         if node.tag != "script":
@@ -750,32 +916,47 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
         if not target or urlsplit(target).hostname != urlsplit(page_url).hostname:
             continue
         path = urlsplit(target).path
-        if not _JOB_LINK.search(path):
+        softgarden_id = _softgarden_job_id(target)
+        if not _JOB_LINK.search(path) and not softgarden_id:
             continue
         title_text = _job_link_title(anchor)
-        if not _candidate_title(title_text):
+        valid_vendor_title = (softgarden_id and title_text and len(title_text) <= 150 and
+                              title_text.casefold() not in _GENERIC_HEADINGS and
+                              not _INITIATIVE_APPLICATION.search(title_text) and not _TALENT_POOL.search(title_text))
+        if not _candidate_title(title_text) and not valid_vendor_title:
             continue
         context = _context(anchor, title_text)
         title_location, title_text = _location_from_title(title_text)
         location = _node_location(anchor) or title_location or _location_from_url(target)
-        jobs.append(_job(title_text, target, "html_job_link", context, location=location,
-                         application_email=_application_email(context)))
+        job = _job(title_text, target, "softgarden_job_link" if softgarden_id else "html_job_link", context,
+                   location=location, application_email=_application_email(context))
+        if softgarden_id:
+            job['id'] = softgarden_id
+        jobs.append(job)
 
     path = urlsplit(page_url).path
-    if _DETAIL_ROUTE.search(path) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
+    softgarden_id = _softgarden_job_id(page_url)
+    if not any(job["url"] == page_url for job in microdata_jobs) and (_DETAIL_ROUTE.search(path) or softgarden_id) and not re.search(r"no (?:current |open )?positions|keine (?:offenen )?stellen", lower_text):
         h1_nodes = [node for node in nodes if node.tag == "h1" and node.text()]
         h1_node = h1_nodes[0] if len(h1_nodes) == 1 else None
         if h1_node:
             h1 = h1_node.text().strip(" ·|–—-:")
             apply = any(re.search(r"^(?:apply|jetzt bewerben|bewerben|bewerbung)\b", node.text(), re.I) for node in anchors)
+            form_apply = any(node.tag in {'h2', 'h3'} and re.match(r'^(?:jetzt bewerben|apply now)', node.text(), re.I) for node in nodes) and any(
+                node.tag == 'form' and not node.hidden and re.search(r'lebenslauf|curriculum vitae|resume|\bcv\b', node.text(), re.I) and
+                any(not child.hidden and (child.tag == 'input' and child.attrs.get('type') == 'file' or 'ginput_container_fileupload' in child.attrs.get('class', '').split()) for child in node.walk())
+                for node in nodes)
+            apply = apply or form_apply
             vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
                                  for parent in _ancestors(h1_node))
             confirmed = (_candidate_title(h1) or
                          (apply or vacancy_marker) and 0 < len(h1) <= 150 and h1.casefold() not in _GENERIC_HEADINGS)
-            if confirmed:
+            if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
                 detail_context = _detail_description(h1_node) or ""
-                job = _job(h1, page_url, "html_job_detail", detail_context, location=_leading_location(detail_context),
+                job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=_leading_location(detail_context),
                            description=detail_context or None, application_email=_application_email(detail_context))
+                if softgarden_id:
+                    job['id'] = softgarden_id
                 deadline = _application_deadline(visible_text)
                 if deadline:
                     job["raw_metadata"]["validThrough"] = deadline
@@ -819,5 +1000,6 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
     has_next = any((node.attrs.get("rel", "").casefold() == "next") or
                    (node.tag == "a" and re.search(r"^(?:next|weiter|nächste|ältere)", node.text(), re.I))
                    for node in nodes)
-    return {"jobs": jobs, "role_candidates": role_candidates, "complete": not has_next,
+    softgarden_partial = bool(re.fullmatch(r'[a-z0-9-]+\.softgarden\.(io|de)', urlsplit(page_url).hostname or '', re.I))
+    return {"jobs": jobs, "role_candidates": role_candidates, "complete": not has_next and not phenom_partial and not softgarden_partial and not microdata_partial and not bool(_DETAIL_ROUTE.search(urlsplit(page_url).path)),
             "page_title": title, "has_open_vacancy_signal": bool(re.search(r"open position|offene stellen|aktuelle jobs|current opportunities|job posting", lower_text))}

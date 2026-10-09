@@ -12,7 +12,7 @@ from uuid import uuid4
 from datetime import timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -25,7 +25,8 @@ from hiring_scraper.app.models import (
     Job, JobFeed, JobLocation, utcnow,
 )
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
-from hiring_scraper.http import Client, OriginPacer
+from hiring_scraper.http import Client
+from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.location_discovery import fetch_location_companies
 
 
@@ -34,9 +35,9 @@ POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
-MAX_PAGES = min(12, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "6"))))
+MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "12"))))
 MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
-MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "24"))))
+MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "48"))))
 MAX_CRAWL_WORKER_LIMIT = 32
 MAX_CRAWL_WORKERS = min(MAX_CRAWL_WORKER_LIMIT,
                         max(1, int(os.getenv("CAREER_DISCOVERY_WORKERS", "4"))))
@@ -44,7 +45,7 @@ TIMEOUT_SECONDS = max(5, float(os.getenv("CAREER_DISCOVERY_TIMEOUT_SECONDS", "15
 CAPTURE_DIR = Path(os.getenv("CAREER_DISCOVERY_CAPTURE_DIR", "/tmp/hiring-scraper-discovery-captures"))
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public career discovery)")
 FEED_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
-_ORIGIN_PACER = OriginPacer()
+_ORIGIN_PACER = ORIGIN_PACER
 _SQLITE_FINALIZE_LOCK = Lock()
 
 _CAREER_STATUS = {
@@ -283,6 +284,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 session.add(feed)
                 feed_by_key[key] = feed
         total_jobs = 0
+        updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
             if board.get("provider") == "html_jobs":
@@ -316,6 +318,17 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 feed.board_url = board.get("board_url") or feed.board_url
             total_jobs += _upsert_jobs(session, feed, jobs,
                                        bool(board.get("complete")), now)
+            updated_feed_ids.add(feed.id)
+
+        if updated_feed_ids:
+            # Multiple scoped Personio links can upsert separate subsets of
+            # the same XML source. Store the feed's aggregate active count,
+            # rather than the last subset's count from _upsert_jobs.
+            session.flush()
+            for feed in session.scalars(select(JobFeed).where(
+                    JobFeed.id.in_(updated_feed_ids))).all():
+                feed.job_count = session.scalar(select(func.count(Job.id)).where(
+                    Job.feed_id == feed.id, Job.is_active.is_(True)))
 
         run.finished_at = now
         run.status = result.get("status", "unresolved")
@@ -332,9 +345,11 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                               page.get("html_extraction_trust") == "unverified_external_source"],
             "boards": [{key: board.get(key) for key in
                         ("provider", "tenant", "board_url", "feed_url", "evidence_url", "evidence_kind",
-                         "discovered_on", "feed_state", "feed_http_status", "job_count", "complete")}
+                         "discovered_on", "feed_state", "feed_http_status", "job_count", "complete",
+                         "personio_posting_scopes", "personio_full_board_authorized")}
                        for board in result.get("boards", [])],
             "unverified_external_html_pages": result.get("unverified_external_html_pages", []),
+            "unverified_external_ats": result.get("unverified_external_ats", []),
             "limits": result.get("limits", {}),
         }
         return total_jobs
@@ -833,7 +848,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
         client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
-                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
+                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER, respect_robots=RESPECT_ROBOTS)
         result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
 
         def persist_result() -> int | None:

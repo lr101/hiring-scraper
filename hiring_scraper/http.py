@@ -10,6 +10,7 @@ from threading import Lock
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
@@ -26,17 +27,50 @@ class OriginPacer:
     def __init__(self):
         self.last: dict[tuple[str, str], float] = {}
         self._locks_guard = Lock()
+        self._backoff = {}
         self._origin_locks: dict[tuple[str, str], Lock] = {}
 
     def wait(self, origin: tuple[str, str], delay: float) -> None:
         with self._locks_guard:
             origin_lock = self._origin_locks.setdefault(origin, Lock())
         with origin_lock:
+            remaining = self.backoff_remaining(origin)
+            if remaining is not None:
+                return remaining
             now = time.monotonic()
             wait = delay - (now - self.last.get(origin, 0.0))
             if wait > 0:
                 time.sleep(wait)
+            remaining = self.backoff_remaining(origin)
+            if remaining is not None:
+                return remaining
             self.last[origin] = time.monotonic()
+
+    def defer(self, origin, retry_after=None):
+        seconds = 60.0
+        if retry_after:
+            try:
+                seconds = max(1.0, float(retry_after))
+            except (ValueError, TypeError):
+                try:
+                    moment = parsedate_to_datetime(retry_after)
+                    if moment.tzinfo is None:
+                        moment = moment.replace(tzinfo=timezone.utc)
+                    seconds = max(1.0, (moment - datetime.now(timezone.utc)).total_seconds())
+                except (ValueError, TypeError, OverflowError):
+                    pass
+        if seconds != seconds or seconds == float('inf'):
+            seconds = 60.0
+        with self._locks_guard:
+            self._backoff[origin] = max(self._backoff.get(origin, 0), time.monotonic() + seconds)
+
+    def backoff_remaining(self, origin):
+        with self._locks_guard:
+            until = self._backoff.get(origin)
+            if until is None:
+                return None
+            remaining = until - time.monotonic()
+        return remaining if remaining > 0 else None
 
 
 class RequestBudget:
@@ -56,7 +90,7 @@ class RequestBudget:
 class Client:
     def __init__(self, out, timeout=12, delay=1.0, max_requests=300, cache_from=None, user_agent=UA,
                  origin_pacer: OriginPacer | None = None, request_budget: RequestBudget | None = None,
-                 offline_only=False):
+                 offline_only=False, respect_robots=True):
         self.out = Path(out)
         self.out.mkdir(parents=True, exist_ok=True)
         self.timeout, self.delay, self.max_requests = timeout, delay, max_requests
@@ -64,6 +98,7 @@ class Client:
         self.origin_pacer = origin_pacer
         self.request_budget = request_budget
         self.offline_only = offline_only
+        self.respect_robots = respect_robots
         self.cache, self.robots, self.last, self.records = {}, {}, {}, []
         self.opener = urllib.request.build_opener(NoRedirect)
         self.used = set()
@@ -87,6 +122,11 @@ class Client:
             return record, body
         if self.offline_only:
             return {'url': url, 'state': 'cache_miss'}, b''
+        parts = urlsplit(url)
+        origin = (parts.scheme, parts.netloc.lower())
+        remaining = self.origin_pacer.backoff_remaining(origin) if self.origin_pacer is not None else None
+        if remaining is not None:
+            return {'url':url, 'state':'origin_backoff', 'retry_after_seconds':remaining}, b''
         record = {'url':url, 'checked_at':datetime.now(timezone.utc).isoformat(), 'user_agent':self.user_agent}
         body = b''
         start = time.monotonic()
@@ -103,7 +143,9 @@ class Client:
                 raise ValueError('Non-public destination rejected')
             origin = (p.scheme,p.netloc.lower())
             if self.origin_pacer is not None:
-                self.origin_pacer.wait(origin,self.delay)
+                remaining = self.origin_pacer.wait(origin,self.delay)
+                if remaining is not None:
+                    return {'url':url, 'state':'origin_backoff', 'retry_after_seconds':remaining}, b''
             else:
                 time.sleep(max(0, self.last.get(origin,0)+self.delay-time.monotonic()))
             try:
@@ -121,6 +163,8 @@ class Client:
                               state='not_modified' if response.code==304 else
                                     'body_too_large' if len(body)>3_000_000 else
                                     'ok' if response.code==200 else 'http_error')
+            if self.origin_pacer is not None and record.get('status') in {429, 503}:
+                self.origin_pacer.defer(origin, record.get('retry_after'))
             if self.origin_pacer is None:
                 self.last[origin] = time.monotonic()
         except (OSError, ValueError, http.client.HTTPException) as error:
@@ -162,14 +206,15 @@ class Client:
     def get(self, url):
         chain=[]
         for _ in range(6):
-            reason=self._policy(url)
+            reason=self._policy(url) if self.respect_robots else None
             if reason: return {'url':url,'state':reason,'redirect_chain':chain},b''
             record,body=self._raw(url)
             chain.append(url)
             if record.get('status') in {301,302,303,307,308} and record.get('location'):
                 url=urljoin(url,record['location'])
                 continue
-            return {**record,'final_url':url,'redirect_chain':chain},body
+            return {**record,'final_url':url,'redirect_chain':chain,
+                    'access_mode':'robots_checked' if self.respect_robots else 'public_without_robots'},body
         return {'url':url,'state':'redirect_limit','redirect_chain':chain},b''
 
     def get_feed(self, url, conditional_headers=None):

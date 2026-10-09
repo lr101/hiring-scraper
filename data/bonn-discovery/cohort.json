@@ -1,0 +1,914 @@
+[
+  {
+    "name": "DHL",
+    "website": "https://www.dhl.com/",
+    "source_url": "https://www.dhl.com/",
+    "selection": "requested diagnostic"
+  },
+  {
+    "name": "Deutsche Telekom",
+    "website": "https://www.telekom.com/",
+    "source_url": "https://www.telekom.com/",
+    "selection": "requested diagnostic"
+  },
+  {
+    "name": "AMTRA Mobilraum Niederlassung West - Köln",
+    "source_id": "way/157370429",
+    "source_url": "https://www.openstreetmap.org/way/157370429",
+    "category": "company",
+    "latitude": 50.8188849,
+    "longitude": 6.9899336,
+    "website": "https://www.amtra-gmbh.de/unternehmen/niederlassungen/niederlassung-koeln-neu"
+  },
+  {
+    "name": "BSW Consult GmbH",
+    "source_id": "node/800127736",
+    "source_url": "https://www.openstreetmap.org/node/800127736",
+    "category": "consulting",
+    "latitude": 50.7842,
+    "longitude": 7.1619606,
+    "website": "https://www.bsw-consult.gmbh/"
+  },
+  {
+    "name": "Trio MedienService",
+    "source_id": "node/10554530840",
+    "source_url": "https://www.openstreetmap.org/node/10554530840",
+    "category": "publisher",
+    "latitude": 50.7244512,
+    "longitude": 7.1087203,
+    "website": "https://www.trio-medien.de/"
+  },
+  {
+    "name": "Die Linke",
+    "source_id": "node/4928910322",
+    "source_url": "https://www.openstreetmap.org/node/4928910322",
+    "category": "political_party",
+    "latitude": 50.7396634,
+    "longitude": 7.0894217,
+    "website": "https://www.dielinke-bonn.de/"
+  },
+  {
+    "name": "AkZ Media",
+    "source_id": "node/12156194158",
+    "source_url": "https://www.openstreetmap.org/node/12156194158",
+    "category": "company",
+    "latitude": 50.8120994,
+    "longitude": 7.0431457,
+    "website": "https://www.akz-media.de/"
+  },
+  {
+    "name": "Bianca Pünder Coaching",
+    "source_id": "node/12923838252",
+    "source_url": "https://www.openstreetmap.org/node/12923838252",
+    "category": "consulting",
+    "latitude": 50.7141781,
+    "longitude": 7.124779,
+    "website": "https://coaching-puender.de/"
+  },
+  {
+    "name": "Provinzial",
+    "source_id": "node/6690436173",
+    "source_url": "https://www.openstreetmap.org/node/6690436173",
+    "category": "insurance",
+    "latitude": 50.7985184,
+    "longitude": 7.127784,
+    "website": "http://provinzial.com/manfred.engels"
+  },
+  {
+    "name": "Johannes Klais Orgelbau",
+    "source_id": "way/114332367",
+    "source_url": "https://www.openstreetmap.org/way/114332367",
+    "category": "organ_builder",
+    "latitude": 50.7430477,
+    "longitude": 7.0924835,
+    "website": "https://www.orgelbau-klais.com/"
+  },
+  {
+    "name": "Spichala Vermessung GmbH",
+    "source_id": "node/3893230680",
+    "source_url": "https://www.openstreetmap.org/node/3893230680",
+    "category": "geodesist",
+    "latitude": 50.8136947,
+    "longitude": 6.9937693,
+    "website": "http://www.teamvermessung.de"
+  },
+  {
+    "name": "Kugler PCB-MB",
+    "source_id": "node/10033366124",
+    "source_url": "https://www.openstreetmap.org/node/10033366124",
+    "category": "hvac",
+    "latitude": 50.8069106,
+    "longitude": 7.1594549,
+    "website": "https://www.pcbmb.de"
+  },
+  {
+    "name": "walterservices",
+    "source_id": "node/2365365970",
+    "source_url": "https://www.openstreetmap.org/node/2365365970",
+    "category": "company",
+    "latitude": 50.7904855,
+    "longitude": 7.2231284,
+    "website": "https://www.walterservices.com"
+  },
+  {
+    "name": "Günter Klein GmbH",
+    "source_id": "node/3553960293",
+    "source_url": "https://www.openstreetmap.org/node/3553960293",
+    "category": "hvac",
+    "latitude": 50.7758522,
+    "longitude": 7.1014047,
+    "website": "https://www.bwt.de/"
+  },
+  {
+    "name": "Deutsches Maiskomitee",
+    "source_id": "node/6795416375",
+    "source_url": "https://www.openstreetmap.org/node/6795416375",
+    "category": "association",
+    "latitude": 50.7405704,
+    "longitude": 7.0709331,
+    "website": "https://www.maiskomitee.de/"
+  },
+  {
+    "name": "Scopus",
+    "source_id": "node/9139482586",
+    "source_url": "https://www.openstreetmap.org/node/9139482586",
+    "category": "company",
+    "latitude": 50.8177087,
+    "longitude": 6.9853624,
+    "website": "https://scopus.de/"
+  },
+  {
+    "name": "ichos",
+    "source_id": "node/3649250566",
+    "source_url": "https://www.openstreetmap.org/node/3649250566",
+    "category": "goldsmith",
+    "latitude": 50.7384809,
+    "longitude": 7.0958005,
+    "website": "https://www.ichos.de"
+  },
+  {
+    "name": "AGRO-TECHNIK Dr. G. Haronska, e.K",
+    "source_id": "node/13158451580",
+    "source_url": "https://www.openstreetmap.org/node/13158451580",
+    "category": "company",
+    "latitude": 50.7577767,
+    "longitude": 7.0112209,
+    "website": "https://at-haronska.de"
+  },
+  {
+    "name": "Bundesweite Informatikwettbewerbe",
+    "source_id": "node/12488163952",
+    "source_url": "https://www.openstreetmap.org/node/12488163952",
+    "category": "association",
+    "latitude": 50.7061132,
+    "longitude": 7.1235601,
+    "website": "https://bwinf.de/"
+  },
+  {
+    "name": "Grabmale Deller",
+    "source_id": "node/12822943220",
+    "source_url": "https://www.openstreetmap.org/node/12822943220",
+    "category": "stonemason",
+    "latitude": 50.7816726,
+    "longitude": 7.1659394,
+    "website": "https://grabmale-deller.de/"
+  },
+  {
+    "name": "Franz Stickling GmbH",
+    "source_id": "node/6824911166",
+    "source_url": "https://www.openstreetmap.org/node/6824911166",
+    "category": "company",
+    "latitude": 50.7974792,
+    "longitude": 7.190372,
+    "website": "http://stickling.de"
+  },
+  {
+    "name": "Pavillon für Baukultur",
+    "source_id": "node/3898818080",
+    "source_url": "https://www.openstreetmap.org/node/3898818080",
+    "category": "government",
+    "latitude": 50.7357768,
+    "longitude": 7.0959353,
+    "website": "https://forum-sbk.de"
+  },
+  {
+    "name": "Repairtek",
+    "source_id": "node/13048719428",
+    "source_url": "https://www.openstreetmap.org/node/13048719428",
+    "category": "electronics_repair",
+    "latitude": 50.7401256,
+    "longitude": 7.1187255,
+    "website": "https://repairtek.de/"
+  },
+  {
+    "name": "BWI GmbH",
+    "source_id": "node/13237870140",
+    "source_url": "https://www.openstreetmap.org/node/13237870140",
+    "category": "it",
+    "latitude": 50.6367494,
+    "longitude": 7.0543456,
+    "website": "https://www.bwi.de/"
+  },
+  {
+    "name": "Metta Verlag",
+    "source_id": "node/12986069217",
+    "source_url": "https://www.openstreetmap.org/node/12986069217",
+    "category": "company",
+    "latitude": 50.7440332,
+    "longitude": 7.173402,
+    "website": "https://www.thai-sprache.de/"
+  },
+  {
+    "name": "GKV-Spitzenverband der DVKA",
+    "source_id": "node/7499179027",
+    "source_url": "https://www.openstreetmap.org/node/7499179027",
+    "category": "insurance",
+    "latitude": 50.671469,
+    "longitude": 7.174777,
+    "website": "https://www.dvka.de/"
+  },
+  {
+    "name": "Bonner Gerüstbau Karl Breit",
+    "source_id": "node/2408982107",
+    "source_url": "https://www.openstreetmap.org/node/2408982107",
+    "category": "scaffolder",
+    "latitude": 50.7518427,
+    "longitude": 7.0589898,
+    "website": "http://www.bonner-geruestbau.de/"
+  },
+  {
+    "name": "Arbeitskreis Internationale Süßwarenmesse",
+    "source_id": "node/1426441074",
+    "source_url": "https://www.openstreetmap.org/node/1426441074",
+    "category": "association",
+    "latitude": 50.7262262,
+    "longitude": 7.1052116,
+    "website": "https://www.ism-cologne.de/"
+  },
+  {
+    "name": "megra Steuerberatung",
+    "source_id": "node/10282224679",
+    "source_url": "https://www.openstreetmap.org/node/10282224679",
+    "category": "tax_advisor",
+    "latitude": 50.8177758,
+    "longitude": 7.1461737,
+    "website": "https://megra-beratung.de/"
+  },
+  {
+    "name": "Hausregie Hausverwaltung",
+    "source_id": "node/12782458062",
+    "source_url": "https://www.openstreetmap.org/node/12782458062",
+    "category": "property_management",
+    "latitude": 50.8004531,
+    "longitude": 7.2088525,
+    "website": "https://www.hausregie.com"
+  },
+  {
+    "name": "kocur.de",
+    "source_id": "node/9935220043",
+    "source_url": "https://www.openstreetmap.org/node/9935220043",
+    "category": "it",
+    "latitude": 50.8139974,
+    "longitude": 7.1714179,
+    "website": "https://kocur.de"
+  },
+  {
+    "name": "Capital Future",
+    "source_id": "way/237769213",
+    "source_url": "https://www.openstreetmap.org/way/237769213",
+    "category": "company",
+    "latitude": 50.7073474,
+    "longitude": 7.0640091,
+    "website": "https://www.capital-future.de/"
+  },
+  {
+    "name": "Agentur für Arbeit",
+    "source_id": "way/112167420",
+    "source_url": "https://www.openstreetmap.org/way/112167420",
+    "category": "employment_agency",
+    "latitude": 50.7896912,
+    "longitude": 7.2095148,
+    "website": "https://www.arbeitsagentur.de/vor-ort/bonn/siegburg"
+  },
+  {
+    "name": "Kampmeyer",
+    "source_id": "node/12618167043",
+    "source_url": "https://www.openstreetmap.org/node/12618167043",
+    "category": "estate_agent",
+    "latitude": 50.7224438,
+    "longitude": 7.0967851,
+    "website": "https://www.kampmeyer.com/bonn/"
+  },
+  {
+    "name": "Fraunhofer-Institut für Algorithmen und Wissenschaftliches Rechnen",
+    "source_id": "node/2688358864",
+    "source_url": "https://www.openstreetmap.org/node/2688358864",
+    "category": "research",
+    "latitude": 50.7492469,
+    "longitude": 7.2027425,
+    "website": "https://www.scai.fraunhofer.de/"
+  },
+  {
+    "name": "Faßbender Tenten GmbH & Co. KG",
+    "source_id": "way/182251019",
+    "source_url": "https://www.openstreetmap.org/way/182251019",
+    "category": "company",
+    "latitude": 50.7153318,
+    "longitude": 7.02727,
+    "website": "https://fassbender-tenten.de"
+  },
+  {
+    "name": "Syntharo Fine Chemicals GmbH",
+    "source_id": "way/87763409",
+    "source_url": "https://www.openstreetmap.org/way/87763409",
+    "category": "company",
+    "latitude": 50.8171593,
+    "longitude": 7.1444899,
+    "website": "https://syntharo.com/"
+  },
+  {
+    "name": "Ascio GmbH",
+    "source_id": "node/9364133479",
+    "source_url": "https://www.openstreetmap.org/node/9364133479",
+    "category": "it",
+    "latitude": 50.7268885,
+    "longitude": 7.1080376,
+    "website": "https://www.ascio.com/about-us/contact"
+  },
+  {
+    "name": "con.fee AG",
+    "source_id": "node/11279298056",
+    "source_url": "https://www.openstreetmap.org/node/11279298056",
+    "category": "company",
+    "latitude": 50.6633684,
+    "longitude": 7.1551426,
+    "website": "https://www.confee.de/"
+  },
+  {
+    "name": "Fraunhofer-Institut für Intelligente Analyse- und Informationssysteme",
+    "source_id": "node/2688358859",
+    "source_url": "https://www.openstreetmap.org/node/2688358859",
+    "category": "research",
+    "latitude": 50.748955,
+    "longitude": 7.2020344,
+    "website": "https://www.iais.fraunhofer.de/"
+  },
+  {
+    "name": "Bundesministerium für Wirtschaft und Klimaschutz",
+    "source_id": "way/123528114",
+    "source_url": "https://www.openstreetmap.org/way/123528114",
+    "category": "government",
+    "latitude": 50.7112349,
+    "longitude": 7.0578899,
+    "website": "https://www.bmwk.de/"
+  },
+  {
+    "name": "Peter Brings Immobilien",
+    "source_id": "way/212655605",
+    "source_url": "https://www.openstreetmap.org/way/212655605",
+    "category": "estate_agent",
+    "latitude": 50.7585581,
+    "longitude": 7.0235642,
+    "website": "https://brings-gruppe.de/"
+  },
+  {
+    "name": "Peckert Gruppe",
+    "source_id": "node/12097612269",
+    "source_url": "https://www.openstreetmap.org/node/12097612269",
+    "category": "advertising_agency",
+    "latitude": 50.7264151,
+    "longitude": 7.1051651,
+    "website": "https://peckert.de/"
+  },
+  {
+    "name": "LoContact GmbH",
+    "source_id": "node/13120313107",
+    "source_url": "https://www.openstreetmap.org/node/13120313107",
+    "category": "company",
+    "latitude": 50.7915982,
+    "longitude": 7.2227011,
+    "website": "https://locontact.de/"
+  },
+  {
+    "name": "Posso Marketing",
+    "source_id": "way/73095936",
+    "source_url": "https://www.openstreetmap.org/way/73095936",
+    "category": "company",
+    "latitude": 50.8041471,
+    "longitude": 6.994036,
+    "website": "https://www.posso.de/"
+  },
+  {
+    "name": "Rosenküche",
+    "source_id": "node/5980734366",
+    "source_url": "https://www.openstreetmap.org/node/5980734366",
+    "category": "company",
+    "latitude": 50.7961671,
+    "longitude": 7.0211445,
+    "website": "https://www.rosenkueche-koeln.de"
+  },
+  {
+    "name": "Salus Salutis Physiotherapie",
+    "source_id": "node/4207925596",
+    "source_url": "https://www.openstreetmap.org/node/4207925596",
+    "category": "therapist",
+    "latitude": 50.7883505,
+    "longitude": 7.1746851,
+    "website": "https://www.salus-salutis.de/"
+  },
+  {
+    "name": "German Sweets Süßwarenexportförderung e.V.",
+    "source_id": "node/1426441079",
+    "source_url": "https://www.openstreetmap.org/node/1426441079",
+    "category": "association",
+    "latitude": 50.7261878,
+    "longitude": 7.1052442,
+    "website": "https://www.germansweets.de/"
+  },
+  {
+    "name": "Fruchthansa GmbH",
+    "source_id": "node/3967014338",
+    "source_url": "https://www.openstreetmap.org/node/3967014338",
+    "category": "company",
+    "latitude": 50.8021895,
+    "longitude": 6.9973468,
+    "website": "https://www.fruchthansa.de/"
+  },
+  {
+    "name": "Pharma Mall",
+    "source_id": "node/4591917948",
+    "source_url": "https://www.openstreetmap.org/node/4591917948",
+    "category": "it",
+    "latitude": 50.758078,
+    "longitude": 7.173468,
+    "website": "https://www.pharma-mall.de/"
+  },
+  {
+    "name": "Papoo Software & Media",
+    "source_id": "node/5368883070",
+    "source_url": "https://www.openstreetmap.org/node/5368883070",
+    "category": "it",
+    "latitude": 50.7422582,
+    "longitude": 7.1267051,
+    "website": "https://www.papoo-media.de"
+  },
+  {
+    "name": "terrestris GmbH & Co. KG",
+    "source_id": "node/2943078357",
+    "source_url": "https://www.openstreetmap.org/node/2943078357",
+    "category": "it",
+    "latitude": 50.7410143,
+    "longitude": 7.0969375,
+    "website": "https://www.terrestris.de/"
+  },
+  {
+    "name": "SVB Porschen",
+    "source_id": "node/13101287845",
+    "source_url": "https://www.openstreetmap.org/node/13101287845",
+    "category": "surveyor",
+    "latitude": 50.7842319,
+    "longitude": 7.1957507,
+    "website": "https://www.svb-porschen.de/"
+  },
+  {
+    "name": "Generalkonsulat der Islamischen Republik Afghanistan",
+    "source_id": "way/170282823",
+    "source_url": "https://www.openstreetmap.org/way/170282823",
+    "category": "diplomatic",
+    "latitude": 50.6921827,
+    "longitude": 7.0677812,
+    "website": "https://www.bonn.mfa.af/"
+  },
+  {
+    "name": "Canini Dentallabor",
+    "source_id": "node/12348024970",
+    "source_url": "https://www.openstreetmap.org/node/12348024970",
+    "category": "dental_technician",
+    "latitude": 50.7413069,
+    "longitude": 7.1026297,
+    "website": "https://www.canini.de/"
+  },
+  {
+    "name": "Dobelke",
+    "source_id": "node/4655268863",
+    "source_url": "https://www.openstreetmap.org/node/4655268863",
+    "category": "plumber",
+    "latitude": 50.8081179,
+    "longitude": 7.135076,
+    "website": "http://by-dobelke.de"
+  },
+  {
+    "name": "Teckids e.V.",
+    "source_id": "node/10801013209",
+    "source_url": "https://www.openstreetmap.org/node/10801013209",
+    "category": "association",
+    "latitude": 50.6981037,
+    "longitude": 7.1450248,
+    "website": "https://teckids.org/"
+  },
+  {
+    "name": "Kinderschutzbund Bonn",
+    "source_id": "node/9026778029",
+    "source_url": "https://www.openstreetmap.org/node/9026778029",
+    "category": "ngo",
+    "latitude": 50.7385864,
+    "longitude": 7.0850802,
+    "website": "https://www.kinderschutzbund-bonn.de/"
+  },
+  {
+    "name": "MN Fotografie",
+    "source_id": "node/5139536894",
+    "source_url": "https://www.openstreetmap.org/node/5139536894",
+    "category": "photographer",
+    "latitude": 50.805355,
+    "longitude": 7.0071791,
+    "website": "https://www.micheline-nasra.de"
+  },
+  {
+    "name": "Maler-Einkauf West",
+    "source_id": "node/6813593455",
+    "source_url": "https://www.openstreetmap.org/node/6813593455",
+    "category": "painter",
+    "latitude": 50.7986719,
+    "longitude": 7.2027571,
+    "website": "https://www.meg-west.de/"
+  },
+  {
+    "name": "Anton Schurz Metallbau",
+    "source_id": "way/28806426",
+    "source_url": "https://www.openstreetmap.org/way/28806426",
+    "category": "metal_construction",
+    "latitude": 50.7519111,
+    "longitude": 7.0597696,
+    "website": "https://www.schurz-metallbau.de"
+  },
+  {
+    "name": "Hagen Consulting",
+    "source_id": "node/4312422934",
+    "source_url": "https://www.openstreetmap.org/node/4312422934",
+    "category": "yes",
+    "latitude": 50.8066847,
+    "longitude": 7.1977349,
+    "website": "https://www.hagen-consulting.de/"
+  },
+  {
+    "name": "Flughafen IT",
+    "source_id": "node/8365707387",
+    "source_url": "https://www.openstreetmap.org/node/8365707387",
+    "category": "security",
+    "latitude": 50.7407007,
+    "longitude": 7.1907213,
+    "website": "https://flughafenit.de/"
+  },
+  {
+    "name": "VUI Agency",
+    "source_id": "node/9235789530",
+    "source_url": "https://www.openstreetmap.org/node/9235789530",
+    "category": "company",
+    "latitude": 50.72092,
+    "longitude": 7.1142954,
+    "website": "https://vui.agency/"
+  },
+  {
+    "name": "DLR Projektträger",
+    "source_id": "node/6660778969",
+    "source_url": "https://www.openstreetmap.org/node/6660778969",
+    "category": "company",
+    "latitude": 50.7153925,
+    "longitude": 7.1180421,
+    "website": "https://www.dlr.de/pt/"
+  },
+  {
+    "name": "Malermeister Hummel",
+    "source_id": "node/6165840546",
+    "source_url": "https://www.openstreetmap.org/node/6165840546",
+    "category": "painter",
+    "latitude": 50.8005557,
+    "longitude": 7.1533894,
+    "website": "http://HummelDerMalermeister.de"
+  },
+  {
+    "name": "Ergo DKV Halm",
+    "source_id": "node/9432032826",
+    "source_url": "https://www.openstreetmap.org/node/9432032826",
+    "category": "insurance",
+    "latitude": 50.8087476,
+    "longitude": 7.1925528,
+    "website": "https://brigitte-halm-dkv.ergo.de/de/Startpage/Startseite(AGT)"
+  },
+  {
+    "name": "agindo",
+    "source_id": "node/4614840489",
+    "source_url": "https://www.openstreetmap.org/node/4614840489",
+    "category": "it",
+    "latitude": 50.7188427,
+    "longitude": 7.1500945,
+    "website": "https://agindo.de/"
+  },
+  {
+    "name": "Versicherungsagentur Sontag",
+    "source_id": "node/9124407577",
+    "source_url": "https://www.openstreetmap.org/node/9124407577",
+    "category": "insurance",
+    "latitude": 50.7905045,
+    "longitude": 7.2240073,
+    "website": "https://www.zurich.de/de-de/vor-ort/sontag"
+  },
+  {
+    "name": "prosystems IT",
+    "source_id": "node/8346636938",
+    "source_url": "https://www.openstreetmap.org/node/8346636938",
+    "category": "it",
+    "latitude": 50.7338455,
+    "longitude": 7.0929879,
+    "website": "https://www.prosystemsit.de/"
+  },
+  {
+    "name": "Meisterbetrieb Frank Stangier",
+    "source_id": "node/4417564378",
+    "source_url": "https://www.openstreetmap.org/node/4417564378",
+    "category": "plumber",
+    "latitude": 50.7498633,
+    "longitude": 7.1725595,
+    "website": "https://www.frank-stangier.de"
+  },
+  {
+    "name": "Pronova BKK",
+    "source_id": "node/11553230522",
+    "source_url": "https://www.openstreetmap.org/node/11553230522",
+    "category": "insurance",
+    "latitude": 50.7146188,
+    "longitude": 7.045626,
+    "website": "https://www.pronovabkk.de/service/kundenservice/bonn.xhtml"
+  },
+  {
+    "name": "Hörstmann",
+    "source_id": "node/4587147137",
+    "source_url": "https://www.openstreetmap.org/node/4587147137",
+    "category": "tax_advisor",
+    "latitude": 50.8145673,
+    "longitude": 7.1597508,
+    "website": "https://stb-hoerstmann.de/"
+  },
+  {
+    "name": "technisch-mathematische studiengesellschaft mbh",
+    "source_id": "way/237661084",
+    "source_url": "https://www.openstreetmap.org/way/237661084",
+    "category": "it",
+    "latitude": 50.7383859,
+    "longitude": 7.1527813,
+    "website": "https://www.tms-bonn.de/"
+  },
+  {
+    "name": "Friedhofsgärtnerei Stephan Held",
+    "source_id": "node/2957701257",
+    "source_url": "https://www.openstreetmap.org/node/2957701257",
+    "category": "gardener",
+    "latitude": 50.7374918,
+    "longitude": 7.1359372,
+    "website": "https://www.held-gartenbau.de/"
+  },
+  {
+    "name": "Besser Parkett",
+    "source_id": "node/9418792698",
+    "source_url": "https://www.openstreetmap.org/node/9418792698",
+    "category": "parquet_layer",
+    "latitude": 50.8026396,
+    "longitude": 7.20199,
+    "website": "https://www.besser-parkett.de/"
+  },
+  {
+    "name": "Die Energiemacher",
+    "source_id": "node/8919212313",
+    "source_url": "https://www.openstreetmap.org/node/8919212313",
+    "category": "electrician",
+    "latitude": 50.7952438,
+    "longitude": 7.2047677,
+    "website": "https://www.die-energiemacher.de/"
+  },
+  {
+    "name": "Gemeinnütziges Kinderwerk Baronsky",
+    "source_id": "node/11175061975",
+    "source_url": "https://www.openstreetmap.org/node/11175061975",
+    "category": "charity",
+    "latitude": 50.740111,
+    "longitude": 7.1217383,
+    "website": "https://www.kinderwerk-baronsky.de"
+  },
+  {
+    "name": "Böhm Elektrobau",
+    "source_id": "way/61548875",
+    "source_url": "https://www.openstreetmap.org/way/61548875",
+    "category": "electrician",
+    "latitude": 50.8032989,
+    "longitude": 7.1633031,
+    "website": "https://www.boehm-elektrobau.de/"
+  },
+  {
+    "name": "mundialis GmbH & Co. KG",
+    "source_id": "node/4027876198",
+    "source_url": "https://www.openstreetmap.org/node/4027876198",
+    "category": "it",
+    "latitude": 50.7409291,
+    "longitude": 7.0968584,
+    "website": "https://www.mundialis.de/"
+  },
+  {
+    "name": "N.A.T. Gesellschaft für Netzwerk- und Automatisierungs-Technologie mbh",
+    "source_id": "node/4156334998",
+    "source_url": "https://www.openstreetmap.org/node/4156334998",
+    "category": "it",
+    "latitude": 50.7172355,
+    "longitude": 7.1556491,
+    "website": "https://www.natvision.com/"
+  },
+  {
+    "name": "DataSecureIT GmbH",
+    "source_id": "node/1732254924",
+    "source_url": "https://www.openstreetmap.org/node/1732254924",
+    "category": "it",
+    "latitude": 50.814519,
+    "longitude": 6.9947132,
+    "website": "http://www.datasecureit.de"
+  },
+  {
+    "name": "BelzBau",
+    "source_id": "node/9850126075",
+    "source_url": "https://www.openstreetmap.org/node/9850126075",
+    "category": "company",
+    "latitude": 50.7442549,
+    "longitude": 7.0416174,
+    "website": "https://www.belzbau.de/"
+  },
+  {
+    "name": "more virtual agency",
+    "source_id": "node/2985613686",
+    "source_url": "https://www.openstreetmap.org/node/2985613686",
+    "category": "graphic_design",
+    "latitude": 50.7252807,
+    "longitude": 7.1097354,
+    "website": "https://www.virtual-agency.com/"
+  },
+  {
+    "name": "Deutsches Komitee Katastrophenvorsorge",
+    "source_id": "node/4618540982",
+    "source_url": "https://www.openstreetmap.org/node/4618540982",
+    "category": "ngo",
+    "latitude": 50.7233908,
+    "longitude": 7.1157165,
+    "website": "http://www.dkkv.org"
+  },
+  {
+    "name": "Tank & Rast",
+    "source_id": "way/140947633",
+    "source_url": "https://www.openstreetmap.org/way/140947633",
+    "category": "company",
+    "latitude": 50.7050182,
+    "longitude": 7.1463935,
+    "website": "https://tank.rast.de/"
+  },
+  {
+    "name": "uk-it",
+    "source_id": "node/10592709229",
+    "source_url": "https://www.openstreetmap.org/node/10592709229",
+    "category": "it",
+    "latitude": 50.6989829,
+    "longitude": 7.1044089,
+    "website": "https://www.ukbonn.de/ueber-uns/geschaeftsbereiche/uk-it/"
+  },
+  {
+    "name": "Neugart KG Abholexpress",
+    "source_id": "node/10033149682",
+    "source_url": "https://www.openstreetmap.org/node/10033149682",
+    "category": "plumber",
+    "latitude": 50.8065832,
+    "longitude": 7.1595918,
+    "website": "https://www.gc-gruppe.de/unternehmen/neugart-kg"
+  },
+  {
+    "name": "THOMAS Heizung & Sanitär",
+    "source_id": "way/116176802",
+    "source_url": "https://www.openstreetmap.org/way/116176802",
+    "category": "plumber",
+    "latitude": 50.745753,
+    "longitude": 7.2595621,
+    "website": "http://www.heizung-sanitaer-thomas.de"
+  },
+  {
+    "name": "Cyberfabrik",
+    "source_id": "node/10093540940",
+    "source_url": "https://www.openstreetmap.org/node/10093540940",
+    "category": "it",
+    "latitude": 50.7250913,
+    "longitude": 7.1026732,
+    "website": "https://www.cyberfabrik.de/"
+  },
+  {
+    "name": "Deutsches Evaluierungsinstitut der Entwicklungszusammenarbeit",
+    "source_id": "node/7637500993",
+    "source_url": "https://www.openstreetmap.org/node/7637500993",
+    "category": "company",
+    "latitude": 50.7147376,
+    "longitude": 7.1271418,
+    "website": "https://www.deval.org/"
+  },
+  {
+    "name": "Rheinland Studie Untersuchungszentrum Beuel",
+    "source_id": "node/13938794613",
+    "source_url": "https://www.openstreetmap.org/node/13938794613",
+    "category": "yes",
+    "latitude": 50.7240395,
+    "longitude": 7.1377105,
+    "website": "https://www.rheinland-studie.de/"
+  },
+  {
+    "name": "Lena’s Raum;Bettinas ARTelier",
+    "source_id": "node/4207466524",
+    "source_url": "https://www.openstreetmap.org/node/4207466524",
+    "category": "atelier",
+    "latitude": 50.7383044,
+    "longitude": 7.1184219,
+    "website": "https://lenasraum.de/;https://bettinas-artelier.menschkunst.de/"
+  },
+  {
+    "name": "Vielhaber & Geilen Partnerschaft",
+    "source_id": "node/10273630309",
+    "source_url": "https://www.openstreetmap.org/node/10273630309",
+    "category": "company",
+    "latitude": 50.745091,
+    "longitude": 7.096249,
+    "website": "https://www.vielhaber-geilen.de/"
+  },
+  {
+    "name": "SAP Leanix",
+    "source_id": "node/14070493503",
+    "source_url": "https://www.openstreetmap.org/node/14070493503",
+    "category": "company",
+    "latitude": 50.7131762,
+    "longitude": 7.1253399,
+    "website": "https://www.leanix.net/"
+  },
+  {
+    "name": "Immobilien Krudewig",
+    "source_id": "node/12425937328",
+    "source_url": "https://www.openstreetmap.org/node/12425937328",
+    "category": "estate_agent",
+    "latitude": 50.7980188,
+    "longitude": 7.2099062,
+    "website": "https://www.immobilien-krudewig.de"
+  },
+  {
+    "name": "DGB-Haus Bonn",
+    "source_id": "way/54135314",
+    "source_url": "https://www.openstreetmap.org/way/54135314",
+    "category": "union",
+    "latitude": 50.731677,
+    "longitude": 7.0818873,
+    "website": "https://koeln-bonn.dgb.de/"
+  },
+  {
+    "name": "Optik Hallmann",
+    "source_id": "way/223100396",
+    "source_url": "https://www.openstreetmap.org/way/223100396",
+    "category": "optician",
+    "latitude": 50.7624363,
+    "longitude": 6.9908212,
+    "website": "https://www.optik-herter.de/"
+  },
+  {
+    "name": "Innowego Forum Bildung & Nachhaltigkeit",
+    "source_id": "node/7609635292",
+    "source_url": "https://www.openstreetmap.org/node/7609635292",
+    "category": "consulting",
+    "latitude": 50.7208856,
+    "longitude": 7.1082338,
+    "website": "https://www.innowego.de"
+  },
+  {
+    "name": "Krumbein & Arnold",
+    "source_id": "node/12635253783",
+    "source_url": "https://www.openstreetmap.org/node/12635253783",
+    "category": "lawyer",
+    "latitude": 50.7356646,
+    "longitude": 7.1024049,
+    "website": "https://www.krumbein-arnold.de"
+  },
+  {
+    "name": "Code Lake",
+    "source_id": "node/6585223725",
+    "source_url": "https://www.openstreetmap.org/node/6585223725",
+    "category": "it",
+    "latitude": 50.7224961,
+    "longitude": 7.2223358,
+    "website": "https://code-lake.com/"
+  },
+  {
+    "name": "AsA e.V.",
+    "source_id": "node/11606235869",
+    "source_url": "https://www.openstreetmap.org/node/11606235869",
+    "category": "association",
+    "latitude": 50.7376936,
+    "longitude": 7.0878071,
+    "website": "https://www.asa-bonn.org/ueber-uns/"
+  }
+]
