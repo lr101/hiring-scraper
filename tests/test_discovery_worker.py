@@ -200,6 +200,36 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertEqual(company.career_status, "jobs_feed_found")
             self.assertEqual(session.scalar(select(Job).where(Job.feed_id == feed.id)).title, "Engineer")
 
+    def test_shared_scoped_personio_feed_persists_aggregate_job_count(self):
+        company_id = self._company()
+        with self.factory.begin() as session:
+            run = DiscoveryRun(company_id=company_id, status="running", started_at=utcnow())
+            session.add(run)
+            session.flush()
+            run_id = run.id
+
+        feed_url = "https://group.jobs.personio.de/xml"
+        boards = []
+        for job_id in ("42", "43", "44"):
+            boards.append({
+                "provider": "personio", "tenant": "group",
+                "board_url": f"https://group.jobs.personio.de/job/{job_id}",
+                "feed_url": feed_url, "feed_state": "parsed", "complete": False,
+                "jobs": [{"id": job_id, "title": f"Engineer {job_id}",
+                          "url": f"https://group.jobs.personio.de/job/{job_id}",
+                          "raw_metadata": {"personio_posting_scope": job_id}}],
+            })
+
+        self.assertEqual(worker._persist_discovery(
+            company_id, run_id, {"status": "jobs_feed_found", "pages": [], "boards": boards}), 3)
+
+        with self.factory() as session:
+            feed = session.scalar(select(JobFeed).where(JobFeed.company_id == company_id))
+            jobs = session.scalars(select(Job).where(Job.feed_id == feed.id)).all()
+            self.assertEqual(feed.job_count, 3)
+            self.assertEqual({job.external_id for job in jobs}, {"42", "43", "44"})
+            self.assertEqual(feed.status, "incomplete")
+
     def test_unverified_external_html_board_is_not_imported(self):
         company_id = self._company()
         with self.factory.begin() as session:

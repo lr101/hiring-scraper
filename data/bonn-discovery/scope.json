@@ -1,0 +1,39 @@
+{
+  "center": [
+    50.7374,
+    7.0982
+  ],
+  "radius_m": 12000,
+  "osm_elements": 1670,
+  "candidates": 1668,
+  "distinct_website_candidates": 884,
+  "selection": "DHL and Telekom forced; 100 additional distinct website hosts, ordered by SHA256(OSM source_id); fixed before career outcomes",
+  "osm_sha256": "96c46a4c98e8cc19c114329e399ebcbaa65b4d105d571a65f0c2caaddb59eba1",
+  "overpass_method": "public POST API",
+  "overpass_endpoint": "Successful host was not logged; acquisition tried overpass-api.de then overpass.private.coffee using POST. Payload hash and OSM timestamp identify the source snapshot.",
+  "source_inventory": {
+    "elements_with_direct_website": 960,
+    "elements_with_wikidata_reference": 202,
+    "osm_timestamp": "2026-10-08T22:30:21Z"
+  },
+  "named_diagnostic_source_records": [
+    {
+      "source_url": "https://www.openstreetmap.org/node/11782427334",
+      "name": "Deutsche Telekom AG - Zentrale",
+      "website": "https://www.telekom.com/de",
+      "wikidata": null,
+      "operator": null
+    },
+    {
+      "source_url": "https://www.openstreetmap.org/way/33723393",
+      "name": "DHL Global Forwarding",
+      "website": null,
+      "wikidata": null,
+      "operator": "Deutsche Post/DHL"
+    }
+  ],
+  "search_credentials_available": {
+    "TAVILY_API_KEY": false,
+    "BRAVE_SEARCH_API_KEY": false
+  }
+}

@@ -47,6 +47,21 @@ Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker comp
 
 Scheduled refreshes revisit saved job feeds and career listing pages to find new postings. Recurring search-area schedules queue these known sources without repeating company, homepage, or career-page discovery. Feed failures retry the same saved URL with backoff. Use a manual discovery job to find additional companies or rediscover their career sources.
 
+Public career discovery, website verification, feed refresh, and detail enrichment
+skip robots.txt by default (`HIRING_RESPECT_ROBOTS=false`). Set it to `true` to
+restore policy checks. Requests retain the identifying user agent, public-IP
+checks, bounded redirects, and request caps. Workers share per-origin pacing
+within each process (at least one second between requests); HTTP 429/503 pauses
+that origin, honoring `Retry-After`, while other origins can continue. No
+challenge bypass, proxy rotation, or applicant API is used.
+
+Career discovery now defaults to 12 pages and 48 requests per company. Set
+`CAREER_DISCOVERY_MAX_PAGES=24` for the larger measured crawl; the maximum is 24.
+The [follow-up Bonn public-source trial](reports/bonn-public-discovery.md) compares
+six-, twelve-, and twenty-four-page results and distinguishes group-wide rows
+from verified employer vacancies. The command-line crawler accepts
+`--ignore-robots` explicitly; its default still checks robots.txt.
+
 Company discovery fills missing websites from linked Wikidata entries and public,
 identity-verified email domains. Set `TAVILY_API_KEY` in `.env` to enable an
 additional company-name and location search fallback. Tavily uses basic searches
@@ -78,6 +93,8 @@ network access using `.venv/bin/python -m experiments.summarize_expanded_homepag
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
 - [Production improvement trials and retained changes](reports/production-improvement-trials.md)
+- [Bonn 102-employer discovery benchmark and improvements](reports/bonn-discovery-benchmark.md)
+- [Bonn public-source follow-up, rate limits, and retained adapters](reports/bonn-public-discovery.md)
 - [CI and release guide](docs/ci.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)

@@ -45,7 +45,7 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
     def request(url, headers=None):
         if pace:
             pace(url)
-        if provider in {'schema_org', 'html_jobs'}:
+        if provider in {'schema_org', 'html_jobs', 'telekom'}:
             return client.get(url)
         return client.get_feed(url, headers) if headers else client.get_feed(url)
 
@@ -323,7 +323,25 @@ def identify(url):
     tenant = parts[0]
     provider = feed = board = None
     gh_job_id = parse_qs(p.query).get('gh_jid', [''])[0]
-    if re.fullmatch(r'[0-9]+',gh_job_id or '') and re.search(r'apply|application|bewerbung',p.path,re.I):
+    if (host == 'careers.telekom.com' and p.scheme == 'https' and not p.username and not p.password
+            and p.port in (None, 443) and not p.fragment
+            and re.fullmatch(r'/(de|en)/jobs/?', p.path)):
+        try:
+            filters = parse_qsl(p.query, keep_blank_values=True, strict_parsing=True)
+        except ValueError:
+            return None
+        if (len(filters) > 1 or any(key != 'location' or not value.strip() or
+                                  re.search(r'[\x00-\x1f\x7f]', value) for key, value in filters)):
+            return None
+        provider, tenant = 'telekom', host
+        locale = parts[0]
+        board = f'https://{host}/{locale}/jobs'
+        # Observed first-party GET contract. Uses robots-aware get(), never
+        # the documented ATS allowance or the unrelated chatbot POST service.
+        feed = f'https://{host}/api/jobs-proxy/keyword_search?locale={locale}'
+        if filters:
+            feed += '&'+urlencode(filters)
+    elif re.fullmatch(r'[0-9]+',gh_job_id or '') and re.search(r'apply|application|bewerbung',p.path,re.I):
         # Greenhouse-hosted application routed through the employer's own domain.
         provider = 'greenhouse'
         tenant = None
@@ -352,6 +370,9 @@ def identify(url):
         tenant = host.split('.')[0]
         board = f'https://{host}'
         feed = board + '/xml'
+        scoped_posting = re.fullmatch(r'/job/(\d+)/?', p.path)
+        if scoped_posting:
+            board += '/job/' + scoped_posting[1]
     elif host == 'jobs.ashbyhq.com' and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*', tenant):
         provider = 'ashby'
         board = f'https://{host}/{tenant}'
@@ -378,7 +399,7 @@ def identify(url):
             if host.endswith('.' + suffix):
                 if host.split('.')[0] in {'api','app','static','cdn','www','assets'}: continue
                 if name == 'softgarden' and host in {'jhfiles.s3.softgarden.de', 'jobdb.softgarden.de'}: continue
-                if name == 'softgarden' and (host.split('.')[0] == 'certificate' or re.search(r'/(?:imprint|impressum|data-security|privacy|datenschutz|agb|terms?)(?:/|$)',p.path,re.I)): continue
+                if name == 'softgarden' and (host.split('.')[0] == 'certificate' or re.search(r'/(?:imprint|impressum|data-security|privacy|datenschutz|agb|terms?|sign-in|sign-up|login|register)(?:/|$)',p.path,re.I)): continue
                 if name == 'workday' and (not re.fullmatch(r'[\w-]+\.wd[0-9]+\.myworkdayjobs\.com', host) or p.path.startswith('/wday/') or not p.path.strip('/')): continue
                 if name == 'successfactors':
                     tenant = parse_qs(p.query).get('company', [''])[0]
@@ -408,6 +429,40 @@ def parse_feed(provider, body, board_url):
     jobs = []
     complete = True
     try:
+        if provider == 'telekom':
+            board = urlsplit(board_url)
+            if (board.scheme != 'https' or board.netloc != 'careers.telekom.com' or
+                    not re.fullmatch(r'/(de|en)/jobs', board.path) or board.query or board.fragment):
+                raise ValueError('Expected canonical Telekom career board')
+            data = json.loads(body)
+            if not isinstance(data, dict) or data.get('status_code') != 200 or not isinstance(data.get('data'), dict):
+                raise ValueError('Expected Telekom keyword search result mapping')
+            for job_id, row in data['data'].items():
+                if (not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}', job_id) or not isinstance(row, dict) or
+                        any(not isinstance(row.get(key), str) or not row[key].strip()
+                            for key in ('company', 'job_title', 'city', 'location'))):
+                    raise ValueError('Missing stable Telekom identity, employer, title or location')
+                title = row['job_title'].strip()
+                from .html_jobs import _INITIATIVE_APPLICATION, _TALENT_POOL
+                if _INITIATIVE_APPLICATION.search(title) or _TALENT_POOL.search(title):
+                    continue
+                # Same slug rule used by this site's public job-card component.
+                slug = re.sub(r'[^a-zA-Z0-9-]', '', re.sub(r'[\s/%]', '-', title))
+                slug = re.sub(r'-+', '-', slug).strip('-').lower()
+                if not slug:
+                    raise ValueError('Missing Telekom detail slug')
+                job = {'id':job_id, 'title':title, 'url':board_url+'/'+slug+'-'+job_id,
+                       'location':row['location'].strip(),
+                       'locations':[{'label':city.strip()} for city in row['city'].split(',') if city.strip()],
+                       'raw_metadata':{'hiring_organization':{'name':row['company'].strip()},
+                                       'extraction_method':'telekom_keyword_search'}}
+                for key, field in [('job_type','employment_type'), ('category','department'), ('experience_level','seniority')]:
+                    if isinstance(row.get(key), str) and row[key].strip():
+                        job[field] = row[key].strip()
+                jobs.append(job)
+            # This observed endpoint returns a capped selection without a total
+            # or a verified continuation contract. Never close absent jobs.
+            return {'jobs':jobs, 'complete':False}
         if provider == 'recruitee':
             return _parse_recruitee(body, board_url)
         if provider == 'html_jobs':
@@ -418,18 +473,24 @@ def parse_feed(provider, body, board_url):
             root = ET.fromstring(body)
             if root.tag != 'workzag-jobs':
                 raise ValueError('Expected Personio workzag-jobs XML')
+            source = urlsplit(board_url)
+            posting_scope = re.fullmatch(r'/job/(\d+)/?', source.path)
+            public_root = urlunsplit((source.scheme, source.netloc, '', '', ''))
             for row in root.findall('position'):
                 job_id, title = row.findtext('id'), row.findtext('name')
                 if not job_id or not title:
                     raise ValueError('Missing Personio job ID or name')
+                if posting_scope and job_id != posting_scope[1]:
+                    continue
                 location = row.findtext('office') or ''
                 job = {'id':job_id, 'title':title,
-                       'url':board_url.rstrip('/')+'/job/'+job_id,
+                       'url':public_root+'/job/'+job_id,
                        'location':location}
                 arrangement = _arrangement(location)
                 from .html_jobs import _country_code
                 country = _country_code(row.findtext('country')) or _country_code(re.sub(r'\s*\([^)]*\)\s*$', '', location))
                 _add_metadata(job, {
+                    'personio_posting_scope': job_id if posting_scope else None,
                     'department': row.findtext('department'),
                     'employment_type': row.findtext('employmentType') or row.findtext('recruitingCategory'),
                     'schedule': row.findtext('schedule'),
@@ -446,6 +507,8 @@ def parse_feed(provider, body, board_url):
                     'recruiting_category': row.findtext('recruitingCategory'),
                 })
                 jobs.append(job)
+            if posting_scope:
+                return {'jobs':jobs,'complete':False}
         else:
             data = json.loads(body)
             if provider == 'schema_org':

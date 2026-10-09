@@ -1,0 +1,1 @@
+[out:json][timeout:25];(nwr(around:12000,50.7374,7.0982)[name][office];nwr(around:12000,50.7374,7.0982)[name][craft];nwr(around:12000,50.7374,7.0982)[name][industrial];);out center tags;

@@ -11,6 +11,7 @@ from .html_jobs import extract_html_jobs, html_job_key
 from .pages import CAREER, clean_url, inspect_page
 
 JOB_LISTING_PATH = re.compile(r'(?:^|/)(?:jobs?|stellenangebote?|jobsuche|open-positions|alle-jobs|all-jobs)/?$', re.I)
+MAX_PERSONIO_POSTING_SCOPES = 24
 _GENERIC_COMPANY_WORDS = {
     'ag', 'ev', 'gmbh', 'kg', 'mbh', 'company', 'group', 'holding', 'jobs', 'career',
     'karriere', 'catering', 'service', 'services', 'solutions', 'consulting', 'systems',
@@ -105,6 +106,7 @@ def _source_relationship(seed, source_page, pages):
     page_by_url = {page.get('url'): page for page in pages}
     parent_url = source_page.get('parent')
     visited = set()
+    external_chain = [source_page]
     for distance in range(4):
         if not parent_url or parent_url in visited:
             break
@@ -115,7 +117,17 @@ def _source_relationship(seed, source_page, pages):
         if _same_first_party_site(parent_url, hosts):
             if distance == 0 and branded:
                 return 'branded_external'
+            gateway = external_chain[-1]
+            # Keep provenance through listing/detail pages on the exact host of
+            # an explicitly linked gateway with an employer-branded hostname.
+            # A tenant name in a shared portal's path/title cannot authorize
+            # employerless rows elsewhere on that portal.
+            gateway_host = _normalized_host(gateway.get('url'))
+            if _hostname_has_brand(gateway_host, brand_tokens) and all(
+                    _normalized_host(item.get('url')) == gateway_host for item in external_chain):
+                return 'branded_external'
             return 'linked_external'
+        external_chain.append(parent)
         parent_url = parent.get('parent')
     return 'unverified_external_source'
 
@@ -228,7 +240,10 @@ def discover(seed, client, max_pages=6, max_depth=3):
     result = {**seed, 'pages':[], 'boards':[], 'status':'unresolved'}
     if seed_resolution:
         result['seed_resolution'] = seed_resolution
-    queue, visited, board_keys = [], set(), set()
+    queue, visited, board_keys, board_sources = [], set(), set(), set()
+    feed_responses, personio_source_boards = {}, {}
+    personio_scope_count = 0
+    personio_scope_budget_reached = False
     html_job_pages, unconfirmed_role_candidates = [], []
     duplicate_redirects_skipped = 0
     counter = itertools.count()
@@ -266,6 +281,12 @@ def discover(seed, client, max_pages=6, max_depth=3):
                 page['classification']='ordinary_page'
                 continue
             page.update(classification='job_feed',jobposting_count=len(parsed['jobs']))
+            supplier = next((source for source in result['pages'] if source.get('url') == parent), page)
+            if _source_relationship(seed, supplier, result['pages']) not in {'first_party', 'branded_external'}:
+                result.setdefault('unverified_external_ats', []).append({
+                    'provider':'schema_org', 'feed_url':final, 'discovered_on':parent,
+                    'rejected_job_count':len(parsed['jobs']), 'reason':'unverified_external_source'})
+                continue
             origin = f'{urlsplit(final).scheme}://{urlsplit(final).netloc}'
             result['boards'].append({'provider':'schema_org','tenant':urlsplit(final).hostname,
                                      'board_url':origin,'feed_url':final,'evidence_url':url,
@@ -313,14 +334,59 @@ def discover(seed, client, max_pages=6, max_depth=3):
         if direct:
             ats.insert(0,{**direct,'evidence_url':final,'evidence_kind':'redirect_or_board_page'})
         for provider in ats:
-            key = (provider['provider'],provider['board_url'])
-            if key in board_keys or len(board_keys)>=3: continue
-            board_keys.add(key)
-            board = {**provider,'discovered_on':final,'job_count':None,'feed_state':'not_supported',
-                     'complete':False,'jobs':[]}
-            result['boards'].append(board)
+            key = (provider['provider'], provider['tenant'] if provider['provider'] == 'telekom' else provider['board_url'])
+            source_key = (provider['provider'], provider.get('feed_url') or provider['board_url'])
+            is_personio = provider['provider'] == 'personio'
+            existing_personio_board = personio_source_boards.get(source_key) if is_personio else None
+            personio_scope = (re.fullmatch(r'/job/(\d+)/?', urlsplit(provider['board_url']).path)
+                              if is_personio else None)
+            if key in board_keys or (existing_personio_board is None and (
+                    len(result['boards']) >= 3 or
+                    (source_key not in board_sources and len(board_sources) >= 3))):
+                continue
+            if personio_scope and personio_scope_count >= MAX_PERSONIO_POSTING_SCOPES:
+                personio_scope_budget_reached = True
+                continue
             if provider['feed_url']:
-                fm,fb = fetch_feed(client,provider['provider'],provider['feed_url'],provider['board_url'])
+                relationship = _source_relationship(seed, page, result['pages'])
+                if relationship not in {'first_party', 'branded_external'}:
+                    result.setdefault('unverified_external_ats', []).append({
+                        'provider': provider['provider'], 'board_url': provider['board_url'],
+                        'feed_url': provider['feed_url'], 'discovered_on': final,
+                        'reason': 'unverified_external_source'})
+                    continue
+            board_keys.add(key)
+            board_sources.add(source_key)
+            if personio_scope:
+                personio_scope_count += 1
+            board = existing_personio_board
+            if board is None:
+                board = {**provider,'discovered_on':final,'job_count':None,'feed_state':'not_supported',
+                         'complete':False,'jobs':[]}
+                if is_personio:
+                    board['personio_posting_scopes'] = []
+                    board['personio_full_board_authorized'] = not bool(personio_scope)
+                    personio_source_boards[source_key] = board
+                result['boards'].append(board)
+            if is_personio and not personio_scope:
+                # An official tenant-board link authorizes the complete XML
+                # inventory. Preserve that authority in the saved refresh URL
+                # even when a scoped posting link appeared first in page order.
+                board.update(board_url=provider['board_url'],
+                             evidence_url=provider.get('evidence_url') or board.get('evidence_url'),
+                             evidence_kind=provider.get('evidence_kind') or board.get('evidence_kind'),
+                             discovered_on=final,
+                             personio_full_board_authorized=True)
+            if personio_scope:
+                scope_id = personio_scope[1]
+                if scope_id not in board['personio_posting_scopes']:
+                    board['personio_posting_scopes'].append(scope_id)
+            if provider['feed_url']:
+                cached_response = feed_responses.get(source_key)
+                if cached_response is None:
+                    cached_response = fetch_feed(client,provider['provider'],provider['feed_url'],provider['board_url'])
+                    feed_responses[source_key] = cached_response
+                fm,fb = cached_response
                 board.update(feed_state=fm['state'],feed_http_status=fm.get('status'),capture=fm.get('capture'))
                 if fm.get('pagination'):
                     board['pagination'] = fm['pagination']
@@ -331,8 +397,24 @@ def discover(seed, client, max_pages=6, max_depth=3):
                         parsed = fm.get('parsed_feed')
                         if parsed is None:
                             parsed = parse_feed(provider['provider'],fb,provider['board_url'])
-                        board.update(jobs=parsed['jobs'],job_count=len(parsed['jobs']),
-                                     complete=parsed['complete'],feed_state='parsed')
+                        if provider['provider'] == 'telekom':
+                            # The group search includes unrelated legal employers.
+                            # Keep the source employer and apply existing identity
+                            # evidence checks before attributing rows to this seed.
+                            all_jobs = parsed['jobs']
+                            parsed = {**parsed, 'jobs':[job for job in all_jobs if _employer_matches(seed, job)]}
+                            board['employer_rows_rejected'] = len(all_jobs) - len(parsed['jobs'])
+                        if is_personio:
+                            jobs_by_id = {job['id']: job for job in board['jobs']}
+                            for job in parsed['jobs']:
+                                jobs_by_id.setdefault(job['id'], job)
+                            board.update(jobs=list(jobs_by_id.values()),
+                                         job_count=len(jobs_by_id),
+                                         complete=bool(board['complete'] or parsed['complete']),
+                                         feed_state='parsed')
+                        else:
+                            board.update(jobs=parsed['jobs'],job_count=len(parsed['jobs']),
+                                         complete=parsed['complete'],feed_state='parsed')
                     except ValueError as error:
                         board.update(feed_state='schema_error',error=str(error))
             else:
@@ -344,7 +426,9 @@ def discover(seed, client, max_pages=6, max_depth=3):
         # A few high-value paths per page prevent a navigation tree crawl.
         for candidate in info['candidates'][:12]:
             if candidate['score'] < 70: continue
-            if identify(candidate['url']): continue  # feed/detection-only path handled above
+            candidate_provider = identify(candidate['url'])
+            if candidate_provider and candidate_provider['feed_url']:
+                continue  # Native feeds handled above; unsupported details still need HTML.
             path = urlsplit(candidate['url']).path
             score = candidate['score']
             if JOB_LISTING_PATH.search(path):
@@ -419,6 +503,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
         elif result['boards']:
             result['status']='ats_identified'
     result['limits']={'max_pages':max_pages,'max_depth':max_depth,'max_boards':3,
+                      'max_personio_posting_scopes':MAX_PERSONIO_POSTING_SCOPES,
+                      'personio_scope_budget_reached':personio_scope_budget_reached,
                       'page_budget_reached':len(result['pages'])>=max_pages,'remaining_queue':len(queue),
                       'duplicate_redirects_skipped':duplicate_redirects_skipped}
     return result

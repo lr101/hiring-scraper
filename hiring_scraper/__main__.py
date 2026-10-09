@@ -19,6 +19,7 @@ def main():
     parser.add_argument('--seeds',type=Path,required=True)
     parser.add_argument('--out',type=Path,required=True,help='New run directory; existing results are never overwritten')
     parser.add_argument('--cache-from',type=Path,help='Reuse and copy verified prior HTTP captures; fetch missing URLs live')
+    parser.add_argument('--ignore-robots',action='store_true',help='Skip robots.txt requests for public pages; pacing and request caps still apply')
     parser.add_argument('--offline-only',action='store_true',help='Never make live requests; mark uncached URLs as cache misses')
     parser.add_argument('--max-pages',type=int,default=6)
     parser.add_argument('--max-depth',type=int,default=3)
@@ -54,7 +55,7 @@ def main():
     def crawl_worker(worker_id, indexed_seeds):
         nonlocal completed
         client=Client(args.out/'http'/f'worker-{worker_id}',args.timeout,args.delay,args.max_requests,
-                      args.cache_from,origin_pacer=pacer,request_budget=budget,offline_only=args.offline_only)
+                      args.cache_from,origin_pacer=pacer,request_budget=budget,offline_only=args.offline_only,respect_robots=not args.ignore_robots)
         for index,seed in indexed_seeds:
             try:
                 result=discover(seed,client,args.max_pages,args.max_depth)

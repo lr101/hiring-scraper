@@ -16,7 +16,8 @@ from threading import Lock
 from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
-from hiring_scraper.http import Client, OriginPacer
+from hiring_scraper.http import Client
+from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.website_discovery import configured_website_search, discover_missing_websites
 from hiring_scraper.geography import build_osm_radius_query, haversine_m, osm_element_coordinates
 from hiring_scraper.osm_websites import (
@@ -38,7 +39,7 @@ OVERPASS_RETRY_DELAY_SECONDS = min(
 OVERPASS_RETRYABLE_STATUSES = {429, 500, 502, 503, 504}
 _OVERPASS_LOCK = Lock()
 _LAST_OVERPASS_REQUEST = 0.0
-_HOMEPAGE_PACER = OriginPacer()
+_HOMEPAGE_PACER = ORIGIN_PACER
 
 
 def _wait_for_overpass_slot() -> None:
@@ -232,7 +233,7 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
         max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
         with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
             client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
-                            user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER)
+                            user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER, respect_robots=RESPECT_ROBOTS)
             decisions = discover_missing_websites(
                 candidates, client, search=search,
                 max_companies=min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100")))),

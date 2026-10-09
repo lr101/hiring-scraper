@@ -378,7 +378,7 @@ class DiscoveryTests(unittest.TestCase):
     def test_external_official_job_portal_outranks_employer_brand_pages(self):
         home='https://company.de/'
         careers='https://company.de/karriere/'
-        portal='https://group.example/jobs/jobsuche.html'
+        portal='https://jobs.company.de/jobs/jobsuche.html'
         feed='https://boards-api.greenhouse.io/v1/boards/groupco/jobs?content=true'
         client=FixtureClient({
             home:'<a href="/karriere/">Karriere</a>',
@@ -418,9 +418,9 @@ class DiscoveryTests(unittest.TestCase):
     def test_explicit_ats_application_evidence_can_extend_one_level_past_site_depth(self):
         home='https://uim.de/'
         careers='https://uim.de/karriere/'
-        portal='https://group.example/jobs/jobsuche.html'
-        job='https://group.example/job/de-1/'
-        apply='https://group.example/jobs/bewerbung/?gh_jid=1234567'
+        portal='https://jobs.uim.de/jobs/jobsuche.html'
+        job='https://jobs.uim.de/job/de-1/'
+        apply='https://jobs.uim.de/jobs/bewerbung/?gh_jid=1234567'
         feed='https://boards-api.greenhouse.io/v1/boards/groupco/jobs?content=true'
         client=FixtureClient({
             home:f'<a href="{careers}">Karriere</a>',
@@ -428,7 +428,7 @@ class DiscoveryTests(unittest.TestCase):
             portal:f'<a href="{job}">Engineer</a>',
             job:f'<a href="{apply}">Jetzt bewerben</a>',
             apply:'<script src="https://boards.eu.greenhouse.io/embed/job_board/js?for=groupco"></script>',
-            feed:'{"jobs":[{"id":1,"title":"Engineer","absolute_url":"https://group.example/job/1","location":{"name":"Karlsruhe"}}]}',
+            feed:'{"jobs":[{"id":1,"title":"Engineer","absolute_url":"https://uim.de/job/1","location":{"name":"Karlsruhe"}}]}',
         })
         result=discover({'name':'UIM','website':home},client,max_pages=5,max_depth=3)
         self.assertEqual(result['status'],'jobs_feed_found')
