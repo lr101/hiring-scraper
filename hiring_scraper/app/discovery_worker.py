@@ -827,9 +827,13 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
 
     with SessionLocal() as session:
         company = session.get(Company, company_id)
+        job = session.get(DiscoveryJob, _job_id) if _job_id is not None else None
+        preferred_locations = ([value for value in (job.city, job.label) if value]
+                               if job is not None else [])
         seed = ({"name": company.name, "website": company.website_url,
                  "category": company.category, "latitude": company.latitude,
-                 "longitude": company.longitude, "source_id": company.source_id}
+                 "longitude": company.longitude, "source_id": company.source_id,
+                 "preferred_locations": preferred_locations}
                 if company is not None and company.website_url else None)
     if seed is None:
         error = ValueError("Company no longer has a website URL")

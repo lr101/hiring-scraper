@@ -68,6 +68,48 @@ class BonnDiscoveryTests(unittest.TestCase):
             data={'@type':'WebSite','potentialAction':{'@type':'SearchAction','target':target}}
             self.assertEqual(inspect_page('https://careers.example/de/', '<script type="application/ld+json">'+json.dumps(data)+'</script>')['candidates'], [])
 
+    def test_location_campaign_prioritizes_matching_career_landing_page(self):
+        home='https://www.dhl.de/'
+        career='https://careers.dhl.com/eu/de'
+        search='https://careers.dhl.com/eu/de/search-results?keywords='
+        bonn='https://careers.dhl.com/eu/de/jobs-in-bonn'
+        cities=('Aachen','Berlin','Bremen','Dresden','Essen','Hannover','Kassel',
+                'Koeln','Leipzig','Mainz','Muenchen','Nuernberg','Potsdam','Stuttgart',
+                'Trier','Ulm','Wiesbaden','Wuppertal','Wuerzburg','Zwickau','Erfurt',
+                'Freiburg','Hamburg','Jena')
+        city_links=''.join(
+            f'<a href="/eu/de/{city.casefold()}">Jobs in {city}</a>' for city in cities
+        )
+        pages={
+            home:f'<a href="{career}">Karriere</a>',
+            career:('<script type="application/ld+json">'+json.dumps({
+                '@type':'WebSite','potentialAction':{'@type':'SearchAction',
+                'target':search.replace('keywords=', 'keywords={search_term_string}')}})
+                +'</script>'+city_links+f'<a href="{bonn}">Jobs in Bonn</a>'),
+            search:'<h1>Stellenangebote</h1>',
+            bonn:'<h1>Jobs in Bonn</h1>',
+        }
+        result=discover({'name':'DHL','website':home,'preferred_locations':['Bonn']},
+                        FixtureClient(pages),max_pages=4,max_depth=3)
+        self.assertIn(bonn,{page['url'] for page in result['pages']})
+
+    def test_career_discovery_follows_three_site_path_to_employer_verified_jobs(self):
+        home='https://www.acme.de/'
+        career='https://careers.acme.com/de/'
+        vendor='https://acme.talent-platform.example/jobs'
+        detail='https://acme.talent-platform.example/job/123/software-engineer'
+        posting={'@context':'https://schema.org','@type':'JobPosting',
+                 'title':'Software Engineer','url':detail,
+                 'hiringOrganization':{'@type':'Organization','name':'Acme GmbH'}}
+        pages={home:f'<a href="{career}">Karriere</a>',
+               career:f'<title>Acme Careers</title><h1>Jobs bei Acme</h1><a href="{vendor}">Alle Jobs</a>',
+               vendor:f'<h1>Acme vacancies</h1><a href="{detail}">Software Engineer</a>',
+               detail:'<script type="application/ld+json">'+json.dumps(posting)+'</script>'}
+        result=discover({'name':'Acme GmbH','website':home},FixtureClient(pages),max_pages=8,max_depth=4)
+        self.assertEqual(result['status'],'jobs_extracted')
+        self.assertEqual(sum(board['job_count'] for board in result['boards']),1)
+        self.assertIn(detail,{page['url'] for page in result['pages']})
+
     def test_softgarden_auth_routes_are_not_boards(self):
         for path in ['/sign-in?l=de', '/sign-up?l=de', '/login', '/de/sign-in']:
             self.assertIsNone(identify('https://acme.softgarden.io'+path))
