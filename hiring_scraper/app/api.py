@@ -34,7 +34,7 @@ from hiring_scraper.app.profiles import router as profiles_router, require_profi
 from hiring_scraper.app.applications import APPLICATION_STATUSES, ApplicationRequest, ApplicationStatus, application_json
 from hiring_scraper.matching import match_job
 from hiring_scraper.app.board_scope import (
-    deduplicate_jobs, expiry, geographic_scope, remote_countries, vacancy_keys,
+    deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries, vacancy_keys,
 )
 
 
@@ -520,12 +520,18 @@ def _profile_match(job, profile, scope):
 
 
 def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
-               profile, min_match_score, include_unknown, place=None, country=None):
+               profile, min_match_score, include_unknown, place=None, country=None,
+               location_scope='area'):
     filtered = {'expired': 0, 'remote_country': 0, 'outside_area': 0,
+                'remote_not_selected': 0, 'not_remote': 0,
                 'profile_conflict': 0, 'below_score': 0, 'uncertain': 0}
     scoped, scopes = [], {}
     for job in jobs:
         scope = geographic_scope(job, latitude, longitude, radius_km, place, country)
+        if scope['reason'] != 'expired' and location_scope == 'remote' and not fully_remote(job):
+            scope = {'eligible': False, 'reason': 'not_remote', 'unknowns': [], 'match_kind': None}
+        elif scope['eligible'] and location_scope == 'area' and fully_remote(job):
+            scope = {'eligible': False, 'reason': 'remote_not_selected', 'unknowns': [], 'match_kind': 'remote'}
         if scope['eligible']:
             scoped.append(job)
             scopes[job.id] = scope
@@ -561,6 +567,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
     return {'items': items, 'total': len(matching), 'offset': offset, 'limit': limit,
             'location': {'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
                          'city': place, 'country_code': country},
+            'location_scope': location_scope,
             'profile_id': profile.id if profile is not None else None,
             'counts': {'source': len(jobs), 'scoped': len(unique), 'filtered': filtered,
                        'duplicates_removed': len(scoped) - len(unique),
@@ -568,7 +575,9 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                        'unlikely': tiers.count('unlikely')},
             'coverage': {'source_count': len({job.feed_id for job in jobs}),
                          'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-            'rule': 'work location within radius OR explicitly remote within country scope'}
+            'rule': ('explicitly remote within country scope' if location_scope == 'remote' else
+                     'work location within radius' if location_scope == 'area' else
+                     'work location within radius OR explicitly remote within country scope')}
 
 
 @app.get("/api/v1/jobs")
@@ -579,6 +588,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
               query: str | None = Query(None, max_length=160),
               place: str | None = Query(None, max_length=120),
               offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le=100),
+              location_scope: Literal['area', 'remote', 'area_remote'] | None = None,
               work_style: Literal['all','remote','hybrid','onsite'] = 'all',
               sort: Literal['relevance','newest','title','company'] = 'relevance',
               session: Session = Depends(get_session),
@@ -591,6 +601,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     defaults = (profile.preferences.get('matching_defaults') or {}) if profile else {}
     latitude, longitude, radius_km = (resolved[key] for key in ('latitude', 'longitude', 'radius_km'))
     place, country = resolved['place'], resolved['country']
+    location_scope = location_scope or ('remote' if work_style == 'remote' else 'area')
     min_match_score = defaults.get('min_match_score', 0) if min_match_score is None else min_match_score
     include_unknown = defaults.get('include_unknown', True) if include_unknown is None else include_unknown
     if profile is None and min_match_score:
@@ -613,7 +624,8 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     rows = session.scalars(statement.where(*filters).order_by(Job.id.asc())).unique().all()
     page = _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
                       profile, min_match_score, include_unknown, place,
-                      country if resolved['profile_area'] or isinstance(country_code, str) else None)
+                      country if resolved['profile_area'] or isinstance(country_code, str) else None,
+                      location_scope)
     if profile is not None:
         applications = {row.job_id: application_json(row) for row in session.scalars(
             select(JobApplication).where(JobApplication.profile_id == profile.id,
@@ -724,10 +736,11 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             session: Session = Depends(get_session)) -> dict[str, Any]:
     company_page = list_companies(latitude, longitude, radius_km, None, 0, 1, session)
     job_page = list_jobs(latitude=latitude, longitude=longitude, radius_km=radius_km,
-                         company_id=None, query=None, place=place, offset=0, limit=1, session=session)
+                         company_id=None, query=None, place=place, offset=0, limit=1,
+                         location_scope='area', session=session)
     remote_job_page = list_jobs(latitude=latitude, longitude=longitude, radius_km=radius_km,
                                 company_id=None, query=None, place=place, offset=0, limit=1,
-                                work_style="remote", session=session)
+                                location_scope='remote', work_style="remote", session=session)
     if IS_SQLITE:
         domain_candidates = session.scalars(select(Company).where(Company.domain.is_not(None))).all()
         domain_count = sum(_distance(company, latitude, longitude) <= radius_km * 1000 for company in domain_candidates)

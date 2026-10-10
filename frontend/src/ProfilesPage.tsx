@@ -86,14 +86,14 @@ export default function ProfilesPage() {
 
   return <div className="app-shell"><SiteHeader active="profile" /><main className="content detail-page">
     <section className="detail-hero"><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profile</h1>
-      <p className="intro-copy">Tell us what you can do and what you’re looking for. Jobs stay within your selected area, plus remote roles.</p>
+      <p className="intro-copy">Tell us what you can do and what you’re looking for. Matching jobs start within your selected area; choose remote roles separately on the jobs board.</p>
       <p className="muted">This early version uses explicit skills and interests. It does not infer qualifications from your name, age, or other personal details.</p>
     </section>
     {error && <div className="error-banner" role="alert">{error}</div>}
     {notice && <div className="evidence-note" role="status">{notice}</div>}
     <div className="profile-grid">
       <section className="detail-panel"><h2>Saved profiles</h2>{loading ? <p>Loading profiles…</p> : profiles.length ? profiles.map(profile =>
-        <article className="saved-profile" key={profile.id}><h3>{profile.name}</h3><p>{profile.summary || profile.skills.join(', ') || 'No skills entered'}</p><p className="muted">{profile.search_area ? `${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km + eligible remote roles` : 'Choose an area on the board'} · {Object.entries(profile.language_levels ?? {}).map(([language, level]) => `${language} ${level}`).join(' · ')}</p>
+        <article className="saved-profile" key={profile.id}><h3>{profile.name}</h3><p>{profile.summary || profile.skills.join(', ') || 'No skills entered'}</p><p className="muted">{profile.search_area ? `${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km` : 'Choose an area on the board'} · {Object.entries(profile.language_levels ?? {}).map(([language, level]) => `${language} ${level}`).join(' · ')}</p>
           <div className="detail-links"><a className="page-link" href={profileBoardLink(profile)}>Find matching jobs →</a>
             <a className="page-link" href={`/applications?profile_id=${profile.id}`}>My applications →</a>
             <button type="button" disabled={busy} onClick={() => edit(profile)}>Edit</button>
@@ -118,7 +118,7 @@ export default function ProfilesPage() {
           </select></label>)}</div>
         </fieldset>
         <fieldset className="profile-section"><legend>Search area</legend>
-          <p className="muted">Local roles within your radius, plus remote roles with country eligibility checked.</p>
+          <p className="muted">Local roles within your radius appear by default. Choose Remote in the jobs board location filter to see remote roles with country eligibility checked.</p>
           <label>Change city or postcode<input value={areaQuery} onChange={event => setAreaQuery(event.target.value)} placeholder="e.g. Mannheim" /></label>
           <button type="button" disabled={busy || areaQuery.trim().length < 2} onClick={() => void findArea()}>Find area</button>
           {areaChoices.map((area,index) => <button type="button" key={index} onClick={() => { setForm({ ...form, search_area: area }); setAreaChoices([]) }}>{area.label}</button>)}
