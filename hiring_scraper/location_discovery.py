@@ -42,6 +42,13 @@ _LAST_OVERPASS_REQUEST = 0.0
 _HOMEPAGE_PACER = ORIGIN_PACER
 
 
+def is_retryable_overpass_error(error: Exception) -> bool:
+    """Return whether a failed Overpass request may succeed on a later attempt."""
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code in OVERPASS_RETRYABLE_STATUSES
+    return isinstance(error, (urllib.error.URLError, OSError, http.client.HTTPException))
+
+
 def _wait_for_overpass_slot() -> None:
     """Keep every Overpass attempt within the shared request pacing limit."""
     global _LAST_OVERPASS_REQUEST

@@ -9,7 +9,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from uuid import uuid4
-from datetime import timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import func, or_, select
@@ -27,13 +27,16 @@ from hiring_scraper.app.models import (
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
-from hiring_scraper.location_discovery import fetch_location_companies
+from hiring_scraper.location_discovery import (
+    fetch_location_companies, is_retryable_overpass_error,
+)
 
 
 LOG = logging.getLogger("hiring_scraper.discovery_worker")
 POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
+LOCATION_SCAN_MAX_ATTEMPTS = 3
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
 MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "12"))))
 MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
@@ -403,6 +406,7 @@ def _claim_location_company_search(now=None) -> tuple[int, str] | None:
             return None
         job.status = "running"
         job.started_at = job.started_at or now
+        job.location_scan_attempt_count += 1
         job.progress_message = "Searching nearby map listings"
         job.progress_updated_at = now
         job.location_scan_lease_until = now + timedelta(minutes=LEASE_MINUTES)
@@ -518,19 +522,34 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
             job.progress_message = "Search complete"
 
 
-def _fail_location_company_search(job_id: int, attempt_token: str, error: Exception) -> None:
+def _fail_location_company_search(job_id: int, attempt_token: str,
+                                  error: Exception) -> datetime | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         job = _lock_location_scan_attempt(session, job_id, attempt_token, now)
         if job is None:
-            return
+            return None
+        detail = str(error)[:2000]
+        if (is_retryable_overpass_error(error) and
+                job.location_scan_attempt_count < LOCATION_SCAN_MAX_ATTEMPTS):
+            retry_at = _retry_time(job.location_scan_attempt_count)
+            job.status = "scheduled"
+            job.scheduled_for = retry_at
+            job.finished_at = None
+            job.location_scan_lease_until = None
+            job.location_scan_token = None
+            job.error = detail
+            job.progress_message = f"Temporary map service failure; retry scheduled for {retry_at.isoformat()}"
+            job.progress_updated_at = now
+            return retry_at
         job.status = "failed"
         job.finished_at = now
         job.location_scan_lease_until = None
         job.location_scan_token = None
-        job.error = str(error)[:2000]
+        job.error = detail
         job.progress_message = "Company and website search could not be completed"
         job.progress_updated_at = now
+        return None
 
 
 def _register_known_career_pages(session, now, company_ids=None) -> None:
@@ -815,8 +834,12 @@ def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
                  location_job_id, len(candidates),
                  sum(bool(row.get("website_url")) for row in candidates))
     except Exception as error:
-        LOG.exception("location company and homepage search failed id=%s", location_job_id)
-        _fail_location_company_search(location_job_id, attempt_token, error)
+        retry_at = _fail_location_company_search(location_job_id, attempt_token, error)
+        if retry_at is not None:
+            LOG.warning("location company and homepage search failed id=%s; retry scheduled at %s: %s",
+                        location_job_id, retry_at.isoformat(), error)
+        else:
+            LOG.exception("location company and homepage search failed id=%s", location_job_id)
 
 
 def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> bool:

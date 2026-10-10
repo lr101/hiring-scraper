@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer,
+    JSON, String, Text, UniqueConstraint, text,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -112,6 +115,8 @@ class DiscoveryJob(Base):
     progress_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     location_scan_lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     location_scan_token: Mapped[str | None] = mapped_column(String(36))
+    location_scan_attempt_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default=text("0"))
     error: Mapped[str | None] = mapped_column(Text)
 
     configured_location: Mapped[ConfiguredLocation | None] = relationship(back_populates="discovery_jobs")
