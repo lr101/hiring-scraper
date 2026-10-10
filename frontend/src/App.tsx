@@ -45,7 +45,8 @@ type Company = {
 type CompanyDiscoveryFilter = 'all' | 'domain' | 'career' | 'feed' | 'jobs'
 type CompanySort = 'distance' | 'name'
 type JobSort = 'relevance' | 'newest' | 'title' | 'company'
-type JobWorkStyleFilter = 'all' | 'remote' | 'hybrid' | 'onsite'
+type JobWorkStyleFilter = 'all' | 'hybrid' | 'onsite'
+type JobLocationScope = 'area' | 'remote' | 'area_remote'
 
 type JobLocation = {
   label: string
@@ -203,7 +204,10 @@ function DirectoryPage() {
   const [companySort, setCompanySort] = useState<CompanySort>(params.get('company_sort') === 'name' ? 'name' : 'distance')
   const [jobSort, setJobSort] = useState<JobSort>(['newest', 'title', 'company'].includes(params.get('job_sort') ?? '')
     ? params.get('job_sort') as JobSort : 'relevance')
-  const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['remote', 'hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
+  const requestedLocationScope = params.get('location_scope')
+  const [jobLocationScope, setJobLocationScope] = useState<JobLocationScope>(['area', 'remote', 'area_remote'].includes(requestedLocationScope ?? '')
+    ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : 'area')
+  const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [profilesReady, setProfilesReady] = useState(false)
@@ -334,6 +338,7 @@ function DirectoryPage() {
     jobParams.set('offset', String(tab === 'jobs' ? offset : 0))
     jobParams.set('limit', String(PAGE_SIZE))
     jobParams.set('sort', jobSort)
+    jobParams.set('location_scope', jobLocationScope)
     if (profileId) {
       jobParams.set('profile_id', profileId)
       jobParams.set('min_match_score', minimumScore)
@@ -367,7 +372,7 @@ function DirectoryPage() {
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown, profilesReady])
+  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown, profilesReady])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -397,6 +402,8 @@ function DirectoryPage() {
     else url.searchParams.delete('job_sort')
     if (jobWorkStyle !== 'all') url.searchParams.set('job_work_style', jobWorkStyle)
     else url.searchParams.delete('job_work_style')
+    if (jobLocationScope !== 'area') url.searchParams.set('location_scope', jobLocationScope)
+    else url.searchParams.delete('location_scope')
     if (tab !== 'companies') url.searchParams.set('view', tab)
     else url.searchParams.delete('view')
     if (profileId) {
@@ -407,7 +414,7 @@ function DirectoryPage() {
       url.searchParams.set('profile_id', ''); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
     }
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
+  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
 
   function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
     const defaults = profileBoardDefaults(profile, overrides)
@@ -499,13 +506,13 @@ function DirectoryPage() {
             <span className="metric-icon metric-icon-lilac"><Icon name="briefcase" size={19} /></span>
             <span className="metric-label">JOBS IN AREA</span>
             <strong>{loading ? '—' : summary.jobs_for_location.toLocaleString('en')}</strong>
-            <span className="metric-note">local roles plus remote</span>
+            <span className="metric-note">roles within {radius} km</span>
           </article>
           <article className="metric-card metric-remote">
             <span className="metric-icon metric-icon-sand"><Icon name="globe" size={19} /></span>
             <span className="metric-label">REMOTE ROLES</span>
             <strong>{loading ? '—' : summary.remote_jobs_in_result.toLocaleString('en')}</strong>
-            <span className="metric-note">included in the jobs view</span>
+            <span className="metric-note">select Remote in the job location filter</span>
           </article>
         </section>
 
@@ -567,9 +574,16 @@ function DirectoryPage() {
                   <select aria-label="Filter jobs by work style" value={jobWorkStyle}
                     onChange={event => { setJobWorkStyle(event.target.value as JobWorkStyleFilter); setOffset(0) }}>
                     <option value="all">All work styles</option>
-                    <option value="remote">Remote</option>
                     <option value="hybrid">Hybrid</option>
                     <option value="onsite">On-site</option>
+                  </select>
+                </label>
+                <label className="discovery-filter"><span>Job location</span>
+                  <select aria-label="Filter jobs by location" value={jobLocationScope}
+                    onChange={event => { setJobLocationScope(event.target.value as JobLocationScope); setOffset(0) }}>
+                    <option value="area">Selected area only</option>
+                    <option value="remote">Remote only</option>
+                    <option value="area_remote">Selected area + remote</option>
                   </select>
                 </label>
                 <label className="sorting-control"><span>Sort</span>
@@ -582,7 +596,7 @@ function DirectoryPage() {
                   </select>
                 </label>
               </>}
-              <div className="result-context"><span className="context-dot" /> {tab === 'jobs' ? `${locality} + remote` : `Company websites · ${radius} km`}</div>
+              <div className="result-context"><span className="context-dot" /> {tab === 'jobs' ? jobLocationScope === 'remote' ? 'Remote roles only' : jobLocationScope === 'area_remote' ? `${locality} + remote` : `${locality} · ${radius} km` : `Company websites · ${radius} km`}</div>
             </div>
           </div>
 
@@ -634,7 +648,7 @@ function DirectoryPage() {
                   </tr>)}
                 </tbody>
               </table>
-              {jobs.length === 0 && <EmptyState title="No matching jobs found yet" body="This list includes jobs at the selected location and jobs marked remote." />}
+              {jobs.length === 0 && <EmptyState title="No matching jobs found yet" body={jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
             </div>
           )}
 
