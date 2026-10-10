@@ -314,7 +314,7 @@ def discover(seed, client, max_pages=6, max_depth=3):
             except ET.ParseError:
                 page['classification']='invalid_sitemap'
             continue
-        info = inspect_page(final,text)
+        info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
         page.update(info)
         page['candidates'] = info['candidates'][:12]
         if info.get('classification') in {'career_content','jobposting'} or (

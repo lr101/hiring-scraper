@@ -113,6 +113,27 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(job.succeeded_count, 2)
             self.assertEqual({item.status for item in items}, {"completed"})
 
+    def test_campaign_crawl_receives_requested_city_for_local_page_prioritization(self):
+        with self.factory.begin() as session:
+            company = Company(source="openstreetmap", source_id="node/dhl-bonn", name="DHL",
+                website_url="https://www.dhl.de/", latitude=50.7374, longitude=7.0982,
+                career_status="not_checked")
+            job = models.DiscoveryJob(label="Bonn", city="Bonn", latitude=50.7374,
+                longitude=7.0982, radius_km=15, status="queued",
+                stage="career_page_discovery", candidate_total=1, created_at=utcnow())
+            session.add_all([company, job])
+            session.flush()
+            session.add(DiscoveryJobCompany(discovery_job_id=job.id, company_id=company.id,
+                status="queued"))
+
+        with patch.object(worker, "discover", return_value={
+                "status": "career_content_found", "pages": [], "boards": []}) as discover, \
+             patch.object(worker, "Client"):
+            self.assertTrue(worker.process_once(location_jobs_only=True))
+
+        seed = discover.call_args.args[0]
+        self.assertIn("Bonn", seed["preferred_locations"])
+
     def test_campaign_batch_supports_32_concurrent_discovery_workers(self):
         together = Barrier(32)
         claims = [(index, index, index, index) for index in range(32)]

@@ -2,6 +2,7 @@
 import html
 import json
 import re
+import unicodedata
 from html.parser import HTMLParser
 from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 from .ats import identify
@@ -16,6 +17,37 @@ STRONG_JOB_LINK = re.compile(
     r'jobsuche|job[-\s]?search|job\s+listings?|vacanc(?:y|ies)|stellen(?:aus)?schreib|'
     r'stellenangebote?|offene\s+stellen|current\s+(?:jobs?|vacanc)|open\s+positions|'
     r'find\s+(?:your\s+)?(?:next\s+)?jobs?|jetzt\s+bewerben|apply\s+now', re.I)
+
+
+def _normalized_location_text(value):
+    text = html.unescape(str(value)).casefold().replace('ß', 'ss')
+    text = text.replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue')
+    text = unicodedata.normalize('NFKD', text)
+    text = ''.join(char for char in text if not unicodedata.combining(char))
+    return re.sub(r'[^a-z0-9]+', ' ', text).strip()
+
+
+def _location_terms(preferred_locations):
+    if isinstance(preferred_locations, str):
+        preferred_locations = [preferred_locations]
+    terms = []
+    for value in preferred_locations or ():
+        if not isinstance(value, str):
+            continue
+        # Campaign labels may include a state or country after the city.
+        city = value.split(',', 1)[0].strip()
+        term = _normalized_location_text(city)
+        if len(term) >= 3 and term not in terms:
+            terms.append(term)
+    return terms
+
+
+def _matches_location(candidate, terms):
+    if not terms:
+        return False
+    path = unquote(urlsplit(candidate['url']).path)
+    text = _normalized_location_text(f"{candidate.get('label', '')} {path}")
+    return any(re.search(r'(?:^| )' + re.escape(term) + r'(?: |$)', text) for term in terms)
 
 
 def clean_url(base, href):
@@ -105,7 +137,7 @@ def count_postings(value):
     return 0
 
 
-def inspect_page(url, source):
+def inspect_page(url, source, preferred_locations=None):
     doc = Document()
     doc.feed(source)
     ats = {}
@@ -197,6 +229,8 @@ def inspect_page(url, source):
         classification = 'career_content'
     else:
         classification = 'ordinary_page'
+    location_terms = _location_terms(preferred_locations)
     return {'title':title[:200], 'headings':headings[:400], 'classification':classification,
             'jobposting_count':postings, 'ats':list(ats.values()),
-            'candidates':sorted(candidates.values(), key=lambda x:(-x['score'], len(x['url'])))[:60]}
+            'candidates':sorted(candidates.values(), key=lambda x:(
+                -x['score'], -_matches_location(x, location_terms), len(x['url'])))[:60]}
