@@ -231,11 +231,37 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(job.stage, "complete")
             self.assertEqual(job.processed_count, 1)
 
-    def test_location_source_failure_is_visible_for_the_user(self):
+    def test_transient_location_source_failure_is_scheduled_for_retry(self):
         with self.factory.begin() as session:
             job = models.DiscoveryJob(label="Broken source", latitude=49.0, longitude=8.4,
                 radius_km=5, status="queued", stage="company_homepage_discovery",
                 candidate_total=0, created_at=utcnow())
+            session.add(job)
+            session.flush()
+            job_id = job.id
+
+        with self.assertLogs(worker.LOG, level="WARNING") as captured:
+            with patch.object(worker, "fetch_location_companies", side_effect=TimeoutError("Overpass timed out")):
+                self.assertTrue(worker.process_once())
+        with self.factory() as session:
+            job = session.get(models.DiscoveryJob, job_id)
+            self.assertEqual(job.status, "scheduled")
+            self.assertEqual(job.stage, "company_homepage_discovery")
+            self.assertIn("Overpass timed out", job.error)
+            self.assertIsNotNone(job.scheduled_for)
+            self.assertIsNone(job.finished_at)
+            self.assertEqual(job.location_scan_attempt_count, 1)
+            self.assertIn("retry scheduled", job.progress_message)
+            self.assertEqual(discovery_job_json(job)["progress_percent"], 0)
+        self.assertIn("retry scheduled", captured.output[0])
+
+    def test_exhausted_location_source_retries_fail_visibly(self):
+        with self.factory.begin() as session:
+            job = models.DiscoveryJob(label="Broken source", latitude=49.0, longitude=8.4,
+                radius_km=5, status="queued", stage="company_homepage_discovery",
+                candidate_total=0,
+                location_scan_attempt_count=worker.LOCATION_SCAN_MAX_ATTEMPTS - 1,
+                created_at=utcnow())
             session.add(job)
             session.flush()
             job_id = job.id
@@ -248,6 +274,8 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(job.status, "failed")
             self.assertEqual(job.stage, "company_homepage_discovery")
             self.assertIn("Overpass timed out", job.error)
+            self.assertIsNotNone(job.finished_at)
+            self.assertEqual(job.location_scan_attempt_count, worker.LOCATION_SCAN_MAX_ATTEMPTS)
             self.assertEqual(discovery_job_json(job)["progress_percent"], 0)
 
     def test_preview_worker_scope_skips_unrelated_due_company_backlog(self):
