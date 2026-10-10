@@ -601,7 +601,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     defaults = (profile.preferences.get('matching_defaults') or {}) if profile else {}
     latitude, longitude, radius_km = (resolved[key] for key in ('latitude', 'longitude', 'radius_km'))
     place, country = resolved['place'], resolved['country']
-    location_scope = location_scope or ('remote' if work_style == 'remote' else 'area')
+    location_scope = location_scope or ('remote' if work_style == 'remote' else 'area_remote')
     min_match_score = defaults.get('min_match_score', 0) if min_match_score is None else min_match_score
     include_unknown = defaults.get('include_unknown', True) if include_unknown is None else include_unknown
     if profile is None and min_match_score:
