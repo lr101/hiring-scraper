@@ -52,3 +52,10 @@ assert.equal(helpers.boardLocationParams({ ...area, country_code: 'fr' }, 35, nu
 assert.equal(helpers.boardLocationParams({ ...area, country_code: null }, 35, null, 'de').get('country_code'), 'DE')
 assert.equal(helpers.boardLocationParams({ ...area, country_code: null }, 35).has('country_code'), false)
 console.log('Explicit, selected-location and profile country scope parameters passed')
+
+const stateLocation = { latitude: 0, longitude: 0, search_scope: 'state', state: 'Baden-Württemberg', country_code: 'de' }
+const stateParams = helpers.boardLocationParams(stateLocation, 15)
+assert.equal(stateParams.get('state'), 'Baden-Württemberg')
+assert.equal(stateParams.has('latitude'), false, 'State browsing must not use a circle around a placeholder point')
+assert.equal(stateParams.has('radius_km'), false)
+console.log('Whole-state board requests use state membership instead of radius')

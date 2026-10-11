@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Whole-state company discovery for all 16 German states, with saved searches, recurring source refreshes, and browsing of those employers’ active postings across all work locations. Existing radius searches are preserved by the new state-search migration.
+
 - Per-profile application tracking with New, Open, Not interested, Waiting for reply, Interview, Rejected, and Accepted statuses, plus a status-filtered application overview that retains closed and expired postings. PostgreSQL deployments apply the new job application migration during startup.
 - Mobile result cards, bottom navigation, compact status filters, and larger touch controls for applications, job browsing, profiles, and search areas.
 - Documented public Recruitee XML feeds with employer provenance checks and safeguards for active legacy HTML jobs.

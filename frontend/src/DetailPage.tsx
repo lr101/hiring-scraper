@@ -74,7 +74,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
     const boardParams = new URLSearchParams(window.location.search)
     const detailParams = new URLSearchParams()
     if (kind === 'job') {
-      for (const [from, to] of [['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code']]) {
+      for (const [from, to] of [['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code'],['state','state']]) {
         const value = boardParams.get(from)
         if (value) detailParams.set(to, value)
       }

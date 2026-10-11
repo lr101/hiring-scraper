@@ -45,6 +45,24 @@ docker compose up -d
 
 Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` in `.env` to a full commit tag or image digest, then run `docker compose pull app && docker compose up -d`.
 
+To search a whole German state, open **Search areas**, choose **Whole German state**
+under **Search coverage**, and select a state such as Baden-Württemberg. The search
+uses the state's administrative boundary to find publicly mapped named offices,
+craft businesses, and industrial employers, then checks every discovered company
+with an available website for hiring sources. State searches can take longer than
+city searches. Companies without a website are still saved; missing-homepage
+verification retains its configured request/search budgets. Public listings are
+not a complete business register.
+
+Use **View companies and jobs** on the saved state card to browse the results.
+State results include active, unexpired postings from employers discovered in
+that state, including jobs elsewhere, jobs without a work location, and remote
+roles. Choose **All jobs** under the profile filter for an unfiltered employer
+view. City/radius searches continue to filter by the job's work location.
+PostgreSQL deployments apply the state-search migration during startup; existing
+local SQLite databases upgrade additively. Existing companies gain state membership
+when a state discovery observes them, rather than guessing it from their address.
+
 Scheduled refreshes revisit saved job feeds and career listing pages to find new postings. Recurring search-area schedules queue these known sources without repeating company, homepage, or career-page discovery. Feed failures retry the same saved URL with backoff. Use a manual discovery job to find additional companies or rediscover their career sources.
 
 Public career discovery, website verification, feed refresh, and detail enrichment

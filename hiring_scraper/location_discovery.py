@@ -19,7 +19,7 @@ from urllib.request import Request, urlopen
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.website_discovery import configured_website_search, discover_missing_websites
-from hiring_scraper.geography import build_osm_radius_query, haversine_m, osm_element_coordinates
+from hiring_scraper.geography import build_osm_radius_query, build_osm_state_query, normalize_german_state, haversine_m, osm_element_coordinates
 from hiring_scraper.osm_websites import (
     fetch_wikidata_entities,
     is_public_hostname,
@@ -105,14 +105,14 @@ def _safe_homepage(value: object) -> str | None:
         return None
 
 
-def _candidate(element: dict, latitude: float, longitude: float, radius_m: float) -> dict | None:
+def _candidate(element: dict, latitude: float, longitude: float, radius_m: float | None) -> dict | None:
     point = osm_element_coordinates(element)
     tags = element.get("tags") or {}
     name = tags.get("name")
     if point is None or not isinstance(name, str) or not name.strip():
         return None
     distance = haversine_m(latitude, longitude, *point)
-    if distance > radius_m:
+    if radius_m is not None and distance > radius_m:
         return None
     source_id = f"{element.get('type')}/{element.get('id')}"
     website = _safe_homepage(tags.get("website") or tags.get("contact:website"))
@@ -131,7 +131,7 @@ def _candidate(element: dict, latitude: float, longitude: float, radius_m: float
 
 
 def resolve_location_candidates(payload: dict, latitude: float, longitude: float,
-                                radius_m: float, *, entities: dict | None = None,
+                                radius_m: float | None, *, entities: dict | None = None,
                                 homepage_resolver: Callable | None = None,
                                 progress_callback: Callable[..., None] | None = None) -> list[dict]:
     """Parse an Overpass response and attach directly listed or verified Wikidata homepages."""
@@ -188,12 +188,13 @@ def resolve_location_candidates(payload: dict, latitude: float, longitude: float
 
 
 def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
-                             *, opener=None,
+                             *, state: str | None = None, opener=None,
                              progress_callback: Callable[..., None] | None = None) -> list[dict]:
     """Fetch a bounded, location-centered company set from Overpass and enrich homepages."""
     if progress_callback:
-        progress_callback("Searching nearby map listings")
-    query = build_osm_radius_query(latitude, longitude, radius_m)
+        progress_callback("Searching state-wide map listings" if state else "Searching nearby map listings")
+    state = normalize_german_state(state) if state else None
+    query = build_osm_state_query(state) if state else build_osm_radius_query(latitude, longitude, radius_m)
     request = Request(
         OVERPASS_URL,
         data=urlencode({"data": query}).encode("utf-8"),
@@ -206,7 +207,10 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
         _wait_for_overpass_slot()
         try:
             with transport(request, timeout=110) as response:
-                response_body = response.read(20_000_000)
+                response_limit = 100_000_000 if state else 20_000_000
+                response_body = response.read(response_limit + 1)
+                if len(response_body) > response_limit:
+                    raise ValueError("OpenStreetMap response exceeded the company search size limit")
             break
         except urllib.error.HTTPError as error:
             if error.code not in OVERPASS_RETRYABLE_STATUSES or attempt == OVERPASS_RETRIES:
@@ -236,7 +240,7 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
                   and row['tags']['addr:city'].strip()]
         nearest = min(tagged, key=lambda row: haversine_m(latitude, longitude,
                                                         row['latitude'], row['longitude'])) if tagged else None
-        search_area_hint = nearest['tags']['addr:city'].strip() + ' Region' if nearest else None
+        search_area_hint = state or (nearest['tags']['addr:city'].strip() + ' Region' if nearest else None)
         max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
         with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
             client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
@@ -249,5 +253,5 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
                 progress_callback=progress_callback)
             LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
                      len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
-    return resolve_location_candidates(payload, latitude, longitude, radius_m,
+    return resolve_location_candidates(payload, latitude, longitude, None if state else radius_m,
                                        homepage_resolver=enrich, progress_callback=progress_callback)

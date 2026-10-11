@@ -18,7 +18,7 @@ from sqlalchemy.orm import selectinload
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.discovery_jobs import (
-    advance_location_schedule, company_ids_in_radius, create_discovery_job,
+    advance_location_schedule, company_ids_for_search, create_discovery_job,
 )
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
@@ -443,6 +443,7 @@ def _update_location_search_progress(job_id: int, attempt_token: str,
         job = _lock_location_scan_attempt(session, job_id, attempt_token, now)
         if job is None:
             return False
+        job.location_scan_lease_until = now + timedelta(minutes=LEASE_MINUTES)
         job.progress_message = message[:500]
         job.progress_updated_at = now
         if companies_found is not None:
@@ -498,10 +499,12 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                     company.domain_match_method = candidate.get("domain_match_method")
                     company.domain_evidence_url = candidate.get("domain_evidence_url")
                     company.next_discovery_at = now + timedelta(days=INTERVAL_DAYS)
+            if job.search_scope == "state":
+                company.state = job.state
             imported[source_id] = bool(website_url)
 
         session.flush()
-        company_ids = company_ids_in_radius(session, job.latitude, job.longitude, job.radius_km)
+        company_ids = company_ids_for_search(session, job)
         job.candidate_total = len(company_ids)
         job.processed_count = 0
         job.succeeded_count = 0
@@ -572,7 +575,7 @@ def _register_known_career_pages(session, now, company_ids=None) -> None:
 
 
 def _enqueue_known_sources(session, job, now) -> None:
-    company_ids = company_ids_in_radius(session, job.latitude, job.longitude, job.radius_km)
+    company_ids = company_ids_for_search(session, job)
     _register_known_career_pages(session, now, company_ids)
     feeds = session.scalars(select(JobFeed).where(JobFeed.company_id.in_(company_ids))).all()
     scheduled = 0
@@ -647,7 +650,7 @@ def schedule_due_locations(now=None) -> int:
             ).limit(1))
             if active is None:
                 job = create_discovery_job(
-                    session, label=location.label, city=location.city, state=location.state,
+                    session, label=location.label, search_scope=location.search_scope, city=location.city, state=location.state,
                     postcode=location.postcode, latitude=location.latitude, longitude=location.longitude,
                     radius_km=location.radius_km, configured_location_id=location.id,
                     kind="recurring", scheduled_for=now, now=now, stage="feed_refresh",
@@ -828,11 +831,13 @@ def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
             if job is None:
                 return
             scope = (job.latitude, job.longitude, job.radius_km * 1000)
+            state = job.state if job.search_scope == "state" else None
 
         def report_progress(message: str, **counts) -> None:
             _update_location_search_progress(location_job_id, attempt_token, message, **counts)
 
-        candidates = fetch_location_companies(*scope, progress_callback=report_progress)
+        options = {"state": state} if state else {}
+        candidates = fetch_location_companies(*scope, progress_callback=report_progress, **options)
         _persist_location_companies(location_job_id, attempt_token, candidates)
         LOG.info("location company search id=%s companies=%s homepages=%s",
                  location_job_id, len(candidates),

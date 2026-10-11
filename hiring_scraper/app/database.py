@@ -33,6 +33,15 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")
 
+        for table in ('configured_locations', 'discovery_jobs'):
+            columns = {column['name'] for column in inspect(connection).get_columns(table)}
+            if 'search_scope' not in columns:
+                connection.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN search_scope VARCHAR(16) NOT NULL DEFAULT 'radius'")
+        columns = {column['name'] for column in inspect(connection).get_columns('companies')}
+        if 'state' not in columns:
+            connection.exec_driver_sql("ALTER TABLE companies ADD COLUMN state VARCHAR(120)")
+        connection.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_companies_state ON companies (state)")
+
 
 def get_session() -> Generator[Session, None, None]:
     session = SessionLocal()
