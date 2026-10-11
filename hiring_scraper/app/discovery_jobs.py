@@ -4,14 +4,14 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select, text
+from sqlalchemy import select, text, or_
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, utcnow,
 )
-from hiring_scraper.geography import haversine_m
+from hiring_scraper.geography import GERMAN_STATES, haversine_m
 
 
 def _iso(value: datetime | None) -> str | None:
@@ -38,7 +38,16 @@ def company_ids_in_radius(session: Session, latitude: float, longitude: float,
             if haversine_m(latitude, longitude, company.latitude, company.longitude) <= radius_m]
 
 
+def german_company_filter():
+    """Include explicit German membership and legacy observed state evidence."""
+    return or_(Company.country_code == "DE", Company.state.in_(GERMAN_STATES))
+
+
 def company_ids_for_search(session: Session, search) -> list[int]:
+    if search.search_scope == "country":
+        return list(session.scalars(select(Company.id).where(
+            german_company_filter(), Company.website_url.is_not(None),
+            Company.website_url != "").order_by(Company.id)))
     if search.search_scope == "state":
         return list(session.scalars(select(Company.id).where(
             Company.state == search.state, Company.website_url.is_not(None),
@@ -96,6 +105,7 @@ def discovery_job_json(job: DiscoveryJob) -> dict[str, Any]:
         "companies_found": job.companies_found, "homepages_found": job.homepages_found,
         "jobs_found": job.jobs_found, "progress_percent": progress,
         "progress_message": job.progress_message,
+        "map_cursor": job.map_cursor or {},
         "progress_updated_at": _iso(job.progress_updated_at), "error": job.error,
     }
 

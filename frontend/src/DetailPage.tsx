@@ -11,6 +11,7 @@ const apiUrl = (path: string) => `${API_BASE_URL}${path}`
 
 type Feed = { id: number; provider: string; board_url: string | null; feed_url: string; status: string; job_count: number | null; last_checked_at: string | null }
 type Company = {
+  crawl_paused: boolean; crawl_interval_days: number | null; crawl_reason: string | null; next_check_at: string | null; employee_count: number | null
   id: number; name: string; category: string | null; website_url: string | null; domain: string | null
   domain_evidence_url: string | null; career_url: string | null; career_status: string
   latitude: number | null; longitude: number | null; location_precision: string | null
@@ -74,7 +75,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
     const boardParams = new URLSearchParams(window.location.search)
     const detailParams = new URLSearchParams()
     if (kind === 'job') {
-      for (const [from, to] of [['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code'],['state','state']]) {
+      for (const [from, to] of [['lat','latitude'],['lon','longitude'],['radius_km','radius_km'],['place','place'],['country_code','country_code'],['state','state'],['country','country']]) {
         const value = boardParams.get(from)
         if (value) detailParams.set(to, value)
       }
@@ -158,6 +159,9 @@ function CompanyPage({ company }: { company: Company }) {
           <Meta label="HIRING PAGE" value={company.career_url || 'Not found yet'} />
           <Meta label="BUSINESS TYPE" value={(company.category || company.location_label)?.replaceAll('_', ' ') || 'Not listed'} />
           <Meta label="LOCATION DETAIL" value={precisionLabels[company.location_precision || ''] || company.location_precision || 'Not provided'} />
+          <Meta label="CHECK SCHEDULE" value={company.crawl_paused ? 'Paused' : company.crawl_interval_days === 1 ? 'Daily' : `Every ${company.crawl_interval_days ?? 7} days`} />
+          <Meta label="WHY THIS SCHEDULE" value={company.crawl_reason || 'Waiting for employer evidence'} />
+          <Meta label="NEXT CHECK" value={company.crawl_paused ? 'Paused until fresh evidence or a manual search' : company.next_check_at ? new Date(company.next_check_at).toLocaleString() : 'Pending'} />
           <Meta label="ACTIVE JOBS" value={String(company.active_job_count ?? company.jobs.filter(job => job.is_active !== false).length)} />
         </div>
         <h3 className="panel-subheading">Where job listings were found</h3>

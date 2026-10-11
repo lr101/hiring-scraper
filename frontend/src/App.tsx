@@ -11,7 +11,7 @@ import { profileBoardDefaults, boardLocationParams } from './profile'
 import type { Profile } from './profile'
 
 type Location = {
-  search_scope?: 'radius' | 'state'
+  search_scope?: 'radius' | 'state' | 'country'
   label: string
   city?: string | null
   state?: string | null
@@ -24,6 +24,7 @@ type Location = {
 }
 
 type Company = {
+  state: string | null; crawl_paused: boolean; crawl_interval_days: number | null; crawl_reason: string | null; next_check_at: string | null; employee_count: number | null
   id: number
   name: string
   domain: string | null
@@ -89,11 +90,11 @@ type Job = {
   enrichment: Enrichment
   profile_match?: ProfileMatch
   application?: Application | null
-  match_kind?: 'remote' | 'in_area' | 'employer_in_state'
+  match_kind?: 'remote' | 'in_area' | 'employer_in_state' | 'employer_in_country'
 }
 
 type DiscoveryJob = {
-  search_scope?: 'radius' | 'state'; id: number; label: string; city: string | null; state?: string | null; postcode?: string | null
+  search_scope?: 'radius' | 'state' | 'country'; id: number; label: string; city: string | null; state?: string | null; postcode?: string | null
   latitude: number; longitude: number; status: string; radius_km: number; started_at: string | null
 }
 
@@ -192,7 +193,9 @@ function DirectoryPage() {
   const requestedCompanyFilter = params.get('company_filter') as CompanyDiscoveryFilter | null
   const initialCompanyFilter = requestedCompanyFilter && companyFilters.includes(requestedCompanyFilter)
     ? requestedCompanyFilter : 'all'
-  const initialLocation: Location = params.has('state')
+  const initialLocation: Location = params.has('country')
+    ? { label: 'Germany', search_scope: 'country', latitude: 0, longitude: 0, precision: 'country_boundary', country_code: 'de' }
+    : params.has('state')
     ? { label: params.get('state')!, state: params.get('state'), search_scope: 'state',
         latitude: 0, longitude: 0, precision: 'state_boundary', country_code: 'de' }
     : params.has('lat') && params.has('lon')
@@ -202,7 +205,7 @@ function DirectoryPage() {
     : DEFAULT_LOCATION
   const [location, setLocation] = useState<Location>(initialLocation)
   const [radius, setRadius] = useState(Number(params.get('radius_km') ?? 15))
-  const [selectedLocationKey, setSelectedLocationKey] = useState(params.get('location_key') ?? (params.has('state') ? 'current' : 'default'))
+  const [selectedLocationKey, setSelectedLocationKey] = useState(params.get('location_key') ?? ((params.has('state') || params.has('country')) ? 'current' : 'default'))
   const [locationOptions, setLocationOptions] = useState<LocationOption[]>([DEFAULT_LOCATION_OPTION])
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [companyFilter, setCompanyFilter] = useState<CompanyDiscoveryFilter>(initialCompanyFilter)
@@ -211,7 +214,7 @@ function DirectoryPage() {
     ? params.get('job_sort') as JobSort : 'relevance')
   const requestedLocationScope = params.get('location_scope')
   const [jobLocationScope, setJobLocationScope] = useState<JobLocationScope>(['area', 'remote', 'area_remote'].includes(requestedLocationScope ?? '')
-    ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : params.has('state') ? 'area_remote' : 'area')
+    ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : (params.has('state') || params.has('country')) ? 'area_remote' : 'area')
   const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -237,7 +240,7 @@ function DirectoryPage() {
       if (!response.ok) throw new Error('Could not load saved profiles.')
       const data = await response.json(); setProfiles(data.items)
       const selected = data.items.find((item: Profile) => String(item.id) === params.get('profile_id'))
-        ?? (!params.has('profile_id') && !params.has('state') ? data.items[0] : null)
+        ?? (!params.has('profile_id') && !(params.has('state') || params.has('country')) ? data.items[0] : null)
       if (selected) {
         applyProfile(selected, params)
         if (!params.has('view')) setTab('jobs')
@@ -264,7 +267,7 @@ function DirectoryPage() {
           locationResponse.json(), searchesResponse.json(),
         ])
         const available: LocationOption[] = locationData.items.map((item: {
-          search_scope?: 'radius' | 'state'; id: number; label: string; city: string | null; state: string | null; postcode: string | null
+          search_scope?: 'radius' | 'state' | 'country'; id: number; label: string; city: string | null; state: string | null; postcode: string | null
           latitude: number; longitude: number; radius_km: number
         }) => ({
           key: `saved:${item.id}`,
@@ -297,12 +300,12 @@ function DirectoryPage() {
         const candidates = [
           ...available,
           ...searched,
-          ...(params.has('state') || params.has('lat') && params.has('lon') ? [currentLocationOption] : []),
+          ...(params.has('country') || params.has('state') || params.has('lat') && params.has('lon') ? [currentLocationOption] : []),
           defaultOption,
         ]
         const seenLocations = new Set<string>()
         const options = candidates.filter(option => {
-          const identity = locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'state' ? option.location.state : null)
+          const identity = locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'country' ? 'Germany' : option.location.search_scope === 'state' ? option.location.state : null)
           if (seenLocations.has(identity)) return false
           seenLocations.add(identity)
           return true
@@ -311,8 +314,8 @@ function DirectoryPage() {
         setLocationOptions(options)
         const requestedKey = params.get('location_key')
         const selected = options.find(option => option.key === requestedKey)
-          ?? options.find(option => locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'state' ? option.location.state : null) ===
-            locationIdentity(initialLocation.latitude, initialLocation.longitude, radius, initialLocation.search_scope === 'state' ? initialLocation.state : null))
+          ?? options.find(option => locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'country' ? 'Germany' : option.location.search_scope === 'state' ? option.location.state : null) ===
+            locationIdentity(initialLocation.latitude, initialLocation.longitude, radius, initialLocation.search_scope === 'country' ? 'Germany' : initialLocation.search_scope === 'state' ? initialLocation.state : null))
           ?? options.find(option => option.key === 'default')
           ?? options[0]
         if (selected) {
@@ -337,7 +340,7 @@ function DirectoryPage() {
     const companyParams = new URLSearchParams(locationParams)
     companyParams.set('offset', String(tab === 'companies' ? offset : 0))
     companyParams.set('limit', String(PAGE_SIZE))
-    companyParams.set('sort', location.search_scope === 'state' ? 'name' : companySort)
+    companyParams.set('sort', location.search_scope === 'country' || location.search_scope === 'state' ? 'name' : companySort)
     if (companyFilter !== 'all') companyParams.set('discovery', companyFilter)
     const jobParams = new URLSearchParams(locationParams)
     jobParams.set('offset', String(tab === 'jobs' ? offset : 0))
@@ -388,10 +391,15 @@ function DirectoryPage() {
   useEffect(() => {
     if (!profilesReady) return
     const url = new URL(window.location.href)
-    if (location.search_scope === 'state' && location.state) {
+    if (location.search_scope === 'country') {
+      url.searchParams.set('country', 'DE')
+      for (const key of ['state', 'lat', 'lon', 'place', 'radius_km']) url.searchParams.delete(key)
+    } else if (location.search_scope === 'state' && location.state) {
+      url.searchParams.delete('country')
       url.searchParams.set('state', location.state)
       for (const key of ['lat', 'lon', 'place', 'radius_km']) url.searchParams.delete(key)
     } else {
+      url.searchParams.delete('country')
       url.searchParams.delete('state')
       url.searchParams.set('lat', String(location.latitude))
       url.searchParams.set('lon', String(location.longitude))
@@ -436,7 +444,7 @@ function DirectoryPage() {
   }
   function selectProfile(value: string) {
     const profile = profiles.find(item => String(item.id) === value)
-    if (profile) applyProfile(profile, location.search_scope === 'state' && location.state
+    if (profile) applyProfile(profile, location.search_scope === 'country' ? new URLSearchParams({ country: 'DE' }) : location.search_scope === 'state' && location.state
       ? new URLSearchParams({ state: location.state }) : new URLSearchParams())
     else { setProfileId(''); setOffset(0) }
   }
@@ -446,14 +454,14 @@ function DirectoryPage() {
     setSelectedLocationKey(key)
     setLocation(option.location)
     setRadius(option.radius_km)
-    setJobLocationScope(option.location.search_scope === 'state' ? 'area_remote' : 'area')
+    setJobLocationScope(option.location.search_scope === 'country' || option.location.search_scope === 'state' ? 'area_remote' : 'area')
     setOffset(0)
   }
 
   const activeTotal = tab === 'companies' ? companyTotal : jobTotal
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1
   const pageCount = Math.max(1, Math.ceil(activeTotal / PAGE_SIZE))
-  const wholeState = location.search_scope === 'state'
+  const wholeState = location.search_scope === 'state' || location.search_scope === 'country'
   const locality = location.city ?? location.label.split(',')[0]
 
   return (
@@ -483,7 +491,7 @@ function DirectoryPage() {
                     const options = locationOptions.filter(option => option.group === group)
                     return options.length ? <optgroup key={group} label={group}>
                       {options.map(option => <option key={option.key} value={option.key}>
-                        {option.label} · {option.location.search_scope === 'state' ? 'Whole state' : `${option.key === selectedLocationKey ? radius : option.radius_km} km`}
+                        {option.label} · {option.location.search_scope === 'country' ? 'All Germany' : option.location.search_scope === 'state' ? 'Whole state' : `${option.key === selectedLocationKey ? radius : option.radius_km} km`}
                       </option>)}
                     </optgroup> : null
                   })}
@@ -498,7 +506,7 @@ function DirectoryPage() {
             </label>}
             <a href="/locations" className="configure-locations-link">Configure locations <Icon name="arrow" size={15} /></a>
           </div>
-          <div className="search-footnote"><span><Icon name="globe" size={14} /> Germany</span><span>{wholeState ? 'All work locations from employers discovered in this state; public sources may be incomplete.' : 'Jobs can be local or remote'}</span></div>
+          <div className="search-footnote"><span><Icon name="globe" size={14} /> Germany</span><span>{wholeState ? 'All work locations from employers discovered in this search area; public sources may be incomplete.' : 'Jobs can be local or remote'}</span></div>
         </section>
 
         {error && <div className="error-banner" role="alert">{error}<button type="button" onClick={() => setError('')}>Dismiss</button></div>}
@@ -514,11 +522,11 @@ function DirectoryPage() {
             <span className="metric-icon metric-icon-green"><Icon name="globe" size={19} /></span>
             <span className="metric-label">WITH A WEBSITE</span>
             <strong>{loading ? '—' : summary.companies_with_domain.toLocaleString('en')}</strong>
-            <span className="metric-note">{wholeState ? 'company websites found in this state' : 'company websites found nearby'}</span>
+            <span className="metric-note">{wholeState ? 'company websites found in this search area' : 'company websites found nearby'}</span>
           </article>
           <article className="metric-card">
             <span className="metric-icon metric-icon-lilac"><Icon name="briefcase" size={19} /></span>
-            <span className="metric-label">{wholeState ? 'JOBS AT STATE EMPLOYERS' : 'JOBS IN AREA'}</span>
+            <span className="metric-label">{wholeState ? 'JOBS AT AREA EMPLOYERS' : 'JOBS IN AREA'}</span>
             <strong>{loading ? '—' : summary.jobs_for_location.toLocaleString('en')}</strong>
             <span className="metric-note">{wholeState ? 'all work locations, including remote' : `roles within ${radius} km`}</span>
           </article>
@@ -629,8 +637,8 @@ function DirectoryPage() {
                   {companies.map(company => <tr key={company.id} onClick={() => { window.location.href = `/companies/${company.id}` }} className="click-row">
                     <td className="result-primary"><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong><a href={`/companies/${company.id}`} onClick={event => event.stopPropagation()}>{company.name}</a></strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
                     <td className="result-secondary"><span className="mobile-field-label">Website</span>{company.domain ? <span className="domain-cell"><a className="domain-link" href={company.website_url ?? '#'} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{company.domain}<Icon name="external" size={12} /></a><small>{domainMatchLabel(company.domain_match_method)}</small></span> : <span className="muted">Website not found yet</span>}</td>
-                    <td className="result-meta"><span className="mobile-field-label">Hiring status</span><span className={`status-badge ${['jobs_feed_found','jobs_extracted'].includes(company.career_status) ? 'status-success' : company.career_status === 'career_page_found' ? 'status-career' : 'status-muted'}`}><span />{statusLabel(company.career_status)}</span></td>
-                    <td className="result-meta"><span className="mobile-field-label">{wholeState ? 'State' : 'Distance'}</span><span className="distance-text"><Icon name="pin" size={14} />{wholeState ? locality : distanceLabel(company.distance_m)}</span></td>
+                    <td className="result-meta"><span className="mobile-field-label">Hiring status</span><span className={`status-badge ${['jobs_feed_found','jobs_extracted'].includes(company.career_status) ? 'status-success' : company.career_status === 'career_page_found' ? 'status-career' : 'status-muted'}`}><span />{statusLabel(company.career_status)}</span><small title={company.crawl_reason ?? undefined}>{company.crawl_paused ? 'Checks paused' : company.crawl_interval_days === 1 ? 'Checked daily' : `Checked every ${company.crawl_interval_days ?? 7} days`}</small></td>
+                    <td className="result-meta"><span className="mobile-field-label">{wholeState ? 'State' : 'Distance'}</span><span className="distance-text"><Icon name="pin" size={14} />{wholeState ? company.state || locality : distanceLabel(company.distance_m)}</span></td>
                     <td className="row-arrow"><Icon name="chevron" size={17} /></td>
                   </tr>)}
                 </tbody>

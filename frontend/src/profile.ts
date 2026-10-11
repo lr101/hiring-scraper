@@ -10,7 +10,7 @@ export type Profile = {
 export function profileBoardDefaults(profile: Pick<Profile, 'search_area' | 'matching_defaults'>, params = new URLSearchParams()) {
   const area = profile.search_area
   return {
-    location: !params.has('state') && !params.has('lat') && !params.has('lon') && area?.latitude != null && area.longitude != null
+    location: !params.has('country') && !params.has('state') && !params.has('lat') && !params.has('lon') && area?.latitude != null && area.longitude != null
       ? { ...area, latitude: area.latitude, longitude: area.longitude, precision: 'profile_search_area' } : null,
     radius: Number(params.get('radius_km') ?? area?.radius_km ?? 15),
     minimumScore: params.get('min_match_score') ?? String(profile.matching_defaults?.min_match_score ?? 30),
@@ -50,8 +50,10 @@ export function skillEvidenceKey(skill: string, evidence: Profile['skill_evidenc
 }
 
 /** Use one effective country for board requests and the URL carried into details. */
-export function boardLocationParams(location: { latitude: number; longitude: number; city?: string | null; country_code?: string | null; search_scope?: 'radius' | 'state'; state?: string | null }, radius: number, countryOverride?: string | null, profileCountry?: string | null) {
-  const params = location.search_scope === 'state' && location.state
+export function boardLocationParams(location: { latitude: number; longitude: number; city?: string | null; country_code?: string | null; search_scope?: 'radius' | 'state' | 'country'; state?: string | null }, radius: number, countryOverride?: string | null, profileCountry?: string | null) {
+  const params = location.search_scope === 'country'
+    ? new URLSearchParams({ country: 'DE' })
+    : location.search_scope === 'state' && location.state
     ? new URLSearchParams({ state: location.state })
     : new URLSearchParams({ latitude: String(location.latitude), longitude: String(location.longitude), radius_km: String(radius), place: location.city ?? '' })
   const country = countryOverride ?? location.country_code ?? profileCountry

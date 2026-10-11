@@ -45,6 +45,26 @@ docker compose up -d
 
 Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` in `.env` to a full commit tag or image digest, then run `docker compose pull app && docker compose up -d`.
 
+To discover employers across Germany, open **Search areas** and use the default
+**All of Germany** coverage. Discovery advances through small map sections across
+all 16 states, saving each section and checking discovered employers while the
+inventory continues. Public listings are incomplete, so this is observed coverage,
+not a complete business register.
+
+Germany runs continuous ranked checks for both career pages and saved job feeds.
+Employers with at least 250 employees or recent jobs are checked daily; smaller
+active employers every 3 days; unknown employers every 7 days; repeatedly empty
+successful checks every 30 days. Repeatedly irrelevant employers can be paused.
+Checks are spread over time. Errors do not establish irrelevance. Company details
+show the cadence, reason, and next check. A manual Germany search reactivates paused
+employers; recurring checks preserve each employer's individual schedule.
+
+Use **View companies and jobs** on the Germany card to browse active, unexpired
+postings from German employers across all work locations, including remote and
+unspecified locations. The API uses `country=DE` for employer membership; the
+existing `country_code` parameter still describes remote eligibility in radius
+searches. Legacy companies with an observed canonical German state are included.
+
 To search a whole German state, open **Search areas**, choose **Whole German state**
 under **Search coverage**, and select a state such as Baden-Württemberg. The search
 uses the state's administrative boundary to find publicly mapped named offices,
