@@ -49,8 +49,9 @@ To search a whole German state, open **Search areas**, choose **Whole German sta
 under **Search coverage**, and select a state such as Baden-Württemberg. The search
 uses the state's administrative boundary to find publicly mapped named offices,
 craft businesses, and industrial employers, then checks every discovered company
-with an available website for hiring sources. State searches can take longer than
-city searches. Companies without a website are still saved; missing-homepage
+with an available website for hiring sources. State searches query smaller map sections, subdivide sections that time out, and
+retry temporary service failures. Progress shows completed and remaining sections.
+These searches can take longer than city searches. Companies without a website are still saved; missing-homepage
 verification retains its configured request/search budgets. Public listings are
 not a complete business register.
 

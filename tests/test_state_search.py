@@ -80,16 +80,19 @@ class StateSearchTests(unittest.TestCase):
              'tags': {'name': 'Northern craft', 'craft': 'carpenter', 'addr:city': 'Bad Mergentheim'}},
         ]}
         class Response:
+            def __init__(self, data): self.data = data
             def __enter__(self): return self
             def __exit__(self, *_): pass
-            def read(self, limit): return json.dumps(payload).encode()
+            def read(self, limit): return json.dumps(self.data).encode()
         def opener(request, **kwargs):
             from urllib.parse import parse_qs
             query = parse_qs(request.data.decode())['data'][0]
+            if 'out bb;' in query:
+                return Response({'elements': [{'bounds': {'minlat': 47.5, 'minlon': 8, 'maxlat': 50, 'maxlon': 10}}]})
             self.assertIn('area.region', query)
             self.assertIn('Baden-Württemberg', query)
             self.assertNotIn('around:', query)
-            return Response()
+            return Response(payload)
         def homepages(rows, client, **kwargs):
             self.assertEqual(kwargs['search_area_hint'], 'Baden-Württemberg')
             return []

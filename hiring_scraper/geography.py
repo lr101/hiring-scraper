@@ -64,27 +64,45 @@ def build_osm_radius_query(latitude, longitude, radius_m):
 out center tags;'''
 
 
-def build_osm_state_query(state, office_value=None):
+def build_osm_state_query(state, office_value=None, *, bbox=None):
     """Build an Overpass admin-area query, optionally narrowed to one office tag."""
     name = normalize_german_state(state)
     quoted_name = '"' + name.replace('\\', '\\\\').replace('"', '\\"') + '"'
     area = f'area["boundary"="administrative"]["admin_level"="4"]["name"={quoted_name}]->.region;'
+    location = 'area.region'
+    if bbox is not None:
+        south, west, north, east = bbox
+        south = _coordinate(south, 'south', -90, 90)
+        north = _coordinate(north, 'north', -90, 90)
+        west = _coordinate(west, 'west', -180, 180)
+        east = _coordinate(east, 'east', -180, 180)
+        if south >= north or west >= east:
+            raise ValueError('Invalid state search bounding box')
+        location = ','.join(_format_coordinate(value) for value in (south, west, north, east))
+    # Apply tag and bounding-box filters before the more expensive state-area test.
+    boundary_filter = '(area.region)' if bbox is not None else ''
     if office_value:
         office_value = str(office_value).strip()
         if not office_value or len(office_value) > 80:
             raise ValueError('office_value must contain 1 to 80 characters')
         tag = '"' + office_value.replace('\\', '\\\\').replace('"', '\\"') + '"'
-        selectors = f'nwr(area.region)[name]["office"={tag}];'
+        selectors = f'nwr({location})[name]["office"={tag}]{boundary_filter};'
     else:
-        selectors = '''(
-  nwr(area.region)[name][office];
-  nwr(area.region)[name][craft];
-  nwr(area.region)[name][industrial];
+        selectors = f'''(
+  nwr({location})[name][office]{boundary_filter};
+  nwr({location})[name][craft]{boundary_filter};
+  nwr({location})[name][industrial]{boundary_filter};
 );'''
-    return f'''[out:json][timeout:90];
+    timeout = 30 if bbox is not None else 90
+    return f'''[out:json][timeout:{timeout}];
 {area}
 {selectors}
 out center tags;'''
+
+
+def build_osm_state_bounds_query(state):
+    name = normalize_german_state(state)
+    return f'[out:json][timeout:30];rel["boundary"="administrative"]["admin_level"="4"]["name"="{name}"];out bb;'
 
 
 def osm_element_coordinates(element):

@@ -30,6 +30,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- State-wide map scans query bounded sections and subdivide timed-out sections; incomplete Overpass timeout responses qualify for scheduled retries instead of failing permanently.
+
 - Discovery progress counts overlapping links to the same source posting once and explains why source totals differ from filtered location results.
 
 - Lever discovery and refresh enumerate bounded posting pages while preserving incomplete-scan lifecycle protection.

@@ -309,6 +309,34 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(discovery_job_json(job)["progress_percent"], 0)
         self.assertIn("retry scheduled", captured.output[0])
 
+    def test_overpass_timeout_remark_is_scheduled_for_retry(self):
+        with self.factory.begin() as session:
+            job = models.DiscoveryJob(label="Broken source", latitude=49.0, longitude=8.4,
+                radius_km=5, status="queued", stage="company_homepage_discovery",
+                candidate_total=0, created_at=utcnow())
+            session.add(job)
+            session.flush()
+            job_id = job.id
+
+        def incomplete(*_args, **_kwargs):
+            from hiring_scraper.location_discovery import resolve_location_candidates
+            return resolve_location_candidates({'elements': [], 'remark': 'Overpass timed out'}, 0, 0, None)
+
+        with self.assertLogs(worker.LOG, level="WARNING") as captured:
+            with patch.object(worker, "fetch_location_companies", side_effect=incomplete):
+                self.assertTrue(worker.process_once())
+        with self.factory() as session:
+            job = session.get(models.DiscoveryJob, job_id)
+            self.assertEqual(job.status, "scheduled")
+            self.assertEqual(job.stage, "company_homepage_discovery")
+            self.assertIn("Overpass timed out", job.error)
+            self.assertIsNotNone(job.scheduled_for)
+            self.assertIsNone(job.finished_at)
+            self.assertEqual(job.location_scan_attempt_count, 1)
+            self.assertIn("retry scheduled", job.progress_message)
+            self.assertEqual(discovery_job_json(job)["progress_percent"], 0)
+        self.assertIn("retry scheduled", captured.output[0])
+
     def test_exhausted_location_source_retries_fail_visibly(self):
         with self.factory.begin() as session:
             job = models.DiscoveryJob(label="Broken source", latitude=49.0, longitude=8.4,
@@ -449,6 +477,47 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(job.status, "cancelled")
             self.assertEqual(job.stage, "company_homepage_discovery")
             self.assertEqual(session.scalars(select(Company)).all(), [])
+
+    def test_cancelled_scan_stops_between_map_sections_without_scheduling_retry(self):
+        import json
+        from urllib.parse import parse_qs
+        from hiring_scraper.location_discovery import fetch_location_companies
+        with self.factory.begin() as session:
+            job = models.DiscoveryJob(label='Baden-Württemberg', state='Baden-Württemberg', search_scope='state',
+                latitude=0, longitude=0, radius_km=15, status='queued', stage='company_homepage_discovery',
+                candidate_total=0, created_at=utcnow())
+            session.add(job)
+            session.flush()
+            job_id = job.id
+        opened = []
+        class Response:
+            def __init__(self, payload): self.payload = payload
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def read(self, _): return json.dumps(self.payload).encode()
+        def opener(request, **_):
+            query = parse_qs(request.data.decode())['data'][0]
+            opened.append(query)
+            if 'out bb;' in query:
+                return Response({'elements': [{'bounds': {'minlat':48,'minlon':8,'maxlat':49,'maxlon':9}}]})
+            with self.factory.begin() as session:
+                job = session.get(models.DiscoveryJob,job_id)
+                job.status = 'cancelled'
+                job.location_scan_token = None
+                job.location_scan_lease_until = None
+            return Response({'elements': []})
+        def fetch(*args, **kwargs):
+            return fetch_location_companies(*args,opener=opener,**kwargs)
+        with patch.object(worker,'fetch_location_companies',side_effect=fetch), \
+             patch('hiring_scraper.location_discovery._wait_for_overpass_slot'), \
+             patch('hiring_scraper.location_discovery.fetch_wikidata_entities',return_value={}):
+            worker.process_once()
+        self.assertEqual(len(opened),2)
+        with self.factory() as session:
+            job = session.get(models.DiscoveryJob,job_id)
+            self.assertEqual(job.status,'cancelled')
+            self.assertIsNone(job.error)
+            self.assertIsNone(job.scheduled_for)
 
     def test_expired_company_attempt_cannot_overwrite_a_newer_worker_result(self):
         lease = utcnow() + timedelta(minutes=10)

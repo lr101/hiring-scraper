@@ -28,6 +28,7 @@ from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_s
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.location_discovery import (
+    LocationSearchCancelled,
     fetch_location_companies, is_retryable_overpass_error,
 )
 
@@ -833,8 +834,8 @@ def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
             scope = (job.latitude, job.longitude, job.radius_km * 1000)
             state = job.state if job.search_scope == "state" else None
 
-        def report_progress(message: str, **counts) -> None:
-            _update_location_search_progress(location_job_id, attempt_token, message, **counts)
+        def report_progress(message: str, **counts) -> bool:
+            return _update_location_search_progress(location_job_id, attempt_token, message, **counts)
 
         options = {"state": state} if state else {}
         candidates = fetch_location_companies(*scope, progress_callback=report_progress, **options)
@@ -842,6 +843,8 @@ def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
         LOG.info("location company search id=%s companies=%s homepages=%s",
                  location_job_id, len(candidates),
                  sum(bool(row.get("website_url")) for row in candidates))
+    except LocationSearchCancelled:
+        LOG.info('Stopped cancelled or superseded location search id=%s', location_job_id)
     except Exception as error:
         retry_at = _fail_location_company_search(location_job_id, attempt_token, error)
         if retry_at is not None:
