@@ -4,6 +4,7 @@ from __future__ import annotations
 import http.client
 import json
 import logging
+import math
 import os
 import re
 import time
@@ -19,7 +20,7 @@ from urllib.request import Request, urlopen
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.website_discovery import configured_website_search, discover_missing_websites
-from hiring_scraper.geography import build_osm_radius_query, haversine_m, osm_element_coordinates
+from hiring_scraper.geography import build_osm_radius_query, build_osm_state_query, build_osm_state_bounds_query, normalize_german_state, haversine_m, osm_element_coordinates
 from hiring_scraper.osm_websites import (
     fetch_wikidata_entities,
     is_public_hostname,
@@ -42,11 +43,29 @@ _LAST_OVERPASS_REQUEST = 0.0
 _HOMEPAGE_PACER = ORIGIN_PACER
 
 
+class LocationSearchCancelled(RuntimeError):
+    """The caller cancelled the scan or no longer owns its lease."""
+
+
+class OverpassIncompleteError(RuntimeError):
+    """An otherwise successful response contains incomplete query results."""
+
+
+def _validate_overpass_payload(payload):
+    if not isinstance(payload, dict) or not isinstance(payload.get("elements"), list):
+        raise ValueError("OpenStreetMap returned an invalid company list")
+    if payload.get("remark"):
+        message = f"OpenStreetMap search was incomplete: {payload['remark']}"
+        if any(word in str(payload['remark']).casefold() for word in ('timed out', 'timeout', 'out of memory')):
+            raise OverpassIncompleteError(message)
+        raise RuntimeError(message)
+
+
 def is_retryable_overpass_error(error: Exception) -> bool:
     """Return whether a failed Overpass request may succeed on a later attempt."""
     if isinstance(error, urllib.error.HTTPError):
         return error.code in OVERPASS_RETRYABLE_STATUSES
-    return isinstance(error, (urllib.error.URLError, OSError, http.client.HTTPException))
+    return isinstance(error, (OverpassIncompleteError, urllib.error.URLError, OSError, http.client.HTTPException))
 
 
 def _wait_for_overpass_slot() -> None:
@@ -105,18 +124,24 @@ def _safe_homepage(value: object) -> str | None:
         return None
 
 
-def _candidate(element: dict, latitude: float, longitude: float, radius_m: float) -> dict | None:
+def _candidate(element: dict, latitude: float, longitude: float, radius_m: float | None) -> dict | None:
     point = osm_element_coordinates(element)
     tags = element.get("tags") or {}
     name = tags.get("name")
     if point is None or not isinstance(name, str) or not name.strip():
         return None
     distance = haversine_m(latitude, longitude, *point)
-    if distance > radius_m:
+    if radius_m is not None and distance > radius_m:
         return None
     source_id = f"{element.get('type')}/{element.get('id')}"
     website = _safe_homepage(tags.get("website") or tags.get("contact:website"))
+    from hiring_scraper.app.crawl_ranking import parse_employee_count
+    employee_count = next((count for key in ('employees', 'staff_count', 'company:employees')
+                           if (count := parse_employee_count(tags.get(key))) is not None), None)
     return {
+        "employee_count": employee_count,
+        "size_evidence": {'source': 'openstreetmap', 'source_url': f'https://www.openstreetmap.org/{source_id}',
+                          'employee_count': employee_count} if employee_count else {},
         "source_id": source_id,
         "name": name.strip(),
         "website": website,
@@ -131,14 +156,11 @@ def _candidate(element: dict, latitude: float, longitude: float, radius_m: float
 
 
 def resolve_location_candidates(payload: dict, latitude: float, longitude: float,
-                                radius_m: float, *, entities: dict | None = None,
+                                radius_m: float | None, *, entities: dict | None = None,
                                 homepage_resolver: Callable | None = None,
-                                progress_callback: Callable[..., None] | None = None) -> list[dict]:
+                                progress_callback: Callable[..., bool | None] | None = None) -> list[dict]:
     """Parse an Overpass response and attach directly listed or verified Wikidata homepages."""
-    if not isinstance(payload, dict) or not isinstance(payload.get("elements"), list):
-        raise ValueError("OpenStreetMap returned an invalid company list")
-    if payload.get("remark"):
-        raise RuntimeError(f"OpenStreetMap search was incomplete: {payload['remark']}")
+    _validate_overpass_payload(payload)
 
     candidates = []
     for element in payload["elements"]:
@@ -179,7 +201,9 @@ def resolve_location_candidates(payload: dict, latitude: float, longitude: float
         homepage_resolver(candidates)
     for candidate in candidates:
         candidate.pop("website", None)
-        candidate.pop("tags", None)
+        # National inventory resolves homepages in a separately paced worker.
+        if homepage_resolver:
+            candidate.pop("tags", None)
     if progress_callback:
         progress_callback("Saving company and website results",
                           companies_found=len(candidates),
@@ -187,13 +211,7 @@ def resolve_location_candidates(payload: dict, latitude: float, longitude: float
     return sorted(candidates, key=lambda row: (row["name"].casefold(), row["source_id"]))
 
 
-def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
-                             *, opener=None,
-                             progress_callback: Callable[..., None] | None = None) -> list[dict]:
-    """Fetch a bounded, location-centered company set from Overpass and enrich homepages."""
-    if progress_callback:
-        progress_callback("Searching nearby map listings")
-    query = build_osm_radius_query(latitude, longitude, radius_m)
+def _fetch_overpass(query, transport, *, split_on_timeout=False):
     request = Request(
         OVERPASS_URL,
         data=urlencode({"data": query}).encode("utf-8"),
@@ -201,53 +219,140 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
                  "Content-Type": "application/x-www-form-urlencoded"},
         method="POST",
     )
-    transport = opener or urlopen
     for attempt in range(OVERPASS_RETRIES + 1):
         _wait_for_overpass_slot()
         try:
             with transport(request, timeout=110) as response:
-                response_body = response.read(20_000_000)
-            break
+                response_limit = 20_000_000
+                response_body = response.read(response_limit + 1)
+                if len(response_body) > response_limit:
+                    raise ValueError("OpenStreetMap response exceeded the company search size limit")
+            payload = json.loads(response_body)
+            _validate_overpass_payload(payload)
+            return payload
         except urllib.error.HTTPError as error:
             if error.code not in OVERPASS_RETRYABLE_STATUSES or attempt == OVERPASS_RETRIES:
                 raise
             retry_after = error.headers.get("Retry-After") if error.headers else None
             error.close()
             failure = error
-        except (urllib.error.URLError, OSError, http.client.HTTPException) as error:
-            if attempt == OVERPASS_RETRIES:
+        except (OverpassIncompleteError, urllib.error.URLError, OSError, http.client.HTTPException) as error:
+            if (split_on_timeout and isinstance(error, OverpassIncompleteError)) or attempt == OVERPASS_RETRIES:
                 raise
             retry_after = None
             failure = error
         delay = _overpass_retry_delay(attempt, retry_after)
+        if isinstance(failure, urllib.error.HTTPError) and failure.code == 429:
+            delay = max(30.0, delay)
         LOG.warning("Overpass request failed attempt=%s/%s; retrying in %.1fs: %s",
                     attempt + 1, OVERPASS_RETRIES + 1, delay, failure)
         time.sleep(delay)
-    payload = json.loads(response_body)
+
+
+def resolve_missing_company_websites(candidates: list[dict], *, progress_callback=None,
+                                     search_area_hint: str | None = None,
+                                     max_companies: int | None = None,
+                                     max_searches: int | None = None,
+                                     max_requests: int | None = None) -> list[dict]:
+    """Resolve missing company homepages with bounded, isolated network work."""
+    if not any(not row.get("website_url") for row in candidates):
+        return candidates
+    search = configured_website_search()
+    if max_requests is None:
+        max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
+    if max_companies is None:
+        max_companies = min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100"))))
+    if max_searches is None:
+        max_searches = min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50"))))
+    with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
+        client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
+                        user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER,
+                        respect_robots=RESPECT_ROBOTS)
+        decisions = discover_missing_websites(
+            candidates, client, search=search, max_companies=max_companies,
+            max_searches=max_searches, search_area_hint=search_area_hint,
+            progress_callback=progress_callback)
+        LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
+                 len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
+    return candidates
+
+
+def state_map_bounds(state, transport):
+    payload = _fetch_overpass(build_osm_state_bounds_query(state), transport)
+    bounds = [element.get('bounds') for element in payload['elements'] if isinstance(element, dict)]
+    if not bounds or any(not isinstance(bound, dict) for bound in bounds):
+        raise ValueError('OpenStreetMap returned no state boundary bounds')
+    try:
+        south = min(float(b['minlat']) for b in bounds)
+        west = min(float(b['minlon']) for b in bounds)
+        north = max(float(b['maxlat']) for b in bounds)
+        east = max(float(b['maxlon']) for b in bounds)
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError('OpenStreetMap returned invalid state boundary bounds') from error
+    if not all(math.isfinite(v) for v in (south, west, north, east)) or not (47 <= south < north <= 56 and 5 <= west < east <= 16):
+        raise ValueError('OpenStreetMap returned invalid German state boundary bounds')
+    return south, west, north, east
+
+
+def _fetch_state_map(state, transport, progress_callback):
+    south, west, north, east = state_map_bounds(state, transport)
+    height, width = math.ceil((north-south)/.5), math.ceil((east-west)/.5)
+    pending = [((south+y*.5, west+x*.5, min(north, south+(y+1)*.5), min(east, west+(x+1)*.5)), 0)
+               for y in range(height) for x in range(width)]
+    elements = {}
+    completed = 0
+    while pending:
+        box, depth = pending.pop(0)
+        if progress_callback:
+            progress_callback(f'Searching state map sections: {completed} complete, {len(pending)+1} remaining',
+                              companies_found=len(elements))
+        try:
+            payload = _fetch_overpass(build_osm_state_query(state, bbox=box), transport, split_on_timeout=depth < 2)
+        except OverpassIncompleteError as error:
+            if depth >= 2:
+                raise
+            s, w, n, e = box
+            midlat, midlon = (s+n)/2, (w+e)/2
+            pending[0:0] = [(child, depth+1) for child in (
+                (s,w,midlat,midlon), (s,midlon,midlat,e), (midlat,w,n,midlon), (midlat,midlon,n,e))]
+            LOG.warning('Subdividing timed-out state map section %s: %s', box, error)
+            continue
+        for element in payload['elements']:
+            if isinstance(element, dict):
+                elements[(element.get('type'), element.get('id'))] = element
+        completed += 1
+    return {'elements': list(elements.values())}
+
+
+def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
+                             *, state: str | None = None, opener=None,
+                             progress_callback: Callable[..., bool | None] | None = None) -> list[dict]:
+    """Fetch a bounded, location-centered company set from Overpass and enrich homepages."""
+    if progress_callback:
+        callback = progress_callback
+        def report_progress(message, **counts):
+            if callback(message, **counts) is False:
+                raise LocationSearchCancelled('Location search was cancelled or its lease was lost')
+        progress_callback = report_progress
+    if progress_callback:
+        progress_callback("Searching state-wide map listings" if state else "Searching nearby map listings")
+    state = normalize_german_state(state) if state else None
+    transport = opener or urlopen
+    payload = (_fetch_state_map(state, transport, progress_callback) if state else
+               _fetch_overpass(build_osm_radius_query(latitude, longitude, radius_m), transport))
     # A shared request cap includes robots and redirects. No search credentials are
     # required for email-domain verification; API lookup is enabled when configured.
     def enrich(candidates):
         if not any(not row.get("website_url") for row in candidates):
             return
-        search = configured_website_search()
         # The nearest mapped city's name is a search-area hint, never a source tag
         # or an acceptance criterion for a company whose address is missing.
         tagged = [row for row in candidates if isinstance((row.get('tags') or {}).get('addr:city'), str)
                   and row['tags']['addr:city'].strip()]
         nearest = min(tagged, key=lambda row: haversine_m(latitude, longitude,
                                                         row['latitude'], row['longitude'])) if tagged else None
-        search_area_hint = nearest['tags']['addr:city'].strip() + ' Region' if nearest else None
-        max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
-        with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
-            client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
-                            user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER, respect_robots=RESPECT_ROBOTS)
-            decisions = discover_missing_websites(
-                candidates, client, search=search,
-                max_companies=min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100")))),
-                max_searches=min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50")))),
-                search_area_hint=search_area_hint,
-                progress_callback=progress_callback)
-            LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
-                     len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
-    return resolve_location_candidates(payload, latitude, longitude, radius_m,
+        search_area_hint = state or (nearest['tags']['addr:city'].strip() + ' Region' if nearest else None)
+        resolve_missing_company_websites(candidates, progress_callback=progress_callback,
+                                         search_area_hint=search_area_hint)
+    return resolve_location_candidates(payload, latitude, longitude, None if state else radius_m,
                                        homepage_resolver=enrich, progress_callback=progress_callback)

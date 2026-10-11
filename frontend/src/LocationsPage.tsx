@@ -6,6 +6,7 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, ''
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
 
 type ResolvedLocation = {
+  search_scope?: 'radius' | 'state' | 'country'
   label: string; city?: string | null; state?: string | null; postcode?: string | null
   latitude: number; longitude: number; precision?: string; type?: string
 }
@@ -13,7 +14,7 @@ type ConfiguredLocation = ResolvedLocation & {
   id: number; radius_km: number; interval_days: number; enabled: boolean; next_run_at: string | null
 }
 type DiscoveryJob = {
-  id: number; label: string; city: string | null; status: string; kind: string; stage: string
+  search_scope?: 'radius' | 'state' | 'country'; state?: string | null; id: number; label: string; city: string | null; status: string; kind: string; stage: string
   radius_km: number; scheduled_for: string | null; created_at: string; started_at: string | null
   progress_message: string | null; progress_updated_at: string | null
   candidate_total: number; processed_count: number; succeeded_count: number
@@ -52,6 +53,9 @@ export default function LocationsPage() {
   const [locations, setLocations] = useState<ConfiguredLocation[]>([])
   const [jobs, setJobs] = useState<DiscoveryJob[]>([])
   const [query, setQuery] = useState('')
+  const [searchScope, setSearchScope] = useState<'radius' | 'state' | 'country'>('country')
+  const [states, setStates] = useState<string[]>([])
+  const [selectedState, setSelectedState] = useState('Baden-Württemberg')
   const [radius, setRadius] = useState(15)
   const [intervalDays, setIntervalDays] = useState(7)
   const [choices, setChoices] = useState<ResolvedLocation[]>([])
@@ -61,6 +65,15 @@ export default function LocationsPage() {
   const [cancellingJobId, setCancellingJobId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(apiUrl('/api/v1/states'), { signal: controller.signal }).then(async response => {
+      if (!response.ok) throw new Error('Could not load German states.')
+      setStates((await response.json()).items)
+    }).catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
+    return () => controller.abort()
+  }, [])
 
   const refresh = useCallback(async () => {
     const [locationResponse, jobResponse] = await Promise.all([
@@ -89,6 +102,15 @@ export default function LocationsPage() {
 
   async function resolveLocation(event: FormEvent) {
     event.preventDefault()
+    if (searchScope === 'country') {
+      await saveLocation({ label: 'Germany', search_scope: 'country', latitude: 0, longitude: 0 })
+      return
+    }
+    if (searchScope === 'state') {
+      await saveLocation({ label: selectedState, state: selectedState, search_scope: 'state',
+                           latitude: 0, longitude: 0 })
+      return
+    }
     if (query.trim().length < 2) return
     setWorking(true)
     setError('')
@@ -96,7 +118,7 @@ export default function LocationsPage() {
     try {
       const response = await fetch(apiUrl('/api/v1/locations/resolve'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query.trim() }),
+        body: JSON.stringify({ query: query.trim(), search_scope: 'radius' }),
       })
       const payload = await response.json()
       if (!response.ok) throw new Error(errorMessage(payload, 'Could not resolve that location.'))
@@ -111,8 +133,7 @@ export default function LocationsPage() {
     }
   }
 
-  async function saveLocation() {
-    const selected = choices[selectedIndex]
+  async function saveLocation(selected = choices[selectedIndex]) {
     if (!selected) return
     setWorking(true)
     setError('')
@@ -126,7 +147,9 @@ export default function LocationsPage() {
       if (!response.ok) throw new Error(errorMessage(payload, 'Could not save this location.'))
       setChoices([])
       setQuery('')
-      setNotice(`${payload.label} was added. We’re finding nearby companies and their websites now.`)
+      setNotice(payload.already_saved
+        ? `${payload.label} is already saved. Use “Search this place now” to refresh its company inventory.`
+        : `${payload.label} was added. We’re finding ${payload.search_scope === 'country' ? 'companies across Germany' : payload.search_scope === 'state' ? 'companies across the whole state' : 'nearby companies'} and their websites now.`)
       await refresh()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save this location.')
@@ -208,7 +231,7 @@ export default function LocationsPage() {
         <div>
           <p className="eyebrow">YOUR SEARCH AREAS</p>
           <h1>Places to <em>search.</em></h1>
-          <p className="intro-copy">Choose a place and distance. We’ll find nearby companies first, then check their websites for open jobs.</p>
+          <p className="intro-copy">Search all of Germany, a German state, or a local area. We’ll find companies first, then check their websites for open jobs.</p>
         </div>
         <div className="snapshot-pill"><span>{locations.length.toString().padStart(2, '0')}</span> SAVED SEARCH AREAS</div>
       </section>
@@ -219,28 +242,42 @@ export default function LocationsPage() {
       <section className="location-setup-card">
         <div className="section-heading">
           <div><p className="eyebrow">START HERE</p><h2>Add a location</h2></div>
-          <p>Choose a German city, state, or postcode and how far around it to look.</p>
+          <p>Discover employers across Germany and continuously check their hiring pages.</p>
         </div>
+        <label className="interval-control">
+          <span className="control-label">SEARCH COVERAGE</span>
+          <select aria-label="Search coverage" value={searchScope}
+            onChange={event => { setSearchScope(event.target.value as 'radius' | 'state' | 'country'); setChoices([]) }}>
+            <option value="country">All of Germany</option>
+            <option value="radius">City or postcode with radius</option>
+            <option value="state">Whole German state</option>
+          </select>
+        </label>
         <form className="location-setup-form" onSubmit={resolveLocation}>
-          <label className="location-query-field">
-            <span className="control-label">CITY, STATE OR POSTCODE</span>
-            <input value={query} onChange={event => setQuery(event.target.value)} placeholder="e.g. Karlsruhe, Bavaria, or 76133" />
-          </label>
-          <label className="radius-control">
+          {searchScope === 'country' ? <p className="location-setup-note">All 16 states, checked section by section.</p> : searchScope === 'state' ? <label className="location-query-field">
+            <span className="control-label">GERMAN STATE</span>
+            <select aria-label="German state" value={selectedState} onChange={event => setSelectedState(event.target.value)}>
+              {states.map(state => <option key={state} value={state}>{state}</option>)}
+            </select>
+          </label> : <label className="location-query-field">
+            <span className="control-label">CITY OR POSTCODE</span>
+            <input value={query} onChange={event => setQuery(event.target.value)} placeholder="e.g. Karlsruhe, Berlin, or 76133" />
+          </label>}
+          {searchScope === 'radius' && <label className="radius-control">
             <span className="control-label">DISTANCE AROUND IT</span>
             <select value={radius} onChange={event => setRadius(Number(event.target.value))}>
               {[5, 10, 15, 25, 50, 100, 200].map(value => <option key={value} value={value}>{value} km</option>)}
             </select>
-          </label>
-          <label className="interval-control">
+          </label>}
+          {searchScope !== 'country' && <label className="interval-control">
             <span className="control-label">SEARCH AGAIN</span>
             <select value={intervalDays} onChange={event => setIntervalDays(Number(event.target.value))}>
               {[1, 7, 14, 30, 60, 90].map(value => <option key={value} value={value}>{value === 1 ? 'Daily' : `Every ${value} days`}</option>)}
             </select>
-          </label>
-          <button className="search-button" type="submit" disabled={working || query.trim().length < 2}>
+          </label>}
+          <button className="search-button" type="submit" disabled={working || (searchScope === 'radius' ? query.trim().length < 2 : searchScope === 'state' && !states.length)}>
             {working ? <span className="spinner small" /> : <span aria-hidden="true">⌕</span>}
-            <span>{working ? 'Working…' : 'Find location'}</span>
+            <span>{working ? 'Working…' : searchScope === 'country' ? 'Add Germany and find companies' : searchScope === 'state' ? 'Add state and find companies' : 'Find location'}</span>
           </button>
         </form>
         {choices.length > 0 && <div className="location-choice-panel">
@@ -252,7 +289,7 @@ export default function LocationsPage() {
             Add location and find companies
           </button>
         </div>}
-        <p className="location-setup-note">After you add a place, we first find nearby companies and their websites. Then we look for hiring pages and open jobs.</p>
+        <p className="location-setup-note">Germany discovery saves progress after each map section. Employers with at least 250 employees or recent job posts are checked daily; others are checked every 3, 7, or 30 days based on relevance. Checks are spread over time, and repeatedly irrelevant pages are parked. Employers without a mapped website enter a separate, paced verification queue when public contact details or configured search are available. Public listings may be incomplete, and a company without a verified website cannot yet receive job checks.</p>
       </section>
 
       <section className="locations-list-section">
@@ -265,22 +302,27 @@ export default function LocationsPage() {
             {locations.map(location => <article className="configured-location-card" key={location.id}>
               <div className="configured-location-top">
                 <span className="location-card-pin" aria-hidden="true">⌖</span>
-                <span className={`schedule-state ${location.enabled ? 'is-enabled' : ''}`}>{location.enabled ? 'REPEATS' : 'PAUSED'}</span>
+                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? 'RANKED' : location.enabled ? 'REPEATS' : 'PAUSED'}</span>
               </div>
               <h3>{location.city || location.label.split(',')[0]}</h3>
               <p className="configured-location-label">{location.state || location.postcode || location.label}</p>
-              <div className="location-card-meta"><span>Within {location.radius_km} km</span><span>Every {location.interval_days} days</span></div>
-              <p className="next-run-label">Next search <strong>{location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
+              <div className="location-card-meta"><span>{location.search_scope === 'country' ? 'All Germany' : location.search_scope === 'state' ? 'Whole state' : `Within ${location.radius_km} km`}</span><span>{location.search_scope === 'country' ? 'Continuous ranked checks' : `Every ${location.interval_days} days`}</span></div>
+              <p className="next-run-label">{location.search_scope === 'country' ? 'Company page checks' : 'Next search'} <strong>{location.search_scope === 'country' ? 'Rank based' : location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
+              <a className="configure-locations-link" href={location.search_scope === 'country' ? `/?country=DE&location_key=saved:${location.id}` : location.search_scope === 'state'
+                ? `/?state=${encodeURIComponent(location.state || location.label)}&location_key=saved:${location.id}`
+                : `/?lat=${location.latitude}&lon=${location.longitude}&radius_km=${location.radius_km}&place=${encodeURIComponent(location.city || location.label)}&location_key=saved:${location.id}`}>
+                View companies and jobs
+              </a>
               <div className="location-card-actions">
                 <button type="button" className="primary-small-button" disabled={working} onClick={() => void runNow(location)}>Search this place now</button>
-                <button type="button" className="text-button" onClick={() => void updateLocation(location, !location.enabled)}>{location.enabled ? 'Pause' : 'Resume'}</button>
+                {location.search_scope !== 'country' && <button type="button" className="text-button" onClick={() => void updateLocation(location, !location.enabled)}>{location.enabled ? 'Pause' : 'Resume'}</button>}
                 <button type="button" className="text-button text-danger" onClick={() => void deleteLocation(location)}>Remove</button>
               </div>
             </article>)}
           </div> : <div className="empty-panel"><strong>No saved locations yet</strong><span>Add a city or postcode above to find nearby companies.</span></div>}
       </section>
 
-      <p className="location-setup-note">Source postings checked includes existing postings and roles at other locations. Job results show matching work locations; remote roles have a separate filter. Postings with no matching location or an expired closing date are excluded.</p>
+      <p className="location-setup-note">Source postings checked includes existing postings and roles at other locations. Local searches filter by work location; Germany and state searches show postings from employers discovered in that area, across all work locations. Expired postings are excluded from results.</p>
 
       <section className="crawl-activity-section">
         <div className="section-heading">
@@ -295,12 +337,12 @@ export default function LocationsPage() {
               : <div className="empty-activity">No searches are running. Start one from a saved location.</div>}
           </article>
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + locations.filter(location => location.enabled).length}</span></div>
+            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + locations.filter(location => location.enabled && location.search_scope !== 'country').length}</span></div>
             {scheduledJobs.map(job => <ScheduledJobCard key={`job-${job.id}`} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)}
-            {locations.filter(location => location.enabled).map(location => <div className="scheduled-location" key={`location-${location.id}`}>
+            {locations.filter(location => location.enabled && location.search_scope !== 'country').map(location => <div className="scheduled-location" key={`location-${location.id}`}>
               <span className="scheduled-icon" aria-hidden="true">◷</span>
-              <span><strong>{location.city || location.label}</strong><small>Repeats · within {location.radius_km} km · every {location.interval_days} days</small></span>
+              <span><strong>{location.city || location.label}</strong><small>Repeats · {location.search_scope === 'country' ? 'all Germany' : location.search_scope === 'state' ? 'whole state' : `within ${location.radius_km} km`} · {location.search_scope === 'country' ? 'continuous ranked checks' : `every ${location.interval_days} days`}</small></span>
               <time>{dateTime(location.next_run_at)}</time>
             </div>)}
             {!scheduledJobs.length && !locations.some(location => location.enabled) && <div className="empty-activity">Nothing is scheduled.</div>}
@@ -338,7 +380,7 @@ function JobProgressCard({ job, onCancel, cancellingJobId }: {
       <button type="button" className="cancel-search-button" disabled={cancellingJobId !== null}
         onClick={onCancel}>{cancellingJobId === job.id ? 'Cancelling…' : 'Cancel search'}</button>
     </div></div>
-    <small>{runStep(job.stage)} · within {job.radius_km} km</small>
+    <small>{runStep(job.stage)} · {job.search_scope === 'country' ? 'all Germany' : job.search_scope === 'state' ? 'whole state' : `within ${job.radius_km} km`}</small>
     <div className={`progress-track ${findingCompanies ? 'is-indeterminate' : ''} ${waiting ? 'is-waiting' : ''}`} role="progressbar" aria-label={runStep(job.stage)} aria-valuemin={0} aria-valuemax={100} {...(findingCompanies || waiting ? { 'aria-valuetext': progressMessage } : { 'aria-valuenow': job.progress_percent })}>
       <span style={findingCompanies || waiting ? undefined : { width: `${job.progress_percent}%` }} />
     </div>
@@ -358,7 +400,7 @@ function ScheduledJobCard({ job, onCancel, cancellingJobId }: {
 }) {
   return <div className="scheduled-location">
     <span className="scheduled-icon" aria-hidden="true">◷</span>
-    <span><strong>{job.label}</strong><small>One-time search · within {job.radius_km} km</small></span>
+    <span><strong>{job.label}</strong><small>One-time search · {job.search_scope === 'country' ? 'all Germany' : job.search_scope === 'state' ? 'whole state' : `within ${job.radius_km} km`}</small></span>
     <time>{dateTime(job.scheduled_for)}</time>
     <button type="button" className="cancel-search-button" disabled={cancellingJobId !== null}
       onClick={onCancel}>{cancellingJobId === job.id ? 'Cancelling…' : 'Cancel search'}</button>

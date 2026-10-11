@@ -82,7 +82,10 @@ class RecruiteeIntegrationTests(unittest.TestCase):
             self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
 
     def manually_rediscover(self, expected_jobs):
-        # Saved feeds belong to the feed worker; an explicit campaign can revisit the homepage.
+        # Isolate the explicit campaign from an independently ranked homepage revisit.
+        with self.factory.begin() as session:
+            company=session.get(Company,self.company_id)
+            company.next_discovery_at=utcnow()+timedelta(days=1)
         with self.factory() as session:
             run_count = len(session.scalars(select(DiscoveryRun)).all())
         self.assertIsNone(discovery_worker._claim_due_company())
@@ -208,6 +211,7 @@ class RecruiteeIntegrationTests(unittest.TestCase):
     def test_existing_supported_recruitee_feed_refreshes_with_active_html_history(self):
         legacy_id = self.legacy_html_jobs()
         with self.factory.begin() as session:
+            session.get(Company,self.company_id).next_discovery_at=utcnow()+timedelta(days=1)
             supported = JobFeed(company_id=self.company_id, provider='recruitee', tenant='example',
                                 board_url=BOARD, feed_url=FEED, status='parsed', job_count=0)
             session.add(supported)

@@ -1,5 +1,6 @@
 """Bounded company-homepage to careers/ATS discovery."""
 import heapq
+import html
 import itertools
 import json
 import re
@@ -274,6 +275,17 @@ def discover(seed, client, max_pages=6, max_depth=3):
             # Do not probe paths on a homepage that is blocked or unavailable.
             if depth == 0: break
             continue
+        # Only employer-owned pages establish company size; a linked shared ATS
+        # may describe the platform's customers or another employer's workforce.
+        if _same_first_party_site(final, _first_party_hosts(seed, result['pages'])):
+            from .app.crawl_ranking import parse_employee_count
+            text = re.sub(r'<[^>]+>', ' ', html.unescape(body.decode('utf-8', errors='replace')))
+            size_match = re.search(r'(?<![\d.,])([1-9]\d{0,2}(?:[., ]\d{3})+|[1-9]\d*)\s*\+?\s*(?:Mitarbeit(?:er(?:innen)?|ende(?:n)?)|Beschäftigte(?:n)?|employees)\b', text, re.I)
+            size_context = text[max(0, size_match.start()-160):size_match.start()] if size_match else ''
+            third_party_size = bool(re.search(r'\b(?:Kunden?|customers?|clients?|Partner(?:n)?|participants?|Teilnehmer)\b', size_context, re.I))
+            if size_match and not third_party_size and (employees := parse_employee_count(size_match[1])):
+                result['company_size'] = {'employee_count':employees, 'source':'employer_website',
+                                          'source_url':final, 'text':size_match[0]}
         if 'json' in meta.get('content_type','').lower() or urlsplit(final).path.lower().endswith('.json'):
             try:
                 parsed = parse_feed('schema_org',body,final)
@@ -295,6 +307,20 @@ def discover(seed, client, max_pages=6, max_depth=3):
                                      'jobs':parsed['jobs'],'feed_http_status':meta.get('status'),'capture':meta.get('capture')})
             result['status']='jobs_feed_found'
             break
+        if depth == 0 and _same_first_party_site(final, _first_party_hosts(seed, result['pages'])):
+            root_text = body.decode('utf-8', errors='replace')
+            root_info = inspect_page(final, root_text, preferred_locations=seed.get('preferred_locations'))
+            visible = re.sub(r'<[^>]+>', ' ', html.unescape(root_text))
+            parked = re.search(r'\b(?:domain (?:is )?for sale|buy this domain|domain steht zum verkauf|domain[- ]?parking)\b', visible, re.I)
+            if (parked and not root_info.get('candidates') and not root_info.get('ats') and
+                    not root_info.get('jobposting_count') and root_info.get('classification') not in {'career_content','jobposting'}):
+                # An explicit parked seed is a complete check of this source. There
+                # is no employer career tree to probe or truncate on a parked domain.
+                page.update(root_info)
+                page['irrelevant_evidence'] = parked[0]
+                result.update(irrelevant=True, complete=True, irrelevant_reason='Explicitly parked domain')
+                queue.clear()
+                break
         if not fallbacks_added:
             for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
                 enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
@@ -505,6 +531,6 @@ def discover(seed, client, max_pages=6, max_depth=3):
     result['limits']={'max_pages':max_pages,'max_depth':max_depth,'max_boards':3,
                       'max_personio_posting_scopes':MAX_PERSONIO_POSTING_SCOPES,
                       'personio_scope_budget_reached':personio_scope_budget_reached,
-                      'page_budget_reached':len(result['pages'])>=max_pages,'remaining_queue':len(queue),
+                      'page_budget_reached':len(result['pages'])>=max_pages and not result.get('irrelevant'),'remaining_queue':len(queue),
                       'duplicate_redirects_skipped':duplicate_redirects_skipped}
     return result

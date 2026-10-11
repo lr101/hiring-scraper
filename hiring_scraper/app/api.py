@@ -26,9 +26,9 @@ from hiring_scraper.app.models import (
     LocationCache, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
-    configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json,
+    configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
 )
-from hiring_scraper.geography import haversine_m, normalize_german_state
+from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
 from hiring_scraper.app.applications import APPLICATION_STATUSES, ApplicationRequest, ApplicationStatus, application_json
@@ -46,16 +46,19 @@ _LAST_NOMINATIM_REQUEST = 0.0
 
 
 class LocationQuery(BaseModel):
+    search_scope: Literal["radius", "state", "country"] | None = None
     query: str = Field(min_length=2, max_length=200)
 
 
 class ConfiguredLocationCreate(BaseModel):
-    label: str = Field(min_length=2, max_length=255)
+    search_scope: Literal["radius", "state", "country"] = "radius"
+    label: str | None = Field(None, min_length=2, max_length=255)
     city: str | None = Field(default=None, max_length=120)
+    country: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
     postcode: str | None = Field(default=None, max_length=20)
-    latitude: float = Field(ge=-90, le=90)
-    longitude: float = Field(ge=-180, le=180)
+    latitude: float | None = Field(None, ge=-90, le=90)
+    longitude: float | None = Field(None, ge=-180, le=180)
     radius_km: float = Field(default=15, gt=0, le=200)
     interval_days: int = Field(default=7, ge=1, le=365)
 
@@ -67,9 +70,11 @@ class ConfiguredLocationUpdate(BaseModel):
 
 
 class DiscoveryJobCreate(BaseModel):
+    search_scope: Literal["radius", "state", "country"] = "radius"
     location_id: int | None = Field(default=None, ge=1)
     label: str | None = Field(default=None, min_length=2, max_length=255)
     city: str | None = Field(default=None, max_length=120)
+    country: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, max_length=120)
     postcode: str | None = Field(default=None, max_length=20)
     latitude: float | None = Field(default=None, ge=-90, le=90)
@@ -144,12 +149,22 @@ def _distance(company: Company, latitude: float, longitude: float) -> float:
 
 
 def _company_json(company: Company, distance_m: float, active_job_count: int | None = None) -> dict[str, Any]:
-    return {"id": company.id, "name": company.name, "domain": company.domain,
+    next_check = None
+    if not company.crawl_paused:
+        scheduled = [value for value in [company.next_discovery_at, *(feed.next_scan_at for feed in company.feeds)] if value]
+        if scheduled:
+            next_check = min(scheduled, key=lambda value: value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value)
+    return {"country_code": company.country_code, "employee_count": company.employee_count,
+            "crawl_priority": company.crawl_priority, "crawl_interval_days": company.crawl_interval_days,
+            "crawl_reason": company.crawl_reason, "crawl_paused": company.crawl_paused,
+            "ranking_updated_at": company.ranking_updated_at.isoformat() if company.ranking_updated_at else None,
+            "next_check_at": next_check.isoformat() if next_check else None,
+            "id": company.id, "name": company.name, "domain": company.domain,
             "website_url": company.website_url, "category": company.category,
             "domain_match_method": company.domain_match_method,
             "domain_evidence_url": company.domain_evidence_url,
             "source": company.source, "source_url": company.source_url,
-            "latitude": company.latitude, "longitude": company.longitude,
+            "state": company.state, "latitude": company.latitude, "longitude": company.longitude,
             "location_precision": company.location_precision, "location_label": company.location_label,
             "career_url": company.career_url, "career_status": company.career_status,
             "distance_m": round(distance_m, 1) if distance_m != float("inf") else None,
@@ -251,8 +266,65 @@ def readiness(session: Session = Depends(get_session)) -> dict[str, str]:
     return {"status": "ready"}
 
 
+def _canonical_country(country: str | None) -> str | None:
+    if country is None:
+        return None
+    if country.strip().casefold() not in {"de", "germany", "deutschland"}:
+        raise HTTPException(status_code=422, detail="Only Germany (DE) is supported for country searches")
+    return "DE"
+
+
+def _lock_germany_inventory(session: Session) -> None:
+    """Serialize Germany inventory create requests before checking for a live job."""
+    if engine.dialect.name == "postgresql":
+        session.execute(text("SELECT pg_advisory_xact_lock(1547632348, 1)"))
+
+
+def _active_germany_inventory(session: Session) -> DiscoveryJob | None:
+    return session.scalar(select(DiscoveryJob).where(
+        DiscoveryJob.search_scope == "country",
+        DiscoveryJob.stage == "company_homepage_discovery",
+        DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+    ).order_by(DiscoveryJob.id).limit(1))
+
+
+def _country_location() -> dict[str, Any]:
+    return {"label": "Germany", "country": "DE", "state": None, "city": None, "postcode": None,
+            "search_scope": "country", "latitude": 0.0, "longitude": 0.0,
+            "precision": "country_boundary", "type": "country", "country_code": "de"}
+
+
+def _canonical_state(state: str | None) -> str | None:
+    if state is None:
+        return None
+    try:
+        return normalize_german_state(state)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+def _state_location(state: str) -> dict[str, Any]:
+    return {"label": state, "state": state, "city": None, "postcode": None,
+            "search_scope": "state", "latitude": 0.0, "longitude": 0.0,
+            "precision": "state_boundary", "type": "state", "country_code": "de"}
+
+
+@app.get("/api/v1/states")
+def list_states() -> dict[str, Any]:
+    return {"items": list(GERMAN_STATES)}
+
+
 @app.post("/api/v1/locations/resolve")
 def resolve_location(request: LocationQuery, session: Session = Depends(get_session)) -> dict[str, Any]:
+    if request.search_scope == "country" or request.search_scope != "radius" and request.query.strip().casefold() in {"de", "germany", "deutschland"}:
+        _canonical_country(request.query)
+        return {"query": request.query, "results": [_country_location()], "cached": True}
+    try:
+        state = normalize_german_state(request.query) if request.search_scope != "radius" else None
+    except ValueError:
+        state = None
+    if state:
+        return {"query": request.query, "results": [_state_location(state)], "cached": True}
     normalized = _key(request.query)
     if normalized in {"karlsruhe", "karlsruhe baden württemberg", "karlsruhe baden-württemberg"}:
         return {"query": request.query, "results": [KARLSRUHE], "cached": True}
@@ -277,29 +349,62 @@ def list_configured_locations(session: Session = Depends(get_session)) -> dict[s
 @app.post("/api/v1/locations", status_code=201)
 def create_configured_location(request: ConfiguredLocationCreate,
                                session: Session = Depends(get_session)) -> dict[str, Any]:
-    label = str(_model_value(request, "label", "")).strip()
+    search_scope = _model_value(request, "search_scope", "radius")
+    active_country_job = None
+    if search_scope == "country":
+        _canonical_country(_model_value(request, "country", "DE"))
+        _lock_germany_inventory(session)
+        active_country_job = _active_germany_inventory(session)
+        existing = session.scalar(select(ConfiguredLocation).where(
+            ConfiguredLocation.search_scope == "country").order_by(ConfiguredLocation.id).limit(1))
+        if existing is not None:
+            latest = active_country_job or session.scalar(select(DiscoveryJob).where(
+                DiscoveryJob.search_scope == "country").order_by(DiscoveryJob.id.desc()).limit(1))
+            result = {**configured_location_json(existing), "already_saved": True,
+                      "first_discovery_job": discovery_job_json(latest) if latest else None}
+            session.commit()
+            return result
+        values = _country_location()
+    elif search_scope == "state":
+        state = _canonical_state(_model_value(request, "state"))
+        if not state:
+            raise HTTPException(status_code=422, detail="Choose a German state")
+        values = _state_location(state)
+    else:
+        values = {key: _model_value(request, key) for key in
+                  ("label", "city", "state", "postcode", "latitude", "longitude")}
+        if values["latitude"] is None or values["longitude"] is None:
+            raise HTTPException(status_code=422, detail="Provide coordinates for a radius search")
+    label = str(values["label"] or "").strip()
     if len(label) < 2:
         raise HTTPException(status_code=422, detail="Location label must contain at least two characters")
     now = utcnow()
     interval_days = int(_model_value(request, "interval_days", 7))
     location = ConfiguredLocation(
         label=label,
-        city=_model_value(request, "city"), state=_model_value(request, "state"),
-        postcode=_model_value(request, "postcode"),
-        latitude=float(_model_value(request, "latitude")),
-        longitude=float(_model_value(request, "longitude")),
+        search_scope=search_scope, city=values["city"], state=values["state"],
+        postcode=values["postcode"],
+        latitude=float(values["latitude"]), longitude=float(values["longitude"]),
         radius_km=float(_model_value(request, "radius_km", 15)),
         interval_days=interval_days, enabled=True,
-        next_run_at=now + timedelta(days=interval_days), created_at=now, updated_at=now,
+        next_run_at=(now + timedelta(days=interval_days) if search_scope != "country" else None),
+        created_at=now, updated_at=now,
     )
     session.add(location)
     session.flush()
-    first_job = make_discovery_job(
-        session, label=location.label, city=location.city, state=location.state,
-        postcode=location.postcode, latitude=location.latitude,
-        longitude=location.longitude, radius_km=location.radius_km,
-        configured_location_id=location.id, kind="initial", now=now,
-    )
+    if search_scope == "country" and active_country_job is not None:
+        # The saved location may have been removed while its inventory kept
+        # running, or a manual country scan may have started first. Reuse that
+        # global inventory and attach its status to the newly saved entry.
+        active_country_job.configured_location_id = location.id
+        first_job = active_country_job
+    else:
+        first_job = make_discovery_job(
+            session, label=location.label, search_scope=location.search_scope, city=location.city, state=location.state,
+            postcode=location.postcode, latitude=location.latitude,
+            longitude=location.longitude, radius_km=location.radius_km,
+            configured_location_id=location.id, kind="initial", now=now,
+        )
     session.commit()
     session.refresh(location)
     session.refresh(first_job)
@@ -320,10 +425,12 @@ def update_configured_location(location_id: int, request: ConfiguredLocationUpda
         location.radius_km = float(radius_km)
     if interval_days is not None:
         location.interval_days = int(interval_days)
-        location.next_run_at = now + timedelta(days=location.interval_days)
+        location.next_run_at = (now + timedelta(days=location.interval_days)
+                                if location.search_scope != "country" else None)
     if enabled is not None:
         location.enabled = bool(enabled)
-        if location.enabled and (location.next_run_at is None or location.next_run_at <= now):
+        if (location.enabled and location.search_scope != "country" and
+                (location.next_run_at is None or location.next_run_at <= now)):
             location.next_run_at = now + timedelta(days=location.interval_days)
     location.updated_at = now
     session.commit()
@@ -349,10 +456,23 @@ def create_discovery_job(request: DiscoveryJobCreate,
     if location_id is not None and location is None:
         raise HTTPException(status_code=404, detail="Configured location not found")
     if location is not None:
+        search_scope = location.search_scope
         label, city, state, postcode = location.label, location.city, location.state, location.postcode
         latitude, longitude = location.latitude, location.longitude
         radius_km, configured_location_id = location.radius_km, location.id
+    elif _model_value(request, "search_scope", "radius") == "country":
+        _canonical_country(_model_value(request, "country", "DE"))
+        search_scope, label, city, state, postcode = "country", "Germany", None, None, None
+        latitude, longitude, radius_km, configured_location_id = 0.0, 0.0, 15, None
+    elif _model_value(request, "search_scope", "radius") == "state":
+        search_scope = "state"
+        state = _canonical_state(_model_value(request, "state"))
+        if not state:
+            raise HTTPException(status_code=422, detail="Choose a German state")
+        label, city, postcode = state, None, None
+        latitude, longitude, radius_km, configured_location_id = 0.0, 0.0, 15, None
     else:
+        search_scope = "radius"
         label = str(_model_value(request, "label") or "").strip()
         latitude = _model_value(request, "latitude")
         longitude = _model_value(request, "longitude")
@@ -367,8 +487,15 @@ def create_discovery_job(request: DiscoveryJobCreate,
             scheduled_for = datetime.fromisoformat(scheduled_for.replace("Z", "+00:00"))
         except ValueError as error:
             raise HTTPException(status_code=422, detail="scheduled_for must be an ISO datetime") from error
+    if search_scope == "country":
+        _lock_germany_inventory(session)
+        active = _active_germany_inventory(session)
+        if active is not None:
+            result = discovery_job_json(active)
+            session.commit()
+            return result
     job = make_discovery_job(
-        session, label=label, city=city, state=state, postcode=postcode,
+        session, label=label, search_scope=search_scope, city=city, state=state, postcode=postcode,
         latitude=float(latitude), longitude=float(longitude), radius_km=float(radius_km),
         configured_location_id=configured_location_id, scheduled_for=scheduled_for,
     )
@@ -441,7 +568,9 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
                    offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le=100),
                    session: Session = Depends(get_session),
                    discovery: Literal['all','domain','career','feed','jobs'] = 'all',
-                   sort: Literal['distance','name'] = 'distance') -> dict[str, Any]:
+                   sort: Literal['distance','name'] = 'distance', state: str | None = None, country: str | None = None) -> dict[str, Any]:
+    state = _canonical_state(state)
+    employer_country = _canonical_country(country)
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
     if query:
@@ -455,6 +584,15 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
         filters.append(Company.feeds.any(JobFeed.provider != 'html_jobs'))
     elif discovery == 'jobs':
         filters.append(Company.feeds.any(JobFeed.jobs.any(Job.is_active.is_(True))))
+    if state or employer_country:
+        filters.append(german_company_filter() if employer_country else Company.state == state)
+        total = session.scalar(select(func.count()).select_from(Company).where(*filters)) or 0
+        rows = session.scalars(base.where(*filters).order_by(Company.name, Company.id)
+                               .offset(offset).limit(limit)).all()
+        counts = _unique_active_job_counts(session, [company.id for company in rows])
+        return {"items": [_company_json(company, float("inf"), counts.get(company.id, 0)) for company in rows],
+                "total": total, "offset": offset, "limit": limit,
+                "location": {"state": state, "country": employer_country, "search_scope": "country" if employer_country else "state"}}
     radius_m = radius_km * 1000
     if not IS_SQLITE:
         spatial_clause = text("ST_DWithin(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)")
@@ -519,15 +657,28 @@ def _profile_match(job, profile, scope):
     return match
 
 
+def _result_scope(job, latitude, longitude, radius_km, place, country, state=None, employer_country=None):
+    if employer_country and not expiry(job)['expired']:
+        company = job.feed.company
+        eligible = company.country_code == 'DE' or company.state in GERMAN_STATES
+        return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
+                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_country') if eligible else None}
+    if state and not expiry(job)['expired']:
+        eligible = job.feed.company.state == state
+        return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
+                'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_state') if eligible else None}
+    return geographic_scope(job, latitude, longitude, radius_km, place, country)
+
+
 def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                profile, min_match_score, include_unknown, place=None, country=None,
-               location_scope='area'):
+               location_scope='area', state=None, employer_country=None):
     filtered = {'expired': 0, 'remote_country': 0, 'outside_area': 0,
                 'remote_not_selected': 0, 'not_remote': 0,
                 'profile_conflict': 0, 'below_score': 0, 'uncertain': 0}
     scoped, scopes = [], {}
     for job in jobs:
-        scope = geographic_scope(job, latitude, longitude, radius_km, place, country)
+        scope = _result_scope(job, latitude, longitude, radius_km, place, country, state, employer_country)
         if scope['reason'] != 'expired' and location_scope == 'remote' and not fully_remote(job):
             scope = {'eligible': False, 'reason': 'not_remote', 'unknowns': [], 'match_kind': None}
         elif scope['eligible'] and location_scope == 'area' and fully_remote(job):
@@ -575,9 +726,10 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                        'unlikely': tiers.count('unlikely')},
             'coverage': {'source_count': len({job.feed_id for job in jobs}),
                          'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-            'rule': ('explicitly remote within country scope' if location_scope == 'remote' else
+            'rule': ('postings from employers discovered in Germany' if employer_country else 'postings from employers discovered in ' + state if state else ('explicitly remote within country scope' if location_scope == 'remote' else
                      'work location within radius' if location_scope == 'area' else
-                     'work location within radius OR explicitly remote within country scope')}
+                     'work location within radius OR explicitly remote within country scope')),
+            'state': state, 'country': employer_country}
 
 
 @app.get("/api/v1/jobs")
@@ -595,7 +747,10 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
               profile_id: Annotated[int | None, Query(ge=1)] = None,
               min_match_score: Annotated[int | None, Query(ge=0, le=100)] = None,
               include_unknown: bool | None = None,
-              country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None) -> dict[str, Any]:
+              country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None,
+              state: str | None = None, country: str | None = None) -> dict[str, Any]:
+    state = _canonical_state(state)
+    employer_country = _canonical_country(country)
     profile = require_profile(profile_id, session) if profile_id is not None else None
     resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
     defaults = (profile.preferences.get('matching_defaults') or {}) if profile else {}
@@ -609,6 +764,10 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     statement = select(Job).join(Job.feed).join(JobFeed.company).options(
         joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations))
     filters = [Job.is_active.is_(True)]
+    if employer_country:
+        filters.append(german_company_filter())
+    elif state:
+        filters.append(Company.state == state)
     if company_id is not None:
         filters.append(JobFeed.company_id == company_id)
     if query:
@@ -625,7 +784,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     page = _jobs_page(rows, sort, offset, limit, latitude, longitude, radius_km,
                       profile, min_match_score, include_unknown, place,
                       country if resolved['profile_area'] or isinstance(country_code, str) else None,
-                      location_scope)
+                      location_scope, state, employer_country)
     if profile is not None:
         applications = {row.job_id: application_json(row) for row in session.scalars(
             select(JobApplication).where(JobApplication.profile_id == profile.id,
@@ -693,19 +852,24 @@ def get_job(job_id: int, session: Session = Depends(get_session),
             longitude: Annotated[float | None, Query(ge=-180, le=180)] = None,
             radius_km: Annotated[float | None, Query(gt=0, le=200)] = None,
             place: Annotated[str | None, Query(max_length=120)] = None,
-            country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None) -> dict[str, Any]:
+            country_code: Annotated[str | None, Query(pattern=r'^[A-Za-z]{2}$')] = None,
+            state: str | None = None, country: str | None = None) -> dict[str, Any]:
+    state = _canonical_state(state)
+    employer_country = _canonical_country(country)
     statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
                                     selectinload(Job.locations)).where(Job.id == job_id)
     job = session.scalars(statement).unique().first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     data = _job_json(job, include_description=True)
+    if employer_country and profile_id is None:
+        data['geography'] = _result_scope(job, 0, 0, 15, None, None, state, employer_country)
     if profile_id is not None:
         profile = require_profile(profile_id, session)
         resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
-        scope = geographic_scope(job, resolved['latitude'], resolved['longitude'],
+        scope = _result_scope(job, resolved['latitude'], resolved['longitude'],
                                  resolved['radius_km'], resolved['place'],
-                                 resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None) if resolved['profile_area'] or resolved['explicit'] else None
+                                 resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None, state, employer_country) if state or employer_country or resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
         data['profile_match'] = _profile_match(job, profile, scope)
         application = session.scalar(select(JobApplication).where(
@@ -733,15 +897,20 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             longitude: float = Query(8.4034195, ge=-180, le=180),
             radius_km: float = Query(15, gt=0, le=200),
             place: str | None = Query(None, max_length=120),
-            session: Session = Depends(get_session)) -> dict[str, Any]:
-    company_page = list_companies(latitude, longitude, radius_km, None, 0, 1, session)
+            session: Session = Depends(get_session), state: str | None = None, country: str | None = None) -> dict[str, Any]:
+    state = _canonical_state(state)
+    employer_country = _canonical_country(country)
+    company_page = list_companies(latitude, longitude, radius_km, None, 0, 1, session, state=state, country=employer_country)
     job_page = list_jobs(latitude=latitude, longitude=longitude, radius_km=radius_km,
                          company_id=None, query=None, place=place, offset=0, limit=1,
-                         location_scope='area', session=session)
+                         location_scope='area_remote' if state or employer_country else 'area', session=session, state=state, country=employer_country)
     remote_job_page = list_jobs(latitude=latitude, longitude=longitude, radius_km=radius_km,
                                 company_id=None, query=None, place=place, offset=0, limit=1,
-                                location_scope='remote', work_style="remote", session=session)
-    if IS_SQLITE:
+                                location_scope='remote', work_style="remote", session=session, state=state, country=employer_country)
+    if state or employer_country:
+        domain_count = session.scalar(select(func.count(Company.id)).where(
+            german_company_filter() if employer_country else Company.state == state, Company.domain.is_not(None))) or 0
+    elif IS_SQLITE:
         domain_candidates = session.scalars(select(Company).where(Company.domain.is_not(None))).all()
         domain_count = sum(_distance(company, latitude, longitude) <= radius_km * 1000 for company in domain_candidates)
     else:

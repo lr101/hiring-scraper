@@ -55,6 +55,17 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertEqual(run.status, "running")
             self.assertIsNotNone(company.discovery_lease_until)
 
+    def test_shared_website_domain_has_one_global_career_page_schedule(self):
+        due = utcnow() - timedelta(minutes=1)
+        first = self._company(source_id="node/first-office", domain="shared.example",
+                              next_discovery_at=due, crawl_priority=30)
+        second = self._company(source_id="node/second-office", domain="www.shared.example",
+                               next_discovery_at=due, crawl_priority=100)
+        claim = worker._claim_due_company()
+        self.assertEqual(claim[0], first,
+                         "A more relevant branch must not create a second page crawl for the same domain")
+        self.assertIsNone(worker._claim_due_company())
+
     def test_expired_company_lease_marks_the_old_attempt_failed_before_requeue(self):
         company_id = self._company(discovery_lease_until=utcnow() - timedelta(minutes=1))
         with self.factory.begin() as session:
@@ -89,19 +100,20 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertTrue(all(feed.provider == "html_jobs" and feed.next_scan_at for feed in feeds))
         self.assertIsNone(worker._claim_due_company())
 
-    def test_known_feed_is_not_claimed_for_homepage_rediscovery(self):
+    def test_known_feed_and_homepage_have_independent_ranked_refreshes(self):
         company_id = self._company(career_status="jobs_feed_found")
         with self.factory.begin() as session:
             session.add(JobFeed(company_id=company_id, provider="greenhouse",
                                 feed_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs",
                                 status="failed", next_scan_at=utcnow()))
-        self.assertIsNone(worker._claim_due_company())
-        with self.factory() as session:
-            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+        claimed=worker._claim_due_company()
+        self.assertIsNotNone(claimed)
+        self.assertEqual(claimed[0],company_id)
 
     def test_existing_career_page_is_registered_for_direct_refresh(self):
         company_id = self._company(career_status="career_page_found",
-                                   career_url="https://acme.example/careers")
+                                   career_url="https://acme.example/careers",
+                                   next_discovery_at=utcnow()+timedelta(days=1))
         with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
             self.assertFalse(worker.process_once())
         with self.factory() as session:
@@ -114,7 +126,8 @@ class DiscoveryWorkerTests(unittest.TestCase):
 
     def test_direct_career_refresh_finds_new_jobs_after_a_failed_attempt(self):
         company_id = self._company(career_status="career_page_found",
-                                   career_url="https://acme.example/careers")
+                                   career_url="https://acme.example/careers",
+                                   next_discovery_at=utcnow()+timedelta(days=1))
         with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
             self.assertFalse(worker.process_once())
         requested = []

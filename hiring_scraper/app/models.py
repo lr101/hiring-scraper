@@ -30,6 +30,21 @@ class Company(Base):
     domain: Mapped[str | None] = mapped_column(String(255), index=True)
     domain_match_method: Mapped[str | None] = mapped_column(String(60))
     domain_evidence_url: Mapped[str | None] = mapped_column(Text)
+    state: Mapped[str | None] = mapped_column(String(120), index=True)
+    country_code: Mapped[str | None] = mapped_column(String(2), index=True)
+    employee_count: Mapped[int | None] = mapped_column(Integer)
+    size_evidence: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict, server_default=text("'{}'"))
+    crawl_priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text('0'), index=True)
+    crawl_interval_days: Mapped[int | None] = mapped_column(Integer, default=7, server_default=text('7'))
+    crawl_reason: Mapped[str | None] = mapped_column(Text)
+    crawl_paused: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text('false'))
+    irrelevant_checks: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text('0'))
+    ranking_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    homepage_source_tags: Mapped[dict | None] = mapped_column(JSON)
+    homepage_resolution_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
+    homepage_resolution_next_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    homepage_resolution_lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    homepage_resolution_token: Mapped[str | None] = mapped_column(String(36))
     category: Mapped[str | None] = mapped_column(String(120))
     source_url: Mapped[str | None] = mapped_column(Text)
     latitude: Mapped[float | None] = mapped_column(Float)
@@ -70,6 +85,7 @@ class ConfiguredLocation(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     label: Mapped[str] = mapped_column(String(255), nullable=False)
     city: Mapped[str | None] = mapped_column(String(120))
+    search_scope: Mapped[str] = mapped_column(String(16), nullable=False, default="radius", server_default="radius")
     state: Mapped[str | None] = mapped_column(String(120))
     postcode: Mapped[str | None] = mapped_column(String(20))
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
@@ -86,6 +102,15 @@ class ConfiguredLocation(Base):
 
 class DiscoveryJob(Base):
     __tablename__ = "discovery_jobs"
+    __table_args__ = (
+        Index(
+            "uq_active_germany_inventory",
+            "search_scope",
+            unique=True,
+            postgresql_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+            sqlite_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     configured_location_id: Mapped[int | None] = mapped_column(
@@ -93,6 +118,7 @@ class DiscoveryJob(Base):
     kind: Mapped[str] = mapped_column(String(24), nullable=False, default="manual")
     label: Mapped[str] = mapped_column(String(255), nullable=False)
     city: Mapped[str | None] = mapped_column(String(120))
+    search_scope: Mapped[str] = mapped_column(String(16), nullable=False, default="radius", server_default="radius")
     state: Mapped[str | None] = mapped_column(String(120))
     postcode: Mapped[str | None] = mapped_column(String(20))
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
@@ -115,6 +141,7 @@ class DiscoveryJob(Base):
     progress_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     location_scan_lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     location_scan_token: Mapped[str | None] = mapped_column(String(36))
+    map_cursor: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict, server_default=text("'{}'"))
     location_scan_attempt_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default=text("0"))
     error: Mapped[str | None] = mapped_column(Text)

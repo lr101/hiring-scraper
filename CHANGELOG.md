@@ -12,6 +12,11 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Germany discovery across all 16 states with durable section progress and employer-scoped directory results, including all work locations.
+- Continuous ranked career and feed checks: daily for large employers or recent jobs, every 3/7/30 days for other employers, with evidence-based pauses that fresh size or hiring evidence can reactivate. Company details expose cadence, reason, and next check.
+
+- Whole-state company discovery for all 16 German states, with saved searches, recurring source refreshes, and browsing of those employers’ active postings across all work locations. Existing radius searches are preserved by the new state-search migration.
+
 - Per-profile application tracking with New, Open, Not interested, Waiting for reply, Interview, Rejected, and Accepted statuses, plus a status-filtered application overview that retains closed and expired postings. PostgreSQL deployments apply the new job application migration during startup.
 - Mobile result cards, bottom navigation, compact status filters, and larger touch controls for applications, job browsing, profiles, and search areas.
 - Documented public Recruitee XML feeds with employer provenance checks and safeguards for active legacy HTML jobs.
@@ -27,6 +32,8 @@ no historical releases have been reconstructed.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
 ### Fixed
+
+- State-wide map scans query bounded sections and subdivide timed-out sections; incomplete Overpass timeout responses qualify for scheduled retries instead of failing permanently.
 
 - Discovery progress counts overlapping links to the same source posting once and explains why source totals differ from filtered location results.
 

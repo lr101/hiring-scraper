@@ -4,14 +4,14 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select, text
+from sqlalchemy import case, func, select, text, or_
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, utcnow,
 )
-from hiring_scraper.geography import haversine_m
+from hiring_scraper.geography import GERMAN_STATES, haversine_m
 
 
 def _iso(value: datetime | None) -> str | None:
@@ -38,8 +38,58 @@ def company_ids_in_radius(session: Session, latitude: float, longitude: float,
             if haversine_m(latitude, longitude, company.latitude, company.longitude) <= radius_m]
 
 
+def german_company_filter():
+    """Include explicit German membership and legacy observed state evidence."""
+    return or_(Company.country_code == "DE", Company.state.in_(GERMAN_STATES))
+
+
+def _domain_key_expression():
+    domain = func.lower(Company.domain)
+    return case((domain.like("www.%"), func.substr(domain, 5)), else_=domain)
+
+
+def canonical_company_map(session: Session, company_ids: list[int]) -> dict[int, int]:
+    """Map each selected office to the oldest company record for its website."""
+    ids = list(dict.fromkeys(int(value) for value in company_ids))
+    if not ids:
+        return {}
+    rows = session.execute(select(Company.id, Company.domain).where(Company.id.in_(ids))).all()
+    keys = {str(domain).casefold().removeprefix("www.") for _, domain in rows if domain}
+    roots: dict[str, int] = {}
+    if keys:
+        key = _domain_key_expression()
+        matches = session.execute(select(Company.id, key).where(
+            Company.website_url.is_not(None), Company.website_url != "",
+            Company.domain.is_not(None), key.in_(keys)).order_by(Company.id)).all()
+        for company_id, domain_key in matches:
+            roots.setdefault(domain_key, int(company_id))
+    by_id = {int(company_id): (str(domain).casefold().removeprefix("www.") if domain else None)
+             for company_id, domain in rows}
+    return {company_id: roots.get(by_id[company_id], company_id) for company_id in ids}
+
+
+def canonical_company_ids(session: Session, company_ids: list[int]) -> list[int]:
+    """Collapse multiple mapped offices that share one employer website."""
+    company_map = canonical_company_map(session, company_ids)
+    return list(dict.fromkeys(company_map.values()))
+
+
+def company_ids_for_search(session: Session, search) -> list[int]:
+    if search.search_scope == "country":
+        ids = list(session.scalars(select(Company.id).where(
+            german_company_filter(), Company.website_url.is_not(None),
+            Company.website_url != "").order_by(Company.id)))
+        return canonical_company_ids(session, ids)
+    if search.search_scope == "state":
+        ids = list(session.scalars(select(Company.id).where(
+            Company.state == search.state, Company.website_url.is_not(None),
+            Company.website_url != "").order_by(Company.id)))
+        return ids
+    return company_ids_in_radius(session, search.latitude, search.longitude, search.radius_km)
+
+
 def create_discovery_job(session: Session, *, label: str, latitude: float, longitude: float,
-                         radius_km: float, city: str | None = None,
+                         radius_km: float, search_scope: str = "radius", city: str | None = None,
                          state: str | None = None, postcode: str | None = None,
                          configured_location_id: int | None = None, kind: str = "manual",
                          scheduled_for: datetime | None = None,
@@ -51,7 +101,7 @@ def create_discovery_job(session: Session, *, label: str, latitude: float, longi
     status = "scheduled" if scheduled_for is not None and scheduled_for > now else "queued"
     job = DiscoveryJob(
         configured_location_id=configured_location_id, kind=kind, label=label.strip(),
-        city=city, state=state, postcode=postcode, latitude=latitude, longitude=longitude,
+        search_scope=search_scope, city=city, state=state, postcode=postcode, latitude=latitude, longitude=longitude,
         radius_km=radius_km, status=status, stage=stage, scheduled_for=scheduled_for,
         created_at=now, candidate_total=0,
     )
@@ -62,10 +112,11 @@ def create_discovery_job(session: Session, *, label: str, latitude: float, longi
 def configured_location_json(location: ConfiguredLocation) -> dict[str, Any]:
     return {
         "id": location.id, "label": location.label, "city": location.city,
-        "state": location.state, "postcode": location.postcode,
+        "search_scope": location.search_scope, "state": location.state, "postcode": location.postcode,
         "latitude": location.latitude, "longitude": location.longitude,
         "radius_km": location.radius_km, "interval_days": location.interval_days,
-        "enabled": location.enabled, "next_run_at": _iso(location.next_run_at),
+        "enabled": location.enabled,
+        "next_run_at": _iso(location.next_run_at) if location.search_scope != "country" else None,
         "created_at": _iso(location.created_at), "updated_at": _iso(location.updated_at),
     }
 
@@ -78,7 +129,7 @@ def discovery_job_json(job: DiscoveryJob) -> dict[str, Any]:
         progress = 100 if job.status in {"completed", "partial"} else 0
     return {
         "id": job.id, "configured_location_id": job.configured_location_id,
-        "kind": job.kind, "stage": job.stage, "label": job.label, "city": job.city, "state": job.state,
+        "search_scope": job.search_scope, "kind": job.kind, "stage": job.stage, "label": job.label, "city": job.city, "state": job.state,
         "postcode": job.postcode, "latitude": job.latitude, "longitude": job.longitude,
         "radius_km": job.radius_km, "status": job.status,
         "scheduled_for": _iso(job.scheduled_for), "created_at": _iso(job.created_at),
@@ -88,6 +139,7 @@ def discovery_job_json(job: DiscoveryJob) -> dict[str, Any]:
         "companies_found": job.companies_found, "homepages_found": job.homepages_found,
         "jobs_found": job.jobs_found, "progress_percent": progress,
         "progress_message": job.progress_message,
+        "map_cursor": job.map_cursor or {},
         "progress_updated_at": _iso(job.progress_updated_at), "error": job.error,
     }
 
