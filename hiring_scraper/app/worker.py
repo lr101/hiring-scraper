@@ -17,7 +17,8 @@ from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
-from hiring_scraper.app.models import Job, JobFeed, JobLocation, ScanRun, utcnow
+from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
+from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, ScanRun, utcnow
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
@@ -37,10 +38,10 @@ _LAST_ORIGIN_REQUEST: dict[str, float] = {}
 def _claim_due_feed() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
-        statement = (select(JobFeed)
-                     .where(JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
+        statement = (select(JobFeed).join(Company)
+                     .where(Company.crawl_paused.is_(False), JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
-                     .order_by(JobFeed.next_scan_at, JobFeed.id).limit(1))
+                     .order_by(JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)
         feed = session.scalars(statement).first()
@@ -144,6 +145,16 @@ def _set_failure(feed: JobFeed, run: ScanRun, status: str, metadata: dict, error
     run.error = error[:2000]
 
 
+def _schedule_career_revisit(company: Company, now: datetime) -> None:
+    due = next_company_due(company, now)
+    previous = company.next_discovery_at
+    if previous is not None and previous.tzinfo is None:
+        previous = previous.replace(tzinfo=timezone.utc)
+    # Repeated feed success must not push the independent homepage revisit back.
+    if due is None or previous is None or due < previous:
+        company.next_discovery_at = due
+
+
 def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> None:
     now = utcnow()
     with SessionLocal.begin() as session:
@@ -163,8 +174,12 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             feed.last_checked_at = now
             if feed.status != "incomplete":
                 feed.last_error = None
+            refresh_company_rank(session, feed.company, now,
+                                 {'complete': True, 'status': 'complete_empty'}
+                                 if feed.status == 'complete_empty' else None)
             feed.next_scan_at = (_backoff(1, incomplete=True) if feed.status == "incomplete" else
-                                 now + timedelta(hours=SCAN_INTERVAL_HOURS, minutes=random.randint(0, 30)))
+                                 next_feed_due(feed.company, feed, now))
+            _schedule_career_revisit(feed.company, now)
             run.finished_at = now
             run.status = "not_modified"
             run.http_status = 304
@@ -277,8 +292,13 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             (metadata.get("pagination") or {}).get("error") or
             "Feed returned a partial page. No jobs were closed.")
         feed.attempt_count = 0
-        feed.next_scan_at = (now + timedelta(hours=SCAN_INTERVAL_HOURS, minutes=random.randint(0, 30))
+        session.flush()
+        refresh_company_rank(session, feed.company, now,
+                             {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
+        feed.next_scan_at = (next_feed_due(feed.company, feed, now)
                              if complete else _backoff(1, incomplete=True))
+        if complete:
+            _schedule_career_revisit(feed.company, now)
         run.finished_at = now
         run.status = feed.status
         run.http_status = status
