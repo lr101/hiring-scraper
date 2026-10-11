@@ -238,6 +238,44 @@ def _rss_date(value):
     return parsed.isoformat()
 
 
+def _rss_hiring_organization(entry, feed_url):
+    """Read explicit employer fields while leaving feed publishers unattributed."""
+    organization_node = _xml_child(entry, {
+        'hiringorganization', 'hiring_organization', 'employer', 'company', 'organization',
+    })
+    name = None
+    url = None
+    careers_url = None
+    if organization_node is not None:
+        name = (_xml_child_text(organization_node, {'name', 'legalname', 'title'}) or
+                (organization_node.text or '').strip())
+        url = _xml_child_text(organization_node, {'url', 'website', 'homepage', 'sameas'})
+        careers_url = _xml_child_text(organization_node, {'careersurl', 'careerurl', 'joburl'})
+        if not url:
+            url = organization_node.attrib.get('url') or organization_node.attrib.get('href')
+    if not name:
+        name = _xml_child_text(entry, {
+            'companyname', 'employername', 'organizationname', 'hiringorganizationname',
+        })
+    url = url or _xml_child_text(entry, {'companyurl', 'employerurl', 'organizationurl'})
+    careers_url = careers_url or _xml_child_text(entry, {'careersurl', 'careerurl', 'jobboardurl'})
+    organization = {}
+    clean_name = _plain_text(name.strip()) if name and name.strip() else None
+    if clean_name:
+        organization['name'] = clean_name[:300]
+    for key, value in (('url', url), ('careers_url', careers_url)):
+        if not value:
+            continue
+        try:
+            absolute = urljoin(feed_url, value.strip())
+            parts = urlsplit(absolute)
+        except (AttributeError, TypeError, ValueError):
+            continue
+        if parts.scheme in {'http', 'https'} and parts.hostname and not parts.username and not parts.password:
+            organization[key] = absolute[:2000]
+    return organization or None
+
+
 def _parse_rss(body, feed_url):
     """Parse a bounded RSS/Atom job feed without treating a rolling window as complete."""
     if re.search(rb'<!\s*(?:DOCTYPE|ENTITY)\b', body, re.I):
@@ -310,6 +348,9 @@ def _parse_rss(body, feed_url):
         metadata = {'source': 'rss', 'source_feed_url': feed_url,
                     'source_item_id': identifier, 'categories': categories or None,
                     'postal_code': postal_code}
+        organization = _rss_hiring_organization(entry, feed_url)
+        if organization:
+            metadata['hiring_organization'] = organization
         if location:
             metadata['location_source'] = 'rss_item'
         job = {'id': external_id, 'title': title, 'url': job_url,

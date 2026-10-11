@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, or_, select, text, update
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
@@ -31,6 +31,7 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
 )
+from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
@@ -238,6 +239,8 @@ def _sort_jobs(jobs: list[Job], sort: str) -> list[Job]:
 
 
 def _job_employer(job: Job) -> str:
+    if job.employer_company is not None:
+        return job.employer_company.name
     metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
     organization = metadata.get("hiring_organization")
     if isinstance(organization, dict) and isinstance(organization.get("name"), str) and organization["name"].strip():
@@ -249,10 +252,16 @@ def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[
     if not company_ids:
         return {}
     jobs = session.scalars(select(Job).join(Job.feed).where(
-        Job.is_active.is_(True), JobFeed.company_id.in_(company_ids)).options(
-        joinedload(Job.feed), selectinload(Job.locations))).unique().all()
-    return {company_id: len(_deduplicate_jobs([job for job in jobs
-            if job.feed.company_id == company_id])) for company_id in company_ids}
+        Job.is_active.is_(True), or_(JobFeed.company_id.in_(company_ids),
+                                     Job.employer_company_id.in_(company_ids))).options(
+        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+        selectinload(Job.locations))).unique().all()
+    grouped: dict[int, list[Job]] = {company_id: [] for company_id in company_ids}
+    for job in jobs:
+        company_id = job.employer_company_id or job.feed.company_id
+        if company_id in grouped:
+            grouped[company_id].append(job)
+    return {company_id: len(_deduplicate_jobs(rows)) for company_id, rows in grouped.items()}
 
 
 def _feed_json(feed: JobFeed) -> dict[str, Any]:
@@ -266,25 +275,31 @@ def _feed_json(feed: JobFeed) -> dict[str, Any]:
 
 
 def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
-    feed, company = job.feed, job.feed.company
+    feed, source_company = job.feed, job.feed.company
+    company = job.employer_company or source_company
     raw_metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
     organization = raw_metadata.get("hiring_organization")
     organization = organization if isinstance(organization, dict) else {}
     employer_name = organization.get("name") if isinstance(organization.get("name"), str) else None
     employer_url = organization.get("url") if isinstance(organization.get("url"), str) else None
     employer_host = urlsplit(employer_url).hostname if employer_url else None
-    source_company_name = company.name
+    source_company_name = source_company.name
+    resolved_employer_name = (company.name if job.employer_company is not None else
+                              employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
                   "country_code": location.country_code} for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
             "url": job.url, "company_id": company.id,
-            "company_name": employer_name.strip() if employer_name and employer_name.strip() else source_company_name,
-            "company_name_is_employer": bool(employer_name and employer_name.strip() and
-                                                employer_name.strip().casefold() != source_company_name.casefold()),
-            "company_domain": employer_host or company.domain,
-            "company_website": employer_url or company.website_url,
-            "company_source_url": company.source_url, "provider": feed.provider,
+            "company_name": resolved_employer_name,
+            "company_name_is_employer": bool(job.employer_company is not None or
+                                                (employer_name and employer_name.strip() and
+                                                 employer_name.strip().casefold() != source_company_name.casefold())),
+            "company_domain": company.domain or (employer_host if job.employer_company is None else None) or source_company.domain,
+            "company_website": company.website_url or (employer_url if job.employer_company is None else None) or source_company.website_url,
+            "company_source_url": company.source_url or source_company.source_url,
+            "source_company_id": source_company.id, "source_company_name": source_company.name,
+            "provider": feed.provider,
             "board_url": feed.board_url, "feed_status": feed.status,
             "locations": locations, "location_text": job.location_text,
             "is_remote": job.is_remote, "work_arrangement": job.work_arrangement,
@@ -347,7 +362,7 @@ def _lock_germany_inventory(session: Session) -> None:
 def _active_germany_inventory(session: Session) -> DiscoveryJob | None:
     return session.scalar(select(DiscoveryJob).where(
         DiscoveryJob.search_scope == "country",
-        DiscoveryJob.stage == "company_homepage_discovery",
+        DiscoveryJob.stage.in_(("company_homepage_discovery", "career_page_discovery")),
         DiscoveryJob.status.in_(("scheduled", "queued", "running")),
     ).order_by(DiscoveryJob.id).limit(1))
 
@@ -563,6 +578,22 @@ def create_discovery_job(request: DiscoveryJobCreate,
         latitude=float(latitude), longitude=float(longitude), radius_km=float(radius_km),
         configured_location_id=configured_location_id, scheduled_for=scheduled_for,
     )
+    if search_scope == "country":
+        ensure_default_job_feeds(session)
+        now = utcnow()
+        refresh_at = job.scheduled_for or now
+        protected = {"blocked", "bot_challenge", "throttled", "failed", "incomplete",
+                     "schema_error", "unsupported", "paused"}
+        feeds = session.scalars(select(JobFeed).join(Company).where(
+            Company.source == "default_job_feed", JobFeed.enabled.is_(True))).all()
+        for feed in feeds:
+            lease = feed.lease_until
+            if lease is not None and lease.tzinfo is None:
+                lease = lease.replace(tzinfo=timezone.utc)
+            if lease is not None and lease > now:
+                continue
+            if feed.status not in protected:
+                feed.next_scan_at = refresh_at
     session.commit()
     session.refresh(job)
     return discovery_job_json(job)
@@ -647,7 +678,8 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     elif discovery == 'feed':
         filters.append(Company.feeds.any(JobFeed.provider != 'html_jobs'))
     elif discovery == 'jobs':
-        filters.append(Company.feeds.any(JobFeed.jobs.any(Job.is_active.is_(True))))
+        filters.append(or_(Company.feeds.any(JobFeed.jobs.any(Job.is_active.is_(True))),
+                           Company.employer_jobs.any(Job.is_active.is_(True))))
     if state or employer_country:
         filters.append(german_company_filter() if employer_country else Company.state == state)
         total = session.scalar(select(func.count()).select_from(Company).where(*filters)) or 0
@@ -723,12 +755,17 @@ def _profile_match(job, profile, scope):
 
 def _result_scope(job, latitude, longitude, radius_km, place, country, state=None, employer_country=None):
     if employer_country and not expiry(job)['expired']:
-        company = job.feed.company
-        eligible = company.country_code == 'DE' or company.state in GERMAN_STATES
+        company = job.employer_company or job.feed.company
+        source_company = job.feed.company
+        has_german_workplace = any(
+            str(location.country_code or "").casefold() == "de" for location in job.locations)
+        eligible = (company.country_code == 'DE' or company.state in GERMAN_STATES or
+                    source_company.source == "default_job_feed" or has_german_workplace)
         return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
                 'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_country') if eligible else None}
     if state and not expiry(job)['expired']:
-        eligible = job.feed.company.state == state
+        company = job.employer_company or job.feed.company
+        eligible = company.state == state or job.feed.company.state == state
         return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
                 'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_state') if eligible else None}
     return geographic_scope(job, latitude, longitude, radius_km, place, country)
@@ -825,18 +862,24 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     include_unknown = defaults.get('include_unknown', True) if include_unknown is None else include_unknown
     if profile is None and min_match_score:
         raise HTTPException(status_code=422, detail="Select a profile to filter by match score")
-    statement = select(Job).join(Job.feed).join(JobFeed.company).options(
-        joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations))
+    employer_company = aliased(Company)
+    statement = (select(Job).join(Job.feed).join(JobFeed.company)
+                 .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
+                 .options(joinedload(Job.feed).joinedload(JobFeed.company),
+                          joinedload(Job.employer_company), selectinload(Job.locations)))
     filters = [Job.is_active.is_(True)]
     if employer_country:
-        filters.append(german_company_filter())
+        filters.append(or_(german_company_filter(employer_company), german_company_filter(Company),
+                           Company.source == "default_job_feed",
+                           Job.locations.any(JobLocation.country_code.in_(("DE", "de")))))
     elif state:
-        filters.append(Company.state == state)
+        filters.append(or_(Company.state == state, employer_company.state == state))
     if company_id is not None:
-        filters.append(JobFeed.company_id == company_id)
+        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
     if query:
         pattern = f"%{query.strip()}%"
         filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
+                           employer_company.name.ilike(pattern), employer_company.domain.ilike(pattern),
                            Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
     if work_style == 'remote':
         remote_clause = or_(Job.work_arrangement == 'remote',
@@ -897,6 +940,7 @@ def list_job_applications(profile_id: int,
         statement = statement.where(JobApplication.status == status)
     applications = session.scalars(statement.options(
         joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
+        joinedload(JobApplication.job).joinedload(Job.employer_company),
         joinedload(JobApplication.job).selectinload(Job.locations))
         .order_by(JobApplication.updated_at.desc(), JobApplication.id.desc())
         .offset(offset).limit(limit)).unique().all()
@@ -922,6 +966,7 @@ def get_job(job_id: int, session: Session = Depends(get_session),
     state = _canonical_state(state)
     employer_country = _canonical_country(country)
     statement = select(Job).options(joinedload(Job.feed).joinedload(JobFeed.company),
+                                    joinedload(Job.employer_company),
                                     selectinload(Job.locations)).where(Job.id == job_id)
     job = session.scalars(statement).unique().first()
     if not job:
@@ -945,11 +990,15 @@ def get_job(job_id: int, session: Session = Depends(get_session),
 
 @app.get("/api/v1/companies/{company_id}")
 def get_company(company_id: int, session: Session = Depends(get_session)) -> dict[str, Any]:
-    company = session.scalars(select(Company).options(selectinload(Company.feeds).selectinload(JobFeed.jobs))
+    company = session.scalars(select(Company).options(selectinload(Company.feeds))
                               .where(Company.id == company_id)).first()
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
-    all_jobs = _deduplicate_jobs([job for feed in company.feeds for job in feed.jobs])
+    source_jobs = session.scalars(select(Job).join(Job.feed).where(or_(
+        JobFeed.company_id == company_id, Job.employer_company_id == company_id)).options(
+            joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+            selectinload(Job.locations))).unique().all()
+    all_jobs = _deduplicate_jobs(source_jobs)
     active_jobs = _deduplicate_jobs([job for job in all_jobs if job.is_active])
     data = _company_json(company, float("inf"), len(active_jobs))
     data["feeds"] = [_feed_json(feed) for feed in company.feeds]

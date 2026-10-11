@@ -13,7 +13,7 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -26,8 +26,9 @@ from hiring_scraper.app.discovery_jobs import (
 )
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
-    Job, JobFeed, JobLocation, utcnow,
+    Job, JobFeed, JobLocation, ScanRun, utcnow,
 )
+from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
@@ -293,6 +294,9 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
         for field in ("employment_type", "schedule", "department", "seniority", "date_posted", "salary"):
             setattr(job, field, data.get(field))
         job.raw_metadata = data.get("raw_metadata") or {}
+        employer = upsert_job_employer(session, feed, data, now)
+        if employer is not None:
+            job.employer_company_id = employer.id
         refresh_enrichment(job)
         job.last_seen_at = now
         job.is_active = True
@@ -1027,6 +1031,22 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
         if alias_items:
             session.flush()
 
+        completed_priority_feed_scan = (select(ScanRun.id).where(
+            ScanRun.feed_id == JobFeed.id,
+            ScanRun.finished_at.is_not(None),
+            ScanRun.finished_at >= DiscoveryJob.created_at,
+        ).correlate(JobFeed, DiscoveryJob).exists())
+        pending_default_feed_scan = (select(JobFeed.id).join(Company).where(
+            Company.source == "default_job_feed", Company.crawl_paused.is_(False),
+            JobFeed.enabled.is_(True), ~completed_priority_feed_scan,
+            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
+        ).correlate(DiscoveryJob).exists())
+        pending_feed_employer_scan = (select(JobFeed.id).join(Company).where(
+            Company.source == "job_feed_employer", Company.crawl_paused.is_(False),
+            JobFeed.enabled.is_(True), JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
+            ~completed_priority_feed_scan,
+            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
+        ).correlate(DiscoveryJob).exists())
         statement = (select(DiscoveryJobCompany)
                      .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
@@ -1037,7 +1057,9 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                             DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                             or_(DiscoveryJob.search_scope == "country", DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
                             or_(DiscoveryJob.search_scope != "country", Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
-                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
+                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now),
+                            ~and_(DiscoveryJob.search_scope == "country",
+                                  or_(pending_default_feed_scan, pending_feed_employer_scan)))
                      .order_by(DiscoveryJob.scheduled_for.asc().nullsfirst(),
                                Company.crawl_priority.desc(),
                                Company.next_discovery_at.asc().nullsfirst(), DiscoveryJob.id.asc(),

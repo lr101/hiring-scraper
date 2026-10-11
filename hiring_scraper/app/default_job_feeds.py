@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
 from hiring_scraper.app.models import Company, JobFeed, utcnow
@@ -44,42 +45,50 @@ def _configured_feeds() -> list[dict]:
     return feeds
 
 
-def ensure_default_job_feeds() -> int:
-    """Idempotently add newly configured defaults; existing pause state is retained."""
-    if IS_SQLITE:
-        initialize_sqlite_schema(engine)
+def _ensure_default_job_feeds(session: Session, now) -> int:
     created = 0
-    now = utcnow()
-    with SessionLocal.begin() as session:
-        for item in _configured_feeds():
-            company = session.scalar(select(Company).where(
-                Company.source == "default_job_feed", Company.source_id == item["id"]))
-            website_host = (urlsplit(item["website_url"]).hostname or "").casefold()
-            company_fields = {
-                "name": item["name"], "website_url": item["website_url"], "domain": website_host,
-                "domain_match_method": "configured_job_source",
-                "domain_evidence_url": item["source_page_url"],
-                "category": item.get("category"), "source_url": item["source_page_url"],
-                "latitude": item.get("latitude"), "longitude": item.get("longitude"),
-                "location_precision": item.get("location_precision"),
-                "location_label": item.get("location_label"),
-                "career_url": item["source_page_url"], "career_status": "jobs_feed_found",
-            }
-            if company is None:
-                company = Company(source="default_job_feed", source_id=item["id"], **company_fields)
-                session.add(company)
-                session.flush()
-            else:
-                for key, value in company_fields.items():
-                    setattr(company, key, value)
+    for item in _configured_feeds():
+        company = session.scalar(select(Company).where(
+            Company.source == "default_job_feed", Company.source_id == item["id"]))
+        website_host = (urlsplit(item["website_url"]).hostname or "").casefold()
+        company_fields = {
+            "name": item["name"], "website_url": item["website_url"], "domain": website_host,
+            "domain_match_method": "configured_job_source",
+            "domain_evidence_url": item["source_page_url"],
+            "category": item.get("category"), "source_url": item["source_page_url"],
+            "latitude": item.get("latitude"), "longitude": item.get("longitude"),
+            "location_precision": item.get("location_precision"),
+            "location_label": item.get("location_label"),
+            "career_url": item["source_page_url"], "career_status": "jobs_feed_found",
+        }
+        if item.get("category") == "public_employer":
+            company_fields["country_code"] = "DE"
+        if company is None:
+            company = Company(source="default_job_feed", source_id=item["id"], **company_fields)
+            session.add(company)
+            session.flush()
+        else:
+            for key, value in company_fields.items():
+                setattr(company, key, value)
 
-            feed = session.scalar(select(JobFeed).where(
-                JobFeed.company_id == company.id, JobFeed.tenant == item["id"]))
-            if feed is None:
-                session.add(JobFeed(
-                    company_id=company.id, provider=item["provider"], tenant=item["id"],
-                    board_url=item["source_page_url"], feed_url=item["feed_url"],
-                    status="pending", enabled=True, job_count=0, next_scan_at=now,
-                ))
-                created += 1
+        feed = session.scalar(select(JobFeed).where(
+            JobFeed.company_id == company.id, JobFeed.tenant == item["id"]))
+        if feed is None:
+            session.add(JobFeed(
+                company_id=company.id, provider=item["provider"], tenant=item["id"],
+                board_url=item["source_page_url"], feed_url=item["feed_url"],
+                status="pending", enabled=True, job_count=0, next_scan_at=now,
+            ))
+            created += 1
     return created
+
+
+def ensure_default_job_feeds(session: Session | None = None) -> int:
+    """Idempotently add newly configured defaults; existing pause state is retained."""
+    if session is None and IS_SQLITE:
+        initialize_sqlite_schema(engine)
+    now = utcnow()
+    if session is not None:
+        return _ensure_default_job_feeds(session, now)
+    with SessionLocal.begin() as session:
+        return _ensure_default_job_feeds(session, now)

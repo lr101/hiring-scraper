@@ -61,6 +61,8 @@ class Company(Base):
 
     feeds: Mapped[list[JobFeed]] = relationship(back_populates="company", cascade="all, delete-orphan")
     discovery_runs: Mapped[list[DiscoveryRun]] = relationship(back_populates="company", cascade="all, delete-orphan")
+    employer_jobs: Mapped[list["Job"]] = relationship(
+        back_populates="employer_company", foreign_keys="Job.employer_company_id")
 
 
 class DiscoveryRun(Base):
@@ -107,8 +109,8 @@ class DiscoveryJob(Base):
             "uq_active_germany_inventory",
             "search_scope",
             unique=True,
-            postgresql_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
-            sqlite_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+            postgresql_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
+            sqlite_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
         ),
     )
 
@@ -211,6 +213,8 @@ class Job(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     feed_id: Mapped[int] = mapped_column(ForeignKey("job_feeds.id", ondelete="CASCADE"), nullable=False, index=True)
+    employer_company_id: Mapped[int | None] = mapped_column(
+        ForeignKey("companies.id", ondelete="SET NULL"), index=True)
     external_id: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
@@ -233,6 +237,8 @@ class Job(Base):
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     feed: Mapped[JobFeed] = relationship(back_populates="jobs")
+    employer_company: Mapped[Company | None] = relationship(
+        back_populates="employer_jobs", foreign_keys=[employer_company_id])
     locations: Mapped[list[JobLocation]] = relationship(back_populates="job", cascade="all, delete-orphan")
     applications: Mapped[list[JobApplication]] = relationship(back_populates="job", cascade="all, delete-orphan")
 

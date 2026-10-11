@@ -36,7 +36,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             if {'search_scope', 'stage', 'status'} <= job_columns:
                 active_ids = connection.exec_driver_sql(
                     "SELECT id FROM discovery_jobs WHERE search_scope='country' "
-                    "AND stage='company_homepage_discovery' "
+                    "AND stage IN ('company_homepage_discovery','career_page_discovery') "
                     "AND status IN ('scheduled','queued','running') ORDER BY id"
                 ).scalars().all()
                 for duplicate_id in active_ids[1:]:
@@ -53,6 +53,12 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")
+        if 'employer_company_id' not in columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE jobs ADD COLUMN employer_company_id INTEGER "
+                "REFERENCES companies(id) ON DELETE SET NULL")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_jobs_employer_company_id ON jobs (employer_company_id)")
 
         for table in ('configured_locations', 'discovery_jobs'):
             columns = {column['name'] for column in inspect(connection).get_columns(table)}
@@ -84,9 +90,10 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql("ALTER TABLE discovery_jobs ADD COLUMN map_cursor JSON NOT NULL DEFAULT '{}'")
         job_columns = {column['name'] for column in inspect(connection).get_columns('discovery_jobs')}
         if {'search_scope', 'stage', 'status'} <= job_columns:
+            connection.exec_driver_sql("DROP INDEX IF EXISTS uq_active_germany_inventory")
             connection.exec_driver_sql(
                 "CREATE UNIQUE INDEX IF NOT EXISTS uq_active_germany_inventory ON discovery_jobs(search_scope) "
-                "WHERE search_scope='country' AND stage='company_homepage_discovery' "
+                "WHERE search_scope='country' AND stage IN ('company_homepage_discovery','career_page_discovery') "
                 "AND status IN ('scheduled','queued','running')"
             )
 

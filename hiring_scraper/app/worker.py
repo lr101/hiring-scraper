@@ -12,13 +12,14 @@ from pathlib import Path
 from threading import Lock
 from urllib.parse import urlsplit
 
-from sqlalchemy import select, or_, update
+from sqlalchemy import case, select, or_, update
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, ScanRun, utcnow
+from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
@@ -44,7 +45,8 @@ def _claim_due_feed() -> tuple[int, int, int] | None:
                      .where(Company.crawl_paused.is_(False), JobFeed.enabled.is_(True),
                             JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
-                     .order_by(JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
+                     .order_by(case((Company.source == "default_job_feed", 0), else_=1),
+                               JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)
         feed = session.scalars(statement).first()
@@ -106,8 +108,110 @@ def _request(feed: JobFeed) -> tuple[dict, bytes]:
         headers["If-None-Match"] = feed.etag
     if feed.last_modified and feed.provider != "lever":
         headers["If-Modified-Since"] = feed.last_modified
-    return fetch_feed(client, feed.provider, feed.feed_url, feed.board_url or feed.feed_url,
-                      conditional_headers=headers, pace=_pace_origin)
+    metadata, body = fetch_feed(client, feed.provider, feed.feed_url, feed.board_url or feed.feed_url,
+                                conditional_headers=headers, pace=_pace_origin)
+    if (feed.provider == "rss" and feed.company.source == "default_job_feed" and
+            metadata.get("state") == "ok" and metadata.get("status") != 304):
+        try:
+            parsed = parse_feed("rss", body, metadata.get("final_url") or feed.feed_url)
+        except (ValueError, TypeError):
+            return metadata, body
+        _enrich_default_rss_jobs(client, feed, parsed.get("jobs", []))
+        metadata = {**metadata, "parsed_feed": parsed}
+    return metadata, body
+
+
+def _title_key(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+
+
+def _enrich_default_rss_jobs(client: Client, feed: JobFeed, jobs: list[dict]) -> None:
+    """Read a few linked posting pages for employer and structured job evidence."""
+    from hiring_scraper.app.employers import hiring_organization
+    from hiring_scraper.app.board_scope import canonical_vacancy_url
+    from hiring_scraper.html_jobs import extract_html_jobs
+
+    previous = {job.external_id: job for job in feed.jobs}
+    crawled = 0
+    for data in jobs:
+        raw = data.get("raw_metadata")
+        raw = raw if isinstance(raw, dict) else {}
+        if (feed.company.category != "job_board_source" and
+                not hiring_organization(data).get("name")):
+            raw["hiring_organization"] = {
+                "name": feed.company.name,
+                **({"url": feed.company.website_url} if feed.company.website_url else {}),
+            }
+            data["raw_metadata"] = raw
+        old = previous.get(str(data.get("id") or ""))
+        old_raw = old.raw_metadata if old and isinstance(old.raw_metadata, dict) else {}
+        old_crawl = old_raw.get("employer_detail_crawl")
+        if old and old.title == data.get("title") and old.url == data.get("url"):
+            old_organization = old_raw.get("hiring_organization")
+            new_organization = raw.get("hiring_organization")
+            if isinstance(old_organization, dict):
+                raw["hiring_organization"] = {
+                    **old_organization,
+                    **(new_organization if isinstance(new_organization, dict) else {}),
+                }
+            if isinstance(old_crawl, dict):
+                raw["employer_detail_crawl"] = old_crawl
+                for key, value in (("description", old.description), ("location", old.location_text),
+                                   ("locations", [{"label": item.label, "latitude": item.latitude,
+                                                   "longitude": item.longitude, "precision": item.precision,
+                                                   "country_code": item.country_code}
+                                                  for item in old.locations])):
+                    if data.get(key) in (None, "", [], {}) and value not in (None, "", [], {}):
+                        data[key] = value
+                data["raw_metadata"] = raw
+                continue
+        if crawled >= 5 or (hiring_organization(data).get("name") and
+                            hiring_organization(data).get("url")):
+            continue
+        job_url = data.get("url")
+        if not isinstance(job_url, str):
+            continue
+        try:
+            response, page_body = client.get(job_url)
+        except (OSError, ValueError, TypeError):
+            continue
+        crawled += 1
+        raw = data.setdefault("raw_metadata", {})
+        if response.get("state") == "bot_challenge":
+            raw["employer_detail_crawl"] = {
+                "state": "bot_challenge", "reason": "bot_challenge",
+            }
+            continue
+        if response.get("state") != "ok" or response.get("status") != 200:
+            continue
+        content_type = str(response.get("content_type") or "").casefold()
+        if content_type and not any(kind in content_type for kind in ("html", "xhtml")):
+            continue
+        final_url = response.get("final_url") or job_url
+        try:
+            extracted = extract_html_jobs(page_body, final_url).get("jobs", [])
+        except (ValueError, TypeError):
+            continue
+        requested_key = canonical_vacancy_url(final_url) or canonical_vacancy_url(job_url)
+        matching = [row for row in extracted
+                    if requested_key and
+                    _title_key(str(row.get("title") or "")) == _title_key(str(data.get("title") or ""))
+                    and canonical_vacancy_url(str(row.get("url") or "")) == requested_key]
+        if len(matching) != 1:
+            continue
+        detail = matching[0]
+        detail_raw = detail.get("raw_metadata")
+        if isinstance(detail_raw, dict):
+            raw.update({key: value for key, value in detail_raw.items()
+                        if key not in {"source", "source_feed_url", "source_item_id"}})
+        raw["employer_detail_crawl"] = {
+            "state": "parsed", "url": final_url,
+            **({"capture": response["capture"]} if response.get("capture") else {}),
+        }
+        for key in ("description", "location", "locations", "employment_type", "date_posted",
+                    "work_arrangement", "is_remote", "salary"):
+            if data.get(key) in (None, "", [], {}) and detail.get(key) not in (None, "", [], {}):
+                data[key] = detail[key]
 
 
 def _location_rows(job_data: dict, existing: list[JobLocation]) -> list[dict]:
@@ -310,6 +414,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             job.date_posted = data.get("date_posted")
             job.salary = data.get("salary")
             job.raw_metadata = data.get("raw_metadata") or {}
+            employer = upsert_job_employer(session, feed, data, now)
+            if employer is not None:
+                job.employer_company_id = employer.id
             refresh_enrichment(job)
             job.last_seen_at = now
             job.is_active = True

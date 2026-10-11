@@ -38,9 +38,9 @@ def company_ids_in_radius(session: Session, latitude: float, longitude: float,
             if haversine_m(latitude, longitude, company.latitude, company.longitude) <= radius_m]
 
 
-def german_company_filter():
+def german_company_filter(company=Company):
     """Include explicit German membership and legacy observed state evidence."""
-    return or_(Company.country_code == "DE", Company.state.in_(GERMAN_STATES))
+    return or_(company.country_code == "DE", company.state.in_(GERMAN_STATES))
 
 
 def _domain_key_expression():
@@ -78,7 +78,9 @@ def company_ids_for_search(session: Session, search) -> list[int]:
     if search.search_scope == "country":
         ids = list(session.scalars(select(Company.id).where(
             german_company_filter(), Company.website_url.is_not(None),
-            Company.website_url != "").order_by(Company.id)))
+            Company.website_url != "",
+            or_(Company.category.is_(None), Company.category != "job_board_source"),
+        ).order_by(Company.id)))
         return canonical_company_ids(session, ids)
     if search.search_scope == "state":
         ids = list(session.scalars(select(Company.id).where(
