@@ -40,6 +40,11 @@ class Company(Base):
     crawl_paused: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text('false'))
     irrelevant_checks: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text('0'))
     ranking_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    homepage_source_tags: Mapped[dict | None] = mapped_column(JSON)
+    homepage_resolution_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
+    homepage_resolution_next_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    homepage_resolution_lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    homepage_resolution_token: Mapped[str | None] = mapped_column(String(36))
     category: Mapped[str | None] = mapped_column(String(120))
     source_url: Mapped[str | None] = mapped_column(Text)
     latitude: Mapped[float | None] = mapped_column(Float)
@@ -97,6 +102,15 @@ class ConfiguredLocation(Base):
 
 class DiscoveryJob(Base):
     __tablename__ = "discovery_jobs"
+    __table_args__ = (
+        Index(
+            "uq_active_germany_inventory",
+            "search_scope",
+            unique=True,
+            postgresql_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+            sqlite_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     configured_location_id: Mapped[int | None] = mapped_column(

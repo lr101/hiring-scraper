@@ -56,7 +56,7 @@ def _successful_complete(result):
     return bool(pages and not limits.get('page_budget_reached') and not limits.get('remaining_queue'))
 
 
-def refresh_company_rank(session, company, now, discovery_result=None):
+def refresh_company_rank(session, company, now, discovery_result=None, *, fresh_employer_evidence=False):
     """Persist rank from jobs and reliable evidence without treating errors as absence.
 
     ``irrelevant=True`` is reserved for a completed, evidenced nonemployer check.
@@ -84,7 +84,7 @@ def refresh_company_rank(session, company, now, discovery_result=None):
         posted = _date(job.date_posted) if job.date_posted else _aware(job.first_seen_at)
         if posted and now - timedelta(days=30) <= posted <= now:
             recent = True
-    positive = bool(active_jobs or (company.employee_count or 0) > 0 or
+    positive = bool(active_jobs or count or fresh_employer_evidence or
                     result.get('status') in {'jobs_feed_found','jobs_extracted','career_content_found','ats_identified'})
     complete = _successful_complete(result)
     if positive:

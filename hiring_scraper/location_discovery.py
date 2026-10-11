@@ -201,7 +201,9 @@ def resolve_location_candidates(payload: dict, latitude: float, longitude: float
         homepage_resolver(candidates)
     for candidate in candidates:
         candidate.pop("website", None)
-        candidate.pop("tags", None)
+        # National inventory resolves homepages in a separately paced worker.
+        if homepage_resolver:
+            candidate.pop("tags", None)
     if progress_callback:
         progress_callback("Saving company and website results",
                           companies_found=len(candidates),
@@ -245,6 +247,34 @@ def _fetch_overpass(query, transport, *, split_on_timeout=False):
         LOG.warning("Overpass request failed attempt=%s/%s; retrying in %.1fs: %s",
                     attempt + 1, OVERPASS_RETRIES + 1, delay, failure)
         time.sleep(delay)
+
+
+def resolve_missing_company_websites(candidates: list[dict], *, progress_callback=None,
+                                     search_area_hint: str | None = None,
+                                     max_companies: int | None = None,
+                                     max_searches: int | None = None,
+                                     max_requests: int | None = None) -> list[dict]:
+    """Resolve missing company homepages with bounded, isolated network work."""
+    if not any(not row.get("website_url") for row in candidates):
+        return candidates
+    search = configured_website_search()
+    if max_requests is None:
+        max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
+    if max_companies is None:
+        max_companies = min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100"))))
+    if max_searches is None:
+        max_searches = min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50"))))
+    with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
+        client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
+                        user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER,
+                        respect_robots=RESPECT_ROBOTS)
+        decisions = discover_missing_websites(
+            candidates, client, search=search, max_companies=max_companies,
+            max_searches=max_searches, search_area_hint=search_area_hint,
+            progress_callback=progress_callback)
+        LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
+                 len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
+    return candidates
 
 
 def state_map_bounds(state, transport):
@@ -315,7 +345,6 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
     def enrich(candidates):
         if not any(not row.get("website_url") for row in candidates):
             return
-        search = configured_website_search()
         # The nearest mapped city's name is a search-area hint, never a source tag
         # or an acceptance criterion for a company whose address is missing.
         tagged = [row for row in candidates if isinstance((row.get('tags') or {}).get('addr:city'), str)
@@ -323,17 +352,7 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
         nearest = min(tagged, key=lambda row: haversine_m(latitude, longitude,
                                                         row['latitude'], row['longitude'])) if tagged else None
         search_area_hint = state or (nearest['tags']['addr:city'].strip() + ' Region' if nearest else None)
-        max_requests = min(1000, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_REQUESTS", "180"))))
-        with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
-            client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
-                            user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER, respect_robots=RESPECT_ROBOTS)
-            decisions = discover_missing_websites(
-                candidates, client, search=search,
-                max_companies=min(500, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_COMPANIES", "100")))),
-                max_searches=min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50")))),
-                search_area_hint=search_area_hint,
-                progress_callback=progress_callback)
-            LOG.info("homepage verification checked=%s accepted=%s requests=%s search_enabled=%s",
-                     len(decisions), sum(row["accepted"] for row in decisions), len(client.records), bool(search))
+        resolve_missing_company_websites(candidates, progress_callback=progress_callback,
+                                         search_area_hint=search_area_hint)
     return resolve_location_candidates(payload, latitude, longitude, None if state else radius_m,
                                        homepage_resolver=enrich, progress_callback=progress_callback)

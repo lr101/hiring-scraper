@@ -56,8 +56,12 @@ Employers with at least 250 employees or recent jobs are checked daily; smaller
 active employers every 3 days; unknown employers every 7 days; repeatedly empty
 successful checks every 30 days. Repeatedly irrelevant employers can be paused.
 Checks are spread over time. Errors do not establish irrelevance. Company details
-show the cadence, reason, and next check. A manual Germany search reactivates paused
-employers; recurring checks preserve each employer's individual schedule.
+show the cadence, reason, and next check. A manual Germany inventory preserves an
+employer's existing rank and pause state; fresh size or hiring evidence can reactivate
+a parked employer. Employers without a mapped homepage are considered in a separate,
+rate-limited verification queue when public contact evidence or configured search is
+available. They remain listed if no website can be verified, but cannot receive job
+checks until one is found.
 
 Use **View companies and jobs** on the Germany card to browse active, unexpired
 postings from German employers across all work locations, including remote and

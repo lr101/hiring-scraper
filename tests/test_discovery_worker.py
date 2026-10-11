@@ -55,6 +55,17 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertEqual(run.status, "running")
             self.assertIsNotNone(company.discovery_lease_until)
 
+    def test_shared_website_domain_has_one_global_career_page_schedule(self):
+        due = utcnow() - timedelta(minutes=1)
+        first = self._company(source_id="node/first-office", domain="shared.example",
+                              next_discovery_at=due, crawl_priority=30)
+        second = self._company(source_id="node/second-office", domain="www.shared.example",
+                               next_discovery_at=due, crawl_priority=100)
+        claim = worker._claim_due_company()
+        self.assertEqual(claim[0], first,
+                         "A more relevant branch must not create a second page crawl for the same domain")
+        self.assertIsNone(worker._claim_due_company())
+
     def test_expired_company_lease_marks_the_old_attempt_failed_before_requeue(self):
         company_id = self._company(discovery_lease_until=utcnow() - timedelta(minutes=1))
         with self.factory.begin() as session:

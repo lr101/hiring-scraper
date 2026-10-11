@@ -274,6 +274,20 @@ def _canonical_country(country: str | None) -> str | None:
     return "DE"
 
 
+def _lock_germany_inventory(session: Session) -> None:
+    """Serialize Germany inventory create requests before checking for a live job."""
+    if engine.dialect.name == "postgresql":
+        session.execute(text("SELECT pg_advisory_xact_lock(1547632348, 1)"))
+
+
+def _active_germany_inventory(session: Session) -> DiscoveryJob | None:
+    return session.scalar(select(DiscoveryJob).where(
+        DiscoveryJob.search_scope == "country",
+        DiscoveryJob.stage == "company_homepage_discovery",
+        DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+    ).order_by(DiscoveryJob.id).limit(1))
+
+
 def _country_location() -> dict[str, Any]:
     return {"label": "Germany", "country": "DE", "state": None, "city": None, "postcode": None,
             "search_scope": "country", "latitude": 0.0, "longitude": 0.0,
@@ -336,8 +350,20 @@ def list_configured_locations(session: Session = Depends(get_session)) -> dict[s
 def create_configured_location(request: ConfiguredLocationCreate,
                                session: Session = Depends(get_session)) -> dict[str, Any]:
     search_scope = _model_value(request, "search_scope", "radius")
+    active_country_job = None
     if search_scope == "country":
         _canonical_country(_model_value(request, "country", "DE"))
+        _lock_germany_inventory(session)
+        active_country_job = _active_germany_inventory(session)
+        existing = session.scalar(select(ConfiguredLocation).where(
+            ConfiguredLocation.search_scope == "country").order_by(ConfiguredLocation.id).limit(1))
+        if existing is not None:
+            latest = active_country_job or session.scalar(select(DiscoveryJob).where(
+                DiscoveryJob.search_scope == "country").order_by(DiscoveryJob.id.desc()).limit(1))
+            result = {**configured_location_json(existing), "already_saved": True,
+                      "first_discovery_job": discovery_job_json(latest) if latest else None}
+            session.commit()
+            return result
         values = _country_location()
     elif search_scope == "state":
         state = _canonical_state(_model_value(request, "state"))
@@ -366,12 +392,19 @@ def create_configured_location(request: ConfiguredLocationCreate,
     )
     session.add(location)
     session.flush()
-    first_job = make_discovery_job(
-        session, label=location.label, search_scope=location.search_scope, city=location.city, state=location.state,
-        postcode=location.postcode, latitude=location.latitude,
-        longitude=location.longitude, radius_km=location.radius_km,
-        configured_location_id=location.id, kind="initial", now=now,
-    )
+    if search_scope == "country" and active_country_job is not None:
+        # The saved location may have been removed while its inventory kept
+        # running, or a manual country scan may have started first. Reuse that
+        # global inventory and attach its status to the newly saved entry.
+        active_country_job.configured_location_id = location.id
+        first_job = active_country_job
+    else:
+        first_job = make_discovery_job(
+            session, label=location.label, search_scope=location.search_scope, city=location.city, state=location.state,
+            postcode=location.postcode, latitude=location.latitude,
+            longitude=location.longitude, radius_km=location.radius_km,
+            configured_location_id=location.id, kind="initial", now=now,
+        )
     session.commit()
     session.refresh(location)
     session.refresh(first_job)
@@ -454,6 +487,13 @@ def create_discovery_job(request: DiscoveryJobCreate,
             scheduled_for = datetime.fromisoformat(scheduled_for.replace("Z", "+00:00"))
         except ValueError as error:
             raise HTTPException(status_code=422, detail="scheduled_for must be an ISO datetime") from error
+    if search_scope == "country":
+        _lock_germany_inventory(session)
+        active = _active_germany_inventory(session)
+        if active is not None:
+            result = discovery_job_json(active)
+            session.commit()
+            return result
     job = make_discovery_job(
         session, label=label, search_scope=search_scope, city=city, state=state, postcode=postcode,
         latitude=float(latitude), longitude=float(longitude), radius_km=float(radius_km),

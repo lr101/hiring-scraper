@@ -82,6 +82,18 @@ class CrawlRankingTests(unittest.TestCase):
         self.assertFalse(self.company.crawl_paused)
         self.assertEqual(self.company.crawl_interval_days, 1)
 
+    def test_stale_company_size_does_not_reactivate_a_parked_source(self):
+        from hiring_scraper.app.crawl_ranking import refresh_company_rank
+        self.company.employee_count=600
+        self.company.size_evidence={'source':'openstreetmap','source_url':'https://www.openstreetmap.org/node/1',
+                                    'employee_count':600,'successful_empty_checks':2}
+        self.company.crawl_paused=True
+        self.company.irrelevant_checks=2
+        refresh_company_rank(self.session,self.company,NOW)
+        self.assertTrue(self.company.crawl_paused,
+                        'A manual inventory with no new evidence must preserve a relevance pause')
+        self.assertIsNone(self.company.crawl_interval_days)
+
     def test_daily_schedule_staggers_companies_and_feeds_within_one_day(self):
         from hiring_scraper.app.crawl_ranking import next_company_due, next_feed_due
         self.company.employee_count = 300

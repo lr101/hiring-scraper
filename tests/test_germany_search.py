@@ -25,6 +25,36 @@ class GermanySearchTests(unittest.TestCase):
             self.assertIsNone(saved['next_run_at'])
             rerun = api.create_discovery_job(SimpleNamespace(location_id=saved['id']), session)
             self.assertEqual(rerun['search_scope'], 'country')
+            repeated = api.create_configured_location(SimpleNamespace(search_scope='country', country='DE'), session)
+            self.assertEqual(repeated['id'], saved['id'])
+            self.assertTrue(repeated['already_saved'])
+            self.assertEqual(repeated['first_discovery_job']['id'], saved['first_discovery_job']['id'])
+            coalesced = api.create_discovery_job(SimpleNamespace(search_scope='country', country='DE'), session)
+            self.assertEqual(coalesced['id'], saved['first_discovery_job']['id'])
+            active_country_jobs = session.scalars(select(models.DiscoveryJob).where(
+                models.DiscoveryJob.search_scope == 'country',
+                models.DiscoveryJob.stage == 'company_homepage_discovery',
+                models.DiscoveryJob.status.in_(('scheduled','queued','running')))).all()
+            self.assertEqual(len(active_country_jobs), 1)
+    def test_saving_germany_reuses_an_active_inventory_after_delete_or_manual_start(self):
+        with self.factory() as session:
+            manual = api.create_discovery_job(SimpleNamespace(search_scope='country', country='DE'), session)
+            first_location = api.create_configured_location(
+                SimpleNamespace(search_scope='country', country='DE'), session)
+            self.assertEqual(first_location['first_discovery_job']['id'], manual['id'])
+            self.assertEqual(first_location['first_discovery_job']['configured_location_id'], first_location['id'])
+
+            api.delete_configured_location(first_location['id'], session)
+            recreated = api.create_configured_location(
+                SimpleNamespace(search_scope='country', country='DE'), session)
+            self.assertFalse(recreated.get('already_saved', False))
+            self.assertEqual(recreated['first_discovery_job']['id'], manual['id'])
+            self.assertEqual(recreated['first_discovery_job']['configured_location_id'], recreated['id'])
+            active = session.scalars(select(models.DiscoveryJob).where(
+                models.DiscoveryJob.search_scope == 'country',
+                models.DiscoveryJob.stage == 'company_homepage_discovery',
+                models.DiscoveryJob.status.in_(('scheduled', 'queued', 'running')))).all()
+            self.assertEqual([job.id for job in active], [manual['id']])
     def test_country_rejects_non_german_input(self):
         with self.factory() as session:
             for invoke in (lambda: api.create_configured_location(SimpleNamespace(search_scope='country', country='FR'), session),
@@ -53,6 +83,24 @@ class GermanySearchTests(unittest.TestCase):
             self.assertEqual(jobs['counts']['filtered']['expired'], 2)
             self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 4)
             self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 2)
+
+    def test_shared_domain_page_dedup_keeps_state_membership_on_each_office(self):
+        with self.factory.begin() as session:
+            hamburg= models.Company(source='test',source_id='hamburg',name='Employer Hamburg',
+                state='Hamburg',country_code='DE',website_url='https://www.shared-de.example/',
+                domain='www.shared-de.example')
+            bw=models.Company(source='test',source_id='baden',name='Employer Baden',
+                state='Baden-Württemberg',country_code='DE',website_url='https://shared-de.example/jobs',
+                domain='shared-de.example')
+            session.add_all([hamburg,bw]);session.flush()
+            hamburg_id,bw_id=hamburg.id,bw.id
+        with self.factory() as session:
+            country_ids=company_ids_for_search(session,SimpleNamespace(search_scope='country'))
+            state_ids=company_ids_for_search(session,SimpleNamespace(search_scope='state',state='Baden-Württemberg'))
+            self.assertEqual(country_ids,[hamburg_id],
+                             'Germany page work is shared by website domain')
+            self.assertEqual(state_ids,[bw_id],
+                             'State campaigns retain their own office membership')
     def test_explicit_country_without_state_and_rank_information_are_exposed(self):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='explicit', name='German employer', country_code='DE',

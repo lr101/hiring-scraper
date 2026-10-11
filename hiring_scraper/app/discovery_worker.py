@@ -13,15 +13,16 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import func, or_, select
-from sqlalchemy.orm import selectinload
+from sqlalchemy import case, func, or_, select
+from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
-    advance_location_schedule, company_ids_for_search, create_discovery_job,
+    advance_location_schedule, canonical_company_ids, canonical_company_map,
+    company_ids_for_search, create_discovery_job,
 )
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
@@ -32,14 +33,17 @@ from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
 from hiring_scraper.location_discovery import (
     LocationSearchCancelled,
-    fetch_location_companies, is_retryable_overpass_error,
+    fetch_location_companies, is_retryable_overpass_error, resolve_missing_company_websites,
 )
+from hiring_scraper.website_discovery import configured_website_search
 
 
 LOG = logging.getLogger("hiring_scraper.discovery_worker")
 POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
+HOMEPAGE_RESOLUTION_LEASE_MINUTES = max(5, int(os.getenv("HOMEPAGE_RESOLUTION_LEASE_MINUTES", "15")))
+HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3")))
 LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
 CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','30')))
@@ -70,8 +74,23 @@ _POSITIVE_CAREER_STATUSES = {"career_page_found", "jobs_feed_found", "jobs_extra
 def _claim_due_company() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
+        earlier_domain_company = aliased(Company)
+        company_domain = case(
+            (func.lower(Company.domain).like("www.%"), func.substr(func.lower(Company.domain), 5)),
+            else_=func.lower(Company.domain))
+        earlier_domain = case(
+            (func.lower(earlier_domain_company.domain).like("www.%"),
+             func.substr(func.lower(earlier_domain_company.domain), 5)),
+            else_=func.lower(earlier_domain_company.domain))
+        duplicate_domain = select(earlier_domain_company.id).where(
+            Company.domain.is_not(None), earlier_domain_company.domain.is_not(None),
+            earlier_domain_company.id < Company.id,
+            earlier_domain_company.website_url.is_not(None), earlier_domain_company.website_url != "",
+            earlier_domain == company_domain,
+        ).correlate(Company).exists()
         statement = (select(Company)
                      .where(Company.website_url.is_not(None), Company.website_url != "", Company.crawl_paused.is_(False),
+                            ~duplicate_domain,
                             ~Company.id.in_(select(DiscoveryJobCompany.company_id).join(DiscoveryJob).where(
                                 DiscoveryJobCompany.status.in_(("queued", "running")),
                                 DiscoveryJob.status.in_(("scheduled", "queued", "running")))),
@@ -101,6 +120,104 @@ def _claim_due_company() -> tuple[int, int] | None:
 def _retry_time(attempt: int) -> datetime:
     minutes = min(7 * 24 * 60, 5 * 2 ** min(max(attempt - 1, 0), 10))
     return utcnow() + timedelta(minutes=minutes, seconds=random.randint(0, 59))
+
+
+def _homepage_source_tags(tags: dict | None) -> dict:
+    allowed = ("addr:city", "addr:street", "addr:postcode", "email", "contact:email",
+               "phone", "contact:phone")
+    return {key: value.strip()[:500] for key in allowed
+            if isinstance((value := (tags or {}).get(key)), str) and value.strip()}
+
+
+def _homepage_resolution_due(company: Company, candidate: dict, now: datetime) -> datetime | None:
+    tags = _homepage_source_tags(candidate.get("tags"))
+    has_email = bool(tags.get("email") or tags.get("contact:email"))
+    if not has_email and not configured_website_search():
+        return None
+    days = 1 if (company.employee_count or 0) >= 250 else 3 if has_email else 7
+    source_id = str(candidate.get("source_id") or company.source_id)
+    offset = int.from_bytes(hashlib.sha256(f"homepage:{source_id}".encode()).digest()[:8], "big")
+    return now + timedelta(seconds=offset % (days * 86400))
+
+
+def _claim_due_homepage_resolution(now=None) -> tuple[int, int, str] | None:
+    now = now or utcnow()
+    with SessionLocal.begin() as session:
+        statement = (select(Company)
+                     .where(Company.website_url.is_(None), Company.homepage_source_tags.is_not(None),
+                            Company.homepage_resolution_next_at.is_not(None),
+                            Company.homepage_resolution_next_at <= now,
+                            or_(Company.homepage_resolution_lease_until.is_(None),
+                                Company.homepage_resolution_lease_until < now))
+                     .order_by(Company.crawl_priority.desc(), Company.employee_count.desc().nullslast(),
+                               Company.homepage_resolution_next_at, Company.id).limit(1))
+        if engine.dialect.name == "postgresql":
+            statement = statement.with_for_update(skip_locked=True)
+        company = session.scalars(statement).first()
+        if company is None:
+            return None
+        company.homepage_resolution_attempts += 1
+        company.homepage_resolution_token = uuid4().hex
+        company.homepage_resolution_lease_until = now + timedelta(minutes=HOMEPAGE_RESOLUTION_LEASE_MINUTES)
+        return company.id, company.homepage_resolution_attempts, company.homepage_resolution_token
+
+
+def _process_homepage_resolution(claim: tuple[int, int, str]) -> bool:
+    company_id, attempt, token = claim
+    with SessionLocal() as session:
+        company = session.get(Company, company_id)
+        if (company is None or company.website_url or not company.homepage_source_tags or
+                company.homepage_resolution_attempts != attempt or
+                company.homepage_resolution_token != token):
+            return True
+        candidate = {
+            "source_id": company.source_id, "name": company.name, "category": company.category,
+            "latitude": company.latitude, "longitude": company.longitude,
+            "tags": dict(company.homepage_source_tags),
+        }
+        search_area_hint = company.state
+    error = None
+    try:
+        resolve_missing_company_websites([candidate], search_area_hint=search_area_hint,
+                                         max_companies=1, max_searches=3, max_requests=8)
+    except Exception as failure:
+        error = failure
+        LOG.warning("missing homepage resolution failed company_id=%s attempt=%s: %s",
+                    company_id, attempt, failure)
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        company = session.scalar(select(Company).where(Company.id == company_id).with_for_update())
+        if company is None:
+            return True
+        lease = company.homepage_resolution_lease_until
+        if lease is not None and lease.tzinfo is None:
+            lease = lease.replace(tzinfo=timezone.utc)
+        if (company.homepage_resolution_attempts != attempt or
+                company.homepage_resolution_token != token or lease is None or lease <= now):
+            return True
+        company.homepage_resolution_lease_until = None
+        company.homepage_resolution_token = None
+        website = candidate.get("website_url") if error is None else None
+        if website:
+            company.website_url = website
+            company.domain = candidate.get("domain")
+            company.domain_match_method = candidate.get("domain_match_method")
+            company.domain_evidence_url = candidate.get("domain_evidence_url")
+            company.homepage_source_tags = None
+            company.homepage_resolution_next_at = None
+            company.homepage_resolution_attempts = 0
+            refresh_company_rank(session, company, now)
+            company.next_discovery_at = now
+        elif attempt < HOMEPAGE_RESOLUTION_MAX_ATTEMPTS:
+            # A verified lead may appear later; keep retries rare after the first,
+            # and spread them according to company size.
+            delay_days = 30 if (company.employee_count or 0) >= 250 else 90
+            jitter = int.from_bytes(hashlib.sha256(
+                f"homepage-retry:{company.source}:{company.source_id}:{attempt}".encode()).digest()[:4], "big") % 86400
+            company.homepage_resolution_next_at = now + timedelta(days=delay_days, seconds=jitter)
+        else:
+            company.homepage_resolution_next_at = None
+    return True
 
 
 def _job_locations(job_data: dict, old_locations: list[JobLocation]) -> list[dict]:
@@ -527,37 +644,100 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
             elif country_state:
                 company.state = country_state
                 company.country_code = 'DE'
+            fresh_size_evidence = False
             if candidate.get('employee_count'):
+                incoming_size = candidate.get('size_evidence', {})
+                fresh_size_evidence = (company.employee_count != candidate['employee_count'] or
+                                       any((company.size_evidence or {}).get(key) != value
+                                           for key, value in incoming_size.items()))
                 company.employee_count = candidate['employee_count']
-                company.size_evidence = {**(company.size_evidence or {}), **candidate.get('size_evidence',{})}
+                company.size_evidence = {**(company.size_evidence or {}), **incoming_size}
             session.flush()
-            refresh_company_rank(session, company, now)
+            refresh_company_rank(session, company, now,
+                                 fresh_employer_evidence=fresh_size_evidence)
+            crawl_company = company
+            is_domain_alias = False
+            if map_cursor is not None and company.domain and company.website_url:
+                canonical_id = canonical_company_ids(session, [company.id])[0]
+                if canonical_id != company.id:
+                    crawl_company = session.get(Company, canonical_id)
+                    is_domain_alias = crawl_company is not None
+                    if crawl_company is not None:
+                        crawl_company.country_code = 'DE'
+                        root_fresh_size_evidence = False
+                        if (company.employee_count or 0) > (crawl_company.employee_count or 0):
+                            root_fresh_size_evidence = True
+                            crawl_company.employee_count = company.employee_count
+                            crawl_company.size_evidence = {**(crawl_company.size_evidence or {}),
+                                                           **(company.size_evidence or {})}
+                        elif company.employee_count and any(
+                                (crawl_company.size_evidence or {}).get(key) != value
+                                for key, value in (company.size_evidence or {}).items()):
+                            root_fresh_size_evidence = True
+                            crawl_company.size_evidence = {**(crawl_company.size_evidence or {}),
+                                                           **(company.size_evidence or {})}
+                        if not crawl_company.website_url:
+                            crawl_company.website_url = company.website_url
+                            crawl_company.domain = company.domain
+                            crawl_company.domain_match_method = company.domain_match_method
+                            crawl_company.domain_evidence_url = company.domain_evidence_url
+                        refresh_company_rank(session, crawl_company, now,
+                                             fresh_employer_evidence=root_fresh_size_evidence)
+                        # Office rows remain searchable, but share the canonical
+                        # website's rank and next page-check time.
+                        company.crawl_priority = crawl_company.crawl_priority
+                        company.crawl_interval_days = crawl_company.crawl_interval_days
+                        company.crawl_reason = crawl_company.crawl_reason
+                        company.crawl_paused = crawl_company.crawl_paused
+                        company.next_discovery_at = crawl_company.next_discovery_at
+            if map_cursor is not None and not company.website_url:
+                tags = _homepage_source_tags(candidate.get('tags'))
+                company.homepage_source_tags = tags or None
+                if (company.homepage_resolution_next_at is None and
+                        company.homepage_resolution_attempts < HOMEPAGE_RESOLUTION_MAX_ATTEMPTS):
+                    company.homepage_resolution_next_at = _homepage_resolution_due(company, candidate, now)
+            elif company.website_url:
+                company.homepage_source_tags = None
+                company.homepage_resolution_next_at = None
+                company.homepage_resolution_lease_until = None
             if map_cursor is not None:
-                existing_item = session.scalar(select(DiscoveryJobCompany).where(
+                # Record every distinct mapped office, but queue at most one page
+                # crawl for an employer domain in the national inventory.
+                recorded_item = session.scalar(select(DiscoveryJobCompany).where(
                     DiscoveryJobCompany.discovery_job_id == job.id, DiscoveryJobCompany.company_id == company.id))
+                if is_domain_alias:
+                    if recorded_item is None:
+                        job.companies_found += 1
+                        session.add(DiscoveryJobCompany(discovery_job_id=job.id, company_id=company.id,
+                                                        status='skipped'))
+                existing_item = session.scalar(select(DiscoveryJobCompany).where(
+                    DiscoveryJobCompany.discovery_job_id == job.id,
+                    DiscoveryJobCompany.company_id == crawl_company.id))
                 if existing_item is None:
-                    job.companies_found += 1
-                    if company.website_url and not company.crawl_paused:
+                    if not is_domain_alias:
+                        job.companies_found += 1
+                    if crawl_company.website_url and not crawl_company.crawl_paused:
                         # First inventory checks are spread across a day instead of bursting.
-                        offset = int.from_bytes(hashlib.sha256(f'{job.id}:{company.id}'.encode()).digest()[:4],'big') % 86400
+                        offset = int.from_bytes(hashlib.sha256(f'{job.id}:{crawl_company.id}'.encode()).digest()[:4],'big') % 86400
                         # Do not reset an existing rank's schedule just because a new
                         # Germany inventory campaign found the same company.
-                        if new_company or company.next_discovery_at is None:
-                            company.next_discovery_at = now + timedelta(seconds=offset)
+                        if new_company or crawl_company.next_discovery_at is None:
+                            crawl_company.next_discovery_at = now + timedelta(seconds=offset)
                         status = 'queued'
                         job.candidate_total += 1
                         job.homepages_found += 1
                     else:
                         status = 'skipped'
-                    session.add(DiscoveryJobCompany(discovery_job_id=job.id,company_id=company.id,status=status))
-                elif company.website_url and not company.crawl_paused and existing_item.status == 'skipped':
+                    session.add(DiscoveryJobCompany(discovery_job_id=job.id,
+                                                    company_id=crawl_company.id, status=status))
+                elif crawl_company.website_url and not crawl_company.crawl_paused and existing_item.status == 'skipped':
                     existing_item.status = 'queued'
                     existing_item.finished_at = None
                     job.candidate_total += 1
                     job.homepages_found += 1
-                    offset = int.from_bytes(hashlib.sha256(f'{job.id}:{company.id}'.encode()).digest()[:4],'big') % 86400
-                    if new_company or company.next_discovery_at is None:
-                        company.next_discovery_at = now + timedelta(seconds=offset)
+                    offset = int.from_bytes(hashlib.sha256(f'{job.id}:{crawl_company.id}'.encode()).digest()[:4],'big') % 86400
+                    if new_company or crawl_company.next_discovery_at is None:
+                        crawl_company.next_discovery_at = now + timedelta(seconds=offset)
                 session.flush()
             imported[source_id] = bool(website_url)
 
@@ -813,6 +993,40 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
         if stale_items:
             session.flush()
 
+        # Existing state/radius campaigns may predate domain-level scheduling.
+        # Repoint their queued office aliases to one canonical website task.
+        alias_statement = (select(DiscoveryJobCompany)
+                           .join(Company, Company.id == DiscoveryJobCompany.company_id)
+                           .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
+                           .where(DiscoveryJobCompany.status == "queued", Company.domain.is_not(None),
+                                  DiscoveryJob.search_scope == "country",
+                                  DiscoveryJob.status.in_(("scheduled", "queued", "running")))
+                           .order_by(DiscoveryJobCompany.id).limit(100))
+        if engine.dialect.name == "postgresql":
+            alias_statement = alias_statement.with_for_update(skip_locked=True,
+                                                               of=(DiscoveryJobCompany,))
+        alias_items = session.scalars(alias_statement).all()
+        roots = canonical_company_map(session, [item.company_id for item in alias_items])
+        for alias_item in alias_items:
+            canonical_id = roots.get(alias_item.company_id, alias_item.company_id)
+            if canonical_id == alias_item.company_id:
+                continue
+            duplicate = session.scalar(select(DiscoveryJobCompany).where(
+                DiscoveryJobCompany.discovery_job_id == alias_item.discovery_job_id,
+                DiscoveryJobCompany.company_id == canonical_id))
+            if duplicate is not None:
+                alias_item.status = "skipped"
+                alias_item.finished_at = now
+                alias_item.error = "A company with this website is already checked in this search."
+                job = session.get(DiscoveryJob, alias_item.discovery_job_id)
+                if job is not None:
+                    job.processed_count += 1
+                    job.progress_updated_at = now
+            else:
+                alias_item.company_id = canonical_id
+        if alias_items:
+            session.flush()
+
         statement = (select(DiscoveryJobCompany)
                      .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
@@ -1052,9 +1266,13 @@ def process_once(*, location_jobs_only: bool = False) -> bool:
     if campaign is not None:
         return _process_claimed_company(campaign)
     if location_jobs_only:
-        return False
+        homepage = _claim_due_homepage_resolution()
+        return _process_homepage_resolution(homepage) if homepage is not None else False
     claimed = _claim_due_company()
-    return _process_claimed_company((*claimed, None, None)) if claimed is not None else False
+    if claimed is not None:
+        return _process_claimed_company((*claimed, None, None))
+    homepage = _claim_due_homepage_resolution()
+    return _process_homepage_resolution(homepage) if homepage is not None else False
 
 
 def process_batch(*, location_jobs_only: bool = False,
@@ -1079,14 +1297,22 @@ def process_batch(*, location_jobs_only: bool = False,
             break
         claims.append((*due_company, None, None))
 
+    # Keep reverse lookups behind due career-page checks and cap their throughput
+    # to one company per batch, independently of the crawl worker count.
+    homepage_claim = (_claim_due_homepage_resolution()
+                      if len(claims) < worker_count else None)
+
     if not claims:
-        return False
+        return _process_homepage_resolution(homepage_claim) if homepage_claim is not None else False
     if len(claims) == 1:
-        return _process_claimed_company(claims[0])
-    with ThreadPoolExecutor(max_workers=len(claims), thread_name_prefix="career-discovery") as pool:
-        futures = [pool.submit(_process_claimed_company, claim) for claim in claims]
-        for future in futures:
-            future.result()
+        _process_claimed_company(claims[0])
+    else:
+        with ThreadPoolExecutor(max_workers=len(claims), thread_name_prefix="career-discovery") as pool:
+            futures = [pool.submit(_process_claimed_company, claim) for claim in claims]
+            for future in futures:
+                future.result()
+    if homepage_claim is not None:
+        _process_homepage_resolution(homepage_claim)
     return True
 
 

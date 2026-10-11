@@ -13,7 +13,7 @@ no historical releases have been reconstructed.
 ### Added
 
 - Germany discovery across all 16 states with durable section progress and employer-scoped directory results, including all work locations.
-- Continuous ranked career and feed checks: daily for large employers or recent jobs, every 3/7/30 days for other employers, with evidence-based pauses and manual reactivation. Company details expose cadence, reason, and next check.
+- Continuous ranked career and feed checks: daily for large employers or recent jobs, every 3/7/30 days for other employers, with evidence-based pauses that fresh size or hiring evidence can reactivate. Company details expose cadence, reason, and next check.
 
 - Whole-state company discovery for all 16 German states, with saved searches, recurring source refreshes, and browsing of those employers’ active postings across all work locations. Existing radius searches are preserved by the new state-search migration.
 

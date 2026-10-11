@@ -185,6 +185,100 @@ class NationalDiscoveryWorkerTests(unittest.TestCase):
         self.assertEqual(second[0],companies[0].id)
         self.assertIsNone(worker._claim_campaign_company(now=now),'A company whose ranked revisit is in the future must remain queued')
 
+    def test_national_inventory_crawls_shared_employer_domain_once(self):
+        attempt=worker._claim_location_company_search()
+        with self.factory.begin() as session:
+            root=Company(source='legacy',source_id='hamburg-office',name='Shared Employer Hamburg',
+                         website_url='https://shared-employer-test.de/about',
+                         domain='shared-employer-test.de',state='Hamburg',country_code='DE',
+                         next_discovery_at=utcnow()-timedelta(seconds=1))
+            session.add(root)
+            session.flush()
+            root_id=root.id
+        candidates=[
+            {'source_id':'way/office-a','name':'Employer Office A','website_url':'https://shared-employer-test.de/jobs',
+             'domain':'shared-employer-test.de'},
+            {'source_id':'way/office-b','name':'Employer Office B','website_url':'https://www.shared-employer-test.de/contact',
+             'domain':'www.shared-employer-test.de'},
+        ]
+        worker._persist_location_companies(self.job_id,attempt[1],candidates,
+            map_cursor={'state_index':0,'completed_sections':1,'pending':[[48.5,8.5,49,9,0]]},
+            country_state='Baden-Württemberg')
+        with self.factory.begin() as session:
+            companies=session.scalars(select(Company).order_by(Company.id)).all()
+            items=session.scalars(select(DiscoveryJobCompany).order_by(DiscoveryJobCompany.id)).all()
+            self.assertEqual(len(companies),3,'Distinct OSM offices remain searchable')
+            self.assertEqual(session.get(Company,root_id).state,'Hamburg',
+                             'A shared page must not move the existing office into this map tile state')
+            self.assertEqual(sum(item.status=='queued' for item in items),1,
+                             'Shared employer websites get one initial page check')
+            self.assertEqual(sum(item.status=='skipped' for item in items),2)
+            self.assertEqual(session.get(DiscoveryJob,self.job_id).candidate_total,1)
+            for company in companies:
+                company.next_discovery_at=utcnow()-timedelta(seconds=1)
+        claim=worker._claim_campaign_company()
+        self.assertIsNotNone(claim)
+        self.assertIsNone(worker._claim_campaign_company(),'The second office must not cause another career-page crawl')
+
+    def test_missing_national_homepage_is_resolved_as_separately_paced_work(self):
+        attempt=worker._claim_location_company_search()
+        candidate={'source_id':'way/contacted','name':'Contacted Employer GmbH','website_url':None,
+                   'employee_count':300,'tags':{'addr:city':'Stuttgart','email':'jobs@contacted-employer.de',
+                                                'addr:street':'Werkstrasse','addr:postcode':'70173'}}
+        with patch.object(worker,'configured_website_search',return_value=None):
+            worker._persist_location_companies(self.job_id,attempt[1],[candidate],
+                map_cursor={'state_index':0,'completed_sections':1,'pending':[[48.5,8.5,49,9,0]]},
+                country_state='Baden-Württemberg')
+        now=utcnow()
+        with self.factory() as session:
+            company=session.scalar(select(Company))
+            self.assertEqual(company.homepage_source_tags['email'],'jobs@contacted-employer.de')
+            self.assertIsNotNone(company.homepage_resolution_next_at)
+            self.assertEqual(company.crawl_interval_days,1)
+            company_id=company.id
+        claim=worker._claim_due_homepage_resolution(now=now+timedelta(days=2))
+        self.assertEqual(claim[:2],(company_id,1))
+        def resolve(candidates,**_):
+            candidates[0].update(website_url='https://contacted-employer.de/',domain='contacted-employer.de',
+                                domain_match_method='osm_email_verified_page',
+                                domain_evidence_url='https://contacted-employer.de/impressum/')
+        with patch.object(worker,'resolve_missing_company_websites',side_effect=resolve):
+            self.assertTrue(worker._process_homepage_resolution(claim))
+        with self.factory() as session:
+            company=session.get(Company,company_id)
+            self.assertEqual(company.website_url,'https://contacted-employer.de/')
+            self.assertIsNone(company.homepage_source_tags)
+            self.assertIsNone(company.homepage_resolution_next_at)
+            self.assertEqual(company.homepage_resolution_attempts,0)
+            self.assertLessEqual(company.next_discovery_at.replace(tzinfo=now.tzinfo),utcnow())
+
+    def test_stale_homepage_resolution_cannot_overwrite_a_newer_claim(self):
+        attempt=worker._claim_location_company_search()
+        candidate={'source_id':'way/fenced','name':'Fenced Employer GmbH','website_url':None,
+                   'tags':{'email':'jobs@fenced-employer.de'}}
+        with patch.object(worker,'configured_website_search',return_value=None):
+            worker._persist_location_companies(self.job_id,attempt[1],[candidate],
+                map_cursor={'state_index':0,'completed_sections':1,'pending':[[48.5,8.5,49,9,0]]},
+                country_state='Baden-Württemberg')
+        due=utcnow()+timedelta(days=10)
+        old=worker._claim_due_homepage_resolution(now=due)
+        self.assertIsNotNone(old)
+        newer=[]
+        def stale_lookup(candidates,**_):
+            with self.factory.begin() as session:
+                company=session.get(Company,old[0])
+                company.homepage_resolution_lease_until=utcnow()-timedelta(seconds=1)
+            newer.append(worker._claim_due_homepage_resolution(now=due+timedelta(minutes=20)))
+            candidates[0].update(website_url='https://stale.fenced-employer.de/',domain='stale.fenced-employer.de')
+        with patch.object(worker,'resolve_missing_company_websites',side_effect=stale_lookup):
+            worker._process_homepage_resolution(old)
+        self.assertIsNotNone(newer[0])
+        with self.factory() as session:
+            company=session.get(Company,old[0])
+            self.assertIsNone(company.website_url)
+            self.assertEqual(company.homepage_resolution_token,newer[0][2])
+            self.assertEqual(company.homepage_resolution_attempts,2)
+
     def test_failure_keeps_previous_section_and_retry_does_not_recreate_its_tasks(self):
         self.step();self.step()
         from urllib.error import HTTPError

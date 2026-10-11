@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select, text, or_
+from sqlalchemy import case, func, select, text, or_
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE
@@ -43,15 +43,48 @@ def german_company_filter():
     return or_(Company.country_code == "DE", Company.state.in_(GERMAN_STATES))
 
 
+def _domain_key_expression():
+    domain = func.lower(Company.domain)
+    return case((domain.like("www.%"), func.substr(domain, 5)), else_=domain)
+
+
+def canonical_company_map(session: Session, company_ids: list[int]) -> dict[int, int]:
+    """Map each selected office to the oldest company record for its website."""
+    ids = list(dict.fromkeys(int(value) for value in company_ids))
+    if not ids:
+        return {}
+    rows = session.execute(select(Company.id, Company.domain).where(Company.id.in_(ids))).all()
+    keys = {str(domain).casefold().removeprefix("www.") for _, domain in rows if domain}
+    roots: dict[str, int] = {}
+    if keys:
+        key = _domain_key_expression()
+        matches = session.execute(select(Company.id, key).where(
+            Company.website_url.is_not(None), Company.website_url != "",
+            Company.domain.is_not(None), key.in_(keys)).order_by(Company.id)).all()
+        for company_id, domain_key in matches:
+            roots.setdefault(domain_key, int(company_id))
+    by_id = {int(company_id): (str(domain).casefold().removeprefix("www.") if domain else None)
+             for company_id, domain in rows}
+    return {company_id: roots.get(by_id[company_id], company_id) for company_id in ids}
+
+
+def canonical_company_ids(session: Session, company_ids: list[int]) -> list[int]:
+    """Collapse multiple mapped offices that share one employer website."""
+    company_map = canonical_company_map(session, company_ids)
+    return list(dict.fromkeys(company_map.values()))
+
+
 def company_ids_for_search(session: Session, search) -> list[int]:
     if search.search_scope == "country":
-        return list(session.scalars(select(Company.id).where(
+        ids = list(session.scalars(select(Company.id).where(
             german_company_filter(), Company.website_url.is_not(None),
             Company.website_url != "").order_by(Company.id)))
+        return canonical_company_ids(session, ids)
     if search.search_scope == "state":
-        return list(session.scalars(select(Company.id).where(
+        ids = list(session.scalars(select(Company.id).where(
             Company.state == search.state, Company.website_url.is_not(None),
             Company.website_url != "").order_by(Company.id)))
+        return ids
     return company_ids_in_radius(session, search.latitude, search.longitude, search.radius_km)
 
 

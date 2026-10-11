@@ -147,7 +147,9 @@ export default function LocationsPage() {
       if (!response.ok) throw new Error(errorMessage(payload, 'Could not save this location.'))
       setChoices([])
       setQuery('')
-      setNotice(`${payload.label} was added. We’re finding ${payload.search_scope === 'country' ? 'companies across Germany' : payload.search_scope === 'state' ? 'companies across the whole state' : 'nearby companies'} and their websites now.`)
+      setNotice(payload.already_saved
+        ? `${payload.label} is already saved. Use “Search this place now” to refresh its company inventory.`
+        : `${payload.label} was added. We’re finding ${payload.search_scope === 'country' ? 'companies across Germany' : payload.search_scope === 'state' ? 'companies across the whole state' : 'nearby companies'} and their websites now.`)
       await refresh()
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save this location.')
@@ -287,7 +289,7 @@ export default function LocationsPage() {
             Add location and find companies
           </button>
         </div>}
-        <p className="location-setup-note">Germany discovery saves progress after each map section. Employers with at least 250 employees or recent job posts are checked daily; other employers are checked every 3, 7, or 30 days based on relevance. Checks are spread over time, and repeatedly irrelevant pages are parked. We discover publicly mapped companies and check available websites for jobs; public sources may be incomplete.</p>
+        <p className="location-setup-note">Germany discovery saves progress after each map section. Employers with at least 250 employees or recent job posts are checked daily; others are checked every 3, 7, or 30 days based on relevance. Checks are spread over time, and repeatedly irrelevant pages are parked. Employers without a mapped website enter a separate, paced verification queue when public contact details or configured search are available. Public listings may be incomplete, and a company without a verified website cannot yet receive job checks.</p>
       </section>
 
       <section className="locations-list-section">
