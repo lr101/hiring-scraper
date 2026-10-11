@@ -76,11 +76,11 @@ class HttpTests(unittest.TestCase):
             self.assertEqual(client.records,[])
 
 class PublicCrawlTests(unittest.TestCase):
-    def test_explicit_robots_skip_follows_public_redirect_without_policy_request(self):
+    def test_follows_public_redirect_without_robots_request(self):
         records = {'https://example.org/': ({'status': 302, 'state': 'http_error', 'location': '/jobs'}, b''),
                    'https://example.org/jobs': ({'status': 200, 'state': 'ok'}, b'Jobs')}
         with tempfile.TemporaryDirectory() as folder:
-            client = Client(folder, respect_robots=False)
+            client = Client(folder)
             def request(url):
                 self.assertIn(url, records)
                 return records[url]
@@ -88,11 +88,11 @@ class PublicCrawlTests(unittest.TestCase):
                 meta, body = client.get('https://example.org/')
             self.assertEqual(body, b'Jobs')
             self.assertEqual(meta['final_url'], 'https://example.org/jobs')
-            self.assertEqual(meta['access_mode'], 'public_without_robots')
+            self.assertEqual(meta['access_mode'], 'public_http')
 
-    def test_robots_skip_retains_private_destination_rejection(self):
+    def test_private_destination_rejection_remains_active(self):
         with tempfile.TemporaryDirectory() as folder:
-            client = Client(folder, respect_robots=False, delay=0)
+            client = Client(folder, delay=0)
             with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('127.0.0.1', 80))]):
                 meta, body = client.get('http://localhost/private')
             self.assertEqual(meta['state'], 'network_error')

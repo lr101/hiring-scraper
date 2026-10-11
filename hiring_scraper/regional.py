@@ -1,7 +1,8 @@
-"""Opt-in adapter for the observed public BA Jobsuche endpoint.
+"""Adapter for the observed BA Jobsuche endpoint.
 
 This is an observed interface, not a guaranteed official API contract. Searches
-are selected and bounded; their absence is never evidence that a job closed.
+are selected and bounded; their absence is never evidence that a job
+closed. A bot or CAPTCHA challenge stops the scan and is recorded explicitly.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, urlencode, urlsplit
 
+from hiring_scraper.challenges import is_bot_challenge
 from hiring_scraper.http import Client, OriginPacer, RequestBudget
 
 BASE_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service'
@@ -178,7 +180,9 @@ class RegionalClient:
             record, body = self.transport._raw(url, {'X-API-Key': 'jobboerse-jobsuche', 'Accept': 'application/json'})
             result = {**record, 'url': url, 'attempt': attempt + 1}
             payload = None
-            if record.get('state') == 'ok':
+            if is_bot_challenge(body, record.get('cf_mitigated')):
+                result.update(state='bot_challenge', error='The source returned a bot or CAPTCHA challenge.')
+            elif record.get('state') == 'ok':
                 try:
                     payload = json.loads(body)
                 except (ValueError, UnicodeError):
@@ -199,7 +203,7 @@ class RegionalClient:
 
 def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_size=100,
             max_details=100, max_requests=300, delay=1, retries=2, client=None) -> dict:
-    """Capture a fresh bounded selected search and reusable normalized snapshot."""
+    """Capture a fresh, bounded selected search and stop on bot challenges."""
     terms = list(dict.fromkeys(_text(term) for term in terms if _text(term)))
     if not _text(city) or not 0 <= radius_km <= 200 or not 1 <= max_pages <= 100 or not 1 <= page_size <= 100:
         raise ValueError('City and valid radius/pagination bounds are required')
@@ -217,6 +221,7 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
                 'max_requests': client.max_requests, 'searches': [], 'detail_errors': [], 'state': 'complete_selected_search'}
     summaries, term_refs = {}, []
     partial = False
+    stop_reason = None
     def save():
         snapshot = {'source': 'arbeitsagentur', 'selected_search': True, 'observed_at': manifest['started_at'],
                     'jobs': [normalize_job(row, manifest['started_at']) for row in summaries.values()]}
@@ -233,6 +238,8 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
             manifest['searches'].append(search)
             if payload is None:
                 partial = True
+                if record.get('state') == 'bot_challenge':
+                    stop_reason = 'bot_challenge'
                 break
             try:
                 parsed = parse_search(payload)
@@ -263,6 +270,8 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
                 partial = True
         term_refs.append(refs)
         save()
+        if stop_reason:
+            break
         if client.used >= client.max_requests:
             partial = True
             break
@@ -273,6 +282,8 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
             if index < len(refs) and refs[index] not in seen:
                 selected.append(refs[index])
                 seen.add(refs[index])
+    if stop_reason:
+        selected = []
     if len(selected) > max_details:
         partial = True
     full = []
@@ -295,8 +306,13 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
             manifest['detail_errors'].append({'reference': ref, 'url': url, 'state': state, 'status': record.get('status')})
             partial = True
         save()
+        if record.get('state') == 'bot_challenge':
+            stop_reason = 'bot_challenge'
+            break
     manifest.update(finished_at=_now(), requests_used=client.used, attempts=client.attempts,
-                    unique_summaries=len(summaries), detail_count=len(full), state='partial' if partial else 'complete_selected_search')
+                    unique_summaries=len(summaries), detail_count=len(full),
+                    state=stop_reason or ('partial' if partial else 'complete_selected_search'),
+                    stop_reason=stop_reason)
     (out/'details.json').write_text(json.dumps(full, ensure_ascii=False, indent=2)+'\n')
     save()
     return manifest

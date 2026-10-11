@@ -86,7 +86,7 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
         class OfflineClient:
             def get(self,url):
                 if url.endswith('/1'): raise ValueError('malformed source')
-                return {'state':'robots_disallowed'}, b''
+                return {'state':'network_error'}, b''
         with patch.object(enrichment,'SessionLocal',self.factory):
             try:
                 result=enrichment.backfill(2,fetch_details=True,client=OfflineClient())

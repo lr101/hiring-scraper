@@ -18,7 +18,7 @@ from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from hiring_scraper.http import Client
-from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
+from hiring_scraper.crawl_policy import ORIGIN_PACER
 from hiring_scraper.website_discovery import configured_website_search, discover_missing_websites
 from hiring_scraper.geography import build_osm_radius_query, build_osm_state_query, build_osm_state_bounds_query, normalize_german_state, haversine_m, osm_element_coordinates
 from hiring_scraper.osm_websites import (
@@ -266,8 +266,7 @@ def resolve_missing_company_websites(candidates: list[dict], *, progress_callbac
         max_searches = min(200, max(0, int(os.getenv("HOMEPAGE_DISCOVERY_MAX_SEARCHES", "50"))))
     with TemporaryDirectory(prefix="hiring-homepages-") as capture_dir:
         client = Client(capture_dir, timeout=8, delay=1, max_requests=max_requests,
-                        user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER,
-                        respect_robots=RESPECT_ROBOTS)
+                        user_agent=USER_AGENT, origin_pacer=_HOMEPAGE_PACER)
         decisions = discover_missing_websites(
             candidates, client, search=search, max_companies=max_companies,
             max_searches=max_searches, search_area_hint=search_area_hint,
@@ -340,7 +339,7 @@ def fetch_location_companies(latitude: float, longitude: float, radius_m: float,
     transport = opener or urlopen
     payload = (_fetch_state_map(state, transport, progress_callback) if state else
                _fetch_overpass(build_osm_radius_query(latitude, longitude, radius_m), transport))
-    # A shared request cap includes robots and redirects. No search credentials are
+    # A shared request cap covers homepage requests and redirects. No search credentials are
     # required for email-domain verification; API lookup is enabled when configured.
     def enrich(candidates):
         if not any(not row.get("website_url") for row in candidates):

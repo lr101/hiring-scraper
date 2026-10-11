@@ -10,7 +10,7 @@ class Pages:
     def get(self, url):
         value = self.pages.get(url)
         if value is None:
-            return {'state': 'robots_disallowed', 'url': url}, b''
+            return {'state': 'network_error', 'url': url}, b''
         return {'state': 'ok', 'status': 200, 'content_type': 'text/html',
                 'final_url': url}, value.encode()
 

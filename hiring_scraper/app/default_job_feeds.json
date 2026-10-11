@@ -1,0 +1,30 @@
+{
+  "feeds": [
+    {
+      "id": "jobwoche-germany-wide",
+      "name": "JOBWOCHE.de — Germany-wide",
+      "provider": "rss",
+      "feed_url": "https://www.jobwoche.de/rss",
+      "source_page_url": "https://www.jobwoche.de/jobs-abonnieren",
+      "website_url": "https://www.jobwoche.de",
+      "category": "job_board_source",
+      "location_label": null,
+      "latitude": null,
+      "longitude": null,
+      "location_precision": null
+    },
+    {
+      "id": "stuttgart-city-careers",
+      "name": "Landeshauptstadt Stuttgart — Current vacancies",
+      "provider": "rss",
+      "feed_url": "https://www.stuttgart.de/rathaus/karriere/fach-und-fuehrungskraefte/aktuelle-stellenangebote?action=submit&sp%3Acmp=search-1-0-searchResult&sp%3Aout=rss",
+      "source_page_url": "https://www.stuttgart.de/rathaus/karriere/fach-und-fuehrungskraefte/aktuelle-stellenangebote",
+      "website_url": "https://www.stuttgart.de",
+      "category": "public_employer",
+      "location_label": "Stuttgart, Deutschland",
+      "latitude": 48.775846,
+      "longitude": 9.182932,
+      "location_precision": "city_centroid"
+    }
+  ]
+}

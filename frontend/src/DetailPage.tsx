@@ -9,7 +9,7 @@ import type { Profile } from './profile'
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
 
-type Feed = { id: number; provider: string; board_url: string | null; feed_url: string; status: string; job_count: number | null; last_checked_at: string | null }
+type Feed = { id: number; provider: string; board_url: string | null; feed_url: string; status: string; enabled?: boolean; job_count: number | null; last_checked_at: string | null }
 type Company = {
   crawl_paused: boolean; crawl_interval_days: number | null; crawl_reason: string | null; next_check_at: string | null; employee_count: number | null
   id: number; name: string; category: string | null; website_url: string | null; domain: string | null
@@ -20,7 +20,7 @@ type Company = {
 }
 type JobLocation = { label: string; precision: string | null }
 type Job = {
-  id: number; title: string; url: string; company_id: number; company_name: string
+  id: number; title: string; url: string; company_id: number; company_name: string; company_name_is_employer?: boolean
   company_domain: string | null; company_website: string | null; company_source_url: string | null
   provider: string; board_url: string | null; location_text: string | null
   locations: JobLocation[]; is_remote: boolean; work_arrangement: string | null
@@ -131,11 +131,14 @@ function CompanyPage({ company }: { company: Company }) {
   }
   const providerLabels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
+    schema_org: 'Company job page', html_jobs: 'Company job page', external_html: 'Public job page',
+    browser_html: 'JavaScript job page', rss: 'RSS / Atom job feed',
+    arbeitsagentur: 'Bundesagentur für Arbeit job listing',
   }
   const feedStatusLabels: Record<string, string> = {
     parsed: 'checked', complete_empty: 'checked · no jobs', incomplete: 'partly checked',
-    blocked: 'site access blocked', throttled: 'try again later', schema_error: 'could not read listings',
+    blocked: 'site access blocked', bot_challenge: 'bot challenge', paused: 'paused',
+    throttled: 'try again later', schema_error: 'could not read listings',
     failed: 'could not check', not_modified: 'checked recently', unsupported: 'not supported yet',
   }
   return <>
@@ -164,7 +167,8 @@ function CompanyPage({ company }: { company: Company }) {
           <Meta label="NEXT CHECK" value={company.crawl_paused ? 'Paused until fresh evidence or a manual search' : company.next_check_at ? new Date(company.next_check_at).toLocaleString() : 'Pending'} />
           <Meta label="ACTIVE JOBS" value={String(company.active_job_count ?? company.jobs.filter(job => job.is_active !== false).length)} />
         </div>
-        <h3 className="panel-subheading">Where job listings were found</h3>
+        <div className="feed-section-heading"><h3 className="panel-subheading">Where job listings were found</h3>
+          <a className="page-link" href={`/feeds?company_id=${company.id}`}>Add job page</a></div>
         {company.feeds.length ? company.feeds.map(feed => <div className="feed-record" key={feed.id}>
           <div><strong>{providerLabels[feed.provider] || 'Company job page'}</strong><span>{feed.job_count ?? 0} jobs · {feedStatusLabels[feed.status] || 'needs checking'}</span></div>
           <ExternalLink href={feed.board_url || feed.feed_url}>View listings</ExternalLink>
@@ -196,7 +200,7 @@ function JobPage({ job }: { job: Job }) {
     <section className="detail-hero">
       <p className="eyebrow">JOB POSTING · {providerLabels[job.provider] || 'Company job page'}</p>
       <h1>{job.title}</h1>
-      <p className="intro-copy"><a href={`/companies/${job.company_id}`}>{job.company_name}</a>{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
+      <p className="intro-copy">{job.company_name_is_employer ? job.company_name : <a href={`/companies/${job.company_id}`}>{job.company_name}</a>}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
         <ExternalLink href={job.url}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}

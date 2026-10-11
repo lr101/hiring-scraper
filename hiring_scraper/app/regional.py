@@ -257,7 +257,7 @@ def load_search_area(session: Session, *, profile_id=None, profile_json=None) ->
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Opt-in, bounded observed BA Jobsuche acquisition/import')
+    parser = argparse.ArgumentParser(description='Authorized BA Jobsuche snapshot import; acquisition requires an approved host allowlist')
     sub = parser.add_subparsers(dest='command', required=True)
     importer = sub.add_parser('import', help='Import raw detail rows or a normalized snapshot idempotently')
     importer.add_argument('snapshot', type=Path)

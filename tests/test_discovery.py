@@ -339,7 +339,7 @@ class DiscoveryTests(unittest.TestCase):
         self.assertEqual(result['pages'][0]['url'],home)
         self.assertNotIn('http://acme.de/',client.requests)
 
-    def test_http_seed_checks_www_robots_when_apex_robots_is_unavailable(self):
+    def test_http_seed_checks_www_after_apex_tls_network_error(self):
         class CanonicalFixtureClient(FixtureClient):
             def __init__(self,pages):
                 super().__init__(pages)
@@ -347,7 +347,7 @@ class DiscoveryTests(unittest.TestCase):
             def get(self,url):
                 self.requests.append(url)
                 if url=='https://acme.de/':
-                    return {'state':'robots_unavailable','final_url':url},b''
+                    return {'state':'network_error','final_url':url},b''
                 return super().get(url)
 
         home='https://www.acme.de/'
@@ -361,18 +361,18 @@ class DiscoveryTests(unittest.TestCase):
         self.assertIn(home,client.requests)
         self.assertEqual(result['pages'][0]['url'],home)
 
-    def test_http_seed_does_not_try_www_after_an_explicit_robots_block(self):
+    def test_http_seed_does_not_try_www_after_tls_access_denial(self):
         class BlockedFixtureClient(FixtureClient):
             def __init__(self):
                 super().__init__({})
                 self.requests=[]
             def get(self,url):
                 self.requests.append(url)
-                return {'state':'robots_disallowed','final_url':url},b''
+                return {'state':'http_error','status':403,'final_url':url},b''
 
         client=BlockedFixtureClient()
         result=discover({'name':'Acme','website':'http://acme.de/'},client,max_pages=2)
-        self.assertEqual(result['pages'][0]['fetch_state'],'robots_disallowed')
+        self.assertEqual(result['pages'][0]['fetch_state'],'http_error')
         self.assertFalse(any(url.startswith('https://www.acme.de/') for url in client.requests))
 
     def test_external_official_job_portal_outranks_employer_brand_pages(self):

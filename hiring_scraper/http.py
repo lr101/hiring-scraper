@@ -1,4 +1,4 @@
-"""Bounded HTTP capture with per-origin pacing and per-hop robots checks."""
+"""Bounded HTTP capture with per-origin pacing and bot-challenge detection."""
 import hashlib
 import ipaddress
 import json
@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
-from urllib.robotparser import RobotFileParser
+from hiring_scraper.challenges import is_bot_challenge
 
 UA = 'HiringDiscoveryResearch/0.2 (career discovery feasibility study)'
 
@@ -90,7 +90,7 @@ class RequestBudget:
 class Client:
     def __init__(self, out, timeout=12, delay=1.0, max_requests=300, cache_from=None, user_agent=UA,
                  origin_pacer: OriginPacer | None = None, request_budget: RequestBudget | None = None,
-                 offline_only=False, respect_robots=True):
+                 offline_only=False):
         self.out = Path(out)
         self.out.mkdir(parents=True, exist_ok=True)
         self.timeout, self.delay, self.max_requests = timeout, delay, max_requests
@@ -98,8 +98,7 @@ class Client:
         self.origin_pacer = origin_pacer
         self.request_budget = request_budget
         self.offline_only = offline_only
-        self.respect_robots = respect_robots
-        self.cache, self.robots, self.last, self.records = {}, {}, {}, []
+        self.cache, self.last, self.records = {}, {}, []
         self.opener = urllib.request.build_opener(NoRedirect)
         self.used = set()
         if cache_from:
@@ -158,6 +157,7 @@ class Client:
                 body = response.read(3_000_001)
                 record.update(status=response.code, content_type=response.headers.get('Content-Type',''),
                               etag=response.headers.get('ETag'), last_modified=response.headers.get('Last-Modified'),
+                              cf_mitigated=response.headers.get('CF-Mitigated'),
                               retry_after=response.headers.get('Retry-After'),
                               location=response.headers.get('Location'), bytes=len(body),
                               state='not_modified' if response.code==304 else
@@ -179,42 +179,20 @@ class Client:
         self.cache[url] = (record,body)
         return record,body
 
-    def _policy(self, url):
-        p=urlsplit(url)
-        origin=f'{p.scheme}://{p.netloc}'
-        if origin not in self.robots:
-            robot_url=origin+'/robots.txt'
-            for _ in range(6):
-                record,body=self._raw(robot_url)
-                if record.get('status') in {301,302,303,307,308} and record.get('location'):
-                    robot_url=urljoin(robot_url,record['location'])
-                    continue
-                break
-            if record.get('status')==404:
-                self.robots[origin]=None
-            elif record.get('state')=='ok' and not body.lstrip().startswith(b'<') and 'html' not in record.get('content_type',''):
-                parser=RobotFileParser()
-                parser.parse(body.decode('utf-8-sig',errors='replace').splitlines())
-                self.robots[origin]=parser
-            else:
-                self.robots[origin]=False
-        policy=self.robots[origin]
-        if policy is False: return 'robots_unavailable'
-        if policy is not None and not policy.can_fetch(self.user_agent,url): return 'robots_disallowed'
-        return None
-
     def get(self, url):
         chain=[]
         for _ in range(6):
-            reason=self._policy(url) if self.respect_robots else None
-            if reason: return {'url':url,'state':reason,'redirect_chain':chain},b''
             record,body=self._raw(url)
             chain.append(url)
+            if is_bot_challenge(body, record.get('cf_mitigated')):
+                return {**record, 'state': 'bot_challenge',
+                        'error': 'The source returned a bot or CAPTCHA challenge.',
+                        'final_url': url, 'redirect_chain': chain}, body
             if record.get('status') in {301,302,303,307,308} and record.get('location'):
                 url=urljoin(url,record['location'])
                 continue
             return {**record,'final_url':url,'redirect_chain':chain,
-                    'access_mode':'robots_checked' if self.respect_robots else 'public_without_robots'},body
+                    'access_mode':'public_http'},body
         return {'url':url,'state':'redirect_limit','redirect_chain':chain},b''
 
     def get_feed(self, url, conditional_headers=None):
@@ -233,4 +211,8 @@ class Client:
         if p.scheme != 'https' or p.username or p.password or p.port not in (None,443) or not allowed:
             return {'url':url,'state':'unsupported_api'},b''
         record, body = self._raw(url, conditional_headers)
+        if is_bot_challenge(body, record.get('cf_mitigated')):
+            return {**record, 'state': 'bot_challenge',
+                    'error': 'The source returned a bot or CAPTCHA challenge.',
+                    'final_url': url}, body
         return {**record,'final_url':url,'access_mode':'documented_public_feed'}, body

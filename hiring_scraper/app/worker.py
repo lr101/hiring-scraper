@@ -19,9 +19,10 @@ from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, ScanRun, utcnow
+from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.http import Client
-from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
+from hiring_scraper.crawl_policy import ORIGIN_PACER
 
 
 LOG = logging.getLogger("hiring_scraper.worker")
@@ -39,7 +40,8 @@ def _claim_due_feed() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         statement = (select(JobFeed).join(Company)
-                     .where(Company.crawl_paused.is_(False), JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
+                     .where(Company.crawl_paused.is_(False), JobFeed.enabled.is_(True),
+                            JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
                      .order_by(JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
         if engine.dialect.name == "postgresql":
@@ -92,7 +94,7 @@ def _backoff(attempt: int, *, incomplete: bool = False) -> datetime:
 
 
 def _request(feed: JobFeed) -> tuple[dict, bytes]:
-    client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER, respect_robots=RESPECT_ROBOTS,
+    client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
                     max_requests=10 if feed.provider == "lever" else 8, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
@@ -135,9 +137,13 @@ def _location_rows(job_data: dict, existing: list[JobLocation]) -> list[dict]:
 
 def _set_failure(feed: JobFeed, run: ScanRun, status: str, metadata: dict, error: str) -> None:
     now = utcnow()
-    feed.status = status
+    feed.status = status if feed.enabled else "paused"
     feed.last_error = error[:2000]
-    feed.next_scan_at = _retry_after(metadata.get("retry_after"), now) or _backoff(feed.attempt_count)
+    retry_at = _retry_after(metadata.get("retry_after"), now)
+    if retry_at is None:
+        retry_at = (now + timedelta(hours=24) if status in {"blocked", "bot_challenge"}
+                    else _backoff(feed.attempt_count))
+    feed.next_scan_at = retry_at if feed.enabled else None
     feed.lease_until = None
     run.finished_at = now
     run.status = status
@@ -177,9 +183,12 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             refresh_company_rank(session, feed.company, now,
                                  {'complete': True, 'status': 'complete_empty'}
                                  if feed.status == 'complete_empty' else None)
-            feed.next_scan_at = (_backoff(1, incomplete=True) if feed.status == "incomplete" else
+            feed.next_scan_at = (None if not feed.enabled else
+                                 _backoff(1, incomplete=True) if feed.status == "incomplete" else
                                  next_feed_due(feed.company, feed, now))
             _schedule_career_revisit(feed.company, now)
+            if not feed.enabled:
+                feed.status = "paused"
             run.finished_at = now
             run.status = "not_modified"
             run.http_status = 304
@@ -187,11 +196,13 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             return
 
         if state != "ok":
-            if state in {"robots_disallowed", "robots_unavailable"} or status in {401, 403}:
+            if state == "bot_challenge":
+                failure_status = "bot_challenge"
+            elif status in {401, 403}:
                 failure_status = "blocked"
             elif status == 429:
                 failure_status = "throttled"
-            elif state == "unsupported_api":
+            elif state in {"unsupported_api", "browser_unavailable"}:
                 failure_status = "unsupported"
             else:
                 failure_status = "failed"
@@ -220,7 +231,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
                     for job in parsed['jobs']:
                         job.setdefault('raw_metadata', {})['personio_posting_scope'] = job['id']
                 else:
-                    parsed = parse_feed(feed.provider, body, board_url)
+                    parse_url = (metadata.get("final_url") or feed.feed_url
+                                 if feed.provider == "rss" else board_url)
+                    parsed = parse_feed(feed.provider, body, parse_url)
         except (ValueError, TypeError) as error:
             _set_failure(feed, run, "schema_error", metadata, str(error))
             return
@@ -235,6 +248,21 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
         for data in incoming:
+            if (feed.provider == "rss" and not data.get("locations")
+                    and feed.company.location_label):
+                source_location = {
+                    "label": feed.company.location_label,
+                    "latitude": feed.company.latitude,
+                    "longitude": feed.company.longitude,
+                    "precision": feed.company.location_precision,
+                    "country_code": "DE",
+                }
+                data["location"] = feed.company.location_label
+                data["locations"] = [source_location]
+                data["raw_metadata"] = {
+                    **(data.get("raw_metadata") or {}),
+                    "location_source": "configured_feed_source",
+                }
             external_id = str(data["id"])
             seen.add(external_id)
             job = current.get(external_id)
@@ -286,7 +314,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
                     job.closed_at = now
 
         feed.job_count = len(incoming)
-        feed.status = "parsed" if complete and incoming else "complete_empty" if complete else "incomplete"
+        feed.status = ("parsed" if complete and incoming else "complete_empty" if complete else "incomplete") if feed.enabled else "paused"
         feed.last_checked_at = now
         feed.last_error = None if complete else (
             (metadata.get("pagination") or {}).get("error") or
@@ -295,8 +323,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
         session.flush()
         refresh_company_rank(session, feed.company, now,
                              {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
-        feed.next_scan_at = (next_feed_due(feed.company, feed, now)
-                             if complete else _backoff(1, incomplete=True))
+        feed.next_scan_at = (None if not feed.enabled else
+                             next_feed_due(feed.company, feed, now) if complete else
+                             _backoff(1, incomplete=True))
         if complete:
             _schedule_career_revisit(feed.company, now)
         run.finished_at = now
@@ -333,6 +362,8 @@ def scan_once() -> bool:
 def main() -> None:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"),
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
+    added_defaults = ensure_default_job_feeds()
+    LOG.info("loaded default public job feeds added=%s", added_defaults)
     LOG.info("feed worker started poll_seconds=%s interval_hours=%s", POLL_SECONDS, SCAN_INTERVAL_HOURS)
     while True:
         if not scan_once():

@@ -215,8 +215,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
         secure_candidates = [{'url': secure_home, 'state': secure_meta.get('state'),
                               'status': secure_meta.get('status')}]
         used_www_fallback = False
-        if (secure_meta.get('state') == 'robots_unavailable' and host and '.' in host
-                and ':' not in host and not host.casefold().startswith('www.')):
+        if (host and '.' in host and ':' not in host and not host.casefold().startswith('www.')
+                and secure_meta.get('state') == 'network_error'):
             www_authority = f'www.{authority}'
             www_home = urlunsplit(('https', www_authority, parsed_home.path or '/', parsed_home.query, ''))
             www_meta, _ = client.get(www_home)
@@ -225,8 +225,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
             if www_meta.get('state') == 'ok':
                 secure_home, secure_meta = www_home, www_meta
                 used_www_fallback = True
-        # Prefer a working TLS homepage. Only fall back to HTTP when TLS cannot
-        # connect or the secure route is absent; robots blocks remain blocks.
+        # Prefer a working TLS homepage. Fall back to HTTP when TLS cannot
+        # connect or the secure route is absent.
         fallback_to_http = secure_meta.get('state') == 'network_error' or (
             secure_meta.get('state') == 'http_error' and secure_meta.get('status') in {404, 410})
         if not fallback_to_http:

@@ -2,14 +2,17 @@
 from __future__ import annotations
 
 import json
+import hashlib
+import ipaddress
 import os
+import re
 import threading
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from urllib.request import Request, urlopen
 
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -41,6 +44,7 @@ from hiring_scraper.app.board_scope import (
 KARLSRUHE = {"label": "Karlsruhe, Baden-Württemberg, Deutschland", "city": "Karlsruhe",
              "state": "Baden-Württemberg", "latitude": 49.0068705, "longitude": 8.4034195,
              "precision": "city_centroid", "country_code": "de", "type": "city"}
+MANAGED_FEED_PROVIDERS = {"external_html", "browser_html", "rss"}
 _NOMINATIM_LOCK = threading.Lock()
 _LAST_NOMINATIM_REQUEST = 0.0
 
@@ -83,6 +87,20 @@ class DiscoveryJobCreate(BaseModel):
     scheduled_for: datetime | None = None
 
 
+class ManagedFeedCreate(BaseModel):
+    company_id: int | None = Field(default=None, ge=1)
+    company_name: str | None = Field(default=None, min_length=2, max_length=500)
+    website_url: str | None = Field(default=None, max_length=2000)
+    feed_url: str = Field(min_length=8, max_length=2000)
+    provider: Literal["external_html", "browser_html", "rss"] = "external_html"
+
+
+class ManagedFeedUpdate(BaseModel):
+    feed_url: str | None = Field(default=None, min_length=8, max_length=2000)
+    provider: Literal["external_html", "browser_html", "rss"] | None = None
+    enabled: bool | None = None
+
+
 def _model_value(request: Any, key: str, default: Any = None) -> Any:
     if isinstance(request, dict):
         return request.get(key, default)
@@ -91,6 +109,30 @@ def _model_value(request: Any, key: str, default: Any = None) -> Any:
 
 def _key(value: str) -> str:
     return " ".join(value.strip().casefold().split())
+
+
+def _managed_page_url(value: str | None, label: str = "Job page") -> str:
+    if not isinstance(value, str) or not value or re.search(r"[\s\x00-\x1f\x7f\\]", value):
+        raise HTTPException(status_code=422, detail=f"{label} must be a valid public HTTPS URL")
+    try:
+        parts = urlsplit(value)
+        host = parts.hostname
+        port = parts.port
+        if (parts.scheme != "https" or not host or parts.username or parts.password or
+                port not in (None, 443) or parts.fragment):
+            raise ValueError("Expected a public HTTPS URL without credentials or a fragment")
+        host = host.rstrip(".").casefold()
+        if host in {"localhost", "localhost.localdomain"} or host.endswith((".localhost", ".local", ".internal")):
+            raise ValueError("Local hostnames are not public job pages")
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            address = None
+        if address is not None and not address.is_global:
+            raise ValueError("Private and reserved addresses are not accepted")
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=f"{label} must be a valid public HTTPS URL: {error}") from error
+    return value
 
 
 def _nominatim_results(query: str) -> list[dict[str, Any]]:
@@ -189,10 +231,18 @@ def _sort_jobs(jobs: list[Job], sort: str) -> list[Job]:
         undated.sort(key=lambda job: (job.title.casefold(), job.id))
         return dated + undated
     if sort == "title":
-        return sorted(jobs, key=lambda job: (job.title.casefold(), job.feed.company.name.casefold(), job.id))
+        return sorted(jobs, key=lambda job: (job.title.casefold(), _job_employer(job).casefold(), job.id))
     if sort == "company":
-        return sorted(jobs, key=lambda job: (job.feed.company.name.casefold(), job.title.casefold(), job.id))
+        return sorted(jobs, key=lambda job: (_job_employer(job).casefold(), job.title.casefold(), job.id))
     return sorted(jobs, key=lambda job: (not job.is_remote, job.title.casefold(), job.id))
+
+
+def _job_employer(job: Job) -> str:
+    metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
+    organization = metadata.get("hiring_organization")
+    if isinstance(organization, dict) and isinstance(organization.get("name"), str) and organization["name"].strip():
+        return organization["name"].strip()
+    return job.feed.company.name
 
 
 def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[int, int]:
@@ -208,18 +258,32 @@ def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[
 def _feed_json(feed: JobFeed) -> dict[str, Any]:
     return {"id": feed.id, "provider": feed.provider, "tenant": feed.tenant,
             "board_url": feed.board_url, "feed_url": feed.feed_url,
+            "enabled": feed.enabled,
             "status": feed.status, "job_count": feed.job_count,
-            "last_checked_at": feed.last_checked_at.isoformat() if feed.last_checked_at else None}
+            "last_checked_at": feed.last_checked_at.isoformat() if feed.last_checked_at else None,
+            "next_scan_at": feed.next_scan_at.isoformat() if feed.next_scan_at else None,
+            "last_error": feed.last_error}
 
 
 def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
     feed, company = job.feed, job.feed.company
+    raw_metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
+    organization = raw_metadata.get("hiring_organization")
+    organization = organization if isinstance(organization, dict) else {}
+    employer_name = organization.get("name") if isinstance(organization.get("name"), str) else None
+    employer_url = organization.get("url") if isinstance(organization.get("url"), str) else None
+    employer_host = urlsplit(employer_url).hostname if employer_url else None
+    source_company_name = company.name
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
                   "country_code": location.country_code} for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
-            "url": job.url, "company_id": company.id, "company_name": company.name,
-            "company_domain": company.domain, "company_website": company.website_url,
+            "url": job.url, "company_id": company.id,
+            "company_name": employer_name.strip() if employer_name and employer_name.strip() else source_company_name,
+            "company_name_is_employer": bool(employer_name and employer_name.strip() and
+                                                employer_name.strip().casefold() != source_company_name.casefold()),
+            "company_domain": employer_host or company.domain,
+            "company_website": employer_url or company.website_url,
             "company_source_url": company.source_url, "provider": feed.provider,
             "board_url": feed.board_url, "feed_status": feed.status,
             "locations": locations, "location_text": job.location_text,
@@ -772,7 +836,8 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         filters.append(JobFeed.company_id == company_id)
     if query:
         pattern = f"%{query.strip()}%"
-        filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern)))
+        filters.append(or_(Job.title.ilike(pattern), Company.name.ilike(pattern), Company.domain.ilike(pattern),
+                           Job.raw_metadata["hiring_organization"]["name"].as_string().ilike(pattern)))
     if work_style == 'remote':
         remote_clause = or_(Job.work_arrangement == 'remote',
                             and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
@@ -890,6 +955,125 @@ def get_company(company_id: int, session: Session = Depends(get_session)) -> dic
     data["feeds"] = [_feed_json(feed) for feed in company.feeds]
     data["jobs"] = [_job_json(job) for job in all_jobs]
     return data
+
+
+def _managed_feed_json(feed: JobFeed) -> dict[str, Any]:
+    return {**_feed_json(feed), "company_id": feed.company_id,
+            "company_name": feed.company.name, "company_website": feed.company.website_url}
+
+
+@app.get("/api/v1/feeds")
+def list_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
+    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).order_by(
+        Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
+    return {"items": [_managed_feed_json(feed) for feed in feeds], "total": len(feeds)}
+
+
+@app.post("/api/v1/feeds", status_code=201)
+def create_managed_feed(request: ManagedFeedCreate,
+                        session: Session = Depends(get_session)) -> dict[str, Any]:
+    feed_url = _managed_page_url(request.feed_url)
+    website_url = _managed_page_url(request.website_url, "Company website") if request.website_url else None
+    company = session.get(Company, request.company_id) if request.company_id else None
+    if request.company_id and company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    if company is None:
+        company_name = (request.company_name or "").strip()
+        if len(company_name) < 2:
+            raise HTTPException(status_code=422, detail="Enter a company or job-source name")
+        normalized = _key(company_name)
+        source_id = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        company = session.scalar(select(Company).where(
+            Company.source == "managed_feed", Company.source_id == source_id))
+        if company is None:
+            website_host = urlsplit(website_url).hostname if website_url else None
+            company = Company(source="managed_feed", source_id=source_id,
+                              name=company_name, website_url=website_url,
+                              domain=website_host, category="job_board_source",
+                              source_url=feed_url, career_url=feed_url,
+                              career_status="jobs_feed_found")
+            session.add(company)
+            session.flush()
+        elif website_url:
+            company.website_url = website_url
+            company.domain = urlsplit(website_url).hostname
+    duplicate = session.scalar(select(JobFeed).where(
+        JobFeed.company_id == company.id, JobFeed.provider == request.provider,
+        JobFeed.feed_url == feed_url))
+    if duplicate:
+        raise HTTPException(status_code=409, detail="This page is already managed for this company")
+    now = utcnow()
+    feed = JobFeed(company_id=company.id, provider=request.provider,
+                   board_url=feed_url, feed_url=feed_url, status="pending",
+                   enabled=True, job_count=0, next_scan_at=now)
+    session.add(feed)
+    session.commit()
+    session.refresh(feed)
+    return _managed_feed_json(feed)
+
+
+@app.patch("/api/v1/feeds/{feed_id}")
+def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
+                        session: Session = Depends(get_session)) -> dict[str, Any]:
+    feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.id == feed_id)).first()
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Job feed not found")
+    if (request.feed_url is not None or request.provider is not None) and feed.provider not in MANAGED_FEED_PROVIDERS:
+        raise HTTPException(status_code=409, detail="Only manually managed public feeds can change their page or scraper type")
+    now = utcnow()
+    changed_source = False
+    new_url = _managed_page_url(request.feed_url) if request.feed_url is not None else feed.feed_url
+    new_provider = request.provider or feed.provider
+    if not (request.enabled is False and request.feed_url is None and request.provider is None):
+        _managed_page_url(new_url)
+    if new_url != feed.feed_url or new_provider != feed.provider:
+        duplicate = session.scalar(select(JobFeed).where(
+            JobFeed.company_id == feed.company_id, JobFeed.provider == new_provider,
+            JobFeed.feed_url == new_url, JobFeed.id != feed.id))
+        if duplicate:
+            raise HTTPException(status_code=409, detail="This page is already managed for this company")
+    if request.feed_url is not None:
+        if new_url != feed.feed_url:
+            feed.feed_url = new_url
+            feed.board_url = new_url
+            feed.etag = None
+            feed.last_modified = None
+            changed_source = True
+            if feed.company.source == "managed_feed":
+                feed.company.career_url = new_url
+                feed.company.source_url = new_url
+    if request.provider is not None and request.provider != feed.provider:
+        feed.provider = request.provider
+        changed_source = True
+    if request.enabled is not None:
+        feed.enabled = request.enabled
+    if not feed.enabled:
+        feed.next_scan_at = None
+        feed.status = "paused"
+    elif changed_source or request.enabled is True:
+        feed.status = "pending"
+        feed.next_scan_at = now
+    session.commit()
+    session.refresh(feed)
+    return _managed_feed_json(feed)
+
+
+@app.post("/api/v1/feeds/{feed_id}/scan", status_code=202)
+def rescan_managed_feed(feed_id: int, session: Session = Depends(get_session)) -> dict[str, Any]:
+    feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.id == feed_id)).first()
+    if feed is None:
+        raise HTTPException(status_code=404, detail="Job feed not found")
+    if not feed.enabled:
+        raise HTTPException(status_code=409, detail="Resume this feed before scanning it")
+    if feed.provider == "arbeitsagentur":
+        raise HTTPException(status_code=409, detail="This source is refreshed through the regional import adapter")
+    feed.next_scan_at = utcnow()
+    feed.status = "pending"
+    session.commit()
+    session.refresh(feed)
+    return _managed_feed_json(feed)
 
 
 @app.get("/api/v1/summary")

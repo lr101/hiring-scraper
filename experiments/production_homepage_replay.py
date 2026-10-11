@@ -1,7 +1,7 @@
 """Exercise production matching against saved basic-search leads, without API spend.
 
 Offline by default. --recapture permits at most 180 new website request attempts,
-using existing robots and public-destination policy. Acquisition artifacts stay intact.
+using the public-destination policy. Acquisition artifacts stay intact.
 """
 import argparse
 import copy

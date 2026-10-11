@@ -1,9 +1,12 @@
 """Recognize employer ATS tenants; read public feeds, never application APIs."""
 import html
+import hashlib
 import json
 import re
 import xml.etree.ElementTree as ET
-from urllib.parse import parse_qs, parse_qsl, urlencode, urlsplit, urlunsplit
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+from urllib.parse import parse_qs, parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 
 def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=None, pace=None):
@@ -45,7 +48,10 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
     def request(url, headers=None):
         if pace:
             pace(url)
-        if provider in {'schema_org', 'html_jobs', 'telekom'}:
+        if provider == 'browser_html':
+            from .browser import render_public_page
+            return render_public_page(client, url)
+        if provider in {'schema_org', 'html_jobs', 'external_html', 'rss', 'telekom'}:
             return client.get(url)
         return client.get_feed(url, headers) if headers else client.get_feed(url)
 
@@ -200,6 +206,128 @@ def _iso_date(value):
     return None
 
 
+def _xml_name(element):
+    return element.tag.rsplit('}', 1)[-1].casefold() if isinstance(element.tag, str) else ''
+
+
+def _xml_child(element, names):
+    names = {name.casefold() for name in names}
+    return next((child for child in list(element) if _xml_name(child) in names), None)
+
+
+def _xml_child_text(element, names):
+    child = _xml_child(element, names)
+    if child is None:
+        return None
+    value = ''.join(child.itertext()).strip()
+    return value or None
+
+
+def _rss_date(value):
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.strip().replace('Z', '+00:00'))
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(value.strip())
+        except (TypeError, ValueError, OverflowError):
+            return value[:80]
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.isoformat()
+
+
+def _parse_rss(body, feed_url):
+    """Parse a bounded RSS/Atom job feed without treating a rolling window as complete."""
+    if re.search(rb'<!\s*(?:DOCTYPE|ENTITY)\b', body, re.I):
+        raise ValueError('RSS feeds with DTD or entity declarations are not supported')
+    root = ET.fromstring(body)
+    root_name = _xml_name(root)
+    if root_name == 'feed':
+        entries = [child for child in list(root) if _xml_name(child) == 'entry']
+    elif root_name == 'rss':
+        channel = _xml_child(root, {'channel'})
+        if channel is None:
+            raise ValueError('Expected an RSS channel')
+        entries = [child for child in list(channel) if _xml_name(child) == 'item']
+    elif root_name == 'rdf':
+        entries = [child for child in list(root) if _xml_name(child) == 'item']
+    else:
+        raise ValueError('Expected an RSS, RDF or Atom feed')
+
+    jobs = []
+    for entry in entries:
+        title = _plain_text(_xml_child_text(entry, {'title'}))
+        link_nodes = [child for child in list(entry) if _xml_name(child) == 'link']
+        link_node = next((child for child in link_nodes
+                          if child.attrib.get('href') and child.attrib.get('rel', 'alternate') == 'alternate'), None)
+        if link_node is None:
+            link_node = next((child for child in link_nodes
+                              if child.attrib.get('rel', '').casefold() != 'self'
+                              and (child.attrib.get('href') or ''.join(child.itertext()).strip())), None)
+        link_value = None
+        if link_node is not None:
+            link_value = link_node.attrib.get('href') or ''.join(link_node.itertext()).strip()
+        identifier = _xml_child_text(entry, {'guid', 'id'})
+        try:
+            identifier_url = identifier if identifier and urlsplit(identifier).scheme in {'http', 'https'} else ''
+            if not link_value and not identifier_url:
+                continue
+            job_url = urljoin(feed_url, link_value or identifier_url)
+            parts = urlsplit(job_url)
+        except ValueError:
+            continue
+        if (not title or parts.scheme not in {'http', 'https'} or not parts.hostname
+                or parts.username or parts.password):
+            continue
+
+        raw_identifier = identifier or job_url
+        external_id = raw_identifier.strip()
+        if len(external_id) > 255:
+            external_id = 'rss:' + hashlib.sha256(external_id.encode('utf-8')).hexdigest()
+
+        description_source = _xml_child_text(entry, {'description', 'summary', 'content', 'encoded'})
+        description = _plain_text(description_source)
+        if description:
+            description = description[:1000]
+        location = _plain_text(_xml_child_text(entry, {'location', 'city', 'locality', 'joblocation', 'job_location'}))
+        postal_code = None
+        if not location and description:
+            match = re.search(r'\b(?:Ort|Standort|Arbeitsort)\s*:\s*([^|;\n]+)', description, re.I)
+            location = match.group(1).strip() if match else None
+        if location:
+            match = re.fullmatch(r'(\d{5})\s+(.+)', location.strip())
+            if match:
+                postal_code, location = match.group(1), match.group(2).strip()
+        date_value = _xml_child_text(entry, {'pubdate', 'published', 'updated', 'date'})
+        categories = []
+        for child in list(entry):
+            if _xml_name(child) == 'category':
+                category = child.attrib.get('term') or ''.join(child.itertext()).strip()
+                if category:
+                    categories.append(category)
+        metadata = {'source': 'rss', 'source_feed_url': feed_url,
+                    'source_item_id': identifier, 'categories': categories or None,
+                    'postal_code': postal_code}
+        if location:
+            metadata['location_source'] = 'rss_item'
+        job = {'id': external_id, 'title': title, 'url': job_url,
+               'raw_metadata': {key: value for key, value in metadata.items() if value is not None}}
+        if description:
+            job['description'] = description
+        if date_value:
+            job['date_posted'] = _rss_date(date_value)
+        if location:
+            job['location'] = location
+            job['locations'] = [{'label': location, 'country_code': 'DE'}]
+        jobs.append(job)
+
+    # RSS and Atom feeds usually contain a rotating recent-items window. Their
+    # omissions cannot safely be interpreted as closed jobs.
+    return {'jobs': jobs, 'complete': False}
+
+
 def _recruitee_host(host):
     """A single employer tenant label, excluding vendor infrastructure."""
     return (bool(re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.recruitee\.com', host))
@@ -336,7 +464,7 @@ def identify(url):
         provider, tenant = 'telekom', host
         locale = parts[0]
         board = f'https://{host}/{locale}/jobs'
-        # Observed first-party GET contract. Uses robots-aware get(), never
+        # Observed first-party GET contract. Uses a bounded public GET, never
         # the documented ATS allowance or the unrelated chatbot POST service.
         feed = f'https://{host}/api/jobs-proxy/keyword_search?locale={locale}'
         if filters:
@@ -429,6 +557,8 @@ def parse_feed(provider, body, board_url):
     jobs = []
     complete = True
     try:
+        if provider == 'rss':
+            return _parse_rss(body, board_url)
         if provider == 'telekom':
             board = urlsplit(board_url)
             if (board.scheme != 'https' or board.netloc != 'careers.telekom.com' or
@@ -465,10 +595,19 @@ def parse_feed(provider, body, board_url):
             return {'jobs':jobs, 'complete':False}
         if provider == 'recruitee':
             return _parse_recruitee(body, board_url)
-        if provider == 'html_jobs':
+        if provider in {'html_jobs', 'external_html', 'browser_html'}:
             from .html_jobs import extract_html_jobs
             parsed = extract_html_jobs(body, board_url)
-            return {'jobs':parsed['jobs'],'complete':parsed['complete']}
+            complete = parsed['complete']
+            if provider in {'external_html', 'browser_html'} and not parsed['jobs']:
+                rendered_text = body.decode('utf-8', 'replace') if isinstance(body, bytes) else str(body)
+                explicit_empty = re.search(
+                    r'no (?:current |open )?(?:job|position|vacanc)|keine (?:offenen? )?stellen|keine jobs',
+                    rendered_text, re.I)
+                if not explicit_empty:
+                    # An unknown page shape is not evidence that the board is empty.
+                    complete = False
+            return {'jobs':parsed['jobs'],'complete':complete}
         if provider == 'personio':
             root = ET.fromstring(body)
             if root.tag != 'workzag-jobs':

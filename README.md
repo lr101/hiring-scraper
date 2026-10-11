@@ -1,6 +1,6 @@
 # Radius
 
-Radius discovers employers and job openings in Germany. Local development uses SQLite; Compose runs PostgreSQL/PostGIS and starts with an empty database.
+Radius discovers employers and job openings in Germany. Local development uses SQLite; Compose runs PostgreSQL/PostGIS and starts without fixture data. When background workers are enabled, it seeds the configured public RSS feeds.
 
 ## Local development
 
@@ -13,7 +13,14 @@ mise exec -- uv run hiring-seed
 mise exec -- uv run uvicorn hiring_scraper.app.api:app --reload
 ```
 
-In another terminal:
+To scan the configured default RSS sources locally, start the feed worker in a
+separate terminal:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.worker
+```
+
+In another terminal, start the frontend:
 
 ```bash
 cd frontend
@@ -31,7 +38,7 @@ source posting; closed and expired postings remain in your application overview.
 
 ## Compose deployment
 
-Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role, applies migrations, and serves the UI, API, and idle background workers without adding companies, feeds, or jobs. Open **Search areas** in the app and add a location to create the first discovery job. PostgreSQL data persists in a named volume.
+Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
 
 Copy `compose.yaml` and `.env.example` to the deployment host as `compose.yaml` and `.env`. Replace both placeholder passwords with different random hex values, then protect the file before starting:
 
@@ -90,20 +97,22 @@ when a state discovery observes them, rather than guessing it from their address
 
 Scheduled refreshes revisit saved job feeds and career listing pages to find new postings. Recurring search-area schedules queue these known sources without repeating company, homepage, or career-page discovery. Feed failures retry the same saved URL with backoff. Use a manual discovery job to find additional companies or rediscover their career sources.
 
+Use **Job feeds** in the navigation to add and manage public HTTPS job pages and RSS / Atom feeds. Add a page to an existing company from its detail page, or create a named source for a standalone board. Choose **Public HTML page** for server-rendered listings, **JavaScript page · Chromium** when listings appear only after scripts run, or **RSS / Atom feed** for a publisher-provided feed. Feeds can be paused, edited, and scanned on demand. Rolling feeds are treated as incomplete, so an omitted item will not close a previously seen job. A bot or CAPTCHA challenge is saved as the scan reason and stops that scan.
+
+The Docker image includes headless Chromium. For local development, install it once with `mise exec -- uv run playwright install --only-shell chromium`. Headless rendering executes page JavaScript. The scanner does not solve CAPTCHAs, bypass challenges, sign in, or reuse human session cookies. See the [candidate source list](docs/job-source-candidates.md) for pages to try and current limitations.
+
 Public career discovery, website verification, feed refresh, and detail enrichment
-skip robots.txt by default (`HIRING_RESPECT_ROBOTS=false`). Set it to `true` to
-restore policy checks. Requests retain the identifying user agent, public-IP
-checks, bounded redirects, and request caps. Workers share per-origin pacing
-within each process (at least one second between requests); HTTP 429/503 pauses
-that origin, honoring `Retry-After`, while other origins can continue. No
-challenge bypass, proxy rotation, or applicant API is used.
+do not request or enforce robots.txt. Requests retain the identifying user agent,
+public-IP checks, bounded redirects, request caps, and per-origin pacing. HTTP
+429/503 pauses that origin, honoring `Retry-After`, while other origins can
+continue. A bot or CAPTCHA challenge stops the affected scan and is recorded as
+`bot_challenge`; the scanner does not attempt to solve it.
 
 Career discovery now defaults to 12 pages and 48 requests per company. Set
 `CAREER_DISCOVERY_MAX_PAGES=24` for the larger measured crawl; the maximum is 24.
 The [follow-up Bonn public-source trial](reports/bonn-public-discovery.md) compares
 six-, twelve-, and twenty-four-page results and distinguishes group-wide rows
-from verified employer vacancies. The command-line crawler accepts
-`--ignore-robots` explicitly; its default still checks robots.txt.
+from verified employer vacancies.
 
 Company discovery fills missing websites from linked Wikidata entries and public,
 identity-verified email domains. Set `TAVILY_API_KEY` in `.env` to enable an
@@ -117,7 +126,7 @@ requires source identity evidence. Verification checks up to four same-host page
 prefers current imprint/contact evidence, and rejects conflicting legal owners or
 ambiguous domains. Run a manual discovery job on an existing search area to
 fill missing websites on saved companies. Each job defaults to 100 missing companies,
-50 searches, and 180 website requests (including robots and redirects), configurable
+50 searches, and 180 website requests, configurable
 with `HOMEPAGE_DISCOVERY_MAX_COMPANIES`, `HOMEPAGE_DISCOVERY_MAX_SEARCHES`, and
 `HOMEPAGE_DISCOVERY_MAX_REQUESTS`. Each query pass reserves a third of its remaining
 search allowance for later fallbacks, within the same total budget; consequently,

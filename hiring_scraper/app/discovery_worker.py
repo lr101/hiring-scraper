@@ -30,7 +30,7 @@ from hiring_scraper.app.models import (
 )
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
-from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
+from hiring_scraper.crawl_policy import ORIGIN_PACER
 from hiring_scraper.location_discovery import (
     LocationSearchCancelled,
     fetch_location_companies, is_retryable_overpass_error, resolve_missing_company_websites,
@@ -1225,7 +1225,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
         client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
-                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER, respect_robots=RESPECT_ROBOTS)
+                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
         result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
 
         def persist_result() -> int | None:

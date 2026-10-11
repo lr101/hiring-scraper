@@ -45,6 +45,9 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
+        if 'enabled' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
         columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")
