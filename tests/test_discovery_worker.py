@@ -230,6 +230,27 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertEqual({job.external_id for job in jobs}, {"42", "43", "44"})
             self.assertEqual(feed.status, "incomplete")
 
+    def test_overlapping_boards_count_each_persisted_source_posting_once(self):
+        company_id = self._company()
+        _, run_id = worker._claim_due_company()
+        feed_url = "https://group.jobs.personio.de/xml"
+        def board(ids):
+            return {"provider": "personio", "tenant": "group", "feed_url": feed_url,
+                    "feed_state": "parsed", "complete": False,
+                    "jobs": [{"id": key, "title": "Engineer " + key,
+                              "url": "https://group.jobs.personio.de/job/" + key}
+                             for key in ids]}
+        result = {"status": "jobs_feed_found", "pages": [],
+                  "boards": [board(["42", "43"]), board(["43", "44"])]}
+
+        count = worker._persist_discovery(company_id, run_id, result)
+
+        with self.factory() as session:
+            self.assertEqual(len(session.scalars(select(Job)).all()), 3)
+            self.assertEqual(session.scalar(select(JobFeed)).job_count, 3)
+            self.assertEqual(count, 3)
+            self.assertEqual(session.get(DiscoveryRun, run_id).jobs_found, 3)
+
     def test_unverified_external_html_board_is_not_imported(self):
         company_id = self._company()
         with self.factory.begin() as session:

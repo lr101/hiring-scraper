@@ -76,6 +76,60 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(item.jobs_found, 1)
             self.assertEqual(run.status, "jobs_feed_found")
 
+    def test_new_discovery_postings_are_committed_before_location_results_are_read(self):
+        from hiring_scraper.app import api
+
+        with self.factory.begin() as session:
+            company = Company(source="test", source_id="fresh", name="Fresh employer",
+                              website_url="https://fresh.example/", latitude=49.0, longitude=8.4)
+            session.add(company)
+            session.flush()
+            company_id = company.id
+            feed = JobFeed(company_id=company_id, provider="greenhouse",
+                           feed_url="https://fresh.example/feed", status="parsed")
+            session.add(feed)
+            session.flush()
+            session.add(models.Job(feed_id=feed.id, external_id="old", title="Previous role",
+                       url="https://fresh.example/jobs/old",
+                       locations=[models.JobLocation(label="Karlsruhe")]))
+            job = models.DiscoveryJob(label="Karlsruhe", city="Karlsruhe", latitude=49.0,
+                longitude=8.4, radius_km=15, status="queued", stage="career_page_discovery",
+                candidate_total=1)
+            session.add(job)
+            session.flush()
+            job_id = job.id
+            session.add(DiscoveryJobCompany(discovery_job_id=job_id, company_id=company_id,
+                                            status="queued"))
+
+        rows = [
+            {"id": "local", "location": "Karlsruhe"},
+            {"id": "elsewhere", "location": "Berlin"},
+            {"id": "unknown"},
+            {"id": "remote", "location": "Remote", "is_remote": True},
+            {"id": "expired", "location": "Karlsruhe",
+             "raw_metadata": {"validThrough": "2000-01-01"}},
+        ]
+        for row in rows:
+            row.update(title="New role " + row["id"],
+                       url="https://fresh.example/jobs/" + row["id"])
+        result = {"status": "jobs_feed_found", "pages": [], "boards": [
+            {"provider": "greenhouse", "feed_url": "https://fresh.example/feed",
+             "feed_state": "parsed", "complete": True, "jobs": rows}]}
+        with patch.object(worker, "discover", return_value=result), patch.object(worker, "Client"):
+            self.assertTrue(worker.process_once(location_jobs_only=True))
+
+        # A separate session mirrors navigation after the discovery worker commits.
+        with self.factory() as session:
+            self.assertEqual(session.get(models.DiscoveryJob, job_id).jobs_found, 5)
+            self.assertEqual(len(session.scalars(select(models.Job)).all()), 6)
+            page = api.list_jobs(latitude=49.0, longitude=8.4, radius_km=15,
+                company_id=None, query=None, place="Karlsruhe", offset=0, limit=100,
+                location_scope="area", session=session)
+            self.assertEqual({row["external_id"] for row in page["items"]}, {"old", "local"})
+            self.assertEqual(page["counts"]["filtered"]["outside_area"], 2)
+            self.assertEqual(page["counts"]["filtered"]["remote_not_selected"], 1)
+            self.assertEqual(page["counts"]["filtered"]["expired"], 1)
+
     def test_campaign_batch_crawls_distinct_companies_concurrently(self):
         with self.factory.begin() as session:
             job = models.DiscoveryJob(label="Parallel area", latitude=49.0, longitude=8.4,
