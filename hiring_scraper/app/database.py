@@ -48,6 +48,8 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
         if 'enabled' not in feed_columns:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
+        if 'source_revision' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN source_revision INTEGER NOT NULL DEFAULT 1")
         columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")

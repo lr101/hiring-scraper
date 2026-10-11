@@ -1015,6 +1015,12 @@ def create_managed_feed(request: ManagedFeedCreate,
 @app.patch("/api/v1/feeds/{feed_id}")
 def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
+    # Acquire the feed write lock before reading its revision. The no-op update
+    # also serializes this path on SQLite, where SELECT FOR UPDATE is ignored.
+    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
+        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+    if locked.rowcount != 1:
+        raise HTTPException(status_code=404, detail="Job feed not found")
     feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
         JobFeed.id == feed_id)).first()
     if feed is None:
@@ -1022,7 +1028,6 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
     if (request.feed_url is not None or request.provider is not None) and feed.provider not in MANAGED_FEED_PROVIDERS:
         raise HTTPException(status_code=409, detail="Only manually managed public feeds can change their page or scraper type")
     now = utcnow()
-    changed_source = False
     new_url = _managed_page_url(request.feed_url) if request.feed_url is not None else feed.feed_url
     new_provider = request.provider or feed.provider
     if not (request.enabled is False and request.feed_url is None and request.provider is None):
@@ -1033,25 +1038,40 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
             JobFeed.feed_url == new_url, JobFeed.id != feed.id))
         if duplicate:
             raise HTTPException(status_code=409, detail="This page is already managed for this company")
-    if request.feed_url is not None:
-        if new_url != feed.feed_url:
-            feed.feed_url = new_url
-            feed.board_url = new_url
-            feed.etag = None
-            feed.last_modified = None
-            changed_source = True
-            if feed.company.source == "managed_feed":
-                feed.company.career_url = new_url
-                feed.company.source_url = new_url
-    if request.provider is not None and request.provider != feed.provider:
-        feed.provider = request.provider
-        changed_source = True
+    changed_source = new_url != feed.feed_url or new_provider != feed.provider
+    changed_enabled = request.enabled is not None and request.enabled != feed.enabled
+    if changed_source:
+        # A source is an identity boundary: keep its URL/provider and job
+        # history together, and start a fresh feed row for the replacement.
+        replacement_enabled = feed.enabled if request.enabled is None else request.enabled
+        feed.source_revision = (feed.source_revision or 1) + 1
+        feed.enabled = False
+        feed.status = "source_replaced"
+        feed.next_scan_at = None
+        feed.lease_until = None
+        session.execute(update(Job).where(Job.feed_id == feed.id, Job.is_active.is_(True)).values(
+            is_active=False, closed_at=now).execution_options(synchronize_session=False))
+        if feed.company.source == "managed_feed":
+            feed.company.career_url = new_url
+            feed.company.source_url = new_url
+        replacement = JobFeed(
+            company_id=feed.company_id, provider=new_provider, board_url=new_url, feed_url=new_url,
+            status="pending" if replacement_enabled else "paused", enabled=replacement_enabled,
+            source_revision=1, job_count=0, next_scan_at=now if replacement_enabled else None,
+        )
+        session.add(replacement)
+        session.commit()
+        session.refresh(replacement)
+        return _managed_feed_json(replacement)
+
     if request.enabled is not None:
+        if changed_enabled:
+            feed.source_revision = (feed.source_revision or 1) + 1
         feed.enabled = request.enabled
     if not feed.enabled:
         feed.next_scan_at = None
         feed.status = "paused"
-    elif changed_source or request.enabled is True:
+    elif request.enabled is True:
         feed.status = "pending"
         feed.next_scan_at = now
     session.commit()

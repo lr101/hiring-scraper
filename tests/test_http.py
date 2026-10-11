@@ -1,4 +1,5 @@
 import tempfile
+import socket
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
@@ -99,19 +100,74 @@ class PublicCrawlTests(unittest.TestCase):
             self.assertIn('Non-public', meta['error'])
             self.assertEqual(body, b'')
 
+    def test_dns_result_is_pinned_and_the_connected_peer_is_verified(self):
+        from hiring_scraper.http import _connect_public, _resolve_public_addresses
+
+        class FakeSocket:
+            def __init__(self, *args):
+                self.args = args
+                self.connected_to = None
+                self.closed = False
+            def settimeout(self, value):
+                self.timeout = value
+            def connect(self, address):
+                self.connected_to = address
+            def getpeername(self):
+                return ('8.8.8.8', 443)
+            def close(self):
+                self.closed = True
+
+        with patch('hiring_scraper.http.socket.getaddrinfo',
+                   side_effect=[[(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
+                                  '', ('8.8.8.8', 443))], AssertionError('DNS was resolved twice')]) as resolve, \
+                patch('hiring_scraper.http.socket.socket', side_effect=FakeSocket) as create_socket:
+            addresses = _resolve_public_addresses('jobs.example', 443)
+            connection = _connect_public(addresses, 4)
+
+        resolve.assert_called_once_with('jobs.example', 443, type=socket.SOCK_STREAM)
+        create_socket.assert_called_once_with(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+        self.assertEqual(connection.connected_to, ('8.8.8.8', 443))
+
+    def test_pinned_transport_rejects_a_peer_that_differs_from_the_validated_address(self):
+        from hiring_scraper.http import _connect_public
+
+        class ReboundSocket:
+            def settimeout(self, _value):
+                pass
+            def connect(self, _address):
+                pass
+            def getpeername(self):
+                return ('10.0.0.5', 443)
+            def close(self):
+                pass
+
+        addresses = [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
+                      ('8.8.8.8', 443), '8.8.8.8')]
+        with patch('hiring_scraper.http.socket.socket', return_value=ReboundSocket()):
+            with self.assertRaisesRegex(OSError, 'peer did not match'):
+                _connect_public(addresses, 4)
+
+    def test_client_passes_only_resolved_numeric_targets_to_transport(self):
+        with tempfile.TemporaryDirectory() as folder:
+            client = Client(folder, delay=0)
+            with patch('hiring_scraper.http.socket.getaddrinfo',
+                       return_value=[(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
+                                      '', ('1.1.1.1', 443))]) as resolve, \
+                    patch.object(client, '_open_pinned_response',
+                                 return_value=(200, {'content-type': 'text/html'}, b'ok')) as open_response:
+                metadata, body = client._raw('https://jobs.example/careers')
+
+        self.assertEqual(metadata['state'], 'ok')
+        self.assertEqual(body, b'ok')
+        resolve.assert_called_once()
+        self.assertEqual(open_response.call_args.args[1][0][3], ('1.1.1.1', 443))
+
     def test_retry_after_pauses_other_clients_on_same_origin_only(self):
-        import io
-        from email.message import Message
-        class Response(io.BytesIO):
-            code = 429
-            headers = Message()
-        response = Response(b'Busy')
-        response.headers['Retry-After'] = '120'
         pacer = OriginPacer()
         with tempfile.TemporaryDirectory() as folder:
             first = Client(folder+'/one', origin_pacer=pacer, delay=0)
             second = Client(folder+'/two', origin_pacer=pacer, delay=0)
-            with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('8.8.8.8', 443))]), patch.object(first.opener, 'open', return_value=response), patch('hiring_scraper.http.time.monotonic', return_value=10.0):
+            with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('8.8.8.8', 443))]), patch.object(first, '_open_pinned_response', return_value=(429, {'retry-after': '120'}, b'Busy')), patch('hiring_scraper.http.time.monotonic', return_value=10.0):
                 self.assertEqual(first._raw('https://example.org/jobs')[0]['status'], 429)
                 meta, body = second._raw('https://example.org/another')
                 self.assertEqual(meta['state'], 'origin_backoff')
@@ -120,27 +176,20 @@ class PublicCrawlTests(unittest.TestCase):
                 self.assertIsNone(pacer.backoff_remaining(('https', 'other.example')))
 
     def test_queued_origin_request_observes_cooldown_set_while_waiting(self):
-        import io
-        from email.message import Message
-        class Response(io.BytesIO):
-            code = 429
-            headers = Message()
-        response = Response(b'Busy')
-        response.headers['Retry-After'] = '120'
         network_started, release_network = Event(), Event()
         queued, release_queue = Event(), Event()
         pacer = OriginPacer()
         def open_response(*args, **kwargs):
             network_started.set()
             release_network.wait(2)
-            return response
+            return 429, {'retry-after': '120'}, b'Busy'
         def sleep(delay):
             queued.set()
             release_queue.wait(2)
         with tempfile.TemporaryDirectory() as folder:
             first = Client(folder+'/first', origin_pacer=pacer, delay=1)
             second = Client(folder+'/second', origin_pacer=pacer, delay=1)
-            with patch('hiring_scraper.http.time.monotonic',return_value=10.0), patch('hiring_scraper.http.time.sleep',side_effect=sleep), patch('hiring_scraper.http.socket.getaddrinfo',return_value=[(2,1,6,'',('8.8.8.8',443))]), patch.object(first.opener,'open',side_effect=open_response), patch.object(second.opener,'open',side_effect=AssertionError('Request sent during cooldown')):
+            with patch('hiring_scraper.http.time.monotonic',return_value=10.0), patch('hiring_scraper.http.time.sleep',side_effect=sleep), patch('hiring_scraper.http.socket.getaddrinfo',return_value=[(2,1,6,'',('8.8.8.8',443))]), patch.object(first,'_open_pinned_response',side_effect=lambda *args, **kwargs: open_response()), patch.object(second,'_open_pinned_response',side_effect=AssertionError('Request sent during cooldown')):
                 with ThreadPoolExecutor(max_workers=2) as pool:
                     a=pool.submit(first._raw,'https://example.org/a')
                     self.assertTrue(network_started.wait(1))

@@ -20,6 +20,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-ins
 COPY alembic.ini ./
 COPY hiring_scraper ./hiring_scraper
 COPY fixtures ./fixtures
+COPY scripts/ci/browser_sandbox_smoke.py /usr/local/bin/hiring-browser-sandbox-smoke.py
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev
 RUN /app/.venv/bin/python -m playwright install --with-deps --only-shell chromium
 COPY --from=frontend-build /frontend/dist ./frontend/dist

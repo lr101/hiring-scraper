@@ -7,19 +7,104 @@ import http.client
 import socket
 import time
 from threading import Lock
-import urllib.error
-import urllib.request
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit
+from urllib.request import HTTPRedirectHandler
 from hiring_scraper.challenges import is_bot_challenge
 
 UA = 'HiringDiscoveryResearch/0.2 (career discovery feasibility study)'
 
-class NoRedirect(urllib.request.HTTPRedirectHandler):
+
+class NoRedirect(HTTPRedirectHandler):
+    """Keep homepage search callers from following redirects implicitly."""
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         return None
+
+
+_CAPTURED_RESPONSE_HEADERS = {
+    'access-control-allow-credentials', 'access-control-allow-headers',
+    'access-control-allow-methods', 'access-control-allow-origin', 'cache-control',
+    'cf-mitigated', 'content-encoding', 'content-language', 'content-type',
+    'etag', 'expires', 'last-modified', 'location', 'retry-after', 'vary',
+}
+
+
+def _resolve_public_addresses(host: str, port: int) -> list[tuple[int, int, int, tuple, str]]:
+    """Resolve once, reject mixed/private answers, and retain numeric socket targets."""
+    if '%' in host:
+        raise ValueError('Scoped IP destinations are not accepted')
+    try:
+        literal = ipaddress.ip_address(host)
+    except ValueError:
+        results = socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    else:
+        if not literal.is_global:
+            raise ValueError('Non-public destination rejected')
+        family = socket.AF_INET if literal.version == 4 else socket.AF_INET6
+        sockaddr = (str(literal), port) if family == socket.AF_INET else (str(literal), port, 0, 0)
+        results = [(family, socket.SOCK_STREAM, socket.IPPROTO_TCP, '', sockaddr)]
+
+    addresses = []
+    seen = set()
+    for family, socktype, proto, _canonname, sockaddr in results:
+        address = ipaddress.ip_address(str(sockaddr[0]).split('%', 1)[0])
+        if not address.is_global:
+            raise ValueError('Non-public destination rejected')
+        key = (family, socktype, proto, tuple(sockaddr), str(address))
+        if key not in seen:
+            seen.add(key)
+            addresses.append(key)
+    if not addresses:
+        raise ValueError('No public destination addresses were returned')
+    return addresses
+
+
+def _connect_public(addresses: list[tuple[int, int, int, tuple, str]], timeout: float,
+                    source_address=None) -> socket.socket:
+    """Connect to an already validated numeric address without resolving its name again."""
+    failures = []
+    for family, socktype, proto, sockaddr, expected_ip in addresses:
+        connection = socket.socket(family, socktype, proto)
+        try:
+            connection.settimeout(timeout)
+            if source_address is not None:
+                connection.bind(source_address)
+            connection.connect(sockaddr)
+            peer = ipaddress.ip_address(str(connection.getpeername()[0]).split('%', 1)[0])
+            if peer != ipaddress.ip_address(expected_ip) or not peer.is_global:
+                raise OSError('Connected peer did not match the validated public address')
+            return connection
+        except OSError as error:
+            failures.append(error)
+            connection.close()
+    if failures:
+        raise failures[-1]
+    raise OSError('No public destination addresses were available')
+
+
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, host, port, addresses, timeout):
+        super().__init__(host, port=port, timeout=timeout)
+        self._addresses = addresses
+
+    def connect(self):
+        self.sock = _connect_public(self._addresses, self.timeout, self.source_address)
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    def __init__(self, host, port, addresses, timeout):
+        super().__init__(host, port=port, timeout=timeout)
+        self._addresses = addresses
+
+    def connect(self):
+        sock = _connect_public(self._addresses, self.timeout, self.source_address)
+        try:
+            self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+        except Exception:
+            sock.close()
+            raise
 
 
 class OriginPacer:
@@ -99,7 +184,6 @@ class Client:
         self.request_budget = request_budget
         self.offline_only = offline_only
         self.cache, self.last, self.records = {}, {}, []
-        self.opener = urllib.request.build_opener(NoRedirect)
         self.used = set()
         if cache_from:
             for path in Path(cache_from).glob('*.json'):
@@ -108,6 +192,30 @@ class Client:
                 if hashlib.sha256(body).hexdigest() != record['sha256']:
                     raise ValueError('Corrupt cache capture: '+str(path))
                 self.cache[record['url']] = ({**record,'reused_from':str(path)},body)
+
+    def _open_pinned_response(self, url, addresses, request_headers=None):
+        parts = urlsplit(url)
+        port = parts.port or (443 if parts.scheme == 'https' else 80)
+        connection_type = _PinnedHTTPSConnection if parts.scheme == 'https' else _PinnedHTTPConnection
+        connection = connection_type(parts.hostname, port, addresses, self.timeout)
+        path = parts.path or '/'
+        if parts.query:
+            path += '?' + parts.query
+        headers = {'Host': parts.netloc, 'User-Agent': self.user_agent, 'Connection': 'close'}
+        headers.update(request_headers or {})
+        headers['Host'] = parts.netloc
+        try:
+            connection.request('GET', path, headers=headers)
+            response = connection.getresponse()
+            body = response.read(3_000_001)
+            response_headers = {}
+            for name, value in response.getheaders():
+                key = name.casefold()
+                if key in _CAPTURED_RESPONSE_HEADERS:
+                    response_headers[key] = value
+            return response.status, response_headers, body
+        finally:
+            connection.close()
 
     def _raw(self, url, request_headers=None):
         if url in self.cache:
@@ -137,9 +245,7 @@ class Client:
                 raise ValueError('Only public HTTP(S) URLs without credentials are accepted')
             if self.request_budget is not None and not self.request_budget.claim():
                 return {'url':url,'state':'request_budget_exhausted'}, body
-            addresses = socket.getaddrinfo(p.hostname, p.port or (443 if p.scheme=='https' else 80), type=socket.SOCK_STREAM)
-            if not addresses or any(not ipaddress.ip_address(a[4][0]).is_global for a in addresses):
-                raise ValueError('Non-public destination rejected')
+            addresses = _resolve_public_addresses(p.hostname, p.port or (443 if p.scheme=='https' else 80))
             origin = (p.scheme,p.netloc.lower())
             if self.origin_pacer is not None:
                 remaining = self.origin_pacer.wait(origin,self.delay)
@@ -147,23 +253,18 @@ class Client:
                     return {'url':url, 'state':'origin_backoff', 'retry_after_seconds':remaining}, b''
             else:
                 time.sleep(max(0, self.last.get(origin,0)+self.delay-time.monotonic()))
-            try:
-                headers={'User-Agent':self.user_agent}
-                headers.update(request_headers or {})
-                response = self.opener.open(urllib.request.Request(url,headers=headers), timeout=self.timeout)
-            except urllib.error.HTTPError as error:
-                response = error
-            with response:
-                body = response.read(3_000_001)
-                record.update(status=response.code, content_type=response.headers.get('Content-Type',''),
-                              etag=response.headers.get('ETag'), last_modified=response.headers.get('Last-Modified'),
-                              cf_mitigated=response.headers.get('CF-Mitigated'),
-                              retry_after=response.headers.get('Retry-After'),
-                              location=response.headers.get('Location'), bytes=len(body),
-                              state='not_modified' if response.code==304 else
-                                    'body_too_large' if len(body)>3_000_000 else
-                                    'ok' if response.code==200 else 'http_error')
-            if self.origin_pacer is not None and record.get('status') in {429, 503}:
+            headers = dict(request_headers or {})
+            status, response_headers, body = self._open_pinned_response(url, addresses, headers)
+            record.update(status=status, content_type=response_headers.get('content-type',''),
+                          etag=response_headers.get('etag'), last_modified=response_headers.get('last-modified'),
+                          cf_mitigated=response_headers.get('cf-mitigated'),
+                          retry_after=response_headers.get('retry-after'),
+                          location=response_headers.get('location'), headers=response_headers,
+                          bytes=len(body),
+                          state='not_modified' if status==304 else
+                                'body_too_large' if len(body)>3_000_000 else
+                                'ok' if status==200 else 'http_error')
+            if self.origin_pacer is not None and status in {429, 503}:
                 self.origin_pacer.defer(origin, record.get('retry_after'))
             if self.origin_pacer is None:
                 self.last[origin] = time.monotonic()

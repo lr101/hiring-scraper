@@ -137,6 +137,7 @@ function CompanyPage({ company }: { company: Company }) {
   }
   const feedStatusLabels: Record<string, string> = {
     parsed: 'checked', complete_empty: 'checked · no jobs', incomplete: 'partly checked',
+    windowed: 'scanned · rolling feed', windowed_empty: 'checked · no items in feed window',
     blocked: 'site access blocked', bot_challenge: 'bot challenge', paused: 'paused',
     throttled: 'try again later', schema_error: 'could not read listings',
     failed: 'could not check', not_modified: 'checked recently', unsupported: 'not supported yet',

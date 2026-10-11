@@ -60,6 +60,7 @@ trap 'exit 143' TERM
 "${compose[@]}" config --quiet
 "${compose[@]}" build --pull quality app 2>&1 | tee "$results_dir/$project-build.log"
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
+"${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
 # The CI override disables live crawl workers while keeping the production app image.
 "${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app
 "${compose[@]}" run --rm --no-deps smoke 2>&1 | tee "$results_dir/$project-smoke.log"

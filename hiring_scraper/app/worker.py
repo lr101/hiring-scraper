@@ -12,7 +12,7 @@ from pathlib import Path
 from threading import Lock
 from urllib.parse import urlsplit
 
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, update
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -21,6 +21,7 @@ from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_
 from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, ScanRun, utcnow
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
+from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
 
@@ -36,7 +37,7 @@ _ORIGIN_LOCK = Lock()
 _LAST_ORIGIN_REQUEST: dict[str, float] = {}
 
 
-def _claim_due_feed() -> tuple[int, int] | None:
+def _claim_due_feed() -> tuple[int, int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         statement = (select(JobFeed).join(Company)
@@ -55,7 +56,7 @@ def _claim_due_feed() -> tuple[int, int] | None:
         scan = ScanRun(feed_id=feed.id, started_at=now, status="running")
         session.add(scan)
         session.flush()
-        return feed.id, scan.id
+        return feed.id, scan.id, feed.source_revision
 
 
 def _pace_origin(url: str) -> None:
@@ -94,8 +95,10 @@ def _backoff(attempt: int, *, incomplete: bool = False) -> datetime:
 
 
 def _request(feed: JobFeed) -> tuple[dict, bytes]:
+    max_requests = (BROWSER_CLIENT_REQUEST_BUDGET if feed.provider == "browser_html" else
+                    10 if feed.provider == "lever" else 8)
     client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
-                    max_requests=10 if feed.provider == "lever" else 8, user_agent=USER_AGENT)
+                    max_requests=max_requests, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
     # Lever scans therefore fetch all pages even after a prior complete scan.
@@ -161,12 +164,28 @@ def _schedule_career_revisit(company: Company, now: datetime) -> None:
         company.next_discovery_at = due
 
 
-def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> None:
+def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
+                    source_revision: int | None = None) -> None:
     now = utcnow()
     with SessionLocal.begin() as session:
-        feed = session.get(JobFeed, feed_id)
+        # This conditional no-op update obtains a row write lock before the
+        # revision check. It serializes with feed edits on PostgreSQL and also
+        # provides SQLite's otherwise-missing SELECT FOR UPDATE behavior.
+        lock_statement = update(JobFeed).where(JobFeed.id == feed_id)
+        if source_revision is not None:
+            lock_statement = lock_statement.where(JobFeed.source_revision == source_revision)
+        locked = session.execute(lock_statement.values(
+            source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+        feed = session.get(JobFeed, feed_id, populate_existing=True)
         run = session.get(ScanRun, run_id)
         if feed is None or run is None:
+            return
+        if source_revision is not None and (locked.rowcount != 1 or feed.source_revision != source_revision):
+            feed.lease_until = None
+            run.finished_at = now
+            run.status = "stale_source"
+            run.http_status = metadata.get("status")
+            run.error = "Feed source changed during this scan; the old response was discarded."
             return
         state = metadata.get("state")
         status = metadata.get("status")
@@ -244,6 +263,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
             seed = {'name':feed.company.name, 'website':feed.company.website_url}
             incoming = [data for data in incoming if _employer_matches(seed, data)]
         complete = bool(parsed.get("complete"))
+        windowed = bool(parsed.get("windowed"))
+        successful = complete or windowed
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
@@ -314,9 +335,10 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
                     job.closed_at = now
 
         feed.job_count = len(incoming)
-        feed.status = ("parsed" if complete and incoming else "complete_empty" if complete else "incomplete") if feed.enabled else "paused"
+        feed.status = (("parsed" if incoming else "complete_empty") if complete else
+                       ("windowed" if incoming else "windowed_empty") if windowed else "incomplete") if feed.enabled else "paused"
         feed.last_checked_at = now
-        feed.last_error = None if complete else (
+        feed.last_error = None if successful else (
             (metadata.get("pagination") or {}).get("error") or
             "Feed returned a partial page. No jobs were closed.")
         feed.attempt_count = 0
@@ -324,9 +346,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes) -> N
         refresh_company_rank(session, feed.company, now,
                              {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
         feed.next_scan_at = (None if not feed.enabled else
-                             next_feed_due(feed.company, feed, now) if complete else
+                             next_feed_due(feed.company, feed, now) if successful else
                              _backoff(1, incomplete=True))
-        if complete:
+        if successful:
             _schedule_career_revisit(feed.company, now)
         run.finished_at = now
         run.status = feed.status
@@ -339,23 +361,36 @@ def scan_once() -> bool:
     claimed = _claim_due_feed()
     if claimed is None:
         return False
-    feed_id, run_id = claimed
+    feed_id, run_id, source_revision = claimed
     with SessionLocal() as session:
         feed = session.get(JobFeed, feed_id)
         if feed is None:
             return True
+        if feed.source_revision != source_revision:
+            _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision)
+            return True
         try:
             metadata, body = _request(feed)
-            _persist_result(feed_id, run_id, metadata, body)
+            _persist_result(feed_id, run_id, metadata, body, source_revision)
             LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
                      metadata.get("state"), metadata.get("status"))
         except Exception as error:
             LOG.exception("feed scan failed id=%s", feed_id)
             with SessionLocal.begin() as failed_session:
-                failed_feed = failed_session.get(JobFeed, feed_id)
+                locked = failed_session.execute(update(JobFeed).where(
+                    JobFeed.id == feed_id, JobFeed.source_revision == source_revision).values(
+                        source_revision=JobFeed.source_revision
+                    ).execution_options(synchronize_session=False))
+                failed_feed = failed_session.get(JobFeed, feed_id, populate_existing=True)
                 failed_run = failed_session.get(ScanRun, run_id)
                 if failed_feed and failed_run:
-                    _set_failure(failed_feed, failed_run, "failed", {}, str(error))
+                    if locked.rowcount != 1 or failed_feed.source_revision != source_revision:
+                        failed_feed.lease_until = None
+                        failed_run.finished_at = utcnow()
+                        failed_run.status = "stale_source"
+                        failed_run.error = "Feed source changed during this scan; the old response was discarded."
+                    else:
+                        _set_failure(failed_feed, failed_run, "failed", {}, str(error))
     return True
 
 

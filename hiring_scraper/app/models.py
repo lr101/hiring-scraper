@@ -187,6 +187,7 @@ class JobFeed(Base):
     feed_url: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(40), nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    source_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default=text("1"))
     job_count: Mapped[int | None] = mapped_column(Integer)
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

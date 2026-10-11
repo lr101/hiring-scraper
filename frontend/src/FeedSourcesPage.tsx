@@ -23,9 +23,11 @@ function providerLabel(provider: string) {
 type ManagedProvider = 'external_html' | 'browser_html' | 'rss'
 
 function statusLabel(feed: Feed) {
+  if (feed.status === 'source_replaced') return 'Replaced source'
   if (!feed.enabled) return 'Paused'
   const labels: Record<string, string> = {
     pending: 'Waiting to scan', parsed: 'Listings found', complete_empty: 'No listings found',
+    windowed: 'Scanned · rolling feed', windowed_empty: 'No items in feed window',
     incomplete: 'Partly scanned', blocked: 'Access denied', bot_challenge: 'Bot challenge',
     throttled: 'Rate limited', schema_error: 'Could not read listings', browser_error: 'Browser could not render',
     unsupported: 'Browser runtime unavailable', failed: 'Could not scan', not_modified: 'Recently checked',

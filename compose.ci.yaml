@@ -20,6 +20,13 @@ services:
         condition: service_healthy
     init: true
 
+  browser-sandbox-smoke:
+    image: ${HIRING_APP_IMAGE:-hiring-scraper:ci}
+    entrypoint: ["python", "/usr/local/bin/hiring-browser-sandbox-smoke.py"]
+    user: "10001:10001"
+    network_mode: none
+    init: true
+
   app:
     image: ${HIRING_APP_IMAGE:-hiring-scraper:ci}
     build:

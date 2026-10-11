@@ -325,7 +325,7 @@ def _parse_rss(body, feed_url):
 
     # RSS and Atom feeds usually contain a rotating recent-items window. Their
     # omissions cannot safely be interpreted as closed jobs.
-    return {'jobs': jobs, 'complete': False}
+    return {'jobs': jobs, 'complete': False, 'windowed': True}
 
 
 def _recruitee_host(host):
