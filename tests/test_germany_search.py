@@ -66,7 +66,7 @@ class GermanySearchTests(unittest.TestCase):
             self.assertEqual(item['crawl_interval_days'], 1)
             self.assertEqual(item['crawl_reason'], 'Large employer')
             self.assertFalse(item['crawl_paused'])
-            self.assertIsNotNone(item['next_check_at'])
+            self.assertIsNone(item['next_check_at'])
     def test_country_profile_details_match_directory_geography_and_expiry(self):
         from hiring_scraper.app.profiles import create_profile, ProfileRequest
         with self.factory.begin() as session:
@@ -88,3 +88,15 @@ class GermanySearchTests(unittest.TestCase):
         with self.factory() as session:
             detail = api.get_job(job.id, session, country='DE')
             self.assertEqual(detail['geography']['match_kind'], 'employer_in_country')
+    def test_next_check_uses_earliest_persisted_schedule_and_pause_hides_it(self):
+        from datetime import datetime, timezone
+        career_due = datetime(2026, 10, 15, 12, tzinfo=timezone.utc)
+        feed_due = datetime(2026, 10, 14, 8, tzinfo=timezone.utc)
+        with self.factory.begin() as session:
+            company = models.Company(source='test', source_id='schedule', name='Employer', country_code='DE', next_discovery_at=career_due)
+            session.add(models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs', next_scan_at=feed_due))
+        with self.factory.begin() as session:
+            company = session.scalar(select(models.Company))
+            self.assertEqual(api.get_company(company.id, session)['next_check_at'], '2026-10-14T08:00:00')
+            company.crawl_paused = True
+            self.assertIsNone(api.get_company(company.id, session)['next_check_at'])

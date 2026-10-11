@@ -20,7 +20,6 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.orm import Session, joinedload, selectinload
 
-from hiring_scraper.app.crawl_ranking import next_company_due
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
     Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobApplication, JobFeed, JobLocation,
@@ -155,8 +154,6 @@ def _company_json(company: Company, distance_m: float, active_job_count: int | N
         scheduled = [value for value in [company.next_discovery_at, *(feed.next_scan_at for feed in company.feeds)] if value]
         if scheduled:
             next_check = min(scheduled, key=lambda value: value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value)
-        else:
-            next_check = next_company_due(company, utcnow())
     return {"country_code": company.country_code, "employee_count": company.employee_count,
             "crawl_priority": company.crawl_priority, "crawl_interval_days": company.crawl_interval_days,
             "crawl_reason": company.crawl_reason, "crawl_paused": company.crawl_paused,
