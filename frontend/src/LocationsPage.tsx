@@ -280,6 +280,8 @@ export default function LocationsPage() {
           </div> : <div className="empty-panel"><strong>No saved locations yet</strong><span>Add a city or postcode above to find nearby companies.</span></div>}
       </section>
 
+      <p className="location-setup-note">Source postings checked includes existing postings and roles at other locations. Job results show matching work locations; remote roles have a separate filter. Postings with no matching location or an expired closing date are excluded.</p>
+
       <section className="crawl-activity-section">
         <div className="section-heading">
           <div><p className="eyebrow">SEARCH ACTIVITY</p><h2>Current and upcoming searches</h2></div>
@@ -312,7 +314,7 @@ export default function LocationsPage() {
           <span><strong>{job.label}</strong><small>{runStep(job.stage)} · {dateTime(job.created_at)}</small></span>
           <span className={`history-status history-${job.status}`}>{runStatus(job.status)}</span>
           <span>{job.companies_found} companies · {job.homepages_found} websites</span>
-          <span>{job.jobs_found} jobs found</span>
+          <span>{job.jobs_found} source postings checked</span>
         </div>)}</div> : <div className="empty-activity">Finished searches will appear here.</div>}
       </section>
     </main>
@@ -346,7 +348,7 @@ function JobProgressCard({ job, onCancel, cancellingJobId }: {
         : foundNoHomepages ? <span>Company and website search finished.</span>
           : <><span>{progressMessage}</span><strong>{job.processed_count} of {job.candidate_total} checked · {job.progress_percent}%</strong></>}</div>
     {waiting && hasWaitedTooLong(job.created_at) && <p className="progress-wait-note">This search has not started yet. It will begin when the search service is available.</p>}
-    <div className="progress-results"><span>{job.companies_found} companies found</span><span>{job.homepages_found} websites found</span><span>{job.jobs_found} jobs found</span></div>
+    <div className="progress-results"><span>{job.companies_found} companies found</span><span>{job.homepages_found} websites found</span><span>{job.jobs_found} source postings checked</span></div>
     {job.error && <p className="job-error">We couldn’t finish this search. Try again later.</p>}
   </div>
 }

@@ -28,6 +28,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Discovery progress counts overlapping links to the same source posting once and explains why source totals differ from filtered location results.
+
 - Lever discovery and refresh enumerate bounded posting pages while preserving incomplete-scan lifecycle protection.
 - Shared ATS utility URLs no longer become false employer tenants.
 - Sparse applicant sections gain bounded detail recovery; explicit one-of scripting lists retain verification uncertainty instead of separate mandatory skills.
