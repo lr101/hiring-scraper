@@ -82,7 +82,8 @@ def configured_location_json(location: ConfiguredLocation) -> dict[str, Any]:
         "search_scope": location.search_scope, "state": location.state, "postcode": location.postcode,
         "latitude": location.latitude, "longitude": location.longitude,
         "radius_km": location.radius_km, "interval_days": location.interval_days,
-        "enabled": location.enabled, "next_run_at": _iso(location.next_run_at),
+        "enabled": location.enabled,
+        "next_run_at": _iso(location.next_run_at) if location.search_scope != "country" else None,
         "created_at": _iso(location.created_at), "updated_at": _iso(location.updated_at),
     }
 

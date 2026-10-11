@@ -287,7 +287,7 @@ export default function LocationsPage() {
             Add location and find companies
           </button>
         </div>}
-        <p className="location-setup-note">Germany discovery saves progress after each map section. Large employers and employers with recent jobs are checked daily; other employers every 3, 7, or 30 days, or paused when repeatedly irrelevant. Checks are spread over time. A manual search rechecks paused employers. We discover publicly mapped companies and check available websites for jobs; public sources may be incomplete.</p>
+        <p className="location-setup-note">Germany discovery saves progress after each map section. Employers with at least 250 employees or recent job posts are checked daily; other employers are checked every 3, 7, or 30 days based on relevance. Checks are spread over time, and repeatedly irrelevant pages are parked. We discover publicly mapped companies and check available websites for jobs; public sources may be incomplete.</p>
       </section>
 
       <section className="locations-list-section">
@@ -300,12 +300,12 @@ export default function LocationsPage() {
             {locations.map(location => <article className="configured-location-card" key={location.id}>
               <div className="configured-location-top">
                 <span className="location-card-pin" aria-hidden="true">⌖</span>
-                <span className={`schedule-state ${location.enabled ? 'is-enabled' : ''}`}>{location.enabled ? 'REPEATS' : 'PAUSED'}</span>
+                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? 'RANKED' : location.enabled ? 'REPEATS' : 'PAUSED'}</span>
               </div>
               <h3>{location.city || location.label.split(',')[0]}</h3>
               <p className="configured-location-label">{location.state || location.postcode || location.label}</p>
               <div className="location-card-meta"><span>{location.search_scope === 'country' ? 'All Germany' : location.search_scope === 'state' ? 'Whole state' : `Within ${location.radius_km} km`}</span><span>{location.search_scope === 'country' ? 'Continuous ranked checks' : `Every ${location.interval_days} days`}</span></div>
-              <p className="next-run-label">{location.search_scope === 'country' ? 'Next inventory review' : 'Next search'} <strong>{location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
+              <p className="next-run-label">{location.search_scope === 'country' ? 'Company page checks' : 'Next search'} <strong>{location.search_scope === 'country' ? 'Rank based' : location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
               <a className="configure-locations-link" href={location.search_scope === 'country' ? `/?country=DE&location_key=saved:${location.id}` : location.search_scope === 'state'
                 ? `/?state=${encodeURIComponent(location.state || location.label)}&location_key=saved:${location.id}`
                 : `/?lat=${location.latitude}&lon=${location.longitude}&radius_km=${location.radius_km}&place=${encodeURIComponent(location.city || location.label)}&location_key=saved:${location.id}`}>
@@ -313,7 +313,7 @@ export default function LocationsPage() {
               </a>
               <div className="location-card-actions">
                 <button type="button" className="primary-small-button" disabled={working} onClick={() => void runNow(location)}>Search this place now</button>
-                <button type="button" className="text-button" onClick={() => void updateLocation(location, !location.enabled)}>{location.enabled ? 'Pause' : 'Resume'}</button>
+                {location.search_scope !== 'country' && <button type="button" className="text-button" onClick={() => void updateLocation(location, !location.enabled)}>{location.enabled ? 'Pause' : 'Resume'}</button>}
                 <button type="button" className="text-button text-danger" onClick={() => void deleteLocation(location)}>Remove</button>
               </div>
             </article>)}
@@ -335,10 +335,10 @@ export default function LocationsPage() {
               : <div className="empty-activity">No searches are running. Start one from a saved location.</div>}
           </article>
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + locations.filter(location => location.enabled).length}</span></div>
+            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + locations.filter(location => location.enabled && location.search_scope !== 'country').length}</span></div>
             {scheduledJobs.map(job => <ScheduledJobCard key={`job-${job.id}`} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)}
-            {locations.filter(location => location.enabled).map(location => <div className="scheduled-location" key={`location-${location.id}`}>
+            {locations.filter(location => location.enabled && location.search_scope !== 'country').map(location => <div className="scheduled-location" key={`location-${location.id}`}>
               <span className="scheduled-icon" aria-hidden="true">◷</span>
               <span><strong>{location.city || location.label}</strong><small>Repeats · {location.search_scope === 'country' ? 'all Germany' : location.search_scope === 'state' ? 'whole state' : `within ${location.radius_km} km`} · {location.search_scope === 'country' ? 'continuous ranked checks' : `every ${location.interval_days} days`}</small></span>
               <time>{dateTime(location.next_run_at)}</time>

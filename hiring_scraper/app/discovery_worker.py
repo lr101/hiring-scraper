@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import hashlib
 import os
 import random
 import time
@@ -17,6 +18,8 @@ from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
+from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
+from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, company_ids_for_search, create_discovery_job,
 )
@@ -38,6 +41,8 @@ POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
 LOCATION_SCAN_MAX_ATTEMPTS = 3
+NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
+CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','30')))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
 MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "12"))))
 MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
@@ -66,10 +71,13 @@ def _claim_due_company() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         statement = (select(Company)
-                     .where(Company.website_url.is_not(None), ~Company.feeds.any(),
+                     .where(Company.website_url.is_not(None), Company.website_url != "", Company.crawl_paused.is_(False),
+                            ~Company.id.in_(select(DiscoveryJobCompany.company_id).join(DiscoveryJob).where(
+                                DiscoveryJobCompany.status.in_(("queued", "running")),
+                                DiscoveryJob.status.in_(("scheduled", "queued", "running")))),
                             or_(Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
                             or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
-                     .order_by(Company.next_discovery_at.asc().nullsfirst(), Company.id).limit(1))
+                     .order_by(Company.next_discovery_at.asc().nullsfirst(), Company.crawl_priority.desc(), Company.id).limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)
         company = session.scalars(statement).first()
@@ -208,7 +216,8 @@ def _campaign_attempt(session, item_id: int, run_id: int):
         return None
     job = session.scalars(select(DiscoveryJob).where(
         DiscoveryJob.id == item.discovery_job_id).with_for_update()).first()
-    if (job is None or job.stage != "career_page_discovery" or job.status != "running" or
+    if (job is None or (job.stage != "career_page_discovery" and not (job.search_scope == "country" and job.stage == "company_homepage_discovery")) or
+            job.status not in {"running", "scheduled", "queued"} or
             item.status != "running" or item.discovery_run_id != run_id):
         return (job, item) if job is not None and job.status == "cancelled" and \
             item.status == "running" and item.discovery_run_id == run_id else None
@@ -253,7 +262,6 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
         company.discovery_error = None
         company.discovery_attempt_count = 0
         company.last_checked_at = now
-        company.next_discovery_at = now + timedelta(days=INTERVAL_DAYS)
         fresh_status = _CAREER_STATUS.get(result.get("status"), "unresolved")
         if fresh_status != "unresolved" or company.career_status not in _POSITIVE_CAREER_STATUSES:
             company.career_status = fresh_status
@@ -360,6 +368,18 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             "unverified_external_ats": result.get("unverified_external_ats", []),
             "limits": result.get("limits", {}),
         }
+        session.flush()
+        refresh_company_rank(session, company, now, result)
+        company.next_discovery_at = next_company_due(company, now)
+        for feed in session.scalars(select(JobFeed).where(JobFeed.company_id == company.id)).all():
+            if feed.attempt_count or feed.lease_until is not None:
+                continue
+            due = next_feed_due(company, feed, now)
+            old_due = feed.next_scan_at
+            if old_due is not None and old_due.tzinfo is None:
+                old_due = old_due.replace(tzinfo=timezone.utc)
+            if due is None or old_due is None or due < old_due:
+                feed.next_scan_at = due
         return total_jobs
 
 
@@ -454,7 +474,8 @@ def _update_location_search_progress(job_id: int, attempt_token: str,
         return True
 
 
-def _persist_location_companies(job_id: int, attempt_token: str, candidates: list[dict]) -> None:
+def _persist_location_companies(job_id: int, attempt_token: str, candidates: list[dict], *,
+                                map_cursor=None, country_state=None) -> None:
     """Save nearby companies and homepage evidence, then queue homepages for career checks."""
     now = utcnow()
     with SessionLocal.begin() as session:
@@ -470,6 +491,7 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                 continue
             company = session.scalar(select(Company).where(
                 Company.source == "openstreetmap", Company.source_id == source_id))
+            new_company = company is None
             website_url = candidate.get("website_url")
             if company is None:
                 company = Company(
@@ -499,12 +521,69 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                     company.domain = candidate.get("domain")
                     company.domain_match_method = candidate.get("domain_match_method")
                     company.domain_evidence_url = candidate.get("domain_evidence_url")
-                    company.next_discovery_at = now + timedelta(days=INTERVAL_DAYS)
             if job.search_scope == "state":
                 company.state = job.state
+                company.country_code = 'DE'
+            elif country_state:
+                company.state = country_state
+                company.country_code = 'DE'
+            if candidate.get('employee_count'):
+                company.employee_count = candidate['employee_count']
+                company.size_evidence = {**(company.size_evidence or {}), **candidate.get('size_evidence',{})}
+            session.flush()
+            refresh_company_rank(session, company, now)
+            if map_cursor is not None:
+                existing_item = session.scalar(select(DiscoveryJobCompany).where(
+                    DiscoveryJobCompany.discovery_job_id == job.id, DiscoveryJobCompany.company_id == company.id))
+                if existing_item is None:
+                    job.companies_found += 1
+                    if company.website_url and not company.crawl_paused:
+                        # First inventory checks are spread across a day instead of bursting.
+                        offset = int.from_bytes(hashlib.sha256(f'{job.id}:{company.id}'.encode()).digest()[:4],'big') % 86400
+                        # Do not reset an existing rank's schedule just because a new
+                        # Germany inventory campaign found the same company.
+                        if new_company or company.next_discovery_at is None:
+                            company.next_discovery_at = now + timedelta(seconds=offset)
+                        status = 'queued'
+                        job.candidate_total += 1
+                        job.homepages_found += 1
+                    else:
+                        status = 'skipped'
+                    session.add(DiscoveryJobCompany(discovery_job_id=job.id,company_id=company.id,status=status))
+                elif company.website_url and not company.crawl_paused and existing_item.status == 'skipped':
+                    existing_item.status = 'queued'
+                    existing_item.finished_at = None
+                    job.candidate_total += 1
+                    job.homepages_found += 1
+                    offset = int.from_bytes(hashlib.sha256(f'{job.id}:{company.id}'.encode()).digest()[:4],'big') % 86400
+                    if new_company or company.next_discovery_at is None:
+                        company.next_discovery_at = now + timedelta(seconds=offset)
+                session.flush()
             imported[source_id] = bool(website_url)
 
         session.flush()
+        if map_cursor is not None:
+            job.map_cursor = map_cursor
+            job.location_scan_lease_until = None
+            job.location_scan_token = None
+            job.location_scan_attempt_count = 0
+            job.error = None
+            job.progress_updated_at = now
+            if map_cursor.get('done'):
+                job.stage = 'career_page_discovery'
+                job.status = 'queued'
+                job.scheduled_for = None
+                if job.processed_count >= job.candidate_total:
+                    job.stage = 'complete'
+                    job.status = 'partial' if job.failed_count else 'completed'
+                    job.finished_at = now
+                job.progress_message = 'Germany map inventory complete; ranked company checks continue'
+            else:
+                job.status = 'scheduled'
+                job.scheduled_for = now + timedelta(seconds=NATIONAL_MAP_INTERVAL_SECONDS)
+                job.progress_message = (f"Germany: {map_cursor.get('completed_sections',0)} map sections saved; "
+                                        f"state {min(16,map_cursor.get('state_index',0)+1)} of 16; ranked checks continue")
+            return
         company_ids = company_ids_for_search(session, job)
         job.candidate_total = len(company_ids)
         job.processed_count = 0
@@ -539,7 +618,8 @@ def _fail_location_company_search(job_id: int, attempt_token: str,
             return None
         detail = str(error)[:2000]
         if (is_retryable_overpass_error(error) and
-                job.location_scan_attempt_count < LOCATION_SCAN_MAX_ATTEMPTS):
+                (job.search_scope == "country" or
+                 job.location_scan_attempt_count < LOCATION_SCAN_MAX_ATTEMPTS)):
             retry_at = _retry_time(job.location_scan_attempt_count)
             job.status = "scheduled"
             job.scheduled_for = retry_at
@@ -643,13 +723,14 @@ def schedule_due_locations(now=None) -> int:
                      .limit(25))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)
+        statement = statement.where(ConfiguredLocation.search_scope != 'country')
         locations = session.scalars(statement).all()
         for location in locations:
             active = session.scalar(select(DiscoveryJob.id).where(
                 DiscoveryJob.configured_location_id == location.id,
                 DiscoveryJob.status.in_(("scheduled", "queued", "running")),
             ).limit(1))
-            if active is None:
+            if active is None and location.search_scope != "country":
                 job = create_discovery_job(
                     session, label=location.label, search_scope=location.search_scope, city=location.city, state=location.state,
                     postcode=location.postcode, latitude=location.latitude, longitude=location.longitude,
@@ -658,7 +739,8 @@ def schedule_due_locations(now=None) -> int:
                 )
                 _enqueue_known_sources(session, job, now)
                 created += 1
-            advance_location_schedule(location, now)
+            if location.search_scope != 'country':
+                advance_location_schedule(location, now)
     return created
 
 
@@ -666,11 +748,39 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
     now = now or utcnow()
     stale_before = now - timedelta(minutes=LEASE_MINUTES)
     with SessionLocal.begin() as session:
+        paused_statement = (select(DiscoveryJobCompany)
+                            .join(Company, Company.id == DiscoveryJobCompany.company_id)
+                            .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
+                            .where(DiscoveryJobCompany.status == "queued",
+                                   DiscoveryJob.search_scope == "country",
+                                   DiscoveryJob.stage.in_(("company_homepage_discovery", "career_page_discovery")),
+                                   DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+                                   Company.crawl_paused.is_(True))
+                            .order_by(DiscoveryJobCompany.id).limit(100))
+        if engine.dialect.name == "postgresql":
+            paused_statement = paused_statement.with_for_update(
+                skip_locked=True, of=(DiscoveryJobCompany, Company))
+        for item in session.scalars(paused_statement).all():
+            item.status = "skipped"
+            item.finished_at = now
+            job = session.get(DiscoveryJob, item.discovery_job_id)
+            if job is None:
+                continue
+            job.processed_count += 1
+            job.progress_message = "Skipping companies parked by the relevance ranking"
+            job.progress_updated_at = now
+            if job.stage == "career_page_discovery" and job.processed_count >= job.candidate_total:
+                job.finished_at = now
+                job.status = "partial" if job.failed_count else "completed"
+                job.stage = "complete"
+                job.progress_message = "Search complete" if not job.failed_count else "Search finished with some issues"
+
         stale_statement = (select(DiscoveryJobCompany)
                            .join(Company, Company.id == DiscoveryJobCompany.company_id)
                            .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                            .where(DiscoveryJobCompany.status == "running",
-                                  DiscoveryJob.stage == "career_page_discovery",
+                                  or_(DiscoveryJob.stage == "career_page_discovery",
+                                      (DiscoveryJob.search_scope == "country") & (DiscoveryJob.stage == "company_homepage_discovery")),
                                   DiscoveryJob.kind != "recurring",
                                   DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                                   DiscoveryJobCompany.started_at < stale_before)
@@ -707,13 +817,17 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                      .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
                      .where(DiscoveryJobCompany.status == "queued",
-                            DiscoveryJob.stage == "career_page_discovery",
+                            or_(DiscoveryJob.stage == "career_page_discovery",
+                                (DiscoveryJob.search_scope == "country") & (DiscoveryJob.stage == "company_homepage_discovery")),
                             DiscoveryJob.kind != "recurring",
                             DiscoveryJob.status.in_(("scheduled", "queued", "running")),
-                            or_(DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
+                            or_(DiscoveryJob.search_scope == "country", DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
+                            or_(DiscoveryJob.search_scope != "country", Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
                             or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
                      .order_by(DiscoveryJob.scheduled_for.asc().nullsfirst(),
-                               DiscoveryJob.id.asc(), DiscoveryJobCompany.id.asc())
+                               Company.crawl_priority.desc(),
+                               Company.next_discovery_at.asc().nullsfirst(), DiscoveryJob.id.asc(),
+                               DiscoveryJobCompany.id.asc())
                      .limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True, of=(DiscoveryJobCompany, Company))
@@ -731,7 +845,7 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                 job.processed_count += 1
                 job.failed_count += 1
             return None
-        if (job.stage != "career_page_discovery" or
+        if ((job.stage != "career_page_discovery" and not (job.search_scope == "country" and job.stage == "company_homepage_discovery")) or
                 job.status not in {"scheduled", "queued", "running"}):
             return None
 
@@ -743,7 +857,8 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
         item.status = "running"
         item.started_at = now
         item.discovery_run_id = run.id
-        job.status = "running"
+        if job.search_scope != "country" or job.stage != "company_homepage_discovery":
+            job.status = "running"
         job.started_at = job.started_at or now
         job.progress_message = f"Checking {company.name}'s website for jobs"[:500]
         job.progress_updated_at = now
@@ -799,7 +914,7 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
         else:
             job.succeeded_count += 1
             job.jobs_found += item.jobs_found
-        if job.processed_count >= job.candidate_total:
+        if job.processed_count >= job.candidate_total and not (job.search_scope == "country" and job.stage == "company_homepage_discovery"):
             job.finished_at = now
             if job.failed_count == job.candidate_total and job.candidate_total:
                 job.status = "failed"
@@ -833,10 +948,19 @@ def _process_location_company_search(location_attempt: tuple[int, str]) -> None:
                 return
             scope = (job.latitude, job.longitude, job.radius_km * 1000)
             state = job.state if job.search_scope == "state" else None
+            country = job.search_scope == "country"
+            cursor = job.map_cursor if country else None
 
         def report_progress(message: str, **counts) -> bool:
             return _update_location_search_progress(location_job_id, attempt_token, message, **counts)
 
+        if country:
+            report_progress(f"Germany: {cursor.get('completed_sections',0)} map sections saved; "
+                            f"state {min(16,cursor.get('state_index',0)+1)} of 16; ranked checks continue")
+            updated, candidates, country_state = advance_map_cursor(cursor, report_progress)
+            _persist_location_companies(location_job_id, attempt_token, candidates,
+                                        map_cursor=updated, country_state=country_state)
+            return
         options = {"state": state} if state else {}
         candidates = fetch_location_companies(*scope, progress_callback=report_progress, **options)
         _persist_location_companies(location_job_id, attempt_token, candidates)
@@ -980,8 +1104,8 @@ def main() -> None:
     LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s workers=%s location_jobs_only=%s",
              INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, MAX_CRAWL_WORKERS, args.location_jobs_only)
     while True:
-        if not process_batch(location_jobs_only=args.location_jobs_only):
-            time.sleep(POLL_SECONDS)
+        worked = process_batch(location_jobs_only=args.location_jobs_only)
+        time.sleep(CRAWL_BATCH_DELAY_SECONDS if worked else POLL_SECONDS)
 
 
 if __name__ == "__main__":

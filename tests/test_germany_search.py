@@ -22,6 +22,7 @@ class GermanySearchTests(unittest.TestCase):
             saved = api.create_configured_location(SimpleNamespace(search_scope='country', country='DE'), session)
             self.assertEqual(saved['label'], 'Germany')
             self.assertEqual(saved['first_discovery_job']['search_scope'], 'country')
+            self.assertIsNone(saved['next_run_at'])
             rerun = api.create_discovery_job(SimpleNamespace(location_id=saved['id']), session)
             self.assertEqual(rerun['search_scope'], 'country')
     def test_country_rejects_non_german_input(self):

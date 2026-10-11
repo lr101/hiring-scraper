@@ -361,7 +361,8 @@ def create_configured_location(request: ConfiguredLocationCreate,
         latitude=float(values["latitude"]), longitude=float(values["longitude"]),
         radius_km=float(_model_value(request, "radius_km", 15)),
         interval_days=interval_days, enabled=True,
-        next_run_at=now + timedelta(days=interval_days), created_at=now, updated_at=now,
+        next_run_at=(now + timedelta(days=interval_days) if search_scope != "country" else None),
+        created_at=now, updated_at=now,
     )
     session.add(location)
     session.flush()
@@ -391,10 +392,12 @@ def update_configured_location(location_id: int, request: ConfiguredLocationUpda
         location.radius_km = float(radius_km)
     if interval_days is not None:
         location.interval_days = int(interval_days)
-        location.next_run_at = now + timedelta(days=location.interval_days)
+        location.next_run_at = (now + timedelta(days=location.interval_days)
+                                if location.search_scope != "country" else None)
     if enabled is not None:
         location.enabled = bool(enabled)
-        if location.enabled and (location.next_run_at is None or location.next_run_at <= now):
+        if (location.enabled and location.search_scope != "country" and
+                (location.next_run_at is None or location.next_run_at <= now)):
             location.next_run_at = now + timedelta(days=location.interval_days)
     location.updated_at = now
     session.commit()

@@ -89,19 +89,20 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertTrue(all(feed.provider == "html_jobs" and feed.next_scan_at for feed in feeds))
         self.assertIsNone(worker._claim_due_company())
 
-    def test_known_feed_is_not_claimed_for_homepage_rediscovery(self):
+    def test_known_feed_and_homepage_have_independent_ranked_refreshes(self):
         company_id = self._company(career_status="jobs_feed_found")
         with self.factory.begin() as session:
             session.add(JobFeed(company_id=company_id, provider="greenhouse",
                                 feed_url="https://boards-api.greenhouse.io/v1/boards/acme/jobs",
                                 status="failed", next_scan_at=utcnow()))
-        self.assertIsNone(worker._claim_due_company())
-        with self.factory() as session:
-            self.assertEqual(session.scalars(select(DiscoveryRun)).all(), [])
+        claimed=worker._claim_due_company()
+        self.assertIsNotNone(claimed)
+        self.assertEqual(claimed[0],company_id)
 
     def test_existing_career_page_is_registered_for_direct_refresh(self):
         company_id = self._company(career_status="career_page_found",
-                                   career_url="https://acme.example/careers")
+                                   career_url="https://acme.example/careers",
+                                   next_discovery_at=utcnow()+timedelta(days=1))
         with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
             self.assertFalse(worker.process_once())
         with self.factory() as session:
@@ -114,7 +115,8 @@ class DiscoveryWorkerTests(unittest.TestCase):
 
     def test_direct_career_refresh_finds_new_jobs_after_a_failed_attempt(self):
         company_id = self._company(career_status="career_page_found",
-                                   career_url="https://acme.example/careers")
+                                   career_url="https://acme.example/careers",
+                                   next_discovery_at=utcnow()+timedelta(days=1))
         with patch.object(worker, "discover", side_effect=AssertionError("Discovery restarted")):
             self.assertFalse(worker.process_once())
         requested = []

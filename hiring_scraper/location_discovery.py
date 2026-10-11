@@ -135,7 +135,13 @@ def _candidate(element: dict, latitude: float, longitude: float, radius_m: float
         return None
     source_id = f"{element.get('type')}/{element.get('id')}"
     website = _safe_homepage(tags.get("website") or tags.get("contact:website"))
+    from hiring_scraper.app.crawl_ranking import parse_employee_count
+    employee_count = next((count for key in ('employees', 'staff_count', 'company:employees')
+                           if (count := parse_employee_count(tags.get(key))) is not None), None)
     return {
+        "employee_count": employee_count,
+        "size_evidence": {'source': 'openstreetmap', 'source_url': f'https://www.openstreetmap.org/{source_id}',
+                          'employee_count': employee_count} if employee_count else {},
         "source_id": source_id,
         "name": name.strip(),
         "website": website,
@@ -241,7 +247,7 @@ def _fetch_overpass(query, transport, *, split_on_timeout=False):
         time.sleep(delay)
 
 
-def _fetch_state_map(state, transport, progress_callback):
+def state_map_bounds(state, transport):
     payload = _fetch_overpass(build_osm_state_bounds_query(state), transport)
     bounds = [element.get('bounds') for element in payload['elements'] if isinstance(element, dict)]
     if not bounds or any(not isinstance(bound, dict) for bound in bounds):
@@ -255,6 +261,11 @@ def _fetch_state_map(state, transport, progress_callback):
         raise ValueError('OpenStreetMap returned invalid state boundary bounds') from error
     if not all(math.isfinite(v) for v in (south, west, north, east)) or not (47 <= south < north <= 56 and 5 <= west < east <= 16):
         raise ValueError('OpenStreetMap returned invalid German state boundary bounds')
+    return south, west, north, east
+
+
+def _fetch_state_map(state, transport, progress_callback):
+    south, west, north, east = state_map_bounds(state, transport)
     height, width = math.ceil((north-south)/.5), math.ceil((east-west)/.5)
     pending = [((south+y*.5, west+x*.5, min(north, south+(y+1)*.5), min(east, west+(x+1)*.5)), 0)
                for y in range(height) for x in range(width)]

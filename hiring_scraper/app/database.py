@@ -41,6 +41,21 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         if 'state' not in columns:
             connection.exec_driver_sql("ALTER TABLE companies ADD COLUMN state VARCHAR(120)")
         connection.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_companies_state ON companies (state)")
+        additions = {
+            'country_code': 'VARCHAR(2)', 'employee_count': 'INTEGER',
+            'size_evidence': "JSON NOT NULL DEFAULT '{}'", 'crawl_priority': 'INTEGER NOT NULL DEFAULT 0',
+            'crawl_interval_days': 'INTEGER DEFAULT 7', 'crawl_reason': 'TEXT',
+            'crawl_paused': 'BOOLEAN NOT NULL DEFAULT 0', 'irrelevant_checks': 'INTEGER NOT NULL DEFAULT 0',
+            'ranking_updated_at': 'DATETIME',
+        }
+        for name, declaration in additions.items():
+            if name not in columns:
+                connection.exec_driver_sql(f'ALTER TABLE companies ADD COLUMN {name} {declaration}')
+        for name in ('country_code', 'crawl_priority'):
+            connection.exec_driver_sql(f'CREATE INDEX IF NOT EXISTS ix_companies_{name} ON companies ({name})')
+        job_columns = {column['name'] for column in inspect(connection).get_columns('discovery_jobs')}
+        if 'map_cursor' not in job_columns:
+            connection.exec_driver_sql("ALTER TABLE discovery_jobs ADD COLUMN map_cursor JSON NOT NULL DEFAULT '{}'")
 
 
 def get_session() -> Generator[Session, None, None]:
