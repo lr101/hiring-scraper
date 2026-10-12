@@ -43,11 +43,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
-    # Chromium's own sandbox uses unprivileged user namespaces. On Ubuntu 24+
-    # the Docker host must permit these namespaces; the app keeps Chromium's
-    # sandbox enabled and Docker's default seccomp profile remains active.
+    # The custom profiles allow Chromium's user-namespace sandbox while
+    # retaining Docker's seccomp allowlist for all other syscalls.
     security_opt:
-      - apparmor=unconfined
+      - apparmor=${HIRING_APPARMOR_PROFILE:-unconfined}
+      - seccomp=${PWD}/docker/chromium-seccomp.json
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
       interval: 10s

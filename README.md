@@ -38,9 +38,16 @@ source posting; closed and expired postings remain in your application overview.
 
 ## Compose deployment
 
-Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host only needs `compose.yaml` and `.env`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
+Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
 
-Copy `compose.yaml` and `.env.example` to the deployment host as `compose.yaml` and `.env`. Replace both placeholder passwords with different random hex values, then protect the file before starting:
+Copy `compose.yaml`, `.env.example`, and `docker/chromium-seccomp.json` to the deployment host, preserving the `docker/` path. On Ubuntu 24.04+, install the included AppArmor profile so the host can selectively allow Chromium's sandbox user namespace:
+
+```bash
+sudo install -m 0644 docker/chromium.apparmor /etc/apparmor.d/hiring-scraper-chromium
+sudo apparmor_parser -r /etc/apparmor.d/hiring-scraper-chromium
+```
+
+Set `HIRING_APPARMOR_PROFILE=hiring-scraper-chromium` in `.env` on that host. Replace both placeholder passwords with different random hex values, then protect the file before starting:
 
 ```bash
 cp .env.example .env
@@ -99,7 +106,7 @@ Scheduled refreshes revisit saved job feeds and career listing pages to find new
 
 Use **Job feeds** in the navigation to add and manage public HTTPS job pages and RSS / Atom feeds. Add a page to an existing company from its detail page, or leave the optional company/source name blank to derive a label from the host. Choose **ATS career page · auto-detect** for a supported Greenhouse, Lever, Personio, Ashby, Recruitee, or SmartRecruiters board; the app saves its public provider feed. Choose **Public HTML page** for server-rendered listings, **JavaScript page · Chromium** when listings appear only after scripts run, or **RSS / Atom feed** for a publisher-provided feed. Choose **Agentur für Arbeit · scheduled search** to add the BA Jobsuche adapter with optional job terms. Its search scope follows scheduled discovery: a Germany-wide scan has no location parameters, while a city/radius scan uses that saved area. Other sources can also use an optional location filter and radius. Feeds can be paused, edited, and scanned on demand. Rolling or geographically filtered feeds are treated as incomplete, so an omitted item will not close a previously seen job. A bot or CAPTCHA challenge is saved as the scan reason and stops that scan. See the [German job-source guide](docs/job-source-candidates.md) for tested providers and search details.
 
-The Docker image includes headless Chromium. For local development, install it once with `mise exec -- uv run playwright install --only-shell chromium`. Headless rendering executes page JavaScript. On Ubuntu 24.04 and later, the Docker host must allow Chromium's unprivileged user namespaces (`kernel.apparmor_restrict_unprivileged_userns=0`) for JavaScript-rendered feeds; Chromium's own sandbox stays enabled. The scanner does not solve CAPTCHAs, bypass challenges, sign in, or reuse human session cookies. See the [candidate source list](docs/job-source-candidates.md) for pages to try and current limitations.
+The Docker image includes headless Chromium. For local development, install it once with `mise exec -- uv run playwright install --only-shell chromium`. Headless rendering executes page JavaScript. Ubuntu 24.04+ deployments use the included AppArmor profile instead of changing the host-wide user-namespace policy. The custom seccomp profile is based on [Moby's default profile](https://github.com/moby/moby/blob/f40e9e46a30434c87dc3505dfcd2d605d6b55466/vendor/github.com/moby/profiles/seccomp/default.json) and adds only namespace calls gated on `CLONE_NEWUSER`; Chromium's own sandbox remains enabled. The scanner does not solve CAPTCHAs, bypass challenges, sign in, or reuse human session cookies. See the [candidate source list](docs/job-source-candidates.md) for pages to try and current limitations.
 
 Public career discovery, website verification, feed refresh, and detail enrichment
 do not request or enforce robots.txt. Requests retain the identifying user agent,
