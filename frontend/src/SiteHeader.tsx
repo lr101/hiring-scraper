@@ -1,4 +1,4 @@
-type SiteHeaderProps = { active: 'directory' | 'locations' | 'profile' | 'applications' }
+type SiteHeaderProps = { active: 'directory' | 'locations' | 'profile' | 'applications' | 'feeds' }
 
 function NavigationIcon({ page }: { page: SiteHeaderProps['active'] }) {
   const paths = {
@@ -6,6 +6,7 @@ function NavigationIcon({ page }: { page: SiteHeaderProps['active'] }) {
     locations: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></>,
     profile: <><circle cx="12" cy="7" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></>,
     applications: <><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
+    feeds: <><path d="M5 19a2 2 0 1 0 0 .01M4 11a9 9 0 0 1 9 9M4 5a15 15 0 0 1 15 15" /><path d="M4 5h.01" /></>,
   }
   return <svg className="navigation-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[page]}</svg>
@@ -24,7 +25,8 @@ export default function SiteHeader({ active }: SiteHeaderProps) {
         { page: 'directory', href: '/', label: 'Companies & jobs', mobile: 'Jobs' },
         { page: 'locations', href: '/locations', label: 'Search areas', mobile: 'Areas' },
         { page: 'profile', href: '/profile', label: 'Your profile', mobile: 'Profile' },
-        { page: 'applications', href: '/applications', label: 'My applications', mobile: 'Applications' },
+        { page: 'applications', href: '/applications', label: 'My applications', mobile: 'Applied' },
+        { page: 'feeds', href: '/feeds', label: 'Job feeds', mobile: 'Feeds' },
       ] as const).map(item => <a key={item.page} href={item.href} aria-label={item.label}
         aria-current={active === item.page ? 'page' : undefined} className={active === item.page ? 'active' : ''}>
         <NavigationIcon page={item.page} /><span className="desktop-nav-label">{item.label}</span><span className="mobile-nav-label">{item.mobile}</span>

@@ -1,5 +1,7 @@
 """Evidence-based area eligibility and verified vacancy identity for the board."""
 from datetime import datetime, time, timezone
+import re
+import unicodedata
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from hiring_scraper.geography import haversine_m
 
@@ -135,13 +137,36 @@ def vacancy_keys(job):
     keys = [('source', job.feed_id, job.external_id)]
     if url := canonical_vacancy_url(job.url):
         keys.append(('url', url))
+    employer_id = getattr(job, 'employer_company_id', None)
+    company = getattr(getattr(job, 'feed', None), 'company', None)
+    if employer_id is None and company is not None and company.category != 'job_board_source' and company.source not in {
+            'default_job_feed', 'managed_feed'}:
+        employer_id = company.id
     requisition = (job.raw_metadata or {}).get('requisition_id')
     if requisition not in (None, '') and isinstance(requisition, (str, int)):
         # Company identity keeps existing Greenhouse language-variant behavior.
         keys.append(('requisition', job.feed.provider, 'company', job.feed.company_id, str(requisition)))
         if job.feed.tenant:
             keys.append(('requisition', job.feed.provider, 'tenant', job.feed.tenant, str(requisition)))
+        if employer_id is not None:
+            keys.append(('requisition', 'employer', employer_id, str(requisition)))
+    if employer_id is not None and isinstance(job.date_posted, str) and job.date_posted:
+        title = _vacancy_text(job.title)
+        location = _vacancy_text(job.location_text or '; '.join(
+            item.label for item in getattr(job, 'locations', []) if item.label))
+        if (len(title) >= 8 and location and title not in {
+                'initiativbewerbung', 'general application', 'unsolicited application', 'talent pool'}):
+            keys.append(('employer-vacancy', employer_id, title, location, job.date_posted[:10]))
     return keys
+
+
+def _vacancy_text(value):
+    if not isinstance(value, str):
+        return ''
+    normalized = unicodedata.normalize('NFKD', value.casefold().replace('ß', 'ss'))
+    normalized = ''.join(char for char in normalized if not unicodedata.combining(char))
+    normalized = re.sub(r'\b(?:deutschland|germany)\b', ' ', normalized)
+    return ' '.join(re.findall(r'[a-z0-9]+', normalized))
 
 
 def deduplicate_jobs(jobs):

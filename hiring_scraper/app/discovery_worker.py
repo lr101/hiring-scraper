@@ -13,7 +13,7 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -24,13 +24,15 @@ from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, canonical_company_ids, canonical_company_map,
     company_ids_for_search, create_discovery_job,
 )
+from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
-    Job, JobFeed, JobLocation, utcnow,
+    Job, JobFeed, JobLocation, ScanRun, utcnow,
 )
+from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
-from hiring_scraper.crawl_policy import RESPECT_ROBOTS, ORIGIN_PACER
+from hiring_scraper.crawl_policy import ORIGIN_PACER
 from hiring_scraper.location_discovery import (
     LocationSearchCancelled,
     fetch_location_companies, is_retryable_overpass_error, resolve_missing_company_websites,
@@ -48,8 +50,8 @@ LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
 CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','30')))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
-MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "12"))))
-MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
+MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "24"))))
+MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "5"))))
 MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "48"))))
 MAX_CRAWL_WORKER_LIMIT = 32
 MAX_CRAWL_WORKERS = min(MAX_CRAWL_WORKER_LIMIT,
@@ -200,9 +202,10 @@ def _process_homepage_resolution(claim: tuple[int, int, str]) -> bool:
         website = candidate.get("website_url") if error is None else None
         if website:
             company.website_url = website
-            company.domain = candidate.get("domain")
-            company.domain_match_method = candidate.get("domain_match_method")
-            company.domain_evidence_url = candidate.get("domain_evidence_url")
+            if company.domain_match_method != "manual":
+                company.domain = candidate.get("domain")
+                company.domain_match_method = candidate.get("domain_match_method")
+                company.domain_evidence_url = candidate.get("domain_evidence_url")
             company.homepage_source_tags = None
             company.homepage_resolution_next_at = None
             company.homepage_resolution_attempts = 0
@@ -293,6 +296,9 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
         for field in ("employment_type", "schedule", "department", "seniority", "date_posted", "salary"):
             setattr(job, field, data.get(field))
         job.raw_metadata = data.get("raw_metadata") or {}
+        employer = upsert_job_employer(session, feed, data, now)
+        if employer is not None:
+            job.employer_company_id = employer.id
         refresh_enrichment(job)
         job.last_seen_at = now
         job.is_active = True
@@ -396,7 +402,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                          if board.get("feed_state") == "parsed" and board.get("feed_url")]
         if career_url is None and parsed_boards:
             career_url = parsed_boards[0].get("board_url") or parsed_boards[0].get("feed_url")
-        if career_url:
+        if career_url and not company.career_url_manual:
             company.career_url = career_url
 
         feed_by_key = {(feed.provider, feed.feed_url): feed for feed in session.scalars(
@@ -418,7 +424,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
         updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
-            if board.get("provider") == "html_jobs":
+            if board.get("provider") in {"html_jobs", "browser_html"}:
                 source_page = page_by_url.get(board.get("discovered_on"), {})
                 jobs, trust = trusted_html_jobs(seed, source_page, result.get("pages", []), jobs)
                 source_page["html_extraction_trust"] = trust
@@ -426,10 +432,21 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     continue
             key = (board["provider"], board["feed_url"])
             feed = feed_by_key.get(key)
+            if feed is None and board["provider"] in {"html_jobs", "browser_html"}:
+                legacy_key = next((existing_key for existing_key in feed_by_key
+                                   if existing_key[1] == board["feed_url"] and
+                                   existing_key[0] in {"html_jobs", "browser_html"}), None)
+                if legacy_key is not None:
+                    feed = feed_by_key.pop(legacy_key)
+                    if feed.lease_until is None and feed.provider != board["provider"]:
+                        feed.provider = board["provider"]
+                        feed.source_revision = (feed.source_revision or 0) + 1
+                    feed_by_key[key] = feed
             if feed is None:
                 if (board["provider"] == "recruitee" and session.scalar(
                         select(Job.id).join(JobFeed).where(
-                            JobFeed.company_id == company_id, JobFeed.provider == "html_jobs",
+                            JobFeed.company_id == company_id,
+                            JobFeed.provider.in_({"html_jobs", "browser_html"}),
                             Job.is_active.is_(True)).limit(1)) is not None):
                     # HTML and XML may describe the same jobs with different
                     # public URLs. Preserve the existing rows until aliases are
@@ -472,14 +489,17 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             "seed_resolution": result.get("seed_resolution"),
             "career_pages": [{key: page.get(key) for key in
                                ("requested_url", "url", "parent", "method", "depth", "classification",
-                                "html_extraction_trust", "fetch_state", "http_status", "redirect_chain")}
+                                "html_extraction_trust", "fetch_state", "http_status", "redirect_chain",
+                                "browser_render_state", "browser_render_error", "browser_requests",
+                                "browser_rendered")}
                               for page in result.get("pages", [])
                               if page.get("classification") in {"career_content", "jobposting"} or
-                              page.get("html_extraction_trust") == "unverified_external_source"],
+                              page.get("html_extraction_trust") == "unverified_external_source" or
+                              page.get("html_extracted_job_count") or page.get("browser_render_state")],
             "boards": [{key: board.get(key) for key in
                         ("provider", "tenant", "board_url", "feed_url", "evidence_url", "evidence_kind",
                          "discovered_on", "feed_state", "feed_http_status", "job_count", "complete",
-                         "personio_posting_scopes", "personio_full_board_authorized")}
+                         "personio_posting_scopes", "personio_full_board_authorized", "rendered")}
                        for board in result.get("boards", [])],
             "unverified_external_html_pages": result.get("unverified_external_html_pages", []),
             "unverified_external_ats": result.get("unverified_external_ats", []),
@@ -635,9 +655,10 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                 company.location_label = candidate.get("location_label") or company.location_label
                 if not company.website_url and website_url:
                     company.website_url = website_url
-                    company.domain = candidate.get("domain")
-                    company.domain_match_method = candidate.get("domain_match_method")
-                    company.domain_evidence_url = candidate.get("domain_evidence_url")
+                    if company.domain_match_method != "manual":
+                        company.domain = candidate.get("domain")
+                        company.domain_match_method = candidate.get("domain_match_method")
+                        company.domain_evidence_url = candidate.get("domain_evidence_url")
             if job.search_scope == "state":
                 company.state = job.state
                 company.country_code = 'DE'
@@ -678,9 +699,10 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                                                            **(company.size_evidence or {})}
                         if not crawl_company.website_url:
                             crawl_company.website_url = company.website_url
-                            crawl_company.domain = company.domain
-                            crawl_company.domain_match_method = company.domain_match_method
-                            crawl_company.domain_evidence_url = company.domain_evidence_url
+                            if crawl_company.domain_match_method != "manual":
+                                crawl_company.domain = company.domain
+                                crawl_company.domain_match_method = company.domain_match_method
+                                crawl_company.domain_evidence_url = company.domain_evidence_url
                         refresh_company_rank(session, crawl_company, now,
                                              fresh_employer_evidence=root_fresh_size_evidence)
                         # Office rows remain searchable, but share the canonical
@@ -850,6 +872,7 @@ def _enqueue_known_sources(session, job, now) -> None:
         if due is None or due > now:
             feed.next_scan_at = now
         scheduled += 1
+    queue_arbeitsagentur_scope(session, job, job.scheduled_for or now)
     job.status = "completed"
     job.stage = "complete"
     job.started_at = job.started_at or now
@@ -1027,6 +1050,22 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
         if alias_items:
             session.flush()
 
+        completed_priority_feed_scan = (select(ScanRun.id).where(
+            ScanRun.feed_id == JobFeed.id,
+            ScanRun.finished_at.is_not(None),
+            ScanRun.finished_at >= DiscoveryJob.created_at,
+        ).correlate(JobFeed, DiscoveryJob).exists())
+        pending_default_feed_scan = (select(JobFeed.id).join(Company).where(
+            Company.source == "default_job_feed", Company.crawl_paused.is_(False),
+            JobFeed.enabled.is_(True), ~completed_priority_feed_scan,
+            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
+        ).correlate(DiscoveryJob).exists())
+        pending_feed_employer_scan = (select(JobFeed.id).join(Company).where(
+            Company.source == "job_feed_employer", Company.crawl_paused.is_(False),
+            JobFeed.enabled.is_(True), JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
+            ~completed_priority_feed_scan,
+            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
+        ).correlate(DiscoveryJob).exists())
         statement = (select(DiscoveryJobCompany)
                      .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
@@ -1037,7 +1076,9 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                             DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                             or_(DiscoveryJob.search_scope == "country", DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
                             or_(DiscoveryJob.search_scope != "country", Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
-                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
+                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now),
+                            ~and_(DiscoveryJob.search_scope == "country",
+                                  or_(pending_default_feed_scan, pending_feed_employer_scan)))
                      .order_by(DiscoveryJob.scheduled_for.asc().nullsfirst(),
                                Company.crawl_priority.desc(),
                                Company.next_discovery_at.asc().nullsfirst(), DiscoveryJob.id.asc(),
@@ -1225,7 +1266,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
         client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
-                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER, respect_robots=RESPECT_ROBOTS)
+                        max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
         result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
 
         def persist_result() -> int | None:

@@ -7,16 +7,20 @@ from html.parser import HTMLParser
 from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 from .ats import identify
 
-CAREER = re.compile(r'karriere|careers?|\bjobs?\b|jobangebote?|stellenangebote?|stellenmarkt|arbeitgeber|employer|vacanc|open.positions|offene.stellen|arbeiten.bei|join.us|jobboerse|traumjobs?|werde.teil|we.re.hiring|join.our.team|work\s+at|apply.now|open.roles', re.I)
+CAREER = re.compile(r'karriere|careers?|\bjobs?\b|jobangebote?|stellenangebote?|stellenmarkt|arbeitgeber|employer|vacanc|open.positions|offene.stellen|arbeiten.bei|join.us|jobboerse|traumjobs?|werde.teil|we.re.hiring|join.our.team|work\s+at|apply.now|open.roles|ausbildung|duales?.{0,8}studium|studierende|werkstudent|working.students?|student.jobs?|internships?|school.students?|praktik(?:um|ant)|trainee|graduate|apprentice|berufseinstieg|berufseinsteiger|berufserfahren|professional|\bleads?\b|full[- ]?time|part[- ]?time|vollzeit|teilzeit', re.I)
 ABOUT = re.compile(r'unternehmen|über.uns|ueber.uns|about|company|\bteam\b', re.I)
 NON_CAREER_PATH = re.compile(r'(?:^|/)(?:privacy(?:-policy)?|datenschutz|legal|terms?|agb|impressum|imprint|cookies?|life-at(?:-[^/]*)?|values?(?:-[^/]*)?|culture|news|blog|aktuelles(?:-[^/]*)?|publikationen|presse)(?:/|$)', re.I)
 SOCIAL = ('linkedin.com','xing.com','instagram.com','facebook.com','youtube.com','twitter.com','indeed.com','stepstone.de','kununu.com')
-JOB_DETAIL_PATH = re.compile(r'(?:^|/)(?:job|jobangebote?|stellenangebot|stellenanzeige|vacanc(?:y|ies)|position)/[^/]+', re.I)
+JOB_DETAIL_PATH = re.compile(r'(?:^|/)(?:jobs?|jobangebote?|stellenangebot|stellenanzeige|vacanc(?:y|ies)|position|offers?)/[^/]+', re.I)
+JOB_LISTING_PATH = re.compile(r'(?:^|/)(?:jobs?|jobangebote?|stellenangebote?|jobsuche|job[-_]?(?:search|listings?)|search|category|categories|alle-jobs|all-jobs|open-positions|vacanc(?:y|ies))(?:/|$)', re.I)
 APPLICATION_PATH = re.compile(r'(?:^|/)(?:apply|application|bewerbung)(?:/|$)', re.I)
+NON_JOB_SECTION_PATH = re.compile(
+    r'(?:^|/)(?:faq|faqs|frequently-asked-questions|benefits|arbeitswelt|culture|team|about-us|ueber-uns)(?:/|$)', re.I)
 STRONG_JOB_LINK = re.compile(
     r'jobsuche|job[-\s]?search|job\s+listings?|vacanc(?:y|ies)|stellen(?:aus)?schreib|'
     r'stellenangebote?|offene\s+stellen|current\s+(?:jobs?|vacanc)|open\s+positions|'
-    r'find\s+(?:your\s+)?(?:next\s+)?jobs?|jetzt\s+bewerben|apply\s+now', re.I)
+    r'find\s+(?:your\s+)?(?:next\s+)?jobs?|jetzt\s+bewerben|apply\s+now|'
+    r'passenden?\s+(?:job|einstieg)\s+finden|alle\s+jobs\s+anzeigen|jobs?\s+(?:entdecken|anzeigen)', re.I)
 
 
 def _normalized_location_text(value):
@@ -62,6 +66,10 @@ def clean_url(base, href):
         return None
     if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password:
         return None
+    try:
+        p.port
+    except ValueError:
+        return None
     if '{{' in unquote(p.path) or '}}' in unquote(p.path):
         return None
     query = urlencode([(k,v) for k,v in parse_qsl(p.query, keep_blank_values=True)
@@ -90,6 +98,15 @@ class Document(HTMLParser):
         a = dict(attrs)
         if tag == 'a':
             self.anchor = [a.get('href',''), a.get('aria-label','')]
+        label = a.get('aria-label') or a.get('title') or ''
+        for key in ('data-href', 'data-url', 'data-link', 'data-redirect-url'):
+            if a.get(key):
+                self.links.append([a[key], label])
+        if tag == 'form' and a.get('action'):
+            self.links.append([a['action'], label])
+        onclick = a.get('onclick', '')
+        for target in re.findall(r"(?:window\.)?location(?:\.href)?\s*=\s*['\"]([^'\"]+)['\"]", onclick):
+            self.links.append([target, label])
         if tag in {'iframe','script'} and a.get('src'):
             self.embeds.append((a['src'], tag))
         for key, value in attrs:
@@ -164,11 +181,14 @@ def inspect_page(url, source, preferred_locations=None):
         provider = remember(target, 'link')
         target_path = urlsplit(target).path
         path_label = target_path+' '+label
-        job_detail = bool(JOB_DETAIL_PATH.search(target_path))
+        non_job_section = bool(NON_JOB_SECTION_PATH.search(target_path))
+        job_detail = bool(not non_job_section and JOB_DETAIL_PATH.search(target_path))
         application_route = bool(APPLICATION_PATH.search(target_path)) or bool(
             re.search(r'(?:^|[?&])gh_jid=\d+(?:&|$)', urlsplit(target).query, re.I))
         strong_job_link = bool(STRONG_JOB_LINK.search(path_label))
-        score = (100 if provider else 92 if job_detail or application_route else
+        job_listing = bool(not non_job_section and JOB_LISTING_PATH.search(target_path) and
+                           (CAREER.search(path_label) or CAREER.search(url) or strong_job_link))
+        score = (100 if provider else 92 if job_detail or application_route else 96 if job_listing else
                  86 if strong_job_link else
                  70 if CAREER.search(path_label) else 20 if ABOUT.search(path_label) else 0)
         if score:
@@ -214,11 +234,12 @@ def inspect_page(url, source, preferred_locations=None):
             if target: remember(target,'script_reference')
     path = urlsplit(url).path
     noise_path = bool(NON_CAREER_PATH.search(path))
-    is_career_heading = bool(CAREER.search(' '.join(doc.h1))) or (not doc.h1 and bool(CAREER.search(title)))
+    is_career_heading = bool(CAREER.search(' '.join(doc.h1))) or bool(CAREER.search(title))
     is_career_route = not noise_path and bool(CAREER.search(path))
     career_context = not noise_path and (is_career_heading or is_career_route)
     recruitment = bool(re.search(
-        r'bewerb|apply|hiring|jobangebote?|stellenangebote?|offene.stellen|open.positions|vacanc|'
+        r'bewerb|apply|hiring|jobangebote?|stellenangebote?|offene.stellen|offene\s+jobs?|open.positions|'
+        r'open\s+roles?|job\s+postings?|jobs?\s+(?:anzeigen|finden|entdecken)|vacanc|'
         r'benefits|mitarbeiter|your.team|looks?\s+for\s+(?:talents?|employees|people|you)|'
         r'working\s+students?|master\s+theses?', text, re.I))
     if re.search(r'your content goes here|edit or remove this text|lorem ipsum',text,re.I) and career_context:

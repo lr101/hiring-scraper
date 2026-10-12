@@ -96,9 +96,6 @@ def main():
         for url, (record, body) in client.cache.items():
             if host(url) not in domains or record.get('state') != 'ok' or 'html' not in record.get('content_type','') or url.endswith('/robots.txt'):
                 continue
-            # Apply robots policy even on shared/reused captures.
-            allowed, _ = client.get(url)
-            if allowed.get('state') != 'ok': continue
             inspected_pages += 1
             doc = Document(); doc.feed(body.decode('utf8', errors='replace'))
             jsonld_pages += int(any(kind == 'application/ld+json' for kind,_ in doc.scripts))

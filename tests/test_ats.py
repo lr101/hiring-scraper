@@ -150,6 +150,14 @@ class ProviderTests(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result['jobs'][0]['location'],'Berlin')
 
+    def test_rss_is_a_non_authoritative_rolling_window(self):
+        body = (b'<rss><channel><item><guid>job-1</guid><title>Engineer</title>'
+                b'<link>https://acme.example/jobs/1</link></item></channel></rss>')
+        result = parse_feed('rss', body, 'https://acme.example/jobs.xml')
+        self.assertEqual([job['id'] for job in result['jobs']], ['job-1'])
+        self.assertFalse(result['complete'])
+        self.assertTrue(result['windowed'])
+
     def test_schema_org_datafeed_normalizes_nested_job_postings(self):
         body=json.dumps({'@context':'https://schema.org','@type':'DataFeed','numberOfItems':1,'dataFeedElement':[
             {'@type':'DataFeedItem','item':{'@type':'JobPosting','title':'SAP Administrator','url':'https://careers.acme.de/jobs/42',

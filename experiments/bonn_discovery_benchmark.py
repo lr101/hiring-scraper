@@ -74,7 +74,7 @@ def crawl(args):
             index, seed = pair
             client = Client(Path(folder)/'captures'/str(index), timeout=10, delay=1, max_requests=45,
                             origin_pacer=pacer, request_budget=budget,
-                            offline_only=not args.live, respect_robots=not getattr(args, 'ignore_robots', False))
+                            offline_only=not args.live)
             client.cache = dict(captured)
             result = module.discover(seed, client, max_pages=pages, max_depth=3)
             result['benchmark_index'] = index
@@ -93,7 +93,7 @@ def crawl(args):
         'baseline_revision':args.baseline,'variant':args.variant,'live':args.live,
         'max_pages':pages,'max_depth':3,'per_company_request_cap':45,
         'shared_request_cap':args.requests,'new_requests':budget.used,
-        'companies':len(completed),'respect_robots':not getattr(args, 'ignore_robots', False),'finished_at':datetime.now(timezone.utc).isoformat()})
+        'companies':len(completed),'finished_at':datetime.now(timezone.utc).isoformat()})
 
 
 def diagnostics(args):
@@ -110,7 +110,7 @@ def diagnostics(args):
             row = {'seed':seed}
             for label, module in [('baseline', baseline),('candidate', discovery)]:
                 client = Client(Path(folder)/'captures'/f'{index}-{label}', timeout=15, max_requests=60,
-                                cache_from=args.root/'http', offline_only=not args.live, respect_robots=not getattr(args, 'ignore_robots', False))
+                                cache_from=args.root/'http', offline_only=not args.live)
                 row[label] = module.discover(seed, client, max_pages=6, max_depth=3)
             results.append(row)
         if args.live:
@@ -248,7 +248,7 @@ def persist(args):
                     run=ScanRun(feed_id=feed_id,status='running')
                     session.add(run);session.flush();run_id=run.id
                 with TemporaryDirectory(prefix='bonn-refresh-') as folder:
-                    client=Client(folder,cache_from=args.root/'http',offline_only=True, respect_robots=not getattr(args, 'ignore_robots', False))
+                    client=Client(folder,cache_from=args.root/'http',offline_only=True)
                     meta,body=fetch_feed(client,provider,url,board)
                 if meta.get('state')!='ok':
                     raise ValueError(f'Missing refresh capture: {url}')
@@ -272,7 +272,6 @@ def main():
     parser.add_argument('--baseline',default=BASELINE)
     parser.add_argument('--variant',choices=['baseline','expanded','candidate','public','public-twelve'],default='candidate')
     parser.add_argument('--live',action='store_true')
-    parser.add_argument('--ignore-robots',action='store_true')
     parser.add_argument('--pages',type=int,choices=range(1,25))
     parser.add_argument('--workers',type=int,default=8)
     parser.add_argument('--requests',type=int,default=2500)

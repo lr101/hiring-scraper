@@ -13,9 +13,9 @@ from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlsplit, urlunsp
 
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
 _HIDDEN = {"script", "style", "svg", "noscript", "template"}
-_JOB_LINK = re.compile(r"(?:^|/)(?:jobs?|stellenangebote?|stellenangebot|jobangebote?|jobangebot|vacanc(?:y|ies)|open-positions|position)/([^/?#]+)/?$", re.I)
-_DETAIL_ROUTE = re.compile(r"(?:^|/)(?:jobs?|stellenangebot|stellenangebote?|jobangebot|jobangebote?|vacanc(?:y|ies)|position)/([^/?#]+)/?$", re.I)
-_CAREER_ROUTE = re.compile(r"karriere|careers?|jobs?|stellenangebote?|jobangebot|vacanc|open[-_/ ]positions", re.I)
+_JOB_LINK = re.compile(r"(?:^|/)(?:jobs?|stellenangebote?|stellenangebot|jobangebote?|jobangebot|vacanc(?:y|ies)|open-positions|position|offers?)/[^/?#]+(?:/[^/?#]+)?/?$", re.I)
+_DETAIL_ROUTE = re.compile(r"(?:^|/)(?:jobs?|stellenangebot|stellenangebote?|jobangebot|jobangebote?|vacanc(?:y|ies)|position|offers?)/[^/?#]+(?:/[^/?#]+)?/?$", re.I)
+_CAREER_ROUTE = re.compile(r"karriere|careers?|jobs?|stellenangebote?|jobangebot|vacanc|open[-_/ ]positions|ausbildung|studium|studierende|werkstudent|praktikum|trainee|berufseinstieg|berufseinsteiger", re.I)
 _ARTICLE_ROUTE = re.compile(r"(?:^|/)(?:news|blog|press|aktuelles|stories|posts?)(?:/|[-.]|$)", re.I)
 _OPEN_SECTION = re.compile(r"^(?:open positions?|open job postings?|open roles?|offene stellen|aktuelle jobs|stellenangebote|vacatures)$", re.I)
 _STOP_SECTION = re.compile(r"^(?:our next open position|our office\b|unser büro\b|our team\b|benefits\b|faq\b|continue reading\b|contact\b|kontakt\b|about us\b)", re.I)
@@ -26,10 +26,10 @@ _GENERIC_HEADINGS = {
     "ausbildung", "duales studium", "students", "studierende",
 }
 _ROLE_WORDS = re.compile(
-    r"engineer|developer|administrator|admin|techniker|technik|support|manager|lead|"
-    r"analyst|analysis|automation|pathologist|scientist|researcher|software|"
+    r"engineer|developer|administrator|admin|assistant|techniker|technik|support|manager|lead|consultant|berater|"
+    r"analyst|analysis|automation|pathologist|scientist|researcher|software|product owner|"
     r"ausbildung|fachinformatiker|werkstudent|working student|intern|praktikum|"
-    r"thesis|student|produktmanagement|product management|agronom|ux\s*/?\s*ui|"
+    r"thesis|student|studium|study|bachelor|master|graduate|apprentice|produktmanagement|product management|agronom|ux\s*/?\s*ui|"
     r"vertrieb|designer|qa\b|algorithm|data\b|cloud\b|it-",
     re.I,
 )
@@ -262,6 +262,8 @@ def _arrangement(text: str) -> tuple[str | None, str | None]:
 
 def _employment(text: str) -> str | None:
     lowered = text.casefold().replace("_", "-")
+    if re.search(r"duales?\s+studium|dual\s+study", lowered):
+        return "dual_study"
     if re.search(r"ausbildung|apprenticeship", lowered):
         return "apprenticeship"
     if re.search(r"werkstudent|working student", lowered):
@@ -917,6 +919,12 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             continue
         path = urlsplit(target).path
         softgarden_id = _softgarden_job_id(target)
+        # Numeric `/job/<id>/<slug>` routes are a Softgarden contract. Other
+        # sites use them for unrelated pages, so only accept those routes on a
+        # recognized Softgarden tenant.
+        softgarden_only_route = bool(re.match(r'^/job/[^/]+/[^/]+/?$', path, re.I))
+        if softgarden_only_route and not softgarden_id:
+            continue
         if not _JOB_LINK.search(path) and not softgarden_id:
             continue
         title_text = _job_link_title(anchor)
@@ -929,7 +937,8 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
         title_location, title_text = _location_from_title(title_text)
         location = _node_location(anchor) or title_location or _location_from_url(target)
         job = _job(title_text, target, "softgarden_job_link" if softgarden_id else "html_job_link", context,
-                   location=location, application_email=_application_email(context))
+                   location=location, employment_type=_employment(title_text + " " + context),
+                   application_email=_application_email(context))
         if softgarden_id:
             job['id'] = softgarden_id
         jobs.append(job)
@@ -949,10 +958,9 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             apply = apply or form_apply
             vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
                                  for parent in _ancestors(h1_node))
-            confirmed = (_candidate_title(h1) or
-                         (apply or vacancy_marker) and 0 < len(h1) <= 150 and h1.casefold() not in _GENERIC_HEADINGS)
+            detail_context = _detail_description(h1_node) or ""
+            confirmed = (_candidate_title(h1) and (apply or vacancy_marker or len(detail_context) >= 30))
             if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
-                detail_context = _detail_description(h1_node) or ""
                 job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=_leading_location(detail_context),
                            description=detail_context or None, application_email=_application_email(detail_context))
                 if softgarden_id:

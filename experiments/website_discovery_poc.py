@@ -1,6 +1,6 @@
 """Compare guessed domains, OSM email leads, and saved search leads with page verification.
 
-Live mode honors robots, pacing and a shared HTTP budget. Offline replay requires
+Live mode uses pacing and a shared HTTP budget. Offline replay requires
 captures from a previous run; cache misses remain unresolved, never trigger HTTP.
 """
 import argparse

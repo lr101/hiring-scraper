@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import DetailPage from './DetailPage'
+import FeedSourcesPage from './FeedSourcesPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
@@ -158,7 +159,9 @@ function hostLabel(value: string | null) {
 function providerLabel(provider: string) {
   const labels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit listing',
+    schema_org: 'Company job page', html_jobs: 'Company job page', external_html: 'Public job page',
+    browser_html: 'JavaScript job page', rss: 'RSS / Atom job feed',
+    arbeitsagentur: 'Bundesagentur für Arbeit listing',
   }
   return labels[provider] ?? 'Company job page'
 }
@@ -696,6 +699,7 @@ function App() {
   if (path === '/profile' || path === '/profile/') return <ProfilesPage />
   if (path === '/applications' || path === '/applications/') return <ApplicationsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
+  if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />
   const jobMatch = path.match(/^\/jobs\/(\d+)\/?$/)

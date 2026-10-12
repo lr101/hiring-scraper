@@ -133,6 +133,10 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                                      (_as_utc(company.last_checked_at) is None or
                                       _as_utc(company.last_checked_at) <= checked_at))
                 for key, value in fields.items():
+                    if key in {"domain", "domain_match_method", "domain_evidence_url"} and company.domain_match_method == "manual":
+                        continue
+                    if key == "career_url" and company.career_url_manual:
+                        continue
                     if key in {"career_url", "career_status", "last_checked_at"} and not snapshot_is_newer:
                         continue
                     setattr(company, key, value)

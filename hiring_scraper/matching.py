@@ -402,6 +402,7 @@ def enrich_job(job: dict) -> dict:
             pass
     description = texts[1][1]
     employment_groups = {'working_student': ['working student', 'werkstudent'], 'apprenticeship': ['apprentice', 'ausbildung'],
+        'dual_study': ['dual_study', 'dual study', 'duales studium'],
         'internship': ['internship', 'intern', 'praktikum'], 'part_time': ['part_time', 'part-time', 'part time', 'teilzeit'],
         'full_time': ['full_time', 'full-time', 'full time', 'vollzeit'], 'contract': ['contract', 'freelance', 'freiberuflich']}
     employment_text = ' '.join(str(job.get(field) or '') for field in ('employment_type', 'schedule', 'title'))

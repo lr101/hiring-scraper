@@ -1,4 +1,4 @@
-"""Import selected BA captures and explicitly refresh a saved regional search.
+"""Capture and import manually selected BA search snapshots.
 
 Run ``python -m hiring_scraper.app.regional --help`` for the opt-in commands.
 Imports never interpret absence from a selected search as job closure.
@@ -57,7 +57,8 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
     """Idempotent employer/reference import; caller owns commit or rollback.
 
     Both raw captured detail lists and ``{'jobs': normalized_jobs}`` are accepted.
-    Regional feeds are deliberately excluded from the ordinary ATS scan worker.
+    CLI imports remain historical snapshots; recurring BA searches use managed
+    feeds with a saved location and radius in ``source_config``.
     """
     counts = {'companies_created': 0, 'feeds_created': 0, 'jobs_created': 0, 'jobs_updated': 0, 'skipped': 0}
     feed_ids = set()
@@ -257,11 +258,11 @@ def load_search_area(session: Session, *, profile_id=None, profile_json=None) ->
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Opt-in, bounded observed BA Jobsuche acquisition/import')
+    parser = argparse.ArgumentParser(description='Bounded regional BA Jobsuche snapshot capture and import')
     sub = parser.add_subparsers(dest='command', required=True)
     importer = sub.add_parser('import', help='Import raw detail rows or a normalized snapshot idempotently')
     importer.add_argument('snapshot', type=Path)
-    search = sub.add_parser('acquire', help='Capture a fresh selected regional search; does not claim market completeness')
+    search = sub.add_parser('acquire', help='Capture a selected regional search; does not claim market completeness')
     search.add_argument('--out', type=Path, required=True, help='Fresh directory (must not exist)')
     search.add_argument('--city')
     search.add_argument('--radius-km', type=float)

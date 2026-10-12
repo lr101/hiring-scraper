@@ -45,7 +45,6 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         self.folder = Path(self.directory.name)
         self.cache = self.folder / 'cache'
         self.cache.mkdir()
-        capture(self.cache, HOME + 'robots.txt', b'User-agent: *\nAllow: /', 'text/plain')
         capture(self.cache, HOME, ('<a href="' + BOARD + '/">Careers</a>').encode())
         capture(self.cache, FEED, XML, 'application/xml')
         self.engine = create_engine('sqlite://')

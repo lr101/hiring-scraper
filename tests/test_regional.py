@@ -122,24 +122,14 @@ class RegionalCountryAndCaptureTests(unittest.TestCase):
         self.assertEqual(result['locations'][0]['country_code'], 'AT')
 
     def test_real_transport_retries_keep_two_immutable_captures(self):
-        from email.message import Message
         from hiring_scraper.http import Client
-        class Response:
-            def __init__(self, code, body):
-                self.code, self.body = code, body
-                self.headers = Message()
-                self.headers['Content-Type'] = 'application/json'
-            def read(self, limit):
-                return self.body[:limit]
-            def __enter__(self):
-                return self
-            def __exit__(self, *args):
-                pass
         with tempfile.TemporaryDirectory() as directory:
             transport = Client(Path(directory)/'http', delay=0, max_requests=3)
             client = RegionalClient(transport, max_requests=3, retries=1, retry_delay=0)
             with patch('hiring_scraper.http.socket.getaddrinfo', return_value=[(2, 1, 6, '', ('1.1.1.1', 443))]), \
-                 patch.object(transport.opener, 'open', side_effect=[Response(503, b'busy'), Response(200, b'{"ergebnisliste": []}')]):
+                 patch.object(transport, '_open_pinned_response', side_effect=[
+                     (503, {'content-type': 'application/json'}, b'busy'),
+                     (200, {'content-type': 'application/json'}, b'{"ergebnisliste": []}')]):
                 record, data = client.request_json('https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?was=Project')
             self.assertEqual(record['state'], 'ok')
             self.assertEqual(data['ergebnisliste'], [])
@@ -163,6 +153,20 @@ class RegionalBoundsTests(unittest.TestCase):
         self.assertEqual(result['state'], 'partial')
         self.assertTrue(result['searches'][0]['truncated'])
         self.assertEqual(result['unique_summaries'], 1)
+
+    def test_bot_challenge_stops_search_without_retrying_or_fetching_more_pages(self):
+        transport = ScriptedTransport([
+            ({'state': 'ok', 'status': 403, 'checked_at': '2026-10-07T06:00:00Z'},
+             b'<html><title>Verify you are human</title></html>'),
+            ok({'ergebnisliste': [ROW], 'maxErgebnisse': 1}),
+        ])
+        client = RegionalClient(transport, max_requests=5, retries=3, retry_delay=0)
+        with tempfile.TemporaryDirectory() as directory:
+            result = acquire(Path(directory) / 'run', city='Heidelberg', terms=['Project'],
+                             client=client)
+        self.assertEqual(result['stop_reason'], 'bot_challenge')
+        self.assertEqual(result['requests_used'], 1)
+        self.assertEqual(len(transport.urls), 1)
 
     def test_unknown_search_shape_is_partial_and_error_is_saved(self):
         client = RegionalClient(ScriptedTransport([ok({'unexpected': []})]), max_requests=2, retries=0)

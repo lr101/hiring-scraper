@@ -52,6 +52,7 @@ class Company(Base):
     location_precision: Mapped[str | None] = mapped_column(String(40))
     location_label: Mapped[str | None] = mapped_column(String(255))
     career_url: Mapped[str | None] = mapped_column(Text)
+    career_url_manual: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     career_status: Mapped[str] = mapped_column(String(40), nullable=False, default="not_checked")
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     next_discovery_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
@@ -61,6 +62,8 @@ class Company(Base):
 
     feeds: Mapped[list[JobFeed]] = relationship(back_populates="company", cascade="all, delete-orphan")
     discovery_runs: Mapped[list[DiscoveryRun]] = relationship(back_populates="company", cascade="all, delete-orphan")
+    employer_jobs: Mapped[list["Job"]] = relationship(
+        back_populates="employer_company", foreign_keys="Job.employer_company_id")
 
 
 class DiscoveryRun(Base):
@@ -107,8 +110,8 @@ class DiscoveryJob(Base):
             "uq_active_germany_inventory",
             "search_scope",
             unique=True,
-            postgresql_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
-            sqlite_where=text("search_scope = 'country' AND stage = 'company_homepage_discovery' AND status IN ('scheduled', 'queued', 'running')"),
+            postgresql_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
+            sqlite_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
         ),
     )
 
@@ -183,9 +186,14 @@ class JobFeed(Base):
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
     provider: Mapped[str] = mapped_column(String(60), nullable=False)
     tenant: Mapped[str | None] = mapped_column(String(255))
+    source_config: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict, server_default=text("'{}'"))
+    pending_search_scopes: Mapped[list] = mapped_column(
+        JSON, nullable=False, default=list, server_default=text("'[]'"))
     board_url: Mapped[str | None] = mapped_column(Text)
     feed_url: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(40), nullable=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    source_revision: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default=text("1"))
     job_count: Mapped[int | None] = mapped_column(Integer)
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -209,6 +217,8 @@ class Job(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     feed_id: Mapped[int] = mapped_column(ForeignKey("job_feeds.id", ondelete="CASCADE"), nullable=False, index=True)
+    employer_company_id: Mapped[int | None] = mapped_column(
+        ForeignKey("companies.id", ondelete="SET NULL"), index=True)
     external_id: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
@@ -231,6 +241,8 @@ class Job(Base):
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     feed: Mapped[JobFeed] = relationship(back_populates="jobs")
+    employer_company: Mapped[Company | None] = relationship(
+        back_populates="employer_jobs", foreign_keys=[employer_company_id])
     locations: Mapped[list[JobLocation]] = relationship(back_populates="job", cascade="all, delete-orphan")
     applications: Mapped[list[JobApplication]] = relationship(back_populates="job", cascade="all, delete-orphan")
 
@@ -299,6 +311,7 @@ class ScanRun(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(40), nullable=False)
+    search_scope: Mapped[dict | None] = mapped_column(JSON)
     http_status: Mapped[int | None] = mapped_column(Integer)
     item_count: Mapped[int | None] = mapped_column(Integer)
     error: Mapped[str | None] = mapped_column(Text)

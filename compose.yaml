@@ -25,7 +25,6 @@ services:
       NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
       HIRING_USER_AGENT: ${HIRING_USER_AGENT:-HiringScraper/0.2 (public job discovery)}
       FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
-      HIRING_RESPECT_ROBOTS: ${HIRING_RESPECT_ROBOTS:-false}
       CRAWL_DELAY_SECONDS: ${CRAWL_DELAY_SECONDS:-1}
       CAREER_DISCOVERY_INTERVAL_DAYS: ${CAREER_DISCOVERY_INTERVAL_DAYS:-30}
       CAREER_DISCOVERY_POLL_SECONDS: ${CAREER_DISCOVERY_POLL_SECONDS:-30}
@@ -44,6 +43,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    # The custom profiles allow Chromium's user-namespace sandbox while
+    # retaining Docker's seccomp allowlist for all other syscalls.
+    security_opt:
+      - apparmor=${HIRING_APPARMOR_PROFILE:-unconfined}
+      - seccomp=${PWD}/docker/chromium-seccomp.json
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
       interval: 10s

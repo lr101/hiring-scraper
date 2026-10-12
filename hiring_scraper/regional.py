@@ -1,7 +1,8 @@
-"""Opt-in adapter for the observed public BA Jobsuche endpoint.
+"""Adapter for the observed BA Jobsuche endpoint.
 
 This is an observed interface, not a guaranteed official API contract. Searches
-are selected and bounded; their absence is never evidence that a job closed.
+are selected and bounded; their absence is never evidence that a job
+closed. A bot or CAPTCHA challenge stops the scan and is recorded explicitly.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote, urlencode, urlsplit
 
+from hiring_scraper.challenges import is_bot_challenge
 from hiring_scraper.http import Client, OriginPacer, RequestBudget
 
 BASE_URL = 'https://rest.arbeitsagentur.de/jobboerse/jobsuche-service'
@@ -149,13 +151,14 @@ def parse_search(payload: dict) -> dict:
 
 class RegionalClient:
     """Fixed public endpoint with a budget covering every retry attempt."""
-    def __init__(self, transport, max_requests=300, retries=2, retry_delay=1):
+    def __init__(self, transport, max_requests=300, retries=2, retry_delay=1, progress=None):
         if not 1 <= max_requests <= 10000 or not 0 <= retries <= 5 or not 0 <= retry_delay <= 10:
             raise ValueError('Invalid request or retry bounds')
         self.transport = transport
         self.max_requests, self.retries, self.retry_delay = max_requests, retries, retry_delay
         self.used = 0
         self.attempts = []
+        self.progress = progress
         self.capture_root = Path(transport.out) if isinstance(transport, Client) else None
 
     def request_json(self, url):
@@ -178,7 +181,9 @@ class RegionalClient:
             record, body = self.transport._raw(url, {'X-API-Key': 'jobboerse-jobsuche', 'Accept': 'application/json'})
             result = {**record, 'url': url, 'attempt': attempt + 1}
             payload = None
-            if record.get('state') == 'ok':
+            if is_bot_challenge(body, record.get('cf_mitigated')):
+                result.update(state='bot_challenge', error='The source returned a bot or CAPTCHA challenge.')
+            elif record.get('state') == 'ok':
                 try:
                     payload = json.loads(body)
                 except (ValueError, UnicodeError):
@@ -187,6 +192,8 @@ class RegionalClient:
                     result['state'] = 'invalid_response'
                     payload = None
             self.attempts.append(result)
+            if self.progress is not None:
+                self.progress()
             if result['state'] == 'ok':
                 return result, payload
             retryable = result['state'] == 'network_error' or record.get('status') in {429, 500, 502, 503, 504}
@@ -197,12 +204,23 @@ class RegionalClient:
         return result, None
 
 
-def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_size=100,
-            max_details=100, max_requests=300, delay=1, retries=2, client=None) -> dict:
-    """Capture a fresh bounded selected search and reusable normalized snapshot."""
+def acquire(out, *, city=None, radius_km=None, terms=DEFAULT_TERMS, max_pages=3, page_size=100,
+            max_details=100, max_requests=300, delay=1, retries=2, client=None,
+            progress=None) -> dict:
+    """Capture a fresh, bounded Germany-wide or location-scoped search."""
     terms = list(dict.fromkeys(_text(term) for term in terms if _text(term)))
-    if not _text(city) or not 0 <= radius_km <= 200 or not 1 <= max_pages <= 100 or not 1 <= page_size <= 100:
-        raise ValueError('City and valid radius/pagination bounds are required')
+    city = _text(city) or None
+    if radius_km is not None:
+        if isinstance(radius_km, bool):
+            raise ValueError('Radius must be between 0 and 200 km')
+        try:
+            radius_km = float(radius_km)
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ValueError('Radius must be between 0 and 200 km') from error
+        if not math.isfinite(radius_km) or not 0 <= radius_km <= 200:
+            raise ValueError('Radius must be between 0 and 200 km')
+    if not 1 <= max_pages <= 100 or not 1 <= page_size <= 100:
+        raise ValueError('Invalid pagination bounds')
     if not 1 <= len(terms) <= 50 or not 0 <= max_details <= 10000 or not 0.1 <= delay <= 60:
         raise ValueError('Invalid search terms, details or pacing bounds')
     out = Path(out)
@@ -210,13 +228,17 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
     if client is None:
         transport = Client(out/'http', delay=delay, max_requests=max_requests,
                            origin_pacer=OriginPacer(), request_budget=RequestBudget(max_requests))
-        client = RegionalClient(transport, max_requests=max_requests, retries=retries)
+        client = RegionalClient(transport, max_requests=max_requests, retries=retries, progress=progress)
+    elif progress is not None:
+        client.progress = progress
     manifest = {'started_at': _now(), 'source': 'arbeitsagentur', 'interface': 'observed_public_endpoint',
-                'selected_search': True, 'city': city, 'radius_km': radius_km, 'terms': terms,
+                'selected_search': True, 'search_scope': 'radius' if radius_km is not None else 'location' if city else 'country',
+                'city': city, 'radius_km': radius_km, 'terms': terms,
                 'max_pages_per_term': max_pages, 'page_size': page_size, 'max_details': max_details,
                 'max_requests': client.max_requests, 'searches': [], 'detail_errors': [], 'state': 'complete_selected_search'}
     summaries, term_refs = {}, []
     partial = False
+    stop_reason = None
     def save():
         snapshot = {'source': 'arbeitsagentur', 'selected_search': True, 'observed_at': manifest['started_at'],
                     'jobs': [normalize_job(row, manifest['started_at']) for row in summaries.values()]}
@@ -226,13 +248,19 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
     for term in terms:
         refs = []
         for page in range(1, max_pages + 1):
-            url = BASE_URL + '/pc/v6/jobs?' + urlencode({'wo': city, 'umkreis': radius_km, 'angebotsart': 1,
-                                                         'was': term, 'page': page, 'size': page_size})
+            params = {'angebotsart': 1, 'was': term, 'page': page, 'size': page_size}
+            if city:
+                params['wo'] = city
+            if city and radius_km is not None:
+                params['umkreis'] = radius_km
+            url = BASE_URL + '/pc/v6/jobs?' + urlencode(params)
             record, payload = client.request_json(url)
             search = {'term': term, 'page': page, 'url': url, 'state': record['state'], 'status': record.get('status')}
             manifest['searches'].append(search)
             if payload is None:
                 partial = True
+                if record.get('state') == 'bot_challenge':
+                    stop_reason = 'bot_challenge'
                 break
             try:
                 parsed = parse_search(payload)
@@ -263,6 +291,8 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
                 partial = True
         term_refs.append(refs)
         save()
+        if stop_reason:
+            break
         if client.used >= client.max_requests:
             partial = True
             break
@@ -273,6 +303,8 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
             if index < len(refs) and refs[index] not in seen:
                 selected.append(refs[index])
                 seen.add(refs[index])
+    if stop_reason:
+        selected = []
     if len(selected) > max_details:
         partial = True
     full = []
@@ -295,8 +327,13 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
             manifest['detail_errors'].append({'reference': ref, 'url': url, 'state': state, 'status': record.get('status')})
             partial = True
         save()
+        if record.get('state') == 'bot_challenge':
+            stop_reason = 'bot_challenge'
+            break
     manifest.update(finished_at=_now(), requests_used=client.used, attempts=client.attempts,
-                    unique_summaries=len(summaries), detail_count=len(full), state='partial' if partial else 'complete_selected_search')
+                    unique_summaries=len(summaries), detail_count=len(full),
+                    state=stop_reason or ('partial' if partial else 'complete_selected_search'),
+                    stop_reason=stop_reason)
     (out/'details.json').write_text(json.dumps(full, ensure_ascii=False, indent=2)+'\n')
     save()
     return manifest

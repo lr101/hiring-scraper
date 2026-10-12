@@ -52,6 +52,10 @@ def import_employer_snapshot(session, snapshot_path):
             session.flush()
         for key in ('name', 'website_url', 'domain', 'source_url', 'career_url', 'latitude', 'longitude', 'location_label', 'location_precision'):
             if key in row:
+                if key == 'domain' and company.domain_match_method == 'manual':
+                    continue
+                if key == 'career_url' and company.career_url_manual:
+                    continue
                 setattr(company, key, row[key])
         company.career_status = row.get('career_status', 'jobs_feed_found')
         for feed_row in row.get('feeds', []):

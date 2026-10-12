@@ -13,8 +13,7 @@ parser.add_argument('--lon', type=float, default=8.4037)
 parser.add_argument('--radius-m', type=int, default=5000)
 parser.add_argument('--out', default='data/karlsruhe')
 args = parser.parse_args()
-# Explicit API queries are supported by Overpass's API usage documentation;
-# robots.txt disallows general indexing of /api/, not documented API clients.
+# Explicit API queries use the Overpass API rather than general page indexing.
 query = f'''[out:json][timeout:30];
 (nwr(around:{args.radius_m},{args.lat},{args.lon})[name][office];
 nwr(around:{args.radius_m},{args.lat},{args.lon})[name][craft];
@@ -26,9 +25,7 @@ requests = [
  ('ba_web', 'https://www.arbeitsagentur.de/jobsuche/suche?'+urlencode({'wo':args.city,'umkreis':args.radius_m//1000,'angebotsart':1,'pav':'false'}), {}),
  ('ba_api_v6','https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs?'+urlencode({'wo':args.city,'umkreis':args.radius_m//1000,'angebotsart':1,'pav':'false','page':1,'size':25}), {'X-API-Key':'jobboerse-jobsuche'}),
  ('osm', 'https://overpass-api.de/api/interpreter?'+urlencode({'data':query}), {}),
- ('kit_robots','https://www.careerserviceportal.kit.edu/robots.txt', {}),
  ('kit_directory','https://www.careerserviceportal.kit.edu/de/jobboerse/unternehmensverzeichnis/', {}),
- ('cyberforum_robots','https://www.cyberforum.de/robots.txt', {}),
  ('cyberforum_directory','https://www.cyberforum.de/mitglieder', {}),
 ]
 for label, url, headers in requests:

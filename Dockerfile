@@ -11,7 +11,8 @@ FROM python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 WORKDIR /app
 COPY --from=uv /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
@@ -19,7 +20,9 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-ins
 COPY alembic.ini ./
 COPY hiring_scraper ./hiring_scraper
 COPY fixtures ./fixtures
+COPY scripts/ci/browser_sandbox_smoke.py /usr/local/bin/hiring-browser-sandbox-smoke.py
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev
+RUN /app/.venv/bin/python -m playwright install --with-deps --only-shell chromium
 COPY --from=frontend-build /frontend/dist ./frontend/dist
 COPY docker/entrypoint.py /usr/local/bin/hiring-entrypoint.py
 ENV PATH="/app/.venv/bin:$PATH"

@@ -6,7 +6,7 @@ from hiring_scraper.app.worker import _request
 
 
 class HtmlJobRefreshTests(unittest.TestCase):
-    def test_html_job_refresh_uses_robots_aware_page_fetch(self):
+    def test_html_job_refresh_fetches_configured_page(self):
         client = Mock()
         client.get.return_value = ({'state': 'ok'}, b'<html></html>')
         feed = JobFeed(provider='html_jobs', feed_url='https://example.test/careers/')

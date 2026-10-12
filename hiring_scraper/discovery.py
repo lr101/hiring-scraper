@@ -9,9 +9,11 @@ import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from .ats import fetch_feed, identify, parse_feed
 from .html_jobs import extract_html_jobs, html_job_key
-from .pages import CAREER, clean_url, inspect_page
+from .pages import (CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, NON_JOB_SECTION_PATH,
+                    clean_url, inspect_page)
 
-JOB_LISTING_PATH = re.compile(r'(?:^|/)(?:jobs?|stellenangebote?|jobsuche|open-positions|alle-jobs|all-jobs)/?$', re.I)
+MAX_BROWSER_RENDER_PAGES = 4
+BROWSER_RENDER_REQUEST_LIMIT = 16
 MAX_PERSONIO_POSTING_SCOPES = 24
 _GENERIC_COMPANY_WORDS = {
     'ag', 'ev', 'gmbh', 'kg', 'mbh', 'company', 'group', 'holding', 'jobs', 'career',
@@ -94,6 +96,23 @@ def _same_first_party_site(url, hosts):
     return any(_same_site(host, known) for known in hosts)
 
 
+def _needs_browser_render(url, info, body, extraction):
+    """Render only career listing routes whose static response has no jobs."""
+    path = urlsplit(url).path
+    has_listing_route = bool(JOB_LISTING_PATH.search(path))
+    has_career_route_without_links = bool(CAREER.search(path) and not any(
+        candidate.get('score', 0) >= 84 for candidate in info.get('candidates', [])))
+    if extraction.get('jobs') or not (has_listing_route or has_career_route_without_links):
+        return False
+    if (not has_listing_route and
+            info.get('classification') not in {'career_content', 'jobposting'} and
+            not CAREER.search(url)):
+        return False
+    source = body.decode('utf-8', errors='replace') if isinstance(body, bytes) else str(body)
+    return bool(re.search(r'<(?:script|iframe|form)\b|__next|__nuxt|data-hydration|job.?search',
+                          source, re.I))
+
+
 def _source_relationship(seed, source_page, pages):
     """Classify source provenance before deciding whether extracted rows are safe."""
     hosts = _first_party_hosts(seed, pages)
@@ -174,7 +193,12 @@ def trusted_html_jobs(seed, source_page, pages, jobs):
     """Return rows whose source or Schema.org employer establishes company provenance."""
     relationship = _source_relationship(seed, source_page, pages)
     if relationship == 'unverified_external_source':
-        return [], relationship
+        # A nested external portal may not have a direct page-parent chain back
+        # to the employer. Explicit hiringOrganization identity can still tie an
+        # individual structured posting to the known company.
+        identified = [job for job in jobs if _job_hiring_organization(job) and
+                      _employer_matches(seed, job)]
+        return (identified, 'linked_external_verified') if identified else ([], relationship)
     accepted = []
     for job in jobs:
         employer = _job_hiring_organization(job)
@@ -195,7 +219,7 @@ def trusted_html_source(seed, source_page, pages):
     return _source_relationship(seed, source_page, pages) in {'first_party', 'branded_external'}
 
 
-def discover(seed, client, max_pages=6, max_depth=3):
+def discover(seed, client, max_pages=24, max_depth=5):
     home = clean_url(seed['website'], seed['website'])
     if not home:
         raise ValueError('Seed website must be HTTP(S)')
@@ -215,8 +239,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
         secure_candidates = [{'url': secure_home, 'state': secure_meta.get('state'),
                               'status': secure_meta.get('status')}]
         used_www_fallback = False
-        if (secure_meta.get('state') == 'robots_unavailable' and host and '.' in host
-                and ':' not in host and not host.casefold().startswith('www.')):
+        if (host and '.' in host and ':' not in host and not host.casefold().startswith('www.')
+                and secure_meta.get('state') == 'network_error'):
             www_authority = f'www.{authority}'
             www_home = urlunsplit(('https', www_authority, parsed_home.path or '/', parsed_home.query, ''))
             www_meta, _ = client.get(www_home)
@@ -225,8 +249,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
             if www_meta.get('state') == 'ok':
                 secure_home, secure_meta = www_home, www_meta
                 used_www_fallback = True
-        # Prefer a working TLS homepage. Only fall back to HTTP when TLS cannot
-        # connect or the secure route is absent; robots blocks remain blocks.
+        # Prefer a working TLS homepage. Fall back to HTTP when TLS cannot
+        # connect or the secure route is absent.
         fallback_to_http = secure_meta.get('state') == 'network_error' or (
             secure_meta.get('state') == 'http_error' and secure_meta.get('status') in {404, 410})
         if not fallback_to_http:
@@ -247,6 +271,7 @@ def discover(seed, client, max_pages=6, max_depth=3):
     personio_scope_budget_reached = False
     html_job_pages, unconfirmed_role_candidates = [], []
     duplicate_redirects_skipped = 0
+    browser_render_count = 0
     counter = itertools.count()
     def enqueue(url, score, depth, parent, method):
         depth_limit = max_depth + (1 if method == 'ats_evidence' else 0)
@@ -306,7 +331,7 @@ def discover(seed, client, max_pages=6, max_depth=3):
                                      'job_count':len(parsed['jobs']),'feed_state':'parsed','complete':parsed['complete'],
                                      'jobs':parsed['jobs'],'feed_http_status':meta.get('status'),'capture':meta.get('capture')})
             result['status']='jobs_feed_found'
-            break
+            continue
         if depth == 0 and _same_first_party_site(final, _first_party_hosts(seed, result['pages'])):
             root_text = body.decode('utf-8', errors='replace')
             root_info = inspect_page(final, root_text, preferred_locations=seed.get('preferred_locations'))
@@ -321,11 +346,14 @@ def discover(seed, client, max_pages=6, max_depth=3):
                 result.update(irrelevant=True, complete=True, irrelevant_reason='Explicitly parked domain')
                 queue.clear()
                 break
-        if not fallbacks_added:
-            for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
-                enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
-            fallbacks_added = True
         text = body.decode('utf-8',errors='replace')
+        info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
+        page.update(info)
+        if not fallbacks_added:
+            if not any(provider.get('feed_url') for provider in info.get('ats', [])):
+                for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
+                    enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
+            fallbacks_added = True
         if method == 'sitemap' or urlsplit(final).path.endswith('.xml'):
             try:
                 root = ET.fromstring(body)
@@ -340,18 +368,46 @@ def discover(seed, client, max_pages=6, max_depth=3):
             except ET.ParseError:
                 page['classification']='invalid_sitemap'
             continue
-        info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
-        page.update(info)
         page['candidates'] = info['candidates'][:12]
-        if info.get('classification') in {'career_content','jobposting'} or (
-                info.get('classification') != 'placeholder' and CAREER.search(urlsplit(final).path)):
+        is_career_page = (info.get('classification') in {'career_content','jobposting'} or
+                          info.get('classification') != 'placeholder' and
+                          (CAREER.search(urlsplit(final).path) or
+                           JOB_LISTING_PATH.search(urlsplit(final).path)))
+        extraction = None
+        if is_career_page:
             extraction = extract_html_jobs(body, final)
+            remaining_requests = (getattr(client, 'max_requests', 0) -
+                                  len(getattr(client, 'records', [])))
+            if (_needs_browser_render(final, info, body, extraction) and
+                    browser_render_count < MAX_BROWSER_RENDER_PAGES and
+                    remaining_requests >= BROWSER_RENDER_REQUEST_LIMIT and
+                    trusted_html_source(seed, page, result['pages'])):
+                from .browser import render_public_page
+                browser_render_count += 1
+                rendered_meta, rendered_body = render_public_page(
+                    client, final, request_limit=BROWSER_RENDER_REQUEST_LIMIT)
+                page['browser_render_state'] = rendered_meta.get('state')
+                if rendered_meta.get('error'):
+                    page['browser_render_error'] = rendered_meta['error'][:500]
+                if rendered_meta.get('browser_requests') is not None:
+                    page['browser_requests'] = rendered_meta['browser_requests']
+                if rendered_meta.get('state') == 'ok' and rendered_meta.get('rendered'):
+                    rendered_info = inspect_page(
+                        final, rendered_body, preferred_locations=seed.get('preferred_locations'))
+                    page.update(rendered_info)
+                    page['candidates'] = rendered_info['candidates'][:12]
+                    page['browser_rendered'] = True
+                    info = rendered_info
+                    body = rendered_body
+                    extraction = extract_html_jobs(body, final)
             page['html_extracted_job_count'] = len(extraction['jobs'])
             page['unconfirmed_role_count'] = len(extraction['role_candidates'])
             if extraction['jobs']:
                 html_job_pages.append({**extraction,'url':final,'depth':depth,
                                        'classification':info.get('classification'),
-                                       'capture':page.get('capture')})
+                                       'capture':page.get('capture'),
+                                       'provider':'browser_html' if page.get('browser_rendered') else 'html_jobs',
+                                       'rendered':bool(page.get('browser_rendered'))})
             for candidate in extraction['role_candidates']:
                 unconfirmed_role_candidates.append({**candidate,'company_name':seed['name'],
                                                      'source_page_url':final})
@@ -448,22 +504,26 @@ def discover(seed, client, max_pages=6, max_depth=3):
                 enqueue(evidence_url,95,depth+1,final,'ats_evidence')
         if any(b['feed_state']=='parsed' for b in result['boards']):
             result['status']='jobs_feed_found'
-            break
         # A few high-value paths per page prevent a navigation tree crawl.
-        for candidate in info['candidates'][:12]:
+        for candidate in info['candidates'][:24]:
             if candidate['score'] < 70: continue
             candidate_provider = identify(candidate['url'])
             if candidate_provider and candidate_provider['feed_url']:
                 continue  # Native feeds handled above; unsupported details still need HTML.
             path = urlsplit(candidate['url']).path
+            non_job_section = bool(NON_JOB_SECTION_PATH.search(path))
             score = candidate['score']
-            if JOB_LISTING_PATH.search(path):
+            # A company-branded career hostname outranks a group-wide jobs page
+            # even when both links use generic "Jobs" labels.
+            if _hostname_has_brand(_normalized_host(candidate['url']), _brand_tokens(seed.get('name', ''))):
                 score += 20
+            if JOB_DETAIL_PATH.search(path) and not non_job_section:
+                score += 20
+            elif JOB_LISTING_PATH.search(path) and not non_job_section:
+                score += 8
             enqueue(candidate['url'],score,depth+1,final,'link')
     if unconfirmed_role_candidates:
         result['unconfirmed_role_candidates'] = unconfirmed_role_candidates
-    has_parsed_native_feed = any(board.get('feed_state') == 'parsed' and board.get('provider') != 'html_jobs'
-                                 for board in result['boards'])
     pages_by_url = {page.get('url'): page for page in result['pages']}
     trusted_html_pages, unverified_html_pages = [], []
     for item in html_job_pages:
@@ -480,55 +540,57 @@ def discover(seed, client, max_pages=6, max_depth=3):
             {'url': item['url'], 'job_count': item.get('rejected_job_count', len(item['jobs'])),
              'reason': 'unverified_external_source'}
             for item in unverified_html_pages]
-    if trusted_html_pages and not has_parsed_native_feed:
-        source_page = max(trusted_html_pages, key=lambda item:(len(item['jobs']),
-                          item.get('classification') == 'career_content', -item.get('depth', 0)))
-        merged_jobs = {}
-        for item in trusted_html_pages:
-            for job in item['jobs']:
-                job = dict(job)
-                job['raw_metadata'] = dict(job.get('raw_metadata') or {})
-                job['raw_metadata'].setdefault('source_page_url', item['url'])
-                key = html_job_key(job)
-                current = merged_jobs.get(key)
-                if current is None:
-                    current = dict(job)
-                    current['raw_metadata'] = dict(job.get('raw_metadata') or {})
-                    merged_jobs[key] = current
+    seen_html_jobs = {}
+    for item in trusted_html_pages:
+        unique_jobs = []
+        for job in item['jobs']:
+            key = html_job_key(job)
+            existing = seen_html_jobs.get(key)
+            if existing is None:
+                seen_html_jobs[key] = job
+                unique_jobs.append(job)
+                continue
+            for field, value in job.items():
+                if value in (None, '', [], {}) or field == 'id':
                     continue
-                old_method = (current.get('raw_metadata') or {}).get('extraction_method')
-                new_method = (job.get('raw_metadata') or {}).get('extraction_method')
-                if new_method == 'html_job_detail' and old_method != 'html_job_detail':
-                    current['title'] = job['title']
-                    current['url'] = job['url']
-                    current['id'] = job.get('id')
-                for field, value in job.items():
-                    if value in (None, '', [], {}):
-                        continue
-                    if field == 'raw_metadata':
-                        current[field] = {**current.get(field, {}), **value}
-                    elif field == 'description' and len(value) <= len(current.get(field) or ''):
-                        continue
-                    elif not current.get(field) or field == 'description':
-                        current[field] = value
-        jobs = sorted(merged_jobs.values(), key=lambda job:job['title'].casefold())
+                if field == 'raw_metadata':
+                    existing[field] = {**existing.get(field, {}), **value}
+                elif field == 'description':
+                    if len(value) > len(existing.get(field) or ''):
+                        existing[field] = value
+                elif not existing.get(field):
+                    existing[field] = value
+        item['jobs'] = unique_jobs
+    trusted_html_pages = [item for item in trusted_html_pages if item['jobs']]
+    for item in trusted_html_pages:
+        source_page = pages_by_url.get(item['url'], {})
+        jobs = []
+        for data in item['jobs']:
+            job = dict(data)
+            job['raw_metadata'] = dict(job.get('raw_metadata') or {})
+            job['raw_metadata'].setdefault('source_page_url', item['url'])
+            jobs.append(job)
+        provider = item.get('provider') or 'html_jobs'
         result['boards'].append({
-            'provider':'html_jobs','tenant':urlsplit(source_page['url']).hostname,
-            'board_url':source_page['url'],'feed_url':source_page['url'],
-            'evidence_url':source_page['url'],'evidence_kind':'static_html_job_page',
-            'discovered_on':source_page['url'],'job_count':len(jobs),
-            'feed_state':'parsed','complete':source_page['complete'],'jobs':jobs,
-            'capture':source_page.get('capture'),
+            'provider':provider,'tenant':urlsplit(item['url']).hostname,
+            'board_url':item['url'],'feed_url':item['url'],
+            'evidence_url':item['url'],
+            'evidence_kind':'browser_rendered_html_job_page' if item.get('rendered') else 'static_html_job_page',
+            'discovered_on':item['url'],'job_count':len(jobs),
+            'feed_state':'parsed','complete':bool(item.get('complete')),'jobs':jobs,
+            'capture':source_page.get('capture'),'rendered':bool(item.get('rendered')),
         })
         if result['status'] != 'jobs_feed_found':
             result['status'] = 'jobs_extracted'
     if result['status'] not in {'jobs_feed_found','jobs_extracted'}:
         if any(p.get('classification') in {'career_content','jobposting'} and
-               p.get('html_extraction_trust') != 'unverified_external_source' for p in result['pages']):
+               trusted_html_source(seed, p, result['pages']) for p in result['pages']):
             result['status']='career_content_found'
         elif result['boards']:
             result['status']='ats_identified'
     result['limits']={'max_pages':max_pages,'max_depth':max_depth,'max_boards':3,
+                      'browser_render_pages':browser_render_count,
+                      'browser_render_page_limit':MAX_BROWSER_RENDER_PAGES,
                       'max_personio_posting_scopes':MAX_PERSONIO_POSTING_SCOPES,
                       'personio_scope_budget_reached':personio_scope_budget_reached,
                       'page_budget_reached':len(result['pages'])>=max_pages and not result.get('irrelevant'),'remaining_queue':len(queue),

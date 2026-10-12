@@ -1,16 +1,18 @@
 import json
 import tempfile
+import threading
 import unittest
 from datetime import timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, event, select, update
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker as worker
 from hiring_scraper.app import worker as feed_worker
-from hiring_scraper.app.models import Base, Company, DiscoveryRun, Job, JobFeed, utcnow
+from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
+from hiring_scraper.app.models import Base, Company, DiscoveryRun, Job, JobFeed, ScanRun, utcnow
 
 
 class DiscoveryWorkerTests(unittest.TestCase):
@@ -22,6 +24,8 @@ class DiscoveryWorkerTests(unittest.TestCase):
         self.patches = [
             patch.object(worker, "SessionLocal", self.factory),
             patch.object(worker, "engine", self.engine),
+            patch.object(feed_worker, "SessionLocal", self.factory),
+            patch.object(feed_worker, "engine", self.engine),
         ]
         for item in self.patches:
             item.start()
@@ -336,6 +340,141 @@ class DiscoveryWorkerTests(unittest.TestCase):
             self.assertEqual(len(runs), 1)
             self.assertEqual(runs[0].status, "career_content_found")
             self.assertEqual(runs[0].pages_checked, 1)
+
+
+class FeedWorkerSafetyTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'feed-worker.db'}")
+        Base.metadata.create_all(self.engine)
+        self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
+        self.patches = [patch.object(feed_worker, "SessionLocal", self.factory),
+                        patch.object(feed_worker, "engine", self.engine)]
+        for item in self.patches:
+            item.start()
+
+    def tearDown(self):
+        for item in reversed(self.patches):
+            item.stop()
+        self.engine.dispose()
+        self.directory.cleanup()
+
+    def _feed_and_run(self, *, revision=1):
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="source-1", name="Acme GmbH",
+                              website_url="https://acme.example", domain="acme.example")
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="rss", feed_url="https://acme.example/jobs.xml",
+                           board_url="https://acme.example/careers", status="pending",
+                           source_revision=revision, next_scan_at=utcnow(), lease_until=utcnow())
+            session.add(feed)
+            session.flush()
+            run = ScanRun(feed_id=feed.id, started_at=utcnow(), status="running")
+            session.add(run)
+            session.flush()
+            return feed.id, run.id
+
+    def test_browser_feed_client_budget_covers_the_rendered_request_limit(self):
+        feed = JobFeed(provider="browser_html", feed_url="https://acme.example/careers")
+        with patch.object(feed_worker, "Client") as client_factory, \
+                patch.object(feed_worker, "fetch_feed", return_value=({}, b"")):
+            feed_worker._request(feed)
+        self.assertEqual(client_factory.call_args.kwargs["max_requests"], BROWSER_CLIENT_REQUEST_BUDGET)
+        self.assertGreater(BROWSER_CLIENT_REQUEST_BUDGET, 8)
+
+    def test_source_revision_discards_a_stale_response(self):
+        feed_id, run_id = self._feed_and_run(revision=2)
+        complete_result = {"state": "ok", "status": 200, "parsed_feed": {
+            "complete": True, "jobs": [{"id": "new", "title": "New role",
+                                         "url": "https://acme.example/jobs/new"}]}}
+
+        feed_worker._persist_result(feed_id, run_id, complete_result, b"", source_revision=1)
+
+        with self.factory() as session:
+            feed = session.get(JobFeed, feed_id)
+            run = session.get(ScanRun, run_id)
+            self.assertEqual(feed.source_revision, 2)
+            self.assertEqual(feed.status, "pending")
+            self.assertIsNone(feed.lease_until)
+            self.assertEqual(session.scalars(select(Job)).all(), [])
+            self.assertEqual(run.status, "stale_source")
+
+    def test_feed_edit_lock_serializes_with_in_flight_result_persistence(self):
+        feed_id, run_id = self._feed_and_run(revision=1)
+        api_session = self.factory()
+        api_session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
+            source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+        worker_update_started = threading.Event()
+        worker_errors = []
+
+        def observe_worker_update(_connection, _cursor, statement, _parameters, _context, _executemany):
+            if (threading.current_thread().name == "feed-result-persist" and
+                    statement.lstrip().upper().startswith("UPDATE JOB_FEEDS")):
+                worker_update_started.set()
+
+        event.listen(self.engine, "before_cursor_execute", observe_worker_update)
+        metadata = {"state": "ok", "status": 200, "parsed_feed": {
+            "complete": True, "jobs": [{"id": "stale", "title": "Stale role",
+                                         "url": "https://acme.example/jobs/stale"}]}}
+
+        def persist_old_response():
+            try:
+                feed_worker._persist_result(feed_id, run_id, metadata, b"", source_revision=1)
+            except Exception as error:  # surfaced in the owning test thread below
+                worker_errors.append(error)
+
+        thread = threading.Thread(target=persist_old_response, name="feed-result-persist")
+        thread.start()
+        try:
+            self.assertTrue(worker_update_started.wait(timeout=2))
+            self.assertTrue(thread.is_alive(), "the result writer should wait for the feed edit lock")
+            feed = api_session.get(JobFeed, feed_id)
+            feed.source_revision = 2
+            feed.feed_url = "https://acme.example/new-jobs.xml"
+            api_session.commit()
+        finally:
+            api_session.close()
+            event.remove(self.engine, "before_cursor_execute", observe_worker_update)
+        thread.join(timeout=5)
+        self.assertFalse(thread.is_alive(), "the result writer should finish after the edit commits")
+        self.assertEqual(worker_errors, [])
+        with self.factory() as session:
+            feed = session.get(JobFeed, feed_id)
+            run = session.get(ScanRun, run_id)
+            self.assertEqual(feed.source_revision, 2)
+            self.assertEqual(feed.feed_url, "https://acme.example/new-jobs.xml")
+            self.assertEqual(run.status, "stale_source")
+            self.assertEqual(session.scalars(select(Job).where(Job.external_id == "stale")).all(), [])
+
+    def test_rss_window_scan_succeeds_without_closing_missing_jobs(self):
+        feed_id, run_id = self._feed_and_run()
+        old_seen = utcnow() - timedelta(days=30)
+        with self.factory.begin() as session:
+            old_job = Job(feed_id=feed_id, external_id="old", title="Old role",
+                          url="https://acme.example/jobs/old", first_seen_at=old_seen,
+                          last_seen_at=old_seen, missing_complete_scans=2, is_active=True)
+            session.add(old_job)
+
+        metadata = {"state": "ok", "status": 200, "parsed_feed": {
+            "complete": False, "windowed": True,
+            "jobs": [{"id": "recent", "title": "Recent role",
+                      "url": "https://acme.example/jobs/recent"}]}}
+        feed_worker._persist_result(feed_id, run_id, metadata, b"", source_revision=1)
+
+        with self.factory() as session:
+            feed = session.get(JobFeed, feed_id)
+            old_job = session.scalar(select(Job).where(Job.external_id == "old"))
+            run = session.get(ScanRun, run_id)
+            self.assertEqual(feed.status, "windowed")
+            self.assertIsNone(feed.last_error)
+            next_scan = feed.next_scan_at
+            if next_scan.tzinfo is None:
+                next_scan = next_scan.replace(tzinfo=timezone.utc)
+            self.assertGreater(next_scan, utcnow())
+            self.assertTrue(old_job.is_active)
+            self.assertEqual(old_job.missing_complete_scans, 2)
+            self.assertEqual(run.status, "windowed")
 
 
 if __name__ == "__main__":

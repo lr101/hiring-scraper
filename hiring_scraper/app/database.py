@@ -36,7 +36,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             if {'search_scope', 'stage', 'status'} <= job_columns:
                 active_ids = connection.exec_driver_sql(
                     "SELECT id FROM discovery_jobs WHERE search_scope='country' "
-                    "AND stage='company_homepage_discovery' "
+                    "AND stage IN ('company_homepage_discovery','career_page_discovery') "
                     "AND status IN ('scheduled','queued','running') ORDER BY id"
                 ).scalars().all()
                 for duplicate_id in active_ids[1:]:
@@ -45,9 +45,27 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
+        if 'enabled' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
+        if 'source_revision' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN source_revision INTEGER NOT NULL DEFAULT 1")
+        if 'source_config' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN source_config JSON NOT NULL DEFAULT '{}'")
+        if 'pending_search_scopes' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN pending_search_scopes JSON NOT NULL DEFAULT '[]'")
+        scan_columns = {column['name'] for column in inspect(connection).get_columns('scan_runs')}
+        if 'search_scope' not in scan_columns:
+            connection.exec_driver_sql("ALTER TABLE scan_runs ADD COLUMN search_scope JSON")
         columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")
+        if 'employer_company_id' not in columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE jobs ADD COLUMN employer_company_id INTEGER "
+                "REFERENCES companies(id) ON DELETE SET NULL")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_jobs_employer_company_id ON jobs (employer_company_id)")
 
         for table in ('configured_locations', 'discovery_jobs'):
             columns = {column['name'] for column in inspect(connection).get_columns(table)}
@@ -62,6 +80,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             'size_evidence': "JSON NOT NULL DEFAULT '{}'", 'crawl_priority': 'INTEGER NOT NULL DEFAULT 0',
             'crawl_interval_days': 'INTEGER DEFAULT 7', 'crawl_reason': 'TEXT',
             'crawl_paused': 'BOOLEAN NOT NULL DEFAULT 0', 'irrelevant_checks': 'INTEGER NOT NULL DEFAULT 0',
+            'career_url_manual': 'BOOLEAN NOT NULL DEFAULT 0',
             'ranking_updated_at': 'DATETIME', 'homepage_source_tags': 'JSON',
             'homepage_resolution_attempts': 'INTEGER NOT NULL DEFAULT 0',
             'homepage_resolution_next_at': 'DATETIME', 'homepage_resolution_lease_until': 'DATETIME',
@@ -79,9 +98,10 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql("ALTER TABLE discovery_jobs ADD COLUMN map_cursor JSON NOT NULL DEFAULT '{}'")
         job_columns = {column['name'] for column in inspect(connection).get_columns('discovery_jobs')}
         if {'search_scope', 'stage', 'status'} <= job_columns:
+            connection.exec_driver_sql("DROP INDEX IF EXISTS uq_active_germany_inventory")
             connection.exec_driver_sql(
                 "CREATE UNIQUE INDEX IF NOT EXISTS uq_active_germany_inventory ON discovery_jobs(search_scope) "
-                "WHERE search_scope='country' AND stage='company_homepage_discovery' "
+                "WHERE search_scope='country' AND stage IN ('company_homepage_discovery','career_page_discovery') "
                 "AND status IN ('scheduled','queued','running')"
             )
 

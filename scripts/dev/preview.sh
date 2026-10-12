@@ -83,6 +83,7 @@ state_token=
 state_api_pid=
 state_web_pid=
 state_worker_pid=
+state_feed_worker_pid=
 state_api_port=
 state_web_port=
 state_database=
@@ -105,6 +106,7 @@ load_state() {
       api_pid) state_api_pid=$value ;;
       web_pid) state_web_pid=$value ;;
       worker_pid) state_worker_pid=$value ;;
+      feed_worker_pid) state_feed_worker_pid=$value ;;
       api_port) state_api_port=$value ;;
       web_port) state_web_port=$value ;;
       database) state_database=$value ;;
@@ -135,6 +137,7 @@ write_state() {
     printf 'api_pid=%s\n' "$api_pid"
     printf 'web_pid=%s\n' "$web_pid"
     printf 'worker_pid=%s\n' "$worker_pid"
+    printf 'feed_worker_pid=%s\n' "$feed_worker_pid"
     printf 'api_port=%s\n' "$api_port"
     printf 'web_port=%s\n' "$web_port"
     printf 'database=%s\n' "$database_path"
@@ -158,6 +161,7 @@ process_group_matches() {
     api) [[ "$command_line" == *"hiring_scraper.app.api:app"* ]] ;;
     web) [[ "$command_line" == *"vite"* && "$command_line" == *"preview"* ]] ;;
     worker) [[ "$command_line" == *"hiring_scraper.app.discovery_worker"* ]] ;;
+    feed_worker) [[ "$command_line" == *"hiring_scraper.app.worker"* ]] ;;
     *) return 1 ;;
   esac
 }
@@ -233,6 +237,11 @@ if [[ "$action" == status ]]; then
       else
         printf 'PREVIEW_SERVICE discovery-worker not running\n'
       fi
+      if [[ -n "$state_feed_worker_pid" ]] && process_group_matches "$state_feed_worker_pid" feed_worker; then
+        printf 'PREVIEW_SERVICE feed-worker running (scheduled source scans)\n'
+      else
+        printf 'PREVIEW_SERVICE feed-worker not running\n'
+      fi
       if [[ "$state_public_verified" == yes ]]; then
         printf 'PREVIEW_URL web %s/\n' "$web_url"
         printf 'PREVIEW_URL api %s/docs\n' "$api_url"
@@ -261,12 +270,14 @@ if [[ "$action" == stop ]]; then
   api_pid=$state_api_pid
   web_pid=$state_web_pid
   worker_pid=$state_worker_pid
+  feed_worker_pid=$state_feed_worker_pid
   api_port=$state_api_port
   web_port=$state_web_port
   database_path=$state_database
   public_verified=$state_public_verified
   write_state stopping
   terminate_group "$state_worker_pid" worker
+  terminate_group "$state_feed_worker_pid" feed_worker
   terminate_group "$state_api_pid" api
   terminate_group "$state_web_pid" web
   remove_route "$state_token"
@@ -277,6 +288,7 @@ if [[ "$action" == stop ]]; then
   api_pid=
   web_pid=
   worker_pid=
+  feed_worker_pid=
   api_port=$state_api_port
   web_port=$state_web_port
   database_path=$state_database
@@ -316,6 +328,7 @@ state_owner_pid=${BASHPID:-$$}
 api_pid=
 web_pid=
 worker_pid=
+feed_worker_pid=
 api_port=
 web_port=
 api_port_marker=
@@ -387,6 +400,7 @@ cleanup() {
   trap - EXIT INT TERM HUP
   set +e
   if [[ -n "$worker_pid" ]]; then terminate_group "$worker_pid" worker; fi
+  if [[ -n "$feed_worker_pid" ]]; then terminate_group "$feed_worker_pid" feed_worker; fi
   if [[ -n "$api_pid" ]]; then terminate_group "$api_pid" api; fi
   if [[ -n "$web_pid" ]]; then terminate_group "$web_pid" web; fi
   if [[ "$registered_route" == yes || "$route_claimed" == yes ]]; then remove_route "$route_token"; fi
@@ -417,10 +431,12 @@ fi
 api_log="$state_dir/api.log"
 web_log="$state_dir/web.log"
 worker_log="$state_dir/discovery-worker.log"
+feed_worker_log="$state_dir/feed-worker.log"
 : > "$api_log"
 : > "$web_log"
 : > "$worker_log"
-chmod 600 "$api_log" "$web_log" "$worker_log"
+: > "$feed_worker_log"
+chmod 600 "$api_log" "$web_log" "$worker_log" "$feed_worker_log"
 
 (
   cd "$repo_root"
@@ -549,6 +565,32 @@ done
 if [[ "$worker_ready" != yes ]]; then
   tail -n 80 "$worker_log" >&2 || true
   die 'discovery worker did not become ready'
+fi
+
+(
+  cd "$repo_root"
+  exec setsid env DATABASE_URL="$database_url" SCAN_POLL_SECONDS=3 \
+    SCAN_CAPTURE_DIR="$state_dir/feed-captures" \
+    mise exec -- uv run python -m hiring_scraper.app.worker
+) >> "$feed_worker_log" 2>&1 < /dev/null &
+feed_worker_pid=$!
+write_state starting
+
+feed_worker_ready=no
+for _ in $(seq 1 40); do
+  if ! process_group_matches "$feed_worker_pid" feed_worker; then
+    tail -n 80 "$feed_worker_log" >&2 || true
+    die 'feed worker exited during startup'
+  fi
+  if grep -Fq 'feed worker started' "$feed_worker_log"; then
+    feed_worker_ready=yes
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$feed_worker_ready" != yes ]]; then
+  tail -n 80 "$feed_worker_log" >&2 || true
+  die 'feed worker did not become ready'
 fi
 
 write_state running

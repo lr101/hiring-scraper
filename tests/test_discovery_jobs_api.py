@@ -4,13 +4,13 @@ from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
 from hiring_scraper.app import api
-from hiring_scraper.app.models import Base, Company, DiscoveryJob, DiscoveryJobCompany, utcnow
+from hiring_scraper.app.models import Base, Company, DiscoveryJob, DiscoveryJobCompany, Job, JobFeed, utcnow
 
 
 class DiscoveryJobsApiTests(unittest.TestCase):
@@ -183,6 +183,112 @@ class DiscoveryJobsApiTests(unittest.TestCase):
                     if middleware.cls is CORSMiddleware)
         self.assertIn("PATCH", cors.kwargs["allow_methods"])
         self.assertIn("DELETE", cors.kwargs["allow_methods"])
+
+    def test_managed_feed_source_change_replaces_source_and_retires_old_jobs(self):
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="managed-1", name="Acme Careers",
+                              website_url="https://acme.example", domain="acme.example")
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="external_html", feed_url="https://acme.example/jobs",
+                           board_url="https://acme.example/jobs", status="parsed", enabled=True,
+                           source_revision=1, etag='"old-tag"', last_modified="Tue, 01 Jan 2025 00:00:00 GMT")
+            session.add(feed)
+            session.flush()
+            feed_id = feed.id
+            job = Job(feed_id=feed.id, external_id="role-1", title="Old source role",
+                      url="https://acme.example/jobs/role-1", is_active=True)
+            session.add(job)
+            session.flush()
+            job_id = job.id
+
+        session = self.factory()
+        try:
+            updated = api.update_managed_feed(
+                feed_id, SimpleNamespace(feed_url="https://acme.example/jobs.xml", provider="rss", enabled=None),
+                session)
+        finally:
+            session.close()
+
+        self.assertNotEqual(updated["id"], feed_id)
+        self.assertEqual(updated["provider"], "rss")
+        self.assertEqual(updated["feed_url"], "https://acme.example/jobs.xml")
+        with self.factory() as session:
+            old_feed = session.get(JobFeed, feed_id)
+            replacement = session.get(JobFeed, updated["id"])
+            old_job = session.get(Job, job_id)
+            self.assertEqual(old_feed.provider, "external_html")
+            self.assertEqual(old_feed.feed_url, "https://acme.example/jobs")
+            self.assertEqual(old_feed.source_revision, 2)
+            self.assertEqual(old_feed.status, "source_replaced")
+            self.assertFalse(old_feed.enabled)
+            self.assertIsNotNone(old_feed.etag)
+            self.assertIsNotNone(old_feed.last_modified)
+            self.assertFalse(old_job.is_active)
+            self.assertIsNotNone(old_job.closed_at)
+            self.assertEqual(old_job.feed_id, feed_id)
+            self.assertEqual(replacement.provider, "rss")
+            self.assertEqual(replacement.source_revision, 1)
+            self.assertTrue(replacement.enabled)
+            self.assertEqual(replacement.status, "pending")
+            self.assertIsNotNone(replacement.next_scan_at)
+            self.assertEqual(session.scalars(select(Job).where(Job.feed_id == replacement.id)).all(), [])
+
+    def test_managed_ats_page_is_resolved_to_its_public_provider_feed(self):
+        board = "https://careers.smartrecruiters.com/RheindataGmbH"
+        request = api.ManagedFeedCreate(
+            company_name="rheindata GmbH", website_url="https://rheindata.de/",
+            feed_url=board, provider="ats")
+        created = self._call_endpoint("create_managed_feed", request.model_dump())
+
+        self.assertEqual(created["provider"], "smartrecruiters")
+        self.assertEqual(created["board_url"], board)
+        self.assertEqual(created["feed_url"], (
+            "https://api.smartrecruiters.com/v1/companies/RheindataGmbH/postings"
+            "?limit=100&offset=0&destination=PUBLIC"))
+        with self.factory() as session:
+            stored = session.get(JobFeed, created["id"])
+            self.assertEqual(stored.tenant, "RheindataGmbH")
+
+    def test_managed_ats_type_rejects_pages_without_a_supported_public_adapter(self):
+        with self.assertRaises(HTTPException) as caught:
+            self._call_endpoint("create_managed_feed", {
+                "company_id": None, "website_url": None,
+                "company_name": "Unknown Careers", "feed_url": "https://example.com/careers",
+                "provider": "ats",
+            })
+        self.assertEqual(caught.exception.status_code, 422)
+
+    def test_managed_ats_source_edit_re_resolves_tenant_and_provider_feed(self):
+        old_board = "https://careers.smartrecruiters.com/RheindataGmbH"
+        old_feed = ("https://api.smartrecruiters.com/v1/companies/RheindataGmbH/postings"
+                    "?limit=100&offset=0&destination=PUBLIC")
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="smartrecruiters-managed",
+                              name="rheindata GmbH", category="job_board_source")
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="smartrecruiters", tenant="RheindataGmbH",
+                           board_url=old_board, feed_url=old_feed, status="parsed", enabled=True,
+                           source_revision=1)
+            session.add(feed)
+            session.flush()
+            feed_id = feed.id
+
+        session = self.factory()
+        try:
+            request = api.ManagedFeedUpdate(
+                feed_url="https://careers.smartrecruiters.com/Coface", provider="ats")
+            updated = api.update_managed_feed(feed_id, SimpleNamespace(**request.model_dump()), session)
+        finally:
+            session.close()
+
+        self.assertEqual(updated["provider"], "smartrecruiters")
+        self.assertEqual(updated["tenant"], "Coface")
+        self.assertEqual(updated["board_url"], "https://careers.smartrecruiters.com/Coface")
+        self.assertEqual(updated["feed_url"], (
+            "https://api.smartrecruiters.com/v1/companies/Coface/postings"
+            "?limit=100&offset=0&destination=PUBLIC"))
 
     def test_location_job_starts_with_company_and_homepage_search(self):
         self._company("node/near", "Near GmbH", 49.0069, 8.4034, "https://near.example/")

@@ -57,7 +57,7 @@ class ProfileRequest(BaseModel):
     skills: list[Term] = Field(default_factory=list, max_length=100)
     desired_roles: list[Term] = Field(default_factory=list, max_length=20)
     work_styles: list[Literal['remote','hybrid','onsite']] = Field(default_factory=list, max_length=3)
-    employment_types: list[Literal['full_time','part_time','contract','internship','working_student','apprenticeship']] = Field(default_factory=list, max_length=6)
+    employment_types: list[Literal['full_time','part_time','contract','internship','working_student','apprenticeship','dual_study']] = Field(default_factory=list, max_length=7)
     seniority_levels: list[Literal['student','junior','senior','lead']] = Field(default_factory=list, max_length=4)
     experience_years: float | None = Field(default=None, ge=0, le=60)
     languages: list[Term] = Field(default_factory=list, max_length=20)
