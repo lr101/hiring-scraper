@@ -87,11 +87,61 @@
         "clone"
       ],
       "action": "SCMP_ACT_ALLOW",
+      "comment": "Chromium forks renderers into PID namespaces after entering a user namespace",
+      "args": [
+        {
+          "index": 0,
+          "value": 536870912,
+          "valueTwo": 536870912,
+          "op": "SCMP_CMP_MASKED_EQ"
+        }
+      ],
+      "excludes": {
+        "caps": [
+          "CAP_SYS_ADMIN"
+        ],
+        "arches": [
+          "s390",
+          "s390x"
+        ]
+      }
+    },
+    {
+      "names": [
+        "clone"
+      ],
+      "action": "SCMP_ACT_ALLOW",
       "args": [
         {
           "index": 1,
           "value": 268435456,
           "valueTwo": 268435456,
+          "op": "SCMP_CMP_MASKED_EQ"
+        }
+      ],
+      "includes": {
+        "arches": [
+          "s390",
+          "s390x"
+        ]
+      },
+      "excludes": {
+        "caps": [
+          "CAP_SYS_ADMIN"
+        ]
+      }
+    },
+    {
+      "names": [
+        "clone"
+      ],
+      "action": "SCMP_ACT_ALLOW",
+      "comment": "s390 parameter ordering for clone is different",
+      "args": [
+        {
+          "index": 1,
+          "value": 536870912,
+          "valueTwo": 536870912,
           "op": "SCMP_CMP_MASKED_EQ"
         }
       ],
