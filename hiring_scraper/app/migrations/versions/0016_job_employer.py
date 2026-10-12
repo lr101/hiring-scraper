@@ -10,12 +10,16 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("jobs", sa.Column(
-        "employer_company_id", sa.Integer(),
-        sa.ForeignKey("companies.id", ondelete="SET NULL"), nullable=True))
+    with op.batch_alter_table("jobs") as batch:
+        batch.add_column(sa.Column("employer_company_id", sa.Integer(), nullable=True))
+        batch.create_foreign_key(
+            "fk_jobs_employer_company_id_companies", "companies",
+            ["employer_company_id"], ["id"], ondelete="SET NULL")
     op.create_index("ix_jobs_employer_company_id", "jobs", ["employer_company_id"])
 
 
 def downgrade() -> None:
     op.drop_index("ix_jobs_employer_company_id", table_name="jobs")
-    op.drop_column("jobs", "employer_company_id")
+    with op.batch_alter_table("jobs") as batch:
+        batch.drop_constraint("fk_jobs_employer_company_id_companies", type_="foreignkey")
+        batch.drop_column("employer_company_id")

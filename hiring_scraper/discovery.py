@@ -8,7 +8,7 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from .ats import fetch_feed, identify, parse_feed
-from .html_jobs import extract_html_jobs
+from .html_jobs import extract_html_jobs, html_job_key
 from .pages import CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, clean_url, inspect_page
 
 MAX_BROWSER_RENDER_PAGES = 4
@@ -192,7 +192,12 @@ def trusted_html_jobs(seed, source_page, pages, jobs):
     """Return rows whose source or Schema.org employer establishes company provenance."""
     relationship = _source_relationship(seed, source_page, pages)
     if relationship == 'unverified_external_source':
-        return [], relationship
+        # A nested external portal may not have a direct page-parent chain back
+        # to the employer. Explicit hiringOrganization identity can still tie an
+        # individual structured posting to the known company.
+        identified = [job for job in jobs if _job_hiring_organization(job) and
+                      _employer_matches(seed, job)]
+        return (identified, 'linked_external_verified') if identified else ([], relationship)
     accepted = []
     for job in jobs:
         employer = _job_hiring_organization(job)
@@ -510,6 +515,10 @@ def discover(seed, client, max_pages=24, max_depth=5):
                 # budget on other job families and the next listing page.
                 continue
             score = candidate['score']
+            # A company-branded career hostname outranks a group-wide jobs page
+            # even when both links use generic "Jobs" labels.
+            if _hostname_has_brand(_normalized_host(candidate['url']), _brand_tokens(seed.get('name', ''))):
+                score += 20
             if JOB_LISTING_PATH.search(path):
                 score += 24
             enqueue(candidate['url'],score,depth+1,final,'link')
@@ -531,6 +540,28 @@ def discover(seed, client, max_pages=24, max_depth=5):
             {'url': item['url'], 'job_count': item.get('rejected_job_count', len(item['jobs'])),
              'reason': 'unverified_external_source'}
             for item in unverified_html_pages]
+    seen_html_jobs = {}
+    for item in trusted_html_pages:
+        unique_jobs = []
+        for job in item['jobs']:
+            key = html_job_key(job)
+            existing = seen_html_jobs.get(key)
+            if existing is None:
+                seen_html_jobs[key] = job
+                unique_jobs.append(job)
+                continue
+            for field, value in job.items():
+                if value in (None, '', [], {}) or field == 'id':
+                    continue
+                if field == 'raw_metadata':
+                    existing[field] = {**existing.get(field, {}), **value}
+                elif field == 'description':
+                    if len(value) > len(existing.get(field) or ''):
+                        existing[field] = value
+                elif not existing.get(field):
+                    existing[field] = value
+        item['jobs'] = unique_jobs
+    trusted_html_pages = [item for item in trusted_html_pages if item['jobs']]
     for item in trusted_html_pages:
         source_page = pages_by_url.get(item['url'], {})
         jobs = []

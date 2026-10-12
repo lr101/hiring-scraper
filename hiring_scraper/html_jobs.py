@@ -919,6 +919,12 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             continue
         path = urlsplit(target).path
         softgarden_id = _softgarden_job_id(target)
+        # Numeric `/job/<id>/<slug>` routes are a Softgarden contract. Other
+        # sites use them for unrelated pages, so only accept those routes on a
+        # recognized Softgarden tenant.
+        softgarden_only_route = bool(re.match(r'^/job/[^/]+/[^/]+/?$', path, re.I))
+        if softgarden_only_route and not softgarden_id:
+            continue
         if not _JOB_LINK.search(path) and not softgarden_id:
             continue
         title_text = _job_link_title(anchor)
@@ -952,8 +958,8 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             apply = apply or form_apply
             vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
                                  for parent in _ancestors(h1_node))
-            confirmed = (_candidate_title(h1) or
-                         (apply or vacancy_marker) and 0 < len(h1) <= 150 and h1.casefold() not in _GENERIC_HEADINGS)
+            confirmed = ((apply or vacancy_marker) and 0 < len(h1) <= 150 and
+                         h1.casefold() not in _GENERIC_HEADINGS)
             if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
                 detail_context = _detail_description(h1_node) or ""
                 job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=_leading_location(detail_context),

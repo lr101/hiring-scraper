@@ -487,7 +487,14 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             return
         if source_revision is not None and (locked.rowcount != 1 or feed.source_revision != source_revision):
             # The lease and search queue now belong to a newer revision. A
-            # stale worker may only finish its own run row.
+            # stale worker may only finish its own run row while a newer scan
+            # is active. If not, release this orphaned lease so the current
+            # revision can be claimed immediately.
+            newer_run = session.scalar(select(ScanRun.id).where(
+                ScanRun.feed_id == feed.id, ScanRun.id != run.id,
+                ScanRun.status == "running").limit(1))
+            if newer_run is None:
+                feed.lease_until = None
             run.finished_at = now
             run.status = "stale_source"
             run.http_status = metadata.get("status")
@@ -714,6 +721,11 @@ def scan_once() -> bool:
             failed_run = failed_session.get(ScanRun, run_id)
             if failed_feed and failed_run:
                 if locked.rowcount != 1 or failed_feed.source_revision != source_revision:
+                    newer_run = failed_session.scalar(select(ScanRun.id).where(
+                        ScanRun.feed_id == failed_feed.id, ScanRun.id != failed_run.id,
+                        ScanRun.status == "running").limit(1))
+                    if newer_run is None:
+                        failed_feed.lease_until = None
                     failed_run.finished_at = utcnow()
                     failed_run.status = "stale_source"
                     failed_run.error = "Feed source changed during this scan; the old response was discarded."

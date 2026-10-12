@@ -64,6 +64,10 @@ def clean_url(base, href):
         return None
     if p.scheme not in {'http','https'} or not p.hostname or p.username or p.password:
         return None
+    try:
+        p.port
+    except ValueError:
+        return None
     if '{{' in unquote(p.path) or '}}' in unquote(p.path):
         return None
     query = urlencode([(k,v) for k,v in parse_qsl(p.query, keep_blank_values=True)
@@ -181,7 +185,7 @@ def inspect_page(url, source, preferred_locations=None):
         strong_job_link = bool(STRONG_JOB_LINK.search(path_label))
         job_listing = bool(JOB_LISTING_PATH.search(target_path) and
                            (CAREER.search(path_label) or CAREER.search(url) or strong_job_link))
-        score = (100 if provider else 96 if job_listing else 92 if job_detail or application_route else
+        score = (100 if provider else 92 if job_detail or application_route else 96 if job_listing else
                  86 if strong_job_link else
                  70 if CAREER.search(path_label) else 20 if ABOUT.search(path_label) else 0)
         if score:

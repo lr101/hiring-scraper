@@ -153,7 +153,8 @@ class BrowserTransportTests(unittest.TestCase):
         self.assertNotIn("--no-sandbox", launch_calls[0]["args"])
 
         page.late_method = "HEAD"
-        late_metadata, late_body = render_public_page(client, page_url)
+        with patch("hiring_scraper.browser.os.geteuid", return_value=10001):
+            late_metadata, late_body = render_public_page(client, page_url)
         self.assertEqual(late_metadata["state"], "browser_error")
         self.assertIn("unsupported HTTP method", late_metadata["error"])
         self.assertTrue(page.late_route.aborted)
@@ -161,7 +162,8 @@ class BrowserTransportTests(unittest.TestCase):
 
         page.late_method = None
         page.trigger_xhr = True
-        challenge_metadata, challenge_body = render_public_page(client, page_url)
+        with patch("hiring_scraper.browser.os.geteuid", return_value=10001):
+            challenge_metadata, challenge_body = render_public_page(client, page_url)
         self.assertEqual(challenge_metadata["state"], "bot_challenge")
         self.assertEqual(challenge_body, b"")
         self.assertTrue(page.xhr_route.response)
