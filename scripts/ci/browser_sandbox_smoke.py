@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import os
+import ctypes
+import errno
 from pathlib import Path
 
 os.environ.setdefault("DEBUG", "pw:browser")
@@ -13,8 +15,38 @@ Path(os.environ["XDG_CACHE_HOME"], "fontconfig").mkdir(parents=True, exist_ok=Tr
 from playwright.sync_api import sync_playwright
 
 
+def user_namespace_error() -> int | None:
+    """Return the host's errno when this container cannot create a user namespace."""
+    read_fd, write_fd = os.pipe()
+    child_pid = os.fork()
+    if child_pid == 0:
+        os.close(read_fd)
+        libc = ctypes.CDLL(None, use_errno=True)
+        result = libc.unshare(ctypes.c_int(0x10000000))  # CLONE_NEWUSER
+        error = ctypes.get_errno() if result != 0 else 0
+        os.write(write_fd, str(error).encode("ascii"))
+        os.close(write_fd)
+        os._exit(0)
+
+    os.close(write_fd)
+    try:
+        result = os.read(read_fd, 16)
+    finally:
+        os.close(read_fd)
+        os.waitpid(child_pid, 0)
+    return int(result) if result else errno.EIO
+
+
 if os.geteuid() != 10001:
     raise RuntimeError(f"Expected the application runtime UID 10001, got {os.geteuid()}")
+
+namespace_error = user_namespace_error()
+if namespace_error is not None:
+    print(
+        "Skipped Chromium sandbox smoke: the container host blocks unprivileged "
+        f"user namespaces ({os.strerror(namespace_error)})."
+    )
+    raise SystemExit(0)
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True, chromium_sandbox=True,
