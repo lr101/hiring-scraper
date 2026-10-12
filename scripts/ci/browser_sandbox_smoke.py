@@ -2,8 +2,13 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 os.environ.setdefault("DEBUG", "pw:browser")
+if not os.access(os.environ.get("HOME", "/"), os.W_OK):
+    os.environ["HOME"] = "/tmp"
+os.environ.setdefault("XDG_CACHE_HOME", str(Path(os.environ["HOME"]) / ".cache"))
+Path(os.environ["XDG_CACHE_HOME"], "fontconfig").mkdir(parents=True, exist_ok=True)
 
 from playwright.sync_api import sync_playwright
 
@@ -13,7 +18,8 @@ if os.geteuid() != 10001:
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True, chromium_sandbox=True,
-                                          args=["--disable-dev-shm-usage"], timeout=15_000)
+                                          args=["--disable-dev-shm-usage", "--disable-gpu"],
+                                          timeout=15_000)
     try:
         page = browser.new_page()
         page.set_content("<main id='sandbox-check'>sandboxed</main>")
