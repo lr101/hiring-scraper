@@ -25,6 +25,8 @@ services:
     entrypoint: ["python", "/usr/local/bin/hiring-browser-sandbox-smoke.py"]
     user: "10001:10001"
     network_mode: none
+    security_opt:
+      - apparmor=unconfined
     init: true
 
   app:

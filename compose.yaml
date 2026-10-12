@@ -43,6 +43,11 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
+    # Chromium's own sandbox uses unprivileged user namespaces. Keep that
+    # sandbox enabled while allowing it through Ubuntu's container AppArmor
+    # restriction; Docker's default seccomp profile remains active.
+    security_opt:
+      - apparmor=unconfined
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=2).read()"]
       interval: 10s
