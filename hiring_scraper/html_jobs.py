@@ -26,7 +26,7 @@ _GENERIC_HEADINGS = {
     "ausbildung", "duales studium", "students", "studierende",
 }
 _ROLE_WORDS = re.compile(
-    r"engineer|developer|administrator|admin|techniker|technik|support|manager|lead|consultant|berater|"
+    r"engineer|developer|administrator|admin|assistant|techniker|technik|support|manager|lead|consultant|berater|"
     r"analyst|analysis|automation|pathologist|scientist|researcher|software|product owner|"
     r"ausbildung|fachinformatiker|werkstudent|working student|intern|praktikum|"
     r"thesis|student|studium|study|bachelor|master|graduate|apprentice|produktmanagement|product management|agronom|ux\s*/?\s*ui|"

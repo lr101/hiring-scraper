@@ -345,12 +345,14 @@ def discover(seed, client, max_pages=24, max_depth=5):
                 result.update(irrelevant=True, complete=True, irrelevant_reason='Explicitly parked domain')
                 queue.clear()
                 break
+        text = body.decode('utf-8',errors='replace')
+        info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
+        page.update(info)
         if not fallbacks_added:
             if not any(provider.get('feed_url') for provider in info.get('ats', [])):
                 for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
                     enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
             fallbacks_added = True
-        text = body.decode('utf-8',errors='replace')
         if method == 'sitemap' or urlsplit(final).path.endswith('.xml'):
             try:
                 root = ET.fromstring(body)
@@ -365,8 +367,6 @@ def discover(seed, client, max_pages=24, max_depth=5):
             except ET.ParseError:
                 page['classification']='invalid_sitemap'
             continue
-        info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
-        page.update(info)
         page['candidates'] = info['candidates'][:12]
         is_career_page = (info.get('classification') in {'career_content','jobposting'} or
                           info.get('classification') != 'placeholder' and
