@@ -49,8 +49,8 @@ LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
 CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','30')))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
-MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "12"))))
-MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "3"))))
+MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "24"))))
+MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "5"))))
 MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "48"))))
 MAX_CRAWL_WORKER_LIMIT = 32
 MAX_CRAWL_WORKERS = min(MAX_CRAWL_WORKER_LIMIT,
@@ -422,7 +422,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
         updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
-            if board.get("provider") == "html_jobs":
+            if board.get("provider") in {"html_jobs", "browser_html"}:
                 source_page = page_by_url.get(board.get("discovered_on"), {})
                 jobs, trust = trusted_html_jobs(seed, source_page, result.get("pages", []), jobs)
                 source_page["html_extraction_trust"] = trust
@@ -430,10 +430,21 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     continue
             key = (board["provider"], board["feed_url"])
             feed = feed_by_key.get(key)
+            if feed is None and board["provider"] in {"html_jobs", "browser_html"}:
+                legacy_key = next((existing_key for existing_key in feed_by_key
+                                   if existing_key[1] == board["feed_url"] and
+                                   existing_key[0] in {"html_jobs", "browser_html"}), None)
+                if legacy_key is not None:
+                    feed = feed_by_key.pop(legacy_key)
+                    if feed.lease_until is None and feed.provider != board["provider"]:
+                        feed.provider = board["provider"]
+                        feed.source_revision = (feed.source_revision or 0) + 1
+                    feed_by_key[key] = feed
             if feed is None:
                 if (board["provider"] == "recruitee" and session.scalar(
                         select(Job.id).join(JobFeed).where(
-                            JobFeed.company_id == company_id, JobFeed.provider == "html_jobs",
+                            JobFeed.company_id == company_id,
+                            JobFeed.provider.in_({"html_jobs", "browser_html"}),
                             Job.is_active.is_(True)).limit(1)) is not None):
                     # HTML and XML may describe the same jobs with different
                     # public URLs. Preserve the existing rows until aliases are
@@ -476,14 +487,17 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             "seed_resolution": result.get("seed_resolution"),
             "career_pages": [{key: page.get(key) for key in
                                ("requested_url", "url", "parent", "method", "depth", "classification",
-                                "html_extraction_trust", "fetch_state", "http_status", "redirect_chain")}
+                                "html_extraction_trust", "fetch_state", "http_status", "redirect_chain",
+                                "browser_render_state", "browser_render_error", "browser_requests",
+                                "browser_rendered")}
                               for page in result.get("pages", [])
                               if page.get("classification") in {"career_content", "jobposting"} or
-                              page.get("html_extraction_trust") == "unverified_external_source"],
+                              page.get("html_extraction_trust") == "unverified_external_source" or
+                              page.get("html_extracted_job_count") or page.get("browser_render_state")],
             "boards": [{key: board.get(key) for key in
                         ("provider", "tenant", "board_url", "feed_url", "evidence_url", "evidence_kind",
                          "discovered_on", "feed_state", "feed_http_status", "job_count", "complete",
-                         "personio_posting_scopes", "personio_full_board_authorized")}
+                         "personio_posting_scopes", "personio_full_board_authorized", "rendered")}
                        for board in result.get("boards", [])],
             "unverified_external_html_pages": result.get("unverified_external_html_pages", []),
             "unverified_external_ats": result.get("unverified_external_ats", []),

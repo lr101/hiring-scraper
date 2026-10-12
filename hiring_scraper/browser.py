@@ -11,7 +11,7 @@ BROWSER_REQUEST_LIMIT = 40
 BROWSER_CLIENT_REQUEST_BUDGET = BROWSER_REQUEST_LIMIT + 5  # allow the initial six-hop redirect chain
 _MAX_HTML_BYTES = 3_000_000
 _BLOCKED_RESOURCE_TYPES = {"font", "image", "media", "websocket"}
-def render_public_page(client, url: str) -> tuple[dict, bytes]:
+def render_public_page(client, url: str, *, request_limit: int = BROWSER_REQUEST_LIMIT) -> tuple[dict, bytes]:
     """Fetch HTML, then render it with a bounded headless browser.
 
     The plain HTTP request is intentional: a 401/403, challenge, or rate limit is
@@ -19,6 +19,7 @@ def render_public_page(client, url: str) -> tuple[dict, bytes]:
     requests are fetched by the client's address-pinned public HTTP transport,
     then supplied to Chromium through Playwright's route handler.
     """
+    request_limit = max(1, min(BROWSER_REQUEST_LIMIT, int(request_limit)))
     metadata, initial_body = client.get(url)
     if metadata.get("state") == "bot_challenge":
         return metadata, initial_body
@@ -54,7 +55,7 @@ def render_public_page(client, url: str) -> tuple[dict, bytes]:
                     request_count += 1
                     request = route.request
                     target = request.url
-                    if request_count > BROWSER_REQUEST_LIMIT:
+                    if request_count > request_limit:
                         request_error = "Rendered page exceeded its request limit."
                         route.abort()
                         return

@@ -108,8 +108,8 @@ public-IP checks, bounded redirects, request caps, and per-origin pacing. HTTP
 continue. A bot or CAPTCHA challenge stops the affected scan and is recorded as
 `bot_challenge`; the scanner does not attempt to solve it.
 
-Career discovery now defaults to 12 pages and 48 requests per company. Set
-`CAREER_DISCOVERY_MAX_PAGES=24` for the larger measured crawl; the maximum is 24.
+Career discovery now defaults to 24 pages, depth 5, and 48 requests per company.
+The page limit is configurable up to 24.
 The [follow-up Bonn public-source trial](reports/bonn-public-discovery.md) compares
 six-, twelve-, and twenty-four-page results and distinguishes group-wide rows
 from verified employer vacancies.

@@ -8,10 +8,11 @@ import unicodedata
 import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from .ats import fetch_feed, identify, parse_feed
-from .html_jobs import extract_html_jobs, html_job_key
-from .pages import CAREER, clean_url, inspect_page
+from .html_jobs import extract_html_jobs
+from .pages import CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, clean_url, inspect_page
 
-JOB_LISTING_PATH = re.compile(r'(?:^|/)(?:jobs?|stellenangebote?|jobsuche|open-positions|alle-jobs|all-jobs)/?$', re.I)
+MAX_BROWSER_RENDER_PAGES = 4
+BROWSER_RENDER_REQUEST_LIMIT = 16
 MAX_PERSONIO_POSTING_SCOPES = 24
 _GENERIC_COMPANY_WORDS = {
     'ag', 'ev', 'gmbh', 'kg', 'mbh', 'company', 'group', 'holding', 'jobs', 'career',
@@ -92,6 +93,23 @@ def _first_party_hosts(seed, pages):
 def _same_first_party_site(url, hosts):
     host = _normalized_host(url)
     return any(_same_site(host, known) for known in hosts)
+
+
+def _needs_browser_render(url, info, body, extraction):
+    """Render only career listing routes whose static response has no jobs."""
+    path = urlsplit(url).path
+    has_listing_route = bool(JOB_LISTING_PATH.search(path))
+    has_career_route_without_links = bool(CAREER.search(path) and not any(
+        candidate.get('score', 0) >= 84 for candidate in info.get('candidates', [])))
+    if extraction.get('jobs') or not (has_listing_route or has_career_route_without_links):
+        return False
+    if (not has_listing_route and
+            info.get('classification') not in {'career_content', 'jobposting'} and
+            not CAREER.search(url)):
+        return False
+    source = body.decode('utf-8', errors='replace') if isinstance(body, bytes) else str(body)
+    return bool(re.search(r'<(?:script|iframe|form)\b|__next|__nuxt|data-hydration|job.?search',
+                          source, re.I))
 
 
 def _source_relationship(seed, source_page, pages):
@@ -195,7 +213,7 @@ def trusted_html_source(seed, source_page, pages):
     return _source_relationship(seed, source_page, pages) in {'first_party', 'branded_external'}
 
 
-def discover(seed, client, max_pages=6, max_depth=3):
+def discover(seed, client, max_pages=24, max_depth=5):
     home = clean_url(seed['website'], seed['website'])
     if not home:
         raise ValueError('Seed website must be HTTP(S)')
@@ -247,6 +265,7 @@ def discover(seed, client, max_pages=6, max_depth=3):
     personio_scope_budget_reached = False
     html_job_pages, unconfirmed_role_candidates = [], []
     duplicate_redirects_skipped = 0
+    browser_render_count = 0
     counter = itertools.count()
     def enqueue(url, score, depth, parent, method):
         depth_limit = max_depth + (1 if method == 'ats_evidence' else 0)
@@ -306,7 +325,7 @@ def discover(seed, client, max_pages=6, max_depth=3):
                                      'job_count':len(parsed['jobs']),'feed_state':'parsed','complete':parsed['complete'],
                                      'jobs':parsed['jobs'],'feed_http_status':meta.get('status'),'capture':meta.get('capture')})
             result['status']='jobs_feed_found'
-            break
+            continue
         if depth == 0 and _same_first_party_site(final, _first_party_hosts(seed, result['pages'])):
             root_text = body.decode('utf-8', errors='replace')
             root_info = inspect_page(final, root_text, preferred_locations=seed.get('preferred_locations'))
@@ -343,15 +362,45 @@ def discover(seed, client, max_pages=6, max_depth=3):
         info = inspect_page(final,text,preferred_locations=seed.get('preferred_locations'))
         page.update(info)
         page['candidates'] = info['candidates'][:12]
-        if info.get('classification') in {'career_content','jobposting'} or (
-                info.get('classification') != 'placeholder' and CAREER.search(urlsplit(final).path)):
+        is_career_page = (info.get('classification') in {'career_content','jobposting'} or
+                          info.get('classification') != 'placeholder' and
+                          (CAREER.search(urlsplit(final).path) or
+                           JOB_LISTING_PATH.search(urlsplit(final).path)))
+        extraction = None
+        if is_career_page:
             extraction = extract_html_jobs(body, final)
+            remaining_requests = (getattr(client, 'max_requests', 0) -
+                                  len(getattr(client, 'records', [])))
+            if (_needs_browser_render(final, info, body, extraction) and
+                    browser_render_count < MAX_BROWSER_RENDER_PAGES and
+                    remaining_requests >= BROWSER_RENDER_REQUEST_LIMIT and
+                    trusted_html_source(seed, page, result['pages'])):
+                from .browser import render_public_page
+                browser_render_count += 1
+                rendered_meta, rendered_body = render_public_page(
+                    client, final, request_limit=BROWSER_RENDER_REQUEST_LIMIT)
+                page['browser_render_state'] = rendered_meta.get('state')
+                if rendered_meta.get('error'):
+                    page['browser_render_error'] = rendered_meta['error'][:500]
+                if rendered_meta.get('browser_requests') is not None:
+                    page['browser_requests'] = rendered_meta['browser_requests']
+                if rendered_meta.get('state') == 'ok' and rendered_meta.get('rendered'):
+                    rendered_info = inspect_page(
+                        final, rendered_body, preferred_locations=seed.get('preferred_locations'))
+                    page.update(rendered_info)
+                    page['candidates'] = rendered_info['candidates'][:12]
+                    page['browser_rendered'] = True
+                    info = rendered_info
+                    body = rendered_body
+                    extraction = extract_html_jobs(body, final)
             page['html_extracted_job_count'] = len(extraction['jobs'])
             page['unconfirmed_role_count'] = len(extraction['role_candidates'])
             if extraction['jobs']:
                 html_job_pages.append({**extraction,'url':final,'depth':depth,
                                        'classification':info.get('classification'),
-                                       'capture':page.get('capture')})
+                                       'capture':page.get('capture'),
+                                       'provider':'browser_html' if page.get('browser_rendered') else 'html_jobs',
+                                       'rendered':bool(page.get('browser_rendered'))})
             for candidate in extraction['role_candidates']:
                 unconfirmed_role_candidates.append({**candidate,'company_name':seed['name'],
                                                      'source_page_url':final})
@@ -448,22 +497,24 @@ def discover(seed, client, max_pages=6, max_depth=3):
                 enqueue(evidence_url,95,depth+1,final,'ats_evidence')
         if any(b['feed_state']=='parsed' for b in result['boards']):
             result['status']='jobs_feed_found'
-            break
         # A few high-value paths per page prevent a navigation tree crawl.
-        for candidate in info['candidates'][:12]:
+        page_has_jobs = bool(extraction and extraction.get('jobs'))
+        for candidate in info['candidates'][:24]:
             if candidate['score'] < 70: continue
             candidate_provider = identify(candidate['url'])
             if candidate_provider and candidate_provider['feed_url']:
                 continue  # Native feeds handled above; unsupported details still need HTML.
             path = urlsplit(candidate['url']).path
+            if page_has_jobs and JOB_DETAIL_PATH.search(path):
+                # Listing extraction already captured these rows; spend the page
+                # budget on other job families and the next listing page.
+                continue
             score = candidate['score']
             if JOB_LISTING_PATH.search(path):
-                score += 20
+                score += 24
             enqueue(candidate['url'],score,depth+1,final,'link')
     if unconfirmed_role_candidates:
         result['unconfirmed_role_candidates'] = unconfirmed_role_candidates
-    has_parsed_native_feed = any(board.get('feed_state') == 'parsed' and board.get('provider') != 'html_jobs'
-                                 for board in result['boards'])
     pages_by_url = {page.get('url'): page for page in result['pages']}
     trusted_html_pages, unverified_html_pages = [], []
     for item in html_job_pages:
@@ -480,45 +531,23 @@ def discover(seed, client, max_pages=6, max_depth=3):
             {'url': item['url'], 'job_count': item.get('rejected_job_count', len(item['jobs'])),
              'reason': 'unverified_external_source'}
             for item in unverified_html_pages]
-    if trusted_html_pages and not has_parsed_native_feed:
-        source_page = max(trusted_html_pages, key=lambda item:(len(item['jobs']),
-                          item.get('classification') == 'career_content', -item.get('depth', 0)))
-        merged_jobs = {}
-        for item in trusted_html_pages:
-            for job in item['jobs']:
-                job = dict(job)
-                job['raw_metadata'] = dict(job.get('raw_metadata') or {})
-                job['raw_metadata'].setdefault('source_page_url', item['url'])
-                key = html_job_key(job)
-                current = merged_jobs.get(key)
-                if current is None:
-                    current = dict(job)
-                    current['raw_metadata'] = dict(job.get('raw_metadata') or {})
-                    merged_jobs[key] = current
-                    continue
-                old_method = (current.get('raw_metadata') or {}).get('extraction_method')
-                new_method = (job.get('raw_metadata') or {}).get('extraction_method')
-                if new_method == 'html_job_detail' and old_method != 'html_job_detail':
-                    current['title'] = job['title']
-                    current['url'] = job['url']
-                    current['id'] = job.get('id')
-                for field, value in job.items():
-                    if value in (None, '', [], {}):
-                        continue
-                    if field == 'raw_metadata':
-                        current[field] = {**current.get(field, {}), **value}
-                    elif field == 'description' and len(value) <= len(current.get(field) or ''):
-                        continue
-                    elif not current.get(field) or field == 'description':
-                        current[field] = value
-        jobs = sorted(merged_jobs.values(), key=lambda job:job['title'].casefold())
+    for item in trusted_html_pages:
+        source_page = pages_by_url.get(item['url'], {})
+        jobs = []
+        for data in item['jobs']:
+            job = dict(data)
+            job['raw_metadata'] = dict(job.get('raw_metadata') or {})
+            job['raw_metadata'].setdefault('source_page_url', item['url'])
+            jobs.append(job)
+        provider = item.get('provider') or 'html_jobs'
         result['boards'].append({
-            'provider':'html_jobs','tenant':urlsplit(source_page['url']).hostname,
-            'board_url':source_page['url'],'feed_url':source_page['url'],
-            'evidence_url':source_page['url'],'evidence_kind':'static_html_job_page',
-            'discovered_on':source_page['url'],'job_count':len(jobs),
-            'feed_state':'parsed','complete':source_page['complete'],'jobs':jobs,
-            'capture':source_page.get('capture'),
+            'provider':provider,'tenant':urlsplit(item['url']).hostname,
+            'board_url':item['url'],'feed_url':item['url'],
+            'evidence_url':item['url'],
+            'evidence_kind':'browser_rendered_html_job_page' if item.get('rendered') else 'static_html_job_page',
+            'discovered_on':item['url'],'job_count':len(jobs),
+            'feed_state':'parsed','complete':bool(item.get('complete')),'jobs':jobs,
+            'capture':source_page.get('capture'),'rendered':bool(item.get('rendered')),
         })
         if result['status'] != 'jobs_feed_found':
             result['status'] = 'jobs_extracted'
@@ -529,6 +558,8 @@ def discover(seed, client, max_pages=6, max_depth=3):
         elif result['boards']:
             result['status']='ats_identified'
     result['limits']={'max_pages':max_pages,'max_depth':max_depth,'max_boards':3,
+                      'browser_render_pages':browser_render_count,
+                      'browser_render_page_limit':MAX_BROWSER_RENDER_PAGES,
                       'max_personio_posting_scopes':MAX_PERSONIO_POSTING_SCOPES,
                       'personio_scope_budget_reached':personio_scope_budget_reached,
                       'page_budget_reached':len(result['pages'])>=max_pages and not result.get('irrelevant'),'remaining_queue':len(queue),

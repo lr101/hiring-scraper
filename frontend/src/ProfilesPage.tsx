@@ -109,7 +109,7 @@ export default function ProfilesPage() {
         <label>Adjacent roles <small>Other roles you would consider; separate with commas</small><input value={secondaryText} onChange={event => setSecondaryText(event.target.value)} /></label>
         <label>Years of relevant experience <small>Optional; used only when a job states a minimum</small><input type="number" min={0} max={60} step={0.5} value={form.experience_years ?? ''} onChange={event => setForm({ ...form, experience_years: event.target.value === '' ? null : Number(event.target.value) })} /></label>
         {choices('work_styles','Preferred work styles',[['remote','Remote'],['hybrid','Hybrid'],['onsite','On-site']])}
-        {choices('employment_types','Employment types',[['full_time','Full time'],['part_time','Part time'],['contract','Contract'],['internship','Internship'],['working_student','Student job'],['apprenticeship','Apprenticeship']])}
+        {choices('employment_types','Employment types',[['full_time','Full time'],['part_time','Part time'],['contract','Contract'],['internship','Internship'],['working_student','Student job'],['apprenticeship','Apprenticeship'],['dual_study','Dual study']])}
         {choices('seniority_levels','Experience levels',[['student','Student / trainee'],['junior','Junior'],['senior','Senior'],['lead','Lead']])}
         <fieldset className="profile-section"><legend>Languages and proficiency</legend>
           <label>Languages <small>Separate with commas; leave a level blank if unknown</small><input value={languageText} onChange={event => setLanguageText(event.target.value)} placeholder="Spanish, English, German, French" /></label>
