@@ -11,6 +11,11 @@ from sqlalchemy.orm import Session
 
 from hiring_scraper.app.models import Company, JobFeed, utcnow
 
+_THIRD_PARTY_COMPANY_HOSTS = {
+    "facebook.com", "glassdoor.com", "indeed.com", "jobware.de", "kununu.com",
+    "linkedin.com", "meinestadt.de", "monster.de", "stepstone.de", "xing.com",
+}
+
 
 def hiring_organization(job_data: dict) -> dict[str, str]:
     raw = job_data.get("raw_metadata")
@@ -45,6 +50,12 @@ def _valid_http_url(value: str | None) -> str | None:
     if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username or parts.password:
         return None
     return value
+
+
+def _is_third_party_company_url(value: str) -> bool:
+    host = (urlsplit(value).hostname or "").casefold().removeprefix("www.")
+    return any(host == domain or host.endswith("." + domain)
+               for domain in _THIRD_PARTY_COMPANY_HOSTS)
 
 
 def _company_identity(name: str, domain: str | None) -> str:
@@ -128,7 +139,7 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
 
     domain = None
     company_website = None
-    if organization_url:
+    if organization_url and not _is_third_party_company_url(organization_url):
         from hiring_scraper.ats import identify
         ats_source = identify(organization_url)
         if ats_source:
@@ -163,7 +174,7 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
     for url in (career_url, organization_url):
         if url and _register_direct_feed(session, company, url, now):
             registered = True
-    if career_url and not registered:
+    if career_url and not registered and not _is_third_party_company_url(career_url):
         company.career_url = career_url
         company.career_status = "career_page_found"
         page_feed = session.scalar(select(JobFeed).where(
