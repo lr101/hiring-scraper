@@ -72,12 +72,15 @@ trap 'exit 143' TERM
 "${compose[@]}" build --pull quality app 2>&1 | tee "$results_dir/$project-build.log"
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
 if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
-    sudo apparmor_parser -r "$repo_dir/docker/chromium.apparmor"
+    printf '%s\n' 'Loading Chromium AppArmor profile'
+    timeout 30s sudo apparmor_parser -r "$repo_dir/docker/chromium.apparmor"
     apparmor_profile_loaded=1
     export HIRING_APPARMOR_PROFILE=hiring-scraper-chromium
 fi
-"${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
+printf '%s\n' 'Running Chromium sandbox smoke check'
+timeout 90s "${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
 # The CI override disables live crawl workers while keeping the production app image.
+printf '%s\n' 'Starting app and waiting for health check'
 "${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app
 "${compose[@]}" run --rm --no-deps smoke 2>&1 | tee "$results_dir/$project-smoke.log"
 printf '%s\n' "Container checks passed; logs: $results_dir"

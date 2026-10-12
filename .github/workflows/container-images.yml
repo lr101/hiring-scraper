@@ -39,6 +39,7 @@ jobs:
       - name: Test, build, and smoke test in Docker
         env:
           HIRING_CI_LOAD_CHROMIUM_PROFILE: "1"
+          HIRING_CI_WAIT_TIMEOUT: "120"
         run: ./scripts/ci/run.sh
 
       - name: Upload check logs
