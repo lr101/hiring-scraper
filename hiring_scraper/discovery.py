@@ -504,17 +504,12 @@ def discover(seed, client, max_pages=24, max_depth=5):
         if any(b['feed_state']=='parsed' for b in result['boards']):
             result['status']='jobs_feed_found'
         # A few high-value paths per page prevent a navigation tree crawl.
-        page_has_jobs = bool(extraction and extraction.get('jobs'))
         for candidate in info['candidates'][:24]:
             if candidate['score'] < 70: continue
             candidate_provider = identify(candidate['url'])
             if candidate_provider and candidate_provider['feed_url']:
                 continue  # Native feeds handled above; unsupported details still need HTML.
             path = urlsplit(candidate['url']).path
-            if page_has_jobs and JOB_DETAIL_PATH.search(path):
-                # Listing extraction already captured these rows; spend the page
-                # budget on other job families and the next listing page.
-                continue
             score = candidate['score']
             # A company-branded career hostname outranks a group-wide jobs page
             # even when both links use generic "Jobs" labels.
