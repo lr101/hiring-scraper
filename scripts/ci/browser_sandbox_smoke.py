@@ -34,7 +34,10 @@ def user_namespace_error() -> int | None:
     finally:
         os.close(read_fd)
         os.waitpid(child_pid, 0)
-    return int(result) if result else errno.EIO
+    if not result:
+        return errno.EIO
+    error = int(result)
+    return error or None
 
 
 if os.geteuid() != 10001:
@@ -43,7 +46,7 @@ if os.geteuid() != 10001:
 namespace_error = user_namespace_error()
 if namespace_error is not None:
     print(
-        "Skipped Chromium sandbox smoke: the container host blocks unprivileged "
+        "Skipped Chromium sandbox smoke: the current runtime blocks unprivileged "
         f"user namespaces ({os.strerror(namespace_error)})."
     )
     raise SystemExit(0)
