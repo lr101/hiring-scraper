@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import os
 
+os.environ.setdefault("DEBUG", "pw:browser")
+
 from playwright.sync_api import sync_playwright
 
 
@@ -11,7 +13,7 @@ if os.geteuid() != 10001:
 
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True, chromium_sandbox=True,
-                                          args=["--disable-dev-shm-usage"])
+                                          args=["--disable-dev-shm-usage"], timeout=15_000)
     try:
         page = browser.new_page()
         page.set_content("<main id='sandbox-check'>sandboxed</main>")
