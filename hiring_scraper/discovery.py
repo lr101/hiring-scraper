@@ -511,14 +511,15 @@ def discover(seed, client, max_pages=24, max_depth=5):
             if candidate_provider and candidate_provider['feed_url']:
                 continue  # Native feeds handled above; unsupported details still need HTML.
             path = urlsplit(candidate['url']).path
+            non_job_section = bool(NON_JOB_SECTION_PATH.search(path))
             score = candidate['score']
             # A company-branded career hostname outranks a group-wide jobs page
             # even when both links use generic "Jobs" labels.
             if _hostname_has_brand(_normalized_host(candidate['url']), _brand_tokens(seed.get('name', ''))):
                 score += 20
-            if JOB_DETAIL_PATH.search(path):
+            if JOB_DETAIL_PATH.search(path) and not non_job_section:
                 score += 20
-            elif JOB_LISTING_PATH.search(path) and not NON_JOB_SECTION_PATH.search(path):
+            elif JOB_LISTING_PATH.search(path) and not non_job_section:
                 score += 8
             enqueue(candidate['url'],score,depth+1,final,'link')
     if unconfirmed_role_candidates:

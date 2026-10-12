@@ -181,10 +181,10 @@ def inspect_page(url, source, preferred_locations=None):
         provider = remember(target, 'link')
         target_path = urlsplit(target).path
         path_label = target_path+' '+label
-        job_detail = bool(JOB_DETAIL_PATH.search(target_path))
+        non_job_section = bool(NON_JOB_SECTION_PATH.search(target_path))
+        job_detail = bool(not non_job_section and JOB_DETAIL_PATH.search(target_path))
         application_route = bool(APPLICATION_PATH.search(target_path)) or bool(
             re.search(r'(?:^|[?&])gh_jid=\d+(?:&|$)', urlsplit(target).query, re.I))
-        non_job_section = bool(NON_JOB_SECTION_PATH.search(target_path))
         strong_job_link = bool(STRONG_JOB_LINK.search(path_label))
         job_listing = bool(not non_job_section and JOB_LISTING_PATH.search(target_path) and
                            (CAREER.search(path_label) or CAREER.search(url) or strong_job_link))
