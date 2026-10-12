@@ -68,6 +68,13 @@ def _ensure_default_job_feeds(session: Session, now) -> int:
             session.add(company)
             session.flush()
         else:
+            if company.domain_match_method == "manual":
+                company_fields.pop("domain", None)
+                company_fields.pop("domain_match_method", None)
+                company_fields.pop("domain_evidence_url", None)
+            if company.career_url_manual:
+                company_fields.pop("career_url", None)
+                company_fields.pop("career_status", None)
             for key, value in company_fields.items():
                 setattr(company, key, value)
 

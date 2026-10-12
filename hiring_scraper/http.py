@@ -10,7 +10,7 @@ from threading import Lock
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qsl, urljoin, urlsplit
 from urllib.request import HTTPRedirectHandler
 from hiring_scraper.challenges import is_bot_challenge
 
@@ -302,12 +302,28 @@ class Client:
         host = p.hostname or ''
         token = r'[A-Za-z0-9][A-Za-z0-9_.-]*'
         from .ats import _recruitee_host
+        smartrecruiters_public = False
+        smartrecruiters_route = (host == 'api.smartrecruiters.com'
+                                 and re.fullmatch(r'/v1/companies/[A-Za-z0-9][A-Za-z0-9_-]{0,127}/postings', p.path)
+                                 and not p.fragment)
+        if smartrecruiters_route:
+            try:
+                pairs = parse_qsl(p.query, keep_blank_values=True, strict_parsing=True)
+                query = dict(pairs)
+                smartrecruiters_public = (
+                    len(query) == len(pairs) and set(query) == {'limit', 'offset', 'destination'}
+                    and query.get('limit') == '100' and query.get('destination') == 'PUBLIC'
+                    and re.fullmatch(r'0|[1-9][0-9]{0,7}', query.get('offset', '')) is not None
+                )
+            except ValueError:
+                smartrecruiters_public = False
         allowed = (
             host == 'boards-api.greenhouse.io' and re.fullmatch(r'/v1/boards/'+token+r'/jobs',p.path) or
             host in {'api.lever.co','api.eu.lever.co'} and re.fullmatch(r'/v0/postings/'+token,p.path) or
             host == 'api.ashbyhq.com' and re.fullmatch(r'/posting-api/job-board/'+token,p.path) or
             re.fullmatch(r'[\w-]+\.jobs\.personio\.(de|com)',host) and p.path == '/xml' or
-            _recruitee_host(host) and p.path == '/api/feeds/offers.xml' and not p.query and not p.fragment
+            _recruitee_host(host) and p.path == '/api/feeds/offers.xml' and not p.query and not p.fragment or
+            smartrecruiters_public
         )
         if p.scheme != 'https' or p.username or p.password or p.port not in (None,443) or not allowed:
             return {'url':url,'state':'unsupported_api'},b''

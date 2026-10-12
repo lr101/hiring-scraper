@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import SiteHeader from './SiteHeader'
 import JobEvidence from './JobEvidence'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
@@ -21,6 +21,7 @@ type Company = {
 type JobLocation = { label: string; precision: string | null }
 type Job = {
   id: number; title: string; url: string; company_id: number; company_name: string; company_name_is_employer?: boolean
+  employer_company_id?: number | null
   company_domain: string | null; company_website: string | null; company_source_url: string | null
   provider: string; board_url: string | null; location_text: string | null
   locations: JobLocation[]; is_remote: boolean; work_arrangement: string | null
@@ -120,6 +121,10 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
 }
 
 function CompanyPage({ company }: { company: Company }) {
+  const [companyDomain, setCompanyDomain] = useState(company.domain ?? '')
+  const [domainSaving, setDomainSaving] = useState(false)
+  const [domainError, setDomainError] = useState('')
+  const [domainNotice, setDomainNotice] = useState('')
   const statusLabels: Record<string, string> = {
     jobs_feed_found: 'Job listings found', career_page_found: 'Hiring page found',
     jobs_extracted: 'Jobs found on company website', unresolved: 'Hiring page not found yet',
@@ -142,6 +147,28 @@ function CompanyPage({ company }: { company: Company }) {
     throttled: 'try again later', schema_error: 'could not read listings',
     failed: 'could not check', not_modified: 'checked recently', unsupported: 'not supported yet',
   }
+
+  async function saveCompanyDomain(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setDomainSaving(true)
+    setDomainError('')
+    setDomainNotice('')
+    try {
+      const response = await fetch(apiUrl(`/api/v1/companies/${company.id}`), {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: companyDomain.trim() || null }),
+      })
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(payload.detail ?? 'Could not save the company domain.')
+      setCompanyDomain(payload.domain ?? '')
+      setDomainNotice('Company domain saved.')
+    } catch (reason) {
+      setDomainError(reason instanceof Error ? reason.message : 'Could not save the company domain.')
+    } finally {
+      setDomainSaving(false)
+    }
+  }
+
   return <>
     <section className="detail-hero">
       <p className="eyebrow">COMPANY · {company.category?.replaceAll('_', ' ') || 'BUSINESS'}</p>
@@ -159,7 +186,17 @@ function CompanyPage({ company }: { company: Company }) {
         <p className="eyebrow">HIRING STATUS</p>
         <h2>{statusLabels[company.career_status] || 'Not checked yet'}</h2>
         <div className="metadata-grid">
-          <Meta label="WEBSITE" value={company.domain || 'Not found'} />
+          <form className="company-domain-editor meta-item" onSubmit={saveCompanyDomain}>
+            <label htmlFor="company-domain"><span>COMPANY DOMAIN</span></label>
+            <div className="company-domain-input">
+              <input id="company-domain" type="text" maxLength={255} autoCapitalize="none" autoCorrect="off"
+                spellCheck={false} value={companyDomain} onChange={event => setCompanyDomain(event.target.value)}
+                placeholder="e.g. company.de" />
+              <button className="secondary-button" type="submit" disabled={domainSaving}>{domainSaving ? 'Saving…' : 'Save'}</button>
+            </div>
+            {domainError && <small className="company-domain-error" role="alert">{domainError}</small>}
+            {domainNotice && <small className="company-domain-notice" role="status">{domainNotice}</small>}
+          </form>
           <Meta label="HIRING PAGE" value={company.career_url || 'Not found yet'} />
           <Meta label="BUSINESS TYPE" value={(company.category || company.location_label)?.replaceAll('_', ' ') || 'Not listed'} />
           <Meta label="LOCATION DETAIL" value={precisionLabels[company.location_precision || ''] || company.location_precision || 'Not provided'} />
@@ -169,7 +206,7 @@ function CompanyPage({ company }: { company: Company }) {
           <Meta label="ACTIVE JOBS" value={String(company.active_job_count ?? company.jobs.filter(job => job.is_active !== false).length)} />
         </div>
         <div className="feed-section-heading"><h3 className="panel-subheading">Where job listings were found</h3>
-          <a className="page-link" href={`/feeds?company_id=${company.id}`}>Add job page</a></div>
+          <a className="page-link" href={`/feeds?company_id=${company.id}`}>Manage feeds</a></div>
         {company.feeds.length ? company.feeds.map(feed => <div className="feed-record" key={feed.id}>
           <div><strong>{providerLabels[feed.provider] || 'Company job page'}</strong><span>{feed.job_count ?? 0} jobs · {feedStatusLabels[feed.status] || 'needs checking'}</span></div>
           <ExternalLink href={feed.board_url || feed.feed_url}>View listings</ExternalLink>
@@ -189,6 +226,7 @@ function CompanyPage({ company }: { company: Company }) {
 
 function JobPage({ job }: { job: Job }) {
   const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
+  const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
   const providerLabels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
     schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
@@ -201,7 +239,7 @@ function JobPage({ job }: { job: Job }) {
     <section className="detail-hero">
       <p className="eyebrow">JOB POSTING · {providerLabels[job.provider] || 'Company job page'}</p>
       <h1>{job.title}</h1>
-      <p className="intro-copy">{job.company_name_is_employer ? job.company_name : <a href={`/companies/${job.company_id}`}>{job.company_name}</a>}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
+      <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
         <ExternalLink href={job.url}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}

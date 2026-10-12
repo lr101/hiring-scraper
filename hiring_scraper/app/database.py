@@ -50,6 +50,13 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
         if 'source_revision' not in feed_columns:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN source_revision INTEGER NOT NULL DEFAULT 1")
+        if 'source_config' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN source_config JSON NOT NULL DEFAULT '{}'")
+        if 'pending_search_scopes' not in feed_columns:
+            connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN pending_search_scopes JSON NOT NULL DEFAULT '[]'")
+        scan_columns = {column['name'] for column in inspect(connection).get_columns('scan_runs')}
+        if 'search_scope' not in scan_columns:
+            connection.exec_driver_sql("ALTER TABLE scan_runs ADD COLUMN search_scope JSON")
         columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
         if 'enrichment' not in columns:
             connection.exec_driver_sql("ALTER TABLE jobs ADD COLUMN enrichment JSON NOT NULL DEFAULT '{}'")
@@ -73,6 +80,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             'size_evidence': "JSON NOT NULL DEFAULT '{}'", 'crawl_priority': 'INTEGER NOT NULL DEFAULT 0',
             'crawl_interval_days': 'INTEGER DEFAULT 7', 'crawl_reason': 'TEXT',
             'crawl_paused': 'BOOLEAN NOT NULL DEFAULT 0', 'irrelevant_checks': 'INTEGER NOT NULL DEFAULT 0',
+            'career_url_manual': 'BOOLEAN NOT NULL DEFAULT 0',
             'ranking_updated_at': 'DATETIME', 'homepage_source_tags': 'JSON',
             'homepage_resolution_attempts': 'INTEGER NOT NULL DEFAULT 0',
             'homepage_resolution_next_at': 'DATETIME', 'homepage_resolution_lease_until': 'DATETIME',

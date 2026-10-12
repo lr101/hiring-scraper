@@ -151,13 +151,14 @@ def parse_search(payload: dict) -> dict:
 
 class RegionalClient:
     """Fixed public endpoint with a budget covering every retry attempt."""
-    def __init__(self, transport, max_requests=300, retries=2, retry_delay=1):
+    def __init__(self, transport, max_requests=300, retries=2, retry_delay=1, progress=None):
         if not 1 <= max_requests <= 10000 or not 0 <= retries <= 5 or not 0 <= retry_delay <= 10:
             raise ValueError('Invalid request or retry bounds')
         self.transport = transport
         self.max_requests, self.retries, self.retry_delay = max_requests, retries, retry_delay
         self.used = 0
         self.attempts = []
+        self.progress = progress
         self.capture_root = Path(transport.out) if isinstance(transport, Client) else None
 
     def request_json(self, url):
@@ -191,6 +192,8 @@ class RegionalClient:
                     result['state'] = 'invalid_response'
                     payload = None
             self.attempts.append(result)
+            if self.progress is not None:
+                self.progress()
             if result['state'] == 'ok':
                 return result, payload
             retryable = result['state'] == 'network_error' or record.get('status') in {429, 500, 502, 503, 504}
@@ -201,12 +204,23 @@ class RegionalClient:
         return result, None
 
 
-def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_size=100,
-            max_details=100, max_requests=300, delay=1, retries=2, client=None) -> dict:
-    """Capture a fresh, bounded selected search and stop on bot challenges."""
+def acquire(out, *, city=None, radius_km=None, terms=DEFAULT_TERMS, max_pages=3, page_size=100,
+            max_details=100, max_requests=300, delay=1, retries=2, client=None,
+            progress=None) -> dict:
+    """Capture a fresh, bounded Germany-wide or location-scoped search."""
     terms = list(dict.fromkeys(_text(term) for term in terms if _text(term)))
-    if not _text(city) or not 0 <= radius_km <= 200 or not 1 <= max_pages <= 100 or not 1 <= page_size <= 100:
-        raise ValueError('City and valid radius/pagination bounds are required')
+    city = _text(city) or None
+    if radius_km is not None:
+        if isinstance(radius_km, bool):
+            raise ValueError('Radius must be between 0 and 200 km')
+        try:
+            radius_km = float(radius_km)
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ValueError('Radius must be between 0 and 200 km') from error
+        if not math.isfinite(radius_km) or not 0 <= radius_km <= 200:
+            raise ValueError('Radius must be between 0 and 200 km')
+    if not 1 <= max_pages <= 100 or not 1 <= page_size <= 100:
+        raise ValueError('Invalid pagination bounds')
     if not 1 <= len(terms) <= 50 or not 0 <= max_details <= 10000 or not 0.1 <= delay <= 60:
         raise ValueError('Invalid search terms, details or pacing bounds')
     out = Path(out)
@@ -214,9 +228,12 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
     if client is None:
         transport = Client(out/'http', delay=delay, max_requests=max_requests,
                            origin_pacer=OriginPacer(), request_budget=RequestBudget(max_requests))
-        client = RegionalClient(transport, max_requests=max_requests, retries=retries)
+        client = RegionalClient(transport, max_requests=max_requests, retries=retries, progress=progress)
+    elif progress is not None:
+        client.progress = progress
     manifest = {'started_at': _now(), 'source': 'arbeitsagentur', 'interface': 'observed_public_endpoint',
-                'selected_search': True, 'city': city, 'radius_km': radius_km, 'terms': terms,
+                'selected_search': True, 'search_scope': 'radius' if radius_km is not None else 'location' if city else 'country',
+                'city': city, 'radius_km': radius_km, 'terms': terms,
                 'max_pages_per_term': max_pages, 'page_size': page_size, 'max_details': max_details,
                 'max_requests': client.max_requests, 'searches': [], 'detail_errors': [], 'state': 'complete_selected_search'}
     summaries, term_refs = {}, []
@@ -231,8 +248,12 @@ def acquire(out, *, city, radius_km=35, terms=DEFAULT_TERMS, max_pages=3, page_s
     for term in terms:
         refs = []
         for page in range(1, max_pages + 1):
-            url = BASE_URL + '/pc/v6/jobs?' + urlencode({'wo': city, 'umkreis': radius_km, 'angebotsart': 1,
-                                                         'was': term, 'page': page, 'size': page_size})
+            params = {'angebotsart': 1, 'was': term, 'page': page, 'size': page_size}
+            if city:
+                params['wo'] = city
+            if city and radius_km is not None:
+                params['umkreis'] = radius_km
+            url = BASE_URL + '/pc/v6/jobs?' + urlencode(params)
             record, payload = client.request_json(url)
             search = {'term': term, 'page': page, 'url': url, 'state': record['state'], 'status': record.get('status')}
             manifest['searches'].append(search)

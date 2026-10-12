@@ -26,10 +26,14 @@ from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
     Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobApplication, JobFeed, JobLocation,
-    LocationCache, utcnow,
+    LocationCache, ScanRun, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
+)
+from hiring_scraper.app.feed_schedules import (
+    configured_location_scope_payload, germany_search_scope_payload,
+    is_synthetic_germany_scope, next_scope_due, queue_arbeitsagentur_scope,
 )
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
@@ -45,7 +49,8 @@ from hiring_scraper.app.board_scope import (
 KARLSRUHE = {"label": "Karlsruhe, Baden-Württemberg, Deutschland", "city": "Karlsruhe",
              "state": "Baden-Württemberg", "latitude": 49.0068705, "longitude": 8.4034195,
              "precision": "city_centroid", "country_code": "de", "type": "city"}
-MANAGED_FEED_PROVIDERS = {"external_html", "browser_html", "rss"}
+ATS_FEED_PROVIDERS = {"greenhouse", "lever", "personio", "ashby", "recruitee", "smartrecruiters"}
+MANAGED_FEED_PROVIDERS = {"external_html", "browser_html", "rss", "arbeitsagentur", *ATS_FEED_PROVIDERS}
 _NOMINATIM_LOCK = threading.Lock()
 _LAST_NOMINATIM_REQUEST = 0.0
 
@@ -90,16 +95,27 @@ class DiscoveryJobCreate(BaseModel):
 
 class ManagedFeedCreate(BaseModel):
     company_id: int | None = Field(default=None, ge=1)
-    company_name: str | None = Field(default=None, min_length=2, max_length=500)
+    company_name: str | None = Field(default=None, max_length=500)
     website_url: str | None = Field(default=None, max_length=2000)
     feed_url: str = Field(min_length=8, max_length=2000)
-    provider: Literal["external_html", "browser_html", "rss"] = "external_html"
+    provider: Literal["external_html", "browser_html", "rss", "ats", "arbeitsagentur"] = "external_html"
+    location_query: str | None = Field(default=None, max_length=200)
+    radius_km: float | None = Field(default=None, gt=0, le=200)
+    terms: list[str] | None = Field(default=None, max_length=50)
 
 
 class ManagedFeedUpdate(BaseModel):
     feed_url: str | None = Field(default=None, min_length=8, max_length=2000)
-    provider: Literal["external_html", "browser_html", "rss"] | None = None
+    provider: Literal["external_html", "browser_html", "rss", "ats", "arbeitsagentur"] | None = None
     enabled: bool | None = None
+    career_page_url: str | None = Field(default=None, max_length=2000)
+    location_query: str | None = Field(default=None, max_length=200)
+    radius_km: float | None = Field(default=None, gt=0, le=200)
+    terms: list[str] | None = Field(default=None, max_length=50)
+
+
+class CompanyUpdate(BaseModel):
+    domain: str | None = Field(default=None, max_length=255)
 
 
 def _model_value(request: Any, key: str, default: Any = None) -> Any:
@@ -134,6 +150,185 @@ def _managed_page_url(value: str | None, label: str = "Job page") -> str:
     except ValueError as error:
         raise HTTPException(status_code=422, detail=f"{label} must be a valid public HTTPS URL: {error}") from error
     return value
+
+
+def _managed_company_domain(value: str | None) -> str | None:
+    """Normalize and validate a manually entered public company hostname."""
+    if value is None or not value.strip():
+        return None
+    candidate = value.strip().rstrip(".")
+    if re.search(r"[\s\x00-\x1f\x7f\\]", candidate):
+        raise HTTPException(status_code=422, detail="Company domain must be a valid public hostname")
+    try:
+        parts = urlsplit(f"//{candidate}")
+        host = parts.hostname
+        if (not host or parts.username or parts.password or parts.port is not None or
+                parts.path or parts.query or parts.fragment):
+            raise ValueError("Enter a domain only, without a path or port")
+        ascii_host = host.encode("idna").decode("ascii").casefold().rstrip(".").removeprefix("www.")
+        try:
+            address = ipaddress.ip_address(ascii_host)
+        except ValueError:
+            address = None
+        if address is None and (len(ascii_host) > 253 or not re.fullmatch(
+                r"(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))+",
+                ascii_host)):
+            raise ValueError("Enter a fully qualified hostname")
+        if address is not None and not address.is_global:
+            raise ValueError("Private and reserved addresses are not accepted")
+        if address is None:
+            # Reuse the public host checks applied to manually managed source URLs.
+            _managed_page_url(f"https://{ascii_host}", "Company domain")
+        return ascii_host
+    except (UnicodeError, ValueError) as error:
+        raise HTTPException(status_code=422, detail=f"Company domain must be a valid public hostname: {error}") from error
+
+
+def _managed_feed_source(url: str, provider: str,
+                         source_config: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Resolve a manually entered career page to its bounded provider feed."""
+    source_config = source_config or {}
+    if provider == "arbeitsagentur":
+        parts = urlsplit(url)
+        if (parts.hostname or "").casefold().removeprefix("www.") != "arbeitsagentur.de" or not re.match(
+                r"^/jobsuche(?:/|$)", parts.path, re.IGNORECASE):
+            raise HTTPException(status_code=422, detail="Use the public Agentur für Arbeit Jobsuche page")
+        identity = hashlib.sha256(json.dumps(source_config, sort_keys=True, ensure_ascii=False,
+                                             separators=(",", ":")).encode("utf-8")).hexdigest()
+        return {"provider": "arbeitsagentur",
+                "feed_url": f"https://www.arbeitsagentur.de/jobsuche/?adapter_query={identity}",
+                "board_url": "https://www.arbeitsagentur.de/jobsuche/", "tenant": None}
+    if provider != "ats":
+        return {"provider": provider, "feed_url": url, "board_url": url, "tenant": None}
+    from hiring_scraper.ats import identify
+
+    identified = identify(url)
+    if not identified or identified.get("provider") not in ATS_FEED_PROVIDERS or not identified.get("feed_url"):
+        raise HTTPException(status_code=422, detail="This page does not expose a supported public ATS feed")
+    return {
+        "provider": identified["provider"],
+        "feed_url": identified["feed_url"],
+        "board_url": identified.get("board_url") or url,
+        "tenant": identified.get("tenant"),
+    }
+
+
+def _schedule_managed_arbeitsagentur_feed(session: Session, feed: JobFeed,
+                                          now: datetime) -> None:
+    """Attach active and saved search geographies to a managed BA adapter."""
+    if not feed.enabled:
+        feed.next_scan_at = None
+        return
+    active_jobs = session.scalars(select(DiscoveryJob).where(
+        DiscoveryJob.status.in_(("scheduled", "queued", "running"))
+    ).order_by(DiscoveryJob.id)).all()
+    for job in active_jobs:
+        queue_arbeitsagentur_scope(session, job, job.scheduled_for or now, feed_id=feed.id)
+
+    pending = list(feed.pending_search_scopes) if isinstance(feed.pending_search_scopes, list) else []
+    country_location = session.scalars(select(ConfiguredLocation).where(
+        ConfiguredLocation.enabled.is_(True),
+        ConfiguredLocation.search_scope == "country").order_by(ConfiguredLocation.id).limit(1)).first()
+    if (country_location is not None and
+            not any(isinstance(item, dict) and item.get("search_scope") == "country" for item in pending)):
+        pending.append(configured_location_scope_payload(country_location, now))
+    has_regional_schedule = session.scalar(select(ConfiguredLocation.id).where(
+        ConfiguredLocation.enabled.is_(True),
+        ConfiguredLocation.search_scope != "country").limit(1))
+    if has_regional_schedule is not None:
+        pending = [item for item in pending if not (
+            isinstance(item, dict) and is_synthetic_germany_scope(item))]
+    if not pending and has_regional_schedule is None:
+        pending = [germany_search_scope_payload(now)]
+    feed.pending_search_scopes = pending
+    feed.next_scan_at = next_scope_due(pending, now)
+
+
+def _managed_feed_config(session: Session, request: Any, provider: str,
+                         previous: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Resolve an optional local filter for page feeds and BA role terms."""
+    previous = previous if isinstance(previous, dict) else {}
+    supplied = getattr(request, "model_fields_set", set())
+    config = dict(previous)
+    if provider == "arbeitsagentur":
+        # The BA adapter inherits each scheduled discovery job's area. Its
+        # former free-text filter is intentionally discarded on edits.
+        config.pop("location_filter", None)
+        config["managed_adapter"] = True
+    else:
+        previous_filter = previous.get("location_filter")
+        previous_filter = previous_filter if isinstance(previous_filter, dict) else {}
+        location_query = (getattr(request, "location_query", None) if "location_query" in supplied
+                          else previous_filter.get("query"))
+        location_query = " ".join(location_query.split()) if isinstance(location_query, str) else ""
+        radius_value = (getattr(request, "radius_km", None) if "radius_km" in supplied
+                        else previous_filter.get("radius_km"))
+        if radius_value is None and location_query:
+            radius_value = 35
+        if location_query and len(location_query) < 2:
+            raise HTTPException(status_code=422, detail="Location must have at least two characters")
+        if radius_value is not None and not location_query:
+            raise HTTPException(status_code=422, detail="Enter a location when setting a search radius")
+        if location_query:
+            if str(previous_filter.get("query") or "").casefold() == location_query.casefold() and previous_filter.get("latitude") is not None:
+                resolved = previous_filter
+            else:
+                normalized = _key(location_query)
+                if normalized in {"karlsruhe", "karlsruhe baden württemberg", "karlsruhe baden-württemberg"}:
+                    results = [KARLSRUHE]
+                else:
+                    cached = session.scalar(select(LocationCache).where(LocationCache.query_key == normalized))
+                    if cached:
+                        results = cached.results
+                    else:
+                        results = _nominatim_results(location_query)
+                        session.add(LocationCache(query_key=normalized, results=results))
+                        session.flush()
+                if not results:
+                    raise HTTPException(status_code=422, detail="Could not resolve this location in Germany")
+                resolved = results[0]
+            city = resolved.get("city") or location_query
+            config["location_filter"] = {
+                "query": location_query, "city": city, "label": resolved.get("label") or location_query,
+                "latitude": resolved.get("latitude"), "longitude": resolved.get("longitude"),
+                "precision": resolved.get("precision"), "country_code": "DE",
+                "radius_km": float(radius_value if radius_value is not None else 35),
+            }
+        else:
+            config.pop("location_filter", None)
+
+    if provider == "arbeitsagentur":
+        terms = getattr(request, "terms", None) if "terms" in supplied else previous.get("terms")
+        if terms is None:
+            terms = []
+        cleaned, seen = [], set()
+        for value in terms:
+            term = " ".join(value.split()) if isinstance(value, str) else ""
+            if not term:
+                continue
+            if len(term) > 120:
+                raise HTTPException(status_code=422, detail="Each job term must be at most 120 characters")
+            normalized = _key(term)
+            if normalized not in seen:
+                cleaned.append(term)
+                seen.add(normalized)
+        from hiring_scraper.regional import DEFAULT_TERMS
+        uses_default_terms = (not bool(cleaned) if "terms" in supplied
+                              else bool(previous.get("uses_default_terms", not bool(cleaned))))
+        config["uses_default_terms"] = uses_default_terms
+        config["terms"] = cleaned or list(DEFAULT_TERMS)
+    else:
+        config.pop("terms", None)
+        config.pop("uses_default_terms", None)
+        config.pop("managed_adapter", None)
+    return config
+
+
+def _is_managed_arbeitsagentur_feed(feed: JobFeed) -> bool:
+    config = feed.source_config if isinstance(feed.source_config, dict) else {}
+    return feed.provider == "arbeitsagentur" and (
+        config.get("managed_adapter") is True or bool(config.get("location_filter")) or
+        feed.company.source == "managed_feed")
 
 
 def _nominatim_results(query: str) -> list[dict[str, Any]]:
@@ -267,6 +462,7 @@ def _unique_active_job_counts(session: Session, company_ids: list[int]) -> dict[
 def _feed_json(feed: JobFeed) -> dict[str, Any]:
     return {"id": feed.id, "provider": feed.provider, "tenant": feed.tenant,
             "board_url": feed.board_url, "feed_url": feed.feed_url,
+            "source_config": feed.source_config or {},
             "enabled": feed.enabled,
             "status": feed.status, "job_count": feed.job_count,
             "last_checked_at": feed.last_checked_at.isoformat() if feed.last_checked_at else None,
@@ -291,6 +487,7 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
                   "country_code": location.country_code} for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
             "url": job.url, "company_id": company.id,
+            "employer_company_id": job.employer_company_id,
             "company_name": resolved_employer_name,
             "company_name_is_employer": bool(job.employer_company is not None or
                                                 (employer_name and employer_name.strip() and
@@ -331,6 +528,8 @@ app.add_middleware(CORSMiddleware, allow_origins=cors_origins,
 def initialize_sqlite() -> None:
     if IS_SQLITE:
         initialize_sqlite_schema(engine)
+    # Feed scans, including provider adapters such as BA Jobsuche, are claimed
+    # by the shared feed worker. The API does not run a separate search queue.
 
 
 app.include_router(profiles_router)
@@ -484,6 +683,7 @@ def create_configured_location(request: ConfiguredLocationCreate,
             longitude=location.longitude, radius_km=location.radius_km,
             configured_location_id=location.id, kind="initial", now=now,
         )
+    queue_arbeitsagentur_scope(session, first_job, first_job.scheduled_for or now)
     session.commit()
     session.refresh(location)
     session.refresh(first_job)
@@ -578,6 +778,7 @@ def create_discovery_job(request: DiscoveryJobCreate,
         latitude=float(latitude), longitude=float(longitude), radius_km=float(radius_km),
         configured_location_id=configured_location_id, scheduled_for=scheduled_for,
     )
+    queue_arbeitsagentur_scope(session, job, job.scheduled_for or utcnow())
     if search_scope == "country":
         ensure_default_job_feeds(session)
         now = utcnow()
@@ -1006,9 +1207,27 @@ def get_company(company_id: int, session: Session = Depends(get_session)) -> dic
     return data
 
 
+@app.patch("/api/v1/companies/{company_id}")
+def update_company(company_id: int, request: CompanyUpdate,
+                   session: Session = Depends(get_session)) -> dict[str, Any]:
+    company = session.get(Company, company_id)
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    if "domain" not in request.model_fields_set:
+        raise HTTPException(status_code=422, detail="Provide a company domain to save")
+    domain = _managed_company_domain(request.domain)
+    company.domain = domain
+    company.domain_match_method = "manual" if domain else None
+    company.domain_evidence_url = None
+    session.commit()
+    return {"id": company.id, "domain": company.domain,
+            "domain_match_method": company.domain_match_method}
+
+
 def _managed_feed_json(feed: JobFeed) -> dict[str, Any]:
     return {**_feed_json(feed), "company_id": feed.company_id,
-            "company_name": feed.company.name, "company_website": feed.company.website_url}
+            "company_name": feed.company.name, "company_website": feed.company.website_url,
+            "company_career_url": feed.company.career_url, "company_source": feed.company.source}
 
 
 @app.get("/api/v1/feeds")
@@ -1021,7 +1240,9 @@ def list_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
 @app.post("/api/v1/feeds", status_code=201)
 def create_managed_feed(request: ManagedFeedCreate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    feed_url = _managed_page_url(request.feed_url)
+    source_url = _managed_page_url(request.feed_url)
+    source_config = _managed_feed_config(session, request, request.provider)
+    source = _managed_feed_source(source_url, request.provider, source_config)
     website_url = _managed_page_url(request.website_url, "Company website") if request.website_url else None
     company = session.get(Company, request.company_id) if request.company_id else None
     if request.company_id and company is None:
@@ -1029,7 +1250,11 @@ def create_managed_feed(request: ManagedFeedCreate,
     if company is None:
         company_name = (request.company_name or "").strip()
         if len(company_name) < 2:
-            raise HTTPException(status_code=422, detail="Enter a company or job-source name")
+            if request.provider == "arbeitsagentur":
+                company_name = "Agentur für Arbeit"
+            else:
+                host = (urlsplit(source["board_url"]).hostname or "job source").casefold().removeprefix("www.")
+                company_name = f"Jobs · {host}"
         normalized = _key(company_name)
         source_id = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
         company = session.scalar(select(Company).where(
@@ -1039,23 +1264,28 @@ def create_managed_feed(request: ManagedFeedCreate,
             company = Company(source="managed_feed", source_id=source_id,
                               name=company_name, website_url=website_url,
                               domain=website_host, category="job_board_source",
-                              source_url=feed_url, career_url=feed_url,
+                              source_url=source["board_url"], career_url=source["board_url"],
                               career_status="jobs_feed_found")
             session.add(company)
             session.flush()
         elif website_url:
             company.website_url = website_url
-            company.domain = urlsplit(website_url).hostname
+            if company.domain_match_method != "manual":
+                company.domain = urlsplit(website_url).hostname
     duplicate = session.scalar(select(JobFeed).where(
-        JobFeed.company_id == company.id, JobFeed.provider == request.provider,
-        JobFeed.feed_url == feed_url))
+        JobFeed.company_id == company.id, JobFeed.provider == source["provider"],
+        JobFeed.feed_url == source["feed_url"]))
     if duplicate:
         raise HTTPException(status_code=409, detail="This page is already managed for this company")
     now = utcnow()
-    feed = JobFeed(company_id=company.id, provider=request.provider,
-                   board_url=feed_url, feed_url=feed_url, status="pending",
-                   enabled=True, job_count=0, next_scan_at=now)
+    feed = JobFeed(company_id=company.id, provider=source["provider"], tenant=source["tenant"],
+                   source_config=source_config, board_url=source["board_url"], feed_url=source["feed_url"], status="pending",
+                   enabled=True, job_count=0,
+                   next_scan_at=now if source["provider"] != "arbeitsagentur" else None)
     session.add(feed)
+    session.flush()
+    if source["provider"] == "arbeitsagentur":
+        _schedule_managed_arbeitsagentur_feed(session, feed, now)
     session.commit()
     session.refresh(feed)
     return _managed_feed_json(feed)
@@ -1074,21 +1304,61 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         JobFeed.id == feed_id)).first()
     if feed is None:
         raise HTTPException(status_code=404, detail="Job feed not found")
-    if (request.feed_url is not None or request.provider is not None) and feed.provider not in MANAGED_FEED_PROVIDERS:
+    if (request.enabled is True and feed.provider == "arbeitsagentur" and
+            not _is_managed_arbeitsagentur_feed(feed)):
+        raise HTTPException(status_code=409, detail="This is an imported snapshot. Add a regional adapter from Job feeds to schedule searches.")
+    changed_fields = getattr(request, "model_fields_set", None)
+    if changed_fields is None:
+        changed_fields = (set(request) if isinstance(request, dict) else {
+            name for name in ManagedFeedUpdate.model_fields
+            if getattr(request, name, None) is not None
+        })
+    career_page_supplied = "career_page_url" in changed_fields
+    new_career_page_url = (_managed_page_url(request.career_page_url, "Career page")
+                           if career_page_supplied and request.career_page_url else None)
+    if (request.feed_url is not None or request.provider is not None or
+            {"location_query", "radius_km", "terms"} & changed_fields) and feed.provider not in MANAGED_FEED_PROVIDERS:
         raise HTTPException(status_code=409, detail="Only manually managed public feeds can change their page or scraper type")
     now = utcnow()
-    new_url = _managed_page_url(request.feed_url) if request.feed_url is not None else feed.feed_url
-    new_provider = request.provider or feed.provider
-    if not (request.enabled is False and request.feed_url is None and request.provider is None):
-        _managed_page_url(new_url)
-    if new_url != feed.feed_url or new_provider != feed.provider:
+    source_edit = (request.feed_url is not None or request.provider is not None or
+                   bool({"location_query", "radius_km", "terms"} & changed_fields))
+    current_selector = "ats" if feed.provider in ATS_FEED_PROVIDERS else feed.provider
+    target_provider = request.provider or current_selector
+    if source_edit:
+        source_config = _managed_feed_config(session, request, target_provider, feed.source_config or {})
+        source_url = request.feed_url or (feed.board_url if current_selector in {"ats", "arbeitsagentur"} else feed.feed_url)
+        source_url = _managed_page_url(source_url)
+        source = _managed_feed_source(source_url, target_provider, source_config)
+    else:
+        source = {"provider": feed.provider, "feed_url": feed.feed_url,
+                  "board_url": feed.board_url or feed.feed_url, "tenant": feed.tenant}
+        source_config = feed.source_config or {}
+    new_url = source["feed_url"]
+    new_provider = source["provider"]
+    new_board_url = source["board_url"]
+    new_tenant = source["tenant"]
+    new_source_config = source_config
+    if (new_url != feed.feed_url or new_provider != feed.provider or
+            new_board_url != feed.board_url or new_tenant != feed.tenant or
+            new_source_config != (feed.source_config or {})):
         duplicate = session.scalar(select(JobFeed).where(
             JobFeed.company_id == feed.company_id, JobFeed.provider == new_provider,
             JobFeed.feed_url == new_url, JobFeed.id != feed.id))
         if duplicate:
             raise HTTPException(status_code=409, detail="This page is already managed for this company")
-    changed_source = new_url != feed.feed_url or new_provider != feed.provider
+    changed_source = (new_url != feed.feed_url or new_provider != feed.provider or
+                      new_board_url != feed.board_url or new_tenant != feed.tenant or
+                      new_source_config != (feed.source_config or {}))
     changed_enabled = request.enabled is not None and request.enabled != feed.enabled
+    update_career_page = (career_page_supplied and
+                          (new_career_page_url != feed.company.career_url or
+                           feed.company.career_url_manual != bool(new_career_page_url)))
+    if update_career_page:
+        feed.company.career_url = new_career_page_url
+        feed.company.career_url_manual = bool(new_career_page_url)
+        feed.company.career_status = "career_page_found" if new_career_page_url else "unresolved"
+        if not feed.company.crawl_paused:
+            feed.company.next_discovery_at = now
     if changed_source:
         # A source is an identity boundary: keep its URL/provider and job
         # history together, and start a fresh feed row for the replacement.
@@ -1100,15 +1370,41 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         feed.lease_until = None
         session.execute(update(Job).where(Job.feed_id == feed.id, Job.is_active.is_(True)).values(
             is_active=False, closed_at=now).execution_options(synchronize_session=False))
-        if feed.company.source == "managed_feed":
-            feed.company.career_url = new_url
-            feed.company.source_url = new_url
+        if (feed.company.source == "managed_feed" and not career_page_supplied and
+                not feed.company.career_url_manual):
+            feed.company.career_url = new_board_url
+            feed.company.source_url = new_board_url
+        replacement_search_scopes = []
+        if new_provider == "arbeitsagentur":
+            pending_scopes = feed.pending_search_scopes if isinstance(feed.pending_search_scopes, list) else []
+            for scope in pending_scopes:
+                if isinstance(scope, dict) and scope not in replacement_search_scopes:
+                    replacement_search_scopes.append(scope)
+            running_scopes = session.scalars(select(ScanRun.search_scope).where(
+                ScanRun.feed_id == feed.id, ScanRun.status == "running",
+                ScanRun.search_scope.is_not(None))).all()
+            for scope in running_scopes:
+                if not isinstance(scope, dict):
+                    continue
+                discovery_job_id = scope.get("discovery_job_id")
+                already_queued = any(
+                    existing == scope or (discovery_job_id is not None and
+                                          existing.get("discovery_job_id") == discovery_job_id)
+                    for existing in replacement_search_scopes)
+                if not already_queued:
+                    replacement_search_scopes.append(scope)
         replacement = JobFeed(
-            company_id=feed.company_id, provider=new_provider, board_url=new_url, feed_url=new_url,
+            company_id=feed.company_id, provider=new_provider, tenant=new_tenant,
+            source_config=new_source_config, board_url=new_board_url, feed_url=new_url,
             status="pending" if replacement_enabled else "paused", enabled=replacement_enabled,
-            source_revision=1, job_count=0, next_scan_at=now if replacement_enabled else None,
+            source_revision=1, job_count=0,
+            next_scan_at=now if replacement_enabled and new_provider != "arbeitsagentur" else None,
+            pending_search_scopes=replacement_search_scopes,
         )
         session.add(replacement)
+        session.flush()
+        if new_provider == "arbeitsagentur" and replacement_enabled:
+            _schedule_managed_arbeitsagentur_feed(session, replacement, now)
         session.commit()
         session.refresh(replacement)
         return _managed_feed_json(replacement)
@@ -1116,13 +1412,26 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
     if request.enabled is not None:
         if changed_enabled:
             feed.source_revision = (feed.source_revision or 1) + 1
+            if feed.provider == "arbeitsagentur":
+                pending_scopes = list(feed.pending_search_scopes) if isinstance(
+                    feed.pending_search_scopes, list) else []
+                running_scopes = session.scalars(select(ScanRun.search_scope).where(
+                    ScanRun.feed_id == feed.id, ScanRun.status == "running",
+                    ScanRun.search_scope.is_not(None))).all()
+                for scope in running_scopes:
+                    if isinstance(scope, dict) and scope not in pending_scopes:
+                        pending_scopes.append(scope)
+                feed.pending_search_scopes = pending_scopes
         feed.enabled = request.enabled
     if not feed.enabled:
         feed.next_scan_at = None
         feed.status = "paused"
     elif request.enabled is True:
         feed.status = "pending"
-        feed.next_scan_at = now
+        if feed.provider == "arbeitsagentur":
+            _schedule_managed_arbeitsagentur_feed(session, feed, now)
+        else:
+            feed.next_scan_at = now
     session.commit()
     session.refresh(feed)
     return _managed_feed_json(feed)
@@ -1136,9 +1445,40 @@ def rescan_managed_feed(feed_id: int, session: Session = Depends(get_session)) -
         raise HTTPException(status_code=404, detail="Job feed not found")
     if not feed.enabled:
         raise HTTPException(status_code=409, detail="Resume this feed before scanning it")
+    if feed.provider == "arbeitsagentur" and not _is_managed_arbeitsagentur_feed(feed):
+        raise HTTPException(status_code=409, detail="This is an imported snapshot, not a scheduled BA adapter.")
+    now = utcnow()
     if feed.provider == "arbeitsagentur":
-        raise HTTPException(status_code=409, detail="This source is refreshed through the regional import adapter")
-    feed.next_scan_at = utcnow()
+        current_pending = feed.pending_search_scopes if isinstance(feed.pending_search_scopes, list) else []
+        locations = session.scalars(select(ConfiguredLocation).where(
+            ConfiguredLocation.enabled.is_(True)).order_by(ConfiguredLocation.id)).all()
+        pending = []
+        pending_keys = set()
+        queued_locations = set()
+        for scope in current_pending:
+            if not isinstance(scope, dict):
+                continue
+            if (any(location.search_scope != "country" for location in locations)
+                    and is_synthetic_germany_scope(scope)):
+                continue
+            forced = {**scope, "scheduled_for": now.isoformat()}
+            job_id = forced.get("discovery_job_id")
+            location_id = forced.get("configured_location_id")
+            key = (("job", job_id) if job_id is not None else
+                   ("location", location_id) if location_id is not None else
+                   ("scope", json.dumps(forced, sort_keys=True)))
+            if key in pending_keys:
+                continue
+            pending_keys.add(key)
+            pending.append(forced)
+            if location_id is not None:
+                queued_locations.add(location_id)
+        pending.extend(configured_location_scope_payload(location, now) for location in locations
+                       if location.id not in queued_locations)
+        if not pending:
+            pending = [germany_search_scope_payload(now)]
+        feed.pending_search_scopes = pending
+    feed.next_scan_at = now
     feed.status = "pending"
     session.commit()
     session.refresh(feed)

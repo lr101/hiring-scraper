@@ -234,6 +234,62 @@ class DiscoveryJobsApiTests(unittest.TestCase):
             self.assertIsNotNone(replacement.next_scan_at)
             self.assertEqual(session.scalars(select(Job).where(Job.feed_id == replacement.id)).all(), [])
 
+    def test_managed_ats_page_is_resolved_to_its_public_provider_feed(self):
+        board = "https://careers.smartrecruiters.com/RheindataGmbH"
+        request = api.ManagedFeedCreate(
+            company_name="rheindata GmbH", website_url="https://rheindata.de/",
+            feed_url=board, provider="ats")
+        created = self._call_endpoint("create_managed_feed", request.model_dump())
+
+        self.assertEqual(created["provider"], "smartrecruiters")
+        self.assertEqual(created["board_url"], board)
+        self.assertEqual(created["feed_url"], (
+            "https://api.smartrecruiters.com/v1/companies/RheindataGmbH/postings"
+            "?limit=100&offset=0&destination=PUBLIC"))
+        with self.factory() as session:
+            stored = session.get(JobFeed, created["id"])
+            self.assertEqual(stored.tenant, "RheindataGmbH")
+
+    def test_managed_ats_type_rejects_pages_without_a_supported_public_adapter(self):
+        with self.assertRaises(HTTPException) as caught:
+            self._call_endpoint("create_managed_feed", {
+                "company_id": None, "website_url": None,
+                "company_name": "Unknown Careers", "feed_url": "https://example.com/careers",
+                "provider": "ats",
+            })
+        self.assertEqual(caught.exception.status_code, 422)
+
+    def test_managed_ats_source_edit_re_resolves_tenant_and_provider_feed(self):
+        old_board = "https://careers.smartrecruiters.com/RheindataGmbH"
+        old_feed = ("https://api.smartrecruiters.com/v1/companies/RheindataGmbH/postings"
+                    "?limit=100&offset=0&destination=PUBLIC")
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="smartrecruiters-managed",
+                              name="rheindata GmbH", category="job_board_source")
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="smartrecruiters", tenant="RheindataGmbH",
+                           board_url=old_board, feed_url=old_feed, status="parsed", enabled=True,
+                           source_revision=1)
+            session.add(feed)
+            session.flush()
+            feed_id = feed.id
+
+        session = self.factory()
+        try:
+            request = api.ManagedFeedUpdate(
+                feed_url="https://careers.smartrecruiters.com/Coface", provider="ats")
+            updated = api.update_managed_feed(feed_id, SimpleNamespace(**request.model_dump()), session)
+        finally:
+            session.close()
+
+        self.assertEqual(updated["provider"], "smartrecruiters")
+        self.assertEqual(updated["tenant"], "Coface")
+        self.assertEqual(updated["board_url"], "https://careers.smartrecruiters.com/Coface")
+        self.assertEqual(updated["feed_url"], (
+            "https://api.smartrecruiters.com/v1/companies/Coface/postings"
+            "?limit=100&offset=0&destination=PUBLIC"))
+
     def test_location_job_starts_with_company_and_homepage_search(self):
         self._company("node/near", "Near GmbH", 49.0069, 8.4034, "https://near.example/")
         self._company("node/no-site", "No Site GmbH", 49.0069, 8.4034, None)

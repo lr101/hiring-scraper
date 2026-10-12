@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import logging
+import json
 import os
 import random
 import re
+import tempfile
 import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -18,7 +20,12 @@ from sqlalchemy.orm import selectinload
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
-from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, ScanRun, utcnow
+from hiring_scraper.app.models import (Company, ConfiguredLocation, Job, JobFeed, JobLocation,
+                                      ScanRun, utcnow)
+from hiring_scraper.app.feed_schedules import (
+    is_synthetic_germany_scope, next_scope_due, scope_due_at,
+)
+from hiring_scraper.geography import haversine_m
 from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
@@ -38,7 +45,7 @@ _ORIGIN_LOCK = Lock()
 _LAST_ORIGIN_REQUEST: dict[str, float] = {}
 
 
-def _claim_due_feed() -> tuple[int, int, int] | None:
+def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
         statement = (select(JobFeed).join(Company)
@@ -52,13 +59,30 @@ def _claim_due_feed() -> tuple[int, int, int] | None:
         feed = session.scalars(statement).first()
         if feed is None:
             return None
+        search_scope = None
+        if feed.provider == "arbeitsagentur":
+            pending = list(feed.pending_search_scopes) if isinstance(feed.pending_search_scopes, list) else []
+            pending = [item for item in pending if isinstance(item, dict)]
+            due_indexes = [index for index, item in enumerate(pending)
+                           if scope_due_at(item, now) <= now]
+            if due_indexes:
+                selected_index = min(due_indexes, key=lambda index: scope_due_at(pending[index], now))
+                search_scope = pending.pop(selected_index)
+            else:
+                # Managed AfA searches only run with a saved geography. A
+                # regular feed cadence must never fall back to an unfiltered
+                # national query when no scheduled scope is due.
+                feed.pending_search_scopes = pending
+                feed.next_scan_at = next_scope_due(pending, now)
+                return None
+            feed.pending_search_scopes = pending
         feed.lease_until = now + timedelta(minutes=LEASE_MINUTES)
         feed.last_attempt_at = now
         feed.attempt_count += 1
-        scan = ScanRun(feed_id=feed.id, started_at=now, status="running")
+        scan = ScanRun(feed_id=feed.id, started_at=now, status="running", search_scope=search_scope)
         session.add(scan)
         session.flush()
-        return feed.id, scan.id, feed.source_revision
+        return feed.id, scan.id, feed.source_revision, search_scope
 
 
 def _pace_origin(url: str) -> None:
@@ -96,17 +120,19 @@ def _backoff(attempt: int, *, incomplete: bool = False) -> datetime:
     return now + timedelta(minutes=minutes, seconds=random.randint(0, 59))
 
 
-def _request(feed: JobFeed) -> tuple[dict, bytes]:
+def _request(feed: JobFeed, search_scope: dict | None = None) -> tuple[dict, bytes]:
+    if feed.provider == "arbeitsagentur":
+        return _request_arbeitsagentur(feed, search_scope)
     max_requests = (BROWSER_CLIENT_REQUEST_BUDGET if feed.provider == "browser_html" else
                     10 if feed.provider == "lever" else 8)
     client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
                     max_requests=max_requests, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
-    # Lever scans therefore fetch all pages even after a prior complete scan.
-    if feed.etag and feed.provider != "lever":
+    # Lever and SmartRecruiters scans therefore fetch all pages after a prior scan.
+    if feed.etag and feed.provider not in {"lever", "smartrecruiters"}:
         headers["If-None-Match"] = feed.etag
-    if feed.last_modified and feed.provider != "lever":
+    if feed.last_modified and feed.provider not in {"lever", "smartrecruiters"}:
         headers["If-Modified-Since"] = feed.last_modified
     metadata, body = fetch_feed(client, feed.provider, feed.feed_url, feed.board_url or feed.feed_url,
                                 conditional_headers=headers, pace=_pace_origin)
@@ -119,6 +145,129 @@ def _request(feed: JobFeed) -> tuple[dict, bytes]:
         _enrich_default_rss_jobs(client, feed, parsed.get("jobs", []))
         metadata = {**metadata, "parsed_feed": parsed}
     return metadata, body
+
+
+def _heartbeat_adapter_feed(feed: JobFeed) -> None:
+    """Renew the ordinary feed lease while a bounded provider adapter runs."""
+    now = utcnow()
+    with SessionLocal.begin() as session:
+        result = session.execute(update(JobFeed).where(
+            JobFeed.id == feed.id, JobFeed.source_revision == feed.source_revision,
+            JobFeed.enabled.is_(True)).values(lease_until=now + timedelta(minutes=LEASE_MINUTES)))
+        if result.rowcount != 1:
+            raise RuntimeError("The job-feed scan lease was lost while the adapter was running.")
+
+
+def _request_arbeitsagentur(feed: JobFeed, search_scope: dict | None = None) -> tuple[dict, bytes]:
+    """Capture a bounded BA Jobsuche query as an ordinary scheduled feed scan."""
+    from hiring_scraper.regional import DEFAULT_TERMS, acquire
+
+    source_config = feed.source_config if isinstance(feed.source_config, dict) else {}
+    scope = search_scope if isinstance(search_scope, dict) else {}
+    scope_type = scope.get("search_scope")
+    city = None
+    radius_km = None
+    if scope_type == "radius":
+        city = str(scope.get("city") or scope.get("label") or "").strip() or None
+        radius_km = float(scope.get("radius_km", 35)) if city else None
+    elif scope_type == "state":
+        city = str(scope.get("state") or scope.get("label") or "").strip() or None
+    with tempfile.TemporaryDirectory(prefix="hiring-ba-feed-") as directory:
+        capture_dir = Path(directory) / "capture"
+        manifest = acquire(
+            capture_dir,
+            city=city,
+            radius_km=radius_km,
+            terms=source_config.get("terms") or DEFAULT_TERMS,
+            max_pages=2,
+            page_size=100,
+            max_details=50,
+            max_requests=120,
+            delay=REQUEST_DELAY_SECONDS,
+            progress=lambda: _heartbeat_adapter_feed(feed),
+        )
+        snapshot_bytes = (capture_dir / "snapshot.json").read_bytes()
+        snapshot = json.loads(snapshot_bytes)
+    raw_jobs = snapshot.get("jobs", []) if isinstance(snapshot, dict) else []
+    jobs = []
+    for row in raw_jobs:
+        if not isinstance(row, dict):
+            continue
+        raw = row.get("raw_metadata")
+        raw = dict(raw) if isinstance(raw, dict) else {}
+        raw.update({
+            "country_code": "DE",
+            "hiring_organization": {"name": row.get("company_name")},
+            "adapter_scan": {
+                "state": manifest.get("state"),
+                "search_scope": scope_type or "country",
+                "location": city,
+                "radius_km": radius_km,
+            },
+        })
+        jobs.append({
+            "id": row.get("external_id"), "title": row.get("title"), "url": row.get("url"),
+            "description": row.get("description"), "location": row.get("location_text"),
+            "locations": row.get("locations", []), "is_remote": row.get("is_remote", False),
+            "work_arrangement": row.get("work_arrangement"),
+            "employment_type": row.get("employment_type"), "date_posted": row.get("date_posted"),
+            "salary": row.get("salary"), "company_name": row.get("company_name"),
+            "raw_metadata": raw,
+        })
+    if manifest.get("stop_reason") == "bot_challenge" or manifest.get("state") == "bot_challenge":
+        return ({"state": "bot_challenge", "status": None,
+                 "error": "The source returned a bot or CAPTCHA challenge."}, snapshot_bytes)
+    capture_state = manifest.get("state")
+    complete_capture = capture_state == "complete_selected_search"
+    # A bounded or truncated capture still contains useful observations. Keep
+    # it as a rolling window so the scope queue can advance, while the false
+    # `complete` flag below prevents missing jobs from being closed.
+    windowed_capture = complete_capture or (capture_state == "partial" and bool(jobs))
+    return ({"state": "ok", "status": 200,
+             "parsed_feed": {"jobs": jobs, "complete": False, "windowed": windowed_capture},
+             "pagination": {"complete": complete_capture, "state": capture_state,
+                            "search_scope": scope_type or "country"}}, snapshot_bytes)
+
+
+def _matches_location_filter(job_data: dict, location_filter: dict) -> bool:
+    """Apply an optional saved radius filter to locations in an ordinary feed."""
+    if not location_filter:
+        return True
+    raw = job_data.get("raw_metadata") if isinstance(job_data.get("raw_metadata"), dict) else {}
+    if job_data.get("is_remote") or job_data.get("work_arrangement") == "remote":
+        remote_codes = raw.get("remote_country_codes")
+        return not isinstance(remote_codes, list) or not remote_codes or any(
+            str(code).casefold() == "de" for code in remote_codes)
+    center_lat = location_filter.get("latitude")
+    center_lon = location_filter.get("longitude")
+    try:
+        center_lat, center_lon = float(center_lat), float(center_lon)
+        radius_km = float(location_filter.get("radius_km", 35))
+    except (TypeError, ValueError):
+        return False
+    city = str(location_filter.get("city") or location_filter.get("query") or "").strip().casefold()
+    source_locations = job_data.get("locations")
+    if not isinstance(source_locations, list) or not source_locations:
+        label = job_data.get("location")
+        source_locations = [{"label": label}] if isinstance(label, str) and label.strip() else []
+    for location in source_locations:
+        if isinstance(location, str):
+            location = {"label": location}
+        if not isinstance(location, dict):
+            continue
+        country = str(location.get("country_code") or "").casefold()
+        if country and country not in {"de", "deu", "germany", "deutschland"}:
+            continue
+        latitude, longitude = location.get("latitude"), location.get("longitude")
+        if latitude is not None and longitude is not None:
+            try:
+                if haversine_m(center_lat, center_lon, float(latitude), float(longitude)) <= radius_km * 1000:
+                    return True
+            except (TypeError, ValueError):
+                continue
+        elif city and str(location.get("label") or "").split(",", 1)[0].strip().casefold() == city:
+            return True
+    return False
 
 
 def _title_key(value: str) -> str:
@@ -268,6 +417,58 @@ def _schedule_career_revisit(company: Company, now: datetime) -> None:
         company.next_discovery_at = due
 
 
+def _next_scan_after_success(session, feed: JobFeed, due: datetime, now: datetime,
+                             completed_scope: dict | None = None) -> datetime | None:
+    pending = list(feed.pending_search_scopes) if isinstance(feed.pending_search_scopes, list) else []
+    if feed.provider == "arbeitsagentur":
+        pending_country = any(isinstance(item, dict) and item.get("search_scope") == "country"
+                              for item in pending)
+        pending_regional = any(isinstance(item, dict) and item.get("search_scope") != "country"
+                               for item in pending)
+        has_regional_schedule = session.scalar(select(ConfiguredLocation.id).where(
+            ConfiguredLocation.enabled.is_(True),
+            ConfiguredLocation.search_scope != "country").limit(1)) is not None
+        fallback_without_regional_schedule = (
+            isinstance(completed_scope, dict) and is_synthetic_germany_scope(completed_scope) and
+            not pending_regional and not has_regional_schedule)
+        explicit_country_scope = (
+            isinstance(completed_scope, dict) and completed_scope.get("search_scope") == "country" and
+            not is_synthetic_germany_scope(completed_scope))
+        if (feed.enabled and not pending_country and
+                (explicit_country_scope or fallback_without_regional_schedule)):
+            repeat_scope = {**completed_scope, "discovery_job_id": None,
+                            "scheduled_for": due.isoformat()}
+            pending.append(repeat_scope)
+            feed.pending_search_scopes = pending
+        return next_scope_due(pending, now) if feed.enabled else None
+    if feed.enabled and any(isinstance(item, dict) for item in pending):
+        return now
+    return due if feed.enabled else None
+
+
+def _requeue_search_scope(feed: JobFeed, run: ScanRun,
+                          retry_at: datetime | None = None) -> None:
+    if (feed.provider != "arbeitsagentur" or feed.status == "source_replaced" or
+            not isinstance(run.search_scope, dict)):
+        return
+    pending = list(feed.pending_search_scopes) if isinstance(feed.pending_search_scopes, list) else []
+    retry_scope = dict(run.search_scope)
+    if retry_at is not None:
+        retry_scope["scheduled_for"] = retry_at.isoformat()
+    job_id = retry_scope.get("discovery_job_id")
+    for index, item in enumerate(pending):
+        same_scope = (isinstance(item, dict) and (
+            item.get("discovery_job_id") == job_id if job_id is not None else item == run.search_scope
+        ))
+        if not same_scope:
+            continue
+        if retry_at is not None and scope_due_at(item, utcnow()) <= retry_at:
+            pending[index] = {**item, "scheduled_for": retry_at.isoformat()}
+            feed.pending_search_scopes = pending
+        return
+    feed.pending_search_scopes = [retry_scope, *pending]
+
+
 def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                     source_revision: int | None = None) -> None:
     now = utcnow()
@@ -285,7 +486,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         if feed is None or run is None:
             return
         if source_revision is not None and (locked.rowcount != 1 or feed.source_revision != source_revision):
-            feed.lease_until = None
+            # The lease and search queue now belong to a newer revision. A
+            # stale worker may only finish its own run row.
             run.finished_at = now
             run.status = "stale_source"
             run.http_status = metadata.get("status")
@@ -306,9 +508,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             refresh_company_rank(session, feed.company, now,
                                  {'complete': True, 'status': 'complete_empty'}
                                  if feed.status == 'complete_empty' else None)
-            feed.next_scan_at = (None if not feed.enabled else
-                                 _backoff(1, incomplete=True) if feed.status == "incomplete" else
-                                 next_feed_due(feed.company, feed, now))
+            due = (_backoff(1, incomplete=True) if feed.status == "incomplete" else
+                   next_feed_due(feed.company, feed, now))
+            feed.next_scan_at = _next_scan_after_success(session, feed, due, now, run.search_scope)
             _schedule_career_revisit(feed.company, now)
             if not feed.enabled:
                 feed.status = "paused"
@@ -330,6 +532,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             else:
                 failure_status = "failed"
             detail = metadata.get("error") or state or f"HTTP {status}"
+            _requeue_search_scope(feed, run, _backoff(1, incomplete=True))
             _set_failure(feed, run, failure_status, metadata, detail)
             return
 
@@ -368,7 +571,16 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             incoming = [data for data in incoming if _employer_matches(seed, data)]
         complete = bool(parsed.get("complete"))
         windowed = bool(parsed.get("windowed"))
+        location_filter = (feed.source_config or {}).get("location_filter")
+        if feed.provider != "arbeitsagentur" and isinstance(location_filter, dict):
+            incoming = [data for data in incoming if _matches_location_filter(data, location_filter)]
+            # A filtered view of a complete feed cannot establish that omitted
+            # postings have closed, so retain them as a rolling search window.
+            complete = False
+            windowed = True
         successful = complete or windowed
+        if not successful:
+            _requeue_search_scope(feed, run, _backoff(1, incomplete=True))
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
@@ -452,9 +664,16 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         session.flush()
         refresh_company_rank(session, feed.company, now,
                              {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
-        feed.next_scan_at = (None if not feed.enabled else
-                             next_feed_due(feed.company, feed, now) if successful else
-                             _backoff(1, incomplete=True))
+        due = (next_feed_due(feed.company, feed, now) if successful else
+               _backoff(1, incomplete=True))
+        if successful:
+            feed.next_scan_at = _next_scan_after_success(session, feed, due, now, run.search_scope)
+        elif feed.provider == "arbeitsagentur":
+            # Keep other due locations moving while this failed scope waits
+            # for its retry window.
+            feed.next_scan_at = next_scope_due(feed.pending_search_scopes, now) if feed.enabled else None
+        else:
+            feed.next_scan_at = due if feed.enabled else None
         if successful:
             _schedule_career_revisit(feed.company, now)
         run.finished_at = now
@@ -468,36 +687,39 @@ def scan_once() -> bool:
     claimed = _claim_due_feed()
     if claimed is None:
         return False
-    feed_id, run_id, source_revision = claimed
+    feed_id, run_id, source_revision, search_scope = claimed
     with SessionLocal() as session:
-        feed = session.get(JobFeed, feed_id)
-        if feed is None:
-            return True
-        if feed.source_revision != source_revision:
-            _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision)
-            return True
-        try:
-            metadata, body = _request(feed)
-            _persist_result(feed_id, run_id, metadata, body, source_revision)
-            LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
-                     metadata.get("state"), metadata.get("status"))
-        except Exception as error:
-            LOG.exception("feed scan failed id=%s", feed_id)
-            with SessionLocal.begin() as failed_session:
-                locked = failed_session.execute(update(JobFeed).where(
-                    JobFeed.id == feed_id, JobFeed.source_revision == source_revision).values(
-                        source_revision=JobFeed.source_revision
-                    ).execution_options(synchronize_session=False))
-                failed_feed = failed_session.get(JobFeed, feed_id, populate_existing=True)
-                failed_run = failed_session.get(ScanRun, run_id)
-                if failed_feed and failed_run:
-                    if locked.rowcount != 1 or failed_feed.source_revision != source_revision:
-                        failed_feed.lease_until = None
-                        failed_run.finished_at = utcnow()
-                        failed_run.status = "stale_source"
-                        failed_run.error = "Feed source changed during this scan; the old response was discarded."
-                    else:
-                        _set_failure(failed_feed, failed_run, "failed", {}, str(error))
+        feed = session.scalars(select(JobFeed).options(
+            selectinload(JobFeed.company),
+            selectinload(JobFeed.jobs).selectinload(Job.locations),
+        ).where(JobFeed.id == feed_id)).first()
+    if feed is None:
+        return True
+    if feed.source_revision != source_revision:
+        _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision)
+        return True
+    try:
+        metadata, body = _request(feed, search_scope)
+        _persist_result(feed_id, run_id, metadata, body, source_revision)
+        LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
+                 metadata.get("state"), metadata.get("status"))
+    except Exception as error:
+        LOG.exception("feed scan failed id=%s", feed_id)
+        with SessionLocal.begin() as failed_session:
+            locked = failed_session.execute(update(JobFeed).where(
+                JobFeed.id == feed_id, JobFeed.source_revision == source_revision).values(
+                    source_revision=JobFeed.source_revision
+                ).execution_options(synchronize_session=False))
+            failed_feed = failed_session.get(JobFeed, feed_id, populate_existing=True)
+            failed_run = failed_session.get(ScanRun, run_id)
+            if failed_feed and failed_run:
+                if locked.rowcount != 1 or failed_feed.source_revision != source_revision:
+                    failed_run.finished_at = utcnow()
+                    failed_run.status = "stale_source"
+                    failed_run.error = "Feed source changed during this scan; the old response was discarded."
+                else:
+                    _requeue_search_scope(failed_feed, failed_run, _backoff(1, incomplete=True))
+                    _set_failure(failed_feed, failed_run, "failed", {}, str(error))
     return True
 
 

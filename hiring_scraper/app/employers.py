@@ -106,8 +106,9 @@ def _register_direct_feed(session: Session, company: Company, url: str, now: dat
     feed = session.scalar(select(JobFeed).where(
         JobFeed.company_id == company.id, JobFeed.provider == provider,
         JobFeed.feed_url == feed_url))
-    company.career_url = board_url
-    company.career_status = "jobs_feed_found"
+    if not company.career_url_manual:
+        company.career_url = board_url
+        company.career_status = "jobs_feed_found"
     if feed is None:
         session.add(JobFeed(
             company_id=company.id, provider=provider, tenant=identified.get("tenant"),
@@ -165,7 +166,8 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
     else:
         if not company.website_url and company_website:
             company.website_url = company_website
-            company.domain = domain
+            if company.domain_match_method != "manual":
+                company.domain = domain
             website_added = True
         if company.country_code is None and _is_german_job(job_data, feed):
             company.country_code = "DE"
@@ -174,7 +176,8 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
     for url in (career_url, organization_url):
         if url and _register_direct_feed(session, company, url, now):
             registered = True
-    if career_url and not registered and not _is_third_party_company_url(career_url):
+    if (career_url and not registered and not _is_third_party_company_url(career_url) and
+            not company.career_url_manual):
         company.career_url = career_url
         company.career_status = "career_page_found"
         page_feed = session.scalar(select(JobFeed).where(

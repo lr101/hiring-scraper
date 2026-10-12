@@ -24,6 +24,7 @@ from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, canonical_company_ids, canonical_company_map,
     company_ids_for_search, create_discovery_job,
 )
+from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
     Job, JobFeed, JobLocation, ScanRun, utcnow,
@@ -201,9 +202,10 @@ def _process_homepage_resolution(claim: tuple[int, int, str]) -> bool:
         website = candidate.get("website_url") if error is None else None
         if website:
             company.website_url = website
-            company.domain = candidate.get("domain")
-            company.domain_match_method = candidate.get("domain_match_method")
-            company.domain_evidence_url = candidate.get("domain_evidence_url")
+            if company.domain_match_method != "manual":
+                company.domain = candidate.get("domain")
+                company.domain_match_method = candidate.get("domain_match_method")
+                company.domain_evidence_url = candidate.get("domain_evidence_url")
             company.homepage_source_tags = None
             company.homepage_resolution_next_at = None
             company.homepage_resolution_attempts = 0
@@ -400,7 +402,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                          if board.get("feed_state") == "parsed" and board.get("feed_url")]
         if career_url is None and parsed_boards:
             career_url = parsed_boards[0].get("board_url") or parsed_boards[0].get("feed_url")
-        if career_url:
+        if career_url and not company.career_url_manual:
             company.career_url = career_url
 
         feed_by_key = {(feed.provider, feed.feed_url): feed for feed in session.scalars(
@@ -653,9 +655,10 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                 company.location_label = candidate.get("location_label") or company.location_label
                 if not company.website_url and website_url:
                     company.website_url = website_url
-                    company.domain = candidate.get("domain")
-                    company.domain_match_method = candidate.get("domain_match_method")
-                    company.domain_evidence_url = candidate.get("domain_evidence_url")
+                    if company.domain_match_method != "manual":
+                        company.domain = candidate.get("domain")
+                        company.domain_match_method = candidate.get("domain_match_method")
+                        company.domain_evidence_url = candidate.get("domain_evidence_url")
             if job.search_scope == "state":
                 company.state = job.state
                 company.country_code = 'DE'
@@ -696,9 +699,10 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                                                            **(company.size_evidence or {})}
                         if not crawl_company.website_url:
                             crawl_company.website_url = company.website_url
-                            crawl_company.domain = company.domain
-                            crawl_company.domain_match_method = company.domain_match_method
-                            crawl_company.domain_evidence_url = company.domain_evidence_url
+                            if crawl_company.domain_match_method != "manual":
+                                crawl_company.domain = company.domain
+                                crawl_company.domain_match_method = company.domain_match_method
+                                crawl_company.domain_evidence_url = company.domain_evidence_url
                         refresh_company_rank(session, crawl_company, now,
                                              fresh_employer_evidence=root_fresh_size_evidence)
                         # Office rows remain searchable, but share the canonical
@@ -868,6 +872,7 @@ def _enqueue_known_sources(session, job, now) -> None:
         if due is None or due > now:
             feed.next_scan_at = now
         scheduled += 1
+    queue_arbeitsagentur_scope(session, job, job.scheduled_for or now)
     job.status = "completed"
     job.stage = "complete"
     job.started_at = job.started_at or now

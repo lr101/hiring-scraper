@@ -9,6 +9,94 @@ from email.utils import parsedate_to_datetime
 from urllib.parse import parse_qs, parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
 
 
+def _smartrecruiters_feed_parts(feed_url, board_url):
+    """Validate the public, tenant-scoped SmartRecruiters postings endpoint."""
+    if not isinstance(feed_url, str) or re.search(r'[\s\x00-\x1f\x7f]', feed_url):
+        raise ValueError('Whitespace or control characters in SmartRecruiters URL')
+    try:
+        parts = urlsplit(feed_url)
+        port = parts.port
+        pairs = parse_qsl(parts.query, keep_blank_values=True, strict_parsing=True)
+    except (ValueError, TypeError) as error:
+        raise ValueError('Invalid SmartRecruiters public postings URL') from error
+    route = re.fullmatch(r'/v1/companies/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/postings', parts.path)
+    board = urlsplit(board_url)
+    board_route = re.fullmatch(r'/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/?', board.path)
+    query = dict(pairs)
+    if (parts.scheme != 'https' or parts.hostname != 'api.smartrecruiters.com' or parts.username or parts.password
+            or port not in (None, 443) or parts.fragment or not route or not board_route
+            or board.scheme != 'https' or board.hostname != 'careers.smartrecruiters.com'
+            or board.port not in (None, 443) or board.username or board.password or board.query or board.fragment
+            or route[1].casefold() != board_route[1].casefold()
+            or len(query) != len(pairs) or set(query) != {'limit', 'offset', 'destination'}
+            or query.get('destination') != 'PUBLIC'
+            or query.get('limit') != '100'
+            or not re.fullmatch(r'0|[1-9][0-9]*', query.get('offset', ''))):
+        raise ValueError('Expected an exact public SmartRecruiters postings URL for this tenant')
+    return parts, query
+
+
+def _fetch_smartrecruiters_pages(client, feed_url, board_url, first_metadata, first_body, request, parts, query):
+    """Enumerate public SmartRecruiters offsets within the client request budget."""
+    metadata = dict(first_metadata)
+    pagination = {'complete': False, 'page_limit': 8, 'pages': [], 'error': None}
+    metadata['pagination'] = pagination
+    jobs, seen = [], set()
+    current_url, page_meta, page_body = feed_url, first_metadata, first_body
+    expected_total = None
+    offset = 0
+    for page_index in range(pagination['page_limit']):
+        evidence = {key: page_meta[key] for key in ('state', 'status', 'capture') if key in page_meta}
+        evidence['url'] = current_url
+        pagination['pages'].append(evidence)
+        if page_meta.get('state') != 'ok' or page_meta.get('status') == 304:
+            pagination['error'] = 'SmartRecruiters continuation failed: ' + str(page_meta.get('error') or page_meta.get('state'))
+            break
+        try:
+            parsed = parse_feed('smartrecruiters', page_body, board_url)
+            data = json.loads(page_body)
+            if data['offset'] != offset:
+                raise ValueError('SmartRecruiters offset did not match the requested page')
+            if expected_total is None:
+                expected_total = data['totalFound']
+            elif data['totalFound'] != expected_total:
+                raise ValueError('SmartRecruiters totalFound changed during pagination')
+        except (ValueError, TypeError, KeyError) as error:
+            pagination['error'] = 'SmartRecruiters schema error: ' + str(error)
+            if page_index == 0:
+                metadata['schema_error'] = str(error)
+            break
+        page_jobs = parsed['jobs']
+        evidence['items'] = len(page_jobs)
+        if expected_total > offset and not page_jobs:
+            pagination['error'] = 'SmartRecruiters pagination made no progress before totalFound'
+            break
+        if any(job['id'] in seen for job in page_jobs):
+            pagination['error'] = 'SmartRecruiters duplicate IDs or non-progress during offset enumeration'
+            break
+        for job in page_jobs:
+            seen.add(job['id'])
+            jobs.append(job)
+        if len(jobs) == expected_total:
+            pagination['complete'] = True
+            break
+        if len(jobs) > expected_total:
+            pagination['error'] = 'SmartRecruiters returned more jobs than totalFound'
+            break
+        if page_index == pagination['page_limit'] - 1:
+            pagination['error'] = 'SmartRecruiters pagination page cap reached'
+            break
+        offset += len(page_jobs)
+        next_query = {**query, 'offset': str(offset)}
+        current_url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(next_query), ''))
+        try:
+            page_meta, page_body = request(current_url)
+        except (OSError, ValueError, TypeError) as error:
+            page_meta, page_body = {'state': 'network_error', 'error': str(error)}, b''
+    metadata['parsed_feed'] = {'jobs': jobs, 'complete': pagination['complete']}
+    return metadata, first_body
+
+
 def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=None, pace=None):
     """Read one feed, retaining the first response and bounded Lever scan evidence.
 
@@ -18,6 +106,7 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
     """
     query = None
     partial = False
+    smartrecruiters_parts = smartrecruiters_query = None
     if provider == 'lever':
         try:
             if not isinstance(feed_url, str) or re.search(r'[\s\x00-\x1f\x7f]', feed_url):
@@ -44,6 +133,13 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
                        or bool(set(query) - {'mode', 'limit', 'skip'}))
         except (ValueError, TypeError) as error:
             return {'url': feed_url, 'state': 'unsupported_api', 'error': str(error)}, b''
+    elif provider == 'smartrecruiters':
+        try:
+            smartrecruiters_parts, smartrecruiters_query = _smartrecruiters_feed_parts(feed_url, board_url)
+            if smartrecruiters_query['offset'] != '0':
+                raise ValueError('A SmartRecruiters scan must start at offset zero')
+        except (ValueError, TypeError) as error:
+            return {'url': feed_url, 'state': 'unsupported_api', 'error': str(error)}, b''
 
     def request(url, headers=None):
         if pace:
@@ -56,6 +152,11 @@ def fetch_feed(client, provider, feed_url, board_url, *, conditional_headers=Non
         return client.get_feed(url, headers) if headers else client.get_feed(url)
 
     metadata, body = request(feed_url, conditional_headers)
+    if provider == 'smartrecruiters':
+        if metadata.get('state') != 'ok' or metadata.get('status') == 304:
+            return metadata, body
+        return _fetch_smartrecruiters_pages(client, feed_url, board_url, metadata, body, request,
+                                             smartrecruiters_parts, smartrecruiters_query)
     if provider != 'lever' or metadata.get('state') != 'ok' or metadata.get('status') == 304:
         return metadata, body
     metadata = dict(metadata)
@@ -578,19 +679,140 @@ def identify(url):
                 provider, board = name, url
                 break
         if host in {'jobs.smartrecruiters.com', 'careers.smartrecruiters.com'} and tenant:
+            try:
+                port = p.port
+            except ValueError:
+                return None
             utilities = {'cdn-cgi', 'external-referrals', 'oneclick-ui'}
+            if (p.scheme != 'https' or p.username or p.password or port not in (None, 443)
+                    or re.search(r'[\s\x00-\x1f\x7f\\]', url)):
+                return None
             if tenant.casefold() in utilities:
                 if (tenant.casefold() not in {'external-referrals', 'oneclick-ui'} or len(parts) != 5
                         or parts[1] != 'company' or parts[3] != 'publication'
-                        or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]*', parts[2])
+                        or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}', parts[2])
                         or parts[2].casefold() in utilities
                         or not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', parts[4])):
                     return None
                 tenant = parts[2]
-            provider, board = 'smartrecruiters', f'https://careers.smartrecruiters.com/{tenant}'
+            if re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}', tenant):
+                provider, board = 'smartrecruiters', f'https://careers.smartrecruiters.com/{tenant}'
+                feed = (f'https://api.smartrecruiters.com/v1/companies/{tenant}/postings'
+                        '?limit=100&offset=0&destination=PUBLIC')
     if not provider:
         return None
     return {'provider':provider, 'tenant':tenant, 'board_url':board, 'feed_url':feed}
+
+
+def _parse_smartrecruiters(body, board_url):
+    board = urlsplit(board_url)
+    tenant_match = re.fullmatch(r'/([A-Za-z0-9][A-Za-z0-9_-]{0,127})/?', board.path)
+    if (board.scheme != 'https' or board.hostname != 'careers.smartrecruiters.com'
+            or board.port not in (None, 443) or board.username or board.password
+            or board.query or board.fragment or not tenant_match):
+        raise ValueError('Expected a canonical SmartRecruiters employer board')
+    tenant = tenant_match[1]
+    data = json.loads(body)
+    if not isinstance(data, dict):
+        raise ValueError('Expected a SmartRecruiters postings result')
+    offset, limit, total = data.get('offset'), data.get('limit'), data.get('totalFound')
+    rows = data.get('content')
+    if (not isinstance(offset, int) or isinstance(offset, bool) or offset < 0
+            or not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 100
+            or not isinstance(total, int) or isinstance(total, bool) or total < 0
+            or not isinstance(rows, list) or len(rows) > limit or offset + len(rows) > total):
+        raise ValueError('Invalid SmartRecruiters offset, limit, totalFound, or content')
+    if total > offset and not rows:
+        # The caller can treat an empty middle page as incomplete; it must not
+        # silently turn this into evidence that the employer has no postings.
+        return {'jobs': [], 'complete': False}
+
+    jobs, seen = [], set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError('Expected a SmartRecruiters posting object')
+        raw_id, title, visibility = row.get('id'), row.get('name'), row.get('visibility')
+        if (not isinstance(raw_id, (str, int)) or isinstance(raw_id, bool)
+                or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,127}', str(raw_id))
+                or not isinstance(title, str) or not title.strip() or visibility != 'PUBLIC'):
+            raise ValueError('Missing stable public SmartRecruiters posting identity or title')
+        job_id = str(raw_id)
+        if job_id in seen:
+            raise ValueError('Duplicate SmartRecruiters posting ID')
+        seen.add(job_id)
+
+        company = row.get('company')
+        if (not isinstance(company, dict) or not isinstance(company.get('identifier'), str)
+                or company['identifier'].casefold() != tenant.casefold()):
+            raise ValueError('SmartRecruiters posting company does not match the configured tenant')
+        company_name = company.get('name')
+        if company_name is not None and not isinstance(company_name, str):
+            raise ValueError('Invalid SmartRecruiters company name')
+        ref = row.get('ref')
+        expected_ref = f'/v1/companies/{tenant}/postings/{job_id}'
+        if not isinstance(ref, str):
+            raise ValueError('Missing SmartRecruiters posting reference')
+        ref_parts = urlsplit(ref)
+        if (ref_parts.scheme != 'https' or ref_parts.hostname != 'api.smartrecruiters.com'
+                or ref_parts.port not in (None, 443) or ref_parts.username or ref_parts.password
+                or ref_parts.path.casefold() != expected_ref.casefold() or ref_parts.query or ref_parts.fragment):
+            raise ValueError('Unexpected SmartRecruiters posting reference')
+
+        location = row.get('location')
+        if location is None:
+            location = {}
+        if not isinstance(location, dict):
+            raise ValueError('Invalid SmartRecruiters location')
+        location_fields = ('city', 'region', 'country', 'fullLocation')
+        if any(location.get(key) is not None and not isinstance(location.get(key), str) for key in location_fields):
+            raise ValueError('Invalid SmartRecruiters location text')
+        for key in ('remote', 'hybrid'):
+            if location.get(key) is not None and not isinstance(location.get(key), bool):
+                raise ValueError('Invalid SmartRecruiters work arrangement')
+        city, region, country = ((location.get(key) or '').strip() for key in ('city', 'region', 'country'))
+        from .html_jobs import _country_code
+        country_code = _country_code(country)
+        country_label = 'Germany' if country_code == 'DE' and len(country) <= 3 else country
+        if country and len(country) <= 3 and country_code and country_code != 'DE':
+            country_label = country_code
+        label = ((location.get('fullLocation') or '').strip()
+                 or ', '.join(value for value in (city, region, country_label) if value))
+        normalized_locations = [{'label': label, **({'country_code': country_code} if country_code else {})}] if label else []
+        arrangement = ('hybrid' if location.get('hybrid') is True else
+                       'remote' if location.get('remote') is True else None)
+
+        def category_label(key):
+            value = row.get(key)
+            if value is None:
+                return None
+            if not isinstance(value, dict):
+                raise ValueError('Invalid SmartRecruiters ' + key)
+            label = value.get('label')
+            if label is not None and not isinstance(label, str):
+                raise ValueError('Invalid SmartRecruiters ' + key + ' label')
+            return label
+
+        employer = {'name': company_name.strip()} if isinstance(company_name, str) and company_name.strip() else None
+        job = {
+            'id': job_id, 'title': title.strip(),
+            'url': f'https://jobs.smartrecruiters.com/{tenant}/{job_id}',
+            'location': label,
+        }
+        _add_metadata(job, {
+            'department': category_label('department'),
+            'employment_type': category_label('typeOfEmployment'),
+            'seniority': category_label('experienceLevel'),
+            'date_posted': _iso_date(row.get('releasedDate')),
+            'work_arrangement': arrangement,
+            'is_remote': True if arrangement == 'remote' else None,
+            'locations': normalized_locations or None,
+            'country_code': country_code,
+            'hiring_organization': employer,
+            'smartrecruiters_ref': ref,
+            'requisition_id': row.get('refNumber') if isinstance(row.get('refNumber'), str) else None,
+        })
+        jobs.append(job)
+    return {'jobs': jobs, 'complete': offset == 0 and len(rows) == total}
 
 
 def parse_feed(provider, body, board_url):
@@ -600,6 +822,8 @@ def parse_feed(provider, body, board_url):
     try:
         if provider == 'rss':
             return _parse_rss(body, board_url)
+        if provider == 'smartrecruiters':
+            return _parse_smartrecruiters(body, board_url)
         if provider == 'telekom':
             board = urlsplit(board_url)
             if (board.scheme != 'https' or board.netloc != 'careers.telekom.com' or

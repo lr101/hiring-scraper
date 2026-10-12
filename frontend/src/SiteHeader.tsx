@@ -25,7 +25,7 @@ export default function SiteHeader({ active }: SiteHeaderProps) {
         { page: 'directory', href: '/', label: 'Companies & jobs', mobile: 'Jobs' },
         { page: 'locations', href: '/locations', label: 'Search areas', mobile: 'Areas' },
         { page: 'profile', href: '/profile', label: 'Your profile', mobile: 'Profile' },
-        { page: 'applications', href: '/applications', label: 'My applications', mobile: 'Applications' },
+        { page: 'applications', href: '/applications', label: 'My applications', mobile: 'Applied' },
         { page: 'feeds', href: '/feeds', label: 'Job feeds', mobile: 'Feeds' },
       ] as const).map(item => <a key={item.page} href={item.href} aria-label={item.label}
         aria-current={active === item.page ? 'page' : undefined} className={active === item.page ? 'active' : ''}>

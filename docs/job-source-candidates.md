@@ -13,6 +13,30 @@ The default feed scanner reads the maintained list in [`default_job_feeds.json`]
 
 These feeds expose an intended RSS reader/embed interface. The scanner retains short feed descriptions and links back to each original vacancy; source content and reuse terms still belong to the publisher. They can be paused in **Job feeds**. Adding an entry to the JSON config creates a new feed on the next worker startup; existing pause state is retained.
 
+## Feed formats and ATS adapters
+
+RSS and Atom are both handled by the same XML feed parser. Other useful public formats in Germany are provider-specific XML and JSON APIs: there is no single cross-company job-feed standard. These adapters are discovered from a company's career URL and then saved as managed job feeds; they are not entries in the two-source RSS defaults.
+
+| Format/provider | Public endpoint pattern | German example to inspect or test |
+|---|---|---|
+| Greenhouse JSON | `boards-api.greenhouse.io/v1/boards/{tenant}/jobs` | [IONOS board](https://job-boards.eu.greenhouse.io/ionos), also used by the existing Greenhouse tests. |
+| Lever JSON | `api.lever.co/v0/postings/{site}` or the EU API host | [Creatio Germany-filtered board](https://jobs.eu.lever.co/creatio?location=Germany); the generic reader retains its existing ten-page safety cap. |
+| Personio XML | `{tenant}.jobs.personio.de/xml` | [cisbox career page](https://cisbox-gmbh.jobs.personio.de/); its public XML feed is `https://cisbox-gmbh.jobs.personio.de/xml`. The XML format is documented by [Personio](https://developer.personio.de/docs/retrieving-open-job-positions). |
+| Recruitee XML | `{tenant}.recruitee.com/api/feeds/offers.xml` | [virtual7 jobs](https://virtual7jobs.recruitee.com/) includes Karlsruhe vacancies; its public XML endpoint follows this pattern. The deterministic parser fixture and endpoint allowlist are in [`test_recruitee.py`](../tests/test_recruitee.py). |
+| Ashby JSON | `api.ashbyhq.com/posting-api/job-board/{board}` | [DeepL board](https://jobs.ashbyhq.com/DeepL); the public posting API is documented by [Ashby](https://developers.ashbyhq.com/docs/public-job-posting-api). |
+| SmartRecruiters JSON | `api.smartrecruiters.com/v1/companies/{companyIdentifier}/postings?limit=100&offset=0&destination=PUBLIC` | [rheindata GmbH board](https://careers.smartrecruiters.com/RheindataGmbH). The new fixture mirrors its public posting shape in [`test_smartrecruiters.py`](../tests/test_smartrecruiters.py). |
+| Telekom JSON | Observed first-party `/api/jobs-proxy/keyword_search` | [Telekom careers](https://careers.telekom.com/de/jobs); this adapter uses a bounded observed endpoint, not a general Telekom API guarantee. |
+
+Greenhouse, Lever, Personio, Recruitee, Ashby, and SmartRecruiters have feed parsers in this repository. A read-only probe on 2026-10-12 returned HTTP 200 and parsed 40 Greenhouse, 98 Lever, 11 Personio, 9 Recruitee, 7 Ashby, and 1 SmartRecruiters posting from the examples above. These counts can change. SmartRecruiters exposes the public postings endpoint and supports `limit`/`offset`; the adapter explicitly requests `destination=PUBLIC`, caps scans at eight pages, and marks a capped or interrupted scan incomplete. It does not request details from per-job APIs. A small read-only SmartRecruiters smoke request is:
+
+```bash
+curl -fsS 'https://api.smartrecruiters.com/v1/companies/RheindataGmbH/postings?limit=100&offset=0&destination=PUBLIC'
+```
+
+Run `mise exec -- uv run python -m unittest tests.test_smartrecruiters` for deterministic adapter, normalization, pagination, and endpoint-allowlist coverage. A tenant with zero public jobs is still a valid board; it simply has no row to use for a visual smoke test.
+
+Workday, SAP SuccessFactors, Softgarden, Helix, Onlyfy, and some custom career platforms are recognized during discovery but do not currently have a generic feed adapter here. Their public interfaces vary by employer or require authenticated/customer-specific contracts, so they remain regular career pages until a safe public contract and representative German fixture are verified. A public HTML page or Schema.org `JobPosting` remains the fallback when it provides parseable jobs.
+
 ## Other accessible feed candidates
 
 | Source | Live probe (2026-10-11) | Why it is not enabled by default |
@@ -28,7 +52,7 @@ These feeds expose an intended RSS reader/embed interface. The scanner retains s
 | Source | Coverage | Current integration notes |
 |---|---|---|
 | [Make it in Germany Jobbörse](https://www.make-it-in-germany.com/de/arbeiten-in-deutschland/jobboerse/job-listings) | Federal government portal for qualified professionals from abroad. | Its official publishing guide says listings are submitted through BA, so expect overlap. Direct HTTP returned no job rows here; headless Chromium received an HTTP 200 challenge page. The scanner records `bot_challenge` and stops the scan. |
-| [Bundesagentur für Arbeit Jobsuche](https://www.arbeitsagentur.de/jobsuche/) | National jobs, training, and internships. | The repository includes an observed, bounded regional search adapter; it stops and records `bot_challenge` if BA returns a bot or CAPTCHA challenge. BA's [HR-BA-XML information](https://www.arbeitsagentur.de/unternehmen/arbeitskraefte/hr-ba-xml-schnittstelle) describes cooperation models for job boards. |
+| [Bundesagentur für Arbeit Jobsuche](https://www.arbeitsagentur.de/jobsuche/) | National jobs, training, and internships. | Selectable as an observed, bounded regional adapter in the regular feed form. It stops and records `bot_challenge` if BA returns a bot or CAPTCHA challenge. BA's [HR-BA-XML information](https://www.arbeitsagentur.de/unternehmen/arbeitskraefte/hr-ba-xml-schnittstelle) describes cooperation models for job boards. |
 | [EURES](https://eures.europa.eu/) | EU-wide vacancy portal, including Germany. | The official privacy statement says activity is logged to detect crawlers and that misuse may trigger investigation. No public feed/API contract suitable for default collection was found; excluded from automatic scanning. |
 | [EURAXESS jobs](https://euraxess.ec.europa.eu/jobs/search) | Research and academic vacancies across Europe, including Germany. | Specialist source with public search filters and results; recurring feed access and extraction have not been validated here. |
 | [INTERAMT](https://karriere.interamt.de/) | Public-service vacancies. | Candidate source; search pages and pagination need a current, policy-aware probe before scheduling. |
@@ -37,11 +61,31 @@ These feeds expose an intended RSS reader/embed interface. The scanner retains s
 
 The Federal Employment Agency also points job seekers to Make it in Germany and EURES in its [official Germany job-search guidance](https://www.arbeitsagentur.de/arbeiten-in-deutschland/jobs-finden). EURAXESS describes its own portal as a research vacancy database, while INTERAMT is the public-service career portal.
 
+### Add a Bundesagentur für Arbeit search
+
+The BA Jobsuche is a query-based search, not a reusable RSS/Atom feed. In **Job feeds**, enter the public Jobsuche URL and select **Agentur für Arbeit · scheduled search** in the regular **Page type** field. You do not enter a separate location filter. Its scheduled scans inherit the discovery scope: a Germany-wide search omits `wo` and `umkreis`; a saved city search such as Karlsruhe passes the city and its configured radius. Job terms are optional. The adapter uses the shared feed scanner and can be paused, edited, or scanned on demand with other sources. Leaving job terms blank uses the built-in German and English role families. A bot or CAPTCHA challenge is shown as the scan reason. Leave the company/source name blank; the page labels the source **Agentur für Arbeit**.
+
+The same opt-in capture is available from the command line. From the project root, use a **new output directory** for each capture:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.regional acquire \
+  --city Karlsruhe --radius-km 35 \
+  --term 'Softwareentwickler' --term 'Data Engineer' \
+  --out /tmp/ba-karlsruhe-capture-1 \
+  --import
+```
+
+Omit `--term` to use the built-in German and English role families. You can also set `--profile-id ID` for a saved profile or `--profile-json path.json` for a JSON object containing `search_area.city`, `search_area.radius_km`, and optionally `search_area.terms`. Repeating `--term` replaces the default role families. The default capture is bounded to three result pages per term, 100 detail reads, 300 total requests, one-second pacing, and two retries; these limits can be adjusted with `--max-pages`, `--max-details`, `--max-requests`, `--delay`, and `--retries`.
+
+`--import` imports the resulting `snapshot.json` into the app database; without it, the JSON capture remains on disk and can later be loaded with `mise exec -- uv run python -m hiring_scraper.app.regional import /path/to/snapshot.json`. Imports are idempotent and do not close a job merely because it is absent from a later selected search. The CLI is a manual capture option; for recurring scans, add the adapter through **Job feeds**. A bot or CAPTCHA challenge stops acquisition and is recorded as the reason.
+
+BA's [HR-BA-XML interface](https://www.arbeitsagentur.de/unternehmen/arbeitskraefte/hr-ba-xml-schnittstelle) is for submitting vacancies into BA from employer/job-board systems under its integration requirements; it is not a public read feed for arbitrary job searches. Use the **Job feeds** adapter or the CLI capture above to fetch a selected BA search.
+
 ## Employer career pages
 
 The existing crawler has previously found accessible career pages for [TelemaxX](https://www.telemaxx.de/ueber-uns/karriere/berufserfahrene), [Ratiodata](https://karriere.ratiodata.de), [Unic](https://www.unic.com/de/jobs), [PTV Group](https://careers.ptvgroup.com/en/jobs/), [Open Experience](https://openexperience.de/de/karriere/), [PLANTA](https://www.planta.de/karriere/), and [Arnotec](https://job.arnotec.de/). These were observed in the dated [Karlsruhe evaluation](../reports/karlsruhe-evaluation.md); recheck them before relying on the same URLs today.
 
-Company pages are usually the best attribution source. The [Landeshauptstadt Stuttgart current vacancies page](https://www.stuttgart.de/rathaus/karriere/fach-und-fuehrungskraefte/aktuelle-stellenangebote) publishes an RSS view and is included in the defaults. The built-in ATS adapters already cover common public boards such as Greenhouse, Lever, Personio, Ashby, and Recruitee. Career discovery now follows linked role families and category/search pages (including Ausbildung, dual study, working-student, and internship paths), up to 24 pages and depth 5 by default. It recognizes `/offer/...` vacancy links and can render up to four relevant JavaScript-driven listing pages per company; those rendered pages are saved as `browser_html` feeds so later scans use the same bounded renderer.
+Company pages are usually the best attribution source. The [Landeshauptstadt Stuttgart current vacancies page](https://www.stuttgart.de/rathaus/karriere/fach-und-fuehrungskraefte/aktuelle-stellenangebote) publishes an RSS view and is included in the defaults. The built-in ATS adapters cover public Greenhouse, Lever, Personio, Ashby, Recruitee, and SmartRecruiters boards. Career discovery now follows linked role families and category/search pages (including Ausbildung, dual study, working-student, and internship paths), up to 24 pages and depth 5 by default. It recognizes `/offer/...` vacancy links and can render up to four relevant JavaScript-driven listing pages per company; those rendered pages are saved as `browser_html` feeds so later scans use the same bounded renderer.
 
 Atruvia illustrates the case: [its career page](https://atruvia.de/karriere) links to professionals, Ausbildung/dual-study, and student sections. The student portal publishes `/offer/...` job cards in its category pages, while some professional job categories need JavaScript rendering to reveal their vacancies. The crawler follows those linked sections and applies the same employer attribution and duplicate handling across the resulting feeds.
 
