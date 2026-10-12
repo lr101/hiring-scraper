@@ -29,15 +29,26 @@ HIRING_APP_IMAGE="$project-app:check"
 HIRING_QUALITY_IMAGE="$project-checks:check"
 APP_BIND=127.0.0.1
 APP_PORT=0
+original_apparmor_userns_setting=''
 printf 'POSTGRES_PASSWORD=%s\nHIRING_DB_PASSWORD=%s\n' \
     "$POSTGRES_PASSWORD" "$HIRING_DB_PASSWORD" > "$env_file"
 compose=(docker compose --env-file "$env_file" --project-name "$project" \
     --file compose.yaml --file compose.ci.yaml)
 
+restore_apparmor_userns_setting() {
+    if [[ -n "$original_apparmor_userns_setting" ]]; then
+        sudo sysctl -w "kernel.apparmor_restrict_unprivileged_userns=$original_apparmor_userns_setting"
+        original_apparmor_userns_setting=''
+    fi
+}
+
 cleanup() {
     local status=$1 container_id
     trap - EXIT
     set +e
+    if ! restore_apparmor_userns_setting; then
+        status=1
+    fi
     "${compose[@]}" ps --all > "$results_dir/$project-services.log" 2>&1
     "${compose[@]}" logs --no-color > "$results_dir/$project-stack.log" 2>&1
     while IFS= read -r container_id; do
@@ -60,7 +71,16 @@ trap 'exit 143' TERM
 "${compose[@]}" config --quiet
 "${compose[@]}" build --pull quality app 2>&1 | tee "$results_dir/$project-build.log"
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
+if [[ "${HIRING_CI_ALLOW_CHROMIUM_USERNS:-}" == "1" &&
+      -r /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]]; then
+    current_apparmor_userns_setting=$(</proc/sys/kernel/apparmor_restrict_unprivileged_userns)
+    if [[ "$current_apparmor_userns_setting" == "1" ]]; then
+        original_apparmor_userns_setting=$current_apparmor_userns_setting
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    fi
+fi
 "${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
+restore_apparmor_userns_setting
 # The CI override disables live crawl workers while keeping the production app image.
 "${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app
 "${compose[@]}" run --rm --no-deps smoke 2>&1 | tee "$results_dir/$project-smoke.log"

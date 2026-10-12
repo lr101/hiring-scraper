@@ -37,6 +37,8 @@ jobs:
           python3 scripts/ci/release_notes.py --tag "$RELEASE_TAG"
 
       - name: Test, build, and smoke test in Docker
+        env:
+          HIRING_CI_ALLOW_CHROMIUM_USERNS: "1"
         run: ./scripts/ci/run.sh
 
       - name: Upload check logs
