@@ -958,10 +958,9 @@ def extract_html_jobs(body: bytes | str, page_url: str) -> dict:
             apply = apply or form_apply
             vacancy_marker = any(re.search(r"(?:^|[ _-])vacancy(?:$|[ _-])", parent.attrs.get("class", ""), re.I)
                                  for parent in _ancestors(h1_node))
-            confirmed = ((apply or vacancy_marker) and 0 < len(h1) <= 150 and
-                         h1.casefold() not in _GENERIC_HEADINGS)
+            detail_context = _detail_description(h1_node) or ""
+            confirmed = (_candidate_title(h1) and (apply or vacancy_marker or len(detail_context) >= 30))
             if confirmed and not _INITIATIVE_APPLICATION.search(h1) and not _TALENT_POOL.search(h1):
-                detail_context = _detail_description(h1_node) or ""
                 job = _job(h1, page_url, "softgarden_job_detail" if softgarden_id else "html_job_detail", detail_context, location=_leading_location(detail_context),
                            description=detail_context or None, application_email=_application_email(detail_context))
                 if softgarden_id:

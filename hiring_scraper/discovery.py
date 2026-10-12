@@ -346,8 +346,9 @@ def discover(seed, client, max_pages=24, max_depth=5):
                 queue.clear()
                 break
         if not fallbacks_added:
-            for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
-                enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
+            if not any(provider.get('feed_url') for provider in info.get('ats', [])):
+                for path in ['/sitemap.xml','/karriere','/careers','/jobs']:
+                    enqueue(urljoin(final,path), 3 if path.endswith('.xml') else 1, 1,final,'fallback')
             fallbacks_added = True
         text = body.decode('utf-8',errors='replace')
         if method == 'sitemap' or urlsplit(final).path.endswith('.xml'):
@@ -519,8 +520,10 @@ def discover(seed, client, max_pages=24, max_depth=5):
             # even when both links use generic "Jobs" labels.
             if _hostname_has_brand(_normalized_host(candidate['url']), _brand_tokens(seed.get('name', ''))):
                 score += 20
-            if JOB_LISTING_PATH.search(path):
-                score += 24
+            if JOB_DETAIL_PATH.search(path):
+                score += 20
+            elif JOB_LISTING_PATH.search(path):
+                score += 8
             enqueue(candidate['url'],score,depth+1,final,'link')
     if unconfirmed_role_candidates:
         result['unconfirmed_role_candidates'] = unconfirmed_role_candidates
