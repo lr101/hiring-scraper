@@ -14,6 +14,8 @@ SOCIAL = ('linkedin.com','xing.com','instagram.com','facebook.com','youtube.com'
 JOB_DETAIL_PATH = re.compile(r'(?:^|/)(?:jobs?|jobangebote?|stellenangebot|stellenanzeige|vacanc(?:y|ies)|position|offers?)/[^/]+', re.I)
 JOB_LISTING_PATH = re.compile(r'(?:^|/)(?:jobs?|jobangebote?|stellenangebote?|jobsuche|job[-_]?(?:search|listings?)|search|category|categories|alle-jobs|all-jobs|open-positions|vacanc(?:y|ies))(?:/|$)', re.I)
 APPLICATION_PATH = re.compile(r'(?:^|/)(?:apply|application|bewerbung)(?:/|$)', re.I)
+NON_JOB_SECTION_PATH = re.compile(
+    r'(?:^|/)(?:faq|faqs|frequently-asked-questions|benefits|arbeitswelt|culture|team|about-us|ueber-uns)(?:/|$)', re.I)
 STRONG_JOB_LINK = re.compile(
     r'jobsuche|job[-\s]?search|job\s+listings?|vacanc(?:y|ies)|stellen(?:aus)?schreib|'
     r'stellenangebote?|offene\s+stellen|current\s+(?:jobs?|vacanc)|open\s+positions|'
@@ -182,8 +184,9 @@ def inspect_page(url, source, preferred_locations=None):
         job_detail = bool(JOB_DETAIL_PATH.search(target_path))
         application_route = bool(APPLICATION_PATH.search(target_path)) or bool(
             re.search(r'(?:^|[?&])gh_jid=\d+(?:&|$)', urlsplit(target).query, re.I))
+        non_job_section = bool(NON_JOB_SECTION_PATH.search(target_path))
         strong_job_link = bool(STRONG_JOB_LINK.search(path_label))
-        job_listing = bool(JOB_LISTING_PATH.search(target_path) and
+        job_listing = bool(not non_job_section and JOB_LISTING_PATH.search(target_path) and
                            (CAREER.search(path_label) or CAREER.search(url) or strong_job_link))
         score = (100 if provider else 92 if job_detail or application_route else 96 if job_listing else
                  86 if strong_job_link else

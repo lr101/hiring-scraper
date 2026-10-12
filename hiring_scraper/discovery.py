@@ -9,7 +9,8 @@ import xml.etree.ElementTree as ET
 from urllib.parse import urljoin, urlsplit, urlunsplit
 from .ats import fetch_feed, identify, parse_feed
 from .html_jobs import extract_html_jobs, html_job_key
-from .pages import CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, clean_url, inspect_page
+from .pages import (CAREER, JOB_DETAIL_PATH, JOB_LISTING_PATH, NON_JOB_SECTION_PATH,
+                    clean_url, inspect_page)
 
 MAX_BROWSER_RENDER_PAGES = 4
 BROWSER_RENDER_REQUEST_LIMIT = 16
@@ -517,7 +518,7 @@ def discover(seed, client, max_pages=24, max_depth=5):
                 score += 20
             if JOB_DETAIL_PATH.search(path):
                 score += 20
-            elif JOB_LISTING_PATH.search(path):
+            elif JOB_LISTING_PATH.search(path) and not NON_JOB_SECTION_PATH.search(path):
                 score += 8
             enqueue(candidate['url'],score,depth+1,final,'link')
     if unconfirmed_role_candidates:
@@ -582,7 +583,7 @@ def discover(seed, client, max_pages=24, max_depth=5):
             result['status'] = 'jobs_extracted'
     if result['status'] not in {'jobs_feed_found','jobs_extracted'}:
         if any(p.get('classification') in {'career_content','jobposting'} and
-               p.get('html_extraction_trust') != 'unverified_external_source' for p in result['pages']):
+               trusted_html_source(seed, p, result['pages']) for p in result['pages']):
             result['status']='career_content_found'
         elif result['boards']:
             result['status']='ats_identified'
