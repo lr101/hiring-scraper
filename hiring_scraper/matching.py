@@ -155,6 +155,7 @@ LANGUAGE_EXPECTED_FOLLOWING = re.compile(
     r'^\s*(?:'
     r'\(\s*(?:mind(?:estens)?|min(?:imum)?|at\s+least|A1|A2|B1|B2|C1|C2|'
     r'native(?:\s+speaker)?|mother\s+tongue|first\s+language|muttersprache\w*|muttersprachlich\w*)\b\.?|'
+    r'[-,.;:!?/()\[\]{}](?!\w)|'
     r'(?:[- ]speaking\b(?!\s+(?:markets?|marketplace|märkte?|markt\w*)))|'
     r'(?:language|communication|skills?|proficiency|fluency|knowledge|command|ability|'
     r'written|spoken|oral|verbal|speaking|speaker|'
@@ -462,7 +463,7 @@ def _requirement_clauses(sentence: str) -> list[str]:
     # qualifier must stay with the whole list when deciding the outer scope.
     barriers = re.split(r'\b(?:but|aber|jedoch)\b|\s+[-–]\s+(?=(?:gute|good|fluent|fließende)\s+(?:englisch|english|deutsch|german))', sentence, flags=re.I)
     clauses = [clause for barrier in barriers for clause in split_scoped(
-        barrier, r',\s*(?!(?:both\s+)?(?:written|spoken|oral|verbal|schriftlich|mündlich|in\s+wort\s+und\s+schrift)\b)')]
+        barrier, r',(?!\s*(?:(?:A1|A2|B1|B2|C1|C2)\b|(?:both\s+)?(?:written|spoken|oral|verbal|schriftlich|mündlich|in\s+wort\s+und\s+schrift)\b))\s*')]
     parts = [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
     for marker, original in protected.items():
         parts = [part.replace(marker, original) for part in parts]

@@ -496,6 +496,14 @@ class CvMatchingTests(unittest.TestCase):
         self.assertFalse(result['eligible'])
         self.assertTrue(any('German C1' in conflict for conflict in result['conflicts']))
 
+    def test_punctuation_separated_language_levels_remain_explicit(self):
+        for wording in ('German - C1 required', 'German: C1 required',
+                        'German, C1 required', 'German / C1 required'):
+            with self.subTest(wording=wording):
+                enriched = enrich_job({'title': 'Project Manager', 'description': wording})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1'})
+
     def test_preferred_degree_specialty_and_optional_english_do_not_remove_mandatory_base(self):
         job = {'title': 'Technischer Projektleiter', 'description':
                'Ihr Profil:\n- Elektrotechnik: Studium der Elektrotechnik, bevorzugt im Bereich Energie- oder Automatisierungstechnik, alternativ eine Weiterbildung zum staatlich geprüften Techniker der Elektrotechnik\n'
