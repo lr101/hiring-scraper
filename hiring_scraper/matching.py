@@ -384,8 +384,24 @@ def _requirement_clauses(sentence: str) -> list[str]:
         protected[marker] = match.group()
         sentence = sentence[:match.start()] + marker + sentence[match.end():]
 
-    def split_scoped(text: str, separator: str) -> list[str]:
-        parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
+    def split_scoped(text: str, separator: str | None) -> list[str]:
+        if separator is None:
+            parts = []
+            cursor = 0
+            for match in re.finditer(r',\s*', text):
+                following = text[match.end():]
+                if re.match(r'(?:(?:both)\s+)?(?:written|spoken|oral|verbal|schriftlich|mündlich|in\s+wort\s+und\s+schrift)\b', following, re.I):
+                    continue
+                level = re.match(r'(?:A1|A2|B1|B2|C1|C2)\b', following, re.I)
+                if level and not any(pattern.match(following[level.end():].lstrip())
+                                     for pattern in LANGUAGE_PATTERNS.values()):
+                    continue
+                parts.append(text[cursor:match.start()].strip())
+                cursor = match.end()
+            parts.append(text[cursor:].strip())
+            parts = [part for part in parts if part]
+        else:
+            parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
         if not parts:
             return []
 
@@ -462,8 +478,7 @@ def _requirement_clauses(sentence: str) -> list[str]:
     # Resolve clause boundaries before splitting coordinated lists: their trailing
     # qualifier must stay with the whole list when deciding the outer scope.
     barriers = re.split(r'\b(?:but|aber|jedoch)\b|\s+[-–]\s+(?=(?:gute|good|fluent|fließende)\s+(?:englisch|english|deutsch|german))', sentence, flags=re.I)
-    clauses = [clause for barrier in barriers for clause in split_scoped(
-        barrier, r',(?!\s*(?:(?:A1|A2|B1|B2|C1|C2)\b|(?:both\s+)?(?:written|spoken|oral|verbal|schriftlich|mündlich|in\s+wort\s+und\s+schrift)\b))\s*')]
+    clauses = [clause for barrier in barriers for clause in split_scoped(barrier, None)]
     parts = [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
     for marker, original in protected.items():
         parts = [part.replace(marker, original) for part in parts]
@@ -526,7 +541,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b\s*$', before[-15:], re.I)
                     if not level and not non_language_tail:
                         level = re.search(r'\b(?:native(?:\s+speaker)?|mother tongue|first language|muttersprache\w*|muttersprachlich\w*)\s*(?:of|in)?\s*$', before[-40:], re.I)
-                    level_value = level.group().upper() if level else None
+                    level_value = level.group().strip().upper() if level else None
                     level_value = ('NATIVE' if level_value and level_value != 'NATIVE' and
                                    not re.fullmatch(r'A1|A2|B1|B2|C1|C2', level_value) else level_value)
                     info = {'level': level_value, 'inferred': False, 'range': None} if level_value else None
