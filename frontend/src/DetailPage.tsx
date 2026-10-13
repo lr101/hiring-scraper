@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import SiteHeader from './SiteHeader'
-import JobEvidence from './JobEvidence'
+import JobEvidence, { languageRequirementLabel } from './JobEvidence'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import ApplicationStatusControl from './ApplicationStatusControl'
 import type { Application } from './applications'
@@ -225,8 +225,16 @@ function CompanyPage({ company }: { company: Company }) {
 }
 
 function JobPage({ job }: { job: Job }) {
-  const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
+  const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : null)
   const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
+  const languageRequirements = job.enrichment.languages.map(row =>
+    `${row.value}${languageRequirementLabel(row)}`,
+  ).join(' · ')
+  const employerType = typeof job.raw_metadata.employer_type === 'string' &&
+    job.raw_metadata.employer_type !== 'unverified_employer'
+    ? job.raw_metadata.employer_type === 'agency' ? 'Staffing / recruitment agency'
+      : job.raw_metadata.employer_type.replaceAll('_', ' ')
+    : null
   const providerLabels: Record<string, string> = {
     greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
     schema_org: 'Company job page', html_jobs: 'Company job page', arbeitsagentur: 'Bundesagentur für Arbeit job listing',
@@ -249,20 +257,21 @@ function JobPage({ job }: { job: Job }) {
     <section className="detail-panel job-detail-panel">
         <p className="eyebrow">JOB DETAILS</p>
       <div className="metadata-grid">
-        <Meta label="WORK LOCATION" value={job.location_text || job.locations.map(item => item.label).join(' · ') || 'Not listed'} />
+        <Meta label="WORK LOCATION" value={job.location_text || job.locations.map(item => item.label).join(' · ')} />
         <Meta label="WORK STYLE" value={arrangement} />
-        <Meta label="EMPLOYMENT TYPE" value={job.employment_type || 'Not listed'} />
-        <Meta label="HOURS" value={job.schedule || 'Not listed'} />
-        <Meta label="TEAM" value={job.department || 'Not listed'} />
-        <Meta label="EXPERIENCE LEVEL" value={job.seniority || 'Not listed'} />
-        <Meta label="POSTED" value={formatDate(job.date_posted)} />
+        <Meta label="EMPLOYMENT TYPE" value={job.employment_type} />
+        <Meta label="HOURS" value={job.schedule} />
+        <Meta label="TEAM" value={job.department} />
+        <Meta label="EXPERIENCE LEVEL" value={job.seniority} />
+        <Meta label="LANGUAGE REQUIREMENTS" value={languageRequirements} />
+        <Meta label="POSTED" value={job.date_posted ? formatDate(job.date_posted) : null} />
         <Meta label="LAST SEEN" value={formatDate(job.last_seen_at)} />
-        <Meta label="SOURCE DEADLINE" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : 'Not listed'} />
-        <Meta label="REMOTE COUNTRY ELIGIBILITY" value={job.remote_country_codes?.join(', ') || (job.is_remote ? 'Not stated — check with employer' : 'Not a fully remote role')} />
-        <Meta label="EMPLOYER TYPE" value={job.raw_metadata.employer_type === 'agency' ? 'Staffing / recruitment agency' : 'Employer relationship not independently verified'} />
+        <Meta label="SOURCE DEADLINE" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : null} />
+        <Meta label="REMOTE COUNTRY ELIGIBILITY" value={job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : null} />
+        <Meta label="EMPLOYER TYPE" value={employerType} />
         <Meta label="FIRST SEEN" value={formatDate(job.first_seen_at)} />
-        <Meta label="SALARY" value={job.salary || 'Not listed'} />
-        <Meta label="LOCATION DETAIL" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ') || 'Not provided'} />
+        <Meta label="SALARY" value={job.salary} />
+        <Meta label="LOCATION DETAIL" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ')} />
       </div>
       {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
     </section>
@@ -270,6 +279,8 @@ function JobPage({ job }: { job: Job }) {
   </>
 }
 
-function Meta({ label, value }: { label: string; value: string }) {
-  return <div className="meta-item"><span>{label}</span><strong>{value}</strong></div>
+function Meta({ label, value }: { label: string; value?: string | null }) {
+  const displayValue = value?.trim()
+  if (!displayValue || /^(?:not listed|not found|not provided|not specified|unknown|n\/a|none)$/i.test(displayValue)) return null
+  return <div className="meta-item"><span>{label}</span><strong>{displayValue}</strong></div>
 }
