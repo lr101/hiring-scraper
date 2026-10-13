@@ -21,6 +21,15 @@ type DiscoveryJob = {
   failed_count: number; jobs_found: number; progress_percent: number
   companies_found: number; homepages_found: number; error?: string | null
 }
+type ActiveWorker = {
+  id: string; kind: 'location_search' | 'company_crawl' | 'homepage_lookup' | 'job_feed_scan'
+  title: string; activity: string; context: string | null; started_at: string | null
+}
+type GermanyMapProgress = {
+  status: string; stage: string; complete: boolean; states_completed: number
+  current_state_number: number | null; states_total: number; sections_saved: number
+  companies_found: number; websites_found: number; scheduled_for: string | null; error: string | null
+}
 
 function runStatus(status: string) {
   const labels: Record<string, string> = {
@@ -37,12 +46,37 @@ function runStep(stage: string) {
       : 'Finished'
 }
 
+function isActiveGermanyInventoryJob(job: DiscoveryJob) {
+  return job.search_scope === 'country' && ['queued', 'running', 'scheduled'].includes(job.status)
+    && ['company_homepage_discovery', 'career_page_discovery'].includes(job.stage)
+}
+
 function dateTime(value: string | null) {
   if (!value) return 'Not scheduled'
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en', {
     dateStyle: 'medium', timeStyle: 'short',
   }).format(date)
+}
+
+function isGermanyBetweenSections(job: DiscoveryJob) {
+  return job.search_scope === 'country' && job.stage === 'company_homepage_discovery'
+    && job.status === 'scheduled' && Boolean(job.started_at) && !job.error
+}
+
+function germanySearchStatus(job: DiscoveryJob) {
+  if (job.status === 'queued') return 'Search waiting to start'
+  if (job.status === 'running') return 'Search working now'
+  if (isGermanyBetweenSections(job)) return `Search continuing · next map section ${dateTime(job.scheduled_for)}`
+  if (job.error) return `Map search issue · retry scheduled ${dateTime(job.scheduled_for)}`
+  return `Search scheduled · ${dateTime(job.scheduled_for)}`
+}
+
+function germanySearchBadge(job: DiscoveryJob) {
+  if (job.status === 'queued') return 'QUEUED'
+  if (job.status === 'running' || isGermanyBetweenSections(job)) return 'SEARCHING'
+  if (job.error) return 'RETRYING'
+  return 'SCHEDULED'
 }
 
 function errorMessage(payload: { detail?: string }, fallback: string) {
@@ -52,6 +86,8 @@ function errorMessage(payload: { detail?: string }, fallback: string) {
 export default function LocationsPage() {
   const [locations, setLocations] = useState<ConfiguredLocation[]>([])
   const [jobs, setJobs] = useState<DiscoveryJob[]>([])
+  const [activeWorkers, setActiveWorkers] = useState<ActiveWorker[]>([])
+  const [germanyMapProgress, setGermanyMapProgress] = useState<GermanyMapProgress | null>(null)
   const [query, setQuery] = useState('')
   const [searchScope, setSearchScope] = useState<'radius' | 'state' | 'country'>('country')
   const [states, setStates] = useState<string[]>([])
@@ -63,6 +99,7 @@ export default function LocationsPage() {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [cancellingJobId, setCancellingJobId] = useState<number | null>(null)
+  const [workerActivityUnavailable, setWorkerActivityUnavailable] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -76,14 +113,26 @@ export default function LocationsPage() {
   }, [])
 
   const refresh = useCallback(async () => {
-    const [locationResponse, jobResponse] = await Promise.all([
+    const [locationResponse, jobResponse, workerResponse] = await Promise.all([
       fetch(apiUrl('/api/v1/locations')),
       fetch(apiUrl('/api/v1/discovery-jobs?limit=50')),
+      fetch(apiUrl('/api/v1/active-workers')).catch(() => null),
     ])
     if (!locationResponse.ok || !jobResponse.ok) throw new Error('Could not load saved locations and search progress.')
     const [locationData, jobData] = await Promise.all([locationResponse.json(), jobResponse.json()])
     setLocations(locationData.items)
     setJobs(jobData.items)
+    try {
+      if (!workerResponse?.ok) throw new Error('Could not load active worker status.')
+      const workerData = await workerResponse.json()
+      setActiveWorkers(workerData.items)
+      setGermanyMapProgress(workerData.germany_map_progress ?? null)
+      setWorkerActivityUnavailable(false)
+    } catch {
+      setActiveWorkers([])
+      setGermanyMapProgress(null)
+      setWorkerActivityUnavailable(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -220,9 +269,11 @@ export default function LocationsPage() {
     }
   }
 
-  const runningJobs = jobs.filter(job => ['queued', 'running'].includes(job.status))
-  const scheduledJobs = jobs.filter(job => job.status === 'scheduled')
+  const currentJobs = jobs.filter(job => ['queued', 'running'].includes(job.status) || isGermanyBetweenSections(job))
+  const scheduledJobs = jobs.filter(job => job.status === 'scheduled' && !isGermanyBetweenSections(job))
   const recentJobs = jobs.filter(job => ['completed', 'partial', 'failed', 'cancelled'].includes(job.status)).slice(0, 8)
+  const germanyInventoryJob = jobs.find(isActiveGermanyInventoryJob)
+  const comingUpLocations = locations.filter(location => location.enabled && location.search_scope !== 'country')
 
   return <div className="app-shell">
     <SiteHeader active="locations" />
@@ -302,12 +353,13 @@ export default function LocationsPage() {
             {locations.map(location => <article className="configured-location-card" key={location.id}>
               <div className="configured-location-top">
                 <span className="location-card-pin" aria-hidden="true">⌖</span>
-                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? 'RANKED' : location.enabled ? 'REPEATS' : 'PAUSED'}</span>
+                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? germanyInventoryJob ? germanySearchBadge(germanyInventoryJob) : 'RANKED' : location.enabled ? 'REPEATS' : 'PAUSED'}</span>
               </div>
               <h3>{location.city || location.label.split(',')[0]}</h3>
               <p className="configured-location-label">{location.state || location.postcode || location.label}</p>
               <div className="location-card-meta"><span>{location.search_scope === 'country' ? 'All Germany' : location.search_scope === 'state' ? 'Whole state' : `Within ${location.radius_km} km`}</span><span>{location.search_scope === 'country' ? 'Continuous ranked checks' : `Every ${location.interval_days} days`}</span></div>
               <p className="next-run-label">{location.search_scope === 'country' ? 'Company page checks' : 'Next search'} <strong>{location.search_scope === 'country' ? 'Rank based' : location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
+              {location.search_scope === 'country' && germanyInventoryJob && <p className="country-search-status" role="status"><span className="status-dot" />{germanySearchStatus(germanyInventoryJob)}</p>}
               <a className="configure-locations-link" href={location.search_scope === 'country' ? `/?country=DE&location_key=saved:${location.id}` : location.search_scope === 'state'
                 ? `/?state=${encodeURIComponent(location.state || location.label)}&location_key=saved:${location.id}`
                 : `/?lat=${location.latitude}&lon=${location.longitude}&radius_km=${location.radius_km}&place=${encodeURIComponent(location.city || location.label)}&location_key=saved:${location.id}`}>
@@ -324,6 +376,18 @@ export default function LocationsPage() {
 
       <p className="location-setup-note">Source postings checked includes existing postings and roles at other locations. Local searches filter by work location; Germany and state searches show postings from employers discovered in that area, across all work locations. Expired postings are excluded from results.</p>
 
+      <section className="worker-activity-section">
+        <div className="section-heading">
+          <div><p className="eyebrow">LIVE WORK</p><h2>Active workers</h2></div>
+          <span className="refresh-indicator"><span className="status-dot" /> {workerActivityUnavailable ? 'Worker status unavailable' : `${activeWorkers.length} active · updates every few seconds`}</span>
+        </div>
+        {germanyMapProgress && <GermanyMapCoverage progress={germanyMapProgress} states={states} />}
+        {workerActivityUnavailable ? <div className="empty-activity">Live worker status is temporarily unavailable.</div>
+          : activeWorkers.length ? <div className="active-worker-grid">
+          {activeWorkers.map(worker => <ActiveWorkerCard key={worker.id} worker={worker} />)}
+        </div> : <div className="empty-activity">No discovery worker is running a task right now.</div>}
+      </section>
+
       <section className="crawl-activity-section">
         <div className="section-heading">
           <div><p className="eyebrow">SEARCH ACTIVITY</p><h2>Current and upcoming searches</h2></div>
@@ -331,21 +395,21 @@ export default function LocationsPage() {
         </div>
         <div className="activity-grid">
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Current searches</h3><span>{runningJobs.length}</span></div>
-            {runningJobs.length ? runningJobs.map(job => <JobProgressCard key={job.id} job={job}
+            <div className="activity-column-heading"><h3>Current searches</h3><span>{currentJobs.length}</span></div>
+            {currentJobs.length ? currentJobs.map(job => <JobProgressCard key={job.id} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)
-              : <div className="empty-activity">No searches are running. Start one from a saved location.</div>}
+              : <div className="empty-activity">No searches are active. Start one from a saved location.</div>}
           </article>
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + locations.filter(location => location.enabled && location.search_scope !== 'country').length}</span></div>
+            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + comingUpLocations.length}</span></div>
             {scheduledJobs.map(job => <ScheduledJobCard key={`job-${job.id}`} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)}
-            {locations.filter(location => location.enabled && location.search_scope !== 'country').map(location => <div className="scheduled-location" key={`location-${location.id}`}>
+            {comingUpLocations.map(location => <div className="scheduled-location" key={`location-${location.id}`}>
               <span className="scheduled-icon" aria-hidden="true">◷</span>
               <span><strong>{location.city || location.label}</strong><small>Repeats · {location.search_scope === 'country' ? 'all Germany' : location.search_scope === 'state' ? 'whole state' : `within ${location.radius_km} km`} · {location.search_scope === 'country' ? 'continuous ranked checks' : `every ${location.interval_days} days`}</small></span>
               <time>{dateTime(location.next_run_at)}</time>
             </div>)}
-            {!scheduledJobs.length && !locations.some(location => location.enabled) && <div className="empty-activity">Nothing is scheduled.</div>}
+            {!scheduledJobs.length && !comingUpLocations.length && <div className="empty-activity">Nothing is scheduled.</div>}
           </article>
         </div>
       </section>
@@ -356,41 +420,103 @@ export default function LocationsPage() {
           <span><strong>{job.label}</strong><small>{runStep(job.stage)} · {dateTime(job.created_at)}</small></span>
           <span className={`history-status history-${job.status}`}>{runStatus(job.status)}</span>
           <span>{job.companies_found} companies · {job.homepages_found} websites</span>
-          <span>{job.jobs_found} source postings checked</span>
+          <span>{job.jobs_found} jobs found</span>
         </div>)}</div> : <div className="empty-activity">Finished searches will appear here.</div>}
       </section>
     </main>
   </div>
 }
 
+function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress; states: string[] }) {
+  const complete = progress.complete
+  const currentStateNumber = progress.current_state_number ?? progress.states_total
+  const currentState = states[currentStateNumber - 1] || `State ${currentStateNumber}`
+  const mapping = progress.status === 'running' && progress.stage === 'company_homepage_discovery'
+  const stopped = !complete && ['failed', 'partial', 'cancelled', 'completed'].includes(progress.status)
+  const retrying = progress.status === 'scheduled' && Boolean(progress.error)
+  const title = complete ? 'Map inventory complete'
+    : mapping ? `Mapping ${currentState}`
+      : stopped ? `Map stopped after ${progress.states_completed} states`
+        : `Map saved through ${progress.states_completed} states`
+  const statusLabel = complete ? 'MAP SAVED'
+    : mapping ? 'MAPPING NOW'
+      : retrying ? 'RETRYING'
+        : progress.status === 'scheduled' ? 'NEXT SECTION SCHEDULED'
+          : progress.status === 'queued' ? 'WAITING TO START'
+            : stopped ? progress.status === 'failed' ? 'MAP FAILED'
+              : progress.status === 'cancelled' ? 'CANCELLED' : 'STOPPED'
+              : 'WAITING TO START'
+  const detail = complete ? 'Germany’s map inventory is saved; ranked company website checks continue.'
+    : mapping ? `State ${currentStateNumber} of ${progress.states_total} · each completed map section is saved before the next one runs.`
+      : retrying ? `State ${currentStateNumber} is next · retry scheduled ${dateTime(progress.scheduled_for)}.`
+        : progress.status === 'scheduled' ? `State ${currentStateNumber} is next · the saved map continues ${dateTime(progress.scheduled_for)}.`
+          : stopped ? `The map search ${progress.status === 'cancelled' ? 'was cancelled' : progress.status === 'failed' ? 'failed' : 'stopped'} after saving ${progress.sections_saved} sections.`
+            : 'The saved Germany map will continue when a worker is available.'
+  return <article className="germany-map-coverage" aria-label="Germany map coverage">
+    <div className="germany-map-coverage-heading">
+      <div><span className="coverage-kicker">GERMANY MAP COVERAGE</span><strong>{title}</strong></div>
+      <span className="coverage-live"><span className="status-dot" />{statusLabel}</span>
+    </div>
+    <div className="coverage-metrics">
+      <div><strong>{progress.states_completed}<span> / {progress.states_total}</span></strong><small>states completed</small></div>
+      <div><strong>{progress.sections_saved}</strong><small>map sections saved</small></div>
+      <div><strong>{progress.companies_found}</strong><small>companies mapped</small></div>
+      <div><strong>{progress.websites_found}</strong><small>websites found</small></div>
+    </div>
+    <p>{detail}</p>
+  </article>
+}
+
+function ActiveWorkerCard({ worker }: { worker: ActiveWorker }) {
+  const elapsed = elapsedLabel(worker.started_at)
+  const labels: Record<ActiveWorker['kind'], string> = {
+    location_search: 'LOCATION SEARCH',
+    company_crawl: 'COMPANY DISCOVERY',
+    homepage_lookup: 'WEBSITE LOOKUP',
+    job_feed_scan: 'JOB FEED SCAN',
+  }
+  return <article className="active-worker-card">
+    <div className="active-worker-meta"><span>{labels[worker.kind]}</span>{elapsed && <time>Running {elapsed}</time>}</div>
+    <h3>{worker.title}</h3>
+    <p>{worker.activity}</p>
+    {worker.context && <small>{worker.context}</small>}
+  </article>
+}
+
 function JobProgressCard({ job, onCancel, cancellingJobId }: {
   job: DiscoveryJob; onCancel: () => void; cancellingJobId: number | null
 }) {
   const waiting = job.status === 'queued'
+  const germanyBetweenSections = isGermanyBetweenSections(job)
   const findingCompanies = job.stage === 'company_homepage_discovery' && job.status === 'running'
   const firstStepFailed = job.stage === 'company_homepage_discovery' && job.status === 'failed'
   const foundNoHomepages = job.stage === 'complete' && job.candidate_total === 0
   const elapsed = elapsedLabel(waiting ? job.created_at : job.progress_updated_at || job.started_at)
   const progressMessage = waiting
     ? `Waiting for the search service${elapsed ? ` · ${elapsed} elapsed` : ''}`
-    : `${job.progress_message || (findingCompanies ? 'Searching nearby map listings' : runStep(job.stage))}${elapsed ? ` · ${elapsed} in this step` : ''}`
+    : germanyBetweenSections
+      ? `${job.progress_message || 'Germany search is between map sections'} · Next section ${dateTime(job.scheduled_for)}`
+      : `${job.progress_message || (findingCompanies ? 'Searching nearby map listings' : runStep(job.stage))}${elapsed ? ` · ${elapsed} in this step` : ''}`
+  const indeterminate = findingCompanies || waiting || germanyBetweenSections
   return <div className="job-progress-card">
     <div className="job-progress-top"><strong>{job.label}</strong><div className="job-progress-actions">
-      <span className={`job-state job-state-${job.status}`}>{runStatus(job.status)}</span>
+      <span className={`job-state ${germanyBetweenSections ? 'job-state-continuing' : `job-state-${job.status}`}`}>{germanyBetweenSections ? 'Continuing' : runStatus(job.status)}</span>
       <button type="button" className="cancel-search-button" disabled={cancellingJobId !== null}
         onClick={onCancel}>{cancellingJobId === job.id ? 'Cancelling…' : 'Cancel search'}</button>
     </div></div>
     <small>{runStep(job.stage)} · {job.search_scope === 'country' ? 'all Germany' : job.search_scope === 'state' ? 'whole state' : `within ${job.radius_km} km`}</small>
-    <div className={`progress-track ${findingCompanies ? 'is-indeterminate' : ''} ${waiting ? 'is-waiting' : ''}`} role="progressbar" aria-label={runStep(job.stage)} aria-valuemin={0} aria-valuemax={100} {...(findingCompanies || waiting ? { 'aria-valuetext': progressMessage } : { 'aria-valuenow': job.progress_percent })}>
-      <span style={findingCompanies || waiting ? undefined : { width: `${job.progress_percent}%` }} />
+    <div className={`progress-track ${findingCompanies ? 'is-indeterminate' : ''} ${waiting || germanyBetweenSections ? 'is-waiting' : ''}`} role="progressbar" aria-label={runStep(job.stage)} aria-valuemin={0} aria-valuemax={100} {...(indeterminate ? { 'aria-valuetext': progressMessage } : { 'aria-valuenow': job.progress_percent })}>
+      <span style={indeterminate ? undefined : { width: `${job.progress_percent}%` }} />
     </div>
-    <div className="progress-caption">{findingCompanies || waiting
+    <div className="progress-caption">{indeterminate
       ? <span>{progressMessage}</span>
       : firstStepFailed ? <span>The company and website search could not be completed.</span>
         : foundNoHomepages ? <span>Company and website search finished.</span>
           : <><span>{progressMessage}</span><strong>{job.processed_count} of {job.candidate_total} checked · {job.progress_percent}%</strong></>}</div>
     {waiting && hasWaitedTooLong(job.created_at) && <p className="progress-wait-note">This search has not started yet. It will begin when the search service is available.</p>}
-    <div className="progress-results"><span>{job.companies_found} companies found</span><span>{job.homepages_found} websites found</span><span>{job.jobs_found} source postings checked</span></div>
+    {germanyBetweenSections && <p className="progress-wait-note">The Germany search will continue automatically at the scheduled time.</p>}
+    <div className="progress-results"><span>{job.companies_found} companies found</span><span>{job.homepages_found} websites found</span><span>{job.jobs_found} jobs found</span></div>
+    {job.search_scope === 'country' && <a className="job-results-link" href="/?country=DE&amp;view=jobs">Browse Germany job results</a>}
     {job.error && <p className="job-error">We couldn’t finish this search. Try again later.</p>}
   </div>
 }
@@ -398,9 +524,10 @@ function JobProgressCard({ job, onCancel, cancellingJobId }: {
 function ScheduledJobCard({ job, onCancel, cancellingJobId }: {
   job: DiscoveryJob; onCancel: () => void; cancellingJobId: number | null
 }) {
+  const retryingGermany = job.search_scope === 'country' && Boolean(job.error)
   return <div className="scheduled-location">
     <span className="scheduled-icon" aria-hidden="true">◷</span>
-    <span><strong>{job.label}</strong><small>One-time search · {job.search_scope === 'country' ? 'all Germany' : job.search_scope === 'state' ? 'whole state' : `within ${job.radius_km} km`}</small></span>
+    <span><strong>{job.label}</strong><small>{retryingGermany ? 'Retry scheduled after a temporary map search issue · all Germany' : `One-time search · ${job.search_scope === 'country' ? 'all Germany' : job.search_scope === 'state' ? 'whole state' : `within ${job.radius_km} km`}`}</small></span>
     <time>{dateTime(job.scheduled_for)}</time>
     <button type="button" className="cancel-search-button" disabled={cancellingJobId !== null}
       onClick={onCancel}>{cancellingJobId === job.id ? 'Cancelling…' : 'Cancel search'}</button>
