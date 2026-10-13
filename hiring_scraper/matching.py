@@ -15,7 +15,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v14'
+VERSION = 'rules-v17'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -92,17 +92,202 @@ ROLE_GROUPS = [
 # Immutable role groups make bounded query membership caching safe.
 ROLE_GROUPS = tuple(tuple(group) for group in ROLE_GROUPS)
 OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschenswert|bevorzugt|von vorteil|a plus|not required|nicht erforderlich', re.I)
-REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|voraussetzung|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
+REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|needs?|need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|vorausgesetzt\w*|voraussetzung\w*|notwendig\w*|müssen\w*|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
 NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
 QUANTIFIED_SCRIPTING_LIST = re.compile(
     r'\bmindestens eine dieser Skriptsprachen\s*\(([^()\n]{1,300})\)', re.I)
 CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
 LANGUAGE_PATTERNS = {
-    'German': re.compile(r'\b(?:german|deutsch(?:kenntnisse)?)\b', re.I),
-    'English': re.compile(r'\b(?:english|englisch(?:kenntnisse)?)\b', re.I),
-    'French': re.compile(r'\b(?:french|französisch(?:kenntnisse)?)\b', re.I),
-    'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnisse)?)\b', re.I),
+    'German': re.compile(r'\b(?:german|deutsch(?:kenntnis(?:se)?)?)\b', re.I),
+    'English': re.compile(r'\b(?:english|englisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'French': re.compile(r'\b(?:french|französisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Spanish': re.compile(r'\b(?:spanish|spanisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Italian': re.compile(r'\b(?:italian|italienisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Dutch': re.compile(r'\b(?:dutch|niederländisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Portuguese': re.compile(r'\b(?:portuguese|portugiesisch(?:kenntnis(?:se)?)?)\b', re.I),
+    # English "polish" is also a common verb; keep the demonym capitalized.
+    'Polish': re.compile(r'\b(?:Polish|Polnisch|polnisch(?:e[nrs]?|kenntnis(?:se)?)?)\b'),
+    'Russian': re.compile(r'\b(?:russian|russisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Turkish': re.compile(r'\b(?:turkish|türkisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Arabic': re.compile(r'\b(?:arabic|arabisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Chinese': re.compile(r'\b(?:chinese|mandarin|cantonese|chinesisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Japanese': re.compile(r'\b(?:japanese|japanisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Korean': re.compile(r'\b(?:korean|koreanisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Ukrainian': re.compile(r'\b(?:ukrainian|ukrainisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Greek': re.compile(r'\b(?:greek|griechisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Czech': re.compile(r'\b(?:czech|tschechisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Swedish': re.compile(r'\b(?:swedish|schwedisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Danish': re.compile(r'\b(?:danish|dänisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Norwegian': re.compile(r'\b(?:norwegian|norwegisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Finnish': re.compile(r'\b(?:finnish|finnisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Romanian': re.compile(r'\b(?:romanian|rumänisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Hungarian': re.compile(r'\b(?:hungarian|ungarisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Hebrew': re.compile(r'\b(?:hebrew|hebräisch(?:kenntnis(?:se)?)?)\b', re.I),
+    'Hindi': re.compile(r'\b(?:hindi|hindisch(?:kenntnis(?:se)?)?)\b', re.I),
 }
+LANGUAGE_LEVEL = re.compile(r'\b(?:A1|A2|B1|B2|C1|C2|native(?:\s+speaker)?|mother tongue|first language|muttersprache\w*|muttersprachlich\w*)\b', re.I)
+LANGUAGE_FLUENCY = re.compile(
+    r'\b(?:fluent|fluently|fluency|fließend\w*|fliessend\w*|verhandlungssicher\w*|native|mother tongue|'
+    r'muttersprache\w*|muttersprachlich\w*|(?:very\s+)?good(?:\s+(?:command|knowledge|language skills?))?|'
+    r'(?:sehr\s+)?gut\w*(?:\s+\w*)?kenntnis(?:se)?|ausgezeichnet\w*(?:\s+\w*)?kenntnis(?:se)?|'
+    r'excellent|advanced|fortgeschritten\w*|conversational|konversationssicher\w*|proficient|'
+    r'working knowledge|solide\w*|sicher\w*|basic|grundkenntnis(?:se)?|elementary|beginner|very\s+good)\b', re.I)
+LANGUAGE_QUALITATIVE_LEVELS = (
+    (re.compile(r'\b(?:verhandlungssicher\w*|business[- ]fluent|near[- ]native|near native|full professional proficiency|native[- ]level)\b', re.I), 'C1', 'C2'),
+    (re.compile(r'\b(?:very\s+good|sehr\s+gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fließend\w*|fliessend\w*|advanced|fortgeschritten\w*|proficient|strong\s+(?:command|knowledge|language skills?)|exceptional\s+(?:command|knowledge))\b', re.I), 'B2', 'C1'),
+    (re.compile(r'\b(?:good|gut\w*|conversational|konversationssicher\w*|working knowledge|professional working proficiency|intermediate|mittelstufe|solide\w*|sicher\w*)\b', re.I), 'B1', 'B2'),
+    (re.compile(r'\b(?:basic|grundkenntnis(?:se)?|basiskenntnis(?:se)?|elementary|beginner|anfängerkenntnis(?:se)?)\b', re.I), 'A1', 'A2'),
+)
+LANGUAGE_APPLICANT_CUE = re.compile(
+    r'\b(?:you\s+(?:speak|are fluent|have|possess)|sie\s+(?:sprechen|verfügen)|'
+    r'du\s+(?:sprichst|verfügst)|your\s+language skills?|deine?\s+sprachkenntnisse|'
+    r'ihre?\s+sprachkenntnisse|ability\s+to\s+(?:communicate|write|speak)|'
+    r'(?:written|spoken|oral|verbal)\s+(?:language|communication)\s+skills?|'
+    r'(?:language|communication)\s+skills?\s+(?:in|with)|'
+    r'(?:schriftlich|mündlich)\w*\s+(?:kommunizieren|kommunikationsfähigkeit|sprachkenntnisse))\b', re.I)
+LANGUAGE_WRITTEN = re.compile(r'\b(?:written|in writing|schriftlich\w*|schriftliche[nrms]?|schriftliches)\b', re.I)
+LANGUAGE_SPOKEN = re.compile(r'\b(?:spoken|oral|verbal|verbally|mündlich\w*|mündliche[nrms]?|mündliches)\b', re.I)
+LANGUAGE_MODALITY_PHRASE = re.compile(
+    r'\b(?:(?:written|spoken|oral|verbal)\s*(?:and|&|/|as well as)\s*'
+    r'(?:written|spoken|oral|verbal)|in\s+wort\s+und\s+schrift|'
+    r'mündlich\w*\s+und\s+schriftlich\w*|schriftlich\w*\s+und\s+mündlich\w*)\b', re.I)
+LANGUAGE_EXPECTED_FOLLOWING = re.compile(
+    r'^\s*(?:'
+    r'\(\s*(?:mind(?:estens)?|min(?:imum)?|at\s+least|A1|A2|B1|B2|C1|C2|'
+    r'native(?:\s+speaker)?|mother\s+tongue|first\s+language|muttersprache\w*|muttersprachlich\w*)\b\.?|'
+    r'[-,.;:!?/()\[\]{}](?!\w)|'
+    r'(?:[- ]speaking\b(?!\s+(?:markets?|marketplace|märkte?|markt\w*)))|'
+    r'(?:language|communication|skills?|proficiency|fluency|knowledge|command|ability|'
+    r'written|spoken|oral|verbal|speaking|speaker|'
+    r'schriftlich\w*|mündlich\w*|sprachlich\w*|kenntnis\w*|sprachniveau|'
+    r'native|mother\s+tongue|first\s+language|'
+    r'A1|A2|B1|B2|C1|C2|'
+    r'very|good|sehr|gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fließend\w*|fliessend\w*|'
+    r'advanced|fortgeschritten\w*|proficient|conversational|konversationssicher\w*|'
+    r'working|solide\w*|sicher\w*|basic|grundkenntnis\w*|elementary|beginner|'
+    r'for|to|in|with|at|on|of|by|as|für|mit|zu|im|am|zur|zum|von|'
+    r'and|or|und|oder|is|are|required|mandatory|essential|necessary|needed|'
+    r'erforderlich|notwendig|pflicht|preferred|preferably|wünschenswert'
+    r')\b)', re.I)
+
+
+def _qualitative_language_level(text: str) -> tuple[str, list[str]] | None:
+    """Return a conservative CEFR floor and the wording's estimated range."""
+    for pattern, minimum, maximum in LANGUAGE_QUALITATIVE_LEVELS:
+        if pattern.search(text):
+            return minimum, [minimum, maximum]
+    return None
+
+
+def _language_modality(text: str) -> str | None:
+    if LANGUAGE_MODALITY_PHRASE.search(text):
+        return 'written_and_spoken'
+    written = bool(LANGUAGE_WRITTEN.search(text))
+    spoken = bool(LANGUAGE_SPOKEN.search(text))
+    if written and spoken:
+        return 'written_and_spoken'
+    if written:
+        return 'written'
+    if spoken:
+        return 'spoken'
+    return None
+
+
+def _merge_language_modalities(first: str | None, second: str | None) -> str | None:
+    if first == 'written_and_spoken' or second == 'written_and_spoken':
+        return 'written_and_spoken'
+    modes = {mode for mode in (first, second) if mode}
+    if modes == {'written', 'spoken'}:
+        return 'written_and_spoken'
+    return next(iter(modes), None)
+
+
+def _language_level_label(language: dict) -> str:
+    name = language['value']
+    level_range = language.get('level_range')
+    if language.get('level_inferred') and isinstance(level_range, list) and len(level_range) == 2:
+        return f'{name} estimated {level_range[0]}–{level_range[1]}'
+    level = language.get('level')
+    return f'{name} {level}' if level else f'{name} fluency'
+
+
+def _language_modifier_segments(before: str, after: str, *, has_next_language: bool) -> tuple[str, str]:
+    """Keep modifiers on their side of a language list's conjunction boundary."""
+    separator = r'\b(?:and|und|or|oder)\b|,'
+    before = before[-70:]
+    after = after[:70]
+    if not LANGUAGE_MODALITY_PHRASE.search(before):
+        before = re.split(separator, before, flags=re.I)[-1]
+    if not LANGUAGE_MODALITY_PHRASE.search(after):
+        after_separator = separator if has_next_language else r'\b(?:and|und|or|oder)\b'
+        after = re.split(after_separator, after, maxsplit=1, flags=re.I)[0]
+    return before, after
+
+
+def _direct_language_requirement(before: str, after: str) -> bool:
+    before_required = re.search(
+        r'\b(?:require(?:s|d)?|need(?:s|ed)?|must(?:\s+have)?)\s*'
+        r'(?:(?:written|spoken|oral|verbal|sprachlich\w*|schriftlich\w*|mündlich\w*)'
+        r'(?:\s+(?:and|&|/)\s*(?:written|spoken|oral|verbal|sprachlich\w*|schriftlich\w*|mündlich\w*))?\s*)?$',
+        before, re.I)
+    after_language_target = re.match(
+        r'\s*(?:language(?:\s+(?:skills?|proficiency|knowledge|fluency))?\b|'
+        r'communication(?:\s+skills?)?\b|speakers?\b|'
+        r'(?:skills?|proficiency|knowledge|fluency)\b|'
+        r'(?:written|spoken|oral|verbal|sprachlich\w*|schriftlich\w*|mündlich\w*)\b|'
+        r'in\s+(?:writing|wort\s+und\s+schrift)\b|'
+        r'(?:A1|A2|B1|B2|C1|C2)\b|'
+        r'(?:for|to)\s+(?:written|spoken|oral|verbal|communication|communicat\w*|'
+        r'writing|speaking|work(?:ing)?\s+with)\b)', after, re.I)
+    after_is_empty = bool(re.fullmatch(r'\s*[.!?,;:)]*\s*', after))
+    before_required = bool(before_required and (after_is_empty or after_language_target))
+    after_required = re.match(
+        r'\s*(?:(?:language|communication|writing|speaking|speakers?|ability)\s+|'
+        r'(?:written|spoken|oral|verbal|sprachlich\w*|schriftlich\w*|mündlich\w*)'
+        r'(?:\s+(?:and|&|/)\s*(?:written|spoken|oral|verbal|sprachlich\w*|schriftlich\w*|mündlich\w*))?\s+|'
+        r'(?:skills?|proficiency|knowledge|fluency)\s+|'
+        r'in\s+(?:writing|wort\s+und\s+schrift)\s+)*'
+        r'(?:(?:is|are)\s+)?(?:required|mandatory|essential|necessary|needed|pflicht|erforderlich|notwendig)\b',
+        after, re.I)
+    after_requirement_noun = re.match(r'\s*(?:is\s+)?a\s+requirement\b', after, re.I)
+    return bool(before_required or after_required or after_requirement_noun)
+
+
+def _bare_language_clause(clause: str, language_hits: list[tuple[str, re.Match]]) -> bool:
+    remainder = clause
+    for _, hit in reversed(language_hits):
+        remainder = remainder[:hit.start()] + remainder[hit.end():]
+    return not re.sub(r'[\s,.;:()\[\]{}\-–—&/]+', '', remainder)
+
+
+def _ambiguous_language_mention(language: str, clause: str, found: re.Match) -> bool:
+    if language == 'Polish' and re.match(
+            r'\s+(?:up|off|out|your|the|a|an|my|our|their|this|that|these|those)\b',
+            clause[found.end():], re.I):
+        return True
+    return False
+
+
+def _language_modifier_evidence(text: str) -> bool:
+    return bool(LANGUAGE_LEVEL.search(text) or LANGUAGE_FLUENCY.search(text) or
+                LANGUAGE_APPLICANT_CUE.search(text) or LANGUAGE_WRITTEN.search(text) or
+                LANGUAGE_SPOKEN.search(text) or LANGUAGE_MODALITY_PHRASE.search(text))
+
+
+def _shared_language_requirement(clause: str, language_hits: list[tuple[str, re.Match]]) -> bool:
+    """Recognize a requirement attached to a plain list of languages only."""
+    if len(language_hits) < 2:
+        return False
+    for (_, left), (_, right) in zip(language_hits, language_hits[1:]):
+        connector = clause[left.end():right.start()]
+        if re.fullmatch(r'\s*(?:and|und|or|oder|,|/)\s*', connector, re.I):
+            continue
+        modified_list_item = re.match(r'\s*(?:and|und|or|oder|,|/)\s*(.+?)\s*$', connector, re.I)
+        if not modified_list_item or not _language_modifier_evidence(modified_list_item.group(1)):
+            return False
+    after_last = clause[language_hits[-1][1].end():]
+    return (_direct_language_requirement('', after_last) or
+            _direct_language_requirement(clause[:language_hits[0][1].start()], after_last))
 
 
 def plain_text(value) -> str:
@@ -191,14 +376,46 @@ def _requirement_clauses(sentence: str) -> list[str]:
     # requirements or detach an optional qualifier from the end of the clause.
     protected = {}
     for index, match in reversed(list(enumerate(_quantified_scripting_lists(sentence)))):
-        marker = f'\ue000{index}\ue001'
+        marker = f'\ue000q{index}\ue001'
         protected[marker] = match.group(1)
         sentence = sentence[:match.start(1)] + marker + sentence[match.end(1):]
+    for index, match in reversed(list(enumerate(LANGUAGE_MODALITY_PHRASE.finditer(sentence)))):
+        marker = f'\ue000m{index}\ue001'
+        protected[marker] = match.group()
+        sentence = sentence[:match.start()] + marker + sentence[match.end():]
 
-    def split_scoped(text: str, separator: str) -> list[str]:
-        parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
+    def split_scoped(text: str, separator: str | None) -> list[str]:
+        if separator is None:
+            parts = []
+            cursor = 0
+            for match in re.finditer(r',\s*', text):
+                following = text[match.end():]
+                if re.match(r'(?:(?:both)\s+)?(?:written|spoken|oral|verbal|schriftlich|mündlich|in\s+wort\s+und\s+schrift)\b', following, re.I):
+                    continue
+                level = re.match(r'(?:A1|A2|B1|B2|C1|C2)\b', following, re.I)
+                if level and not any(pattern.match(following[level.end():].lstrip())
+                                     for pattern in LANGUAGE_PATTERNS.values()):
+                    continue
+                parts.append(text[cursor:match.start()].strip())
+                cursor = match.end()
+            parts.append(text[cursor:].strip())
+            parts = [part for part in parts if part]
+        else:
+            parts = [part.strip() for part in re.split(separator, text, flags=re.I) if part.strip()]
         if not parts:
             return []
+
+        def language_scoped(part: str) -> bool:
+            return (any(pattern.search(part) for pattern in LANGUAGE_PATTERNS.values()) and
+                    bool(LANGUAGE_LEVEL.search(part) or LANGUAGE_FLUENCY.search(part) or
+                         LANGUAGE_APPLICANT_CUE.search(part) or
+                         LANGUAGE_WRITTEN.search(part) or LANGUAGE_SPOKEN.search(part)))
+
+        def has_language_requirement(part: str) -> bool:
+            hits = sorted((match for pattern in LANGUAGE_PATTERNS.values()
+                           if (match := pattern.search(part))), key=lambda match: match.start())
+            return bool(hits and _direct_language_requirement(part[:hits[0].start()], part[hits[-1].end():]))
+
         # Group language-list members from their trailing qualifier before
         # an earlier independent scope can absorb an unqualified member.
         for index in range(len(parts) - 2, -1, -1):
@@ -208,12 +425,49 @@ def _requirement_clauses(sentence: str) -> list[str]:
             if (any(pattern.fullmatch(member) for pattern in LANGUAGE_PATTERNS.values()) and
                     following_scoped and any(pattern.search(following) for pattern in LANGUAGE_PATTERNS.values())):
                 parts[index:index + 2] = [parts[index] + ' and ' + following]
+        # Group a qualified language list from its final shared requirement
+        # suffix before the left-to-right scope pass can detach early items.
+        if (has_language_requirement(parts[-1]) and
+                not (OPTIONAL.search(parts[-1]) or NON_REQUIREMENT.search(parts[-1]))):
+            chain_start = len(parts) - 1
+            while chain_start > 0:
+                previous = parts[chain_start - 1]
+                current = parts[chain_start]
+                if (not language_scoped(previous) or not language_scoped(current) or
+                        OPTIONAL.search(previous) or NON_REQUIREMENT.search(previous) or
+                        OPTIONAL.search(current) or NON_REQUIREMENT.search(current)):
+                    break
+                chain_start -= 1
+            if chain_start < len(parts) - 1:
+                parts[chain_start:] = [' and '.join(parts[chain_start:])]
+
         clauses = []
         current = parts[0]
         for part in parts[1:]:
             current_scoped = OPTIONAL.search(current) or REQUIREMENT.search(current) or NON_REQUIREMENT.search(current)
             part_scoped = OPTIONAL.search(part) or REQUIREMENT.search(part) or NON_REQUIREMENT.search(part)
-            if current_scoped and part_scoped:
+            current_language_scoped = language_scoped(current)
+            part_language_scoped = language_scoped(part)
+            current_language_match = min(
+                (match for pattern in LANGUAGE_PATTERNS.values()
+                 if (match := pattern.search(current))),
+                key=lambda match: match.start(), default=None)
+            leading_language_requirement = bool(current_language_match and re.search(
+                r'\b(?:require(?:s|d)?|need(?:s|ed)?|must(?:\s+have)?)\b',
+                current[:current_language_match.start()], re.I))
+            separately_scoped = ((current_scoped and part_scoped) or
+                                 (current_language_scoped and part_language_scoped) or
+                                 (leading_language_requirement and
+                                  bool(OPTIONAL.search(part) or NON_REQUIREMENT.search(part))))
+            preserve_leading_language_list = (leading_language_requirement and
+                                              current_language_scoped and part_language_scoped and
+                                              not (OPTIONAL.search(part) or NON_REQUIREMENT.search(part)))
+            preserve_shared_language_requirement = (current_language_scoped and part_language_scoped and
+                                                    has_language_requirement(part) and
+                                                    not (OPTIONAL.search(current) or NON_REQUIREMENT.search(current)) and
+                                                    not (OPTIONAL.search(part) or NON_REQUIREMENT.search(part)))
+            if separately_scoped and not (preserve_leading_language_list or
+                                           preserve_shared_language_requirement):
                 clauses.append(current)
                 current = part
             else:
@@ -224,7 +478,7 @@ def _requirement_clauses(sentence: str) -> list[str]:
     # Resolve clause boundaries before splitting coordinated lists: their trailing
     # qualifier must stay with the whole list when deciding the outer scope.
     barriers = re.split(r'\b(?:but|aber|jedoch)\b|\s+[-–]\s+(?=(?:gute|good|fluent|fließende)\s+(?:englisch|english|deutsch|german))', sentence, flags=re.I)
-    clauses = [clause for barrier in barriers for clause in split_scoped(barrier, r',\s*')]
+    clauses = [clause for barrier in barriers for clause in split_scoped(barrier, None)]
     parts = [part for clause in clauses for part in split_scoped(clause, r'\b(?:and|und)\b')]
     for marker, original in protected.items():
         parts = [part.replace(marker, original) for part in parts]
@@ -249,8 +503,6 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
         r'(?:at least|minimum|min\.?|mindestens)\s*(\d{1,2})\s*(?:years?|jahren?)|'
         r'(\d{1,2})\+\s*years?|'
         r'(\d{1,2})\s*(?:years?|jahre?)\s+(?:of\s+)?[\w -]{0,55}?(?:experience|erfahrung))', re.I)
-    fluency_term = re.compile(r'\b(?:fluent|fluency|fließend\w*|fliessend\w*|verhandlungssicher\w*)\b', re.I)
-    implicit_fluency = re.compile(r'\b(?:fluent|fließende[nrsm]?|fliessende[nrsm]?|verhandlungssichere[nrsm]?)\s+(?:german|deutsch(?:kenntnisse)?|english|englisch(?:kenntnisse)?|french|französisch(?:kenntnisse)?|spanish|spanisch(?:kenntnisse)?)\b', re.I)
     for source, text in texts:
         if source == 'title':
             continue
@@ -270,22 +522,61 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         experience = _evidence(int(next(group for group in exp.groups() if group)), clause, exp, source)
                 language_hits = sorted(((name, hit) for name, pattern in LANGUAGE_PATTERNS.items()
                                         if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
-                levels = []
+                level_info = []
+                non_language_tail_info = []
                 for index, (language, found) in enumerate(language_hits):
                     next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(clause)
                     previous_end = language_hits[index - 1][1].end() if index else 0
                     after = clause[found.end():next_start]
+                    non_language_tail = bool(after.strip() and
+                                             not LANGUAGE_EXPECTED_FOLLOWING.match(after))
+                    non_language_tail_info.append(non_language_tail)
                     before = clause[previous_end:found.start()]
-                    level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b', after[:28], re.I)
+                    modifier_before, modifier_after = _language_modifier_segments(
+                        before, after, has_next_language=index + 1 < len(language_hits))
+                    level = None if non_language_tail else LANGUAGE_LEVEL.search(after[:40])
                     if level and re.search(r'\b(?:and|und|or|oder)\b', after[:level.start()], re.I):
                         level = None
-                    if not level:
+                    if not level and not non_language_tail:
                         level = re.search(r'\b(?:A1|A2|B1|B2|C1|C2)\b\s*$', before[-15:], re.I)
-                    levels.append(level.group().upper() if level else None)
+                    if not level and not non_language_tail:
+                        level = re.search(r'\b(?:native(?:\s+speaker)?|mother tongue|first language|muttersprache\w*|muttersprachlich\w*)\s*(?:of|in)?\s*$', before[-40:], re.I)
+                    level_value = level.group().strip().upper() if level else None
+                    level_value = ('NATIVE' if level_value and level_value != 'NATIVE' and
+                                   not re.fullmatch(r'A1|A2|B1|B2|C1|C2', level_value) else level_value)
+                    info = {'level': level_value, 'inferred': False, 'range': None} if level_value else None
+                    if not info:
+                        # Remove the language token while keeping its localized
+                        # modifiers adjacent, so phrases like “strong English
+                        # language skills” retain the “strong language skills” cue.
+                        nearby = f'{modifier_before} {modifier_after}'
+                        estimate = None if non_language_tail else _qualitative_language_level(nearby)
+                        if estimate:
+                            info = {'level': estimate[0], 'inferred': True, 'range': estimate[1]}
+                    level_info.append(info)
+                modality_info = []
+                for index, (language, found) in enumerate(language_hits):
+                    next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(clause)
+                    previous_end = language_hits[index - 1][1].end() if index else 0
+                    modifier_before, modifier_after = _language_modifier_segments(
+                        clause[previous_end:found.start()], clause[found.end():next_start],
+                        has_next_language=index + 1 < len(language_hits))
+                    modality_info.append(_language_modality(
+                        modifier_before + clause[found.start():found.end()] + modifier_after))
                 for index in range(len(language_hits) - 2, -1, -1):
                     connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
-                    if not levels[index] and levels[index + 1] and re.fullmatch(r'\s*(?:and|und|or|oder|,)\s*', connector, re.I):
-                        levels[index] = levels[index + 1]
+                    if not level_info[index] and level_info[index + 1] and re.fullmatch(r'\s*(?:and|und|or|oder|,)\s*', connector, re.I):
+                        level_info[index] = dict(level_info[index + 1])
+                for index in range(len(language_hits) - 1):
+                    connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
+                    if level_info[index] and not level_info[index + 1] and re.fullmatch(r'\s*(?:and|und|,)\s*', connector, re.I):
+                        level_info[index + 1] = dict(level_info[index])
+                    if modality_info[index] and not modality_info[index + 1] and re.fullmatch(r'\s*(?:and|und|,)\s*', connector, re.I):
+                        modality_info[index + 1] = modality_info[index]
+                for index in range(len(language_hits) - 2, -1, -1):
+                    connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
+                    if modality_info[index + 1] and not modality_info[index] and re.fullmatch(r'\s*(?:and|und|,)\s*', connector, re.I):
+                        modality_info[index] = modality_info[index + 1]
                 alternative_groups = {}
                 for index in range(len(language_hits) - 1):
                     connector = clause[language_hits[index][1].end():language_hits[index + 1][1].start()]
@@ -294,21 +585,67 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                             f'{source}:{clause}:{index}'.encode()).hexdigest()[:16]
                         alternative_groups[index] = alternative_groups[index + 1] = group
                 for index, (language, found) in enumerate(language_hits):
-                    level = levels[index]
+                    info = level_info[index]
+                    level = info['level'] if info else None
+                    if _ambiguous_language_mention(language, clause, found):
+                        continue
                     if scope == 'benefits' and not REQUIREMENT.search(clause):
                         continue
-                    if not (level or fluency_term.search(clause)) or not _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(implicit_fluency.search(clause) or re.search(r'\b(?:mind\.|min\.|minimum)\s*(?:A1|A2|B1|B2|C1|C2)\b', clause, re.I)))):
+                    next_start = language_hits[index + 1][1].start() if index + 1 < len(language_hits) else len(clause)
+                    previous_end = language_hits[index - 1][1].end() if index else 0
+                    modifier_before, modifier_after = _language_modifier_segments(
+                        clause[previous_end:found.start()], clause[found.end():next_start],
+                        has_next_language=index + 1 < len(language_hits))
+                    language_context = modifier_before + clause[found.start():found.end()] + modifier_after
+                    applicant_language = (not non_language_tail_info[index] and
+                                          bool(LANGUAGE_APPLICANT_CUE.search(language_context)))
+                    language_fluency = (not non_language_tail_info[index] and
+                                        bool(LANGUAGE_FLUENCY.search(language_context)))
+                    modality_requirement = requirement_section and bool(_language_modality(language_context))
+                    direct_language_requirement = _direct_language_requirement(modifier_before, modifier_after)
+                    if (index + 1 < len(language_hits) and
+                            re.fullmatch(r'\s*[.!?,;:)]*\s*', modifier_after)):
+                        # A requirement verb before the first language cannot
+                        # borrow the empty segment created by the next list item.
+                        direct_language_requirement = _direct_language_requirement('', modifier_after)
+                    language_signal = bool(level or language_fluency or applicant_language or
+                                           modality_requirement or
+                                           direct_language_requirement or
+                                           _shared_language_requirement(clause, language_hits) or
+                                           (requirement_section and _bare_language_clause(clause, language_hits)))
+                    if not language_signal or not _required_context(
+                            clause, explicit=requirement_section or (scope == 'neutral' and language_signal)):
                         continue
                     group = alternative_groups.get(index)
                     previous = next((row for row in languages if row['value'] == language
                                      and row.get('alternative_group') == group), None)
-                    if previous and CEFR_RANK.get(previous.get('level'), 0) >= CEFR_RANK.get(level, 0):
-                        continue
+                    if previous:
+                        previous_rank = CEFR_RANK.get(previous.get('level'), 0)
+                        current_rank = CEFR_RANK.get(level, 0)
+                        explicit_upgrade = (previous_rank == current_rank and previous.get('level_inferred') and
+                                            not (info and info['inferred']))
+                        if previous_rank > current_rank or (previous_rank == current_rank and not explicit_upgrade):
+                            merged_modality = _merge_language_modalities(
+                                previous.get('modality'), modality_info[index])
+                            if merged_modality:
+                                previous['modality'] = merged_modality
+                            continue
+                    previous_modality = previous.get('modality') if previous else None
                     if previous:
                         languages.remove(previous)
                     row = _evidence(language, clause, found, source)
                     row['level'] = level
-                    row['kind'] = 'explicit_cefr' if level else 'fluency'
+                    if info and info['inferred']:
+                        row['level_range'] = info['range']
+                        row['level_inferred'] = True
+                        row['kind'] = 'inferred_level'
+                    else:
+                        row['kind'] = ('explicit_cefr' if level and level != 'NATIVE' else
+                                       'fluency' if language_fluency else 'language_requirement')
+                    modality = modality_info[index]
+                    merged_modality = _merge_language_modalities(previous_modality, modality)
+                    if merged_modality:
+                        row['modality'] = merged_modality
                     if group:
                         row['alternative_group'] = group
                     languages.append(row)
@@ -510,6 +847,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     if enriched['languages'] and not known_languages:
         unknowns.append('Profile languages not provided')
     language_groups = {}
+    language_adjustment = 0
     for index, language in enumerate(enriched['languages']):
         language_groups.setdefault(language.get('alternative_group') or f'mandatory:{index}', []).append(language)
     for group in language_groups.values():
@@ -517,35 +855,52 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         for language in group:
             name = language['value']
             level = language.get('level')
+            inferred_level = bool(language.get('level_inferred'))
+            level_label = _language_level_label(language)
             candidate_level = language_levels.get(name.casefold())
+            level_range = language.get('level_range') or []
+            full_match_level = level_range[-1] if inferred_level and len(level_range) == 2 else level
             if known_languages and name.casefold() not in known_languages:
-                outcomes.append(('conflict', 'Language requested: ' + name))
+                outcomes.append(('conflict', 'Language requested: ' + name, inferred_level))
             elif level and candidate_level in CEFR_RANK and CEFR_RANK[candidate_level] < CEFR_RANK[level]:
-                outcomes.append(('conflict', f'{name} {level} required; profile has {candidate_level}'))
+                outcomes.append(('conflict', f'{level_label} required; profile has {candidate_level}', inferred_level))
+            elif (inferred_level and candidate_level in CEFR_RANK and full_match_level in CEFR_RANK and
+                  CEFR_RANK[candidate_level] < CEFR_RANK[full_match_level]):
+                outcomes.append(('unknown', f'{name} fluency estimated {level_range[0]}–{level_range[1]}; '
+                                 f'profile has {candidate_level}; verify exact level', inferred_level))
             elif level and not candidate_level:
-                outcomes.append(('unknown', f'{name} {level} required; profile level not provided'))
+                outcomes.append(('unknown', f'{level_label} required; profile level not provided', inferred_level))
             elif not level and name.casefold() in known_languages:
-                outcomes.append(('unknown', f'{name} fluency requested; exact level not stated'))
+                if language.get('kind') == 'language_requirement':
+                    outcomes.append(('met', f'{name} listed in profile', inferred_level))
+                else:
+                    outcomes.append(('unknown', f'{name} fluency requested; exact level not stated', inferred_level))
             elif not known_languages:
-                outcomes.append(('unknown', 'Profile languages not provided'))
+                outcomes.append(('unknown', 'Profile languages not provided', inferred_level))
             else:
-                outcomes.append(('met', f'{name} {level or "language"}'))
+                outcomes.append(('met', level_label if level else f'{name} language', inferred_level))
         if len(group) > 1:
             # A satisfied OR option resolves the whole clause. An unverified option
             # prevents hard rejection, while independent mandatory rows still apply.
-            met = next((message for status, message in outcomes if status == 'met'), None)
+            met = next((message for status, message, _ in outcomes if status == 'met'), None)
             if met:
                 reasons.append('Language alternative met: ' + met)
-            elif any(status == 'unknown' for status, _ in outcomes):
-                unknowns.append('Verify language alternative: ' + ' or '.join(message for _, message in outcomes))
+                language_adjustment += 5
+            elif any(status == 'unknown' for status, _, _ in outcomes):
+                unknowns.append('Verify language alternative: ' + ' or '.join(message for _, message, _ in outcomes))
             else:
-                conflicts.append('Language alternatives unmet: ' + ' or '.join(message for _, message in outcomes))
+                conflicts.append('Language alternatives unmet: ' + ' or '.join(message for _, message, _ in outcomes))
+                language_adjustment -= 6 if all(inferred for _, _, inferred in outcomes) else 10
         else:
-            status, message = outcomes[0]
+            status, message, inferred_level = outcomes[0]
             if status == 'conflict':
                 conflicts.append(message)
+                language_adjustment -= 6 if inferred_level else 10
             elif status == 'unknown' and message not in unknowns:
                 unknowns.append(message)
+            elif status == 'met':
+                reasons.append('Language requirement met: ' + message)
+                language_adjustment += 5
     requirement_gaps = []
     gap_penalties = {}
     verified_requirements = []
@@ -661,13 +1016,14 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     elif secondary_roles:
         reasons.extend('Secondary role matches ' + role for role in secondary_roles)
     score = min(100, round(score))
-    # A title-only listing cannot imply a strong fit, even with a matching skill in its title.
-    if enriched['quality'] == 'limited':
-        score = min(score, 60)
     if requirement_gaps:
         # Missing mandatory evidence lowers ranking as well as confidence. Each
         # independent clause counts once, even when it names both a tool/domain.
         score = max(0, min(score, 60) - min(40, sum(gap_penalties.values())))
+    score += max(-20, min(10, language_adjustment))
+    # A title-only listing cannot imply a strong fit, even with matching skills or languages.
+    if enriched['quality'] == 'limited':
+        score = min(score, 60)
     if roles and len(substantive_matches) < 2:
         score = min(score, 85)
     if (roles and substantive_matches and set(substantive_matches) <= {'Customer service', 'Onboarding'}
@@ -676,6 +1032,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         score = min(score, 64)
     if secondary_roles and not roles:
         score = min(score, 59)
+    score = max(0, min(100, score))
     fit_tier = ('unlikely' if conflicts or score < 30 else
                 'recommended' if score >= 65 and enriched['quality'] != 'limited' and not requirement_gaps else
                 'possible')

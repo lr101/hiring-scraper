@@ -496,6 +496,31 @@ class CvMatchingTests(unittest.TestCase):
         self.assertFalse(result['eligible'])
         self.assertTrue(any('German C1' in conflict for conflict in result['conflicts']))
 
+    def test_punctuation_separated_language_levels_remain_explicit(self):
+        for wording in ('German - C1 required', 'German: C1 required',
+                        'German, C1 required', 'German / C1 required'):
+            with self.subTest(wording=wording):
+                enriched = enrich_job({'title': 'Project Manager', 'description': wording})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1'})
+
+    def test_qualitative_german_and_english_levels_are_split_from_one_sentence(self):
+        enriched = enrich_job({'title': 'Project Manager', 'description':
+                               'Du verfügst über sehr gute Deutsch- und gute Englischkenntnisse.'})
+        languages = {row['value']: row for row in enriched['languages']}
+        self.assertEqual(languages['German']['level'], 'B2')
+        self.assertEqual(languages['German']['level_range'], ['B2', 'C1'])
+        self.assertEqual(languages['English']['level'], 'B1')
+        self.assertEqual(languages['English']['level_range'], ['B1', 'B2'])
+
+    def test_optional_language_clause_stays_separate_from_cefr_prefixed_requirement(self):
+        for description in ('English preferred, C1 German required',
+                            'French A2 preferred, C1 German required'):
+            with self.subTest(description=description):
+                enriched = enrich_job({'title': 'Project Manager', 'description': description})
+                self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
+                                 {'German': 'C1'})
+
     def test_preferred_degree_specialty_and_optional_english_do_not_remove_mandatory_base(self):
         job = {'title': 'Technischer Projektleiter', 'description':
                'Ihr Profil:\n- Elektrotechnik: Studium der Elektrotechnik, bevorzugt im Bereich Energie- oder Automatisierungstechnik, alternativ eine Weiterbildung zum staatlich geprüften Techniker der Elektrotechnik\n'
