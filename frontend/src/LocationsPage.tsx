@@ -28,7 +28,7 @@ type ActiveWorker = {
 type GermanyMapProgress = {
   status: string; stage: string; complete: boolean; states_completed: number
   current_state_number: number | null; states_total: number; sections_saved: number
-  companies_found: number; websites_found: number; scheduled_for: string | null
+  companies_found: number; websites_found: number; scheduled_for: string | null; error: string | null
 }
 
 function runStatus(status: string) {
@@ -432,10 +432,30 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
   const currentStateNumber = progress.current_state_number ?? progress.states_total
   const currentState = states[currentStateNumber - 1] || `State ${currentStateNumber}`
   const mapping = progress.status === 'running' && progress.stage === 'company_homepage_discovery'
+  const stopped = !complete && ['failed', 'partial', 'cancelled', 'completed'].includes(progress.status)
+  const retrying = progress.status === 'scheduled' && Boolean(progress.error)
+  const title = complete ? 'Map inventory complete'
+    : mapping ? `Mapping ${currentState}`
+      : stopped ? `Map stopped after ${progress.states_completed} states`
+        : `Map saved through ${progress.states_completed} states`
+  const statusLabel = complete ? 'MAP SAVED'
+    : mapping ? 'MAPPING NOW'
+      : retrying ? 'RETRYING'
+        : progress.status === 'scheduled' ? 'NEXT SECTION SCHEDULED'
+          : progress.status === 'queued' ? 'WAITING TO START'
+            : stopped ? progress.status === 'failed' ? 'MAP FAILED'
+              : progress.status === 'cancelled' ? 'CANCELLED' : 'STOPPED'
+              : 'WAITING TO START'
+  const detail = complete ? 'Germany’s map inventory is saved; ranked company website checks continue.'
+    : mapping ? `State ${currentStateNumber} of ${progress.states_total} · each completed map section is saved before the next one runs.`
+      : retrying ? `State ${currentStateNumber} is next · retry scheduled ${dateTime(progress.scheduled_for)}.`
+        : progress.status === 'scheduled' ? `State ${currentStateNumber} is next · the saved map continues ${dateTime(progress.scheduled_for)}.`
+          : stopped ? `The map search ${progress.status === 'cancelled' ? 'was cancelled' : progress.status === 'failed' ? 'failed' : 'stopped'} after saving ${progress.sections_saved} sections.`
+            : 'The saved Germany map will continue when a worker is available.'
   return <article className="germany-map-coverage" aria-label="Germany map coverage">
     <div className="germany-map-coverage-heading">
-      <div><span className="coverage-kicker">GERMANY MAP COVERAGE</span><strong>{complete ? 'Map inventory complete' : mapping ? `Mapping ${currentState}` : `Map saved through ${progress.states_completed} states`}</strong></div>
-      <span className="coverage-live"><span className="status-dot" />{complete ? 'MAP SAVED' : mapping ? 'MAPPING NOW' : progress.status === 'scheduled' ? 'NEXT SECTION SCHEDULED' : 'WAITING TO START'}</span>
+      <div><span className="coverage-kicker">GERMANY MAP COVERAGE</span><strong>{title}</strong></div>
+      <span className="coverage-live"><span className="status-dot" />{statusLabel}</span>
     </div>
     <div className="coverage-metrics">
       <div><strong>{progress.states_completed}<span> / {progress.states_total}</span></strong><small>states completed</small></div>
@@ -443,7 +463,7 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
       <div><strong>{progress.companies_found}</strong><small>companies mapped</small></div>
       <div><strong>{progress.websites_found}</strong><small>websites found</small></div>
     </div>
-    <p>{complete ? 'Germany’s map inventory is saved; ranked company website checks continue.' : mapping ? `State ${currentStateNumber} of ${progress.states_total} · each completed map section is saved before the next one runs.` : progress.status === 'scheduled' ? `State ${currentStateNumber} is next · the saved map continues ${dateTime(progress.scheduled_for)}.` : 'The saved Germany map will continue when a worker is available.'}</p>
+    <p>{detail}</p>
   </article>
 }
 

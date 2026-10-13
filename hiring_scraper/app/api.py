@@ -822,8 +822,6 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
     items: list[dict[str, Any]] = []
     germany_job = session.scalar(select(DiscoveryJob).where(
         DiscoveryJob.search_scope == "country",
-        DiscoveryJob.stage.in_(("company_homepage_discovery", "career_page_discovery")),
-        DiscoveryJob.status.in_(("scheduled", "queued", "running")),
     ).order_by(DiscoveryJob.created_at.desc(), DiscoveryJob.id.desc()).limit(1))
     germany_map_progress = None
     if germany_job is not None:
@@ -841,6 +839,7 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
             "companies_found": germany_job.companies_found,
             "websites_found": germany_job.homepages_found,
             "scheduled_for": germany_job.scheduled_for.isoformat() if germany_job.scheduled_for else None,
+            "error": germany_job.error,
         }
 
     location_jobs = session.scalars(select(DiscoveryJob).where(
@@ -849,27 +848,37 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
         DiscoveryJob.location_scan_lease_until > now,
     ).order_by(DiscoveryJob.progress_updated_at.desc().nullslast(), DiscoveryJob.id)).all()
     for job in location_jobs:
-        activity = job.progress_message or (
-            "Finding companies and websites" if job.stage == "company_homepage_discovery"
-            else "Checking company websites for jobs")
+        if job.search_scope == "country":
+            cursor = job.map_cursor if isinstance(job.map_cursor, dict) else {}
+            state_number = min(len(GERMAN_STATES), max(0, int(cursor.get("state_index", 0))) + 1)
+            sections_saved = max(0, int(cursor.get("completed_sections", 0)))
+            activity = f"Mapping Germany · state {state_number} of {len(GERMAN_STATES)}"
+            context = f"{sections_saved} map sections saved"
+        elif job.search_scope == "state":
+            activity = f"Searching company listings in {job.state or job.label}"
+            context = "Company and website discovery"
+        else:
+            activity = f"Searching company listings within {job.radius_km:g} km"
+            context = "Company and website discovery"
         items.append({
             "id": f"location:{job.id}",
             "kind": "location_search",
             "title": job.label,
             "activity": activity,
-            "context": ("Germany-wide map inventory" if job.search_scope == "country"
-                        else "Whole-state search" if job.search_scope == "state"
-                        else f"Within {job.radius_km:g} km"),
-            "started_at": (job.progress_updated_at or job.started_at).isoformat()
-            if job.progress_updated_at or job.started_at else None,
+            "context": context,
+            "started_at": job.started_at.isoformat() if job.started_at else None,
         })
 
+    latest_discovery_run_id = (select(func.max(DiscoveryRun.id))
+                               .where(DiscoveryRun.company_id == Company.id)
+                               .correlate(Company).scalar_subquery())
     discovery_rows = session.execute(
         select(DiscoveryRun, Company, DiscoveryJob)
         .join(Company, Company.id == DiscoveryRun.company_id)
         .outerjoin(DiscoveryJobCompany, DiscoveryJobCompany.discovery_run_id == DiscoveryRun.id)
         .outerjoin(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
-        .where(DiscoveryRun.status == "running",
+        .where(DiscoveryRun.id == latest_discovery_run_id,
+               DiscoveryRun.status == "running",
                Company.discovery_lease_until.is_not(None), Company.discovery_lease_until > now)
         .order_by(DiscoveryRun.started_at.desc(), DiscoveryRun.id)
     ).all()
@@ -878,8 +887,8 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
             "id": f"company:{run.id}",
             "kind": "company_crawl",
             "title": company.name,
-            "activity": f"Checking {company.name}'s website for jobs",
-            "context": job.label if job is not None else "Ranked company check",
+            "activity": "Checking the website for job openings",
+            "context": job.label if job is not None else company.domain or "Ranked company check",
             "started_at": run.started_at.isoformat(),
         })
 
@@ -893,16 +902,20 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
             "id": f"homepage:{company.id}",
             "kind": "homepage_lookup",
             "title": company.name,
-            "activity": f"Looking for a verified website for {company.name}",
+            "activity": "Looking for a verified website",
             "context": f"Attempt {company.homepage_resolution_attempts}",
             "started_at": None,
         })
 
+    latest_feed_scan_id = (select(func.max(ScanRun.id))
+                           .where(ScanRun.feed_id == JobFeed.id)
+                           .correlate(JobFeed).scalar_subquery())
     feed_rows = session.execute(
         select(ScanRun, JobFeed, Company)
         .join(JobFeed, JobFeed.id == ScanRun.feed_id)
         .join(Company, Company.id == JobFeed.company_id)
-        .where(ScanRun.status == "running",
+        .where(ScanRun.id == latest_feed_scan_id,
+               ScanRun.status == "running",
                JobFeed.lease_until.is_not(None), JobFeed.lease_until > now)
         .order_by(ScanRun.started_at.desc(), ScanRun.id)
     ).all()
