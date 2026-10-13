@@ -53,6 +53,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
   const [profileId, setProfileId] = useState(() => new URLSearchParams(window.location.search).get('profile_id') ?? '')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [profilesReady, setProfilesReady] = useState(false)
+  const [profileSelectionRequired, setProfileSelectionRequired] = useState(false)
   const [profileError, setProfileError] = useState('')
   const [trackingError, setTrackingError] = useState('')
 
@@ -62,16 +63,30 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
       if (!response.ok) throw new Error('Could not load application profiles.')
       const data = await response.json()
       const requested = new URLSearchParams(window.location.search).get('profile_id')
-      const selected = data.items.find((profile: Profile) => String(profile.id) === requested) ?? data.items[0]
       setProfiles(data.items)
-      setProfileId(selected ? String(selected.id) : '')
+      if (requested) {
+        const selected = data.items.find((profile: Profile) => String(profile.id) === requested)
+        if (selected) {
+          setProfileId(String(selected.id))
+        } else {
+          setProfileId('')
+          setProfileSelectionRequired(data.items.length > 0)
+          setProfileError(data.items.length > 0
+            ? 'The selected application profile is unavailable. Choose a profile to continue.'
+            : 'The selected application profile is unavailable. Details will be shown without application tracking.')
+          if (data.items.length > 0) setLoading(false)
+        }
+      } else {
+        const selected = data.items[0]
+        setProfileId(selected ? String(selected.id) : '')
+      }
       setProfilesReady(true)
     }).catch(reason => { if (!controller.signal.aborted) { setProfileError(reason.message); setProfilesReady(true) } })
     return () => controller.abort()
   }, [])
 
   useEffect(() => {
-    if (!profilesReady) return
+    if (!profilesReady || profileSelectionRequired) return
     let cancelled = false
     setLoading(true)
     setError('')
@@ -106,15 +121,15 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
       .catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : 'Could not load this record.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [id, kind, profileId, profilesReady])
+  }, [id, kind, profileId, profileSelectionRequired, profilesReady])
 
   useEffect(() => {
-    if (!profilesReady) return
+    if (!profilesReady || profileSelectionRequired) return
     const url = new URL(window.location.href)
     if (profileId) url.searchParams.set('profile_id', profileId)
     else url.searchParams.delete('profile_id')
     window.history.replaceState({}, '', url)
-  }, [profileId, profilesReady])
+  }, [profileId, profileSelectionRequired, profilesReady])
 
   const fromApplications = kind === 'job' && new URLSearchParams(window.location.search).get('from') === 'applications'
   const applicationReturnParams = new URLSearchParams(window.location.search)
@@ -132,8 +147,13 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
       <a className="back-link" href={fromApplications ? applicationsBackHref : kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to companies and jobs'}</a>
       {profiles.length > 0 && <div className="detail-profile-context">
         <span>Tracking with</span>
-        {profiles.length > 1 ? <select aria-label="Application profile" value={profileId}
-          onChange={event => setProfileId(event.target.value)}>
+        {profiles.length > 1 || profileSelectionRequired ? <select aria-label="Application profile" value={profileId}
+          onChange={event => {
+            setProfileId(event.target.value)
+            setProfileSelectionRequired(false)
+            setProfileError('')
+          }}>
+          {profileSelectionRequired && <option value="">Choose a profile</option>}
           {profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}
         </select> : <strong>{profiles[0].name}</strong>}
       </div>}
@@ -335,7 +355,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
     <section className="detail-hero">
       <p className="eyebrow">JOB POSTING · {providerLabels[job.provider] || 'Company job page'}</p>
       <h1>{job.title}</h1>
-      <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
+      <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}${profileId !== null ? `?profile_id=${profileId}` : ''}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
         <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
