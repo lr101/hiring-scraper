@@ -37,6 +37,7 @@ from hiring_scraper.crawl_policy import ORIGIN_PACER
 LOG = logging.getLogger("hiring_scraper.worker")
 POLL_SECONDS = max(3, int(os.getenv("SCAN_POLL_SECONDS", "3")))
 SCAN_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
+NEW_HTML_FEED_PRIORITY_SECONDS = 300
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CRAWL_DELAY_SECONDS", "1")))
 LEASE_MINUTES = max(2, int(os.getenv("FEED_SCAN_LEASE_MINUTES", "5")))
 CAPTURE_DIR = Path(os.getenv("SCAN_CAPTURE_DIR", "/tmp/hiring-scraper-feed-captures"))
@@ -47,15 +48,20 @@ _LAST_ORIGIN_REQUEST: dict[str, float] = {}
 
 def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
     now = utcnow()
+    recently_queued_html = and_(
+        JobFeed.provider.in_({"html_jobs", "browser_html"}),
+        JobFeed.last_checked_at.is_(None),
+        JobFeed.next_scan_at >= now - timedelta(seconds=NEW_HTML_FEED_PRIORITY_SECONDS),
+    )
     with SessionLocal.begin() as session:
         statement = (select(JobFeed).join(Company)
                      .where(Company.crawl_paused.is_(False), JobFeed.enabled.is_(True),
                             JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
-                     .order_by(case((and_(JobFeed.provider.in_({"html_jobs", "browser_html"}),
-                                         JobFeed.last_checked_at.is_(None)), 0), else_=1),
+                     .order_by(case((recently_queued_html, 0), else_=1),
+                               JobFeed.next_scan_at,
                                case((Company.source == "default_job_feed", 0), else_=1),
-                               JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
+                               Company.crawl_priority.desc(), JobFeed.id).limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)
         feed = session.scalars(statement).first()
