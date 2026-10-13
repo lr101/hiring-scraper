@@ -15,5 +15,6 @@ class ApplicationRequest(BaseModel):
 
 def application_json(application):
     return {'profile_id': application.profile_id, 'job_id': application.job_id,
-            'status': application.status, 'created_at': application.created_at.isoformat(),
+            'status': application.status, 'previous_status': application.previous_status,
+            'created_at': application.created_at.isoformat(),
             'updated_at': application.updated_at.isoformat()}

@@ -420,6 +420,7 @@ write_state starting
 printf 'Setting up the isolated fixture and production UI bundle...\n'
 (cd "$repo_root" && mise exec -- uv sync --locked)
 (cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run hiring-seed)
+(cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run python scripts/dev/seed_preview.py)
 if [[ -n "${HIRING_PREVIEW_PROFILE:-}" || -n "${HIRING_PREVIEW_REGIONAL_SNAPSHOT:-}" ]]; then
   [[ -n "${HIRING_PREVIEW_PROFILE:-}" && -n "${HIRING_PREVIEW_REGIONAL_SNAPSHOT:-}" ]] || die 'Set both HIRING_PREVIEW_PROFILE and HIRING_PREVIEW_REGIONAL_SNAPSHOT for the optional CV board'
   cv_board_args=(--profile "$HIRING_PREVIEW_PROFILE" --regional-data "$HIRING_PREVIEW_REGIONAL_SNAPSHOT")

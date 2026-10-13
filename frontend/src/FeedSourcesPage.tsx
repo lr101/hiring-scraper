@@ -220,7 +220,7 @@ export default function FeedSourcesPage() {
   }
 
   return <div className="app-shell">
-    <SiteHeader active="feeds" />
+    <SiteHeader active="settings" />
     <main className="content feed-sources-page">
       <section className="feed-page-heading">
         <p className="eyebrow">SOURCE MANAGEMENT</p>

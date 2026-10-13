@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import SiteHeader from './SiteHeader'
 import JobEvidence, { languageRequirementLabel } from './JobEvidence'
+import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
-import ApplicationStatusControl from './ApplicationStatusControl'
-import type { Application } from './applications'
+import { applicationStatuses, applicationStatusLabel, nextApplicationStages, saveApplication, trackJobInteraction } from './applications'
+import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
+import JobOverviewTags from './JobOverviewTags'
 import type { Profile } from './profile'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -40,39 +42,40 @@ function formatDate(value: string | null) {
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
 }
 
-function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return <a className="page-link" href={href} target="_blank" rel="noreferrer">{children}<span aria-hidden="true">↗</span></a>
+function ExternalLink({ href, children, onClick }: { href: string; children: React.ReactNode; onClick?: () => void }) {
+  return <a className="page-link" href={href} target="_blank" rel="noreferrer" onClick={onClick}>{children}<span aria-hidden="true">↗</span></a>
 }
 
 export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: number }) {
   const [record, setRecord] = useState<Company | Job | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [profiles, setProfiles] = useState<Profile[]>([])
   const [profileId, setProfileId] = useState(() => new URLSearchParams(window.location.search).get('profile_id') ?? '')
-  const [profilesReady, setProfilesReady] = useState(kind === 'company')
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [profilesReady, setProfilesReady] = useState(false)
   const [profileError, setProfileError] = useState('')
+  const [trackingError, setTrackingError] = useState('')
 
   useEffect(() => {
-    if (kind !== 'job') return
     const controller = new AbortController()
     fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }).then(async response => {
       if (!response.ok) throw new Error('Could not load application profiles.')
       const data = await response.json()
-      setProfiles(data.items)
       const requested = new URLSearchParams(window.location.search).get('profile_id')
       const selected = data.items.find((profile: Profile) => String(profile.id) === requested) ?? data.items[0]
+      setProfiles(data.items)
       setProfileId(selected ? String(selected.id) : '')
       setProfilesReady(true)
     }).catch(reason => { if (!controller.signal.aborted) { setProfileError(reason.message); setProfilesReady(true) } })
     return () => controller.abort()
-  }, [kind])
+  }, [])
 
   useEffect(() => {
     if (!profilesReady) return
     let cancelled = false
     setLoading(true)
     setError('')
+    setTrackingError('')
     const boardParams = new URLSearchParams(window.location.search)
     const detailParams = new URLSearchParams()
     if (kind === 'job') {
@@ -80,51 +83,84 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
         const value = boardParams.get(from)
         if (value) detailParams.set(to, value)
       }
-      if (profileId) detailParams.set('profile_id', profileId)
     }
+    if (profileId) detailParams.set('profile_id', profileId)
     fetch(apiUrl(`/api/v1/${kind === 'company' ? 'companies' : 'jobs'}/${id}${detailParams.size ? `?${detailParams}` : ''}`))
       .then(async response => {
         const payload = await response.json()
         if (!response.ok) throw new Error(payload.detail ?? `Could not load ${kind} details.`)
         return payload
       })
-      .then(payload => { if (!cancelled) setRecord(payload) })
+      .then(async payload => {
+        if (cancelled) return
+        if (kind === 'job' && profileId && !payload.application) {
+          try {
+            const application = await trackJobInteraction(API_BASE_URL, Number(profileId), id, payload.application, 'view')
+            payload = { ...payload, application }
+          } catch {
+            if (!cancelled) setTrackingError('This role could not be added to your applications yet. You can still set its stage below.')
+          }
+        }
+        if (!cancelled) setRecord(payload)
+      })
       .catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : 'Could not load this record.') })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [id, kind, profileId, profilesReady])
 
+  useEffect(() => {
+    if (!profilesReady) return
+    const url = new URL(window.location.href)
+    if (profileId) url.searchParams.set('profile_id', profileId)
+    else url.searchParams.delete('profile_id')
+    window.history.replaceState({}, '', url)
+  }, [profileId, profilesReady])
+
   const fromApplications = kind === 'job' && new URLSearchParams(window.location.search).get('from') === 'applications'
+  const applicationReturnParams = new URLSearchParams(window.location.search)
+  const applicationReturnQuery = new URLSearchParams()
+  if (applicationReturnParams.has('profile_ids')) applicationReturnQuery.set('profile_ids', applicationReturnParams.get('profile_ids') ?? '')
+  else if (profileId) applicationReturnQuery.set('profile_id', profileId)
+  const returnStatus = applicationReturnParams.get('status')
+  if (returnStatus) applicationReturnQuery.set('status', returnStatus)
+  const applicationsBackHref = `/applications${applicationReturnQuery.size ? `?${applicationReturnQuery}` : ''}`
 
   return <div className="app-shell">
     <SiteHeader active={fromApplications ? 'applications' : 'directory'} />
     <main className="content detail-page">
-      <a className="back-link" href={fromApplications ? `/applications?profile_id=${profileId}` : kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to companies and jobs'}</a>
-      {kind === 'job' && <section className="detail-panel job-tracking-panel" aria-label="Track application">
-        <div><p className="eyebrow">YOUR APPLICATION</p><h2>Track this opportunity</h2></div>
-        {profileError ? <p className="application-error" role="alert">{profileError}</p> : !profilesReady ? <p>Loading profiles…</p> : profiles.length ? <>
-          <label className="tracking-profile-label">Job profile <select aria-label="Track application for profile" value={profileId} onChange={event => {
-            setProfileId(event.target.value); setLoading(true)
-            const url = new URL(window.location.href); url.searchParams.set('profile_id', event.target.value); window.history.replaceState({}, '', url)
-          }}>{profiles.map(profile => <option value={profile.id} key={profile.id}>{profile.name}</option>)}</select></label>
-          {!loading && record && !error && <ApplicationStatusControl key={`${profileId}:${id}`} profileId={Number(profileId)} jobId={id} title={(record as Job).title}
-            application={(record as Job).application} onSaved={application => setRecord(current => current ? { ...current, application } : current)} />}
-          <a className="page-link" href={`/applications?profile_id=${profileId}`}>My applications →</a>
-        </> : <a className="page-link" href="/profile">Create a profile to track applications →</a>}
-      </section>}
+      <a className="back-link" href={fromApplications ? applicationsBackHref : kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to companies and jobs'}</a>
+      {profiles.length > 0 && <div className="detail-profile-context">
+        <span>Tracking with</span>
+        {profiles.length > 1 ? <select aria-label="Application profile" value={profileId}
+          onChange={event => setProfileId(event.target.value)}>
+          {profiles.map(profile => <option key={profile.id} value={profile.id}>{profile.name}</option>)}
+        </select> : <strong>{profiles[0].name}</strong>}
+      </div>}
+      {profileError && <div className="error-banner" role="alert">{profileError}</div>}
+      {trackingError && <p className="tracking-error-note" role="status">{trackingError}</p>}
       {loading ? <div className="loading-state"><span className="spinner" /> Loading details…</div>
           : error ? <div className="error-banner" role="alert">{error}<a href="/">Return to companies and jobs</a></div>
-          : kind === 'company' && record ? <CompanyPage company={record as Company} />
-            : record ? <JobPage job={record as Job} /> : null}
+          : kind === 'company' && record ? <CompanyPage company={record as Company} profileId={profileId ? Number(profileId) : null}
+              onApplicationSaved={(jobId, application) => setRecord(current => current && 'jobs' in current
+                ? { ...current, jobs: current.jobs.map(job => job.id === jobId ? { ...job, application } : job) } : current)} />
+            : record ? <JobPage job={record as Job} profileId={profileId ? Number(profileId) : null}
+              onApplicationSaved={application => setRecord(current => current ? { ...current, application } : current)} /> : null}
     </main>
   </div>
 }
 
-function CompanyPage({ company }: { company: Company }) {
+function CompanyPage({ company, profileId, onApplicationSaved }: {
+  company: Company
+  profileId: number | null
+  onApplicationSaved: (jobId: number, application: Application) => void
+}) {
   const [companyDomain, setCompanyDomain] = useState(company.domain ?? '')
   const [domainSaving, setDomainSaving] = useState(false)
   const [domainError, setDomainError] = useState('')
   const [domainNotice, setDomainNotice] = useState('')
+  const [savingJobId, setSavingJobId] = useState<number | null>(null)
+  const [applicationError, setApplicationError] = useState('')
+  const [applicationNotice, setApplicationNotice] = useState('')
   const statusLabels: Record<string, string> = {
     jobs_feed_found: 'Job listings found', career_page_found: 'Hiring page found',
     jobs_extracted: 'Jobs found on company website', unresolved: 'Hiring page not found yet',
@@ -146,6 +182,23 @@ function CompanyPage({ company }: { company: Company }) {
     blocked: 'site access blocked', bot_challenge: 'bot challenge', paused: 'paused',
     throttled: 'try again later', schema_error: 'could not read listings',
     failed: 'could not check', not_modified: 'checked recently', unsupported: 'not supported yet',
+  }
+
+  async function updateJobApplication(job: Job, action: ApplicationSwipeAction) {
+    if (profileId === null || savingJobId !== null) return
+    setSavingJobId(job.id)
+    setApplicationError('')
+    setApplicationNotice('')
+    try {
+      const application = await saveApplication(API_BASE_URL, profileId, job.id, action.status)
+      onApplicationSaved(job.id, application)
+      const stage = applicationStatusLabel(application.status)
+      setApplicationNotice(action.kind === 'undo' ? `${job.title} restored to ${stage}.` : `${job.title} moved to ${stage}.`)
+    } catch (reason) {
+      setApplicationError(reason instanceof Error ? reason.message : 'Could not update this application stage.')
+    } finally {
+      setSavingJobId(null)
+    }
   }
 
   async function saveCompanyDomain(event: FormEvent<HTMLFormElement>) {
@@ -215,17 +268,41 @@ function CompanyPage({ company }: { company: Company }) {
       <article className="detail-panel company-jobs-panel">
         <p className="eyebrow">OPEN JOBS</p>
         <h2>{company.jobs.length} {company.jobs.length === 1 ? 'job' : 'jobs'}</h2>
-        {company.jobs.length ? company.jobs.map(job => <a className="job-result-card" href={`/jobs/${job.id}`} key={job.id}>
-          <span><strong>{job.title}</strong><small>{job.location_text || 'Work location not listed'} · {providerLabels[job.provider] || 'Company job page'}</small></span>
-          <span aria-hidden="true">→</span>
-        </a>) : <p className="muted">No open jobs were found on this company’s website yet.</p>}
+        {applicationError && <p className="error-banner" role="alert">{applicationError}</p>}
+        {applicationNotice && <p className="evidence-note" role="status">{applicationNotice}</p>}
+        {company.jobs.length ? company.jobs.map(job => {
+          const previousStatus = job.application?.previous_status && job.application.previous_status !== job.application.status
+            ? job.application.previous_status : null
+          const href = `/jobs/${job.id}${profileId ? `?profile_id=${profileId}` : ''}`
+          return <ApplicationSwipeCard key={job.id} application={job.application} disabled={profileId === null || savingJobId !== null}
+            className={`job-result-card company-job-card status-${job.application?.status ?? 'untracked'}`}
+            onAction={action => { void updateJobApplication(job, action) }}>
+            <a className="company-job-link" href={href}>
+              <span><strong>{job.title}</strong><small>{job.location_text || 'Work location not listed'} · {providerLabels[job.provider] || 'Company job page'}</small></span>
+              <span aria-hidden="true">→</span>
+            </a>
+            <JobOverviewTags job={job} />
+            <footer className="application-card-footer company-job-footer">
+              <ApplicationStateBadge application={job.application} />
+              {previousStatus && <button type="button" data-swipe-undo className="application-undo-button application-card-undo"
+                disabled={savingJobId !== null} onClick={() => void updateJobApplication(job, { kind: 'undo', status: previousStatus })}>
+                {savingJobId === job.id ? 'Undoing…' : `↶ Undo to ${applicationStatusLabel(previousStatus)}`}
+              </button>}
+            </footer>
+          </ApplicationSwipeCard>
+        }) : <p className="muted">No open jobs were found on this company’s website yet.</p>}
       </article>
     </section>
   </>
 }
 
-function JobPage({ job }: { job: Job }) {
-  const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : null)
+function JobPage({ job, profileId, onApplicationSaved }: {
+  job: Job
+  profileId: number | null
+  onApplicationSaved: (application: Application) => void
+}) {
+  const [trackingError, setTrackingError] = useState('')
+  const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
   const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
   const languageRequirements = job.enrichment.languages.map(row =>
     `${row.value}${languageRequirementLabel(row)}`,
@@ -243,17 +320,28 @@ function JobPage({ job }: { job: Job }) {
     point: 'Map point', feature_center: 'Area center', city_centroid: 'City center',
     address: 'Street address', place_point: 'Place marker',
   }
+  async function markOriginalPostOpened() {
+    if (profileId === null) return
+    setTrackingError('')
+    try {
+      const application = await trackJobInteraction(API_BASE_URL, profileId, job.id, job.application, 'open_post')
+      if (application) onApplicationSaved(application)
+    } catch {
+      setTrackingError('Could not update this role’s stage. You can try again below.')
+    }
+  }
   return <>
     <section className="detail-hero">
       <p className="eyebrow">JOB POSTING · {providerLabels[job.provider] || 'Company job page'}</p>
       <h1>{job.title}</h1>
       <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
-        <ExternalLink href={job.url}>Original job post</ExternalLink>
+        <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
         {job.company_source_url && <ExternalLink href={job.company_source_url}>Company listing</ExternalLink>}
       </div>
     </section>
+    {trackingError && <p className="tracking-error-note" role="status">{trackingError}</p>}
     <section className="detail-panel job-detail-panel">
         <p className="eyebrow">JOB DETAILS</p>
       <div className="metadata-grid">
@@ -276,11 +364,71 @@ function JobPage({ job }: { job: Job }) {
       {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
     </section>
     {job.enrichment && <JobEvidence enrichment={job.enrichment} match={job.profile_match} />}
+    <ApplicationStageActions jobId={job.id} profileId={profileId}
+      application={job.application} onSaved={onApplicationSaved} />
   </>
 }
+
+function ApplicationStageActions({ jobId, profileId, application, onSaved }: {
+  jobId: number; profileId: number | null; application?: Application | null
+  onSaved: (application: Application) => void
+}) {
+  const [savingStatus, setSavingStatus] = useState<ApplicationStatus | null>(null)
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const currentStatus = application?.status ?? 'new'
+  const options = nextApplicationStages[currentStatus]
+  const previousStatus = application?.previous_status && application.previous_status !== currentStatus
+    ? application.previous_status : null
+  const previousStatusLabel = previousStatus
+    ? applicationStatuses.find(item => item.value === previousStatus)?.label : null
+
+  async function choose(status: ApplicationStatus, undo = false) {
+    if (profileId === null || savingStatus !== null) return
+    setSavingStatus(status); setError(''); setNotice('')
+    try {
+      const saved = await saveApplication(API_BASE_URL, profileId, jobId, status)
+      onSaved(saved)
+      const label = applicationStatuses.find(item => item.value === status)?.label
+      setNotice(undo ? `Undid the last change · back to ${label}.` : `Moved to ${label}.`)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not update this application stage.')
+    } finally { setSavingStatus(null) }
+  }
+
+  return <ApplicationSwipeCard as="section" className="application-stage-actions" application={application}
+    disabled={profileId === null || savingStatus !== null}
+    onAction={action => { void choose(action.status, action.kind === 'undo') }}>
+    {profileId === null ? <>
+      <div><p className="eyebrow">YOUR APPLICATION</p><h2>Track this role with a profile</h2></div>
+      <a className="page-link" href="/profile">Create a profile →</a>
+    </> : <>
+      <div className="application-stage-heading"><p className="eyebrow">YOUR APPLICATION · CURRENT STAGE</p>
+        <h2>{applicationStatuses.find(item => item.value === currentStatus)?.label ?? 'New'}</h2></div>
+      {options.length > 0 && <div className="application-stage-buttons" role="group" aria-label="Next application stage">
+        {options.map(status => <button key={status} type="button" className={`application-stage-button stage-${status}`}
+          disabled={savingStatus !== null} onClick={() => void choose(status)}>
+          {savingStatus === status ? 'Saving…' : applicationStatuses.find(item => item.value === status)?.label}
+        </button>)}
+      </div>}
+      {previousStatus && <footer className="application-stage-footer">
+        <button type="button" data-swipe-undo className="application-undo-button" disabled={savingStatus !== null}
+          onClick={() => void choose(previousStatus, true)}>
+          {savingStatus === previousStatus ? 'Undoing…' : `↶ Undo to ${previousStatusLabel}`}
+        </button>
+        <span className="application-undo-hint">Swipe this control to undo</span>
+      </footer>}
+      {!options.length && !previousStatus && <p className="application-stage-complete">This application is at its final stage.</p>}
+      {notice && <p className="application-save-state" role="status">{notice}</p>}
+      {error && <p className="application-error" role="alert">{error}</p>}
+    </>}
+  </ApplicationSwipeCard>
+}
+
 
 function Meta({ label, value }: { label: string; value?: string | null }) {
   const displayValue = value?.trim()
   if (!displayValue || /^(?:not listed|not found|not provided|not specified|unknown|n\/a|none)$/i.test(displayValue)) return null
   return <div className="meta-item"><span>{label}</span><strong>{displayValue}</strong></div>
+
 }
