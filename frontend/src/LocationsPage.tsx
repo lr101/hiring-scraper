@@ -21,6 +21,15 @@ type DiscoveryJob = {
   failed_count: number; jobs_found: number; progress_percent: number
   companies_found: number; homepages_found: number; error?: string | null
 }
+type ActiveWorker = {
+  id: string; kind: 'location_search' | 'company_crawl' | 'homepage_lookup' | 'job_feed_scan'
+  title: string; activity: string; context: string | null; started_at: string | null
+}
+type GermanyMapProgress = {
+  status: string; stage: string; complete: boolean; states_completed: number
+  current_state_number: number | null; states_total: number; sections_saved: number
+  companies_found: number; websites_found: number; scheduled_for: string | null
+}
 
 function runStatus(status: string) {
   const labels: Record<string, string> = {
@@ -77,6 +86,8 @@ function errorMessage(payload: { detail?: string }, fallback: string) {
 export default function LocationsPage() {
   const [locations, setLocations] = useState<ConfiguredLocation[]>([])
   const [jobs, setJobs] = useState<DiscoveryJob[]>([])
+  const [activeWorkers, setActiveWorkers] = useState<ActiveWorker[]>([])
+  const [germanyMapProgress, setGermanyMapProgress] = useState<GermanyMapProgress | null>(null)
   const [query, setQuery] = useState('')
   const [searchScope, setSearchScope] = useState<'radius' | 'state' | 'country'>('country')
   const [states, setStates] = useState<string[]>([])
@@ -88,6 +99,7 @@ export default function LocationsPage() {
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [cancellingJobId, setCancellingJobId] = useState<number | null>(null)
+  const [workerActivityUnavailable, setWorkerActivityUnavailable] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -101,14 +113,26 @@ export default function LocationsPage() {
   }, [])
 
   const refresh = useCallback(async () => {
-    const [locationResponse, jobResponse] = await Promise.all([
+    const [locationResponse, jobResponse, workerResponse] = await Promise.all([
       fetch(apiUrl('/api/v1/locations')),
       fetch(apiUrl('/api/v1/discovery-jobs?limit=50')),
+      fetch(apiUrl('/api/v1/active-workers')).catch(() => null),
     ])
     if (!locationResponse.ok || !jobResponse.ok) throw new Error('Could not load saved locations and search progress.')
     const [locationData, jobData] = await Promise.all([locationResponse.json(), jobResponse.json()])
     setLocations(locationData.items)
     setJobs(jobData.items)
+    try {
+      if (!workerResponse?.ok) throw new Error('Could not load active worker status.')
+      const workerData = await workerResponse.json()
+      setActiveWorkers(workerData.items)
+      setGermanyMapProgress(workerData.germany_map_progress ?? null)
+      setWorkerActivityUnavailable(false)
+    } catch {
+      setActiveWorkers([])
+      setGermanyMapProgress(null)
+      setWorkerActivityUnavailable(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -352,6 +376,18 @@ export default function LocationsPage() {
 
       <p className="location-setup-note">Source postings checked includes existing postings and roles at other locations. Local searches filter by work location; Germany and state searches show postings from employers discovered in that area, across all work locations. Expired postings are excluded from results.</p>
 
+      <section className="worker-activity-section">
+        <div className="section-heading">
+          <div><p className="eyebrow">LIVE WORK</p><h2>Active workers</h2></div>
+          <span className="refresh-indicator"><span className="status-dot" /> {workerActivityUnavailable ? 'Worker status unavailable' : `${activeWorkers.length} active · updates every few seconds`}</span>
+        </div>
+        {germanyMapProgress && <GermanyMapCoverage progress={germanyMapProgress} states={states} />}
+        {workerActivityUnavailable ? <div className="empty-activity">Live worker status is temporarily unavailable.</div>
+          : activeWorkers.length ? <div className="active-worker-grid">
+          {activeWorkers.map(worker => <ActiveWorkerCard key={worker.id} worker={worker} />)}
+        </div> : <div className="empty-activity">No discovery worker is running a task right now.</div>}
+      </section>
+
       <section className="crawl-activity-section">
         <div className="section-heading">
           <div><p className="eyebrow">SEARCH ACTIVITY</p><h2>Current and upcoming searches</h2></div>
@@ -389,6 +425,42 @@ export default function LocationsPage() {
       </section>
     </main>
   </div>
+}
+
+function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress; states: string[] }) {
+  const complete = progress.complete
+  const currentStateNumber = progress.current_state_number ?? progress.states_total
+  const currentState = states[currentStateNumber - 1] || `State ${currentStateNumber}`
+  const mapping = progress.status === 'running' && progress.stage === 'company_homepage_discovery'
+  return <article className="germany-map-coverage" aria-label="Germany map coverage">
+    <div className="germany-map-coverage-heading">
+      <div><span className="coverage-kicker">GERMANY MAP COVERAGE</span><strong>{complete ? 'Map inventory complete' : mapping ? `Mapping ${currentState}` : `Map saved through ${progress.states_completed} states`}</strong></div>
+      <span className="coverage-live"><span className="status-dot" />{complete ? 'MAP SAVED' : mapping ? 'MAPPING NOW' : progress.status === 'scheduled' ? 'NEXT SECTION SCHEDULED' : 'WAITING TO START'}</span>
+    </div>
+    <div className="coverage-metrics">
+      <div><strong>{progress.states_completed}<span> / {progress.states_total}</span></strong><small>states completed</small></div>
+      <div><strong>{progress.sections_saved}</strong><small>map sections saved</small></div>
+      <div><strong>{progress.companies_found}</strong><small>companies mapped</small></div>
+      <div><strong>{progress.websites_found}</strong><small>websites found</small></div>
+    </div>
+    <p>{complete ? 'Germany’s map inventory is saved; ranked company website checks continue.' : mapping ? `State ${currentStateNumber} of ${progress.states_total} · each completed map section is saved before the next one runs.` : progress.status === 'scheduled' ? `State ${currentStateNumber} is next · the saved map continues ${dateTime(progress.scheduled_for)}.` : 'The saved Germany map will continue when a worker is available.'}</p>
+  </article>
+}
+
+function ActiveWorkerCard({ worker }: { worker: ActiveWorker }) {
+  const elapsed = elapsedLabel(worker.started_at)
+  const labels: Record<ActiveWorker['kind'], string> = {
+    location_search: 'LOCATION SEARCH',
+    company_crawl: 'COMPANY DISCOVERY',
+    homepage_lookup: 'WEBSITE LOOKUP',
+    job_feed_scan: 'JOB FEED SCAN',
+  }
+  return <article className="active-worker-card">
+    <div className="active-worker-meta"><span>{labels[worker.kind]}</span>{elapsed && <time>Running {elapsed}</time>}</div>
+    <h3>{worker.title}</h3>
+    <p>{worker.activity}</p>
+    {worker.context && <small>{worker.context}</small>}
+  </article>
 }
 
 function JobProgressCard({ job, onCancel, cancellingJobId }: {

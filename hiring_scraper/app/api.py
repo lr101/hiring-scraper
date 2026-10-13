@@ -25,8 +25,8 @@ from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
-    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, Job, JobApplication, JobFeed, JobLocation,
-    LocationCache, ScanRun, utcnow,
+    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
+    JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
@@ -813,6 +813,111 @@ def list_discovery_jobs(status: str | None = Query(None),
     jobs = session.scalars(statement.order_by(DiscoveryJob.created_at.desc(), DiscoveryJob.id.desc())
                            .limit(limit)).all()
     return {"items": [discovery_job_json(job) for job in jobs]}
+
+
+@app.get("/api/v1/active-workers")
+def list_active_workers(session: Session = Depends(get_session)) -> dict[str, Any]:
+    """Return work with a live lease, without creating a persistent activity history."""
+    now = utcnow()
+    items: list[dict[str, Any]] = []
+    germany_job = session.scalar(select(DiscoveryJob).where(
+        DiscoveryJob.search_scope == "country",
+        DiscoveryJob.stage.in_(("company_homepage_discovery", "career_page_discovery")),
+        DiscoveryJob.status.in_(("scheduled", "queued", "running")),
+    ).order_by(DiscoveryJob.created_at.desc(), DiscoveryJob.id.desc()).limit(1))
+    germany_map_progress = None
+    if germany_job is not None:
+        cursor = germany_job.map_cursor if isinstance(germany_job.map_cursor, dict) else {}
+        map_complete = bool(cursor.get("done"))
+        state_index = max(0, int(cursor.get("state_index", 0)))
+        germany_map_progress = {
+            "status": germany_job.status,
+            "stage": germany_job.stage,
+            "complete": map_complete,
+            "states_completed": len(GERMAN_STATES) if map_complete else min(len(GERMAN_STATES), state_index),
+            "current_state_number": None if map_complete else min(len(GERMAN_STATES), state_index + 1),
+            "states_total": len(GERMAN_STATES),
+            "sections_saved": max(0, int(cursor.get("completed_sections", 0))),
+            "companies_found": germany_job.companies_found,
+            "websites_found": germany_job.homepages_found,
+            "scheduled_for": germany_job.scheduled_for.isoformat() if germany_job.scheduled_for else None,
+        }
+
+    location_jobs = session.scalars(select(DiscoveryJob).where(
+        DiscoveryJob.status == "running",
+        DiscoveryJob.location_scan_lease_until.is_not(None),
+        DiscoveryJob.location_scan_lease_until > now,
+    ).order_by(DiscoveryJob.progress_updated_at.desc().nullslast(), DiscoveryJob.id)).all()
+    for job in location_jobs:
+        activity = job.progress_message or (
+            "Finding companies and websites" if job.stage == "company_homepage_discovery"
+            else "Checking company websites for jobs")
+        items.append({
+            "id": f"location:{job.id}",
+            "kind": "location_search",
+            "title": job.label,
+            "activity": activity,
+            "context": ("Germany-wide map inventory" if job.search_scope == "country"
+                        else "Whole-state search" if job.search_scope == "state"
+                        else f"Within {job.radius_km:g} km"),
+            "started_at": (job.progress_updated_at or job.started_at).isoformat()
+            if job.progress_updated_at or job.started_at else None,
+        })
+
+    discovery_rows = session.execute(
+        select(DiscoveryRun, Company, DiscoveryJob)
+        .join(Company, Company.id == DiscoveryRun.company_id)
+        .outerjoin(DiscoveryJobCompany, DiscoveryJobCompany.discovery_run_id == DiscoveryRun.id)
+        .outerjoin(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
+        .where(DiscoveryRun.status == "running",
+               Company.discovery_lease_until.is_not(None), Company.discovery_lease_until > now)
+        .order_by(DiscoveryRun.started_at.desc(), DiscoveryRun.id)
+    ).all()
+    for run, company, job in discovery_rows:
+        items.append({
+            "id": f"company:{run.id}",
+            "kind": "company_crawl",
+            "title": company.name,
+            "activity": f"Checking {company.name}'s website for jobs",
+            "context": job.label if job is not None else "Ranked company check",
+            "started_at": run.started_at.isoformat(),
+        })
+
+    homepage_companies = session.scalars(select(Company).where(
+        Company.website_url.is_(None),
+        Company.homepage_resolution_lease_until.is_not(None),
+        Company.homepage_resolution_lease_until > now,
+    ).order_by(Company.homepage_resolution_lease_until, Company.id)).all()
+    for company in homepage_companies:
+        items.append({
+            "id": f"homepage:{company.id}",
+            "kind": "homepage_lookup",
+            "title": company.name,
+            "activity": f"Looking for a verified website for {company.name}",
+            "context": f"Attempt {company.homepage_resolution_attempts}",
+            "started_at": None,
+        })
+
+    feed_rows = session.execute(
+        select(ScanRun, JobFeed, Company)
+        .join(JobFeed, JobFeed.id == ScanRun.feed_id)
+        .join(Company, Company.id == JobFeed.company_id)
+        .where(ScanRun.status == "running",
+               JobFeed.lease_until.is_not(None), JobFeed.lease_until > now)
+        .order_by(ScanRun.started_at.desc(), ScanRun.id)
+    ).all()
+    for run, feed, company in feed_rows:
+        items.append({
+            "id": f"feed:{run.id}",
+            "kind": "job_feed_scan",
+            "title": company.name,
+            "activity": f"Refreshing {feed.provider} job listings",
+            "context": feed.tenant or feed.provider,
+            "started_at": run.started_at.isoformat(),
+        })
+
+    items.sort(key=lambda item: item["started_at"] or "", reverse=True)
+    return {"items": items, "active_count": len(items), "germany_map_progress": germany_map_progress}
 
 
 @app.get("/api/v1/discovery-jobs/{discovery_job_id}")
