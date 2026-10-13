@@ -134,7 +134,7 @@ LANGUAGE_FLUENCY = re.compile(
     r'working knowledge|solide\w*|sicher\w*|basic|grundkenntnis(?:se)?|elementary|beginner|very\s+good)\b', re.I)
 LANGUAGE_QUALITATIVE_LEVELS = (
     (re.compile(r'\b(?:verhandlungssicher\w*|business[- ]fluent|near[- ]native|near native|full professional proficiency|native[- ]level)\b', re.I), 'C1', 'C2'),
-    (re.compile(r'\b(?:very\s+good|sehr\s+gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fluency|fließend\w*|fliessend\w*|advanced|fortgeschritten\w*|proficient|strong\s+(?:command|knowledge|language skills?)|exceptional\s+(?:command|knowledge))\b', re.I), 'B2', 'C1'),
+    (re.compile(r'\b(?:very\s+good|sehr\s+gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fließend\w*|fliessend\w*|advanced|fortgeschritten\w*|proficient|strong\s+(?:command|knowledge|language skills?)|exceptional\s+(?:command|knowledge))\b', re.I), 'B2', 'C1'),
     (re.compile(r'\b(?:good|gut\w*|conversational|konversationssicher\w*|working knowledge|professional working proficiency|intermediate|mittelstufe|solide\w*|sicher\w*)\b', re.I), 'B1', 'B2'),
     (re.compile(r'\b(?:basic|grundkenntnis(?:se)?|basiskenntnis(?:se)?|elementary|beginner|anfängerkenntnis(?:se)?)\b', re.I), 'A1', 'A2'),
 )
@@ -153,7 +153,8 @@ LANGUAGE_MODALITY_PHRASE = re.compile(
     r'mündlich\w*\s+und\s+schriftlich\w*|schriftlich\w*\s+und\s+mündlich\w*)\b', re.I)
 LANGUAGE_EXPECTED_FOLLOWING = re.compile(
     r'^\s*(?:'
-    r'[-,.;:!?/()\[\]{}](?!\w)|'
+    r'\(\s*(?:mind(?:estens)?|min(?:imum)?|at\s+least|A1|A2|B1|B2|C1|C2|'
+    r'native(?:\s+speaker)?|mother\s+tongue|first\s+language|muttersprache\w*|muttersprachlich\w*)\b\.?|'
     r'(?:[- ]speaking\b(?!\s+(?:markets?|marketplace|märkte?|markt\w*)))|'
     r'(?:language|communication|skills?|proficiency|fluency|knowledge|command|ability|'
     r'written|spoken|oral|verbal|speaking|speaker|'
