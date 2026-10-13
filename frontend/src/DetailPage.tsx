@@ -122,7 +122,8 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
   if (applicationReturnParams.has('profile_ids')) applicationReturnQuery.set('profile_ids', applicationReturnParams.get('profile_ids') ?? '')
   else if (profileId) applicationReturnQuery.set('profile_id', profileId)
   const returnStatus = applicationReturnParams.get('status')
-  if (returnStatus) applicationReturnQuery.set('status', returnStatus)
+  if (applicationReturnParams.has('statuses')) applicationReturnQuery.set('statuses', applicationReturnParams.get('statuses') ?? '')
+  else if (returnStatus) applicationReturnQuery.set('status', returnStatus)
   const applicationsBackHref = `/applications${applicationReturnQuery.size ? `?${applicationReturnQuery}` : ''}`
 
   return <div className="app-shell">

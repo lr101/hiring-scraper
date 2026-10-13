@@ -20,7 +20,6 @@ export default function ProfilesPage() {
 function ProfileOverviewPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
-  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function request(path: string, options?: RequestInit) {
@@ -34,15 +33,6 @@ function ProfileOverviewPage() {
       .catch(reason => setError(String(reason.message)))
       .finally(() => setLoading(false))
   }, [])
-
-  async function remove(id: number) {
-    setBusy(true); setError('')
-    try {
-      await request(`/${id}`, { method: 'DELETE' })
-      setProfiles(current => current.filter(profile => profile.id !== id))
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not delete this profile.') }
-    finally { setBusy(false) }
-  }
 
   return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-overview-page">
     <section className="profile-overview-heading"><div><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profiles</h1>
@@ -62,7 +52,6 @@ function ProfileOverviewPage() {
             <a className="page-link" href={profileBoardLink(profile)}>View matches <span aria-hidden="true">→</span></a>
             <a className="page-link" href={`/applications?profile_id=${profile.id}`}>Applications <span aria-hidden="true">→</span></a>
             <a className="profile-edit-link" href={`/profile/${profile.id}/edit`}>Edit profile</a>
-            <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void remove(profile.id!)}>Delete</button>
           </footer>
         </article>
       })}
@@ -109,6 +98,15 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
       if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit`)
       edit(saved); setNotice('Profile saved. You can now use it to find matching jobs.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save your profile.') }
+    finally { setBusy(false) }
+  }
+  async function removeProfile() {
+    if (!form.id || busy || !window.confirm(`Delete “${form.name}”? This cannot be undone.`)) return
+    setBusy(true); setError(''); setNotice('')
+    try {
+      await request(`/${form.id}`, { method: 'DELETE' })
+      window.location.href = '/profile'
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not delete this profile.') }
     finally { setBusy(false) }
   }
   async function findArea() {
@@ -201,7 +199,10 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
         </fieldset>
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
         <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
-        {form.id && <a className="page-link" href={profileBoardLink(form)}>View matching jobs →</a>}
+        {form.id && <div className="profile-editor-actions">
+          <a className="page-link" href={profileBoardLink(form)}>View matching jobs →</a>
+          <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void removeProfile()}>Delete profile</button>
+        </div>}
         <section className="cv-import"><h3>Start from your CV</h3><p className="muted">Paste CV text to suggest skills, then review the list above. The text is processed on this app’s server and is not saved or sent to an external AI service.</p>
           <label>CV text<textarea maxLength={100000} value={cv} onChange={event => setCV(event.target.value)} placeholder="Paste the relevant experience and skills sections…" /></label>
           <button type="button" disabled={busy || !cv.trim()} onClick={() => void suggestSkills()}>Suggest skills from this text</button>

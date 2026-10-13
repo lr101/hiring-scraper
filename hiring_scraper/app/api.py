@@ -1338,8 +1338,8 @@ def get_job(job_id: int, session: Session = Depends(get_session),
 
 @app.get("/api/v1/companies/{company_id}")
 def get_company(company_id: int,
-                profile_id: Annotated[int | None, Query(ge=1)] = None,
-                session: Session = Depends(get_session)) -> dict[str, Any]:
+                session: Session = Depends(get_session),
+                profile_id: Annotated[int | None, Query(ge=1)] = None) -> dict[str, Any]:
     profile = require_profile(profile_id, session) if profile_id is not None else None
     company = session.scalars(select(Company).options(selectinload(Company.feeds))
                               .where(Company.id == company_id)).first()

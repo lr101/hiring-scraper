@@ -6,8 +6,7 @@ import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import ApplicationsPage from './ApplicationsPage'
 import SettingsPage from './SettingsPage'
-import JobOverviewTags from './JobOverviewTags'
-import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
+import JobFeedCard from './JobFeedCard'
 import { applicationStatusLabel, applicationStatuses, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
@@ -145,13 +144,6 @@ function Icon({ name, size = 18 }: { name: 'pin' | 'search' | 'arrow' | 'globe' 
 function distanceLabel(distance: number | null) {
   if (distance === null) return 'Distance unavailable'
   return distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`
-}
-
-function dateLabel(value: string | null | undefined) {
-  if (!value) return 'Date not listed'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
 }
 
 function dateRank(value?: string | null) {
@@ -877,51 +869,13 @@ function DirectoryPage() {
           ) : (
             <div className="job-opportunity-list">
               {visibleJobs.map(job => {
-                const previousStatus = job.application?.previous_status && job.application.previous_status !== job.application.status
-                  ? job.application.previous_status : null
-                const cardStatus = job.profile_id ? job.application?.status ?? 'new' : null
                 const jobHref = new URLSearchParams(window.location.search)
                 if (job.profile_id) jobHref.set('profile_id', String(job.profile_id))
-                return <ApplicationSwipeCard key={`${job.profile_id ?? 'all'}:${job.id}`} application={job.application} disabled={!job.profile_id || swipeSavingJobId !== null}
-                  className={`job-opportunity-card ${cardStatus ? `status-${cardStatus}` : ''}`}
-                  onAction={action => { void changeJobApplication(job, action) }}>
-                <div className="job-opportunity-main">
-                  <div className="job-opportunity-heading">
-                    <div className="job-opportunity-identity">
-                      <a className="job-opportunity-title" href={`/jobs/${job.id}?${jobHref}`}>{job.title}</a>
-                      <p className="job-opportunity-company">{job.company_name}{job.department ? ` · ${job.department}` : ''}</p>
-                      {job.profile_name && <small className="job-profile-context">Matched for {job.profile_name}</small>}
-                    </div>
-                    <div className="job-opportunity-card-badges">
-                      {job.profile_id && <ApplicationStateBadge application={job.application} fallbackStatus="new" />}
-                      {job.profile_id && job.profile_match && <div className="job-match-score" aria-label={`Profile match ${job.profile_match.score} out of 100`}>
-                        <strong>{job.profile_match.score}</strong><span>match</span>
-                      </div>}
-                    </div>
-                  </div>
-                  <div className="job-opportunity-facts">
-                    <span><Icon name="pin" size={14} />{job.location_text || 'Location not listed'}</span>
-                    <span>Posted {dateLabel(job.date_posted)}</span>
-                  </div>
-                  <JobOverviewTags job={job} />
-                  {job.profile_id && job.profile_match && <div className="job-opportunity-match-details">
-                    <span className={`fit-tier fit-${job.profile_match.fit_tier ?? 'possible'}`}>{job.profile_match.fit_tier === 'recommended' ? 'Strong match' : job.profile_match.fit_tier === 'unlikely' ? 'Limited overlap' : 'Possible match'}</span>
-                    <span>{job.profile_match.matched_skills.slice(0, 3).join(' · ') || 'No matching skills found yet'}</span>
-                    {job.profile_match.unknowns.slice(0, 1).map(item => <span className="job-match-unknown" key={item}>Check: {item}</span>)}
-                  </div>}
-                  {previousStatus && <footer className="application-card-footer job-opportunity-card-footer">
-                    <button type="button" data-swipe-undo className="application-undo-button application-card-undo"
-                      disabled={swipeSavingJobId !== null} onClick={() => void changeJobApplication(job, { kind: 'undo', status: previousStatus })}>
-                      {swipeSavingJobId === job.id ? 'Undoing…' : `↶ Undo to ${applicationStatusLabel(previousStatus)}`}
-                    </button>
-                    <span className="application-undo-hint">Swipe this control to undo</span>
-                  </footer>}
-                </div>
-                <div className="job-opportunity-actions">
-                  <a className="job-original-link" href={job.url} target="_blank" rel="noreferrer"
-                    onClick={() => { void trackOpenedPost(job) }}>Open original post <Icon name="external" size={14} /></a>
-                </div>
-              </ApplicationSwipeCard>})}
+                return <JobFeedCard key={`${job.profile_id ?? 'all'}:${job.id}`} job={job} href={`/jobs/${job.id}?${jobHref}`}
+                  profileId={job.profile_id} profileName={job.profile_name} updatedAt={job.application?.updated_at ?? job.last_seen_at}
+                  disabled={!job.profile_id || swipeSavingJobId !== null} saving={swipeSavingJobId === job.id}
+                  onAction={action => { void changeJobApplication(job, action) }} onOpenOriginal={() => { void trackOpenedPost(job) }} />
+              })}
               {filteredJobs.length === 0 && <EmptyState title={jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'} body={jobStatusFilter ? 'Choose another stage or view all matching jobs.' : jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
             </div>
           )}

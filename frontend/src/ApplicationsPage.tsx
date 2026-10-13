@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import SiteHeader from './SiteHeader'
-import JobOverviewTags from './JobOverviewTags'
-import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
-import { applicationStatuses, saveApplication } from './applications'
+import JobFeedCard from './JobFeedCard'
+import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
-import type { ProfileMatch } from './JobEvidence'
+import type { Enrichment, ProfileMatch } from './JobEvidence'
 import type { Profile } from './profile'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -19,14 +18,28 @@ type SortMode = typeof sortModes[number]['value']
 
 type MatchingJob = {
   id: number; title: string; company_name: string; location_text: string | null
+  url?: string | null
   salary?: string | null; employment_type?: string | null; schedule?: string | null; seniority?: string | null
   work_arrangement?: string | null; is_remote?: boolean
   is_active: boolean; expired: boolean; date_posted?: string | null; last_seen_at: string; first_seen_at: string
-  application?: Application | null; profile_match?: ProfileMatch
+  application?: Application | null; enrichment?: Enrichment; profile_match?: ProfileMatch
 }
 type ProfiledJob = MatchingJob & { profileId: number; profileName: string }
 type SavedProfile = Profile & { id: number }
 type JobsPage = { items: MatchingJob[]; total: number }
+
+function readStatusSelection(params: URLSearchParams): ApplicationStatus[] {
+  if (params.has('statuses')) {
+    const requested = params.get('statuses')
+    if (!requested || requested === 'all') return []
+    const values = new Set(requested.split(',').filter(value => applicationStatuses.some(item => item.value === value)))
+    return applicationStatuses.filter(item => values.has(item.value)).map(item => item.value)
+  }
+  const legacyStatus = params.get('status')
+  if (legacyStatus === 'all' || legacyStatus === '') return []
+  const match = applicationStatuses.find(item => item.value === legacyStatus)
+  return match ? [match.value] : ['new']
+}
 
 async function fetchAllPages(urlForOffset: (offset: number) => string, signal: AbortSignal) {
   const all: MatchingJob[] = []
@@ -51,17 +64,6 @@ function dateRank(value?: string | null) {
   return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
 }
 
-function formatDate(value: string) {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-function matchLabel(match?: ProfileMatch) {
-  if (!match) return ''
-  const tier = match.fit_tier === 'recommended' ? 'strong match' : match.fit_tier === 'unlikely' ? 'low match' : 'possible match'
-  return `Match ${match.score}% · ${tier}`
-}
-
 function profileJobKey(job: Pick<ProfiledJob, 'profileId' | 'id'>) {
   return `${job.profileId}:${job.id}`
 }
@@ -71,8 +73,7 @@ export default function ApplicationsPage() {
   const [profiles, setProfiles] = useState<SavedProfile[]>([])
   const [activeProfileIds, setActiveProfileIds] = useState<number[]>([])
   const [profilesReady, setProfilesReady] = useState(false)
-  const [status, setStatus] = useState<ApplicationStatus | ''>(() =>
-    applicationStatuses.find(item => item.value === params.get('status'))?.value ?? '')
+  const [statuses, setStatuses] = useState<ApplicationStatus[]>(() => readStatusSelection(params))
   const [sortBy, setSortBy] = useState<SortMode>(() =>
     sortModes.find(item => item.value === params.get('sort'))?.value ?? 'match')
   const [jobs, setJobs] = useState<ProfiledJob[]>([])
@@ -161,19 +162,23 @@ export default function ApplicationsPage() {
     const url = new URL(window.location.href)
     url.searchParams.delete('profile_id')
     url.searchParams.set('profile_ids', activeProfileKey)
-    if (status) url.searchParams.set('status', status)
-    else url.searchParams.delete('status')
+    url.searchParams.delete('status')
+    url.searchParams.set('statuses', statuses.length ? statuses.join(',') : 'all')
     if (sortBy === 'match') url.searchParams.delete('sort')
     else url.searchParams.set('sort', sortBy)
     window.history.replaceState({}, '', url)
-  }, [profilesReady, activeProfileKey, status, sortBy])
+  }, [profilesReady, activeProfileKey, statuses, sortBy])
 
   const counts = useMemo(() => {
     const result = Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>
-    for (const job of jobs) if (job.application) result[job.application.status] += 1
+    for (const job of jobs) result[job.application?.status ?? 'new'] += 1
     return result
   }, [jobs])
-  const statusJobs = useMemo(() => status ? jobs.filter(job => job.application?.status === status) : jobs, [jobs, status])
+  const statusJobs = useMemo(() => {
+    if (!statuses.length) return jobs
+    const selected = new Set(statuses)
+    return jobs.filter(job => selected.has(job.application?.status ?? 'new'))
+  }, [jobs, statuses])
   const sortedJobs = useMemo(() => [...statusJobs].sort((a, b) => {
     const scoreDifference = (b.profile_match?.score ?? -1) - (a.profile_match?.score ?? -1)
     const discoveredDifference = dateRank(b.first_seen_at) - dateRank(a.first_seen_at)
@@ -189,7 +194,8 @@ export default function ApplicationsPage() {
   const nextSort = sortModes[(sortIndex + 1) % sortModes.length]
 
   function filter(value: ApplicationStatus | '') {
-    setStatus(value)
+    if (!value) setStatuses([])
+    else setStatuses(current => current.includes(value) ? current.filter(item => item !== value) : [...current, value])
     setOffset(0)
     setNotice('')
   }
@@ -217,7 +223,8 @@ export default function ApplicationsPage() {
 
   function applyLocalStatus(profileId: number, jobId: number, application: Application) {
     const currentJob = jobs.find(job => job.profileId === profileId && job.id === jobId)
-    const leavesCurrentFilter = status && currentJob?.application?.status === status && application.status !== status
+    const currentStatus = currentJob?.application?.status ?? 'new'
+    const leavesCurrentFilter = statuses.length > 0 && statuses.includes(currentStatus) && !statuses.includes(application.status)
     if (leavesCurrentFilter && offset > 0 && totalVisible - 1 <= offset) {
       setOffset(Math.max(0, offset - PAGE_SIZE))
     }
@@ -243,9 +250,18 @@ export default function ApplicationsPage() {
     } finally { setSwipeSavingKey(null) }
   }
 
+  async function openOriginalPost(job: ProfiledJob) {
+    try {
+      const saved = await trackJobInteraction(API, job.profileId, job.id, job.application, 'open_post')
+      if (saved) applyLocalStatus(job.profileId, job.id, saved)
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not update application status.')
+    }
+  }
+
   function cardHref(job: ProfiledJob) {
     const query = new URLSearchParams({ profile_id: String(job.profileId), profile_ids: activeProfileKey, from: 'applications' })
-    if (status) query.set('status', status)
+    query.set('statuses', statuses.length ? statuses.join(',') : 'all')
     return `/jobs/${job.id}?${query}`
   }
 
@@ -261,11 +277,11 @@ export default function ApplicationsPage() {
             aria-pressed={activeProfileIds.includes(profile.id)} onClick={() => toggleProfile(profile.id)}>{profile.name}</button>)}
         </div>
         <div className="application-status-grid" role="group" aria-label="Filter by application stage">
-          <button type="button" aria-pressed={status === ''} className={`application-filter-chip application-status-filter ${status === '' ? 'selected' : ''}`}
+          <button type="button" aria-pressed={statuses.length === 0} className={`application-filter-chip application-status-filter ${statuses.length === 0 ? 'selected' : ''}`}
             onClick={() => filter('')}>All <span>{loading ? '—' : jobs.length}</span></button>
-          {applicationStatuses.map(item => <button type="button" key={item.value} aria-pressed={status === item.value}
-            className={`application-filter-chip application-status-filter application-${item.value} ${status === item.value ? 'selected' : ''}`}
-            onClick={() => filter(status === item.value ? '' : item.value)}>
+          {applicationStatuses.map(item => <button type="button" key={item.value} aria-pressed={statuses.includes(item.value)}
+            className={`application-filter-chip application-status-filter application-${item.value} ${statuses.includes(item.value) ? 'selected' : ''}`}
+            onClick={() => filter(item.value)}>
             {item.label} <span>{loading ? '—' : counts[item.value]}</span>
           </button>)}
         </div>
@@ -276,7 +292,7 @@ export default function ApplicationsPage() {
         <h2>Create a job profile to get started</h2><p>Save a profile to see matching jobs and track each opportunity here.</p>
         <a className="page-link" href="/profile">Create a profile →</a>
       </section> : profiles.length > 0 && <section className="directory-card applications-results">
-        <div className="application-results-summary"><span>{totalVisible} {status ? 'jobs in this stage' : 'jobs'}</span>
+        <div className="application-results-summary"><span>{totalVisible} {statuses.length ? statuses.length === 1 ? 'jobs in this stage' : 'jobs in selected stages' : 'jobs'}</span>
           <span>{trackedCount} tracked</span>
           <button type="button" className="application-sort-cycle" onClick={cycleSort}
             aria-label={`Sort by ${sortModes[sortIndex].label}. Tap to switch to ${nextSort.label}.`}
@@ -288,34 +304,14 @@ export default function ApplicationsPage() {
               : filteredJobs.length ? <div className="application-job-list">
                 {filteredJobs.map(job => {
                   const key = profileJobKey(job)
-                  const statusClass = job.application ? `status-${job.application.status}` : 'status-untracked'
-                  const previousStatus = job.application?.previous_status && job.application.previous_status !== job.application.status
-                    ? job.application.previous_status : null
-                  return <ApplicationSwipeCard key={key} application={job.application} disabled={swipeSavingKey !== null}
-                    className={`application-job-card ${statusClass} ${swipeSavingKey === key ? 'swipe-saving' : ''}`}
-                    onAction={action => { void updateJob(job, action) }}>
-                    <header className="application-job-card-header"><div className="application-role"><a href={cardHref(job)}>{job.title}</a>
-                      <small>{job.company_name}</small><small className="application-profile-note">{job.profileName}</small>
-                      {job.profile_match && <small className="application-match-note">{matchLabel(job.profile_match)}</small>}
-                      {(!job.is_active || job.expired) && <small className="application-closed">{job.expired ? 'Posting expired' : 'Posting closed'}</small>}</div>
-                      <ApplicationStateBadge application={job.application} />
-                    </header>
-                    <div className="application-job-facts"><span><small>Work location</small>{job.location_text || 'Location not listed'}</span>
-                      <span><small>Last updated</small>{formatDate(jobUpdatedAt(job))}</span></div>
-                    <JobOverviewTags job={job} />
-                    {previousStatus && <footer className="application-card-footer">
-                      <button type="button" data-swipe-undo className="application-undo-button application-card-undo"
-                        disabled={swipeSavingKey !== null} onClick={() => void updateJob(job, { kind: 'undo', status: previousStatus })}>
-                        {swipeSavingKey === key ? 'Undoing…' : `↶ Undo to ${applicationStatuses.find(item => item.value === previousStatus)?.label}`}
-                      </button>
-                      <span className="application-undo-hint">Swipe this control to undo</span>
-                    </footer>}
-                  </ApplicationSwipeCard>
+                  return <JobFeedCard key={key} job={job} href={cardHref(job)} profileId={job.profileId} profileName={job.profileName}
+                    updatedAt={jobUpdatedAt(job)} disabled={swipeSavingKey !== null} saving={swipeSavingKey === key}
+                    onAction={action => { void updateJob(job, action) }} onOpenOriginal={() => { void openOriginalPost(job) }} />
                 })}
-              </div> : <div className="empty-state"><h2>{status ? 'No jobs in this stage' : 'No matching jobs yet'}</h2>
-                <p>{status ? 'Choose another stage or view all matching jobs.' : 'The selected profiles do not have any matching or tracked jobs yet.'}</p>
+              </div> : <div className="empty-state"><h2>{statuses.length ? statuses.length === 1 ? 'No jobs in this stage' : 'No jobs in these stages' : 'No matching jobs yet'}</h2>
+                <p>{statuses.length ? 'Choose another stage or clear the stage filters.' : 'The selected profiles do not have any matching or tracked jobs yet.'}</p>
               </div>}
-        <div className="table-footer"><span>{totalVisible} {status ? 'in this stage' : 'jobs'} · {trackedCount} tracked</span>
+        <div className="table-footer"><span>{totalVisible} {statuses.length ? statuses.length === 1 ? 'in this stage' : 'in selected stages' : 'jobs'} · {trackedCount} tracked</span>
           <div className="pagination"><button type="button" disabled={offset === 0 || loading} onClick={() => setOffset(value => Math.max(0, value - PAGE_SIZE))}>Previous</button>
             <span>{Math.floor(offset / PAGE_SIZE) + 1} / {Math.max(1, Math.ceil(totalVisible / PAGE_SIZE))}</span>
             <button type="button" disabled={loading || offset + PAGE_SIZE >= totalVisible} onClick={() => setOffset(value => value + PAGE_SIZE)}>Next</button></div>
