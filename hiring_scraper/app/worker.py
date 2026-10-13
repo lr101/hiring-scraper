@@ -38,6 +38,7 @@ LOG = logging.getLogger("hiring_scraper.worker")
 POLL_SECONDS = max(3, int(os.getenv("SCAN_POLL_SECONDS", "3")))
 SCAN_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
 NEW_HTML_FEED_PRIORITY_SECONDS = 300
+OVERDUE_FEED_PRIORITY_SECONDS = 900
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CRAWL_DELAY_SECONDS", "1")))
 LEASE_MINUTES = max(2, int(os.getenv("FEED_SCAN_LEASE_MINUTES", "5")))
 CAPTURE_DIR = Path(os.getenv("SCAN_CAPTURE_DIR", "/tmp/hiring-scraper-feed-captures"))
@@ -53,12 +54,14 @@ def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
         JobFeed.last_checked_at.is_(None),
         JobFeed.next_scan_at >= now - timedelta(seconds=NEW_HTML_FEED_PRIORITY_SECONDS),
     )
+    overdue_feed = JobFeed.next_scan_at <= now - timedelta(seconds=OVERDUE_FEED_PRIORITY_SECONDS)
     with SessionLocal.begin() as session:
         statement = (select(JobFeed).join(Company)
                      .where(Company.crawl_paused.is_(False), JobFeed.enabled.is_(True),
                             JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
-                     .order_by(case((recently_queued_html, 0), else_=1),
+                     .order_by(case((overdue_feed, 0), else_=1),
+                               case((recently_queued_html, 0), else_=1),
                                JobFeed.next_scan_at,
                                case((Company.source == "default_job_feed", 0), else_=1),
                                Company.crawl_priority.desc(), JobFeed.id).limit(1))
