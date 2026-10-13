@@ -14,7 +14,7 @@ from pathlib import Path
 from threading import Lock
 from urllib.parse import urlsplit
 
-from sqlalchemy import case, select, or_, update
+from sqlalchemy import and_, case, select, or_, update
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -35,7 +35,7 @@ from hiring_scraper.crawl_policy import ORIGIN_PACER
 
 
 LOG = logging.getLogger("hiring_scraper.worker")
-POLL_SECONDS = max(3, int(os.getenv("SCAN_POLL_SECONDS", "30")))
+POLL_SECONDS = max(3, int(os.getenv("SCAN_POLL_SECONDS", "3")))
 SCAN_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CRAWL_DELAY_SECONDS", "1")))
 LEASE_MINUTES = max(2, int(os.getenv("FEED_SCAN_LEASE_MINUTES", "5")))
@@ -52,7 +52,9 @@ def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
                      .where(Company.crawl_paused.is_(False), JobFeed.enabled.is_(True),
                             JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
                             or_(JobFeed.lease_until.is_(None), JobFeed.lease_until < now))
-                     .order_by(case((Company.source == "default_job_feed", 0), else_=1),
+                     .order_by(case((and_(JobFeed.provider.in_({"html_jobs", "browser_html"}),
+                                         JobFeed.last_checked_at.is_(None)), 0), else_=1),
+                               case((Company.source == "default_job_feed", 0), else_=1),
                                JobFeed.next_scan_at, Company.crawl_priority.desc(), JobFeed.id).limit(1))
         if engine.dialect.name == "postgresql":
             statement = statement.with_for_update(skip_locked=True)

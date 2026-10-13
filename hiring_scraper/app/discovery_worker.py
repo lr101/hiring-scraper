@@ -13,7 +13,7 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import and_, case, func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -27,7 +27,7 @@ from hiring_scraper.app.discovery_jobs import (
 from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
-    Job, JobFeed, JobLocation, ScanRun, utcnow,
+    Job, JobFeed, JobLocation, utcnow,
 )
 from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
@@ -41,21 +41,22 @@ from hiring_scraper.website_discovery import configured_website_search
 
 
 LOG = logging.getLogger("hiring_scraper.discovery_worker")
-POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "30")))
+POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "3")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
 HOMEPAGE_RESOLUTION_LEASE_MINUTES = max(5, int(os.getenv("HOMEPAGE_RESOLUTION_LEASE_MINUTES", "15")))
 HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3")))
 LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
-CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','30')))
+NATIONAL_FIRST_CRAWL_SPREAD_SECONDS = 300
+CRAWL_BATCH_DELAY_SECONDS = max(1, float(os.getenv('CAREER_DISCOVERY_BATCH_DELAY_SECONDS','1')))
 REQUEST_DELAY_SECONDS = max(1.0, float(os.getenv("CAREER_DISCOVERY_DELAY_SECONDS", "1")))
 MAX_PAGES = min(24, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_PAGES", "24"))))
 MAX_DEPTH = min(6, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_DEPTH", "5"))))
 MAX_REQUESTS = min(64, max(1, int(os.getenv("CAREER_DISCOVERY_MAX_REQUESTS", "48"))))
 MAX_CRAWL_WORKER_LIMIT = 32
 MAX_CRAWL_WORKERS = min(MAX_CRAWL_WORKER_LIMIT,
-                        max(1, int(os.getenv("CAREER_DISCOVERY_WORKERS", "4"))))
+                        max(1, int(os.getenv("CAREER_DISCOVERY_WORKERS", "8"))))
 TIMEOUT_SECONDS = max(5, float(os.getenv("CAREER_DISCOVERY_TIMEOUT_SECONDS", "15")))
 CAPTURE_DIR = Path(os.getenv("CAREER_DISCOVERY_CAPTURE_DIR", "/tmp/hiring-scraper-discovery-captures"))
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public career discovery)")
@@ -140,6 +141,13 @@ def _homepage_resolution_due(company: Company, candidate: dict, now: datetime) -
     source_id = str(candidate.get("source_id") or company.source_id)
     offset = int.from_bytes(hashlib.sha256(f"homepage:{source_id}".encode()).digest()[:8], "big")
     return now + timedelta(seconds=offset % (days * 86400))
+
+
+def _national_first_crawl_due(job_id: int, company_id: int, now: datetime) -> datetime:
+    offset = int.from_bytes(
+        hashlib.sha256(f"{job_id}:{company_id}".encode()).digest()[:4], "big"
+    ) % NATIONAL_FIRST_CRAWL_SPREAD_SECONDS
+    return now + timedelta(seconds=offset)
 
 
 def _claim_due_homepage_resolution(now=None) -> tuple[int, int, str] | None:
@@ -739,12 +747,13 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                     if not is_domain_alias:
                         job.companies_found += 1
                     if crawl_company.website_url and not crawl_company.crawl_paused:
-                        # First inventory checks are spread across a day instead of bursting.
-                        offset = int.from_bytes(hashlib.sha256(f'{job.id}:{crawl_company.id}'.encode()).digest()[:4],'big') % 86400
-                        # Do not reset an existing rank's schedule just because a new
-                        # Germany inventory campaign found the same company.
+                        # Spread first checks over five minutes to smooth map-search
+                        # bursts, rather than holding them for up to a day. Keep an
+                        # existing company's rank schedule unless this is a new
+                        # company or it has no prior crawl date.
                         if new_company or crawl_company.next_discovery_at is None:
-                            crawl_company.next_discovery_at = now + timedelta(seconds=offset)
+                            crawl_company.next_discovery_at = _national_first_crawl_due(
+                                job.id, crawl_company.id, now)
                         status = 'queued'
                         job.candidate_total += 1
                         job.homepages_found += 1
@@ -757,9 +766,9 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                     existing_item.finished_at = None
                     job.candidate_total += 1
                     job.homepages_found += 1
-                    offset = int.from_bytes(hashlib.sha256(f'{job.id}:{crawl_company.id}'.encode()).digest()[:4],'big') % 86400
                     if new_company or crawl_company.next_discovery_at is None:
-                        crawl_company.next_discovery_at = now + timedelta(seconds=offset)
+                        crawl_company.next_discovery_at = _national_first_crawl_due(
+                            job.id, crawl_company.id, now)
                 session.flush()
             imported[source_id] = bool(website_url)
 
@@ -1050,22 +1059,6 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
         if alias_items:
             session.flush()
 
-        completed_priority_feed_scan = (select(ScanRun.id).where(
-            ScanRun.feed_id == JobFeed.id,
-            ScanRun.finished_at.is_not(None),
-            ScanRun.finished_at >= DiscoveryJob.created_at,
-        ).correlate(JobFeed, DiscoveryJob).exists())
-        pending_default_feed_scan = (select(JobFeed.id).join(Company).where(
-            Company.source == "default_job_feed", Company.crawl_paused.is_(False),
-            JobFeed.enabled.is_(True), ~completed_priority_feed_scan,
-            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
-        ).correlate(DiscoveryJob).exists())
-        pending_feed_employer_scan = (select(JobFeed.id).join(Company).where(
-            Company.source == "job_feed_employer", Company.crawl_paused.is_(False),
-            JobFeed.enabled.is_(True), JobFeed.next_scan_at.is_not(None), JobFeed.next_scan_at <= now,
-            ~completed_priority_feed_scan,
-            JobFeed.status.in_(("pending", "parsed", "complete_empty", "windowed", "windowed_empty")),
-        ).correlate(DiscoveryJob).exists())
         statement = (select(DiscoveryJobCompany)
                      .join(DiscoveryJob, DiscoveryJob.id == DiscoveryJobCompany.discovery_job_id)
                      .join(Company, Company.id == DiscoveryJobCompany.company_id)
@@ -1076,9 +1069,7 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                             DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                             or_(DiscoveryJob.search_scope == "country", DiscoveryJob.scheduled_for.is_(None), DiscoveryJob.scheduled_for <= now),
                             or_(DiscoveryJob.search_scope != "country", Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
-                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now),
-                            ~and_(DiscoveryJob.search_scope == "country",
-                                  or_(pending_default_feed_scan, pending_feed_employer_scan)))
+                            or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
                      .order_by(DiscoveryJob.scheduled_for.asc().nullsfirst(),
                                Company.crawl_priority.desc(),
                                Company.next_discovery_at.asc().nullsfirst(), DiscoveryJob.id.asc(),
