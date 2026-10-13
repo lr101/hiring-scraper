@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sqlalchemy import and_, func, or_, select, text, update
+from sqlalchemy import and_, case, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
@@ -1135,7 +1135,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
         if profile is not None:
             item['profile_match'] = matches[item['id']]
     tiers = [matches[job.id].get('fit_tier', 'possible') for job in matching] if profile else []
-    return {'items': items, 'total': len(matching), 'offset': offset, 'limit': limit,
+    result = {'items': items, 'total': len(matching), 'offset': offset, 'limit': limit,
             'location': {'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
                          'city': place, 'country_code': country},
             'location_scope': location_scope,
@@ -1150,6 +1150,28 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                      'work location within radius' if location_scope == 'area' else
                      'work location within radius OR explicitly remote within country scope')),
             'state': state, 'country': employer_country}
+    if profile is not None:
+        # Keep all match ids internal so list_jobs can seed initial tracking
+        # states even when the matching results are paginated.
+        result['_matching_job_ids'] = [job.id for job in matching]
+    return result
+
+
+def _ensure_new_applications(session: Session, profile_id: int, job_ids: list[int]) -> None:
+    """Create initial New states for matches without replacing user decisions."""
+    if not job_ids:
+        return
+    if session.get_bind().dialect.name == 'sqlite':
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
+    now = utcnow()
+    for start in range(0, len(job_ids), 100):
+        rows = [{'profile_id': profile_id, 'job_id': job_id, 'status': 'new',
+                 'created_at': now, 'updated_at': now} for job_id in job_ids[start:start + 100]]
+        session.execute(insert(JobApplication).values(rows).on_conflict_do_nothing(
+            index_elements=['profile_id', 'job_id']))
+    session.commit()
 
 
 @app.get("/api/v1/jobs")
@@ -1213,6 +1235,8 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
                       country if resolved['profile_area'] or isinstance(country_code, str) else None,
                       location_scope, state, employer_country)
     if profile is not None:
+        matching_job_ids = page.pop('_matching_job_ids', [])
+        _ensure_new_applications(session, profile.id, matching_job_ids)
         applications = {row.job_id: application_json(row) for row in session.scalars(
             select(JobApplication).where(JobApplication.profile_id == profile.id,
                                         JobApplication.job_id.in_([item['id'] for item in page['items']])))}
@@ -1234,8 +1258,13 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
         from sqlalchemy.dialects.postgresql import insert
     now = utcnow()
     statement = insert(JobApplication).values(profile_id=profile_id, job_id=job_id,
-        status=request.status, created_at=now, updated_at=now).on_conflict_do_update(
-            index_elements=['profile_id', 'job_id'], set_={'status': request.status, 'updated_at': now})
+        status=request.status, previous_status=None, created_at=now, updated_at=now).on_conflict_do_update(
+            index_elements=['profile_id', 'job_id'], set_={
+                'status': request.status,
+                'previous_status': case((JobApplication.status != request.status, JobApplication.status),
+                                        else_=JobApplication.previous_status),
+                'updated_at': now,
+            })
     session.execute(statement)
     session.commit()
     application = session.scalar(select(JobApplication).where(
@@ -1308,7 +1337,10 @@ def get_job(job_id: int, session: Session = Depends(get_session),
 
 
 @app.get("/api/v1/companies/{company_id}")
-def get_company(company_id: int, session: Session = Depends(get_session)) -> dict[str, Any]:
+def get_company(company_id: int,
+                session: Session = Depends(get_session),
+                profile_id: Annotated[int | None, Query(ge=1)] = None) -> dict[str, Any]:
+    profile = require_profile(profile_id, session) if profile_id is not None else None
     company = session.scalars(select(Company).options(selectinload(Company.feeds))
                               .where(Company.id == company_id)).first()
     if not company:
@@ -1321,7 +1353,15 @@ def get_company(company_id: int, session: Session = Depends(get_session)) -> dic
     active_jobs = _deduplicate_jobs([job for job in all_jobs if job.is_active])
     data = _company_json(company, float("inf"), len(active_jobs))
     data["feeds"] = [_feed_json(feed) for feed in company.feeds]
-    data["jobs"] = [_job_json(job) for job in all_jobs]
+    job_data = [_job_json(job) for job in all_jobs]
+    if profile is not None and job_data:
+        applications = {row.job_id: application_json(row) for row in session.scalars(select(JobApplication).where(
+            JobApplication.profile_id == profile.id,
+            JobApplication.job_id.in_([item["id"] for item in job_data]),
+        ))}
+        for item in job_data:
+            item["application"] = applications.get(item["id"])
+    data["jobs"] = job_data
     return data
 
 

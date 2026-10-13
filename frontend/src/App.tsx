@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DetailPage from './DetailPage'
 import FeedSourcesPage from './FeedSourcesPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import ApplicationsPage from './ApplicationsPage'
-import ApplicationStatusControl from './ApplicationStatusControl'
-import type { Application } from './applications'
+import SettingsPage from './SettingsPage'
+import JobFeedCard from './JobFeedCard'
+import { applicationStatusLabel, applicationStatuses, saveApplication, trackJobInteraction } from './applications'
+import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import { profileBoardDefaults, boardLocationParams } from './profile'
 import type { Profile } from './profile'
@@ -47,7 +49,7 @@ type Company = {
 }
 type CompanyDiscoveryFilter = 'all' | 'domain' | 'career' | 'feed' | 'jobs'
 type CompanySort = 'distance' | 'name'
-type JobSort = 'relevance' | 'newest' | 'title' | 'company'
+type JobSort = 'match' | 'posted' | 'discovered'
 type JobWorkStyleFilter = 'all' | 'hybrid' | 'onsite'
 type JobLocationScope = 'area' | 'remote' | 'area_remote'
 
@@ -91,32 +93,33 @@ type Job = {
   enrichment: Enrichment
   profile_match?: ProfileMatch
   application?: Application | null
+  profile_id?: number
+  profile_name?: string
   match_kind?: 'remote' | 'in_area' | 'employer_in_state' | 'employer_in_country'
 }
 
-type DiscoveryJob = {
-  search_scope?: 'radius' | 'state' | 'country'; id: number; label: string; city: string | null; state?: string | null; postcode?: string | null
-  latitude: number; longitude: number; status: string; radius_km: number; started_at: string | null
-}
+type JobCounts = { source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number> }
+type JobCoverage = { source_count: number; note: string }
+type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage }
 
 type LocationOption = {
   key: string
-  group: 'Available locations' | 'Previously searched' | 'Current selection'
   label: string
   location: Location
   radius_km: number
 }
 
-const DEFAULT_LOCATION: Location = {
-  label: 'Karlsruhe, Baden-Württemberg, Deutschland', city: 'Karlsruhe', state: 'Baden-Württemberg',
-  latitude: 49.0068705, longitude: 8.4034195, precision: 'city_centroid', type: 'city',
-}
-const DEFAULT_LOCATION_OPTION: LocationOption = {
-  key: 'default', group: 'Available locations', label: 'Karlsruhe',
-  location: DEFAULT_LOCATION, radius_km: 15,
+const NO_LOCATION: Location = {
+  label: '', latitude: 0, longitude: 0, precision: 'unconfigured',
 }
 const PAGE_SIZE = 40
+const JOB_REQUEST_SIZE = 100
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+const jobSortModes: { value: JobSort; label: string }[] = [
+  { value: 'match', label: 'Best match' },
+  { value: 'posted', label: 'Posted date' },
+  { value: 'discovered', label: 'Discovered' },
+]
 
 function apiUrl(path: string) {
   return `${API_BASE_URL}${path}`
@@ -143,27 +146,39 @@ function distanceLabel(distance: number | null) {
   return distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`
 }
 
-function dateLabel(value: string | null | undefined) {
-  if (!value) return 'Date not listed'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
+function dateRank(value?: string | null) {
+  const timestamp = value ? Date.parse(value) : Number.NaN
+  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
 }
 
-function hostLabel(value: string | null) {
-  if (!value) return 'Company website'
-  try { return new URL(value).hostname.replace(/^www\./, '') }
-  catch { return value }
-}
-
-function providerLabel(provider: string) {
-  const labels: Record<string, string> = {
-    greenhouse: 'Company hiring page', lever: 'Company hiring page', personio: 'Company hiring page', ashby: 'Company hiring page',
-    schema_org: 'Company job page', html_jobs: 'Company job page', external_html: 'Public job page',
-    browser_html: 'JavaScript job page', rss: 'RSS / Atom job feed',
-    arbeitsagentur: 'Bundesagentur für Arbeit listing',
+async function fetchAllJobs(query: URLSearchParams, signal: AbortSignal): Promise<JobsPage> {
+  const items: Job[] = []
+  let total = Number.POSITIVE_INFINITY
+  let counts: JobCounts | undefined
+  let coverage: JobCoverage | undefined
+  while (items.length < total) {
+    const pageQuery = new URLSearchParams(query)
+    pageQuery.set('offset', String(items.length))
+    pageQuery.set('limit', String(JOB_REQUEST_SIZE))
+    const response = await fetch(apiUrl(`/api/v1/jobs?${pageQuery}`), { signal })
+    const page = await response.json() as JobsPage & { detail?: unknown }
+    if (!response.ok) throw new Error(typeof page.detail === 'string' ? page.detail : 'Could not load job results.')
+    items.push(...page.items)
+    total = page.total
+    counts = page.counts ?? counts
+    coverage = page.coverage ?? coverage
+    if (!page.items.length) break
   }
-  return labels[provider] ?? 'Company job page'
+  return { items, total, counts, coverage }
+}
+
+function compareJobRows(sort: JobSort, a: Job, b: Job) {
+  const scoreDifference = (b.profile_match?.score ?? -1) - (a.profile_match?.score ?? -1)
+  const discoveredDifference = dateRank(b.first_seen_at) - dateRank(a.first_seen_at)
+  const postedDifference = dateRank(b.date_posted) - dateRank(a.date_posted)
+  if (sort === 'posted') return postedDifference || scoreDifference || discoveredDifference
+  if (sort === 'discovered') return discoveredDifference || scoreDifference || postedDifference
+  return scoreDifference || discoveredDifference || postedDifference
 }
 
 function statusLabel(status: string) {
@@ -196,25 +211,26 @@ function DirectoryPage() {
   const requestedCompanyFilter = params.get('company_filter') as CompanyDiscoveryFilter | null
   const initialCompanyFilter = requestedCompanyFilter && companyFilters.includes(requestedCompanyFilter)
     ? requestedCompanyFilter : 'all'
-  const initialLocation: Location = params.has('country')
+  const initialLocation: Location | null = params.has('country')
     ? { label: 'Germany', search_scope: 'country', latitude: 0, longitude: 0, precision: 'country_boundary', country_code: 'de' }
     : params.has('state')
     ? { label: params.get('state')!, state: params.get('state'), search_scope: 'state',
         latitude: 0, longitude: 0, precision: 'state_boundary', country_code: 'de' }
     : params.has('lat') && params.has('lon')
-    ? { ...DEFAULT_LOCATION, label: params.get('place') ?? DEFAULT_LOCATION.label,
-        city: params.get('place')?.split(',')[0] ?? DEFAULT_LOCATION.city,
-        latitude: Number(params.get('lat')), longitude: Number(params.get('lon')) }
-    : DEFAULT_LOCATION
-  const [location, setLocation] = useState<Location>(initialLocation)
+    ? { label: params.get('place') ?? '', city: params.get('place')?.split(',')[0] ?? null,
+        latitude: Number(params.get('lat')), longitude: Number(params.get('lon')), precision: 'url_location' }
+    : null
+  const [location, setLocation] = useState<Location>(NO_LOCATION)
   const [radius, setRadius] = useState(Number(params.get('radius_km') ?? 15))
-  const [selectedLocationKey, setSelectedLocationKey] = useState(params.get('location_key') ?? ((params.has('state') || params.has('country')) ? 'current' : 'default'))
-  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([DEFAULT_LOCATION_OPTION])
+  const [selectedLocationKey, setSelectedLocationKey] = useState(params.get('location_key') ?? '')
+  const [locationOptions, setLocationOptions] = useState<LocationOption[]>([])
+  const [locationsReady, setLocationsReady] = useState(false)
   const [query, setQuery] = useState(params.get('q') ?? '')
   const [companyFilter, setCompanyFilter] = useState<CompanyDiscoveryFilter>(initialCompanyFilter)
   const [companySort, setCompanySort] = useState<CompanySort>(params.get('company_sort') === 'name' ? 'name' : 'distance')
-  const [jobSort, setJobSort] = useState<JobSort>(['newest', 'title', 'company'].includes(params.get('job_sort') ?? '')
-    ? params.get('job_sort') as JobSort : 'relevance')
+  const requestedJobSort = params.get('job_sort')
+  const [jobSort, setJobSort] = useState<JobSort>(requestedJobSort === 'posted' || requestedJobSort === 'discovered'
+    ? requestedJobSort : requestedJobSort === 'newest' ? 'posted' : 'match')
   const requestedLocationScope = params.get('location_scope')
   const [jobLocationScope, setJobLocationScope] = useState<JobLocationScope>(['area', 'remote', 'area_remote'].includes(requestedLocationScope ?? '')
     ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : (params.has('state') || params.has('country')) ? 'area_remote' : 'area')
@@ -222,11 +238,21 @@ function DirectoryPage() {
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [profilesReady, setProfilesReady] = useState(false)
-  const [coverage, setCoverage] = useState<{source_count: number; note: string} | null>(null)
-  const [counts, setCounts] = useState<{source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number>} | null>(null)
-  const [profileId, setProfileId] = useState(params.get('profile_id') ?? '')
+  const requestedProfileIds = params.get('profile_ids')
+  const [activeProfileIds, setActiveProfileIds] = useState<number[]>(() => {
+    const requested = requestedProfileIds !== null ? requestedProfileIds.split(',')
+      : params.has('profile_id') ? [params.get('profile_id') ?? ''] : []
+    return [...new Set(requested.map(Number).filter(value => Number.isSafeInteger(value) && value > 0))]
+  })
+  const profileId = String(activeProfileIds[0] ?? '')
+  const activeProfileKey = activeProfileIds.join(',')
+  const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
+  const [coverage, setCoverage] = useState<JobCoverage | null>(null)
+  const [counts, setCounts] = useState<JobCounts | null>(null)
   const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
   const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
+  const [jobStatusFilter, setJobStatusFilter] = useState<ApplicationStatus | ''>(() =>
+    applicationStatuses.find(item => item.value === params.get('job_status'))?.value ?? '')
   const [tab, setTab] = useState<'companies' | 'jobs'>(params.get('view') === 'jobs' ? 'jobs' : 'companies')
   const [companies, setCompanies] = useState<Company[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
@@ -236,78 +262,74 @@ function DirectoryPage() {
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [trackingError, setTrackingError] = useState('')
+  const [trackingNotice, setTrackingNotice] = useState('')
+  const [swipeSavingJobId, setSwipeSavingJobId] = useState<number | null>(null)
+  const swipeRequestToken = useRef(0)
+  const profileSelectionToken = useRef(0)
+  const requestOffset = tab === 'companies' ? offset : 0
+
+  const selectedProfile = profiles.find(profile => String(profile.id) === profileId)
+  const profileArea = selectedProfile?.search_area
+  const profileLocationOption: LocationOption | null = selectedLocationKey.startsWith('profile:') && profileArea?.latitude != null && profileArea.longitude != null
+    ? {
+      key: `profile:${selectedProfile?.id}`,
+      label: profileArea.city || profileArea.label.split(',')[0],
+      location: { ...profileArea, latitude: profileArea.latitude, longitude: profileArea.longitude, precision: 'profile_search_area' },
+      radius_km: profileArea.radius_km,
+    }
+    : null
+  const selectableLocationOptions = profileLocationOption ? [...locationOptions, profileLocationOption] : locationOptions
 
   useEffect(() => {
     const controller = new AbortController()
     fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }).then(async response => {
       if (!response.ok) throw new Error('Could not load saved profiles.')
       const data = await response.json(); setProfiles(data.items)
-      const selected = data.items.find((item: Profile) => String(item.id) === params.get('profile_id'))
-        ?? (!params.has('profile_id') && !(params.has('state') || params.has('country')) ? data.items[0] : null)
+      const allProfileIds: number[] = data.items.flatMap((item: Profile) => item.id == null ? [] : [item.id])
+      const validIds = new Set<number>(allProfileIds)
+      const requested = requestedProfileIds !== null ? requestedProfileIds.split(',').map(Number)
+        : params.has('profile_id') ? [Number(params.get('profile_id'))] : null
+      const selectedIds = requested !== null
+        ? [...new Set(requested.filter((id: number) => Number.isSafeInteger(id) && id > 0 && validIds.has(id)))]
+        : !(params.has('state') || params.has('country')) ? allProfileIds : []
+      const selected = data.items.find((item: Profile) => item.id === selectedIds[0])
       if (selected) {
         applyProfile(selected, params)
+        setActiveProfileIds(selectedIds)
         if (!params.has('view')) setTab('jobs')
+      } else {
+        setActiveProfileIds([])
       }
       setProfilesReady(true)
     }).catch(reason => { if (!controller.signal.aborted) { setError(reason.message); setProfilesReady(true) } })
     return () => controller.abort()
   }, [])
 
-  const locationParams = useMemo(() => boardLocationParams(location, radius,
-    params.get('country_code'), profiles.find(profile => String(profile.id) === profileId)?.search_area?.country_code),
-  [location, radius, params, profiles, profileId])
+  const locationParams = useMemo(() => selectedLocationKey
+    ? boardLocationParams(location, radius, params.get('country_code'), selectedProfile?.search_area?.country_code)
+    : new URLSearchParams(),
+  [location, radius, params, selectedLocationKey, selectedProfile?.search_area?.country_code])
 
   useEffect(() => {
+    if (!profilesReady) return
     let cancelled = false
     async function loadLocationOptions() {
       try {
-        const [locationResponse, searchesResponse] = await Promise.all([
-          fetch(apiUrl('/api/v1/locations')),
-          fetch(apiUrl('/api/v1/discovery-jobs?limit=50')),
-        ])
-        if (!locationResponse.ok || !searchesResponse.ok) throw new Error('Could not load available locations.')
-        const [locationData, searchesData] = await Promise.all([
-          locationResponse.json(), searchesResponse.json(),
-        ])
+        const locationResponse = await fetch(apiUrl('/api/v1/locations'))
+        if (!locationResponse.ok) throw new Error('Could not load configured locations.')
+        const locationData = await locationResponse.json()
         const available: LocationOption[] = locationData.items.map((item: {
           search_scope?: 'radius' | 'state' | 'country'; id: number; label: string; city: string | null; state: string | null; postcode: string | null
           latitude: number; longitude: number; radius_km: number
         }) => ({
           key: `saved:${item.id}`,
-          group: 'Available locations',
           label: item.city || item.label.split(',')[0],
           location: { ...item, precision: 'configured_location', type: 'configured_location' },
           radius_km: item.radius_km,
         }))
-        const searched: LocationOption[] = (searchesData.items as DiscoveryJob[])
-          .filter(job => Boolean(job.started_at) || ['running', 'completed', 'partial', 'failed'].includes(job.status))
-          .map(job => ({
-            key: `searched:${job.id}`,
-            group: 'Previously searched',
-            label: job.city || job.label.split(',')[0],
-            location: {
-              search_scope: job.search_scope, label: job.label, city: job.city, state: job.state, postcode: job.postcode,
-              latitude: job.latitude, longitude: job.longitude,
-              precision: 'previously_searched', type: 'previously_searched',
-            },
-            radius_km: job.radius_km,
-          }))
-        const currentLocationOption: LocationOption = {
-          key: 'current', group: 'Current selection',
-          label: initialLocation.city || initialLocation.label.split(',')[0],
-          location: initialLocation, radius_km: radius,
-        }
-        const defaultOption: LocationOption = {
-          ...DEFAULT_LOCATION_OPTION,
-        }
-        const candidates = [
-          ...available,
-          ...searched,
-          ...(params.has('country') || params.has('state') || params.has('lat') && params.has('lon') ? [currentLocationOption] : []),
-          defaultOption,
-        ]
         const seenLocations = new Set<string>()
-        const options = candidates.filter(option => {
+        const options = available.filter(option => {
           const identity = locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'country' ? 'Germany' : option.location.search_scope === 'state' ? option.location.state : null)
           if (seenLocations.has(identity)) return false
           seenLocations.add(identity)
@@ -316,74 +338,118 @@ function DirectoryPage() {
         if (cancelled) return
         setLocationOptions(options)
         const requestedKey = params.get('location_key')
-        const selected = options.find(option => option.key === requestedKey)
-          ?? options.find(option => locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'country' ? 'Germany' : option.location.search_scope === 'state' ? option.location.state : null) ===
-            locationIdentity(initialLocation.latitude, initialLocation.longitude, radius, initialLocation.search_scope === 'country' ? 'Germany' : initialLocation.search_scope === 'state' ? initialLocation.state : null))
-          ?? options.find(option => option.key === 'default')
-          ?? options[0]
-        if (selected) {
-          setSelectedLocationKey(previous => previous.startsWith('profile:') ? previous : selected.key)
-          if (requestedKey && !params.has('profile_id') && selected.key === requestedKey) {
+        const profileSelection = selectedProfile && selectedLocationKey === `profile:${selectedProfile.id}`
+          ? selectedProfile.search_area : null
+        const configuredProfileLocation = profileSelection?.latitude != null && profileSelection.longitude != null
+          ? options.find(option => locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'state' ? option.location.state : null) ===
+            locationIdentity(profileSelection.latitude!, profileSelection.longitude!, profileSelection.radius_km))
+          : undefined
+        if (profileSelection && !configuredProfileLocation) {
+          // A saved profile area is configured by the user and remains selectable for that profile.
+        } else {
+          const selected = configuredProfileLocation
+            ?? options.find(option => option.key === requestedKey)
+            ?? (initialLocation ? options.find(option => locationIdentity(option.location.latitude, option.location.longitude, option.radius_km, option.location.search_scope === 'country' ? 'Germany' : option.location.search_scope === 'state' ? option.location.state : null) ===
+              locationIdentity(initialLocation.latitude, initialLocation.longitude, radius, initialLocation.search_scope === 'country' ? 'Germany' : initialLocation.search_scope === 'state' ? initialLocation.state : null)) : undefined)
+            ?? options[0]
+          if (selected) {
+            setSelectedLocationKey(selected.key)
             setLocation(selected.location)
             if (!params.has('radius_km')) setRadius(selected.radius_km)
+          } else {
+            setSelectedLocationKey('')
+            setLocation(NO_LOCATION)
           }
         }
       } catch (exception) {
         if (!cancelled) setError(exception instanceof Error ? exception.message : 'Could not load available locations.')
+      } finally {
+        if (!cancelled) setLocationsReady(true)
       }
     }
     void loadLocationOptions()
     return () => { cancelled = true }
-  }, [])
+  }, [profilesReady])
 
   const loadData = useCallback(async (signal: AbortSignal) => {
-    if (!profilesReady) return
-    setLoading(true)
+    if (!profilesReady || !locationsReady) return
     setError('')
+    if (!selectedLocationKey) {
+      setCompanies([]); setCompanyTotal(0); setJobs([]); setJobTotal(0)
+      setSummary({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
+      setCounts(null); setCoverage(null); setLoading(false)
+      return
+    }
+    setLoading(true)
     const companyParams = new URLSearchParams(locationParams)
-    companyParams.set('offset', String(tab === 'companies' ? offset : 0))
+    companyParams.set('offset', String(requestOffset))
     companyParams.set('limit', String(PAGE_SIZE))
     companyParams.set('sort', location.search_scope === 'country' || location.search_scope === 'state' ? 'name' : companySort)
     if (companyFilter !== 'all') companyParams.set('discovery', companyFilter)
     const jobParams = new URLSearchParams(locationParams)
-    jobParams.set('offset', String(tab === 'jobs' ? offset : 0))
-    jobParams.set('limit', String(PAGE_SIZE))
-    jobParams.set('sort', jobSort)
+    jobParams.set('sort', 'relevance')
     jobParams.set('location_scope', jobLocationScope)
-    if (profileId) {
-      jobParams.set('profile_id', profileId)
-      jobParams.set('min_match_score', minimumScore)
-      jobParams.set('include_unknown', String(includeUnknown))
-    }
     if (jobWorkStyle !== 'all') jobParams.set('work_style', jobWorkStyle)
     if (query.trim()) {
       companyParams.set('query', query.trim())
       jobParams.set('query', query.trim())
     }
+    const selectedProfiles = profiles.filter(profile => activeProfileIds.includes(profile.id!))
+    const profileQueries = selectedProfiles.length ? selectedProfiles.map(profile => {
+      const profileQuery = new URLSearchParams(jobParams)
+      profileQuery.set('profile_id', String(profile.id))
+      profileQuery.set('min_match_score', minimumScore)
+      profileQuery.set('include_unknown', String(includeUnknown))
+      return { profile, query: profileQuery }
+    }) : [{ profile: null, query: jobParams }]
     try {
-      const [companyResponse, jobResponse, summaryResponse] = await Promise.all([
+      const [companyResponse, profilePages, summaryResponse] = await Promise.all([
         fetch(apiUrl(`/api/v1/companies?${companyParams}`), { signal }),
-        fetch(apiUrl(`/api/v1/jobs?${jobParams}`), { signal }),
+        Promise.all(profileQueries.map(async ({ profile, query: profileQuery }) => {
+          if (tab === 'jobs') {
+            const page = await fetchAllJobs(profileQuery, signal)
+            return { ...page, items: page.items.map(job => profile ? { ...job, profile_id: profile.id, profile_name: profile.name } : job) }
+          }
+          profileQuery.set('limit', '1')
+          profileQuery.set('offset', '0')
+          const response = await fetch(apiUrl(`/api/v1/jobs?${profileQuery}`), { signal })
+          const page = await response.json() as JobsPage & { detail?: unknown }
+          if (!response.ok) throw new Error(typeof page.detail === 'string' ? page.detail : 'Could not load job results.')
+          return { ...page, items: page.items.map(job => profile ? { ...job, profile_id: profile.id, profile_name: profile.name } : job) }
+        })),
         fetch(apiUrl(`/api/v1/summary?${locationParams}`), { signal }),
       ])
-      for (const response of [companyResponse, jobResponse, summaryResponse]) {
-        if (!response.ok) throw new Error(`Could not load company and job results (error ${response.status}).`)
+      if (!companyResponse.ok || !summaryResponse.ok) throw new Error(`Could not load company and job results (error ${!companyResponse.ok ? companyResponse.status : summaryResponse.status}).`)
+      const [companyPage, summaryData] = await Promise.all([companyResponse.json(), summaryResponse.json()])
+      const jobPage = {
+        items: profilePages.flatMap(page => page.items),
+        total: profilePages.reduce((total, page) => total + page.total, 0),
+        counts: profilePages.some(page => page.counts) ? profilePages.reduce<JobCounts>((total, page) => {
+          const next = page.counts
+          if (!next) return total
+          total.source += next.source
+          total.scoped += next.scoped
+          total.duplicates_removed += next.duplicates_removed
+          total.recommended += next.recommended
+          total.possible += next.possible
+          total.unlikely = (total.unlikely ?? 0) + (next.unlikely ?? 0)
+          for (const [key, value] of Object.entries(next.filtered)) total.filtered[key] = (total.filtered[key] ?? 0) + value
+          return total
+        }, { source: 0, scoped: 0, duplicates_removed: 0, recommended: 0, possible: 0, unlikely: 0, filtered: {} }) : null,
+        coverage: profilePages.find(page => page.coverage)?.coverage ?? null,
       }
-      const [companyPage, jobPage, summaryData] = await Promise.all([
-        companyResponse.json(), jobResponse.json(), summaryResponse.json(),
-      ])
       setCompanies(companyPage.items)
       setCompanyTotal(companyPage.total)
       setJobs(jobPage.items)
       setJobTotal(jobPage.total)
       setSummary(summaryData)
-      setCounts(jobPage.counts ?? null); setCoverage(jobPage.coverage ?? null)
+      setCounts(jobPage.counts); setCoverage(jobPage.coverage)
     } catch (exception) {
       if (!signal.aborted) setError(exception instanceof Error ? exception.message : 'Could not load company and job results.')
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, locationParams, offset, query, tab, profileId, minimumScore, includeUnknown, profilesReady])
+  }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, locationParams, requestOffset, query, tab, activeProfileKey, activeProfileIds, profiles, minimumScore, includeUnknown, profilesReady, locationsReady, selectedLocationKey])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -392,9 +458,11 @@ function DirectoryPage() {
   }, [loadData])
 
   useEffect(() => {
-    if (!profilesReady) return
+    if (!profilesReady || !locationsReady) return
     const url = new URL(window.location.href)
-    if (location.search_scope === 'country') {
+    if (!selectedLocationKey) {
+      for (const key of ['country', 'state', 'lat', 'lon', 'place', 'radius_km', 'country_code', 'location_key']) url.searchParams.delete(key)
+    } else if (location.search_scope === 'country') {
       url.searchParams.set('country', 'DE')
       for (const key of ['state', 'lat', 'lon', 'place', 'radius_km']) url.searchParams.delete(key)
     } else if (location.search_scope === 'state' && location.state) {
@@ -420,7 +488,7 @@ function DirectoryPage() {
     else url.searchParams.delete('company_filter')
     if (companySort !== 'distance') url.searchParams.set('company_sort', companySort)
     else url.searchParams.delete('company_sort')
-    if (jobSort !== 'relevance') url.searchParams.set('job_sort', jobSort)
+    if (jobSort !== 'match') url.searchParams.set('job_sort', jobSort)
     else url.searchParams.delete('job_sort')
     if (jobWorkStyle !== 'all') url.searchParams.set('job_work_style', jobWorkStyle)
     else url.searchParams.delete('job_work_style')
@@ -428,31 +496,101 @@ function DirectoryPage() {
     else url.searchParams.delete('location_scope')
     if (tab !== 'companies') url.searchParams.set('view', tab)
     else url.searchParams.delete('view')
-    if (profileId) {
+    if (activeProfileIds.length) {
+      url.searchParams.set('profile_ids', activeProfileKey)
       url.searchParams.set('profile_id', profileId)
       url.searchParams.set('min_match_score', minimumScore)
       url.searchParams.set('include_unknown', String(includeUnknown))
     } else {
-      url.searchParams.set('profile_id', ''); url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
+      url.searchParams.delete('profile_id'); url.searchParams.delete('profile_ids')
+      url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
     }
+    if (jobStatusFilter) url.searchParams.set('job_status', jobStatusFilter)
+    else url.searchParams.delete('job_status')
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, minimumScore, includeUnknown, profilesReady])
+  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, activeProfileIds, activeProfileKey, minimumScore, includeUnknown, jobStatusFilter, profilesReady, locationsReady])
 
   function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
+    if (profile.id == null) return
     const defaults = profileBoardDefaults(profile, overrides)
-    setProfileId(String(profile.id)); setMinimumScore(defaults.minimumScore); setIncludeUnknown(defaults.includeUnknown)
+    swipeRequestToken.current += 1
+    profileSelectionToken.current += 1
+    setSwipeSavingJobId(null)
+    setActiveProfileIds([profile.id]); setMinimumScore(defaults.minimumScore); setIncludeUnknown(defaults.includeUnknown)
+    setJobs([])
     if (defaults.location) { setLocation(defaults.location); setSelectedLocationKey(`profile:${profile.id}`) }
+    else if (selectedLocationKey.startsWith('profile:')) {
+      const configured = locationOptions[0]
+      setSelectedLocationKey(configured?.key ?? '')
+      setLocation(configured?.location ?? NO_LOCATION)
+      if (configured) setRadius(configured.radius_km)
+    }
     setRadius(defaults.radius)
     setOffset(0)
   }
-  function selectProfile(value: string) {
-    const profile = profiles.find(item => String(item.id) === value)
-    if (profile) applyProfile(profile, location.search_scope === 'country' ? new URLSearchParams({ country: 'DE' }) : location.search_scope === 'state' && location.state
-      ? new URLSearchParams({ state: location.state }) : new URLSearchParams())
-    else { setProfileId(''); setOffset(0) }
+  function profileScopeOverrides() {
+    return location.search_scope === 'country' ? new URLSearchParams({ country: 'DE' })
+      : location.search_scope === 'state' && location.state ? new URLSearchParams({ state: location.state })
+        : new URLSearchParams()
+  }
+  function invalidateProfileRequests() {
+    swipeRequestToken.current += 1
+    profileSelectionToken.current += 1
+    setSwipeSavingJobId(null)
+    setJobs([])
+  }
+  function syncProfileLocation(nextIds: number[]) {
+    if (!selectedLocationKey.startsWith('profile:')) return
+    const locationOwner = Number(selectedLocationKey.slice('profile:'.length))
+    if (nextIds.includes(locationOwner)) return
+    const nextProfile = profiles.find(profile => profile.id === nextIds[0])
+    const area = nextProfile?.search_area
+    if (nextProfile && area?.latitude != null && area.longitude != null) {
+      setSelectedLocationKey(`profile:${nextProfile.id}`)
+      setLocation({ ...area, latitude: area.latitude, longitude: area.longitude, precision: 'profile_search_area' })
+      setRadius(area.radius_km)
+      return
+    }
+    const configured = locationOptions[0]
+    setSelectedLocationKey(configured?.key ?? '')
+    setLocation(configured?.location ?? NO_LOCATION)
+    if (configured) setRadius(configured.radius_km)
+  }
+  function clearProfileFilters() {
+    invalidateProfileRequests()
+    setActiveProfileIds([])
+    setJobStatusFilter('')
+    syncProfileLocation([])
+    setOffset(0)
+  }
+  function selectAllProfiles() {
+    if (!profiles.length) return
+    const selected = profiles.find(profile => profile.id === activeProfileIds[0]) ?? profiles[0]
+    if (!activeProfileIds.length) applyProfile(selected, profileScopeOverrides())
+    else invalidateProfileRequests()
+    setActiveProfileIds(profiles.flatMap(profile => profile.id == null ? [] : [profile.id]))
+    setJobStatusFilter('')
+    setOffset(0)
+  }
+  function toggleProfileFilter(id: number) {
+    const nextIds = activeProfileIds.includes(id)
+      ? activeProfileIds.filter(profileId => profileId !== id)
+      : [...activeProfileIds, id].sort((a, b) => profiles.findIndex(profile => profile.id === a) - profiles.findIndex(profile => profile.id === b))
+    const profile = profiles.find(item => item.id === id)
+    if (!activeProfileIds.length && profile) applyProfile(profile, profileScopeOverrides())
+    else invalidateProfileRequests()
+    setActiveProfileIds(nextIds)
+    setJobStatusFilter('')
+    syncProfileLocation(nextIds)
+    setOffset(0)
+  }
+  function cycleJobSort() {
+    const index = jobSortModes.findIndex(item => item.value === jobSort)
+    setJobSort(jobSortModes[(index + 1) % jobSortModes.length].value)
+    setOffset(0)
   }
   function selectLocation(key: string) {
-    const option = locationOptions.find(item => item.key === key)
+    const option = selectableLocationOptions.find(item => item.key === key)
     if (!option) return
     setSelectedLocationKey(key)
     setLocation(option.location)
@@ -461,11 +599,63 @@ function DirectoryPage() {
     setOffset(0)
   }
 
-  const activeTotal = tab === 'companies' ? companyTotal : jobTotal
+  async function trackOpenedPost(job: Job) {
+    if (!job.profile_id) return
+    const trackingProfileId = job.profile_id
+    const profileToken = profileSelectionToken.current
+    setTrackingError('')
+    try {
+      const application = await trackJobInteraction(API_BASE_URL, trackingProfileId, job.id, job.application, 'open_post')
+      if (profileSelectionToken.current !== profileToken) return
+      if (application) setJobs(current => current.map(item => item.id === job.id && item.profile_id === trackingProfileId ? { ...item, application } : item))
+    } catch {
+      if (profileSelectionToken.current !== profileToken) return
+      setTrackingError(`Could not update tracking for ${job.title}. Open the role details to try again.`)
+    }
+  }
+
+  async function changeJobApplication(job: Job, action: ApplicationSwipeAction) {
+    if (!job.profile_id || swipeSavingJobId !== null) return
+    const trackingProfileId = job.profile_id
+    const requestToken = ++swipeRequestToken.current
+    const profileToken = profileSelectionToken.current
+    setTrackingError('')
+    setTrackingNotice('')
+    setSwipeSavingJobId(job.id)
+    try {
+      const saved = await saveApplication(API_BASE_URL, trackingProfileId, job.id, action.status)
+      if (profileSelectionToken.current !== profileToken) return
+      setJobs(current => current.map(item => item.id === job.id && item.profile_id === trackingProfileId ? { ...item, application: saved } : item))
+      const label = applicationStatusLabel(action.status)
+      setTrackingNotice(action.kind === 'undo' ? `${job.title} restored to ${label}.` : `${job.title} moved to ${label}.`)
+    } catch (reason) {
+      if (profileSelectionToken.current !== profileToken) return
+      setTrackingError(reason instanceof Error ? reason.message : `Could not update tracking for ${job.title}.`)
+    } finally {
+      if (swipeRequestToken.current === requestToken) setSwipeSavingJobId(null)
+    }
+  }
+
+  function companyHref(companyId: number) {
+    const detailParams = new URLSearchParams(window.location.search)
+    if (profileId) detailParams.set('profile_id', profileId)
+    return `/companies/${companyId}?${detailParams}`
+  }
+
+  const jobApplicationCounts = useMemo(() => {
+    const result = Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>
+    for (const job of jobs) if (job.application) result[job.application.status] += 1
+    return result
+  }, [jobs])
+  const filteredJobs = useMemo(() => jobs
+    .filter(job => !jobStatusFilter || job.application?.status === jobStatusFilter)
+    .sort((a, b) => compareJobRows(jobSort, a, b)), [jobs, jobSort, jobStatusFilter])
+  const visibleJobs = filteredJobs.slice(offset, offset + PAGE_SIZE)
+  const activeTotal = tab === 'companies' ? companyTotal : filteredJobs.length
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1
   const pageCount = Math.max(1, Math.ceil(activeTotal / PAGE_SIZE))
-  const wholeState = location.search_scope === 'state' || location.search_scope === 'country'
-  const locality = location.city ?? location.label.split(',')[0]
+  const wholeState = Boolean(selectedLocationKey) && (location.search_scope === 'state' || location.search_scope === 'country')
+  const locality = selectedLocationKey ? location.city ?? location.label.split(',')[0] : 'a configured location'
 
   return (
     <div className="app-shell">
@@ -478,7 +668,7 @@ function DirectoryPage() {
             <h1>Opportunity, <em>around you.</em></h1>
             <p className="intro-copy">Find nearby opportunities from employer hiring pages and selected public job listings.</p>
           </div>
-          <div className="snapshot-pill"><span>{radius}</span> KM SEARCH AREA</div>
+          <div className="snapshot-pill">{selectedLocationKey ? <><span>{radius}</span> KM SEARCH AREA</> : 'LOCATION REQUIRED'}</div>
         </section>
 
         <section className="search-card" aria-label="Choose a location">
@@ -486,22 +676,16 @@ function DirectoryPage() {
             <label className="search-location">
               <span className="control-label">LOCATION</span>
               <span className="input-wrap location-select-wrap"><Icon name="pin" size={19} />
-                <select aria-label="Available and searched locations" value={selectedLocationKey}
+                <select aria-label="Configured locations" value={selectedLocationKey} disabled={!locationsReady || selectableLocationOptions.length === 0}
                   onChange={event => selectLocation(event.target.value)}>
-                  {!locationOptions.some(option => option.key === selectedLocationKey) &&
-                    <option value={selectedLocationKey}>{locality} · {radius} km</option>}
-                  {(['Available locations', 'Previously searched', 'Current selection'] as const).map(group => {
-                    const options = locationOptions.filter(option => option.group === group)
-                    return options.length ? <optgroup key={group} label={group}>
-                      {options.map(option => <option key={option.key} value={option.key}>
-                        {option.label} · {option.location.search_scope === 'country' ? 'All Germany' : option.location.search_scope === 'state' ? 'Whole state' : `${option.key === selectedLocationKey ? radius : option.radius_km} km`}
-                      </option>)}
-                    </optgroup> : null
-                  })}
+                  <option value="" disabled>{locationsReady ? selectableLocationOptions.length ? 'Choose a location' : 'No configured locations' : 'Loading locations…'}</option>
+                  {selectableLocationOptions.map(option => <option key={option.key} value={option.key}>
+                    {option.label} · {option.location.search_scope === 'country' ? 'All Germany' : option.location.search_scope === 'state' ? 'Whole state' : `${option.key === selectedLocationKey ? radius : option.radius_km} km`}
+                  </option>)}
                 </select>
               </span>
             </label>
-            {!wholeState && <label className="radius-control">
+            {selectedLocationKey && !wholeState && <label className="radius-control">
               <span className="control-label">LISTING DISTANCE</span>
               <select aria-label="Listing distance around this place" value={radius} onChange={event => { setRadius(Number(event.target.value)); setOffset(0) }}>
                 {[...new Set([5, 10, 15, 25, 35, 50, 100, 200, radius])].sort((a,b) => a-b).map(value => <option key={value} value={value}>{value} km</option>)}
@@ -509,12 +693,12 @@ function DirectoryPage() {
             </label>}
             <a href="/locations" className="configure-locations-link">Configure locations <Icon name="arrow" size={15} /></a>
           </div>
-          <div className="search-footnote"><span><Icon name="globe" size={14} /> Germany</span><span>{wholeState ? 'All work locations from employers discovered in this search area; public sources may be incomplete.' : 'Jobs can be local or remote'}</span></div>
+          <div className="search-footnote"><span><Icon name="globe" size={14} />{selectedLocationKey ? wholeState ? 'Germany' : locality : 'No location selected'}</span><span>{selectedLocationKey ? wholeState ? 'All work locations from employers discovered in this search area; public sources may be incomplete.' : 'Jobs can be local or remote' : 'Configure a location to see nearby employers and jobs.'}</span></div>
         </section>
 
         {error && <div className="error-banner" role="alert">{error}<button type="button" onClick={() => setError('')}>Dismiss</button></div>}
 
-        <section className="metrics-grid" aria-label="Search overview">
+        {tab === 'companies' && selectedLocationKey && <section className="metrics-grid" aria-label="Search overview">
           <article className="metric-card metric-primary">
             <span className="metric-icon"><Icon name="building" size={19} /></span>
             <span className="metric-label">COMPANIES IN THIS AREA</span>
@@ -539,13 +723,13 @@ function DirectoryPage() {
             <strong>{loading ? '—' : summary.remote_jobs_in_result.toLocaleString('en')}</strong>
             <span className="metric-note">select Remote in the job location filter</span>
           </article>
-        </section>
+        </section>}
 
         <section className="directory-card">
           <div className="directory-header">
             <div>
               <p className="eyebrow">YOUR RESULTS</p>
-              <h2>What’s nearby</h2>
+              <h2>{tab === 'jobs' ? profileId ? 'Best matches near you' : 'Jobs around you' : 'What’s nearby'}</h2>
             </div>
             <label className="table-search"><Icon name="search" size={17} />
               <input aria-label="Filter results" value={query} onChange={event => { setQuery(event.target.value); setOffset(0) }} placeholder="Search name or role" />
@@ -581,64 +765,98 @@ function DirectoryPage() {
                     <option value="name">Name A–Z</option>
                   </select>
                 </label>
-              </> : <>
-                <label className="discovery-filter"><span>Match to</span>
-                  <select aria-label="Match jobs to a profile" value={profileId} onChange={event => selectProfile(event.target.value)}>
-                    <option value="">All jobs</option>{profiles.map(profile => <option value={profile.id} key={profile.id}>{profile.name}</option>)}
-                  </select>
-                </label>
-                {profileId && <>
-                  <label className="discovery-filter"><span>Overlap</span><select aria-label="Minimum profile overlap" value={minimumScore} onChange={event => { setMinimumScore(event.target.value); setOffset(0) }}>
-                    <option value="0">All eligible leads (0+)</option>{!['0','30','65'].includes(minimumScore) && <option value={minimumScore}>{minimumScore}+ overlap</option>}<option value="30">Some overlap (30+)</option><option value="65">Strong overlap (65+)</option>
-                  </select></label>
-                  <label className="unknown-filter"><input type="checkbox" checked={includeUnknown} onChange={event => { setIncludeUnknown(event.target.checked); setOffset(0) }} />Include jobs needing more information</label>
-                </>}
-                <a className="page-link" href="/profile">Edit profile</a>
-                {profileId && <a className="page-link" href={`/applications?profile_id=${profileId}`}>My applications →</a>}
-                <label className="discovery-filter"><span>Work style</span>
-                  <select aria-label="Filter jobs by work style" value={jobWorkStyle}
-                    onChange={event => { setJobWorkStyle(event.target.value as JobWorkStyleFilter); setOffset(0) }}>
-                    <option value="all">All work styles</option>
-                    <option value="hybrid">Hybrid</option>
-                    <option value="onsite">On-site</option>
-                  </select>
-                </label>
-                <label className="discovery-filter"><span>Job location</span>
-                  <select aria-label="Filter jobs by location" value={jobLocationScope}
-                    onChange={event => { setJobLocationScope(event.target.value as JobLocationScope); setOffset(0) }}>
-                    <option value="area">{wholeState ? 'Non-remote employer jobs' : 'Selected area only'}</option>
-                    <option value="remote">Remote only</option>
-                    <option value="area_remote">{wholeState ? 'All employer jobs' : 'Selected area + remote'}</option>
-                  </select>
-                </label>
-                <label className="sorting-control"><span>Sort</span>
-                  <select aria-label="Sort jobs" value={jobSort}
-                    onChange={event => { setJobSort(event.target.value as JobSort); setOffset(0) }}>
-                    <option value="relevance">Best match</option>
-                    <option value="newest">Newest first</option>
-                    <option value="title">Role A–Z</option>
-                    <option value="company">Company A–Z</option>
-                  </select>
-                </label>
-              </>}
+              </> : null}
               <div className="result-context"><span className="context-dot" /> {wholeState ? `${locality} · employer sources` : tab === 'jobs' ? jobLocationScope === 'remote' ? 'Remote roles only' : jobLocationScope === 'area_remote' ? `${locality} + remote` : `${locality} · ${radius} km` : `Company websites · ${radius} km`}</div>
             </div>
           </div>
 
-          {tab === 'jobs' && profileId && <div className="board-coverage" aria-live="polite">
+          {tab === 'jobs' && <section className="job-feed-filters" aria-label="Filter job results">
+            {profiles.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Filter by profile">
+              <span className="job-feed-filter-label">Profiles</span><div className="job-feed-chip-list">
+                <button type="button" className={`application-filter-chip ${activeProfileIds.length === 0 ? 'selected' : ''}`}
+                  aria-pressed={activeProfileIds.length === 0} onClick={clearProfileFilters}>All jobs</button>
+                <button type="button" className={`application-filter-chip ${allProfilesActive ? 'selected' : ''}`}
+                  aria-pressed={allProfilesActive} onClick={selectAllProfiles}>All profiles</button>
+                {profiles.map(profile => <button type="button" key={profile.id}
+                  className={`application-filter-chip ${activeProfileIds.includes(profile.id!) ? 'selected' : ''}`}
+                  aria-pressed={activeProfileIds.includes(profile.id!)} onClick={() => toggleProfileFilter(profile.id!)}>{profile.name}</button>)}
+              </div>
+            </div>}
+            {activeProfileIds.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Filter by application stage">
+              <span className="job-feed-filter-label">Stage</span><div className="job-feed-chip-list">
+                <button type="button" className={`application-filter-chip ${jobStatusFilter === '' ? 'selected' : ''}`}
+                  aria-pressed={jobStatusFilter === ''} onClick={() => { setJobStatusFilter(''); setOffset(0) }}>All <span>{jobs.length}</span></button>
+                {applicationStatuses.map(item => <button type="button" key={item.value}
+                  className={`application-filter-chip application-status-filter application-${item.value} ${jobStatusFilter === item.value ? 'selected' : ''}`}
+                  aria-pressed={jobStatusFilter === item.value} onClick={() => { setJobStatusFilter(current => current === item.value ? '' : item.value); setOffset(0) }}>
+                  {item.label} <span>{jobApplicationCounts[item.value]}</span>
+                </button>)}
+              </div>
+            </div>}
+            <div className="job-feed-filter-row" role="group" aria-label="Filter by job location">
+              <span className="job-feed-filter-label">Location</span><div className="job-feed-chip-list">
+                {([
+                  ['area', wholeState ? 'Local employers' : 'Area'],
+                  ['remote', 'Remote'],
+                  ['area_remote', wholeState ? 'All locations' : 'Area + remote'],
+                ] as [JobLocationScope, string][]).map(([value, label]) => <button type="button" key={value}
+                  className={`application-filter-chip ${jobLocationScope === value ? 'selected' : ''}`}
+                  aria-pressed={jobLocationScope === value} onClick={() => { setJobLocationScope(value); setOffset(0) }}>{label}</button>)}
+              </div>
+            </div>
+            <div className="job-feed-filter-row" role="group" aria-label="More job filters">
+              <span className="job-feed-filter-label">More</span><div className="job-feed-chip-list">
+                {([
+                  ['all', 'Any work style'],
+                  ['hybrid', 'Hybrid'],
+                  ['onsite', 'On-site'],
+                ] as [JobWorkStyleFilter, string][]).map(([value, label]) => <button type="button" key={value}
+                  className={`application-filter-chip ${jobWorkStyle === value ? 'selected' : ''}`}
+                  aria-pressed={jobWorkStyle === value} onClick={() => { setJobWorkStyle(value); setOffset(0) }}>{label}</button>)}
+                {activeProfileIds.length > 0 && <>
+                  <span className="job-feed-filter-label job-feed-inline-label">Overlap</span>
+                  {(['0', '30', '65'] as const).map(value => <button type="button" key={value}
+                    className={`application-filter-chip ${minimumScore === value ? 'selected' : ''}`}
+                    aria-pressed={minimumScore === value} onClick={() => { setMinimumScore(value); setOffset(0) }}>
+                    {value === '0' ? 'Any match' : value === '30' ? 'Some overlap' : 'Strong overlap'}
+                  </button>)}
+                  {!['0', '30', '65'].includes(minimumScore) && <button type="button" className="application-filter-chip selected"
+                    aria-pressed="true" onClick={() => { setMinimumScore('0'); setOffset(0) }}>{minimumScore}+ overlap</button>}
+                  <button type="button" className={`application-filter-chip ${includeUnknown ? 'selected' : ''}`}
+                    aria-pressed={includeUnknown} onClick={() => { setIncludeUnknown(value => !value); setOffset(0) }}>Include unknown</button>
+                </>}
+                <button type="button" className="application-sort-cycle job-feed-sort" onClick={cycleJobSort}
+                  aria-label={`Sort by ${jobSortModes.find(item => item.value === jobSort)?.label}. Tap to switch to ${jobSortModes[(jobSortModes.findIndex(item => item.value === jobSort) + 1) % jobSortModes.length].label}.`}
+                  title="Tap to change sort order">Sort: {jobSortModes.find(item => item.value === jobSort)?.label} <span aria-hidden="true">↻</span></button>
+                {activeProfileIds.length > 0 && <a className="job-feed-inline-link" href="/profile">Edit profiles</a>}
+              </div>
+            </div>
+          </section>}
+
+          {trackingError && <div className="tracking-error-note" role="status">{trackingError}<button type="button" onClick={() => setTrackingError('')}>Dismiss</button></div>}
+          {trackingNotice && <p className="evidence-note" role="status">{trackingNotice}</p>}
+          {tab === 'jobs' && activeProfileIds.length > 0 && <div className="board-coverage" aria-live="polite">
             <div className="board-tiers"><strong>{counts?.recommended ?? '—'} recommended matches</strong><span>{counts?.possible ?? '—'} possible leads</span><span>{counts?.unlikely ?? '—'} with little match evidence</span></div>
-            <p>Recommended matches have stronger evidence. Possible leads need a closer look at qualifications, location or missing details. Lower-confidence results keep the search broad; raise the overlap filter for a shorter list. Scores measure overlap, never a hiring probability.</p>
-            {counts && <p>{counts.source} source records · {counts.scoped} in scope · {counts.duplicates_removed} duplicates removed · {counts.filtered.below_score} below your overlap filter · {counts.filtered.expired} expired · {counts.filtered.remote_country} incompatible remote country</p>}
-            {coverage && <p>{coverage.source_count} observed job feeds. {coverage.note}</p>}
-            <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
+            <details className="coverage-more">
+              <summary>How matches work</summary>
+              <div>
+                <p>Scores measure overlap with selected profiles, never a hiring probability. Recommended matches have stronger evidence; possible leads may need a closer look at qualifications, location, or missing details.</p>
+                {counts && <p>{counts.source} source records · {counts.scoped} in scope · {counts.duplicates_removed} duplicates removed · {counts.filtered.below_score} below your overlap filter · {counts.filtered.expired} expired · {counts.filtered.remote_country} incompatible remote country</p>}
+                {coverage && <p>{coverage.source_count} observed job feeds. {coverage.note}</p>}
+                <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
+              </div>
+            </details>
           </div>}
-          {loading ? <div className="loading-state"><span className="spinner" /> Gathering the latest results…</div> : tab === 'companies' ? (
+          {locationsReady && !selectedLocationKey ? <div className="location-empty-state">
+            <EmptyState title="No configured locations yet" body="Add a search area to see nearby employers and jobs." />
+            <a href="/locations" className="page-link">Configure locations <Icon name="arrow" size={15} /></a>
+          </div> : loading ? <div className="loading-state"><span className="spinner" /> Gathering the latest results…</div> : tab === 'companies' ? (
             <div className="table-scroll mobile-results-scroll">
               <table className="companies-table mobile-results-table">
                 <thead><tr><th>COMPANY</th><th>WEBSITE</th><th>HIRING PAGE</th><th>{wholeState ? 'STATE' : 'DISTANCE'}</th><th /></tr></thead>
                 <tbody>
-                  {companies.map(company => <tr key={company.id} onClick={() => { window.location.href = `/companies/${company.id}` }} className="click-row">
-                    <td className="result-primary"><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong><a href={`/companies/${company.id}`} onClick={event => event.stopPropagation()}>{company.name}</a></strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
+                  {companies.map(company => <tr key={company.id} onClick={() => { window.location.href = companyHref(company.id) }} className="click-row">
+                    <td className="result-primary"><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong><a href={companyHref(company.id)} onClick={event => event.stopPropagation()}>{company.name}</a></strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
                     <td className="result-secondary"><span className="mobile-field-label">Website</span>{company.domain ? <span className="domain-cell"><a className="domain-link" href={company.website_url ?? '#'} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{company.domain}<Icon name="external" size={12} /></a><small>{domainMatchLabel(company.domain_match_method)}</small></span> : <span className="muted">Website not found yet</span>}</td>
                     <td className="result-meta"><span className="mobile-field-label">Hiring status</span><span className={`status-badge ${['jobs_feed_found','jobs_extracted'].includes(company.career_status) ? 'status-success' : company.career_status === 'career_page_found' ? 'status-career' : 'status-muted'}`}><span />{statusLabel(company.career_status)}</span><small title={company.crawl_reason ?? undefined}>{company.crawl_paused ? 'Checks paused' : company.crawl_interval_days === 1 ? 'Checked daily' : `Checked every ${company.crawl_interval_days ?? 7} days`}</small></td>
                     <td className="result-meta"><span className="mobile-field-label">{wholeState ? 'State' : 'Distance'}</span><span className="distance-text"><Icon name="pin" size={14} />{wholeState ? company.state || locality : distanceLabel(company.distance_m)}</span></td>
@@ -649,31 +867,16 @@ function DirectoryPage() {
               {companies.length === 0 && <EmptyState title="No companies listed in this area yet" body="Add this place on the search areas page to find nearby companies and their websites." />}
             </div>
           ) : (
-            <div className="table-scroll mobile-results-scroll">
-              <table className="jobs-table mobile-results-table">
-                <thead><tr><th>JOB</th><th>COMPANY / JOB PAGE</th><th>WORK LOCATION</th><th>WORK STYLE</th>{profileId && <><th>PROFILE MATCH</th><th>APPLICATION STATUS</th></>}<th>POSTED</th><th /></tr></thead>
-                <tbody>
-                  {jobs.map(job => <tr key={job.id} onClick={() => { window.location.href = `/jobs/${job.id}${window.location.search}` }} className="click-row">
-                    <td className="result-primary"><div className="role-cell"><strong><a href={`/jobs/${job.id}${window.location.search}`} onClick={event => event.stopPropagation()}>{job.title}</a></strong><small>{job.department || providerLabel(job.provider)}</small></div></td>
-                    <td className="result-secondary"><span className="job-company">{job.company_name}</span>
-                      {job.company_website ? <a className="job-domain" href={job.company_website} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{job.company_domain || hostLabel(job.company_website)}</a> : <small className="job-domain">Company website not listed</small>}
-                      {job.raw_metadata.employer_type === 'agency' && <small className="agency-note">Staffing / recruitment agency</small>}
-                      <small className="job-source">Job page: <a href={job.board_url || job.url} target="_blank" rel="noreferrer" onClick={event => event.stopPropagation()}>{hostLabel(job.board_url || job.url)}</a></small>
-                    </td>
-                    <td className="result-meta"><span className="mobile-field-label">Work location</span><span className="location-chip"><Icon name="pin" size={13} />{job.location_text || 'Location not listed'}</span></td>
-                    <td className="result-meta"><span className="mobile-field-label">Work style</span><span className={`arrangement-chip ${job.is_remote ? 'arrangement-remote' : ''}`}>{job.is_remote ? 'Remote' : job.work_arrangement === 'hybrid' ? 'Hybrid' : job.work_arrangement === 'onsite' ? 'On-site' : 'In area'}</span></td>
-                    {profileId && <td className="match-cell result-match"><span className="mobile-field-label">Profile match</span><strong>{job.profile_match?.score}/100</strong><span className={`fit-tier fit-${job.profile_match?.fit_tier ?? 'possible'}`}>{job.profile_match?.fit_tier === 'recommended' ? 'Recommended match' : job.profile_match?.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'}</span>
-                      <small>{job.profile_match?.matched_skills.slice(0, 3).join(', ') || 'No skill overlap found'}</small>
-                      {job.profile_match?.unknowns.slice(0,2).map(gap => <small key={gap}>{gap}</small>)}
-                    </td>}
-                    {profileId && <td className="result-status"><span className="mobile-field-label">Application status</span><ApplicationStatusControl key={`${profileId}:${job.id}`} profileId={Number(profileId)} jobId={job.id} title={job.title} application={job.application}
-                      onSaved={application => setJobs(current => current.map(item => item.id === job.id ? { ...item, application } : item))} /></td>}
-                    <td className="result-date"><span className="mobile-field-label">Posted</span><span className="posted-date">{dateLabel(job.date_posted)}</span><small className="job-source">Last seen {dateLabel(job.last_seen_at)}</small></td>
-                    <td className="row-arrow"><Icon name="chevron" size={17} /></td>
-                  </tr>)}
-                </tbody>
-              </table>
-              {jobs.length === 0 && <EmptyState title="No matching jobs found yet" body={jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
+            <div className="job-opportunity-list">
+              {visibleJobs.map(job => {
+                const jobHref = new URLSearchParams(window.location.search)
+                if (job.profile_id) jobHref.set('profile_id', String(job.profile_id))
+                return <JobFeedCard key={`${job.profile_id ?? 'all'}:${job.id}`} job={job} href={`/jobs/${job.id}?${jobHref}`}
+                  profileId={job.profile_id} profileName={job.profile_name} updatedAt={job.application?.updated_at ?? job.last_seen_at}
+                  disabled={!job.profile_id || swipeSavingJobId !== null} saving={swipeSavingJobId === job.id}
+                  onAction={action => { void changeJobApplication(job, action) }} onOpenOriginal={() => { void trackOpenedPost(job) }} />
+              })}
+              {filteredJobs.length === 0 && <EmptyState title={jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'} body={jobStatusFilter ? 'Choose another stage or view all matching jobs.' : jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
             </div>
           )}
 
@@ -683,7 +886,7 @@ function DirectoryPage() {
           </div>
         </section>
 
-      <footer className="page-footer"><span>Companies come from public listings; jobs come from public job listings and employer hiring pages.</span><span>Map listings © OpenStreetMap contributors <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">ODbL</a></span></footer>
+        <footer className="page-footer"><span>Companies come from public listings; jobs come from public job listings and employer hiring pages.</span><span>Map listings © OpenStreetMap contributors <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">ODbL</a></span></footer>
       </main>
 
     </div>
@@ -696,8 +899,9 @@ function EmptyState({ title, body }: { title: string; body: string }) {
 
 function App() {
   const path = window.location.pathname
-  if (path === '/profile' || path === '/profile/') return <ProfilesPage />
+  if (path === '/profile' || path.startsWith('/profile/')) return <ProfilesPage />
   if (path === '/applications' || path === '/applications/') return <ApplicationsPage />
+  if (path === '/settings' || path === '/settings/') return <SettingsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)

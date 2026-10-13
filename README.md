@@ -30,11 +30,11 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-Save a job profile under **Your profile**, then choose an application status on a
-job in the results or job details. **My applications** shows tracked postings for
-each profile, with counts and filters for New, Open, Not interested, Waiting for
-reply, Interview, Rejected, and Accepted. Statuses persist independently of the
-source posting; closed and expired postings remain in your application overview.
+Save a job profile under **Your profile**. Viewing a job detail automatically
+adds it to **My applications** as New; opening the original post moves it to
+Opened. Update later stages from the job details or application overview.
+Statuses are saved per profile and remain visible after a source posting closes
+or expires.
 
 ## Compose deployment
 

@@ -276,7 +276,7 @@ export default function LocationsPage() {
   const comingUpLocations = locations.filter(location => location.enabled && location.search_scope !== 'country')
 
   return <div className="app-shell">
-    <SiteHeader active="locations" />
+    <SiteHeader active="settings" />
     <main className="content locations-page">
       <section className="intro-row">
         <div>

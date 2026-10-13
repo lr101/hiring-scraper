@@ -10,7 +10,58 @@ const empty = (): Profile => ({ name: '', summary: '', skills: [], desired_roles
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
 
 export default function ProfilesPage() {
+  const path = window.location.pathname
+  const editorRoute = path.match(/^\/profile\/(new|\d+\/edit)\/?$/)
+  const editRoute = path.match(/^\/profile\/(\d+)\/edit\/?$/)
+  if (editorRoute) return <ProfileEditorPage profileId={editRoute ? Number(editRoute[1]) : undefined} />
+  return <ProfileOverviewPage />
+}
+
+function ProfileOverviewPage() {
   const [profiles, setProfiles] = useState<Profile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  async function request(path: string, options?: RequestInit) {
+    const response = await fetch(`${API}/api/v1/profiles${path}`, options)
+    const data = await response.json()
+    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not load profiles.')
+    return data
+  }
+  useEffect(() => {
+    request('').then(data => setProfiles(data.items))
+      .catch(reason => setError(String(reason.message)))
+      .finally(() => setLoading(false))
+  }, [])
+
+  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-overview-page">
+    <section className="profile-overview-heading"><div><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profiles</h1>
+      <p className="intro-copy">Keep separate profiles for different roles and compare their matching jobs.</p></div></section>
+    {error && <div className="error-banner" role="alert">{error}</div>}
+    {loading ? <div className="loading-state"><span className="spinner" /> Loading profiles…</div> : <div className="profile-overview-grid">
+      {profiles.map(profile => {
+        const tags = [`${profile.skills.length} skills`, ...profile.desired_roles.slice(0, 2),
+          ...(profile.search_area ? [`${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km`] : []),
+          ...profile.work_styles.slice(0, 2).map(style => style.replaceAll('_', ' '))].slice(0, 5)
+        return <article className="saved-profile" key={profile.id}>
+          <header className="saved-profile-header"><span className="saved-profile-avatar" aria-hidden="true">{profile.name.slice(0, 1).toUpperCase()}</span>
+            <div><h2>{profile.name}</h2><small>{profile.summary || profile.skills.slice(0, 3).join(' · ') || 'Add skills and roles to tune this profile.'}</small></div>
+          </header>
+          <div className="profile-overview-tags">{tags.map((tag, index) => <span key={`${tag}-${index}`}>{tag}</span>)}</div>
+          <footer className="saved-profile-actions">
+            <a className="page-link" href={profileBoardLink(profile)}>View matches <span aria-hidden="true">→</span></a>
+            <a className="page-link" href={`/applications?profile_id=${profile.id}`}>Applications <span aria-hidden="true">→</span></a>
+            <a className="profile-edit-link" href={`/profile/${profile.id}/edit`}>Edit profile</a>
+          </footer>
+        </article>
+      })}
+      <a className="profile-create-card" href="/profile/new"><span aria-hidden="true">+</span><strong>Create new profile</strong>
+        <small>Add a set of skills and preferences for another kind of role.</small></a>
+    </div>}
+  </main></div>
+}
+
+function ProfileEditorPage({ profileId }: { profileId?: number }) {
   const [form, setForm] = useState<Profile>(empty())
   const [skillsText, setSkillsText] = useState('')
   const [rolesText, setRolesText] = useState('')
@@ -24,7 +75,7 @@ export default function ProfilesPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(Boolean(profileId))
 
   async function request(path: string, options?: RequestInit) {
     const response = await fetch(`${API}/api/v1/profiles${path}`, options)
@@ -32,12 +83,6 @@ export default function ProfilesPage() {
     if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Check the profile fields and try again.')
     return data
   }
-  async function load() {
-    const data = await request('')
-    setProfiles(data.items)
-  }
-  useEffect(() => { void load().catch(reason => setError(String(reason.message))).finally(() => setLoading(false)) }, [])
-
   function edit(profile: Profile) {
     setForm({ ...empty(), ...Object.fromEntries(Object.keys(empty()).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])), id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText(profile.desired_roles.join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
   }
@@ -50,8 +95,18 @@ export default function ProfilesPage() {
       const { id, ...payload } = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      edit(saved); await load(); setNotice('Profile saved. You can now use it to find matching jobs.')
+      if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit`)
+      edit(saved); setNotice('Profile saved. You can now use it to find matching jobs.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save your profile.') }
+    finally { setBusy(false) }
+  }
+  async function removeProfile() {
+    if (!form.id || busy || !window.confirm(`Delete “${form.name}”? This cannot be undone.`)) return
+    setBusy(true); setError(''); setNotice('')
+    try {
+      await request(`/${form.id}`, { method: 'DELETE' })
+      window.location.href = '/profile'
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not delete this profile.') }
     finally { setBusy(false) }
   }
   async function findArea() {
@@ -74,33 +129,27 @@ export default function ProfilesPage() {
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not read this CV.') }
     finally { setBusy(false) }
   }
-  async function remove(id: number) {
-    setBusy(true); setError('')
-    try { await request(`/${id}`, { method: 'DELETE' }); await load(); if (form.id === id) edit(empty()); setNotice('Profile deleted.') }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not delete this profile.') }
-    finally { setBusy(false) }
-  }
+  useEffect(() => {
+    if (!profileId) { setLoading(false); return }
+    request('').then(data => {
+      const profile = (data.items as Profile[]).find(item => item.id === profileId)
+      if (!profile) throw new Error('That profile could not be found.')
+      edit(profile)
+    }).catch(reason => setError(String(reason.message))).finally(() => setLoading(false))
+  }, [profileId])
   const choices = (key: 'work_styles' | 'employment_types' | 'seniority_levels' | 'languages', label: string, values: [string,string][]) =>
     <fieldset className="profile-choices"><legend>{label} <small>{key === 'languages' ? 'Optional; omitted languages stay unknown' : 'Leave empty for any'}</small></legend>{values.map(([value,text]) =>
       <label key={value}><input type="checkbox" checked={form[key].includes(value)} onChange={() => toggle(key,value)} />{text}</label>)}</fieldset>
 
-  return <div className="app-shell"><SiteHeader active="profile" /><main className="content detail-page">
-    <section className="detail-hero"><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profile</h1>
+  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-editor-page">
+    <a className="page-link profile-back-link" href="/profile">← All profiles</a>
+    <section className="detail-hero"><p className="eyebrow">YOUR NEXT ROLE</p><h1>{form.id ? `Edit ${form.name}` : 'Create a profile'}</h1>
       <p className="intro-copy">Tell us what you can do and what you’re looking for. Matching jobs start within your selected area; choose remote roles separately on the jobs board.</p>
       <p className="muted">This early version uses explicit skills and interests. It does not infer qualifications from your name, age, or other personal details.</p>
     </section>
     {error && <div className="error-banner" role="alert">{error}</div>}
     {notice && <div className="evidence-note" role="status">{notice}</div>}
-    <div className="profile-grid">
-      <section className="detail-panel"><h2>Saved profiles</h2>{loading ? <p>Loading profiles…</p> : profiles.length ? profiles.map(profile =>
-        <article className="saved-profile" key={profile.id}><h3>{profile.name}</h3><p>{profile.summary || profile.skills.join(', ') || 'No skills entered'}</p><p className="muted">{profile.search_area ? `${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km` : 'Choose an area on the board'} · {Object.entries(profile.language_levels ?? {}).map(([language, level]) => `${language} ${level}`).join(' · ')}</p>
-          <div className="detail-links"><a className="page-link" href={profileBoardLink(profile)}>Find matching jobs →</a>
-            <a className="page-link" href={`/applications?profile_id=${profile.id}`}>My applications →</a>
-            <button type="button" disabled={busy} onClick={() => edit(profile)}>Edit</button>
-            <button type="button" disabled={busy} onClick={() => void remove(profile.id!)}>Delete profile</button></div></article>) : <p className="muted">Create your first profile to see which jobs fit.</p>}
-        <button type="button" disabled={busy} onClick={() => edit(empty())}>Create another profile</button>
-      </section>
-      <form className="detail-panel profile-form" onSubmit={save}>
+    {loading ? <div className="loading-state"><span className="spinner" /> Loading profile…</div> : <form className="detail-panel profile-form" onSubmit={save}>
         <h2>{form.id ? 'Edit your profile' : 'Create a profile'}</h2>
         <label>Profile name<input required maxLength={120} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Backend developer" /></label>
         <label>Profile summary<textarea maxLength={5000} value={form.summary} onChange={event => setForm({ ...form, summary: event.target.value })} /></label>
@@ -150,12 +199,14 @@ export default function ProfilesPage() {
         </fieldset>
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
         <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
-        {form.id && <a className="page-link" href={profileBoardLink(form)}>View matching jobs →</a>}
+        {form.id && <div className="profile-editor-actions">
+          <a className="page-link" href={profileBoardLink(form)}>View matching jobs →</a>
+          <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void removeProfile()}>Delete profile</button>
+        </div>}
         <section className="cv-import"><h3>Start from your CV</h3><p className="muted">Paste CV text to suggest skills, then review the list above. The text is processed on this app’s server and is not saved or sent to an external AI service.</p>
           <label>CV text<textarea maxLength={100000} value={cv} onChange={event => setCV(event.target.value)} placeholder="Paste the relevant experience and skills sections…" /></label>
           <button type="button" disabled={busy || !cv.trim()} onClick={() => void suggestSkills()}>Suggest skills from this text</button>
         </section>
-      </form>
-    </div>
+      </form>}
   </main></div>
 }

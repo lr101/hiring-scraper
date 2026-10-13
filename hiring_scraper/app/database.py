@@ -45,6 +45,10 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        if 'job_applications' in set(inspect(connection).get_table_names()):
+            application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
+            if 'previous_status' not in application_columns:
+                connection.exec_driver_sql("ALTER TABLE job_applications ADD COLUMN previous_status VARCHAR(24)")
         feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
         if 'enabled' not in feed_columns:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
