@@ -1,9 +1,6 @@
 services:
   db:
-    image: hiring-scraper-postgis-pgvector:17-3.5
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.postgres
+    image: ${HIRING_DB_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest}
     environment:
       POSTGRES_DB: hiring
       POSTGRES_USER: postgres

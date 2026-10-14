@@ -1,5 +1,11 @@
 # Run through scripts/ci/run.sh: a unique project and fresh credentials isolate CI.
 services:
+  db:
+    image: ${HIRING_DB_IMAGE:-hiring-scraper-postgis-pgvector:ci}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.postgres
+
   quality:
     image: ${HIRING_QUALITY_IMAGE:-hiring-scraper-checks:dev}
     build:

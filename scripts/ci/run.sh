@@ -21,11 +21,12 @@ env_file="$private_dir/ci.env"
 HIRING_DOTENV_FILE="$env_file"
 # Explicit environment overrides prevent a developer's credentials/images from
 # winning Compose interpolation over this invocation's private generated values.
-export POSTGRES_PASSWORD HIRING_DB_PASSWORD HIRING_APP_IMAGE HIRING_QUALITY_IMAGE HIRING_DOTENV_FILE
+export POSTGRES_PASSWORD HIRING_DB_PASSWORD HIRING_APP_IMAGE HIRING_DB_IMAGE HIRING_QUALITY_IMAGE HIRING_DOTENV_FILE
 export APP_BIND APP_PORT
 POSTGRES_PASSWORD=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
 HIRING_DB_PASSWORD=$(od -An -N32 -tx1 /dev/urandom | tr -d ' \n')
 HIRING_APP_IMAGE="$project-app:check"
+HIRING_DB_IMAGE="$project-db:check"
 HIRING_QUALITY_IMAGE="$project-checks:check"
 APP_BIND=127.0.0.1
 APP_PORT=0
@@ -69,7 +70,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 "${compose[@]}" config --quiet
-"${compose[@]}" build --pull quality app 2>&1 | tee "$results_dir/$project-build.log"
+"${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
 if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
     printf '%s\n' 'Loading Chromium AppArmor profile'

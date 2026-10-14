@@ -30,28 +30,29 @@ Health logs preserve probe timestamps, exit codes and output before teardown. Th
 
 [Container CI](../.github/workflows/container-images.yml) runs on pull requests, pushes to `main`, pushes of `v*` tags, and manual dispatch. It has no path filters, so documentation-only pull requests also produce the required check. Require the stable **Container checks** status in a ruleset or branch protection rule for `main`; optionally require review and an up-to-date branch. Repository administrators configure those GitHub settings separately from the workflow.
 
-Pull requests and manual dispatch run checks without registry login or publication. The workflow's default token permission is `contents: read`, and checkout does not persist credentials. Publication uses a separate job with `packages: write`, which only runs after checks pass on a push to `main` or a valid stable release tag. Tag checks require the tagged commit to be reachable from `origin/main` and reject malformed tags, versions that differ from `pyproject.toml`, and missing or empty dated changelog entries before publishing images. There is no `pull_request_target` trigger. New commits cancel older checks for the same pull request; publication jobs are not canceled by concurrency settings. Check and image jobs have a 30-minute timeout. A separate five-minute job requests `contents: write` to create the GitHub Release only after the application image publishes successfully.
+Pull requests and manual dispatch run checks without registry login or publication. The workflow's default token permission is `contents: read`, and checkout does not persist credentials. Publication uses a separate job with `packages: write`, which only runs after checks pass on a push to `main` or a valid stable release tag. Tag checks require the tagged commit to be reachable from `origin/main` and reject malformed tags, versions that differ from `pyproject.toml`, and missing or empty dated changelog entries before publishing images. There is no `pull_request_target` trigger. New commits cancel older checks for the same pull request; publication jobs are not canceled by concurrency settings. Check and image jobs have a 30-minute timeout. A separate five-minute job requests `contents: write` to create the GitHub Release only after both images publish successfully.
 
 Actions are pinned to verified release commit hashes, with their versions recorded beside the pins. Build base images are pinned to the manifest digests resolved by Docker so checks and publishing use the same bases. [Dependabot](../.github/dependabot.yml) checks actions, Docker images, Compose images, `frontend/package-lock.json`, and `uv.lock` weekly. Dependency updates go through the same container checks. GitHub documents the supported [Dependabot ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories).
 
 ## Published images
 
-After successful checks, the workflow builds and publishes one `linux/amd64` app image to GHCR:
+After successful checks, the workflow builds and publishes two `linux/amd64` image variants to the existing GHCR package:
 
 ```text
 ghcr.io/lr101/hiring-scraper/hiring-scraper
+ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest
 ```
 
-The image contains the API, both background workers, and the built frontend. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Ensure repository Actions and package policies permit publishing. For an existing package, grant the repository Actions access in the package settings. Private package consumers need their own read access; public image pulls need no login.
+The `latest` image contains the API, both background workers, and the built frontend. The `db-latest` image contains PostgreSQL 17, PostGIS 3.5, and pgvector. Database tags add a `db-` prefix to the matching commit, `latest`, and release-version tags so both images can share the existing public package without tag collisions. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Both images include OCI source and revision labels. Public image pulls need no login.
 
 | Trigger | Published tags |
 | --- | --- |
-| Push to `main` | Full commit SHA and `latest` |
-| Push tag `v1.2.3` | Full commit SHA, `v1.2.3`, and normalized `1.2.3` |
+| Push to `main` | App gets full commit SHA and `latest`; database gets `db-` prefixed equivalents |
+| Push tag `v1.2.3` | App gets full commit SHA, `v1.2.3`, and `1.2.3`; database gets `db-` prefixed equivalents |
 | Push an invalid or prerelease `v*` tag | Validation fails; no images or GitHub Release are published |
 | Pull request or manual dispatch | No publication |
 
-Release tags never move the image tag `latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). The application image includes OCI source and revision labels. The GitHub Release job waits for image publication to succeed.
+Release tags never move `latest` or `db-latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). The GitHub Release job waits for both image publications to succeed.
 
 ## Preparing a release
 
@@ -86,8 +87,8 @@ new minor version for them.
    git push origin v0.2.0
    ```
 
-The tag push runs validation and the complete container checks, publishes the
-GHCR application image, then creates a published GitHub Release titled `Radius v0.2.0` using
+The tag push runs validation and the complete container checks, publishes both
+GHCR images, then creates a published GitHub Release titled `Radius v0.2.0` using
 only that version's changelog body. GitHub supplies source archives; this workflow
 does not publish to PyPI or npm. Release creation uses the runner's GitHub CLI with
 [`--verify-tag` and `--notes-file`](https://cli.github.com/manual/gh_release_create),
@@ -111,14 +112,15 @@ release notes deliberately in GitHub rather than expecting a rerun to edit them.
 See [the maintainer checklist](maintaining.md) for rulesets, package permissions,
 and private vulnerability reporting settings.
 
-For deployments, prefer a full commit SHA or digest and set this image reference in `.env`:
+For deployments, prefer tags from the same full commit SHA, or pin each image to its own digest:
 
 ```dotenv
 HIRING_APP_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper:FULL_COMMIT_SHA
+HIRING_DB_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper:db-FULL_COMMIT_SHA
 ```
 
 ```bash
-docker compose pull app
+docker compose pull app db
 docker compose up -d --no-build
 ```
 
