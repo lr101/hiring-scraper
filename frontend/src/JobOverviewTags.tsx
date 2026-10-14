@@ -5,6 +5,7 @@ type JobOverview = {
   seniority?: string | null
   work_arrangement?: string | null
   is_remote?: boolean
+  enrichment?: { experience_years: { value: number } | null }
 }
 
 function cleanValue(value: string | null | undefined) {
@@ -26,11 +27,15 @@ export default function JobOverviewTags({ job }: { job: JobOverview }) {
       : arrangementKey === 'onsite' || arrangementKey === 'on_site'
         ? 'On-site'
         : titleCase(arrangementValue)
+  const minimumExperience = job.enrichment?.experience_years?.value
+  const experienceLabel = minimumExperience == null ? '' :
+    `Experience · ${minimumExperience}+ ${minimumExperience === 1 ? 'year' : 'years'}`
   const tags = [
     salary ? { key: 'salary', label: `Salary · ${salary}`, kind: 'salary' } : null,
     cleanValue(job.employment_type) ? { key: 'employment-type', label: titleCase(cleanValue(job.employment_type)), kind: '' } : null,
     cleanValue(job.schedule) ? { key: 'schedule', label: titleCase(cleanValue(job.schedule)), kind: '' } : null,
     cleanValue(job.seniority) ? { key: 'seniority', label: titleCase(cleanValue(job.seniority)), kind: '' } : null,
+    experienceLabel ? { key: 'experience', label: experienceLabel, kind: '' } : null,
     arrangement ? { key: 'work-arrangement', label: arrangement, kind: '' } : null,
   ].filter((tag): tag is { key: string; label: string; kind: string } => tag !== null)
 

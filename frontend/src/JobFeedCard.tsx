@@ -23,7 +23,7 @@ type JobCardData = {
   last_seen_at?: string | null
   first_seen_at?: string | null
   application?: Application | null
-  enrichment?: Pick<Enrichment, 'languages'>
+  enrichment?: Pick<Enrichment, 'languages' | 'experience_years'>
   profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier'>
 }
 

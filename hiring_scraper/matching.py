@@ -15,7 +15,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v17'
+VERSION = 'rules-v18'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -97,6 +97,46 @@ NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits
 QUANTIFIED_SCRIPTING_LIST = re.compile(
     r'\bmindestens eine dieser Skriptsprachen\s*\(([^()\n]{1,300})\)', re.I)
 CEFR_RANK = {'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6, 'NATIVE': 7}
+EXPERIENCE_NUMBER = (
+    r'(?:\d{1,2}(?:[.,]\d)?|a|an|one|two|three|four|five|six|seven|eight|nine|ten|'
+    r'eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|'
+    r'ein(?:e|en|em|er|s)?|zwei|drei|vier|fünf|fuenf|sechs|sieben|acht|neun|zehn|elf|'
+    r'zwölf|zwoelf|dreizehn|vierzehn|fünfzehn|fuenfzehn|sechzehn|siebzehn|achtzehn|'
+    r'neunzehn|zwanzig)'
+)
+EXPERIENCE_UNIT = r'(?:years?|months?|jahr(?:e|en)?|monat(?:e|en)?)'
+EXPERIENCE_CONTEXT = (
+    r'(?:'
+    r'(?:\s+(?:of|in|von)\s+)?(?:[\w\'-]+\s+){0,6}'
+    r'(?:(?:work(?:ing)?\s+)?experience|(?:berufs|praxis)?erfahrung)\b'
+    r'|\s+in\s+(?:a\s+)?(?:similar|comparable|related|relevant|equivalent)\s+'
+    r'(?:role|position|field|industry)\b'
+    r')'
+)
+EXPERIENCE_PATTERN = re.compile(
+    rf'\b(?:(?P<range_min>{EXPERIENCE_NUMBER})\s*(?:to|bis|[-–—])\s*'
+    rf'(?P<range_max>{EXPERIENCE_NUMBER})\s*(?P<range_unit>{EXPERIENCE_UNIT})\b'
+    rf"(?:['’]s?)?(?P<range_context>{EXPERIENCE_CONTEXT})?|"
+    rf'(?:(?P<marker>at\s+least|minimum(?:\s+of)?|min\.?|mindestens|mind\.?|ab)\s*)?'
+    rf'(?P<minimum>{EXPERIENCE_NUMBER})\s*(?P<plus>\+|plus)?\s*'
+    rf'(?P<minimum_unit>{EXPERIENCE_UNIT})\b(?:[\'’]s?)?(?P<minimum_context>{EXPERIENCE_CONTEXT})?|'
+    rf'(?P<adjective>{EXPERIENCE_NUMBER})(?:\s*-\s*years?|\s*-?\s*jährig(?:e|en|er|es|em)?)'
+    rf'(?P<adjective_context>{EXPERIENCE_CONTEXT})?|'
+    rf'(?P<reverse_term>berufserfahrung|praxiserfahrung|work(?:ing)?\s+experience|experience|erfahrung)'
+    rf'\s+(?:of|von)\s+(?P<reverse_marker>at\s+least|minimum(?:\s+of)?|min\.?|mindestens|mind\.?|ab)?\s*'
+    rf'(?P<reverse>{EXPERIENCE_NUMBER})\s*(?P<reverse_unit>{EXPERIENCE_UNIT})\b(?:[\'’]s?)?)', re.I)
+EXPERIENCE_NUMBER_WORDS = {
+    'a': 1, 'an': 1, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10, 'eleven': 11,
+    'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16,
+    'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20,
+    'ein': 1, 'eine': 1, 'einen': 1, 'einem': 1, 'einer': 1, 'eins': 1,
+    'zwei': 2, 'drei': 3, 'vier': 4, 'fünf': 5, 'fuenf': 5, 'sechs': 6,
+    'sieben': 7, 'acht': 8, 'neun': 9, 'zehn': 10, 'elf': 11, 'zwölf': 12,
+    'zwoelf': 12, 'dreizehn': 13, 'vierzehn': 14, 'fünfzehn': 15,
+    'fuenfzehn': 15, 'sechzehn': 16, 'siebzehn': 17, 'achtzehn': 18,
+    'neunzehn': 19, 'zwanzig': 20,
+}
 LANGUAGE_PATTERNS = {
     'German': re.compile(r'\b(?:german|deutsch(?:kenntnis(?:se)?)?)\b', re.I),
     'English': re.compile(r'\b(?:english|englisch(?:kenntnis(?:se)?)?)\b', re.I),
@@ -125,17 +165,23 @@ LANGUAGE_PATTERNS = {
     'Hebrew': re.compile(r'\b(?:hebrew|hebräisch(?:kenntnis(?:se)?)?)\b', re.I),
     'Hindi': re.compile(r'\b(?:hindi|hindisch(?:kenntnis(?:se)?)?)\b', re.I),
 }
-LANGUAGE_LEVEL = re.compile(r'\b(?:A1|A2|B1|B2|C1|C2|native(?:\s+speaker)?|mother tongue|first language|muttersprache\w*|muttersprachlich\w*)\b', re.I)
+LANGUAGE_LEVEL = re.compile(r'\b(?:A1|A2|B1|B2|C1|C2|(?<!near[- ])native(?![- ](?:like|level))(?:\s+speaker)?|mother tongue|first language|muttersprache\w*|muttersprachlich\w*)\b', re.I)
 LANGUAGE_FLUENCY = re.compile(
-    r'\b(?:fluent|fluently|fluency|fließend\w*|fliessend\w*|verhandlungssicher\w*|native|mother tongue|'
+    r'\b(?:fluent|fluently|fluency|fließend\w*|fliessend\w*|flüssig\w*|fluessig\w*|'
+    r'verhandlungssicher\w*|kommunikationssicher\w*|sprachgewandt\w*|stilsicher\w*|'
+    r'souverän\w*|souveraen\w*|sprachlich\s+versiert|bilingual|professional\s+(?:working\s+)?proficiency|'
+    r'native[- ]like|near[- ]native|native|mother tongue|'
     r'muttersprache\w*|muttersprachlich\w*|(?:very\s+)?good(?:\s+(?:command|knowledge|language skills?))?|'
-    r'(?:sehr\s+)?gut\w*(?:\s+\w*)?kenntnis(?:se)?|ausgezeichnet\w*(?:\s+\w*)?kenntnis(?:se)?|'
-    r'excellent|advanced|fortgeschritten\w*|conversational|konversationssicher\w*|proficient|'
-    r'working knowledge|solide\w*|sicher\w*|basic|grundkenntnis(?:se)?|elementary|beginner|very\s+good)\b', re.I)
+    r'(?:sehr\s+)?gut\w*(?:\s+\w*)?kenntnis(?:se)?|'
+    r'(?:ausgezeichnet|exzellent|hervorragend)\w*(?:\s+\w*)?kenntnis(?:se)?|'
+    r'excellent|outstanding|expert|mastery|strong\s+(?:command|knowledge|language skills?)|'
+    r'exceptional\s+(?:command|knowledge)|advanced|fortgeschritten\w*|conversational|'
+    r'konversationssicher\w*|proficient|working\s+(?:knowledge|proficiency)|'
+    r'solide\w*|sicher\w*|basic|grundkenntnis(?:se)?|elementary|beginner|very\s+good)\b', re.I)
 LANGUAGE_QUALITATIVE_LEVELS = (
-    (re.compile(r'\b(?:verhandlungssicher\w*|business[- ]fluent|near[- ]native|near native|full professional proficiency|native[- ]level)\b', re.I), 'C1', 'C2'),
-    (re.compile(r'\b(?:very\s+good|sehr\s+gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fließend\w*|fliessend\w*|advanced|fortgeschritten\w*|proficient|strong\s+(?:command|knowledge|language skills?)|exceptional\s+(?:command|knowledge))\b', re.I), 'B2', 'C1'),
-    (re.compile(r'\b(?:good|gut\w*|conversational|konversationssicher\w*|working knowledge|professional working proficiency|intermediate|mittelstufe|solide\w*|sicher\w*)\b', re.I), 'B1', 'B2'),
+    (re.compile(r'\b(?:verhandlungssicher\w*|business[- ]fluent|near[- ]native|near native|native[- ]like|full professional proficiency|professional proficiency|professional working proficiency|bilingual proficiency|native[- ]level)\b', re.I), 'C1', 'C2'),
+    (re.compile(r'\b(?:very\s+good|sehr\s+gut\w*|excellent|ausgezeichnet\w*|exzellent\w*|hervorragend\w*|fluent|fluently|fluency|fließend\w*|fliessend\w*|flüssig\w*|fluessig\w*|advanced|fortgeschritten\w*|proficient|bilingual|souverän\w*|souveraen\w*|kommunikationssicher\w*|sprachgewandt\w*|stilsicher\w*|sprachlich\s+versiert|outstanding|expert\s+(?:command|knowledge)|mastery|strong\s+(?:command|knowledge|language skills?)|exceptional\s+(?:command|knowledge))\b', re.I), 'C1', 'C2'),
+    (re.compile(r'\b(?:good|gut\w*|conversational|konversationssicher\w*|working knowledge|working proficiency|intermediate|mittelstufe|solide\w*|sicher\w*)\b', re.I), 'B1', 'B2'),
     (re.compile(r'\b(?:basic|grundkenntnis(?:se)?|basiskenntnis(?:se)?|elementary|beginner|anfängerkenntnis(?:se)?)\b', re.I), 'A1', 'A2'),
 )
 LANGUAGE_APPLICANT_CUE = re.compile(
@@ -162,8 +208,12 @@ LANGUAGE_EXPECTED_FOLLOWING = re.compile(
     r'schriftlich\w*|mündlich\w*|sprachlich\w*|kenntnis\w*|sprachniveau|'
     r'native|mother\s+tongue|first\s+language|'
     r'A1|A2|B1|B2|C1|C2|'
-    r'very|good|sehr|gut\w*|excellent|ausgezeichnet\w*|fluent|fluently|fließend\w*|fliessend\w*|'
-    r'advanced|fortgeschritten\w*|proficient|conversational|konversationssicher\w*|'
+    r'very|good|sehr|gut\w*|excellent|ausgezeichnet\w*|exzellent\w*|hervorragend\w*|'
+    r'fluent|fluently|fließend\w*|fliessend\w*|flüssig\w*|fluessig\w*|'
+    r'advanced|fortgeschritten\w*|proficient|bilingual|professional|full|business|near|native|'
+    r'strong|exceptional|outstanding|expert|mastery|kommunikationssicher\w*|sprachgewandt\w*|'
+    r'stilsicher\w*|souverän\w*|souveraen\w*|sprachlich\s+versiert|'
+    r'conversational|konversationssicher\w*|'
     r'working|solide\w*|sicher\w*|basic|grundkenntnis\w*|elementary|beginner|'
     r'for|to|in|with|at|on|of|by|as|für|mit|zu|im|am|zur|zum|von|'
     r'and|or|und|oder|is|are|required|mandatory|essential|necessary|needed|'
@@ -491,6 +541,35 @@ def _required_context(sentence: str, *, explicit: bool = False) -> bool:
     return explicit or bool(REQUIREMENT.search(sentence))
 
 
+def _experience_years(match) -> int | float | None:
+    number = None
+    unit = None
+    for number_key, unit_key in (('range_min', 'range_unit'), ('minimum', 'minimum_unit'),
+                                 ('adjective', None), ('reverse', 'reverse_unit')):
+        token = match.group(number_key)
+        if token:
+            normalized = token.casefold().replace(',', '.')
+            try:
+                number = float(normalized)
+            except ValueError:
+                number = EXPERIENCE_NUMBER_WORDS.get(normalized)
+            unit = match.group(unit_key) if unit_key else 'years'
+            break
+    if number is None:
+        return None
+    if unit and unit.casefold().startswith(('month', 'monat')):
+        number /= 12
+    return int(number) if float(number).is_integer() else round(number, 2)
+
+
+def _is_experience_match(match) -> bool:
+    """Ignore bare durations unless the wording explicitly signals experience."""
+    context = any(match.group(name) for name in
+                  ('range_context', 'minimum_context', 'adjective_context', 'reverse_term'))
+    explicit_minimum = any(match.group(name) for name in ('marker', 'plus', 'reverse_marker'))
+    return bool(context or explicit_minimum)
+
+
 def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[dict], list[dict], list[dict]]:
     """Extract stated requirements from the sentence containing the evidence."""
     experience = None
@@ -498,11 +577,6 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
     qualifications = []
     deferred = []
     seen_qualifications = set()
-    experience_pattern = re.compile(
-        r'(?:(\d{1,2})\s*[–—-]\s*\d{1,2}\s*(?:years?|jahren?)\s+(?:of\s+)?[\w -]{0,55}?(?:experience|erfahrung)|'
-        r'(?:at least|minimum|min\.?|mindestens)\s*(\d{1,2})\s*(?:years?|jahren?)|'
-        r'(\d{1,2})\+\s*years?|'
-        r'(\d{1,2})\s*(?:years?|jahre?)\s+(?:of\s+)?[\w -]{0,55}?(?:experience|erfahrung))', re.I)
     for source, text in texts:
         if source == 'title':
             continue
@@ -516,10 +590,15 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 if DEGREE.search(base) and OPTIONAL.search(remainder):
                     clauses = _requirement_clauses(base) + _requirement_clauses(remainder)
             for clause in clauses:
-                for exp in experience_pattern.finditer(clause):
-                    minimum = bool(re.search(r'at least|minimum|min\.?|mindestens|\+\s*years?', exp.group(), re.I))
+                experience_matches = [exp for exp in EXPERIENCE_PATTERN.finditer(clause)
+                                      if _is_experience_match(exp)]
+                for exp in experience_matches:
+                    minimum = bool(exp.group('range_max') or exp.group('marker') or
+                                   exp.group('reverse_marker') or exp.group('plus'))
                     if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum)):
-                        experience = _evidence(int(next(group for group in exp.groups() if group)), clause, exp, source)
+                        years = _experience_years(exp)
+                        if years is not None:
+                            experience = _evidence(years, clause, exp, source)
                 language_hits = sorted(((name, hit) for name, pattern in LANGUAGE_PATTERNS.items()
                                         if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
                 level_info = []
@@ -666,7 +745,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         found = next((hit for alias in aliases for hit in _pattern(alias).finditer(clause)
                                       if not any(start <= hit.start() and hit.end() <= end
                                                  for start, end in alternative_spans)), None)
-                        if found and (professional or not experience_pattern.search(clause)):
+                        if found and (professional or not experience_matches):
                             rows.append({**_evidence(name, clause, found, source),
                                          'kind': 'professional_experience' if professional else 'skill'})
                     for row in rows:
@@ -838,10 +917,16 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         elif preferences and (not set(value).intersection(preferences) if isinstance(value,list) else value not in preferences):
             conflicts.append(label + ': ' + str(value).replace('_', ' '))
     experience = enriched.get('experience_years')
-    if experience and profile.get('experience_years') is None:
+    experience_adjustment = 0
+    profile_experience = profile.get('experience_years')
+    if experience and profile_experience is None:
         unknowns.append('Profile experience not provided')
-    if experience and profile.get('experience_years') is not None and experience['value'] > profile['experience_years']:
-        conflicts.append(f"Requires at least {experience['value']:g} years; profile has {profile['experience_years']:g}")
+    elif experience and experience['value'] > profile_experience:
+        conflicts.append(f"Requires at least {experience['value']:g} years; profile has {profile_experience:g}")
+        experience_adjustment = -10
+    elif experience:
+        reasons.append(f"Experience minimum met: profile has {profile_experience:g} relevant years; role requires at least {experience['value']:g}")
+        experience_adjustment = 5
     language_levels = {name.casefold(): str(level).upper() for name, level in (profile.get('language_levels') or {}).items()}
     known_languages = {x.casefold() for x in profile.get('languages', [])} | set(language_levels)
     if enriched['languages'] and not known_languages:
@@ -1020,6 +1105,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         # Missing mandatory evidence lowers ranking as well as confidence. Each
         # independent clause counts once, even when it names both a tool/domain.
         score = max(0, min(score, 60) - min(40, sum(gap_penalties.values())))
+    score += max(-10, min(5, experience_adjustment))
     score += max(-20, min(10, language_adjustment))
     # A title-only listing cannot imply a strong fit, even with matching skills or languages.
     if enriched['quality'] == 'limited':
