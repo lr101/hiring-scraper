@@ -76,7 +76,7 @@ This keeps the named database volume. Once PostgreSQL is healthy, the app retrie
 
 The first app image pull downloads the pinned ONNX model (about 235 MB). The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
 
-Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the same full commit tag or digest, then run `docker compose pull app db && docker compose up -d --no-build`.
+Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the tags from the same commit (`COMMIT_SHA` for the app and `db-COMMIT_SHA` for the database), or pin each image to its own digest. Then run `docker compose pull app db && docker compose up -d --no-build`.
 
 To discover employers across Germany, open **Search areas** and use the default
 **All of Germany** coverage. Discovery advances through small map sections across

@@ -36,23 +36,23 @@ Actions are pinned to verified release commit hashes, with their versions record
 
 ## Published images
 
-After successful checks, the workflow builds and publishes two `linux/amd64` images to GHCR:
+After successful checks, the workflow builds and publishes two `linux/amd64` image variants to the existing GHCR package:
 
 ```text
 ghcr.io/lr101/hiring-scraper/hiring-scraper
-ghcr.io/lr101/hiring-scraper/postgis-pgvector
+ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest
 ```
 
-The app image contains the API, both background workers, and the built frontend. The database image contains PostgreSQL 17, PostGIS 3.5, and pgvector. Both use the same commit, `latest`, and release-version tags. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. The images are linked to this repository through their OCI source labels. Public image pulls need no login.
+The `latest` image contains the API, both background workers, and the built frontend. The `db-latest` image contains PostgreSQL 17, PostGIS 3.5, and pgvector. Database tags add a `db-` prefix to the matching commit, `latest`, and release-version tags so both images can share the existing public package without tag collisions. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Both images include OCI source and revision labels. Public image pulls need no login.
 
 | Trigger | Published tags |
 | --- | --- |
-| Push to `main` | Both images get the full commit SHA and `latest` |
-| Push tag `v1.2.3` | Both images get the full commit SHA, `v1.2.3`, and normalized `1.2.3` |
+| Push to `main` | App gets full commit SHA and `latest`; database gets `db-` prefixed equivalents |
+| Push tag `v1.2.3` | App gets full commit SHA, `v1.2.3`, and `1.2.3`; database gets `db-` prefixed equivalents |
 | Push an invalid or prerelease `v*` tag | Validation fails; no images or GitHub Release are published |
 | Pull request or manual dispatch | No publication |
 
-Release tags never move the image tag `latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). Both images include OCI source and revision labels. The GitHub Release job waits for both image publications to succeed.
+Release tags never move `latest` or `db-latest`. Tag normalization follows the official [Docker metadata action](https://github.com/docker/metadata-action#image-name-and-tag-sanitization). The GitHub Release job waits for both image publications to succeed.
 
 ## Preparing a release
 
@@ -112,11 +112,11 @@ release notes deliberately in GitHub rather than expecting a rerun to edit them.
 See [the maintainer checklist](maintaining.md) for rulesets, package permissions,
 and private vulnerability reporting settings.
 
-For deployments, prefer a full commit SHA or digest and set both image references in `.env`:
+For deployments, prefer tags from the same full commit SHA, or pin each image to its own digest:
 
 ```dotenv
 HIRING_APP_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper:FULL_COMMIT_SHA
-HIRING_DB_IMAGE=ghcr.io/lr101/hiring-scraper/postgis-pgvector:FULL_COMMIT_SHA
+HIRING_DB_IMAGE=ghcr.io/lr101/hiring-scraper/hiring-scraper:db-FULL_COMMIT_SHA
 ```
 
 ```bash

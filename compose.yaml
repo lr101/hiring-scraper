@@ -1,6 +1,6 @@
 services:
   db:
-    image: ${HIRING_DB_IMAGE:-ghcr.io/lr101/hiring-scraper/postgis-pgvector:latest}
+    image: ${HIRING_DB_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest}
     environment:
       POSTGRES_DB: hiring
       POSTGRES_USER: postgres
