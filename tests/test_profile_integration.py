@@ -22,7 +22,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                              'Saved profiles are not implemented')
         return importlib.import_module('hiring_scraper.app.profiles')
 
-    def test_saved_profile_filters_before_pagination_and_preserves_location_scope(self):
+    def test_saved_profile_sets_location_context_without_match_filtering(self):
         profiles = self.profile_api()
         with Session(self.engine) as session:
             profile = profiles.create_profile(profiles.ProfileRequest(name='Developer', skills=['python', 'postgres'],
@@ -41,13 +41,14 @@ class ProfileIntegrationTests(unittest.TestCase):
             session.add(company); session.commit()
             page = api.list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,1,
                 session=session, profile_id=profile['id'], min_match_score=0, include_unknown=True)
-            self.assertEqual(page['total'],2)
-            self.assertEqual(page['items'][0]['external_id'],'remote')
-            self.assertTrue(page['items'][0]['profile_match']['eligible'])
+            self.assertEqual(page['total'],3)
+            self.assertEqual({item['external_id'] for item in page['items']}, {'remote','local','unknown'})
+            self.assertTrue(all(item['profile_id'] == profile['id'] for item in page['items']))
+            self.assertTrue(all('profile_match' not in item for item in page['items']))
             self.assertIn('enrichment',page['items'][0])
             strict = api.list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,10,
                 session=session, profile_id=profile['id'], include_unknown=False)
-            self.assertEqual([item['external_id'] for item in strict['items']], ['remote'])
+            self.assertEqual({item['external_id'] for item in strict['items']}, {'remote','local','unknown'})
 
     def test_unknown_profile_does_not_silently_return_unfiltered_jobs(self):
         self.profile_api()
