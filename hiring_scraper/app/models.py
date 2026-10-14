@@ -348,6 +348,20 @@ class JobSearchSnapshot(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
 
 
+class JobSearchRefresh(Base):
+    """Durable, debounced work queue for refreshing stale search snapshots."""
+    __tablename__ = "job_search_snapshot_refreshes"
+    __table_args__ = (
+        Index("ix_job_search_snapshot_refresh_claim", "requested_at", "lease_until"),
+    )
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    criteria: Mapped[dict] = mapped_column(JSON, nullable=False)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    lease_token: Mapped[str | None] = mapped_column(String(36))
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class JobSearchResult(Base):
     """One scoped, canonical job in a materialized search candidate set."""
     __tablename__ = "job_search_results"

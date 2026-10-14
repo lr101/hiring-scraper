@@ -260,6 +260,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .pagination button:hover:not(:disabled) { border-color: #b8c9ac; background: #f8fbf4; }
 .pagination button:disabled { opacity: .45; cursor: not-allowed; }
 .loading-state { min-height: 300px; display: flex; gap: 10px; justify-content: center; align-items: center; color: #89948b; font-size: 11px; }
+.snapshot-refresh-note { margin: 8px 0; padding: 8px 12px; font-size: 12px; }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #e3e9de; border-top-color: #789863; border-radius: 50%; animation: spin .7s linear infinite; }
 .spinner.small { width: 15px; height: 15px; border-width: 2px; border-color: rgba(255,255,255,.3); border-top-color: #fff; }
 @keyframes spin { to { transform: rotate(360deg); } }

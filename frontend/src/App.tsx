@@ -100,7 +100,7 @@ type Job = {
 
 type JobCounts = { source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number> }
 type JobCoverage = { source_count: number; note: string }
-type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string }
+type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string; snapshot_stale?: boolean }
 
 type LocationOption = {
   key: string
@@ -228,6 +228,8 @@ function DirectoryPage() {
   const [summary, setSummary] = useState({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
   const [offset, setOffset] = useState(0)
   const [jobReloadKey, setJobReloadKey] = useState(0)
+  const [snapshotStale, setSnapshotStale] = useState(false)
+  const [snapshotRefreshTick, setSnapshotRefreshTick] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [trackingError, setTrackingError] = useState('')
@@ -236,7 +238,9 @@ function DirectoryPage() {
   const swipeRequestToken = useRef(0)
   const profileSelectionToken = useRef(0)
   const jobSnapshotRef = useRef<{ criteria: string; id: string } | null>(null)
+  const snapshotStaleRef = useRef(false)
   const priorJobCriteriaRef = useRef<string | null>(null)
+  snapshotStaleRef.current = snapshotStale
   const requestOffset = tab === 'companies' ? offset : 0
 
   useEffect(() => {
@@ -297,6 +301,8 @@ function DirectoryPage() {
     if (priorJobCriteriaRef.current !== jobSnapshotCriteria) {
       priorJobCriteriaRef.current = jobSnapshotCriteria
       jobSnapshotRef.current = null
+      setSnapshotStale(false)
+      setSnapshotRefreshTick(0)
       if (offset !== 0) setOffset(0)
     }
   }, [jobSnapshotCriteria, offset])
@@ -369,10 +375,12 @@ function DirectoryPage() {
       setSummary({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
       setCounts(null); setCoverage(null)
       setJobApplicationCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+      setSnapshotStale(false)
+      setSnapshotRefreshTick(0)
       setLoading(false)
       return
     }
-    setLoading(true)
+    if (!snapshotStaleRef.current) setLoading(true)
     const companyParams = new URLSearchParams(locationParams)
     companyParams.set('offset', String(requestOffset))
     companyParams.set('limit', String(PAGE_SIZE))
@@ -404,6 +412,8 @@ function DirectoryPage() {
       ])
       if (jobsResponse.status === 409 && jobParams.has('snapshot_id')) {
         jobSnapshotRef.current = null
+        setSnapshotStale(false)
+        setSnapshotRefreshTick(0)
         setOffset(0)
         setJobReloadKey(value => value + 1)
         return
@@ -419,8 +429,15 @@ function DirectoryPage() {
       setCompanies(companyPage.items)
       setCompanyTotal(companyPage.total)
       setJobs(jobPage.items)
-      if (jobPage.snapshot_id) {
-        jobSnapshotRef.current = { criteria: jobSnapshotCriteria, id: jobPage.snapshot_id }
+      setSnapshotStale(Boolean(jobPage.snapshot_stale))
+      if (jobPage.snapshot_stale) {
+        jobSnapshotRef.current = null
+        setSnapshotRefreshTick(value => value + 1)
+      } else {
+        setSnapshotRefreshTick(0)
+        jobSnapshotRef.current = jobPage.snapshot_id
+          ? { criteria: jobSnapshotCriteria, id: jobPage.snapshot_id }
+          : null
       }
       setJobTotal(jobPage.total)
       setSummary(summaryData)
@@ -442,6 +459,13 @@ function DirectoryPage() {
     void loadData(controller.signal)
     return () => controller.abort()
   }, [loadData])
+
+  useEffect(() => {
+    if (!snapshotStale) return
+    const delay = Math.min(1500 * (2 ** Math.min(snapshotRefreshTick, 4)), 15000)
+    const timer = window.setTimeout(() => setJobReloadKey(value => value + 1), delay)
+    return () => window.clearTimeout(timer)
+  }, [snapshotStale, snapshotRefreshTick, jobSnapshotCriteria])
 
   useEffect(() => {
     if (!profilesReady || !locationsReady) return
@@ -835,6 +859,9 @@ function DirectoryPage() {
               </div>
             </details>
           </div>}
+          {snapshotStale && tab === 'jobs' && <p className="evidence-note snapshot-refresh-note" role="status">
+            Updating job results in the background.
+          </p>}
           {locationsReady && !selectedLocationKey ? <div className="location-empty-state">
             <EmptyState title="No configured locations yet" body="Add a search area to see nearby employers and jobs." />
             <a href="/locations" className="page-link">Configure locations <Icon name="arrow" size={15} /></a>

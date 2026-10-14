@@ -20,6 +20,14 @@ separate terminal:
 mise exec -- uv run python -m hiring_scraper.app.worker
 ```
 
+Start the search snapshot worker in another terminal to refresh cached results
+after new jobs arrive. While it rebuilds, the API serves the previous matching
+snapshot and the web app refreshes it when the new snapshot is ready:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker
+```
+
 In another terminal, start the frontend:
 
 ```bash
