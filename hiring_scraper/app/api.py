@@ -424,8 +424,10 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
     """Broadly narrow jobs before Python performs exact workplace and remote checks."""
     remote_clause = or_(Job.work_arrangement == 'remote',
                         and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
+    expiry_clause = or_(Job.raw_metadata["validThrough"].as_string().is_not(None),
+                        Job.raw_metadata["valid_through"].as_string().is_not(None))
     if location_scope == 'remote':
-        return remote_clause
+        return or_(remote_clause, expiry_clause)
     if not IS_SQLITE:
         location_ids = select(JobLocation.job_id).where(text(
             "ST_DWithin(job_locations.location_geog, "
@@ -437,7 +439,7 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
                                           JobLocation.latitude, JobLocation.longitude)
         location_ids = select(JobLocation.job_id).where(*bounds)
         spatial_clause = Job.id.in_(location_ids)
-    clauses = [spatial_clause]
+    clauses = [spatial_clause, expiry_clause, remote_clause]
     if place:
         # SQL narrows ASCII city labels and PostgreSQL Unicode labels. SQLite's
         # built-in case conversion is ASCII-only, so retain its Unicode fallback.
@@ -446,8 +448,6 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
         if not IS_SQLITE or place.isascii():
             city_ids = city_ids.where(JobLocation.label.ilike(f"{place}%"))
         clauses.append(Job.id.in_(city_ids))
-    if location_scope == 'area_remote':
-        clauses.append(remote_clause)
     return or_(*clauses)
 
 
@@ -1336,6 +1336,7 @@ def _search_key(generation: int, criteria: dict[str, Any]) -> str:
 
 def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any], key: str,
                  generation: int, source_count: int, source_feed_count: int,
+                 prefilter_filtered: dict[str, int],
                  sort: str, latitude: float, longitude: float,
                  radius_km: float, place: str | None, country: str | None,
                  location_scope: str, state: str | None, employer_country: str | None,
@@ -1362,6 +1363,7 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
             return snapshot
         # The competing transaction rolled back; this request can safely retry.
         return _search_page(session, candidate_ids, profiles, key, generation, source_count, source_feed_count,
+                            prefilter_filtered,
                             sort, latitude, longitude,
                             radius_km, place, country, location_scope, state, employer_country,
                             thresholds, criteria)
@@ -1387,6 +1389,8 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
         combined_counts['scoped'] += len(winners)
         combined_counts['duplicates_removed'] += duplicates_removed
         for name, count in geo_filtered.items():
+            combined_counts['filtered'][name] += count
+        for name, count in prefilter_filtered.items():
             combined_counts['filtered'][name] += count
 
     # The job graph and profile matches stay bounded to one batch. Only the
@@ -1610,8 +1614,13 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             ).all()
             if reusable:
                 session.info['job_search_candidate_ids'] = (candidate_cache_key, candidate_ids)
+        prefilter_excluded = max(0, int(source_count) - len(candidate_ids))
+        prefilter_filtered = {}
+        if prefilter_excluded:
+            prefilter_reason = 'not_remote' if location_scope == 'remote' else 'outside_area'
+            prefilter_filtered[prefilter_reason] = prefilter_excluded
         snapshot = _search_page(session, candidate_ids, profiles, key, generation,
-                                source_count, source_feed_count, search_sort,
+                                source_count, source_feed_count, prefilter_filtered, search_sort,
                                 latitude, longitude, radius_km, place, scope_country,
                                 location_scope, state, employer_country, thresholds, snapshot_criteria,
                                 )

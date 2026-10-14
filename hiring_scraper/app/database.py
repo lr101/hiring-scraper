@@ -79,10 +79,6 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         connection.exec_driver_sql(
             "CREATE INDEX IF NOT EXISTS ix_jobs_active_id ON jobs (id) WHERE is_active = 1")
         connection.exec_driver_sql(
-            "CREATE INDEX IF NOT EXISTS ix_companies_latitude_longitude ON companies (latitude, longitude)")
-        connection.exec_driver_sql(
-            "CREATE INDEX IF NOT EXISTS ix_job_locations_latitude_longitude ON job_locations (latitude, longitude)")
-        connection.exec_driver_sql(
             "CREATE INDEX IF NOT EXISTS ix_profile_job_matches_job_profile ON profile_job_matches (job_id, profile_id)")
         if connection.exec_driver_sql("SELECT id FROM job_search_state LIMIT 1").first() is None:
             connection.exec_driver_sql("INSERT INTO job_search_state DEFAULT VALUES")
@@ -96,6 +92,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql("ALTER TABLE companies ADD COLUMN state VARCHAR(120)")
         connection.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_companies_state ON companies (state)")
         additions = {
+            'latitude': 'FLOAT', 'longitude': 'FLOAT',
             'country_code': 'VARCHAR(2)', 'employee_count': 'INTEGER',
             'size_evidence': "JSON NOT NULL DEFAULT '{}'", 'crawl_priority': 'INTEGER NOT NULL DEFAULT 0',
             'crawl_interval_days': 'INTEGER DEFAULT 7', 'crawl_reason': 'TEXT',
@@ -113,6 +110,10 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql(f'CREATE INDEX IF NOT EXISTS ix_companies_{name} ON companies ({name})')
         for name in ('homepage_resolution_next_at', 'homepage_resolution_lease_until'):
             connection.exec_driver_sql(f'CREATE INDEX IF NOT EXISTS ix_companies_{name} ON companies ({name})')
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_companies_latitude_longitude ON companies (latitude, longitude)")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_job_locations_latitude_longitude ON job_locations (latitude, longitude)")
         job_columns = {column['name'] for column in inspect(connection).get_columns('discovery_jobs')}
         if 'map_cursor' not in job_columns:
             connection.exec_driver_sql("ALTER TABLE discovery_jobs ADD COLUMN map_cursor JSON NOT NULL DEFAULT '{}'")
