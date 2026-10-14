@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
 import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
@@ -8,7 +8,6 @@ import type { Profile } from './profile'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const PAGE_SIZE = 40
-const REQUEST_SIZE = 100
 const sortModes = [
   { value: 'match', label: 'Best match' },
   { value: 'posted', label: 'Posted date' },
@@ -26,7 +25,7 @@ type MatchingJob = {
 }
 type ProfiledJob = MatchingJob & { profileId: number; profileName: string }
 type SavedProfile = Profile & { id: number }
-type JobsPage = { items: MatchingJob[]; total: number }
+type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number> }
 
 function readStatusSelection(params: URLSearchParams): ApplicationStatus[] {
   if (params.has('statuses')) {
@@ -41,27 +40,8 @@ function readStatusSelection(params: URLSearchParams): ApplicationStatus[] {
   return match ? [match.value] : ['new']
 }
 
-async function fetchAllPages(urlForOffset: (offset: number) => string, signal: AbortSignal) {
-  const all: MatchingJob[] = []
-  let total = Number.POSITIVE_INFINITY
-  while (all.length < total) {
-    const response = await fetch(urlForOffset(all.length), { signal })
-    const data = await response.json() as JobsPage & { detail?: unknown }
-    if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not load matching jobs.')
-    all.push(...data.items)
-    total = data.total
-    if (!data.items.length) break
-  }
-  return all
-}
-
 function jobUpdatedAt(job: MatchingJob) {
   return job.application?.updated_at ?? job.last_seen_at ?? job.first_seen_at
-}
-
-function dateRank(value?: string | null) {
-  const timestamp = value ? Date.parse(value) : Number.NaN
-  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
 }
 
 function profileJobKey(job: Pick<ProfiledJob, 'profileId' | 'id'>) {
@@ -77,6 +57,9 @@ export default function ApplicationsPage() {
   const [sortBy, setSortBy] = useState<SortMode>(() =>
     sortModes.find(item => item.value === params.get('sort'))?.value ?? 'match')
   const [jobs, setJobs] = useState<ProfiledJob[]>([])
+  const [counts, setCounts] = useState<Record<ApplicationStatus, number>>(() =>
+    Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+  const [totalVisible, setTotalVisible] = useState(0)
   const [offset, setOffset] = useState(0)
   const [reloadKey, setReloadKey] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -108,9 +91,10 @@ export default function ApplicationsPage() {
 
   useEffect(() => {
     if (!profilesReady) return
-    const selectedProfiles = profiles.filter(profile => activeProfileIds.includes(profile.id))
-    if (!selectedProfiles.length) {
+    if (!activeProfileIds.length) {
       setJobs([])
+      setCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+      setTotalVisible(0)
       setLoading(false)
       setError('')
       return
@@ -119,43 +103,29 @@ export default function ApplicationsPage() {
     const controller = new AbortController()
     setLoading(true)
     setError('')
-
-    async function loadProfileJobs(profile: SavedProfile): Promise<ProfiledJob[]> {
-      const profileId = String(profile.id)
-      const query = new URLSearchParams({
-        profile_id: profileId,
-        min_match_score: String(profile.matching_defaults?.min_match_score ?? 30),
-        include_unknown: String(profile.matching_defaults?.include_unknown !== false),
-        location_scope: 'area_remote',
-        sort: 'newest',
-        limit: String(REQUEST_SIZE),
-      })
-      const [matching, tracked] = await Promise.all([
-        fetchAllPages(offset => {
-          const pageQuery = new URLSearchParams(query)
-          pageQuery.set('offset', String(offset))
-          return `${API}/api/v1/jobs?${pageQuery}`
-        }, controller.signal),
-        fetchAllPages(offset => `${API}/api/v1/profiles/${profileId}/applications?limit=${REQUEST_SIZE}&offset=${offset}`, controller.signal),
-      ])
-      // Keep previously tracked posts in this profile's journey even if they have since closed or stopped matching.
-      const byId = new Map<number, MatchingJob>(tracked.map(job => [job.id, job]))
-      for (const job of matching) {
-        const previous = byId.get(job.id)
-        byId.set(job.id, { ...previous, ...job, application: job.application ?? previous?.application ?? null })
-      }
-      return [...byId.values()].map(job => ({ ...job, profileId: profile.id, profileName: profile.name }))
-    }
-
-    Promise.all(selectedProfiles.map(loadProfileJobs)).then(result => {
-      const combined = result.flat().sort((a, b) => Date.parse(jobUpdatedAt(b)) - Date.parse(jobUpdatedAt(a)))
-      setJobs(combined)
+    const query = new URLSearchParams({
+      profile_ids: activeProfileKey,
+      statuses: statuses.length ? statuses.join(',') : 'all',
+      sort: sortBy,
+      offset: String(offset),
+      limit: String(PAGE_SIZE),
+    })
+    fetch(`${API}/api/v1/applications?${query}`, { signal: controller.signal }).then(async response => {
+      const data = await response.json() as JobsPage & { detail?: unknown }
+      if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not load matching jobs.')
+      setJobs(data.items.map(job => ({
+        ...job,
+        profileId: job.profile_id,
+        profileName: job.profile_name,
+      })))
+      setCounts(data.counts)
+      setTotalVisible(data.total)
     }).catch(reason => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load matching jobs.')
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
 
     return () => controller.abort()
-  }, [profilesReady, activeProfileKey, reloadKey, profiles])
+  }, [profilesReady, activeProfileKey, activeProfileIds.length, reloadKey, profiles, statuses, sortBy, offset])
 
   useEffect(() => {
     if (!profilesReady) return
@@ -169,27 +139,8 @@ export default function ApplicationsPage() {
     window.history.replaceState({}, '', url)
   }, [profilesReady, activeProfileKey, statuses, sortBy])
 
-  const counts = useMemo(() => {
-    const result = Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>
-    for (const job of jobs) result[job.application?.status ?? 'new'] += 1
-    return result
-  }, [jobs])
-  const statusJobs = useMemo(() => {
-    if (!statuses.length) return jobs
-    const selected = new Set(statuses)
-    return jobs.filter(job => selected.has(job.application?.status ?? 'new'))
-  }, [jobs, statuses])
-  const sortedJobs = useMemo(() => [...statusJobs].sort((a, b) => {
-    const scoreDifference = (b.profile_match?.score ?? -1) - (a.profile_match?.score ?? -1)
-    const discoveredDifference = dateRank(b.first_seen_at) - dateRank(a.first_seen_at)
-    const postedDifference = dateRank(b.date_posted) - dateRank(a.date_posted)
-    if (sortBy === 'posted') return postedDifference || scoreDifference || discoveredDifference
-    if (sortBy === 'discovered') return discoveredDifference || scoreDifference || postedDifference
-    return scoreDifference || discoveredDifference || postedDifference
-  }), [statusJobs, sortBy])
-  const filteredJobs = sortedJobs.slice(offset, offset + PAGE_SIZE)
-  const totalVisible = statusJobs.length
-  const trackedCount = jobs.filter(job => job.application).length
+  const filteredJobs = jobs
+  const trackedCount = Object.values(counts).reduce((total, count) => total + count, 0)
   const sortIndex = sortModes.findIndex(item => item.value === sortBy)
   const nextSort = sortModes[(sortIndex + 1) % sortModes.length]
 
@@ -224,12 +175,23 @@ export default function ApplicationsPage() {
   function applyLocalStatus(profileId: number, jobId: number, application: Application) {
     const currentJob = jobs.find(job => job.profileId === profileId && job.id === jobId)
     const currentStatus = currentJob?.application?.status ?? 'new'
-    const leavesCurrentFilter = statuses.length > 0 && statuses.includes(currentStatus) && !statuses.includes(application.status)
+    const wasSelected = !statuses.length || statuses.includes(currentStatus)
+    const isSelected = !statuses.length || statuses.includes(application.status)
+    const leavesCurrentFilter = wasSelected && !isSelected
     if (leavesCurrentFilter && offset > 0 && totalVisible - 1 <= offset) {
       setOffset(Math.max(0, offset - PAGE_SIZE))
     }
+    if (currentStatus !== application.status) {
+      setCounts(current => ({
+        ...current,
+        [currentStatus]: Math.max(0, current[currentStatus] - 1),
+        [application.status]: current[application.status] + 1,
+      }))
+      if (wasSelected !== isSelected) setTotalVisible(current => Math.max(0, current + (isSelected ? 1 : -1)))
+      setReloadKey(value => value + 1)
+    }
     setJobs(current => current.map(job => job.profileId === profileId && job.id === jobId ? { ...job, application } : job)
-      .sort((a, b) => Date.parse(jobUpdatedAt(b)) - Date.parse(jobUpdatedAt(a))))
+    )
   }
 
   async function updateJob(job: ProfiledJob, action: ApplicationSwipeAction) {
@@ -278,7 +240,7 @@ export default function ApplicationsPage() {
         </div>
         <div className="application-status-grid" role="group" aria-label="Filter by application stage">
           <button type="button" aria-pressed={statuses.length === 0} className={`application-filter-chip application-status-filter ${statuses.length === 0 ? 'selected' : ''}`}
-            onClick={() => filter('')}>All <span>{loading ? '—' : jobs.length}</span></button>
+            onClick={() => filter('')}>All <span>{loading ? '—' : trackedCount}</span></button>
           {applicationStatuses.map(item => <button type="button" key={item.value} aria-pressed={statuses.includes(item.value)}
             className={`application-filter-chip application-status-filter application-${item.value} ${statuses.includes(item.value) ? 'selected' : ''}`}
             onClick={() => filter(item.value)}>

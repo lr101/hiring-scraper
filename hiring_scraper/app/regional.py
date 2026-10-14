@@ -13,9 +13,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from hiring_scraper.app.models import Company, Job, JobFeed, JobLocation, UserProfile
+from hiring_scraper.app.models import Company, Job, JobFeed, UserProfile
+from hiring_scraper.app.job_search import (
+    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+)
 from hiring_scraper.regional import BASE_URL, DEFAULT_TERMS, acquire, normalize_job
 
 
@@ -62,6 +65,7 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
     """
     counts = {'companies_created': 0, 'feeds_created': 0, 'jobs_created': 0, 'jobs_updated': 0, 'skipped': 0}
     feed_ids = set()
+    touched_job_ids: set[int] = set()
     for row in _rows(snapshot):
         try:
             if isinstance(row, dict) and 'external_id' in row and 'raw_metadata' in row:
@@ -117,7 +121,9 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
         feed.status = 'selected_search'
         feed.last_checked_at = _timestamp(observed_at or job_data['raw_metadata'].get('source_observed_at'))
         feed_ids.add(feed.id)
-        job = session.scalar(select(Job).where(Job.feed_id == feed.id, Job.external_id == job_data['external_id']))
+        job = session.scalar(select(Job).where(
+            Job.feed_id == feed.id, Job.external_id == job_data['external_id']
+        ).options(selectinload(Job.locations)))
         created = job is None
         if created:
             job = Job(feed_id=feed.id, external_id=job_data['external_id'], title=job_data['title'], url=job_data['url'])
@@ -125,6 +131,7 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
             counts['jobs_created'] += 1
         else:
             counts['jobs_updated'] += 1
+        before_signature = None if created else job_search_signature(job)
         metadata = job_data['raw_metadata']
         prior = dict(job.raw_metadata or {})
         description = job_data.get('description')
@@ -223,16 +230,19 @@ def import_snapshot(session: Session, snapshot, observed_at: str | None = None) 
                     origin = _provenance(previous[0]) if len(previous) == 1 else _provenance(prior)
                 merged_locations.append(current)
                 location_evidence.append({**origin, **current})
-            job.locations.clear()
-            job.locations.extend(JobLocation(**location) for location in merged_locations)
+            replace_job_locations(job, merged_locations)
             evidence['locations'] = location_evidence
         merged['field_evidence'] = evidence
         job.raw_metadata = merged
         session.flush()
+        if created or job_search_signature(job) != before_signature:
+            touched_job_ids.add(job.id)
     for feed_id in feed_ids:
         feed = session.get(JobFeed, feed_id)
         feed.job_count = session.scalar(select(func.count(Job.id)).where(Job.feed_id == feed_id, Job.is_active.is_(True)))
     session.flush()
+    if touched_job_ids:
+        refresh_application_matches_for_jobs(session, touched_job_ids)
     return counts
 
 

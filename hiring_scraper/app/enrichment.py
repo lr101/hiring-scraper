@@ -69,6 +69,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
         raise ValueError('limit must be between 1 and 200')
     counts = {'checked': 0, 'updated': 0, 'details_attempted': 0, 'descriptions_improved': 0}
     candidates = []
+    changed_job_ids = set()
     with SessionLocal() as session:
         jobs = session.scalars(select(Job).where(Job.is_active.is_(True)).order_by(Job.id)).all()
         for job in jobs:
@@ -76,6 +77,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
             if signals != job.enrichment:
                 job.enrichment = signals
                 counts['updated'] += 1
+                changed_job_ids.add(job.id)
             counts['checked'] += 1
             detail_source = (job.raw_metadata or {}).get('description_method') in {'verified_detail_jsonld','verified_detail_html'}
             if not fetch_details or len(candidates) >= limit or signals['quality'] != 'limited' and not detail_source:
@@ -88,6 +90,10 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
             except (KeyError, ValueError, TypeError):
                 pass
             candidates.append(job.id)
+        if changed_job_ids:
+            session.flush()
+            from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
+            refresh_application_matches_for_jobs(session, changed_job_ids)
         session.commit()
     if not candidates:
         return counts
@@ -119,6 +125,9 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
                 'status': 'improved' if updates else 'no_verified_description', 'http_state': metadata.get('state')}
             job.raw_metadata = raw
             refresh_enrichment(job)
+            session.flush()
+            from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
+            refresh_application_matches_for_jobs(session, [job.id])
     return counts
 
 

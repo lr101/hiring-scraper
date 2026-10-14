@@ -29,6 +29,9 @@ from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
     Job, JobFeed, JobLocation, utcnow,
 )
+from hiring_scraper.app.job_search import (
+    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+)
 from hiring_scraper.app.employers import upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
@@ -273,11 +276,12 @@ def _lock_current_discovery_run(session, company_id: int, run_id: int) -> Discov
     return run if latest_id == run_id else None
 
 
-def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: datetime) -> set[int]:
+def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: datetime) -> tuple[set[int], set[int]]:
     existing = {job.external_id: job for job in session.scalars(
         select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
     seen: set[str] = set()
     seen_job_ids: set[int] = set()
+    touched_job_ids: set[int] = set()
     for data in rows:
         external_id, title, url = data.get("id"), data.get("title"), data.get("url")
         if external_id in (None, "") or not title or not url:
@@ -285,7 +289,8 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
         external_id = str(external_id)
         seen.add(external_id)
         job = existing.get(external_id)
-        if job is None:
+        created = job is None
+        if created:
             job = Job(feed_id=feed.id, external_id=external_id, title=title, url=url,
                       first_seen_at=now, last_seen_at=now)
             session.add(job)
@@ -294,6 +299,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
             old_locations = []
         else:
             old_locations = list(job.locations)
+        before_signature = None if created else job_search_signature(job)
         seen_job_ids.add(job.id)
         data = preserve_verified_detail(job, data)
         job.title, job.url = title, url
@@ -312,12 +318,9 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
         job.is_active = True
         job.missing_complete_scans = 0
         job.closed_at = None
-        for location in old_locations:
-            session.delete(location)
-        for location in _job_locations(data, old_locations):
-            session.add(JobLocation(job_id=job.id, label=location["label"],
-                                    latitude=location["latitude"], longitude=location["longitude"],
-                                    precision=location["precision"], country_code=location["country_code"]))
+        replace_job_locations(job, _job_locations(data, old_locations))
+        if created or job_search_signature(job) != before_signature:
+            touched_job_ids.add(job.id)
 
     if complete:
         for external_id, job in existing.items():
@@ -330,6 +333,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
             if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
                 job.is_active = False
                 job.closed_at = now
+                touched_job_ids.add(job.id)
 
     feed.job_count = len(seen)
     feed.status = "parsed" if complete and seen else "complete_empty" if complete else "incomplete"
@@ -337,7 +341,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
     feed.last_error = None if complete else "Discovery returned a partial job list; no jobs were closed."
     feed.next_scan_at = now + timedelta(hours=FEED_INTERVAL_HOURS)
     feed.attempt_count = 0
-    return seen_job_ids
+    return seen_job_ids, touched_job_ids
 
 
 def _campaign_attempt(session, item_id: int, run_id: int):
@@ -429,6 +433,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 session.add(feed)
                 feed_by_key[key] = feed
         observed_job_ids: set[int] = set()
+        touched_job_ids: set[int] = set()
         updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
@@ -472,8 +477,9 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             else:
                 feed.tenant = board.get("tenant") or feed.tenant
                 feed.board_url = board.get("board_url") or feed.board_url
-            observed_job_ids.update(_upsert_jobs(
-                session, feed, jobs, bool(board.get("complete")), now))
+            observed, touched = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
+            observed_job_ids.update(observed)
+            touched_job_ids.update(touched)
             updated_feed_ids.add(feed.id)
 
         if updated_feed_ids:
@@ -485,6 +491,9 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     JobFeed.id.in_(updated_feed_ids))).all():
                 feed.job_count = session.scalar(select(func.count(Job.id)).where(
                     Job.feed_id == feed.id, Job.is_active.is_(True)))
+
+        if touched_job_ids:
+            refresh_application_matches_for_jobs(session, touched_job_ids)
 
         run.finished_at = now
         run.status = result.get("status", "unresolved")

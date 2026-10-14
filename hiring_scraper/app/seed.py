@@ -10,10 +10,14 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from sqlalchemy import func, select
+from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
-from hiring_scraper.app.models import Base, Company, Job, JobFeed, JobLocation, LocationCache
+from hiring_scraper.app.models import Base, Company, Job, JobFeed, LocationCache
+from hiring_scraper.app.job_search import (
+    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,6 +84,7 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
     career_by_key = {item["source_id"]: item for item in enrichment.get("companies", [])}
 
     with SessionLocal.begin() as session:
+        touched_job_ids: set[int] = set()
         companies = {(item.source, item.source_id): item for item in session.scalars(select(Company)).all()}
         by_source_id = {item.source_id: item for item in companies.values()}
         scheduled_now = datetime.now(timezone.utc)
@@ -174,7 +179,7 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                         feed.next_scan_at = datetime.now(timezone.utc)
                 session.flush()
                 jobs = {(job.feed_id, job.external_id): job for job in session.scalars(
-                    select(Job).where(Job.feed_id == feed.id)).all()}
+                    select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
                 jobs_observed_at = feed_observed_at
                 for job_data in feed_data.get("jobs", []):
                     external_id = str(job_data["id"])
@@ -182,11 +187,13 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     if (job is not None and _as_utc(job.last_seen_at) is not None and
                             _as_utc(job.last_seen_at) > feed_observed_at):
                         continue
-                    if job is None:
+                    created = job is None
+                    if created:
                         job = Job(feed_id=feed.id, external_id=external_id,
                                   title=job_data["title"], url=job_data["url"],
                                   first_seen_at=jobs_observed_at, last_seen_at=jobs_observed_at)
                         session.add(job)
+                    before_signature = None if created else job_search_signature(job)
                     job_data = preserve_verified_detail(job, job_data)
                     job.title = job_data["title"]
                     job.url = job_data["url"]
@@ -205,18 +212,15 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     job.last_seen_at = jobs_observed_at
                     job.is_active = True
                     session.flush()
-                    for old_location in list(job.locations):
-                        session.delete(old_location)
-                    for location in _job_locations(job_data):
-                        session.add(JobLocation(job_id=job.id, label=location["label"],
-                                                latitude=location.get("latitude"),
-                                                longitude=location.get("longitude"),
-                                                precision=location.get("precision"),
-                                                country_code=location.get("country_code")))
+                    replace_job_locations(job, _job_locations(job_data))
+                    if created or job_search_signature(job) != before_signature:
+                        touched_job_ids.add(job.id)
 
         if session.scalar(select(LocationCache).where(LocationCache.query_key == "karlsruhe")) is None:
             session.add(LocationCache(query_key="karlsruhe", results=[KARLSRUHE], cached_at=observed_at))
         session.flush()
+        if touched_job_ids:
+            refresh_application_matches_for_jobs(session, touched_job_ids)
         company_count = session.scalar(select(func.count()).select_from(Company))
         feed_count = session.scalar(select(func.count()).select_from(JobFeed))
         job_count = session.scalar(select(func.count()).select_from(Job))

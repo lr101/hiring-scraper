@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from hiring_scraper.app.database import get_session
 from hiring_scraper.app.models import UserProfile, utcnow
+from hiring_scraper.app.job_search import clear_profile_match_scores
 from hiring_scraper.matching import extract_profile_skills, normalize_skills
 
 router = APIRouter(prefix='/api/v1/profiles', tags=['Profiles'])
@@ -111,7 +112,15 @@ def _save(profile, request, session):
             data[key] = previous[key]
     profile.preferences = data
     profile.updated_at = utcnow()
+    preferences_changed = data != previous
+    if preferences_changed:
+        profile.match_index_version = None
     session.add(profile)
+    if profile.id is not None and preferences_changed:
+        # Acquire the profile row lock before clearing derived rows. Job refreshes
+        # lock profiles in the same order, so no stale New rows can race past an edit.
+        session.flush()
+        clear_profile_match_scores(session, profile.id)
     session.commit()
     return profile_json(profile)
 

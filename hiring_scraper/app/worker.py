@@ -22,6 +22,9 @@ from hiring_scraper.app.database import SessionLocal, engine
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.models import (Company, ConfiguredLocation, Job, JobFeed, JobLocation,
                                       ScanRun, utcnow)
+from hiring_scraper.app.job_search import (
+    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+)
 from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, scope_due_at,
 )
@@ -602,6 +605,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
+        touched_job_ids: set[int] = set()
         for data in incoming:
             if (feed.provider == "rss" and not data.get("locations")
                     and feed.company.location_label):
@@ -621,7 +625,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             external_id = str(data["id"])
             seen.add(external_id)
             job = current.get(external_id)
-            if job is None:
+            created = job is None
+            if created:
                 job = Job(feed_id=feed.id, external_id=external_id, title=data["title"], url=data["url"],
                           first_seen_at=now, last_seen_at=now)
                 session.add(job)
@@ -630,6 +635,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 old_locations = []
             else:
                 old_locations = list(job.locations)
+            before_signature = None if created else job_search_signature(job)
             data = preserve_verified_detail(job, data)
             job.title = data["title"]
             job.url = data["url"]
@@ -652,12 +658,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             job.is_active = True
             job.missing_complete_scans = 0
             job.closed_at = None
-            for old in old_locations:
-                session.delete(old)
-            for location in _location_rows(data, old_locations):
-                session.add(JobLocation(job_id=job.id, label=location["label"],
-                                        latitude=location.get("latitude"), longitude=location.get("longitude"),
-                                        precision=location.get("precision"), country_code=location.get("country_code")))
+            replace_job_locations(job, _location_rows(data, old_locations))
+            if created or job_search_signature(job) != before_signature:
+                touched_job_ids.add(job.id)
 
         if complete:
             for external_id, job in current.items():
@@ -670,6 +673,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
                     job.is_active = False
                     job.closed_at = now
+                    touched_job_ids.add(job.id)
 
         feed.job_count = len(incoming)
         feed.status = (("parsed" if incoming else "complete_empty") if complete else
@@ -699,6 +703,9 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         run.http_status = status
         run.item_count = len(incoming)
         run.error = feed.last_error
+        if touched_job_ids:
+            session.flush()
+            refresh_application_matches_for_jobs(session, touched_job_ids)
 
 
 def scan_once() -> bool:

@@ -183,7 +183,6 @@ def deduplicate_jobs(jobs):
             for key in vacancy_keys(candidate):
                 seen[key] = group
     def richness(job):
-        timestamp = job.last_seen_at.timestamp() if job.last_seen_at else 0
         return (job.is_active and not expiry(job)['expired'], len(job.description or ''),
-                len(job.locations), timestamp, -job.id)
+                len(job.locations), -job.id)
     return [max(group, key=richness) for group in groups.values()]
