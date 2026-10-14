@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import JobOverviewTags from './JobOverviewTags'
 import { applicationStatuses } from './applications'
@@ -33,8 +34,8 @@ function formatDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export default function JobFeedCard({
-  job, href, profileId, profileName, updatedAt, disabled = false, saving = false, onAction, onOpenOriginal,
+function JobFeedCard({
+  job, href, profileId, profileName, updatedAt, disabled = false, saving = false, pendingStatus, onAction, onOpenOriginal,
 }: {
   job: JobCardData
   href: string
@@ -43,12 +44,16 @@ export default function JobFeedCard({
   updatedAt?: string | null
   disabled?: boolean
   saving?: boolean
-  onAction: (action: ApplicationSwipeAction) => void
-  onOpenOriginal?: () => void
+  pendingStatus?: ApplicationStatus
+  onAction: (jobId: number, profileId: number | undefined, action: ApplicationSwipeAction) => void
+  onOpenOriginal?: (jobId: number, profileId: number | undefined) => void
 }) {
-  const status = job.application?.status ?? (profileId ? 'new' : null)
-  const previousStatus: ApplicationStatus | null = job.application?.previous_status && job.application.previous_status !== job.application.status
-    ? job.application.previous_status : null
+  const application = pendingStatus && job.application
+    ? { ...job.application, previous_status: job.application.status, status: pendingStatus }
+    : job.application
+  const status = application?.status ?? (profileId ? 'new' : null)
+  const previousStatus: ApplicationStatus | null = application?.previous_status && application.previous_status !== application.status
+    ? application.previous_status : null
   const matchingSkills = job.profile_match?.matched_skills ?? []
   const languageRequirements = job.enrichment?.languages.map(language =>
     `${language.value}${languageRequirementLabel(language)}`,
@@ -57,8 +62,9 @@ export default function JobFeedCard({
     ? 'unlikely' : job.profile_match && job.profile_match.score >= 65 ? 'recommended' : 'possible')
   const lastUpdated = updatedAt ?? job.application?.updated_at ?? job.last_seen_at ?? job.first_seen_at
 
-  return <ApplicationSwipeCard application={job.application} disabled={disabled}
-    className={`application-job-card status-${status ?? 'untracked'} ${saving ? 'swipe-saving' : ''}`} onAction={onAction}>
+  return <ApplicationSwipeCard application={application} disabled={disabled}
+    className={`application-job-card status-${status ?? 'untracked'} ${saving ? 'swipe-saving' : ''}`}
+    onAction={action => onAction(job.id, profileId, action)}>
     <header className="application-job-card-header">
       <div className="application-role">
         <a className="application-job-title" href={href}>{job.title}</a>
@@ -66,7 +72,7 @@ export default function JobFeedCard({
         {(job.expired || job.is_active === false) && <small className="application-closed">{job.expired ? 'Posting expired' : 'Posting closed'}</small>}
       </div>
       <div className="application-card-state">
-        <ApplicationStateBadge application={job.application} fallbackStatus={profileId ? 'new' : undefined} />
+        <ApplicationStateBadge application={application} fallbackStatus={profileId ? 'new' : undefined} />
         {job.profile_match && <span className={`application-card-match-score match-${matchTier}`}
           aria-label={`${job.profile_match.score} percent match${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
           {job.profile_match.score}% match
@@ -84,14 +90,17 @@ export default function JobFeedCard({
     {(previousStatus || (job.url && onOpenOriginal)) && <footer className="application-card-footer application-job-card-footer">
       {previousStatus && <>
         <button type="button" data-swipe-undo className="application-undo-button application-card-undo"
-          disabled={disabled} onClick={() => onAction({ kind: 'undo', status: previousStatus })}>
+          disabled={disabled} onClick={() => onAction(job.id, profileId, { kind: 'undo', status: previousStatus })}>
           {saving ? 'Undoing…' : `↶ Undo to ${applicationStatuses.find(item => item.value === previousStatus)?.label}`}
         </button>
         <span className="application-undo-hint">Swipe this control to undo</span>
       </>}
-      {job.url && onOpenOriginal && <a className="job-original-link" href={job.url} target="_blank" rel="noreferrer" onClick={onOpenOriginal}>
+      {job.url && onOpenOriginal && <a className="job-original-link" href={job.url} target="_blank" rel="noreferrer"
+        onClick={() => onOpenOriginal(job.id, profileId)}>
         Open original post <span aria-hidden="true">↗</span>
       </a>}
     </footer>}
   </ApplicationSwipeCard>
 }
+
+export default memo(JobFeedCard)

@@ -855,7 +855,8 @@ function DirectoryPage() {
                 return <JobFeedCard key={`${job.profile_id ?? 'all'}:${job.id}`} job={job} href={`/jobs/${job.id}?${jobHref}`}
                   profileId={job.profile_id} profileName={job.profile_name} updatedAt={job.application?.updated_at ?? job.last_seen_at}
                   disabled={!job.profile_id || swipeSavingJobId !== null} saving={swipeSavingJobId === job.id}
-                  onAction={action => { void changeJobApplication(job, action) }} onOpenOriginal={() => { void trackOpenedPost(job) }} />
+                  onAction={(_jobId, _profileId, action) => { void changeJobApplication(job, action) }}
+                  onOpenOriginal={() => { void trackOpenedPost(job) }} />
               })}
               {jobTotal === 0 && <EmptyState
                 title={snapshotStale ? 'Preparing your job search' : jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'}
