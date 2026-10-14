@@ -20,6 +20,14 @@ separate terminal:
 mise exec -- uv run python -m hiring_scraper.app.worker
 ```
 
+Start the search snapshot worker in another terminal to refresh cached browse
+results after new jobs arrive. While it rebuilds, the API serves the previous
+profileless snapshot and the web app refreshes it when the new snapshot is ready:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker
+```
+
 In another terminal, start the frontend:
 
 ```bash
@@ -38,7 +46,7 @@ or expires.
 
 ## Compose deployment
 
-Compose runs two containers: the app and PostgreSQL/PostGIS. It pulls the public app image from GHCR by default. The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, optional fixture data, and startup logic. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
+Compose runs the app and PostgreSQL/PostGIS with pgvector enabled. It pulls the public app image from GHCR by default and builds the small database image from `docker/Dockerfile.postgres`. The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, the pinned local multilingual embedding model, and startup logic. A background worker keeps company/job vectors current and prebuilds profile-area job snapshots, so normal job search does not wait for profile-match rebuilds. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
 
 Copy `compose.yaml`, `.env.example`, and `docker/chromium-seccomp.json` to the deployment host, preserving the `docker/` path. On Ubuntu 24.04+, install the included AppArmor profile so the host can selectively allow Chromium's sandbox user namespace:
 
@@ -53,9 +61,11 @@ Set `HIRING_APPARMOR_PROFILE=hiring-scraper-chromium` in `.env` on that host. Re
 cp .env.example .env
 # Replace both placeholder passwords with different values from: openssl rand -hex 32
 chmod 600 .env
-docker compose pull
-docker compose up -d
+docker compose pull app
+docker compose up -d --build
 ```
+
+The first app image build downloads the pinned ONNX model (about 235 MB). The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
 
 Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` in `.env` to a full commit tag or image digest, then run `docker compose pull app && docker compose up -d`.
 
@@ -82,6 +92,8 @@ postings from German employers across all work locations, including remote and
 unspecified locations. The API uses `country=DE` for employer membership; the
 existing `country_code` parameter still describes remote eligibility in radius
 searches. Legacy companies with an observed canonical German state are included.
+Job search uses text relevance rather than profile-match filtering. The selected
+profile supplies its saved area and application-tracking context.
 
 To search a whole German state, open **Search areas**, choose **Whole German state**
 under **Search coverage**, and select a state such as Baden-Württemberg. The search
@@ -96,8 +108,7 @@ not a complete business register.
 Use **View companies and jobs** on the saved state card to browse the results.
 State results include active, unexpired postings from employers discovered in
 that state, including jobs elsewhere, jobs without a work location, and remote
-roles. Choose **All jobs** under the profile filter for an unfiltered employer
-view. City/radius searches continue to filter by the job's work location.
+roles. City/radius searches continue to filter by the job's work location.
 PostgreSQL deployments apply the state-search migration during startup; existing
 local SQLite databases upgrade additively. Existing companies gain state membership
 when a state discovery observes them, rather than guessing it from their address.

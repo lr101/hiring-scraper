@@ -127,7 +127,8 @@ class GermanySearchTests(unittest.TestCase):
             item = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
             detail = api.get_job(item['id'], session, profile_id=profile['id'], country='DE')
             self.assertEqual(detail['geography'], item['geography'])
-            self.assertEqual(detail['profile_match'], item['profile_match'])
+            self.assertIn('profile_match', detail)
+            self.assertNotIn('profile_match', item)
     def test_country_job_detail_exposes_scope_without_a_profile(self):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='detail', name='Employer', country_code='DE')

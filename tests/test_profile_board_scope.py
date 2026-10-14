@@ -72,11 +72,12 @@ class ProfileBoardScopeTests(unittest.TestCase):
         page = self.board(profile)
         self.assertEqual({x['external_id'] for x in page['items']}, {'de','unknown'})
         item = next(x for x in page['items'] if x['external_id']=='unknown')
-        self.assertTrue(item['profile_match']['uncertain'])
-        self.assertEqual(item['profile_match']['fit_tier'], 'possible')
-        self.assertTrue(any('country' in x.lower() for x in item['profile_match']['unknowns']))
+        self.assertNotIn('profile_match', item)
         detail = api.get_job(unknown.id, self.session, profile_id=profile['id'])
-        self.assertEqual(detail['profile_match'], item['profile_match'])
+        self.assertTrue(detail['profile_match']['uncertain'])
+        self.assertEqual(detail['profile_match']['fit_tier'], 'possible')
+        self.assertTrue(any('country' in x.lower() for x in detail['profile_match']['unknowns']))
+        self.assertEqual(detail['geography'], item['geography'])
         self.assertEqual(page['counts']['filtered']['remote_country'], 1)
 
     def test_hybrid_and_bad_city_labels_do_not_override_coordinates_or_country(self):
@@ -146,7 +147,8 @@ class ProfileBoardScopeTests(unittest.TestCase):
             latitude=52.52, longitude=13.4, radius_km=20, place='Berlin', country_code='DE')
         self.assertEqual(board['total'], 1)
         self.assertEqual(detail['geography'], board['items'][0]['geography'])
-        self.assertEqual(detail['profile_match'], board['items'][0]['profile_match'])
+        self.assertIn('profile_match', detail)
+        self.assertNotIn('profile_match', board['items'][0])
 
     def test_remote_country_query_override_is_consistent_with_details(self):
         profile = self.profile(search_area=AREA)
@@ -155,7 +157,8 @@ class ProfileBoardScopeTests(unittest.TestCase):
         board = self.board(profile, country_code='US')
         self.assertEqual(board['total'], 1)
         detail = api.get_job(job.id, self.session, profile_id=profile['id'], country_code='US')
-        self.assertEqual(detail['profile_match'], board['items'][0]['profile_match'])
+        self.assertIn('profile_match', detail)
+        self.assertNotIn('profile_match', board['items'][0])
         self.assertEqual(detail['geography'], board['items'][0]['geography'])
 
     def test_localized_overview_queries_do_not_establish_vacancy_identity(self):
@@ -191,7 +194,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertEqual(board['total'], 5)
         for item in board['items']:
             self.assertTrue(item['geography']['unknowns'])
-            self.assertEqual(item['profile_match']['fit_tier'], 'possible')
+            self.assertNotIn('profile_match', item)
 
     def test_regional_full_homeoffice_office_country_does_not_prove_remote_permission(self):
         from hiring_scraper.app.regional import import_snapshot
@@ -208,9 +211,9 @@ class ProfileBoardScopeTests(unittest.TestCase):
         for item in board['items']:
             self.assertEqual(item['remote_country_codes'], [])
             self.assertTrue(item['geography']['unknowns'])
-            self.assertEqual(item['profile_match']['fit_tier'], 'possible')
+            self.assertNotIn('profile_match', item)
 
-    def test_saved_area_and_matching_defaults_apply_and_can_be_overridden(self):
+    def test_saved_area_applies_without_filtering_by_profile_match_defaults(self):
         profile = self.profile(search_area=AREA,
             matching_defaults={'min_match_score':100, 'include_unknown':True})
         self.job('sparse', description=None)
@@ -218,12 +221,10 @@ class ProfileBoardScopeTests(unittest.TestCase):
             session=self.session, profile_id=profile['id'])
         self.assertEqual(page['location']['latitude'], 49.3988)
         self.assertEqual(page['location']['radius_km'], 35)
-        self.assertEqual(page['total'], 0)
-        self.assertEqual(page['counts']['filtered']['below_score'], 1)
-        broad = api.list_jobs(None, None, None, None, None, None, 0, 1,
-            session=self.session, profile_id=profile['id'], min_match_score=0)
-        self.assertEqual(broad['total'], 1)
-        self.assertEqual(broad['items'][0]['external_id'], 'sparse')
+        self.assertEqual(page['total'], 1)
+        self.assertEqual(page['counts']['filtered']['below_score'], 0)
+        self.assertNotIn('profile_match', page['items'][0])
+        self.assertEqual(page['items'][0]['external_id'], 'sparse')
 
     def test_explicit_empty_new_fields_clear_saved_evidence(self):
         profile = self.profile(education=[{'level':'bachelor'}], language_levels={'German':'B2'})

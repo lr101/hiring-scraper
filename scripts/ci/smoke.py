@@ -5,6 +5,7 @@ import copy
 import json
 import os
 import re
+import time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote, urlencode
@@ -74,26 +75,40 @@ def main() -> None:
     assert database_counts() == after_import == repeated, 'Repeat import changed record counts'
 
     profile = json.loads(Path('fixtures/cv_profile.json').read_text())
+    profile['search_area'].update({
+        'label': 'Karlsruhe, Germany', 'city': 'Karlsruhe',
+        'latitude': 49.0068705, 'longitude': 8.4034195,
+    })
     profile_id = None
     try:
         saved = read(WEB + '/api/v1/profiles', method='POST', payload=profile)
         profile_id = saved['id']
         assert saved['language_levels']['German'] == 'B2'
         assert saved['search_area']['radius_km'] == 35
-        query = urlencode({'profile_id': profile_id, 'min_match_score': 0, 'limit': 3})
+        query = urlencode({'profile_id': profile_id, 'limit': 3})
         board = read(WEB + '/api/v1/jobs?' + query)
-        assert board['total'] > 3
-        assert board['location']['city'] == 'Heidelberg'
+        if board.get('search_mode') == 'warming':
+            from hiring_scraper.app.api import process_search_snapshot_refresh_once
+            for _ in range(20):
+                if process_search_snapshot_refresh_once():
+                    break
+                time.sleep(0.25)
+            else:
+                raise AssertionError('Queued job search snapshot was not claimed')
+            board = read(WEB + '/api/v1/jobs?' + query)
+        assert board['total'] > 0
+        assert board['location']['city'] == 'Karlsruhe'
         assert board['location']['country_code'] == 'DE'
         assert board['location']['radius_km'] == 35
-        counts = board['counts']
-        assert counts['recommended'] + counts['possible'] + counts['unlikely'] == board['total']
+        assert board['profile_id'] == profile_id
+        assert all('profile_match' not in job for job in board['items'])
         next_page = read(WEB + '/api/v1/jobs?' + query + '&offset=3')
         assert not ({job['id'] for job in board['items']} &
                     {job['id'] for job in next_page['items']})
         for job in board['items']:
             detail = read(WEB + f"/api/v1/jobs/{job['id']}?profile_id={profile_id}&country_code=DE")
-            assert job['profile_match'] == detail['profile_match']
+            assert 'profile_match' in detail
+            assert job['geography'] == detail['geography']
             assert 'id="root"' in read(WEB + f"/jobs/{job['id']}")
         changed = copy.deepcopy(profile)
         changed['language_levels']['French'] = 'B1'

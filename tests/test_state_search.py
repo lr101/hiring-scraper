@@ -181,7 +181,8 @@ class StateSearchTests(unittest.TestCase):
             for item in page['items']:
                 detail = api.get_job(item['id'], session, profile_id=profile['id'], state='Baden-Württemberg')
                 self.assertEqual(detail['geography'], item['geography'])
-                self.assertEqual(detail['profile_match'], item['profile_match'])
+                self.assertIn('profile_match', detail)
+                self.assertNotIn('profile_match', item)
             partial = api.list_jobs(company_id=None, query='Engineer', offset=1, limit=1,
                                    session=session, state='Baden-Württemberg')
             self.assertEqual(partial['total'], 2)

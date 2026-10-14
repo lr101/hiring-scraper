@@ -1,16 +1,19 @@
 import assert from 'node:assert/strict'
 import { profileBoardDefaults, profileBoardLink } from '../frontend/src/profile.ts'
 const profile = { id: 9, search_area: { city: 'Heidelberg', label: 'Heidelberg, Germany', latitude: 49.40936, longitude: 8.69472, radius_km: 35, country_code: 'DE' }, matching_defaults: { min_match_score: 30, include_unknown: true } }
-assert.equal(profileBoardDefaults(profile, new URLSearchParams()).radius, 35)
-assert.equal(profileBoardDefaults(profile, new URLSearchParams()).minimumScore, '30')
-assert.equal(profileBoardDefaults(profile, new URLSearchParams('lat=50&lon=9&radius_km=10&min_match_score=0&include_unknown=false')).location, null)
-assert.equal(profileBoardDefaults(profile, new URLSearchParams('lat=50&lon=9&radius_km=10&min_match_score=0&include_unknown=false')).minimumScore, '0')
-assert.equal(profileBoardDefaults(profile, new URLSearchParams('include_unknown=false')).includeUnknown, false)
+const defaults = profileBoardDefaults(profile, new URLSearchParams())
+assert.equal(defaults.radius, 35)
+assert.deepEqual(defaults.location, { ...profile.search_area, precision: 'profile_search_area' })
+const explicit = profileBoardDefaults(profile, new URLSearchParams('lat=50&lon=9&radius_km=10&min_match_score=0&include_unknown=false'))
+assert.equal(explicit.location, null)
+assert.equal(explicit.radius, 10)
+assert.equal('minimumScore' in defaults, false)
+assert.equal('includeUnknown' in defaults, false)
 const link = new URL(profileBoardLink(profile), 'https://example.test')
-assert.equal(link.searchParams.get('lat'), '49.40936')
-assert.equal(link.searchParams.get('radius_km'), '35')
-assert.equal(link.searchParams.get('min_match_score'), '30')
-console.log('Profile board defaults and explicit URL overrides passed')
+assert.equal(link.searchParams.get('profile_id'), '9')
+assert.equal(link.searchParams.has('min_match_score'), false)
+assert.equal(link.searchParams.has('include_unknown'), false)
+console.log('Profile board location defaults and profileless browse links passed')
 
 const helpers = await import('../frontend/src/profile.ts')
 assert.equal(typeof helpers.selectedLanguageLevels, 'function', 'Language edits must prune removed proficiency')

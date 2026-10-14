@@ -260,6 +260,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .pagination button:hover:not(:disabled) { border-color: #b8c9ac; background: #f8fbf4; }
 .pagination button:disabled { opacity: .45; cursor: not-allowed; }
 .loading-state { min-height: 300px; display: flex; gap: 10px; justify-content: center; align-items: center; color: #89948b; font-size: 11px; }
+.snapshot-refresh-note { margin: 8px 0; padding: 8px 12px; font-size: 12px; }
 .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #e3e9de; border-top-color: #789863; border-radius: 50%; animation: spin .7s linear infinite; }
 .spinner.small { width: 15px; height: 15px; border-width: 2px; border-color: rgba(255,255,255,.3); border-top-color: #fff; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -845,6 +846,8 @@ button, a, select, input { -webkit-tap-highlight-color: rgb(37 75 59 / 14%); }
 .job-feed-filter-label { flex: 0 0 54px; color: #7a877d; font-size: 10px; font-weight: 650; }
 .job-feed-chip-list { display: flex; min-width: 0; flex: 1; align-items: center; flex-wrap: wrap; gap: 6px; }
 .job-feed-chip-list .application-filter-chip { min-height: 30px; padding: 5px 9px; font-size: 11px; }
+.job-feed-chip-list .application-profile-context { min-width: 200px; max-width: min(420px, 70vw); min-height: 34px; padding: 5px 9px; border: 1px solid #dfe6da; border-radius: 7px; background: #fff; color: #43564a; font: inherit; font-size: 12px; }
+.job-feed-chip-list .application-profile-context:focus-visible { outline: 2px solid #254b3b; outline-offset: 2px; }
 .job-feed-inline-label { flex-basis: auto; margin: 0 1px 0 6px; }
 .job-feed-inline-link { display: inline-flex; min-height: 30px; align-items: center; color: #607b55; font-size: 11px; text-decoration: none; white-space: nowrap; }
 .job-feed-inline-link:hover { color: #294b37; text-decoration: underline; }
@@ -992,6 +995,7 @@ html[data-theme="dark"] .application-undo-button:hover:not(:disabled) { backgrou
 html[data-theme="dark"] .evidence-note, html[data-theme="dark"] .board-coverage,
 html[data-theme="dark"] .discovery-progress-card, html[data-theme="dark"] .location-choices { border-color: #3a4a3d; background: #202b22; color: #c5d3c3; }
 html[data-theme="dark"] .application-filter-chip { border-color: #3e4a41; background: #1a231d; color: #c0cbc2; }
+html[data-theme="dark"] .job-feed-chip-list .application-profile-context { border-color: #3e4a41; background: #1a231d; color: #d2ddd3; }
 html[data-theme="dark"] .application-filter-chip.selected { border-color: #78946a; background: #2a3a2d; color: #e4eee4; }
 html[data-theme="dark"] .application-state-badge.application-new { background: #293a29; border-color: #496345; color: #b6d89b; }
 html[data-theme="dark"] .application-state-badge.application-open { background: #26363a; border-color: #466169; color: #acd0dc; }

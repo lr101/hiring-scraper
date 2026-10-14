@@ -1,0 +1,13 @@
+ARG POSTGIS_IMAGE=postgis/postgis:17-3.5-alpine
+FROM ${POSTGIS_IMAGE}
+
+# Keep PostgreSQL and PostGIS on the same major version, and build pgvector
+# from its pinned upstream release. The Debian PostGIS image's Bullseye PGDG
+# repository is no longer available for installing the extension package.
+ARG PGVECTOR_VERSION=v0.8.7
+RUN apk add --no-cache --virtual .build-deps build-base clang21 git llvm21-dev \
+    && git clone --depth 1 --branch "${PGVECTOR_VERSION}" https://github.com/pgvector/pgvector.git /tmp/pgvector \
+    && make -C /tmp/pgvector OPTFLAGS="" \
+    && make -C /tmp/pgvector install \
+    && rm -rf /tmp/pgvector \
+    && apk del .build-deps
