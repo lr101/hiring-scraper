@@ -158,11 +158,15 @@ class StateSearchTests(unittest.TestCase):
         from hiring_scraper.app.profiles import create_profile, ProfileRequest
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='bw', name='Employer', state='Baden-Württemberg')
-            feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', job_count=3,
+            feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', job_count=6,
                                  feed_url='https://employer.example/feed')
             session.add_all([
                 models.Job(feed=feed, external_id='local', title='Engineer', url='https://employer.example/jobs/local',
                            location_text='Berlin', locations=[models.JobLocation(label='Berlin')]),
+                models.Job(feed=feed, external_id='bw-one', title='Engineer', url='https://employer.example/jobs/bw-one',
+                           location_text='Karlsruhe', locations=[models.JobLocation(label='Karlsruhe')]),
+                models.Job(feed=feed, external_id='bw-two', title='Engineer', url='https://employer.example/jobs/bw-two',
+                           location_text='Stuttgart', locations=[models.JobLocation(label='Stuttgart')]),
                 models.Job(feed=feed, external_id='remote', title='Remote Engineer', is_remote=True,
                            url='https://employer.example/jobs/remote', raw_metadata={'remote_country_codes': ['US']}),
                 models.Job(feed=feed, external_id='expired', title='Expired Engineer',
@@ -176,7 +180,7 @@ class StateSearchTests(unittest.TestCase):
                 'longitude': 8.4, 'radius_km': 15, 'country_code': 'DE'}), session)
             page = api.list_jobs(company_id=None, query=None, offset=0, limit=100, session=session,
                 state='Baden-Württemberg', profile_id=profile['id'], min_match_score=0, include_unknown=True)
-            self.assertEqual({row['external_id'] for row in page['items']}, set())
+            self.assertEqual({row['external_id'] for row in page['items']}, {'bw-one', 'bw-two'})
             self.assertEqual(page['counts']['filtered']['expired'], 1)
             for item in page['items']:
                 detail = api.get_job(item['id'], session, profile_id=profile['id'], state='Baden-Württemberg')

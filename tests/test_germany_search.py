@@ -121,7 +121,7 @@ class GermanySearchTests(unittest.TestCase):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='profile', name='German employer', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
-            session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Paris', url='https://de.example/role'))
+            session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Karlsruhe', url='https://de.example/role'))
         with self.factory() as session:
             profile = create_profile(ProfileRequest(name='Profile', search_area={'label':'Karlsruhe','latitude':49,'longitude':8,'radius_km':15,'country_code':'DE'}), session)
             item = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
