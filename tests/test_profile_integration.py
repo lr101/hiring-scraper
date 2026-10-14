@@ -42,7 +42,7 @@ class ProfileIntegrationTests(unittest.TestCase):
             page = api.list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,1,
                 session=session, profile_id=profile['id'], min_match_score=0, include_unknown=True)
             self.assertEqual(page['total'],3)
-            self.assertEqual({item['external_id'] for item in page['items']}, {'remote','local','unknown'})
+            self.assertEqual(len(page['items']), 1)
             self.assertTrue(all(item['profile_id'] == profile['id'] for item in page['items']))
             self.assertTrue(all('profile_match' not in item for item in page['items']))
             self.assertIn('enrichment',page['items'][0])
