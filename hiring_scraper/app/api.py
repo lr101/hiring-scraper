@@ -8,6 +8,7 @@ import os
 import re
 import threading
 import time
+import unicodedata
 from datetime import datetime, timedelta, timezone
 import json
 import math
@@ -51,7 +52,9 @@ from hiring_scraper.app.job_search import (
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
 from hiring_scraper.app.board_scope import (
-    deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries, vacancy_keys,
+    deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries,
+    german_location_text_names, german_state_bounds, location_text_names,
+    vacancy_keys, vacancy_text_scope,
 )
 
 
@@ -66,6 +69,7 @@ _LOG = logging.getLogger(__name__)
 _SEARCH_SNAPSHOT_REFRESH_DELAY_SECONDS = 2.0
 _SEARCH_SNAPSHOT_REFRESH_LEASE_SECONDS = 15 * 60
 _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
+_WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 _SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
@@ -466,15 +470,42 @@ def _sqlite_company_bbox(latitude: float, longitude: float, radius_km: float):
                                     Company.latitude, Company.longitude)
 
 
+def _location_text_patterns(value: str) -> set[str]:
+    source = value.strip().casefold().replace('ß', 'ss')
+    normalized = unicodedata.normalize('NFKD', source)
+    normalized = ''.join(char for char in normalized if not unicodedata.combining(char))
+    transliterated = source.translate(str.maketrans({'ä': 'ae', 'ö': 'oe', 'ü': 'ue'}))
+    patterns = set()
+    for raw in {value.strip().casefold(), value.strip().upper()}:
+        raw_words = re.sub(r'[^A-Za-z0-9äöüÄÖÜ]+', '%', raw).strip('%')
+        if raw_words:
+            patterns.add(f'%{raw_words}%')
+    for variant in {normalized, transliterated}:
+        words = re.sub(r'[^a-z0-9]+', '%', variant).strip('%')
+        if words:
+            patterns.add(f'%{words}%')
+    return patterns
+
+
+def _job_location_text_candidate(value: str):
+    patterns = {pattern for name in location_text_names(value)
+                for pattern in _location_text_patterns(name)}
+    return or_(*(Job.location_text.ilike(pattern) for pattern in patterns),
+               *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns))
+
+
+def _remote_job_candidate():
+    return or_(Job.work_arrangement == 'remote',
+               and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
+
+
 def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
                          place: str | None, location_scope: str):
     """Broadly narrow jobs before Python performs exact workplace and remote checks."""
-    remote_clause = or_(Job.work_arrangement == 'remote',
-                        and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None)))
     expiry_clause = or_(Job.raw_metadata["validThrough"].as_string().is_not(None),
                         Job.raw_metadata["valid_through"].as_string().is_not(None))
     if location_scope == 'remote':
-        return or_(remote_clause, expiry_clause)
+        return or_(_remote_job_candidate(), expiry_clause)
     if not IS_SQLITE:
         location_ids = select(JobLocation.job_id).where(text(
             "ST_DWithin(job_locations.location_geog, "
@@ -486,16 +517,51 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
                                           JobLocation.latitude, JobLocation.longitude)
         location_ids = select(JobLocation.job_id).where(*bounds)
         spatial_clause = Job.id.in_(location_ids)
-    clauses = [spatial_clause, expiry_clause, remote_clause]
+    clauses = [spatial_clause, expiry_clause, _remote_job_candidate()]
     if place:
-        # SQL narrows ASCII city labels and PostgreSQL Unicode labels. SQLite's
-        # built-in case conversion is ASCII-only, so retain its Unicode fallback.
-        city_ids = select(JobLocation.job_id).where(
-            JobLocation.latitude.is_(None), JobLocation.longitude.is_(None))
-        if not IS_SQLITE or place.isascii():
-            city_ids = city_ids.where(JobLocation.label.ilike(f"{place}%"))
-        clauses.append(Job.id.in_(city_ids))
+        clauses.append(_job_location_text_candidate(place))
     return or_(*clauses)
+
+
+def _job_state_text_candidates(state: str):
+    patterns = {pattern for value in german_location_text_names(state)
+                for pattern in _location_text_patterns(value)}
+    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
+                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns)]
+    if bounds := german_state_bounds().get(state):
+        west, south, east, north = bounds
+        candidates.append(Job.locations.any(and_(
+            JobLocation.latitude.between(south, north),
+            JobLocation.longitude.between(west, east),
+        )))
+    return or_(*candidates)
+
+
+def _job_germany_text_candidates():
+    patterns = {pattern for value in ('Germany', 'Deutschland', *german_location_text_names())
+                for pattern in _location_text_patterns(value)}
+    country_code_patterns = (
+        'DE', 'DE %', 'DE,%', 'DE/%', 'DE-%', 'DE)%',
+        '%, DE', '%, DE %', '%, DE,%', '%,DE', '%,DE %',
+        '% DE', '% DE %', '% DE,%', '%/DE', '%/DE %', '%/DE,%',
+        '%(DE)%', '% (DE)%', '%(DE %', '% (DE %',
+        '%;DE%', '%; DE%', '%|DE%', '%| DE%', '%\nDE%',
+    )
+    candidates = [*(Job.location_text.ilike(pattern) for pattern in patterns),
+                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in patterns),
+                  *(Job.location_text.ilike(pattern) for pattern in country_code_patterns),
+                  *(Job.locations.any(JobLocation.label.ilike(pattern)) for pattern in country_code_patterns)]
+    bounds = tuple(german_state_bounds().values())
+    if bounds:
+        west = min(bound[0] for bound in bounds)
+        south = min(bound[1] for bound in bounds)
+        east = max(bound[2] for bound in bounds)
+        north = max(bound[3] for bound in bounds)
+        candidates.append(Job.locations.any(and_(
+            JobLocation.latitude.between(south, north),
+            JobLocation.longitude.between(west, east),
+        )))
+    return or_(*candidates)
 
 
 def _company_json(company: Company, distance_m: float, active_job_count: int | None = None) -> dict[str, Any]:
@@ -1260,6 +1326,12 @@ def _profile_match(job, profile, scope):
 
 def _result_scope(job, latitude, longitude, radius_km, place, country, state=None, employer_country=None):
     if employer_country and not expiry(job)['expired']:
+        if fully_remote(job):
+            return geographic_scope(job, latitude, longitude, radius_km, place, employer_country)
+        text_scope = vacancy_text_scope(job, country=employer_country)
+        if text_scope is not None:
+            return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
+                    'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
         company = job.employer_company or job.feed.company
         source_company = job.feed.company
         has_german_workplace = any(
@@ -1269,6 +1341,12 @@ def _result_scope(job, latitude, longitude, radius_km, place, country, state=Non
         return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
                 'unknowns': [], 'match_kind': ('remote' if fully_remote(job) else 'employer_in_country') if eligible else None}
     if state and not expiry(job)['expired']:
+        if fully_remote(job):
+            return geographic_scope(job, latitude, longitude, radius_km, place, 'DE')
+        text_scope = vacancy_text_scope(job, state=state)
+        if text_scope is not None:
+            return {'eligible': text_scope, 'reason': None if text_scope else 'outside_area',
+                    'unknowns': [], 'match_kind': 'work_location' if text_scope else None}
         company = job.employer_company or job.feed.company
         eligible = company.state == state or job.feed.company.state == state
         return {'eligible': eligible, 'reason': None if eligible else 'outside_area',
@@ -1408,9 +1486,9 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                        'unlikely': tiers.count('unlikely')},
             'coverage': {'source_count': len({job.feed_id for job in jobs}),
                          'note': 'Observed active source records; selected sources are not exhaustive market coverage.'},
-            'rule': ('postings from employers discovered in Germany' if employer_country else 'postings from employers discovered in ' + state if state else ('explicitly remote within country scope' if location_scope == 'remote' else
-                     'work location within radius' if location_scope == 'area' else
-                     'work location within radius OR explicitly remote within country scope')),
+            'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else ('explicitly remote within country scope' if location_scope == 'remote' else
+                     'mapped or parsed work location within radius' if location_scope == 'area' else
+                     'mapped or parsed work location within radius OR explicitly remote within country scope')),
             'state': state, 'country': employer_country}
     if profile is not None:
         result['_matching_job_ids'] = [job.id for job in matching]
@@ -1574,11 +1652,11 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
         'profile_ids': [profile.id for profile in profiles],
         'profile_id': profiles[0].id if len(profiles) == 1 else None,
         'total': result_count,
-        'rule': ('postings from employers discovered in Germany' if employer_country else
-                 'postings from employers discovered in ' + state if state else
+        'rule': ('work location in Germany, with a German-employer fallback when location is missing or unspecified' if employer_country else
+                 'work location in ' + state + ', with an employer-state fallback when location is missing or unspecified' if state else
                  ('explicitly remote within country scope' if location_scope == 'remote' else
-                  'work location within radius' if location_scope == 'area' else
-                  'work location within radius OR explicitly remote within country scope')),
+                  'mapped or parsed work location within radius' if location_scope == 'area' else
+                  'mapped or parsed work location within radius OR explicitly remote within country scope')),
         'state': state,
         'country': employer_country,
         'criteria': criteria,
@@ -1653,11 +1731,19 @@ def _materialize_search_snapshot(session: Session, profiles: list[UserProfile], 
                            .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
     filters = [Job.is_active.is_(True)]
     if employer_country:
-        filters.append(or_(german_company_filter(employer_company), german_company_filter(Company),
-                           Company.source == "default_job_feed",
-                           Job.locations.any(JobLocation.country_code.in_(("DE", "de")))))
+        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
+                            Company.source == "default_job_feed",
+                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
+                            _job_germany_text_candidates()]
+        if location_scope in {"remote", "area_remote"} or work_style == "remote":
+            scope_candidates.append(_remote_job_candidate())
+        filters.append(or_(*scope_candidates))
     elif state:
-        filters.append(or_(Company.state == state, employer_company.state == state))
+        scope_candidates = [Company.state == state, employer_company.state == state,
+                            _job_state_text_candidates(state)]
+        if location_scope in {"remote", "area_remote"} or work_style == "remote":
+            scope_candidates.append(_remote_job_candidate())
+        filters.append(or_(*scope_candidates))
     if company_id is not None:
         filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
     if normalized_query:
@@ -1675,7 +1761,7 @@ def _materialize_search_snapshot(session: Session, profiles: list[UserProfile], 
     if not state and not employer_country:
         filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
 
-    candidate_cache_key = (generation, company_id, normalized_query, state, employer_country,
+    candidate_cache_key = (generation, _WORK_LOCATION_GEOGRAPHY_VERSION, company_id, normalized_query, state, employer_country,
                            work_style, latitude, longitude, radius_km, place,
                            scope_country, location_scope)
     reusable = (not normalized_query and company_id is None and state is None and
@@ -1765,6 +1851,7 @@ def prewarm_profile_location_snapshots_once() -> int:
                 continue
             base = {
                 "matching_version": MATCHING_VERSION,
+                "geography_version": _WORK_LOCATION_GEOGRAPHY_VERSION,
                 "freshness_bucket": current_bucket,
                 "company_id": None, "query": None,
                 "latitude": float(area["latitude"]), "longitude": float(area["longitude"]),
@@ -1782,6 +1869,7 @@ def prewarm_profile_location_snapshots_once() -> int:
             for scope_country in (None, "DE"):
                 base = {
                     "matching_version": MATCHING_VERSION,
+                    "geography_version": _WORK_LOCATION_GEOGRAPHY_VERSION,
                     "freshness_bucket": current_bucket,
                     "company_id": None, "query": None,
                     "latitude": float(location.latitude), "longitude": float(location.longitude),
@@ -1941,11 +2029,19 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
         .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
     filters = [Job.is_active.is_(True)]
     if employer_country:
-        filters.append(or_(german_company_filter(employer_company), german_company_filter(Company),
-                           Company.source == "default_job_feed",
-                           Job.locations.any(JobLocation.country_code.in_(("DE", "de")))))
+        scope_candidates = [german_company_filter(employer_company), german_company_filter(Company),
+                            Company.source == "default_job_feed",
+                            Job.locations.any(func.lower(JobLocation.country_code) == "de"),
+                            _job_germany_text_candidates()]
+        if location_scope in {"remote", "area_remote"} or work_style == "remote":
+            scope_candidates.append(_remote_job_candidate())
+        filters.append(or_(*scope_candidates))
     elif state:
-        filters.append(or_(Company.state == state, employer_company.state == state))
+        scope_candidates = [Company.state == state, employer_company.state == state,
+                            _job_state_text_candidates(state)]
+        if location_scope in {"remote", "area_remote"} or work_style == "remote":
+            scope_candidates.append(_remote_job_candidate())
+        filters.append(or_(*scope_candidates))
     if company_id is not None:
         filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
     if work_style == "remote":
@@ -2060,11 +2156,11 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
         "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km,
                      "city": place, "country_code": country},
         "location_scope": location_scope,
-        "rule": ("postings from employers discovered in Germany" if employer_country else
-                 "postings from employers discovered in " + state if state else
+        "rule": ("work location in Germany, with a German-employer fallback when location is missing or unspecified" if employer_country else
+                 "work location in " + state + ", with an employer-state fallback when location is missing or unspecified" if state else
                  ("explicitly remote within country scope" if location_scope == "remote" else
-                  "work location within radius" if location_scope == "area" else
-                  "work location within radius OR explicitly remote within country scope")),
+                  "mapped or parsed work location within radius" if location_scope == "area" else
+                  "mapped or parsed work location within radius OR explicitly remote within country scope")),
         "state": state, "country": employer_country, "search_mode": "semantic",
         "semantic_window": fetch_offset, "semantic_candidates": len(candidate_ids),
         "snapshot_stale": False,
@@ -2145,6 +2241,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     generation = _search_generation(session)
     criteria = {
         'matching_version': MATCHING_VERSION,
+        'geography_version': _WORK_LOCATION_GEOGRAPHY_VERSION,
         # Expiry is time based, so rotate cache keys every 15 minutes even if
         # no crawler has changed the underlying row generation.
         'freshness_bucket': int(utcnow().timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS),

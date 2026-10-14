@@ -28,7 +28,7 @@ build-backend = "setuptools.build_meta"
 include = ["hiring_scraper*"]
 
 [tool.setuptools.package-data]
-"hiring_scraper.app" = ["*.json"]
+"hiring_scraper.app" = ["*.json", "*.txt"]
 
 [tool.uv]
 package = true

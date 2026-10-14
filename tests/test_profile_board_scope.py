@@ -80,7 +80,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertEqual(detail['geography'], item['geography'])
         self.assertEqual(page['counts']['filtered']['remote_country'], 1)
 
-    def test_hybrid_and_bad_city_labels_do_not_override_coordinates_or_country(self):
+    def test_vacancy_city_text_overrides_coordinates_but_not_country(self):
         profile = self.profile(search_area=AREA)
         self.job('hybrid', remote=True, style='hybrid', locations=[models.JobLocation(
             label='Berlin', latitude=52.52, longitude=13.4, country_code='DE')])
@@ -88,7 +88,8 @@ class ProfileBoardScopeTests(unittest.TestCase):
             latitude=40.7, longitude=-74, country_code='DE')])
         self.job('wrong-country', locations=[models.JobLocation(label='Heidelberg', country_code='US')])
         self.job('valid', locations=[models.JobLocation(label='Heidelberg', country_code='DE')])
-        self.assertEqual([x['external_id'] for x in self.board(profile)['items']], ['valid'])
+        self.assertEqual({x['external_id'] for x in self.board(profile)['items']},
+                         {'wrong-coordinates', 'valid'})
 
     def test_expired_jobs_are_excluded_without_mutating_lifecycle(self):
         expired = self.job('expired', metadata={'validThrough':'2000-01-01'})
@@ -235,7 +236,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
 
     def test_backend_geography_is_identical_and_filters_before_pagination(self):
         profile = self.profile(search_area=AREA)
-        self.job('outside', locations=[models.JobLocation(label='Heidelberg', latitude=52, longitude=13)])
+        self.job('outside', locations=[models.JobLocation(label='Heidelberg', country_code='US')])
         self.job('inside')
         sqlite = self.board(profile)
         with patch.object(api, 'IS_SQLITE', False):

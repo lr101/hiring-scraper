@@ -64,7 +64,7 @@ class GermanySearchTests(unittest.TestCase):
                     invoke()
                 self.assertEqual(error.exception.status_code, 422)
             self.assertEqual(session.scalars(select(models.ConfiguredLocation)).all(), [])
-    def test_country_membership_includes_legacy_state_and_all_active_work_locations(self):
+    def test_country_membership_uses_vacancy_work_location_when_present(self):
         with self.factory.begin() as session:
             for source_id, state in [('bw','Baden-Württemberg'), ('be','Berlin'), ('outside','Alsace')]:
                 company = models.Company(source='test', source_id=source_id, name=source_id, state=state,
@@ -79,10 +79,10 @@ class GermanySearchTests(unittest.TestCase):
             ids = company_ids_for_search(session, SimpleNamespace(search_scope='country'))
             self.assertEqual(set(ids), {row['id'] for row in companies['items']})
             jobs = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
-            self.assertEqual(jobs['total'], 4)
+            self.assertEqual(jobs['total'], 0)
             self.assertEqual(jobs['counts']['filtered']['expired'], 2)
-            self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 4)
-            self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 2)
+            self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 0)
+            self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 0)
 
     def test_shared_domain_page_dedup_keeps_state_membership_on_each_office(self):
         with self.factory.begin() as session:
@@ -121,7 +121,7 @@ class GermanySearchTests(unittest.TestCase):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='profile', name='German employer', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs')
-            session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Paris', url='https://de.example/role'))
+            session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Karlsruhe', url='https://de.example/role'))
         with self.factory() as session:
             profile = create_profile(ProfileRequest(name='Profile', search_area={'label':'Karlsruhe','latitude':49,'longitude':8,'radius_km':15,'country_code':'DE'}), session)
             item = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
