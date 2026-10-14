@@ -28,6 +28,7 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Compose deployments pull a commit-tagged PostgreSQL/PostGIS/pgvector image from GHCR instead of building it on the host.
 - Fresh Compose deployments start with an empty database; searches begin after a user adds a location in the app.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
