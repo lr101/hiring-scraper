@@ -3,7 +3,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision = "0023_search_snapshot_refresh_queue"
+revision = "0023_search_refresh_queue"
 down_revision = "0022_materialized_search"
 branch_labels = None
 depends_on = None

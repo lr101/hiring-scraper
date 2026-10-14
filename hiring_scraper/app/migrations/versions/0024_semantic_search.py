@@ -8,7 +8,7 @@ from pgvector.sqlalchemy import Vector
 
 
 revision = "0024_semantic_search"
-down_revision = "0023_search_snapshot_refresh_queue"
+down_revision = "0023_search_refresh_queue"
 branch_labels = None
 depends_on = None
 
