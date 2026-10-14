@@ -1,0 +1,4 @@
+State boundary data: © BKG (2026), dl-de/by-2-0.
+Source: VG250, administrative states (vg250_lan), retrieved 2026-10-14 from
+https://sgx.geodatenzentrum.de/wfs_vg250
+Data source documentation: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf

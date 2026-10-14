@@ -95,7 +95,7 @@ type Job = {
   application?: Application | null
   profile_id?: number
   profile_name?: string
-  match_kind?: 'remote' | 'in_area' | 'employer_in_state' | 'employer_in_country'
+  match_kind?: 'remote' | 'in_area' | 'work_location' | 'employer_in_state' | 'employer_in_country'
 }
 
 type JobsPage = { items: Job[]; total: number; total_is_upper_bound?: boolean; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string; snapshot_stale?: boolean; search_mode?: 'semantic' | 'keyword' | 'browse' | 'warming' }
@@ -652,6 +652,7 @@ function DirectoryPage() {
   const pageCount = Math.max(1, Math.ceil(activeTotal / PAGE_SIZE))
   const wholeState = Boolean(selectedLocationKey) && (location.search_scope === 'state' || location.search_scope === 'country')
   const locality = selectedLocationKey ? location.city ?? location.label.split(',')[0] : 'a configured location'
+  const selectedScopeLabel = location.search_scope === 'country' ? 'Germany' : locality
 
   return (
     <div className="app-shell">
@@ -689,7 +690,7 @@ function DirectoryPage() {
             </label>}
             <a href="/locations" className="configure-locations-link">Configure locations <Icon name="arrow" size={15} /></a>
           </div>
-          <div className="search-footnote"><span><Icon name="globe" size={14} />{selectedLocationKey ? wholeState ? 'Germany' : locality : 'No location selected'}</span><span>{selectedLocationKey ? wholeState ? 'All work locations from employers discovered in this search area; public sources may be incomplete.' : 'Jobs can be local or remote' : 'Configure a location to see nearby employers and jobs.'}</span></div>
+          <div className="search-footnote"><span><Icon name="globe" size={14} />{selectedLocationKey ? selectedScopeLabel : 'No location selected'}</span><span>{selectedLocationKey ? 'Jobs use their listed work location when available; public sources may be incomplete.' : 'Configure a location to see nearby employers and jobs.'}</span></div>
         </section>
 
         {error && <div className="error-banner" role="alert">{error}<button type="button" onClick={() => setError('')}>Dismiss</button></div>}
@@ -709,9 +710,9 @@ function DirectoryPage() {
           </article>
           <article className="metric-card">
             <span className="metric-icon metric-icon-lilac"><Icon name="briefcase" size={19} /></span>
-            <span className="metric-label">{wholeState ? 'JOBS AT AREA EMPLOYERS' : 'JOBS IN AREA'}</span>
+            <span className="metric-label">{wholeState ? 'JOBS IN SELECTED SCOPE' : 'JOBS IN AREA'}</span>
             <strong>{loading ? '—' : summary.jobs_for_location.toLocaleString('en')}</strong>
-            <span className="metric-note">{wholeState ? 'all work locations, including remote' : `roles within ${radius} km`}</span>
+            <span className="metric-note">{wholeState ? 'matched by listed work location when available' : `roles within ${radius} km`}</span>
           </article>
           <article className="metric-card metric-remote">
             <span className="metric-icon metric-icon-sand"><Icon name="globe" size={19} /></span>
@@ -762,7 +763,7 @@ function DirectoryPage() {
                   </select>
                 </label>}
               </> : null}
-              <div className="result-context"><span className="context-dot" /> {wholeState ? `${locality} · employer sources` : tab === 'jobs' ? jobLocationScope === 'remote' ? 'Remote roles only' : jobLocationScope === 'area_remote' ? `${locality} + remote` : `${locality} · ${radius} km` : `Company websites · ${radius} km`}</div>
+              <div className="result-context"><span className="context-dot" /> {wholeState ? `${selectedScopeLabel} · ${tab === 'jobs' ? 'work location' : 'company location'}` : tab === 'jobs' ? jobLocationScope === 'remote' ? 'Remote roles only' : jobLocationScope === 'area_remote' ? `${locality} + remote` : `${locality} · ${radius} km` : `Company websites · ${radius} km`}</div>
             </div>
           </div>
 
@@ -797,9 +798,9 @@ function DirectoryPage() {
             <div className="job-feed-filter-row" role="group" aria-label="Filter by job location">
               <span className="job-feed-filter-label">Location</span><div className="job-feed-chip-list">
                 {([
-                  ['area', wholeState ? 'Local employers' : 'Area'],
+                  ['area', wholeState ? 'In selected scope' : 'Area'],
                   ['remote', 'Remote'],
-                  ['area_remote', wholeState ? 'All locations' : 'Area + remote'],
+                  ['area_remote', wholeState ? 'Scope + remote' : 'Area + remote'],
                 ] as [JobLocationScope, string][]).map(([value, label]) => <button type="button" key={value}
                   className={`application-filter-chip ${jobLocationScope === value ? 'selected' : ''}`}
                   aria-pressed={jobLocationScope === value} onClick={() => { setJobLocationScope(value); setOffset(0) }}>{label}</button>)}

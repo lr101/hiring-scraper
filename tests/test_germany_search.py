@@ -64,7 +64,7 @@ class GermanySearchTests(unittest.TestCase):
                     invoke()
                 self.assertEqual(error.exception.status_code, 422)
             self.assertEqual(session.scalars(select(models.ConfiguredLocation)).all(), [])
-    def test_country_membership_includes_legacy_state_and_all_active_work_locations(self):
+    def test_country_membership_uses_vacancy_work_location_when_present(self):
         with self.factory.begin() as session:
             for source_id, state in [('bw','Baden-Württemberg'), ('be','Berlin'), ('outside','Alsace')]:
                 company = models.Company(source='test', source_id=source_id, name=source_id, state=state,
@@ -79,10 +79,10 @@ class GermanySearchTests(unittest.TestCase):
             ids = company_ids_for_search(session, SimpleNamespace(search_scope='country'))
             self.assertEqual(set(ids), {row['id'] for row in companies['items']})
             jobs = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
-            self.assertEqual(jobs['total'], 4)
+            self.assertEqual(jobs['total'], 0)
             self.assertEqual(jobs['counts']['filtered']['expired'], 2)
-            self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 4)
-            self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 2)
+            self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 0)
+            self.assertEqual(api.summary(session=session, country='DE')['remote_jobs_in_result'], 0)
 
     def test_shared_domain_page_dedup_keeps_state_membership_on_each_office(self):
         with self.factory.begin() as session:

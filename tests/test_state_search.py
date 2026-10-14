@@ -146,11 +146,11 @@ class StateSearchTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in companies['items']}, {'North', 'South', 'No website'})
             jobs = api.list_jobs(company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', country_code='DE')
-            self.assertEqual(jobs['total'], 6)
-            self.assertEqual(jobs['counts']['filtered']['outside_area'], 0)
+            self.assertEqual(jobs['total'], 2)
+            self.assertEqual(jobs['counts']['filtered']['outside_area'], 2)
             remote = api.list_jobs(company_id=None, query=None, offset=0, limit=100,
                 session=session, state='Baden-Württemberg', location_scope='remote', country_code='DE')
-            self.assertEqual(remote['total'], 2)
+            self.assertEqual(remote['total'], 0)
             self.assertEqual(api.summary(session=session, state='Baden-Württemberg')['companies_in_radius'], 3)
             self.assertEqual(session.get(models.DiscoveryJob, location['first_discovery_job']['id']).status, 'completed')
 
@@ -176,7 +176,7 @@ class StateSearchTests(unittest.TestCase):
                 'longitude': 8.4, 'radius_km': 15, 'country_code': 'DE'}), session)
             page = api.list_jobs(company_id=None, query=None, offset=0, limit=100, session=session,
                 state='Baden-Württemberg', profile_id=profile['id'], min_match_score=0, include_unknown=True)
-            self.assertEqual({row['external_id'] for row in page['items']}, {'local', 'remote'})
+            self.assertEqual({row['external_id'] for row in page['items']}, set())
             self.assertEqual(page['counts']['filtered']['expired'], 1)
             for item in page['items']:
                 detail = api.get_job(item['id'], session, profile_id=profile['id'], state='Baden-Württemberg')
