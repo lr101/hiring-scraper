@@ -5,6 +5,7 @@ import copy
 import json
 import os
 import re
+import time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote, urlencode
@@ -88,7 +89,12 @@ def main() -> None:
         board = read(WEB + '/api/v1/jobs?' + query)
         if board.get('search_mode') == 'warming':
             from hiring_scraper.app.api import process_search_snapshot_refresh_once
-            assert process_search_snapshot_refresh_once()
+            for _ in range(20):
+                if process_search_snapshot_refresh_once():
+                    break
+                time.sleep(0.25)
+            else:
+                raise AssertionError('Queued job search snapshot was not claimed')
             board = read(WEB + '/api/v1/jobs?' + query)
         assert board['total'] > 0
         assert board['location']['city'] == 'Karlsruhe'
