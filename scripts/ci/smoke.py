@@ -74,6 +74,10 @@ def main() -> None:
     assert database_counts() == after_import == repeated, 'Repeat import changed record counts'
 
     profile = json.loads(Path('fixtures/cv_profile.json').read_text())
+    profile['search_area'].update({
+        'label': 'Karlsruhe, Germany', 'city': 'Karlsruhe',
+        'latitude': 49.0068705, 'longitude': 8.4034195,
+    })
     profile_id = None
     try:
         saved = read(WEB + '/api/v1/profiles', method='POST', payload=profile)
@@ -82,8 +86,12 @@ def main() -> None:
         assert saved['search_area']['radius_km'] == 35
         query = urlencode({'profile_id': profile_id, 'limit': 3})
         board = read(WEB + '/api/v1/jobs?' + query)
+        if board.get('search_mode') == 'warming':
+            from hiring_scraper.app.api import process_search_snapshot_refresh_once
+            assert process_search_snapshot_refresh_once()
+            board = read(WEB + '/api/v1/jobs?' + query)
         assert board['total'] > 0
-        assert board['location']['city'] == 'Heidelberg'
+        assert board['location']['city'] == 'Karlsruhe'
         assert board['location']['country_code'] == 'DE'
         assert board['location']['radius_km'] == 35
         assert board['profile_id'] == profile_id
