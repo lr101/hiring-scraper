@@ -236,7 +236,7 @@ class ProfileBoardScopeTests(unittest.TestCase):
 
     def test_backend_geography_is_identical_and_filters_before_pagination(self):
         profile = self.profile(search_area=AREA)
-        self.job('outside', locations=[models.JobLocation(label='Berlin', latitude=49.3988, longitude=8.6724)])
+        self.job('outside', locations=[models.JobLocation(label='Heidelberg', country_code='US')])
         self.job('inside')
         sqlite = self.board(profile)
         with patch.object(api, 'IS_SQLITE', False):
