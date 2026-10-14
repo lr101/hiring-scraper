@@ -10,6 +10,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 import json
+import math
 from math import cos, radians
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -29,7 +30,8 @@ from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
     Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
-    JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, UserProfile,
+    JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
+    SemanticSearchIndexState, UserProfile,
     JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import (
@@ -63,6 +65,46 @@ _LAST_NOMINATIM_REQUEST = 0.0
 _LOG = logging.getLogger(__name__)
 _SEARCH_SNAPSHOT_REFRESH_DELAY_SECONDS = 2.0
 _SEARCH_SNAPSHOT_REFRESH_LEASE_SECONDS = 15 * 60
+_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
+_SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
+_SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
+_QUERY_EMBEDDINGS: dict[str, list[float]] = {}
+_QUERY_EMBEDDING_LOCK = threading.Lock()
+
+
+def _query_embedding(query: str) -> list[float] | None:
+    """Request a normalized query vector from the resident local ONNX worker."""
+    normalized = " ".join(query.split())
+    with _QUERY_EMBEDDING_LOCK:
+        cached = _QUERY_EMBEDDINGS.get(normalized.casefold())
+    if cached is not None:
+        return cached
+    request = Request(_SEMANTIC_EMBEDDING_URL,
+                      data=json.dumps({"text": normalized}).encode("utf-8"),
+                      headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urlopen(request, timeout=2.0) as response:
+            payload = json.loads(response.read())
+        vector = payload.get("embedding") if isinstance(payload, dict) else None
+        if not isinstance(vector, list) or len(vector) != 384:
+            return None
+        vector = [float(value) for value in vector]
+        if not all(math.isfinite(value) for value in vector):
+            return None
+    except (OSError, ValueError, TypeError, HTTPError, URLError, json.JSONDecodeError):
+        return None
+    with _QUERY_EMBEDDING_LOCK:
+        if len(_QUERY_EMBEDDINGS) >= 256:
+            _QUERY_EMBEDDINGS.pop(next(iter(_QUERY_EMBEDDINGS)))
+        _QUERY_EMBEDDINGS[normalized.casefold()] = vector
+    return vector
+
+
+def _semantic_index_ready(session: Session, entity_type: str) -> bool:
+    return bool(session.scalar(select(SemanticSearchIndexState.backfill_complete).where(
+        SemanticSearchIndexState.entity_type == entity_type,
+        SemanticSearchIndexState.model_revision == _SEMANTIC_MODEL_KEY,
+    )))
 
 
 class LocationQuery(BaseModel):
@@ -1070,8 +1112,12 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     employer_country = _canonical_country(country)
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
-    if query:
-        filters.append(Company.name.ilike(f"%{query.strip()}%"))
+    normalized_query = " ".join(query.split()) if query else None
+    vector = (_query_embedding(normalized_query)
+              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "company") else None)
+    if normalized_query and vector is None:
+        # Stay responsive while the local model is loading or unavailable.
+        filters.append(Company.name.ilike(f"%{normalized_query}%"))
     if discovery == 'domain':
         filters.append(Company.domain.is_not(None))
     elif discovery == 'career':
@@ -1082,20 +1128,75 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     elif discovery == 'jobs':
         filters.append(or_(Company.feeds.any(JobFeed.jobs.any(Job.is_active.is_(True))),
                            Company.employer_jobs.any(Job.is_active.is_(True))))
+    if vector is not None:
+        session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
+        session.execute(text("SET LOCAL hnsw.ef_search = 100"))
+        vector_filter = and_(SemanticSearchDocument.entity_type == "company",
+                             SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY)
+        vector_distance = SemanticSearchDocument.embedding.cosine_distance(vector)
     if state or employer_country:
         filters.append(german_company_filter() if employer_country else Company.state == state)
+        if vector is not None:
+            total = session.scalar(select(func.count()).select_from(Company).join(
+                SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
+            ).where(*filters)) or 0
+            if total:
+                rows = session.execute(select(Company, vector_distance.label("distance")).join(
+                    SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
+                ).options(selectinload(Company.feeds)).where(*filters).order_by(
+                    vector_distance, Company.id).offset(offset).limit(limit)).all()
+                counts = _unique_active_job_counts(session, [company.id for company, _ in rows])
+                items = []
+                for company, distance in rows:
+                    item = _company_json(company, float("inf"), counts.get(company.id, 0))
+                    item["semantic_score"] = round(1 - float(distance), 4)
+                    items.append(item)
+                return {"items": items, "total": total, "offset": offset, "limit": limit,
+                        "search_mode": "semantic",
+                        "location": {"state": state, "country": employer_country,
+                                     "search_scope": "country" if employer_country else "state"}}
+            vector = None
+            filters.append(Company.name.ilike(f"%{normalized_query}%"))
         total = session.scalar(select(func.count()).select_from(Company).where(*filters)) or 0
         rows = session.scalars(base.where(*filters).order_by(Company.name, Company.id)
                                .offset(offset).limit(limit)).all()
         counts = _unique_active_job_counts(session, [company.id for company in rows])
-        return {"items": [_company_json(company, float("inf"), counts.get(company.id, 0)) for company in rows],
-                "total": total, "offset": offset, "limit": limit,
-                "location": {"state": state, "country": employer_country, "search_scope": "country" if employer_country else "state"}}
+        items = [_company_json(company, float("inf"), counts.get(company.id, 0)) for company in rows]
+        return {"items": items, "total": total, "offset": offset, "limit": limit,
+                "search_mode": "keyword" if normalized_query else "browse",
+                "location": {"state": state, "country": employer_country,
+                             "search_scope": "country" if employer_country else "state"}}
     radius_m = radius_km * 1000
     if not IS_SQLITE:
         spatial_clause = text("ST_DWithin(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)")
         filters.append(spatial_clause)
         base = base.where(*filters)
+        if vector is not None:
+            count = session.scalar(select(func.count()).select_from(Company).join(
+                SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
+            ).where(*filters).params(longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
+            if count:
+                distance_m = text("ST_Distance(companies.location_geog, "
+                                  "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false)")
+                rows = session.execute(select(Company, vector_distance.label("semantic_distance"),
+                                              distance_m.label("distance_m")).join(
+                    SemanticSearchDocument, and_(SemanticSearchDocument.entity_id == Company.id, vector_filter)
+                ).options(selectinload(Company.feeds)).where(*filters).order_by(
+                    vector_distance, Company.id).offset(offset).limit(limit).params(
+                        longitude=longitude, latitude=latitude, radius_m=radius_m)).all()
+                counts = _unique_active_job_counts(session, [company.id for company, _, _ in rows])
+                items = []
+                for company, distance, meters in rows:
+                    item = _company_json(company, float(meters), counts.get(company.id, 0))
+                    item["semantic_score"] = round(1 - float(distance), 4)
+                    items.append(item)
+                return {"items": items, "total": count, "offset": offset, "limit": limit,
+                        "search_mode": "semantic",
+                        "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
+            vector = None
+            filters.append(Company.name.ilike(f"%{normalized_query}%"))
+            base = select(Company).options(selectinload(Company.feeds)).where(*filters)
+
         count = session.scalar(select(func.count()).select_from(Company).where(*filters).params(
             longitude=longitude, latitude=latitude, radius_m=radius_m)) or 0
         distance = text("ST_Distance(companies.location_geog, ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, false) AS distance_m")
@@ -1109,6 +1210,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
         counts = _unique_active_job_counts(session, [company.id for company, _ in rows])
         items = [_company_json(company, float(meters), counts.get(company.id, 0)) for company, meters in rows]
         return {"items": items, "total": count, "offset": offset, "limit": limit,
+                "search_mode": "keyword" if normalized_query else "browse",
                 "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
 
     candidates = list(session.scalars(base.where(*filters, *_sqlite_company_bbox(latitude, longitude, radius_km))))
@@ -1123,6 +1225,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     counts = _unique_active_job_counts(session, [company.id for company, _ in page])
     items = [_company_json(company, distance, counts.get(company.id, 0)) for company, distance in page]
     return {"items": items, "total": total, "offset": offset, "limit": limit,
+            "search_mode": "keyword" if normalized_query else "browse",
             "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km}}
 
 
@@ -1338,6 +1441,12 @@ def _search_key(generation: int, criteria: dict[str, Any]) -> str:
     return hashlib.sha256(payload.encode('utf-8')).hexdigest()
 
 
+def _search_criteria_hash(criteria: dict[str, Any]) -> str:
+    stable = _stable_search_criteria(criteria)
+    payload = json.dumps(stable, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+    return hashlib.sha256(payload.encode('utf-8')).hexdigest()
+
+
 def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any], key: str,
                  generation: int, source_count: int, source_feed_count: int,
                  prefilter_filtered: dict[str, int],
@@ -1346,10 +1455,15 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
                  location_scope: str, state: str | None, employer_country: str | None,
                  thresholds: dict[int | None, tuple[int, bool]],
                  criteria: dict[str, Any],
-                 preserve_snapshot_key: str | None = None) -> JobSearchSnapshot:
+                 preserve_snapshot_key: str | None = None,
+                 is_prewarmed: bool = False) -> JobSearchSnapshot:
     """Fetch a cached ordered result or materialize it once for later page reads."""
     snapshot = session.get(JobSearchSnapshot, key)
     if snapshot is not None:
+        if is_prewarmed:
+            snapshot.criteria_hash = _search_criteria_hash(criteria)
+            snapshot.is_prewarmed = True
+            session.commit()
         return snapshot
 
     if session.get_bind().dialect.name == 'sqlite':
@@ -1358,7 +1472,9 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
         from sqlalchemy.dialects.postgresql import insert
     now = utcnow()
     insert_statement = insert(JobSearchSnapshot).values(
-        key=key, generation=generation, payload={}, created_at=now
+        key=key, generation=generation, payload={},
+        criteria_hash=_search_criteria_hash(criteria), created_at=now,
+        is_prewarmed=is_prewarmed,
     ).on_conflict_do_nothing(index_elements=['key']).returning(JobSearchSnapshot.key)
     inserted_key = session.scalar(insert_statement)
     if inserted_key is None:
@@ -1468,9 +1584,15 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
         'criteria': criteria,
     }
     # A snapshot stores one scoped row per canonical job; bound both age and count.
-    stale_filter = JobSearchSnapshot.created_at < now - timedelta(days=1)
+    stale_filter = or_(
+        and_(JobSearchSnapshot.is_prewarmed.is_(True),
+             JobSearchSnapshot.created_at < now - timedelta(seconds=_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)),
+        and_(JobSearchSnapshot.is_prewarmed.is_(False),
+             JobSearchSnapshot.created_at < now - timedelta(days=1)),
+    )
     excess_keys = select(JobSearchSnapshot.key).order_by(
-        JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key)
+        JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key).where(
+            JobSearchSnapshot.is_prewarmed.is_(False))
     if preserve_snapshot_key is not None:
         stale_filter = and_(stale_filter, JobSearchSnapshot.key != preserve_snapshot_key)
         excess_keys = excess_keys.where(JobSearchSnapshot.key != preserve_snapshot_key)
@@ -1483,19 +1605,36 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
     return snapshot
 
 
+def _stable_search_criteria(criteria: dict[str, Any]) -> dict[str, Any]:
+    return {name: value for name, value in criteria.items() if name != 'freshness_bucket'}
+
+
+def _search_criteria_match(snapshot_criteria: Any, criteria: dict[str, Any]) -> bool:
+    return (isinstance(snapshot_criteria, dict) and
+            _stable_search_criteria(snapshot_criteria) == _stable_search_criteria(criteria))
+
+
 def _latest_stale_snapshot(session: Session, generation: int,
                            criteria: dict[str, Any]) -> JobSearchSnapshot | None:
-    snapshots = session.scalars(select(JobSearchSnapshot).where(
-        JobSearchSnapshot.generation < generation
-    ).order_by(JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key).limit(32)).all()
-    return next((snapshot for snapshot in snapshots
-                 if (snapshot.payload or {}).get('criteria') == criteria), None)
+    # Freshness buckets are cache versions, not user-visible search criteria.
+    # Reuse the prior bucket while the worker builds the current one, but keep
+    # the stale window no longer than one bucket so expiry checks stay bounded.
+    stale_before = utcnow() - timedelta(seconds=_SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
+    snapshot = session.scalars(select(JobSearchSnapshot).where(
+        JobSearchSnapshot.criteria_hash == _search_criteria_hash(criteria),
+        JobSearchSnapshot.generation <= generation,
+        JobSearchSnapshot.created_at >= stale_before,
+    ).order_by(JobSearchSnapshot.created_at.desc(), JobSearchSnapshot.key).limit(1)).first()
+    if snapshot is None or not _search_criteria_match((snapshot.payload or {}).get('criteria'), criteria):
+        return None
+    return snapshot
 
 
 def _materialize_search_snapshot(session: Session, profiles: list[UserProfile], key: str,
                                  generation: int, criteria: dict[str, Any],
                                  thresholds: dict[int | None, tuple[int, bool]],
-                                 *, preserve_snapshot_key: str | None = None) -> JobSearchSnapshot:
+                                 *, preserve_snapshot_key: str | None = None,
+                                 is_prewarmed: bool = False) -> JobSearchSnapshot:
     """Build the full scoped result set for a request, outside the response path when possible."""
     latitude = criteria['latitude']
     longitude = criteria['longitude']
@@ -1566,10 +1705,11 @@ def _materialize_search_snapshot(session: Session, profiles: list[UserProfile], 
                         source_count, source_feed_count, prefilter_filtered, 'match',
                         latitude, longitude, radius_km, place, scope_country,
                         location_scope, state, employer_country, thresholds, criteria,
-                        preserve_snapshot_key=preserve_snapshot_key)
+                        preserve_snapshot_key=preserve_snapshot_key,
+                        is_prewarmed=is_prewarmed)
 
 
-def _enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any]) -> None:
+def _enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any], *, prewarm: bool = False) -> None:
     """Coalesce refresh requests with the same search criteria in a durable queue."""
     signature = hashlib.sha256(json.dumps(
         criteria, sort_keys=True, ensure_ascii=False, separators=(',', ':')
@@ -1579,18 +1719,110 @@ def _enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any])
     else:
         from sqlalchemy.dialects.postgresql import insert
     requested_at = utcnow()
+    refresh_table = JobSearchRefresh.__table__
+    unleased = or_(refresh_table.c.lease_token.is_(None),
+                   refresh_table.c.lease_until.is_(None),
+                   refresh_table.c.lease_until <= requested_at)
+    coalesced_request_time = case(
+        (unleased, refresh_table.c.requested_at),
+        else_=requested_at,
+    )
     statement = insert(JobSearchRefresh).values(
         key=signature, criteria=criteria, requested_at=requested_at,
-        lease_token=None, lease_until=None,
+        lease_token=None, lease_until=None, prewarm=prewarm,
     ).on_conflict_do_update(index_elements=['key'], set_={
         'criteria': criteria,
-        'requested_at': requested_at,
+        'prewarm': or_(refresh_table.c.prewarm, prewarm),
+        # Keep the original debounce start for an idle item so steady search
+        # traffic cannot postpone it forever. During a live lease, move this
+        # timestamp to mark that a follow-up pass is needed after the lease.
+        'requested_at': coalesced_request_time,
     })
     session.execute(statement)
     session.commit()
 
 
-def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime] | None:
+def prewarm_profile_location_snapshots_once() -> int:
+    """Queue profileless browse snapshots for every saved profile/configured area."""
+    if IS_SQLITE:
+        return 0
+    now = utcnow()
+    current_bucket = int(now.timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
+    locations: dict[str, dict[str, Any]] = {}
+
+    def add_area_variants(base: dict[str, Any], *, broad_scope: bool) -> None:
+        variants = [("area_remote", "all"), ("remote", "remote")]
+        if broad_scope:
+            variants.insert(1, ("area", "all"))
+        for location_scope, work_style in variants:
+            criteria = {**base, "location_scope": location_scope, "work_style": work_style}
+            locations[json.dumps(criteria, sort_keys=True, separators=(",", ":"))] = criteria
+
+    with SessionLocal() as session:
+        for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)):
+            area = (profile.preferences or {}).get("search_area") or {}
+            if area.get("latitude") is None or area.get("longitude") is None:
+                continue
+            base = {
+                "matching_version": MATCHING_VERSION,
+                "freshness_bucket": current_bucket,
+                "company_id": None, "query": None,
+                "latitude": float(area["latitude"]), "longitude": float(area["longitude"]),
+                "radius_km": float(area.get("radius_km") or 15),
+                "place": area.get("city") or "",
+                "country": str(area.get("country_code") or "DE").upper(), "sort": "match",
+                "state": None, "employer_country": None, "profiles": [],
+            }
+            base = {name: value for name, value in base.items() if name != "sort"}
+            add_area_variants(base, broad_scope=True)
+        for location in session.scalars(select(ConfiguredLocation).where(
+            ConfiguredLocation.enabled.is_(True)).order_by(ConfiguredLocation.id)):
+            state = _canonical_state(location.state) if location.search_scope == "state" else None
+            employer_country = "DE" if location.search_scope == "country" else None
+            for scope_country in (None, "DE"):
+                base = {
+                    "matching_version": MATCHING_VERSION,
+                    "freshness_bucket": current_bucket,
+                    "company_id": None, "query": None,
+                    "latitude": float(location.latitude), "longitude": float(location.longitude),
+                    "radius_km": float(location.radius_km),
+                    "place": location.city or "",
+                    "country": scope_country,
+                    "state": state, "employer_country": employer_country, "profiles": [],
+                }
+                # The frontend's boardLocationParams omits coordinates for state and
+                # country selections, so use the same safe defaults as list_jobs.
+                if state or employer_country:
+                    base.update(latitude=49.0068705, longitude=8.4034195, radius_km=15, place=None)
+                add_area_variants(base, broad_scope=not (state or employer_country))
+        queued = 0
+        for criteria in locations.values():
+            generation = _search_generation(session)
+            current_criteria = {**criteria, "freshness_bucket": current_bucket}
+            current_key = _search_key(generation, current_criteria)
+            snapshot = session.get(JobSearchSnapshot, current_key)
+            if snapshot is None:
+                _enqueue_search_snapshot_refresh(session, current_criteria, prewarm=True)
+                queued += 1
+                continue
+            snapshot.is_prewarmed = True
+            snapshot.criteria_hash = _search_criteria_hash(current_criteria)
+            if snapshot.created_at >= now - timedelta(minutes=5):
+                continue
+            next_criteria = {**criteria, "freshness_bucket": current_bucket + 1}
+            next_key = _search_key(generation, next_criteria)
+            next_snapshot = session.get(JobSearchSnapshot, next_key)
+            if next_snapshot is None:
+                _enqueue_search_snapshot_refresh(session, next_criteria, prewarm=True)
+                queued += 1
+            else:
+                next_snapshot.is_prewarmed = True
+                next_snapshot.criteria_hash = _search_criteria_hash(next_criteria)
+        session.commit()
+        return queued
+
+
+def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime, bool] | None:
     token = str(uuid4())
     now = utcnow()
     with SessionLocal.begin() as session:
@@ -1603,7 +1835,7 @@ def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime
             return None
         refresh.lease_token = token
         refresh.lease_until = now + timedelta(seconds=_SEARCH_SNAPSHOT_REFRESH_LEASE_SECONDS)
-        return refresh.key, dict(refresh.criteria), token, refresh.requested_at
+        return refresh.key, dict(refresh.criteria), token, refresh.requested_at, refresh.prewarm
 
 
 def _finish_search_snapshot_refresh(key: str, token: str, requested_at: datetime,
@@ -1632,8 +1864,17 @@ def process_search_snapshot_refresh_once() -> bool:
         return False
     if claimed is None:
         return False
-    key, criteria, token, requested_at = claimed
+    key, criteria, token, requested_at, prewarm = claimed
     try:
+        # On-demand work can cross a boundary; proactive work can target the
+        # next bucket so it is ready before the current snapshot expires.
+        criteria = dict(criteria)
+        current_bucket = int(utcnow().timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
+        try:
+            requested_bucket = int(criteria.get('freshness_bucket', current_bucket))
+        except (TypeError, ValueError):
+            requested_bucket = current_bucket
+        criteria['freshness_bucket'] = min(max(requested_bucket, current_bucket), current_bucket + 1)
         profile_criteria = {int(item['id']): item for item in criteria.get('profiles', [])}
         with SessionLocal() as session:
             profile_ids = list(profile_criteria)
@@ -1647,7 +1888,8 @@ def process_search_snapshot_refresh_once() -> bool:
             if current_profiles:
                 generation = _search_generation(session)
                 current_key = _search_key(generation, criteria)
-                if session.get(JobSearchSnapshot, current_key) is None:
+                current_snapshot = session.get(JobSearchSnapshot, current_key)
+                if current_snapshot is None:
                     thresholds = {
                         int(item['id']): (int(item['min_match_score']), bool(item['include_unknown']))
                         for item in criteria.get('profiles', [])
@@ -1658,7 +1900,12 @@ def process_search_snapshot_refresh_once() -> bool:
                     _materialize_search_snapshot(
                         session, profiles, current_key, generation, criteria, thresholds,
                         preserve_snapshot_key=stale.key if stale is not None else None,
+                        is_prewarmed=prewarm,
                     )
+                elif prewarm and not current_snapshot.is_prewarmed:
+                    current_snapshot.is_prewarmed = True
+                    current_snapshot.criteria_hash = _search_criteria_hash(criteria)
+                    session.commit()
         _finish_search_snapshot_refresh(key, token, requested_at)
     except Exception:
         _LOG.exception("Could not refresh a materialized job search snapshot")
@@ -1667,6 +1914,161 @@ def process_search_snapshot_refresh_once() -> bool:
         except Exception:
             _LOG.exception("Could not release a failed search snapshot refresh lease")
     return True
+
+
+def _semantic_jobs_page(session: Session, vector: list[float], *,
+                        latitude: float, longitude: float, radius_km: float,
+                        place: str | None, country: str | None,
+                        location_scope: str, work_style: str,
+                        company_id: int | None, state: str | None,
+                        employer_country: str | None, profile: UserProfile | None,
+                        offset: int, limit: int, job_status: str | None) -> dict[str, Any]:
+    """Return nearby jobs in local-model relevance order without profile-match data."""
+    session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
+    session.execute(text("SET LOCAL hnsw.ef_search = 100"))
+    session.execute(text("SET LOCAL hnsw.max_scan_tuples = 100000"))
+    employer_company = aliased(Company)
+    distance = SemanticSearchDocument.embedding.cosine_distance(vector)
+    statement = (select(Job.id, distance.label("semantic_distance"))
+        .select_from(Job)
+        .join(SemanticSearchDocument, and_(
+            SemanticSearchDocument.entity_type == "job",
+            SemanticSearchDocument.entity_id == Job.id,
+            SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
+        ))
+        .join(JobFeed, JobFeed.id == Job.feed_id)
+        .join(Company, Company.id == JobFeed.company_id)
+        .outerjoin(employer_company, Job.employer_company_id == employer_company.id))
+    filters = [Job.is_active.is_(True)]
+    if employer_country:
+        filters.append(or_(german_company_filter(employer_company), german_company_filter(Company),
+                           Company.source == "default_job_feed",
+                           Job.locations.any(JobLocation.country_code.in_(("DE", "de")))))
+    elif state:
+        filters.append(or_(Company.state == state, employer_company.state == state))
+    if company_id is not None:
+        filters.append(or_(JobFeed.company_id == company_id, Job.employer_company_id == company_id))
+    if work_style == "remote":
+        filters.append(or_(Job.work_arrangement == "remote",
+                           and_(Job.is_remote.is_(True), Job.work_arrangement.is_(None))))
+    elif work_style in {"hybrid", "onsite"}:
+        filters.append(Job.work_arrangement == work_style)
+    if not state and not employer_country:
+        filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
+    candidate_filters = list(filters)
+    if job_status is not None:
+        candidate_filters.append(Job.id.in_(select(JobApplication.job_id).where(
+            JobApplication.profile_id == profile.id,
+            JobApplication.status == job_status,
+        )))
+    filtered_statement = statement.where(*candidate_filters)
+    candidate_count = int(session.scalar(select(func.count()).select_from(
+        filtered_statement.order_by(None).with_only_columns(Job.id).subquery())) or 0)
+    batch_size = max(1_000, limit * 10)
+    candidate_ids: list[int] = []
+    score_by_id: dict[int, float] = {}
+    fetch_offset = 0
+    winners = []
+    scoped_count = 0
+    geo_filtered: dict[str, int] = {}
+    ordered_ids: list[int] = []
+    scopes: dict[int, dict[str, Any]] = {}
+    while fetch_offset < candidate_count:
+        candidates = session.execute(filtered_statement.order_by(
+            distance, Job.id).offset(fetch_offset).limit(batch_size)).all()
+        if not candidates:
+            break
+        candidate_ids.extend(int(row.id) for row in candidates)
+        score_by_id.update({int(row.id): float(row.semantic_distance) for row in candidates})
+        fetch_offset += len(candidates)
+        winners, scoped_count, geo_filtered = _scoped_candidate_winners(
+            session, candidate_ids, latitude, longitude, radius_km, place, country,
+            location_scope, state, employer_country,
+        )
+        scopes = dict(winners)
+        ordered_ids = sorted((job_id for job_id, _scope in winners),
+                             key=lambda job_id: (score_by_id.get(job_id, 1.0), job_id))
+        if len(ordered_ids) >= offset + limit or len(candidates) < batch_size:
+            break
+    applications_by_job: dict[int, JobApplication] = {}
+    if profile is not None and ordered_ids:
+        applications_by_job = {row.job_id: row for row in session.scalars(select(JobApplication).where(
+            JobApplication.profile_id == profile.id,
+            JobApplication.job_id.in_(ordered_ids),
+        ))}
+    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
+    if profile is not None:
+        application_rows = session.execute(select(
+            JobApplication.job_id, JobApplication.status,
+        ).select_from(JobApplication).join(Job, Job.id == JobApplication.job_id)
+            .join(JobFeed, JobFeed.id == Job.feed_id)
+            .join(Company, Company.id == JobFeed.company_id)
+            .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
+            .where(
+                JobApplication.profile_id == profile.id, *filters,
+                Job.id.in_(select(SemanticSearchDocument.entity_id).where(
+                    SemanticSearchDocument.entity_type == "job",
+                    SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
+                )),
+            )).all()
+        application_status_by_job = {int(job_id): status for job_id, status in application_rows}
+        if application_status_by_job:
+            application_winners, _, _ = _scoped_candidate_winners(
+                session, list(application_status_by_job), latitude, longitude, radius_km,
+                place, country, location_scope, state, employer_country,
+            )
+            for job_id, _scope in application_winners:
+                status = application_status_by_job.get(job_id)
+                if status in application_counts:
+                    application_counts[status] += 1
+    complete_scan = fetch_offset >= candidate_count
+    total = len(ordered_ids) if complete_scan else candidate_count
+    page_ids = ordered_ids[offset:offset + limit]
+    jobs = session.scalars(select(Job).where(Job.id.in_(page_ids)).options(
+        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+        selectinload(Job.locations),
+    )).unique().all() if page_ids else []
+    jobs_by_id = {job.id: job for job in jobs}
+    items = []
+    for job_id in page_ids:
+        job = jobs_by_id.get(job_id)
+        if job is None:
+            continue
+        item = _job_json(job)
+        item["match_kind"] = scopes[job_id].get("match_kind")
+        item["geography"] = scopes[job_id]
+        item["semantic_score"] = round(1 - score_by_id.get(job_id, 1.0), 4)
+        if profile is not None:
+            item["profile_id"] = profile.id
+            item["profile_name"] = profile.name
+            application = applications_by_job.get(job_id)
+            item["application"] = application_json(application) if application else None
+        items.append(item)
+    return {
+        "items": items, "total": total, "total_is_upper_bound": not complete_scan,
+        "offset": offset, "limit": limit,
+        "profile_id": profile.id if profile else None,
+        "profile_ids": [profile.id] if profile else [],
+        "application_counts": application_counts,
+        "counts": {"source": candidate_count, "scoped": len(winners),
+                   "filtered": {**dict.fromkeys(("profile_conflict", "below_score", "uncertain"), 0),
+                                **geo_filtered},
+                   "duplicates_removed": max(0, scoped_count - len(winners)),
+                   "recommended": 0, "possible": 0, "unlikely": 0},
+        "coverage": {"source_count": candidate_count,
+                     "note": "Observed active indexed postings; semantic results are ranked by text similarity."},
+        "location": {"latitude": latitude, "longitude": longitude, "radius_km": radius_km,
+                     "city": place, "country_code": country},
+        "location_scope": location_scope,
+        "rule": ("postings from employers discovered in Germany" if employer_country else
+                 "postings from employers discovered in " + state if state else
+                 ("explicitly remote within country scope" if location_scope == "remote" else
+                  "work location within radius" if location_scope == "area" else
+                  "work location within radius OR explicitly remote within country scope")),
+        "state": state, "country": employer_country, "search_mode": "semantic",
+        "semantic_window": fetch_offset, "semantic_candidates": len(candidate_ids),
+        "snapshot_stale": False,
+    }
 
 
 @app.get("/api/v1/jobs")
@@ -1702,51 +2104,57 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     selected_ids = list(dict.fromkeys(selected_ids))
     if len(selected_ids) > 100 or any(value < 1 for value in selected_ids):
         raise HTTPException(status_code=422, detail='Select between 1 and 100 valid profiles')
-    profiles = [require_profile(value, session) for value in selected_ids]
-    index_rebuilt = False
-    if profiles:
-        try:
-            index_rebuilt = ensure_profile_match_indexes(session, profiles)
-        except ProfileIndexChanged as error:
-            raise HTTPException(status_code=409, detail='Profile changed during search; retry the request') from error
-    if job_status is not None and not profiles:
+    if profile_id is None and selected_ids:
+        profile_id = selected_ids[0]
+    tracking_profile = require_profile(profile_id, session) if profile_id is not None else None
+    # Search context uses one profile only for its saved location and application
+    # tracking. Browse retrieval and ranking never need the profile match index.
+    profiles: list[UserProfile] = []
+    if job_status is not None and tracking_profile is None:
         raise HTTPException(status_code=422, detail='Select a profile before filtering by application status')
-    profile = profiles[0] if len(profiles) == 1 else None
-    resolved = _resolved_search_area(profile, latitude, longitude, radius_km, place, country_code)
+    profile = tracking_profile
+    # A state/country selector is its own saved search area. Keep a selected
+    # profile for application tracking, but do not let its radius replace that
+    # configured scope (or prevent its profileless snapshot from being reused).
+    area_profile = None if state or employer_country else profile
+    resolved = _resolved_search_area(area_profile, latitude, longitude, radius_km, place, country_code)
     latitude, longitude, radius_km = (resolved[key] for key in ('latitude', 'longitude', 'radius_km'))
     place, country = resolved['place'], resolved['country']
     location_scope = location_scope or ('remote' if work_style == 'remote' else 'area_remote')
-    if not profiles and min_match_score:
-        raise HTTPException(status_code=422, detail="Select a profile to filter by match score")
-    thresholds: dict[int | None, tuple[int, bool]] = {}
-    for item in profiles:
-        defaults = item.preferences.get('matching_defaults') or {}
-        thresholds[item.id] = (
-            defaults.get('min_match_score', 0) if min_match_score is None else min_match_score,
-            defaults.get('include_unknown', True) if include_unknown is None else include_unknown,
-        )
-    if not profiles:
-        thresholds[None] = (0, True)
-    normalized_query = ' '.join(query.split()) if query else None
-    # Filtering and match ranking are materialized once. Page requests then read
-    # only the requested ordered IDs from the database.
     scope_country = country if resolved['profile_area'] or isinstance(country_code, str) else None
     search_sort = {'relevance': 'match', 'newest': 'posted'}.get(sort, sort)
+    thresholds: dict[int | None, tuple[int, bool]] = {}
+    thresholds[None] = (0, True)
+    normalized_query = ' '.join(query.split()) if query else None
+    vector = (_query_embedding(normalized_query)
+              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "job") else None)
+    if vector is not None:
+        semantic_page = _semantic_jobs_page(
+            session, vector,
+            latitude=latitude, longitude=longitude, radius_km=radius_km,
+            place=place, country=scope_country, location_scope=location_scope,
+            work_style=work_style, company_id=company_id,
+            state=state, employer_country=employer_country, profile=tracking_profile,
+            offset=offset, limit=limit, job_status=job_status,
+        )
+        if semantic_page["semantic_candidates"]:
+            semantic_page.pop("semantic_candidates", None)
+            return semantic_page
+    # Browse snapshots are profileless; profile matching is handled separately
+    # and cannot delay or filter ordinary search.
     generation = _search_generation(session)
     criteria = {
         'matching_version': MATCHING_VERSION,
         # Expiry is time based, so rotate cache keys every 15 minutes even if
         # no crawler has changed the underlying row generation.
-        'freshness_bucket': int(utcnow().timestamp() // 900),
+        'freshness_bucket': int(utcnow().timestamp() // _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS),
         'company_id': company_id,
         'query': normalized_query,
         'latitude': latitude, 'longitude': longitude, 'radius_km': radius_km,
         'place': place, 'country': scope_country, 'location_scope': location_scope,
         'work_style': work_style, 'sort': search_sort, 'state': state,
         'employer_country': employer_country,
-        'profiles': [{'id': item.id, 'match_index_version': item.match_index_version,
-                      'min_match_score': thresholds[item.id][0],
-                      'include_unknown': thresholds[item.id][1]} for item in profiles],
+        'profiles': [],
     }
     # Ordering is applied from persisted sort columns at read time, so changing
     # sort does not require rebuilding the scoped candidate snapshot.
@@ -1755,10 +2163,11 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     snapshot_stale = False
     if snapshot_id is not None:
         snapshot = session.get(JobSearchSnapshot, snapshot_id)
-        if snapshot is None or (snapshot.payload or {}).get('criteria') != snapshot_criteria:
+        if snapshot is None or not _search_criteria_match(
+                (snapshot.payload or {}).get('criteria'), snapshot_criteria):
             raise HTTPException(status_code=409, detail='Search snapshot expired or criteria changed; restart from page one')
-        if snapshot.generation != generation:
-            current_key = _search_key(generation, snapshot_criteria)
+        current_key = _search_key(generation, snapshot_criteria)
+        if snapshot.generation != generation or snapshot.key != current_key:
             current_snapshot = session.get(JobSearchSnapshot, current_key)
             if current_snapshot is not None:
                 snapshot = current_snapshot
@@ -1785,115 +2194,83 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         else:
             snapshot = _materialize_search_snapshot(
                 session, profiles, key, generation, snapshot_criteria, thresholds,
-            )
-    selected_match_filters = []
-    for item in profiles:
-        min_score, allow_unknown = thresholds[item.id]
-        profile_filter = [ProfileJobMatch.profile_id == item.id,
-                          ProfileJobMatch.match_score >= min_score]
-        if not allow_unknown:
-            profile_filter.extend((ProfileJobMatch.match_uncertain.is_(False),
-                                   JobSearchResult.scope_uncertain.is_(False)))
-        selected_match_filters.append(and_(*profile_filter))
-
+            ) if IS_SQLITE else None
+            if snapshot is None:
+                _enqueue_search_snapshot_refresh(session, snapshot_criteria)
+                return {
+                    "items": [], "total": 0, "offset": offset, "limit": limit,
+                    "profile_id": tracking_profile.id if tracking_profile else None,
+                    "profile_ids": [tracking_profile.id] if tracking_profile else [],
+                    "application_counts": dict.fromkeys(APPLICATION_STATUSES, 0),
+                    "location": {"latitude": latitude, "longitude": longitude,
+                                 "radius_km": radius_km, "city": place,
+                                 "country_code": scope_country},
+                    "location_scope": location_scope, "state": state,
+                    "country": employer_country, "search_mode": "warming",
+                    "snapshot_stale": True,
+                }
     result_count = select(func.count()).select_from(JobSearchResult).join(
         Job, Job.id == JobSearchResult.job_id).where(
         JobSearchResult.snapshot_key == key, Job.is_active.is_(True))
     result_rows = select(JobSearchResult, Job).join(Job, Job.id == JobSearchResult.job_id).where(
         JobSearchResult.snapshot_key == key, Job.is_active.is_(True))
-    if profiles:
-        match_join = and_(ProfileJobMatch.job_id == JobSearchResult.job_id,
-                          or_(*selected_match_filters))
-        result_count = result_count.join(ProfileJobMatch, match_join)
-        result_rows = result_rows.join(ProfileJobMatch, match_join).add_columns(ProfileJobMatch)
     if job_status is not None:
-        application_join = and_(JobApplication.profile_id == ProfileJobMatch.profile_id,
+        application_join = and_(JobApplication.profile_id == tracking_profile.id,
                                 JobApplication.job_id == JobSearchResult.job_id)
         result_count = result_count.join(JobApplication, application_join).where(
             JobApplication.status == job_status)
         result_rows = result_rows.join(JobApplication, application_join).where(
             JobApplication.status == job_status)
     total = session.scalar(result_count) or 0
-    if profiles:
-        result_order = {
-            'posted': (JobSearchResult.posted_rank.desc(),
-                       ProfileJobMatch.match_score.desc().nullslast(),
-                       JobSearchResult.discovered_rank.desc(), JobSearchResult.title_sort,
-                       JobSearchResult.job_id, ProfileJobMatch.profile_id),
-            'discovered': (JobSearchResult.discovered_rank.desc(),
-                           ProfileJobMatch.match_score.desc().nullslast(),
-                           JobSearchResult.posted_rank.desc(), JobSearchResult.title_sort,
-                           JobSearchResult.job_id, ProfileJobMatch.profile_id),
-            'title': (JobSearchResult.title_sort, JobSearchResult.company_sort,
-                      JobSearchResult.job_id, ProfileJobMatch.profile_id),
-            'company': (JobSearchResult.company_sort, JobSearchResult.title_sort,
-                        JobSearchResult.job_id, ProfileJobMatch.profile_id),
-            'remote': (JobSearchResult.remote_sort, JobSearchResult.title_sort,
-                       JobSearchResult.job_id, ProfileJobMatch.profile_id),
-        }.get(search_sort, (
-            ProfileJobMatch.match_score.desc().nullslast(),
-            JobSearchResult.discovered_rank.desc(), JobSearchResult.posted_rank.desc(),
-            JobSearchResult.title_sort, JobSearchResult.job_id, ProfileJobMatch.profile_id,
-        ))
-    else:
-        result_order = {
-            'posted': (JobSearchResult.posted_rank.desc(), JobSearchResult.discovered_rank.desc(),
+    result_order = {
+        'posted': (JobSearchResult.posted_rank.desc(), JobSearchResult.discovered_rank.desc(),
+                   JobSearchResult.title_sort, JobSearchResult.job_id),
+        'discovered': (JobSearchResult.discovered_rank.desc(), JobSearchResult.posted_rank.desc(),
                        JobSearchResult.title_sort, JobSearchResult.job_id),
-            'discovered': (JobSearchResult.discovered_rank.desc(), JobSearchResult.posted_rank.desc(),
-                           JobSearchResult.title_sort, JobSearchResult.job_id),
-            'title': (JobSearchResult.title_sort, JobSearchResult.company_sort, JobSearchResult.job_id),
-            'company': (JobSearchResult.company_sort, JobSearchResult.title_sort, JobSearchResult.job_id),
-            'remote': (JobSearchResult.remote_sort, JobSearchResult.title_sort, JobSearchResult.job_id),
-        }.get(search_sort, (JobSearchResult.discovered_rank.desc(),
-                            JobSearchResult.posted_rank.desc(), JobSearchResult.title_sort,
-                            JobSearchResult.job_id))
+        'title': (JobSearchResult.title_sort, JobSearchResult.company_sort, JobSearchResult.job_id),
+        'company': (JobSearchResult.company_sort, JobSearchResult.title_sort, JobSearchResult.job_id),
+        'remote': (JobSearchResult.remote_sort, JobSearchResult.title_sort, JobSearchResult.job_id),
+    }.get(search_sort, (JobSearchResult.discovered_rank.desc(),
+                        JobSearchResult.posted_rank.desc(), JobSearchResult.title_sort,
+                        JobSearchResult.job_id))
     selected_rows = session.execute(result_rows.options(
         joinedload(Job.feed).joinedload(JobFeed.company),
         joinedload(Job.employer_company), selectinload(Job.locations),
     ).order_by(*result_order).offset(offset).limit(limit)).unique().all()
-    if profiles:
-        selected_results = [(row[0], row[1], row[2]) for row in selected_rows]
-    else:
-        selected_results = [(row[0], row[1], None) for row in selected_rows]
-    profiles_by_id = {item.id: item for item in profiles}
-    application_keys = [(match.profile_id, result.job_id) for result, _, match in selected_results
-                        if match is not None]
-    applications_by_key = {}
-    if application_keys:
-        application_filters = [and_(JobApplication.profile_id == p_id, JobApplication.job_id == j_id)
-                               for p_id, j_id in application_keys]
-        applications_by_key = {(item.profile_id, item.job_id): item for item in session.scalars(
-            select(JobApplication).where(or_(*application_filters)))}
+    selected_results = [(row[0], row[1], None) for row in selected_rows]
+    applications_by_job = {}
+    if tracking_profile and selected_results:
+        selected_job_ids = [result.job_id for result, _, _ in selected_results]
+        applications_by_job = {item.job_id: item for item in session.scalars(select(JobApplication).where(
+            JobApplication.profile_id == tracking_profile.id,
+            JobApplication.job_id.in_(selected_job_ids),
+        ))}
     items = []
     for result_row, job, match_row in selected_results:
         item = _job_json(job)
         item['match_kind'] = result_row.scope.get('match_kind')
         item['geography'] = result_row.scope
-        if match_row is not None:
-            current_profile = profiles_by_id[match_row.profile_id]
-            item['profile_match'] = _profile_match(job, current_profile, result_row.scope)
-            item['profile_id'] = current_profile.id
-            item['profile_name'] = current_profile.name
-            application = applications_by_key.get((current_profile.id, job.id))
+        if tracking_profile is not None:
+            item['profile_id'] = tracking_profile.id
+            item['profile_name'] = tracking_profile.name
+            application = applications_by_job.get(job.id)
             item['application'] = application_json(application) if application else None
         items.append(item)
     application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    if profiles:
+    if tracking_profile:
         count_statement = select(JobApplication.status, func.count()).select_from(
-            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(ProfileJobMatch, and_(
-                ProfileJobMatch.job_id == JobSearchResult.job_id, or_(*selected_match_filters)
-            )).join(JobApplication, and_(
-                JobApplication.profile_id == ProfileJobMatch.profile_id,
+            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(JobApplication, and_(
+                JobApplication.profile_id == tracking_profile.id,
                 JobApplication.job_id == JobSearchResult.job_id,
             )).where(JobSearchResult.snapshot_key == key, Job.is_active.is_(True))
         counts = session.execute(count_statement.group_by(JobApplication.status)).all()
         application_counts.update(dict(counts))
     payload = snapshot.payload or {}
-    if index_rebuilt:
-        session.commit()
     return {**payload, 'items': items, 'total': total, 'offset': offset, 'limit': limit,
-            'profile_id': profiles[0].id if len(profiles) == 1 else None,
-            'profile_ids': selected_ids, 'application_counts': application_counts,
+            'profile_id': tracking_profile.id if tracking_profile else None,
+            'profile_ids': [tracking_profile.id] if tracking_profile else [],
+            'application_counts': application_counts,
+            'search_mode': 'keyword' if normalized_query else 'browse',
             'snapshot_id': key, 'snapshot_stale': snapshot_stale}
 
 

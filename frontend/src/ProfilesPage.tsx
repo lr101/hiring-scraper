@@ -36,7 +36,7 @@ function ProfileOverviewPage() {
 
   return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-overview-page">
     <section className="profile-overview-heading"><div><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profiles</h1>
-      <p className="intro-copy">Keep separate profiles for different roles and compare their matching jobs.</p></div></section>
+      <p className="intro-copy">Save profile search areas and application context. Job search is ranked by text relevance, not by profile match scores.</p></div></section>
     {error && <div className="error-banner" role="alert">{error}</div>}
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profiles…</div> : <div className="profile-overview-grid">
       {profiles.map(profile => {
@@ -49,7 +49,7 @@ function ProfileOverviewPage() {
           </header>
           <div className="profile-overview-tags">{tags.map((tag, index) => <span key={`${tag}-${index}`}>{tag}</span>)}</div>
           <footer className="saved-profile-actions">
-            <a className="page-link" href={profileBoardLink(profile)}>View matches <span aria-hidden="true">→</span></a>
+            <a className="page-link" href={profileBoardLink(profile)}>View jobs in this area <span aria-hidden="true">→</span></a>
             <a className="page-link" href={`/applications?profile_id=${profile.id}`}>Applications <span aria-hidden="true">→</span></a>
             <a className="profile-edit-link" href={`/profile/${profile.id}/edit`}>Edit profile</a>
           </footer>
@@ -96,7 +96,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit`)
-      edit(saved); setNotice('Profile saved. You can now use it to find matching jobs.')
+      edit(saved); setNotice('Profile saved. Its search area is available on the jobs page.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save your profile.') }
     finally { setBusy(false) }
   }
@@ -200,7 +200,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
         <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
         {form.id && <div className="profile-editor-actions">
-          <a className="page-link" href={profileBoardLink(form)}>View matching jobs →</a>
+          <a className="page-link" href={profileBoardLink(form)}>View jobs in this area →</a>
           <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void removeProfile()}>Delete profile</button>
         </div>}
         <section className="cv-import"><h3>Start from your CV</h3><p className="muted">Paste CV text to suggest skills, then review the list above. The text is processed on this app’s server and is not saved or sent to an external AI service.</p>

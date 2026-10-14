@@ -1,0 +1,7 @@
+ARG POSTGIS_IMAGE=postgis/postgis:17-3.5
+FROM ${POSTGIS_IMAGE}
+
+# Keep PostGIS and add pgvector for indexed semantic retrieval.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-17-pgvector \
+    && rm -rf /var/lib/apt/lists/*

@@ -5,9 +5,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer,
-    JSON, String, Text, UniqueConstraint, delete, event, insert, inspect, select, text,
+    JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
+from pgvector.sqlalchemy import Vector
 
 
 def utcnow() -> datetime:
@@ -341,11 +342,16 @@ class JobSearchState(Base):
 class JobSearchSnapshot(Base):
     """A materialized, ordered result set for one normalized search request."""
     __tablename__ = "job_search_snapshots"
+    __table_args__ = (
+        Index("ix_job_search_snapshots_criteria_created", "criteria_hash", "created_at"),
+    )
 
     key: Mapped[str] = mapped_column(String(64), primary_key=True)
     generation: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    criteria_hash: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    is_prewarmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
 
 
 class JobSearchRefresh(Base):
@@ -360,6 +366,46 @@ class JobSearchRefresh(Base):
     requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     lease_token: Mapped[str | None] = mapped_column(String(36))
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    prewarm: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+
+
+class SemanticSearchDocument(Base):
+    """Current local-model vector for a searchable company or job record."""
+    __tablename__ = "semantic_search_documents"
+    __table_args__ = (
+        Index("ix_semantic_search_documents_entity_revision", "entity_type", "model_revision"),
+    )
+
+    entity_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    model_revision: Mapped[str] = mapped_column(String(128), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(Vector(384), nullable=False)
+    indexed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class SemanticSearchRefresh(Base):
+    """Durable queue for asynchronous vector indexing and record updates."""
+    __tablename__ = "semantic_search_refreshes"
+    __table_args__ = (
+        Index("ix_semantic_search_refresh_claim", "queued_at", "lease_until"),
+    )
+
+    entity_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    entity_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    lease_token: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class SemanticSearchIndexState(Base):
+    """Tracks when the initial vector backfill is complete for one model/type."""
+    __tablename__ = "semantic_search_index_state"
+
+    entity_type: Mapped[str] = mapped_column(String(16), primary_key=True)
+    model_revision: Mapped[str] = mapped_column(String(128), primary_key=True)
+    backfill_complete: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class JobSearchResult(Base):

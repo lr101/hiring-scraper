@@ -1,6 +1,8 @@
 """Database connection and session helpers."""
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 from collections.abc import Generator
 
@@ -45,6 +47,100 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        snapshot_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshots')}
+        if 'criteria_hash' not in snapshot_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE job_search_snapshots ADD COLUMN criteria_hash VARCHAR(64) NOT NULL DEFAULT ''")
+        if 'is_prewarmed' not in snapshot_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE job_search_snapshots ADD COLUMN is_prewarmed BOOLEAN NOT NULL DEFAULT 0")
+        refresh_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshot_refreshes')}
+        if 'prewarm' not in refresh_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE job_search_snapshot_refreshes ADD COLUMN prewarm BOOLEAN NOT NULL DEFAULT 0")
+        for snapshot_key, payload in connection.exec_driver_sql(
+                "SELECT key, payload FROM job_search_snapshots").all():
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue
+            criteria = payload.get('criteria') if isinstance(payload, dict) else None
+            if not isinstance(criteria, dict):
+                continue
+            stable = {name: value for name, value in criteria.items() if name != 'freshness_bucket'}
+            signature = hashlib.sha256(json.dumps(
+                stable, sort_keys=True, ensure_ascii=False, separators=(',', ':')
+            ).encode('utf-8')).hexdigest()
+            connection.exec_driver_sql(
+                "UPDATE job_search_snapshots SET criteria_hash=? WHERE key=? AND criteria_hash=''",
+                (signature, snapshot_key))
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_job_search_snapshots_criteria_created "
+            "ON job_search_snapshots (criteria_hash, created_at)")
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS companies_semantic_refresh_insert
+            AFTER INSERT ON companies BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'company' AND entity_id = NEW.id;
+                INSERT INTO semantic_search_refreshes(entity_type, entity_id, queued_at)
+                VALUES ('company', NEW.id, CURRENT_TIMESTAMP)
+                ON CONFLICT(entity_type, entity_id) DO UPDATE SET
+                    queued_at = excluded.queued_at, lease_token = NULL, lease_until = NULL;
+            END
+        """)
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS companies_semantic_refresh_update
+            AFTER UPDATE OF name, domain, category, state, location_label ON companies BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'company' AND entity_id = NEW.id;
+                INSERT INTO semantic_search_refreshes(entity_type, entity_id, queued_at)
+                VALUES ('company', NEW.id, CURRENT_TIMESTAMP)
+                ON CONFLICT(entity_type, entity_id) DO UPDATE SET
+                    queued_at = excluded.queued_at, lease_token = NULL, lease_until = NULL;
+            END
+        """)
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS jobs_semantic_refresh_insert
+            AFTER INSERT ON jobs BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'job' AND entity_id = NEW.id;
+                INSERT INTO semantic_search_refreshes(entity_type, entity_id, queued_at)
+                VALUES ('job', NEW.id, CURRENT_TIMESTAMP)
+                ON CONFLICT(entity_type, entity_id) DO UPDATE SET
+                    queued_at = excluded.queued_at, lease_token = NULL, lease_until = NULL;
+            END
+        """)
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS jobs_semantic_refresh_update
+            AFTER UPDATE OF title, description, location_text, is_remote, work_arrangement,
+                employment_type, schedule, department, seniority ON jobs BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'job' AND entity_id = NEW.id;
+                INSERT INTO semantic_search_refreshes(entity_type, entity_id, queued_at)
+                VALUES ('job', NEW.id, CURRENT_TIMESTAMP)
+                ON CONFLICT(entity_type, entity_id) DO UPDATE SET
+                    queued_at = excluded.queued_at, lease_token = NULL, lease_until = NULL;
+            END
+        """)
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS companies_semantic_purge
+            AFTER DELETE ON companies BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'company' AND entity_id = OLD.id;
+                DELETE FROM semantic_search_refreshes
+                 WHERE entity_type = 'company' AND entity_id = OLD.id;
+            END
+        """)
+        connection.exec_driver_sql("""
+            CREATE TRIGGER IF NOT EXISTS jobs_semantic_purge
+            AFTER DELETE ON jobs BEGIN
+                DELETE FROM semantic_search_documents
+                 WHERE entity_type = 'job' AND entity_id = OLD.id;
+                DELETE FROM semantic_search_refreshes
+                 WHERE entity_type = 'job' AND entity_id = OLD.id;
+            END
+        """)
         if 'job_applications' in set(inspect(connection).get_table_names()):
             application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
             if 'previous_status' not in application_columns:

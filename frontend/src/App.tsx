@@ -49,7 +49,7 @@ type Company = {
 }
 type CompanyDiscoveryFilter = 'all' | 'domain' | 'career' | 'feed' | 'jobs'
 type CompanySort = 'distance' | 'name'
-type JobSort = 'match' | 'posted' | 'discovered'
+type JobSort = 'posted' | 'discovered'
 type JobWorkStyleFilter = 'all' | 'hybrid' | 'onsite'
 type JobLocationScope = 'area' | 'remote' | 'area_remote'
 
@@ -98,9 +98,7 @@ type Job = {
   match_kind?: 'remote' | 'in_area' | 'employer_in_state' | 'employer_in_country'
 }
 
-type JobCounts = { source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number> }
-type JobCoverage = { source_count: number; note: string }
-type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string; snapshot_stale?: boolean }
+type JobsPage = { items: Job[]; total: number; total_is_upper_bound?: boolean; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string; snapshot_stale?: boolean; search_mode?: 'semantic' | 'keyword' | 'browse' | 'warming' }
 
 type LocationOption = {
   key: string
@@ -115,9 +113,8 @@ const NO_LOCATION: Location = {
 const PAGE_SIZE = 40
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const jobSortModes: { value: JobSort; label: string }[] = [
-  { value: 'match', label: 'Best match' },
   { value: 'posted', label: 'Posted date' },
-  { value: 'discovered', label: 'Discovered' },
+  { value: 'discovered', label: 'Recently found' },
 ]
 
 function apiUrl(path: string) {
@@ -195,10 +192,10 @@ function DirectoryPage() {
   const [companySort, setCompanySort] = useState<CompanySort>(params.get('company_sort') === 'name' ? 'name' : 'distance')
   const requestedJobSort = params.get('job_sort')
   const [jobSort, setJobSort] = useState<JobSort>(requestedJobSort === 'posted' || requestedJobSort === 'discovered'
-    ? requestedJobSort : requestedJobSort === 'newest' ? 'posted' : 'match')
+    ? requestedJobSort : requestedJobSort === 'newest' ? 'posted' : 'discovered')
   const requestedLocationScope = params.get('location_scope')
   const [jobLocationScope, setJobLocationScope] = useState<JobLocationScope>(['area', 'remote', 'area_remote'].includes(requestedLocationScope ?? '')
-    ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : (params.has('state') || params.has('country')) ? 'area_remote' : 'area')
+    ? requestedLocationScope as JobLocationScope : params.get('job_work_style') === 'remote' ? 'remote' : 'area_remote')
   const [jobWorkStyle, setJobWorkStyle] = useState<JobWorkStyleFilter>(['hybrid', 'onsite'].includes(params.get('job_work_style') ?? '')
     ? params.get('job_work_style') as JobWorkStyleFilter : 'all')
   const [profiles, setProfiles] = useState<Profile[]>([])
@@ -207,17 +204,11 @@ function DirectoryPage() {
   const [activeProfileIds, setActiveProfileIds] = useState<number[]>(() => {
     const requested = requestedProfileIds !== null ? requestedProfileIds.split(',')
       : params.has('profile_id') ? [params.get('profile_id') ?? ''] : []
-    return [...new Set(requested.map(Number).filter(value => Number.isSafeInteger(value) && value > 0))]
+    return [...new Set(requested.map(Number).filter(value => Number.isSafeInteger(value) && value > 0))].slice(0, 1)
   })
   const profileId = String(activeProfileIds[0] ?? '')
-  const activeProfileKey = activeProfileIds.join(',')
-  const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
-  const [coverage, setCoverage] = useState<JobCoverage | null>(null)
-  const [counts, setCounts] = useState<JobCounts | null>(null)
   const [jobApplicationCounts, setJobApplicationCounts] = useState<Record<ApplicationStatus, number>>(() =>
     Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
-  const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
-  const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
   const [jobStatusFilter, setJobStatusFilter] = useState<ApplicationStatus | ''>(() =>
     applicationStatuses.find(item => item.value === params.get('job_status'))?.value ?? '')
   const [tab, setTab] = useState<'companies' | 'jobs'>(params.get('view') === 'jobs' ? 'jobs' : 'companies')
@@ -225,6 +216,7 @@ function DirectoryPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [companyTotal, setCompanyTotal] = useState(0)
   const [jobTotal, setJobTotal] = useState(0)
+  const [jobTotalIsUpperBound, setJobTotalIsUpperBound] = useState(false)
   const [summary, setSummary] = useState({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
   const [offset, setOffset] = useState(0)
   const [jobReloadKey, setJobReloadKey] = useState(0)
@@ -234,11 +226,14 @@ function DirectoryPage() {
   const [error, setError] = useState('')
   const [trackingError, setTrackingError] = useState('')
   const [trackingNotice, setTrackingNotice] = useState('')
+  const [semanticFallback, setSemanticFallback] = useState(false)
   const [swipeSavingJobId, setSwipeSavingJobId] = useState<number | null>(null)
   const swipeRequestToken = useRef(0)
   const profileSelectionToken = useRef(0)
   const jobSnapshotRef = useRef<{ criteria: string; id: string } | null>(null)
   const snapshotStaleRef = useRef(false)
+  const snapshotRefreshPollRef = useRef(false)
+  const loadedCompanyCriteriaRef = useRef<string | null>(null)
   const priorJobCriteriaRef = useRef<string | null>(null)
   snapshotStaleRef.current = snapshotStale
   const requestOffset = tab === 'companies' ? offset : 0
@@ -270,8 +265,8 @@ function DirectoryPage() {
       const requested = requestedProfileIds !== null ? requestedProfileIds.split(',').map(Number)
         : params.has('profile_id') ? [Number(params.get('profile_id'))] : null
       const selectedIds = requested !== null
-        ? [...new Set(requested.filter((id: number) => Number.isSafeInteger(id) && id > 0 && validIds.has(id)))]
-        : !(params.has('state') || params.has('country')) ? allProfileIds : []
+        ? [...new Set(requested.filter((id: number) => Number.isSafeInteger(id) && id > 0 && validIds.has(id)))].slice(0, 1)
+        : !(params.has('state') || params.has('country')) ? allProfileIds.slice(0, 1) : []
       const selected = data.items.find((item: Profile) => item.id === selectedIds[0])
       if (selected) {
         applyProfile(selected, params)
@@ -290,8 +285,12 @@ function DirectoryPage() {
     : new URLSearchParams(),
   [location, radius, params, selectedLocationKey, selectedProfile?.search_area?.country_code])
   const jobSnapshotCriteria = JSON.stringify([
-    activeProfileKey, minimumScore, includeUnknown, requestQuery, locationParams.toString(),
-    jobLocationScope, jobWorkStyle, jobSort,
+    requestQuery, locationParams.toString(), jobLocationScope, jobWorkStyle, jobSort,
+  ])
+  const companyRefreshCriteria = JSON.stringify([
+    locationParams.toString(), requestOffset,
+    location.search_scope === 'country' || location.search_scope === 'state' ? 'name' : companySort,
+    companyFilter, requestQuery,
   ])
   const jobCriteriaChanged = priorJobCriteriaRef.current !== null &&
     priorJobCriteriaRef.current !== jobSnapshotCriteria
@@ -368,19 +367,27 @@ function DirectoryPage() {
   }, [profilesReady])
 
   const loadData = useCallback(async (signal: AbortSignal) => {
-    if (!profilesReady || !locationsReady) return
+    if (!profilesReady || !locationsReady) {
+      snapshotRefreshPollRef.current = false
+      return
+    }
     setError('')
     if (!selectedLocationKey) {
       setCompanies([]); setCompanyTotal(0); setJobs([]); setJobTotal(0)
+      setJobTotalIsUpperBound(false)
       setSummary({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
-      setCounts(null); setCoverage(null)
       setJobApplicationCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
       setSnapshotStale(false)
       setSnapshotRefreshTick(0)
+      snapshotRefreshPollRef.current = false
       setLoading(false)
       return
     }
     if (!snapshotStaleRef.current) setLoading(true)
+    const isSnapshotRefreshPoll = snapshotRefreshPollRef.current
+    snapshotRefreshPollRef.current = false
+    const refreshOnly = isSnapshotRefreshPoll && snapshotStaleRef.current && !jobCriteriaChanged &&
+      loadedCompanyCriteriaRef.current === companyRefreshCriteria
     const companyParams = new URLSearchParams(locationParams)
     companyParams.set('offset', String(requestOffset))
     companyParams.set('limit', String(PAGE_SIZE))
@@ -395,20 +402,15 @@ function DirectoryPage() {
     jobParams.set('limit', String(tab === 'jobs' ? PAGE_SIZE : 1))
     if (jobWorkStyle !== 'all') jobParams.set('work_style', jobWorkStyle)
     if (requestQuery) jobParams.set('query', requestQuery)
-    const selectedProfiles = profiles.filter(profile => activeProfileIds.includes(profile.id!))
-    if (selectedProfiles.length) {
-      jobParams.set('profile_ids', selectedProfiles.map(profile => profile.id).join(','))
-      jobParams.set('min_match_score', minimumScore)
-      jobParams.set('include_unknown', String(includeUnknown))
-      if (jobStatusFilter) jobParams.set('job_status', jobStatusFilter)
-    }
+    if (profileId) jobParams.set('profile_id', profileId)
+    if (profileId && jobStatusFilter) jobParams.set('job_status', jobStatusFilter)
     const cachedSnapshot = jobSnapshotRef.current
     if (cachedSnapshot?.criteria === jobSnapshotCriteria) jobParams.set('snapshot_id', cachedSnapshot.id)
     try {
       const [companyResponse, jobsResponse, summaryResponse] = await Promise.all([
-        fetch(apiUrl(`/api/v1/companies?${companyParams}`), { signal }),
+        refreshOnly ? Promise.resolve(null) : fetch(apiUrl(`/api/v1/companies?${companyParams}`), { signal }),
         fetch(apiUrl(`/api/v1/jobs?${jobParams}`), { signal }),
-        fetch(apiUrl(`/api/v1/summary?${locationParams}`), { signal }),
+        refreshOnly ? Promise.resolve(null) : fetch(apiUrl(`/api/v1/summary?${locationParams}`), { signal }),
       ])
       if (jobsResponse.status === 409 && jobParams.has('snapshot_id')) {
         jobSnapshotRef.current = null
@@ -418,16 +420,25 @@ function DirectoryPage() {
         setJobReloadKey(value => value + 1)
         return
       }
-      if (!companyResponse.ok || !jobsResponse.ok || !summaryResponse.ok) {
-        const failedResponse = !companyResponse.ok ? companyResponse : !jobsResponse.ok ? jobsResponse : summaryResponse
+      const failedResponse = (companyResponse && !companyResponse.ok) ? companyResponse
+        : !jobsResponse.ok ? jobsResponse
+          : (summaryResponse && !summaryResponse.ok) ? summaryResponse : null
+      if (failedResponse) {
         const errorBody = await failedResponse.json().catch(() => ({})) as { detail?: unknown }
         throw new Error(typeof errorBody.detail === 'string' ? errorBody.detail : `Could not load company and job results (error ${failedResponse.status}).`)
       }
-      const [companyPage, jobPage, summaryData] = await Promise.all([
-        companyResponse.json(), jobsResponse.json() as Promise<JobsPage>, summaryResponse.json(),
-      ])
-      setCompanies(companyPage.items)
-      setCompanyTotal(companyPage.total)
+      const jobPage = await jobsResponse.json() as JobsPage
+      if (!refreshOnly) {
+        const [companyPage, summaryData] = await Promise.all([
+          companyResponse!.json(), summaryResponse!.json(),
+        ])
+        setCompanies(companyPage.items)
+        setCompanyTotal(companyPage.total)
+        setSummary(summaryData)
+        loadedCompanyCriteriaRef.current = companyRefreshCriteria
+        setSemanticFallback(Boolean(requestQuery &&
+          (companyPage.search_mode === 'keyword' || jobPage.search_mode === 'keyword')))
+      }
       setJobs(jobPage.items)
       setSnapshotStale(Boolean(jobPage.snapshot_stale))
       if (jobPage.snapshot_stale) {
@@ -440,19 +451,21 @@ function DirectoryPage() {
           : null
       }
       setJobTotal(jobPage.total)
-      setSummary(summaryData)
-      setCounts(jobPage.counts ?? null)
-      setCoverage(jobPage.coverage ?? null)
+      setJobTotalIsUpperBound(Boolean(jobPage.total_is_upper_bound))
       setJobApplicationCounts(jobPage.application_counts ?? Object.fromEntries(
         applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
     } catch (exception) {
-      if (!signal.aborted) setError(exception instanceof Error ? exception.message : 'Could not load company and job results.')
+      if (!signal.aborted) {
+        setError(exception instanceof Error ? exception.message : 'Could not load company and job results.')
+        if (snapshotStaleRef.current) setSnapshotRefreshTick(value => value + 1)
+      }
     } finally {
       if (!signal.aborted) setLoading(false)
     }
   }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, jobSort, jobStatusFilter, locationParams,
-    requestOffset, jobRequestOffset, requestQuery, jobSnapshotCriteria, tab, activeProfileKey, activeProfileIds, profiles,
-    minimumScore, includeUnknown, profilesReady, locationsReady, selectedLocationKey, jobReloadKey])
+    requestOffset, jobRequestOffset, requestQuery, jobSnapshotCriteria, tab, profileId,
+    profilesReady, locationsReady, selectedLocationKey, jobReloadKey,
+    companyRefreshCriteria])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -463,7 +476,10 @@ function DirectoryPage() {
   useEffect(() => {
     if (!snapshotStale) return
     const delay = Math.min(1500 * (2 ** Math.min(snapshotRefreshTick, 4)), 15000)
-    const timer = window.setTimeout(() => setJobReloadKey(value => value + 1), delay)
+    const timer = window.setTimeout(() => {
+      snapshotRefreshPollRef.current = true
+      setJobReloadKey(value => value + 1)
+    }, delay)
     return () => window.clearTimeout(timer)
   }, [snapshotStale, snapshotRefreshTick, jobSnapshotCriteria])
 
@@ -498,7 +514,7 @@ function DirectoryPage() {
     else url.searchParams.delete('company_filter')
     if (companySort !== 'distance') url.searchParams.set('company_sort', companySort)
     else url.searchParams.delete('company_sort')
-    if (jobSort !== 'match') url.searchParams.set('job_sort', jobSort)
+    if (jobSort !== 'discovered') url.searchParams.set('job_sort', jobSort)
     else url.searchParams.delete('job_sort')
     if (jobWorkStyle !== 'all') url.searchParams.set('job_work_style', jobWorkStyle)
     else url.searchParams.delete('job_work_style')
@@ -506,27 +522,28 @@ function DirectoryPage() {
     else url.searchParams.delete('location_scope')
     if (tab !== 'companies') url.searchParams.set('view', tab)
     else url.searchParams.delete('view')
-    if (activeProfileIds.length) {
-      url.searchParams.set('profile_ids', activeProfileKey)
-      url.searchParams.set('profile_id', profileId)
-      url.searchParams.set('min_match_score', minimumScore)
-      url.searchParams.set('include_unknown', String(includeUnknown))
-    } else {
-      url.searchParams.delete('profile_id'); url.searchParams.delete('profile_ids')
-      url.searchParams.delete('min_match_score'); url.searchParams.delete('include_unknown')
-    }
+    if (profileId) url.searchParams.set('profile_id', profileId)
+    else url.searchParams.delete('profile_id')
+    url.searchParams.delete('profile_ids')
+    url.searchParams.delete('min_match_score')
+    url.searchParams.delete('include_unknown')
     if (jobStatusFilter) url.searchParams.set('job_status', jobStatusFilter)
     else url.searchParams.delete('job_status')
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, activeProfileIds, activeProfileKey, minimumScore, includeUnknown, jobStatusFilter, profilesReady, locationsReady])
+  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, jobStatusFilter, profilesReady, locationsReady])
 
   function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
     if (profile.id == null) return
-    const defaults = profileBoardDefaults(profile, overrides)
+    const profileLocationKey = `profile:${profile.id}`
+    const defaults = profileBoardDefaults(
+      profile,
+      overrides.get('location_key') === profileLocationKey ? new URLSearchParams() : overrides,
+    )
     swipeRequestToken.current += 1
     profileSelectionToken.current += 1
     setSwipeSavingJobId(null)
-    setActiveProfileIds([profile.id]); setMinimumScore(defaults.minimumScore); setIncludeUnknown(defaults.includeUnknown)
+    setActiveProfileIds([profile.id])
+    setJobStatusFilter('')
     setJobs([])
     if (defaults.location) { setLocation(defaults.location); setSelectedLocationKey(`profile:${profile.id}`) }
     else if (selectedLocationKey.startsWith('profile:')) {
@@ -538,61 +555,28 @@ function DirectoryPage() {
     setRadius(defaults.radius)
     setOffset(0)
   }
-  function profileScopeOverrides() {
-    return location.search_scope === 'country' ? new URLSearchParams({ country: 'DE' })
-      : location.search_scope === 'state' && location.state ? new URLSearchParams({ state: location.state })
-        : new URLSearchParams()
-  }
   function invalidateProfileRequests() {
     swipeRequestToken.current += 1
     profileSelectionToken.current += 1
     setSwipeSavingJobId(null)
     setJobs([])
   }
-  function syncProfileLocation(nextIds: number[]) {
-    if (!selectedLocationKey.startsWith('profile:')) return
-    const locationOwner = Number(selectedLocationKey.slice('profile:'.length))
-    if (nextIds.includes(locationOwner)) return
-    const nextProfile = profiles.find(profile => profile.id === nextIds[0])
-    const area = nextProfile?.search_area
-    if (nextProfile && area?.latitude != null && area.longitude != null) {
-      setSelectedLocationKey(`profile:${nextProfile.id}`)
-      setLocation({ ...area, latitude: area.latitude, longitude: area.longitude, precision: 'profile_search_area' })
-      setRadius(area.radius_km)
-      return
+  function selectSearchProfile(value: string) {
+    const profile = profiles.find(item => String(item.id) === value)
+    if (profile) {
+      applyProfile(profile)
+    } else {
+      invalidateProfileRequests()
+      setActiveProfileIds([])
+      setJobStatusFilter('')
+      if (selectedLocationKey.startsWith('profile:')) {
+        const configured = locationOptions[0]
+        setSelectedLocationKey(configured?.key ?? '')
+        setLocation(configured?.location ?? NO_LOCATION)
+        if (configured) setRadius(configured.radius_km)
+      }
+      setOffset(0)
     }
-    const configured = locationOptions[0]
-    setSelectedLocationKey(configured?.key ?? '')
-    setLocation(configured?.location ?? NO_LOCATION)
-    if (configured) setRadius(configured.radius_km)
-  }
-  function clearProfileFilters() {
-    invalidateProfileRequests()
-    setActiveProfileIds([])
-    setJobStatusFilter('')
-    syncProfileLocation([])
-    setOffset(0)
-  }
-  function selectAllProfiles() {
-    if (!profiles.length) return
-    const selected = profiles.find(profile => profile.id === activeProfileIds[0]) ?? profiles[0]
-    if (!activeProfileIds.length) applyProfile(selected, profileScopeOverrides())
-    else invalidateProfileRequests()
-    setActiveProfileIds(profiles.flatMap(profile => profile.id == null ? [] : [profile.id]))
-    setJobStatusFilter('')
-    setOffset(0)
-  }
-  function toggleProfileFilter(id: number) {
-    const nextIds = activeProfileIds.includes(id)
-      ? activeProfileIds.filter(profileId => profileId !== id)
-      : [...activeProfileIds, id].sort((a, b) => profiles.findIndex(profile => profile.id === a) - profiles.findIndex(profile => profile.id === b))
-    const profile = profiles.find(item => item.id === id)
-    if (!activeProfileIds.length && profile) applyProfile(profile, profileScopeOverrides())
-    else invalidateProfileRequests()
-    setActiveProfileIds(nextIds)
-    setJobStatusFilter('')
-    syncProfileLocation(nextIds)
-    setOffset(0)
   }
   function cycleJobSort() {
     const index = jobSortModes.findIndex(item => item.value === jobSort)
@@ -741,10 +725,10 @@ function DirectoryPage() {
           <div className="directory-header">
             <div>
               <p className="eyebrow">YOUR RESULTS</p>
-              <h2>{tab === 'jobs' ? profileId ? 'Best matches near you' : 'Jobs around you' : 'What’s nearby'}</h2>
+              <h2>{tab === 'jobs' ? 'Jobs around you' : 'What’s nearby'}</h2>
             </div>
             <label className="table-search"><Icon name="search" size={17} />
-              <input aria-label="Filter results" value={query} onChange={event => { setQuery(event.target.value); setOffset(0) }} placeholder="Search name or role" />
+              <input aria-label="Search results" value={query} onChange={event => { setQuery(event.target.value); setOffset(0) }} placeholder="Search companies or job text" />
               {query && <button type="button" aria-label="Clear search" onClick={() => setQuery('')}><Icon name="close" size={15} /></button>}
             </label>
           </div>
@@ -770,28 +754,33 @@ function DirectoryPage() {
                   <option value="jobs">Open jobs found</option>
                 </select>
                 </label>
-                <label className="sorting-control"><span>Sort</span>
+                {!requestQuery && <label className="sorting-control"><span>Sort</span>
                   <select aria-label="Sort companies" value={wholeState ? 'name' : companySort}
                     onChange={event => { setCompanySort(event.target.value as CompanySort); setOffset(0) }}>
                     {!wholeState && <option value="distance">Closest first</option>}
                     <option value="name">Name A–Z</option>
                   </select>
-                </label>
+                </label>}
               </> : null}
               <div className="result-context"><span className="context-dot" /> {wholeState ? `${locality} · employer sources` : tab === 'jobs' ? jobLocationScope === 'remote' ? 'Remote roles only' : jobLocationScope === 'area_remote' ? `${locality} + remote` : `${locality} · ${radius} km` : `Company websites · ${radius} km`}</div>
             </div>
           </div>
 
           {tab === 'jobs' && <section className="job-feed-filters" aria-label="Filter job results">
-            {profiles.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Filter by profile">
-              <span className="job-feed-filter-label">Profiles</span><div className="job-feed-chip-list">
-                <button type="button" className={`application-filter-chip ${activeProfileIds.length === 0 ? 'selected' : ''}`}
-                  aria-pressed={activeProfileIds.length === 0} onClick={clearProfileFilters}>All jobs</button>
-                <button type="button" className={`application-filter-chip ${allProfilesActive ? 'selected' : ''}`}
-                  aria-pressed={allProfilesActive} onClick={selectAllProfiles}>All profiles</button>
-                {profiles.map(profile => <button type="button" key={profile.id}
-                  className={`application-filter-chip ${activeProfileIds.includes(profile.id!) ? 'selected' : ''}`}
-                  aria-pressed={activeProfileIds.includes(profile.id!)} onClick={() => toggleProfileFilter(profile.id!)}>{profile.name}</button>)}
+            {profiles.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Choose application profile">
+              <label className="job-feed-filter-label" htmlFor="search-profile">Profile context</label>
+              <div className="job-feed-chip-list">
+                <select id="search-profile" aria-label="Profile for saved area and application tracking" value={profileId}
+                  className="application-profile-context"
+                  onChange={event => selectSearchProfile(event.target.value)}>
+                  <option value="">Location only</option>
+                  {profiles.map(profile => {
+                    const area = profile.search_area
+                    const areaLabel = area?.city || area?.label || 'No saved area'
+                    return <option key={profile.id} value={profile.id}>{profile.name} · {areaLabel}</option>
+                  })}
+                </select>
+                {profileId && <a className="job-feed-inline-link" href="/profile">Edit profiles</a>}
               </div>
             </div>}
             {activeProfileIds.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Filter by application stage">
@@ -825,40 +814,17 @@ function DirectoryPage() {
                 ] as [JobWorkStyleFilter, string][]).map(([value, label]) => <button type="button" key={value}
                   className={`application-filter-chip ${jobWorkStyle === value ? 'selected' : ''}`}
                   aria-pressed={jobWorkStyle === value} onClick={() => { setJobWorkStyle(value); setOffset(0) }}>{label}</button>)}
-                {activeProfileIds.length > 0 && <>
-                  <span className="job-feed-filter-label job-feed-inline-label">Overlap</span>
-                  {(['0', '30', '65'] as const).map(value => <button type="button" key={value}
-                    className={`application-filter-chip ${minimumScore === value ? 'selected' : ''}`}
-                    aria-pressed={minimumScore === value} onClick={() => { setMinimumScore(value); setOffset(0) }}>
-                    {value === '0' ? 'Any match' : value === '30' ? 'Some overlap' : 'Strong overlap'}
-                  </button>)}
-                  {!['0', '30', '65'].includes(minimumScore) && <button type="button" className="application-filter-chip selected"
-                    aria-pressed="true" onClick={() => { setMinimumScore('0'); setOffset(0) }}>{minimumScore}+ overlap</button>}
-                  <button type="button" className={`application-filter-chip ${includeUnknown ? 'selected' : ''}`}
-                    aria-pressed={includeUnknown} onClick={() => { setIncludeUnknown(value => !value); setOffset(0) }}>Include unknown</button>
-                </>}
-                <button type="button" className="application-sort-cycle job-feed-sort" onClick={cycleJobSort}
+                {!requestQuery && <button type="button" className="application-sort-cycle job-feed-sort" onClick={cycleJobSort}
                   aria-label={`Sort by ${jobSortModes.find(item => item.value === jobSort)?.label}. Tap to switch to ${jobSortModes[(jobSortModes.findIndex(item => item.value === jobSort) + 1) % jobSortModes.length].label}.`}
-                  title="Tap to change sort order">Sort: {jobSortModes.find(item => item.value === jobSort)?.label} <span aria-hidden="true">↻</span></button>
-                {activeProfileIds.length > 0 && <a className="job-feed-inline-link" href="/profile">Edit profiles</a>}
+                  title="Tap to change sort order">Sort: {jobSortModes.find(item => item.value === jobSort)?.label} <span aria-hidden="true">↻</span></button>}
               </div>
             </div>
           </section>}
 
           {trackingError && <div className="tracking-error-note" role="status">{trackingError}<button type="button" onClick={() => setTrackingError('')}>Dismiss</button></div>}
           {trackingNotice && <p className="evidence-note" role="status">{trackingNotice}</p>}
-          {tab === 'jobs' && activeProfileIds.length > 0 && <div className="board-coverage" aria-live="polite">
-            <div className="board-tiers"><strong>{counts?.recommended ?? '—'} recommended matches</strong><span>{counts?.possible ?? '—'} possible leads</span><span>{counts?.unlikely ?? '—'} with little match evidence</span></div>
-            <details className="coverage-more">
-              <summary>How matches work</summary>
-              <div>
-                <p>Scores measure overlap with selected profiles, never a hiring probability. Recommended matches have stronger evidence; possible leads may need a closer look at qualifications, location, or missing details.</p>
-                {counts && <p>{counts.source} source records · {counts.scoped} in scope · {counts.duplicates_removed} duplicates removed · {counts.filtered.below_score} below your overlap filter · {counts.filtered.expired} expired · {counts.filtered.remote_country} incompatible remote country</p>}
-                {coverage && <p>{coverage.source_count} observed job feeds. {coverage.note}</p>}
-                <button type="button" className="broaden-button" onClick={() => { setMinimumScore('0'); setIncludeUnknown(true); setOffset(0) }}>Broaden to all eligible leads</button>
-              </div>
-            </details>
-          </div>}
+          {semanticFallback && requestQuery && <p className="evidence-note" role="status">Local semantic search is starting. Keyword results are shown until the embedding index is ready.</p>}
+          {tab === 'jobs' && profiles.length > 0 && <p className="evidence-note">Profile context sets the saved area and where application stages are tracked. It does not filter jobs by match score.</p>}
           {snapshotStale && tab === 'jobs' && <p className="evidence-note snapshot-refresh-note" role="status">
             Updating job results in the background.
           </p>}
@@ -891,12 +857,14 @@ function DirectoryPage() {
                   disabled={!job.profile_id || swipeSavingJobId !== null} saving={swipeSavingJobId === job.id}
                   onAction={action => { void changeJobApplication(job, action) }} onOpenOriginal={() => { void trackOpenedPost(job) }} />
               })}
-              {jobTotal === 0 && <EmptyState title={jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'} body={jobStatusFilter ? 'Choose another stage or view all matching jobs.' : jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
+              {jobTotal === 0 && <EmptyState
+                title={snapshotStale ? 'Preparing your job search' : jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'}
+                body={snapshotStale ? 'The saved area search is being refreshed in the background. Results will appear here automatically.' : jobStatusFilter ? 'Choose another stage or view all jobs in this area.' : jobLocationScope === 'remote' ? 'Try adjusting the location or search text for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting the search text for jobs in this area or remote roles.' : 'Try adjusting the search text for jobs in this area.'} />}
             </div>
           )}
 
           <div className="table-footer">
-            <span>Showing <strong>{activeTotal ? offset + 1 : 0}–{Math.min(offset + PAGE_SIZE, activeTotal)}</strong> of <strong>{activeTotal.toLocaleString('en')}</strong></span>
+            <span>Showing <strong>{activeTotal ? offset + 1 : 0}–{Math.min(offset + PAGE_SIZE, activeTotal)}</strong> of {tab === 'jobs' && jobTotalIsUpperBound ? 'up to ' : ''}<strong>{activeTotal.toLocaleString('en')}</strong></span>
             <div className="pagination"><button type="button" disabled={offset === 0 || loading} onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>Previous</button><span>{pageNumber} / {pageCount}</span><button type="button" disabled={offset + PAGE_SIZE >= activeTotal || loading} onClick={() => setOffset(offset + PAGE_SIZE)}>Next</button></div>
           </div>
         </section>

@@ -84,6 +84,7 @@ state_api_pid=
 state_web_pid=
 state_worker_pid=
 state_feed_worker_pid=
+state_search_worker_pid=
 state_api_port=
 state_web_port=
 state_database=
@@ -107,6 +108,7 @@ load_state() {
       web_pid) state_web_pid=$value ;;
       worker_pid) state_worker_pid=$value ;;
       feed_worker_pid) state_feed_worker_pid=$value ;;
+      search_worker_pid) state_search_worker_pid=$value ;;
       api_port) state_api_port=$value ;;
       web_port) state_web_port=$value ;;
       database) state_database=$value ;;
@@ -138,6 +140,7 @@ write_state() {
     printf 'web_pid=%s\n' "$web_pid"
     printf 'worker_pid=%s\n' "$worker_pid"
     printf 'feed_worker_pid=%s\n' "$feed_worker_pid"
+    printf 'search_worker_pid=%s\n' "$search_worker_pid"
     printf 'api_port=%s\n' "$api_port"
     printf 'web_port=%s\n' "$web_port"
     printf 'database=%s\n' "$database_path"
@@ -162,6 +165,7 @@ process_group_matches() {
     web) [[ "$command_line" == *"vite"* && "$command_line" == *"preview"* ]] ;;
     worker) [[ "$command_line" == *"hiring_scraper.app.discovery_worker"* ]] ;;
     feed_worker) [[ "$command_line" == *"hiring_scraper.app.worker"* ]] ;;
+    search_worker) [[ "$command_line" == *"hiring_scraper.app.search_snapshot_worker"* ]] ;;
     *) return 1 ;;
   esac
 }
@@ -242,6 +246,11 @@ if [[ "$action" == status ]]; then
       else
         printf 'PREVIEW_SERVICE feed-worker not running\n'
       fi
+      if [[ -n "$state_search_worker_pid" ]] && process_group_matches "$state_search_worker_pid" search_worker; then
+        printf 'PREVIEW_SERVICE search-snapshot-worker running\n'
+      else
+        printf 'PREVIEW_SERVICE search-snapshot-worker not running\n'
+      fi
       if [[ "$state_public_verified" == yes ]]; then
         printf 'PREVIEW_URL web %s/\n' "$web_url"
         printf 'PREVIEW_URL api %s/docs\n' "$api_url"
@@ -271,6 +280,7 @@ if [[ "$action" == stop ]]; then
   web_pid=$state_web_pid
   worker_pid=$state_worker_pid
   feed_worker_pid=$state_feed_worker_pid
+  search_worker_pid=$state_search_worker_pid
   api_port=$state_api_port
   web_port=$state_web_port
   database_path=$state_database
@@ -278,6 +288,7 @@ if [[ "$action" == stop ]]; then
   write_state stopping
   terminate_group "$state_worker_pid" worker
   terminate_group "$state_feed_worker_pid" feed_worker
+  terminate_group "$state_search_worker_pid" search_worker
   terminate_group "$state_api_pid" api
   terminate_group "$state_web_pid" web
   remove_route "$state_token"
@@ -289,6 +300,7 @@ if [[ "$action" == stop ]]; then
   web_pid=
   worker_pid=
   feed_worker_pid=
+  search_worker_pid=
   api_port=$state_api_port
   web_port=$state_web_port
   database_path=$state_database
@@ -329,6 +341,7 @@ api_pid=
 web_pid=
 worker_pid=
 feed_worker_pid=
+search_worker_pid=
 api_port=
 web_port=
 api_port_marker=
@@ -401,6 +414,7 @@ cleanup() {
   set +e
   if [[ -n "$worker_pid" ]]; then terminate_group "$worker_pid" worker; fi
   if [[ -n "$feed_worker_pid" ]]; then terminate_group "$feed_worker_pid" feed_worker; fi
+  if [[ -n "$search_worker_pid" ]]; then terminate_group "$search_worker_pid" search_worker; fi
   if [[ -n "$api_pid" ]]; then terminate_group "$api_pid" api; fi
   if [[ -n "$web_pid" ]]; then terminate_group "$web_pid" web; fi
   if [[ "$registered_route" == yes || "$route_claimed" == yes ]]; then remove_route "$route_token"; fi
@@ -433,11 +447,13 @@ api_log="$state_dir/api.log"
 web_log="$state_dir/web.log"
 worker_log="$state_dir/discovery-worker.log"
 feed_worker_log="$state_dir/feed-worker.log"
+search_worker_log="$state_dir/search-snapshot-worker.log"
 : > "$api_log"
 : > "$web_log"
 : > "$worker_log"
 : > "$feed_worker_log"
-chmod 600 "$api_log" "$web_log" "$worker_log" "$feed_worker_log"
+: > "$search_worker_log"
+chmod 600 "$api_log" "$web_log" "$worker_log" "$feed_worker_log" "$search_worker_log"
 
 (
   cd "$repo_root"
@@ -594,6 +610,31 @@ if [[ "$feed_worker_ready" != yes ]]; then
   die 'feed worker did not become ready'
 fi
 
+(
+  cd "$repo_root"
+  exec setsid env DATABASE_URL="$database_url" SEARCH_SNAPSHOT_POLL_SECONDS=1 \
+    mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker
+) >> "$search_worker_log" 2>&1 < /dev/null &
+search_worker_pid=$!
+write_state starting
+
+search_worker_ready=no
+for _ in $(seq 1 40); do
+  if ! process_group_matches "$search_worker_pid" search_worker; then
+    tail -n 80 "$search_worker_log" >&2 || true
+    die 'search snapshot worker exited during startup'
+  fi
+  if grep -Fq 'search snapshot worker started' "$search_worker_log"; then
+    search_worker_ready=yes
+    break
+  fi
+  sleep 0.25
+done
+if [[ "$search_worker_ready" != yes ]]; then
+  tail -n 80 "$search_worker_log" >&2 || true
+  die 'search snapshot worker did not become ready'
+fi
+
 write_state running
 wait_gateway() {
   local host=$1 path=$2
@@ -632,9 +673,11 @@ while true; do
     break
   fi
   if ! process_group_matches "$api_pid" api || ! process_group_matches "$web_pid" web || \
-     ! process_group_matches "$worker_pid" worker; then
+     ! process_group_matches "$worker_pid" worker || \
+     ! process_group_matches "$feed_worker_pid" feed_worker || \
+     ! process_group_matches "$search_worker_pid" search_worker; then
     adapter_state=failed
-    die 'a preview service exited unexpectedly; inspect api.log, web.log, or discovery-worker.log in the state directory'
+    die 'a preview service exited unexpectedly; inspect the service logs in the state directory'
   fi
   now=$(date +%s)
   if ((now - adapter_started_at >= max_seconds)); then

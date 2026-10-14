@@ -167,6 +167,7 @@ def _serve() -> int:
             ["python", "-m", "hiring_scraper.app.worker"],
             ["python", "-m", "hiring_scraper.app.discovery_worker"],
             ["python", "-m", "hiring_scraper.app.search_snapshot_worker"],
+            ["python", "-m", "hiring_scraper.app.semantic_search_worker"],
         ])
     commands.append(["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"])
 
