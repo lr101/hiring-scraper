@@ -116,12 +116,12 @@ EXPERIENCE_CONTEXT = (
 EXPERIENCE_PATTERN = re.compile(
     rf'\b(?:(?P<range_min>{EXPERIENCE_NUMBER})\s*(?:to|bis|[-–—])\s*'
     rf'(?P<range_max>{EXPERIENCE_NUMBER})\s*(?P<range_unit>{EXPERIENCE_UNIT})\b'
-    rf"(?:['’]s?)?(?:{EXPERIENCE_CONTEXT})?|"
+    rf"(?:['’]s?)?(?P<range_context>{EXPERIENCE_CONTEXT})?|"
     rf'(?:(?P<marker>at\s+least|minimum(?:\s+of)?|min\.?|mindestens|mind\.?|ab)\s*)?'
     rf'(?P<minimum>{EXPERIENCE_NUMBER})\s*(?P<plus>\+|plus)?\s*'
-    rf'(?P<minimum_unit>{EXPERIENCE_UNIT})\b(?:[\'’]s?)?(?:{EXPERIENCE_CONTEXT})?|'
+    rf'(?P<minimum_unit>{EXPERIENCE_UNIT})\b(?:[\'’]s?)?(?P<minimum_context>{EXPERIENCE_CONTEXT})?|'
     rf'(?P<adjective>{EXPERIENCE_NUMBER})(?:\s*-\s*years?|\s*-?\s*jährig(?:e|en|er|es|em)?)'
-    rf'(?:{EXPERIENCE_CONTEXT})?|'
+    rf'(?P<adjective_context>{EXPERIENCE_CONTEXT})?|'
     rf'(?P<reverse_term>berufserfahrung|praxiserfahrung|work(?:ing)?\s+experience|experience|erfahrung)'
     rf'\s+(?:of|von)\s+(?P<reverse_marker>at\s+least|minimum(?:\s+of)?|min\.?|mindestens|mind\.?|ab)?\s*'
     rf'(?P<reverse>{EXPERIENCE_NUMBER})\s*(?P<reverse_unit>{EXPERIENCE_UNIT})\b(?:[\'’]s?)?)', re.I)
@@ -562,6 +562,14 @@ def _experience_years(match) -> int | float | None:
     return int(number) if float(number).is_integer() else round(number, 2)
 
 
+def _is_experience_match(match) -> bool:
+    """Ignore bare durations unless the wording explicitly signals experience."""
+    context = any(match.group(name) for name in
+                  ('range_context', 'minimum_context', 'adjective_context', 'reverse_term'))
+    explicit_minimum = any(match.group(name) for name in ('marker', 'plus', 'reverse_marker'))
+    return bool(context or explicit_minimum)
+
+
 def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[dict], list[dict], list[dict]]:
     """Extract stated requirements from the sentence containing the evidence."""
     experience = None
@@ -582,7 +590,9 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 if DEGREE.search(base) and OPTIONAL.search(remainder):
                     clauses = _requirement_clauses(base) + _requirement_clauses(remainder)
             for clause in clauses:
-                for exp in EXPERIENCE_PATTERN.finditer(clause):
+                experience_matches = [exp for exp in EXPERIENCE_PATTERN.finditer(clause)
+                                      if _is_experience_match(exp)]
+                for exp in experience_matches:
                     minimum = bool(exp.group('range_max') or exp.group('marker') or
                                    exp.group('reverse_marker') or exp.group('plus'))
                     if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum)):
@@ -735,7 +745,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         found = next((hit for alias in aliases for hit in _pattern(alias).finditer(clause)
                                       if not any(start <= hit.start() and hit.end() <= end
                                                  for start, end in alternative_spans)), None)
-                        if found and (professional or not EXPERIENCE_PATTERN.search(clause)):
+                        if found and (professional or not experience_matches):
                             rows.append({**_evidence(name, clause, found, source),
                                          'kind': 'professional_experience' if professional else 'skill'})
                     for row in rows:

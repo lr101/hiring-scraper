@@ -67,11 +67,11 @@ class CvMatchingTests(unittest.TestCase):
                               'description': 'German C1 is a plus. Coordinate projects. ' * 15}, CV)
         self.assertTrue(optional['eligible'])
 
-    def test_vague_fluency_is_a_review_gap_with_known_b2(self):
+    def test_fluency_c1_floor_conflicts_with_known_b2(self):
         result = match_job({'title': 'Project Coordinator',
                             'description': 'Fluent German required. Coordinate projects. ' * 15}, CV)
-        self.assertTrue(result['eligible'])
-        self.assertTrue(any('German' in gap for gap in result['unknowns']))
+        self.assertFalse(result['eligible'])
+        self.assertTrue(any('German' in conflict and 'B2' in conflict for conflict in result['conflicts']))
 
     def test_optional_experience_and_employer_history_are_not_requirements(self):
         job = {'title': 'Project Coordinator', 'description':
@@ -89,6 +89,18 @@ class CvMatchingTests(unittest.TestCase):
         self.assertTrue(result['eligible'])
         self.assertIn('Profile experience not provided', result['unknowns'])
         self.assertTrue(any('PMP' in gap for gap in result['unknowns']))
+
+    def test_unrelated_required_duration_is_not_experience_or_a_skill_evidence_filter(self):
+        for duration_clause in ('willingness to travel for six months',
+                                'commitment to a three-year training program'):
+            with self.subTest(duration_clause=duration_clause):
+                job = {'title': 'Project Coordinator', 'description':
+                       f'Requirements: Python skills are required while {duration_clause}. '
+                       'Coordinate projects.'}
+                enriched = enrich_job(job)
+                self.assertIsNone(enriched['experience_years'])
+                self.assertTrue(any(row['value'] == 'Python' and row.get('kind') == 'skill'
+                                    for row in enriched['requirements']))
 
     def test_academic_skill_match_is_explained_as_academic(self):
         result = match_job({'title': 'Innovation Engineer',
@@ -249,13 +261,19 @@ class CvMatchingTests(unittest.TestCase):
                           {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
         self.assertEqual(excel['fit_tier'], 'possible')
 
-    def test_explicit_vague_fluency_requirements_stay_review_gaps(self):
+    def test_application_fluency_phrases_estimate_c1_c2(self):
         for wording in ('German fluency required.', 'Deutschkenntnisse fließend erforderlich.'):
             with self.subTest(wording=wording):
-                result = match_job({'title': 'Project Coordinator',
-                                    'description': (wording + ' Coordinate projects. ') * 12}, CV)
-                self.assertTrue(result['eligible'])
-                self.assertTrue(any('German fluency' in gap for gap in result['unknowns']))
+                job = {'title': 'Project Coordinator',
+                       'description': (wording + ' Coordinate projects. ') * 12}
+                enriched = enrich_job(job)
+                german = next(row for row in enriched['languages'] if row['value'] == 'German')
+                self.assertEqual(german['level'], 'C1')
+                self.assertEqual(german['level_range'], ['C1', 'C2'])
+                result = match_job(job, CV, enriched)
+                self.assertFalse(result['eligible'])
+                self.assertTrue(any('German' in conflict and 'B2' in conflict
+                                    for conflict in result['conflicts']))
 
     def test_benefit_clause_does_not_suppress_separate_required_language(self):
         for wording in ('We provide you with onboarding support, but German C1 is required.',
@@ -695,10 +713,12 @@ class CvMatchingTests(unittest.TestCase):
                'German fluency required and English and French A2 preferred.'}
         enriched = enrich_job(job)
         self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
-                         {'German': None})
-        result = match_job(job, CV, enriched)
+                         {'German': 'C1'})
+        self.assertEqual(next(row for row in enriched['languages'] if row['value'] == 'German')['level_range'],
+                         ['C1', 'C2'])
+        result = match_job(job, {**CV, 'language_levels': {'German': 'C2'}}, enriched)
         self.assertTrue(result['eligible'])
-        self.assertTrue(any('German fluency' in gap for gap in result['unknowns']))
+        self.assertFalse(any('German' in gap for gap in result['unknowns']))
         self.assertFalse(any('English fluency' in gap for gap in result['unknowns']))
 
 
