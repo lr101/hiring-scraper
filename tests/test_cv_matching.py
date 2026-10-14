@@ -504,12 +504,12 @@ class CvMatchingTests(unittest.TestCase):
                 self.assertEqual({row['value']: row['level'] for row in enriched['languages']},
                                  {'German': 'C1'})
 
-    def test_qualitative_german_and_english_levels_are_split_from_one_sentence(self):
+    def test_very_good_german_and_good_english_levels_are_split_from_one_sentence(self):
         enriched = enrich_job({'title': 'Project Manager', 'description':
                                'Du verfügst über sehr gute Deutsch- und gute Englischkenntnisse.'})
         languages = {row['value']: row for row in enriched['languages']}
-        self.assertEqual(languages['German']['level'], 'B2')
-        self.assertEqual(languages['German']['level_range'], ['B2', 'C1'])
+        self.assertEqual(languages['German']['level'], 'C1')
+        self.assertEqual(languages['German']['level_range'], ['C1', 'C2'])
         self.assertEqual(languages['English']['level'], 'B1')
         self.assertEqual(languages['English']['level_range'], ['B1', 'B2'])
 

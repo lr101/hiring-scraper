@@ -372,6 +372,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
         <Meta label="HOURS" value={job.schedule} />
         <Meta label="TEAM" value={job.department} />
         <Meta label="EXPERIENCE LEVEL" value={job.seniority} />
+        <Meta label="MINIMUM EXPERIENCE" value={job.enrichment.experience_years ? `${job.enrichment.experience_years.value} years` : null} />
         <Meta label="LANGUAGE REQUIREMENTS" value={languageRequirements} />
         <Meta label="POSTED" value={job.date_posted ? formatDate(job.date_posted) : null} />
         <Meta label="LAST SEEN" value={formatDate(job.last_seen_at)} />
