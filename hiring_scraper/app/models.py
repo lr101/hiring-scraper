@@ -5,9 +5,9 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer,
-    JSON, String, Text, UniqueConstraint, text,
+    JSON, String, Text, UniqueConstraint, delete, event, insert, inspect, select, text,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
 
 def utcnow() -> datetime:
@@ -20,7 +20,10 @@ class Base(DeclarativeBase):
 
 class Company(Base):
     __tablename__ = "companies"
-    __table_args__ = (UniqueConstraint("source", "source_id", name="uq_company_source_record"),)
+    __table_args__ = (
+        UniqueConstraint("source", "source_id", name="uq_company_source_record"),
+        Index("ix_companies_latitude_longitude", "latitude", "longitude"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     source: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
@@ -213,6 +216,8 @@ class Job(Base):
     __table_args__ = (
         UniqueConstraint("feed_id", "external_id", name="uq_job_feed_external_id"),
         Index("ix_jobs_remote_active", "is_remote", "is_active"),
+        Index("ix_jobs_active_id", "id", postgresql_where=text("is_active"),
+              sqlite_where=text("is_active = 1")),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -249,7 +254,10 @@ class Job(Base):
 
 class JobLocation(Base):
     __tablename__ = "job_locations"
-    __table_args__ = (Index("ix_job_locations_job_id", "job_id"),)
+    __table_args__ = (
+        Index("ix_job_locations_job_id", "job_id"),
+        Index("ix_job_locations_latitude_longitude", "latitude", "longitude"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
@@ -277,6 +285,7 @@ class UserProfile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
@@ -297,11 +306,116 @@ class JobApplication(Base):
     job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(24), nullable=False, default="new")
     previous_status: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    auto_created: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     profile: Mapped[UserProfile] = relationship(back_populates="applications")
     job: Mapped[Job] = relationship(back_populates="applications")
+
+
+class ProfileJobMatch(Base):
+    """Derived, rebuildable profile/job match data, separate from user tracking state."""
+    __tablename__ = "profile_job_matches"
+    __table_args__ = (
+        Index("ix_profile_job_matches_profile_score", "profile_id", "match_score", "job_id"),
+        Index("ix_profile_job_matches_job_profile", "job_id", "profile_id"),
+    )
+
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    job_id: Mapped[int] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    match_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    match_tier: Mapped[str] = mapped_column(String(24), nullable=False)
+    match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class JobSearchState(Base):
+    """Append-only change marker; its generated ID is a cheap search generation."""
+    __tablename__ = "job_search_state"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+
+
+class JobSearchSnapshot(Base):
+    """A materialized, ordered result set for one normalized search request."""
+    __tablename__ = "job_search_snapshots"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    generation: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+
+class JobSearchResult(Base):
+    """One scoped, canonical job in a materialized search candidate set."""
+    __tablename__ = "job_search_results"
+    __table_args__ = (
+        Index("ix_job_search_results_snapshot_sort",
+              "snapshot_key", "posted_rank", "discovered_rank", "job_id"),
+    )
+
+    snapshot_key: Mapped[str] = mapped_column(
+        ForeignKey("job_search_snapshots.key", ondelete="CASCADE"), primary_key=True)
+    job_id: Mapped[int] = mapped_column(
+        ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    scope: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    scope_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    posted_rank: Mapped[float] = mapped_column(Float, nullable=False)
+    discovered_rank: Mapped[float] = mapped_column(Float, nullable=False)
+    title_sort: Mapped[str] = mapped_column(Text, nullable=False)
+    company_sort: Mapped[str] = mapped_column(Text, nullable=False)
+    remote_sort: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+_SEARCH_FIELDS = {
+    Company: {"name", "domain", "state", "country_code", "category", "source"},
+    JobFeed: {"company_id", "provider", "tenant", "source_revision"},
+    Job: {"feed_id", "external_id", "employer_company_id", "title", "url", "description",
+          "location_text", "is_remote", "work_arrangement", "employment_type", "schedule",
+          "department", "seniority", "date_posted", "salary", "raw_metadata", "enrichment",
+          "first_seen_at", "is_active"},
+    JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
+}
+
+
+def _search_data_changed(session: Session) -> bool:
+    for item in (*session.new, *session.deleted):
+        if type(item) in _SEARCH_FIELDS:
+            return True
+    for item in session.dirty:
+        fields = _SEARCH_FIELDS.get(type(item))
+        if fields is None:
+            continue
+        state = inspect(item)
+        if type(item) is Job and state.attrs.locations.history.has_changes():
+            return True
+        if not session.is_modified(item, include_collections=False):
+            continue
+        if any(state.attrs[name].history.has_changes() for name in fields):
+            return True
+    return False
+
+
+@event.listens_for(Session, "before_flush")
+def _invalidate_job_search_snapshots(session: Session, _flush_context, _instances) -> None:
+    """Bump the shared generation once per transaction when indexed source data changes."""
+    if session.info.get("job_search_generation_bumped"):
+        return
+    if not _search_data_changed(session):
+        return
+    connection = session.connection()
+    connection.execute(insert(JobSearchState).values())
+    generation = connection.execute(select(JobSearchState.id).order_by(JobSearchState.id.desc()).limit(1)).scalar_one()
+    connection.execute(delete(JobSearchState).where(JobSearchState.id < generation))
+    session.info["job_search_generation_bumped"] = True
+
+
+@event.listens_for(Session, "after_commit")
+@event.listens_for(Session, "after_rollback")
+def _reset_job_search_generation_flag(session: Session) -> None:
+    session.info.pop("job_search_generation_bumped", None)
 
 
 class ScanRun(Base):

@@ -7,10 +7,15 @@ import argparse
 import json
 from pathlib import Path
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from hiring_scraper.app.database import SessionLocal, engine, initialize_sqlite_schema
 from hiring_scraper.app.models import UserProfile, utcnow
 from hiring_scraper.app.profiles import ProfileRequest
 from hiring_scraper.app.regional import import_snapshot
+from hiring_scraper.app.job_search import (
+    clear_profile_match_scores, job_search_signature,
+    refresh_application_matches_for_jobs, replace_job_locations,
+)
 from hiring_scraper.matching import normalize_skills
 
 
@@ -28,7 +33,9 @@ def import_board(session, profile_path, regional_snapshot, employer_snapshot=Non
         session.add(profile)
     profile.preferences = data
     profile.updated_at = utcnow()
+    profile.match_index_version = None
     session.flush()
+    clear_profile_match_scores(session, profile.id)
     result = {'profile_id': profile.id, 'regional': import_snapshot(session, regional_snapshot)}
     if employer_snapshot is not None:
         result['employers'] = import_employer_snapshot(session, employer_snapshot)
@@ -37,12 +44,13 @@ def import_board(session, profile_path, regional_snapshot, employer_snapshot=Non
 
 def import_employer_snapshot(session, snapshot_path):
     """Import a compact employer supplement using existing feed/job contracts."""
-    from hiring_scraper.app.models import Company, JobFeed, Job, JobLocation
+    from hiring_scraper.app.models import Company, JobFeed, Job
     from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
     from hiring_scraper.app.seed import _datetime, _job_locations
     snapshot = json.loads(Path(snapshot_path).read_text(encoding='utf-8'))
     observed = _datetime(snapshot.get('observed_at')) or utcnow()
     count = 0
+    touched_job_ids: set[int] = set()
     for row in snapshot['companies']:
         source = row.get('source', 'employer_supplement')
         company = session.scalar(select(Company).where(Company.source == source, Company.source_id == row['source_id']))
@@ -70,10 +78,14 @@ def import_employer_snapshot(session, snapshot_path):
             feed.last_checked_at = _datetime(feed_row.get('last_checked_at')) or observed
             for item in feed_row.get('jobs', []):
                 external_id = str(item.get('id', item.get('external_id')))
-                job = session.scalar(select(Job).where(Job.feed_id == feed.id, Job.external_id == external_id))
-                if job is None:
+                job = session.scalar(select(Job).where(
+                    Job.feed_id == feed.id, Job.external_id == external_id
+                ).options(selectinload(Job.locations)))
+                created = job is None
+                if created:
                     job = Job(feed_id=feed.id, external_id=external_id, title=item['title'], url=item['url'], first_seen_at=observed, last_seen_at=observed)
                     session.add(job)
+                before_signature = None if created else job_search_signature(job)
                 item = preserve_verified_detail(job, item)
                 for key in ('title', 'url', 'description', 'work_arrangement', 'employment_type', 'schedule', 'department', 'seniority', 'date_posted', 'salary'):
                     setattr(job, key, item.get(key))
@@ -84,13 +96,14 @@ def import_employer_snapshot(session, snapshot_path):
                 job.is_active = True
                 refresh_enrichment(job)
                 session.flush()
-                for previous in list(job.locations):
-                    session.delete(previous)
-                for location in _job_locations(item):
-                    session.add(JobLocation(job_id=job.id, **{key: location.get(key) for key in ('label', 'latitude', 'longitude', 'precision', 'country_code')}))
+                replace_job_locations(job, _job_locations(item))
+                if created or job_search_signature(job) != before_signature:
+                    touched_job_ids.add(job.id)
                 count += 1
             feed.job_count = len(feed_row.get('jobs', []))
     session.flush()
+    if touched_job_ids:
+        refresh_application_matches_for_jobs(session, touched_job_ids)
     return {'jobs_imported': count}
 
 

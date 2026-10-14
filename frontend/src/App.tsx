@@ -100,7 +100,7 @@ type Job = {
 
 type JobCounts = { source: number; scoped: number; duplicates_removed: number; recommended: number; possible: number; unlikely?: number; filtered: Record<string, number> }
 type JobCoverage = { source_count: number; note: string }
-type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage }
+type JobsPage = { items: Job[]; total: number; counts?: JobCounts; coverage?: JobCoverage; application_counts?: Record<ApplicationStatus, number>; snapshot_id?: string }
 
 type LocationOption = {
   key: string
@@ -113,7 +113,6 @@ const NO_LOCATION: Location = {
   label: '', latitude: 0, longitude: 0, precision: 'unconfigured',
 }
 const PAGE_SIZE = 40
-const JOB_REQUEST_SIZE = 100
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const jobSortModes: { value: JobSort; label: string }[] = [
   { value: 'match', label: 'Best match' },
@@ -144,41 +143,6 @@ function Icon({ name, size = 18 }: { name: 'pin' | 'search' | 'arrow' | 'globe' 
 function distanceLabel(distance: number | null) {
   if (distance === null) return 'Distance unavailable'
   return distance < 1000 ? `${Math.round(distance)} m` : `${(distance / 1000).toFixed(1)} km`
-}
-
-function dateRank(value?: string | null) {
-  const timestamp = value ? Date.parse(value) : Number.NaN
-  return Number.isFinite(timestamp) ? timestamp : Number.NEGATIVE_INFINITY
-}
-
-async function fetchAllJobs(query: URLSearchParams, signal: AbortSignal): Promise<JobsPage> {
-  const items: Job[] = []
-  let total = Number.POSITIVE_INFINITY
-  let counts: JobCounts | undefined
-  let coverage: JobCoverage | undefined
-  while (items.length < total) {
-    const pageQuery = new URLSearchParams(query)
-    pageQuery.set('offset', String(items.length))
-    pageQuery.set('limit', String(JOB_REQUEST_SIZE))
-    const response = await fetch(apiUrl(`/api/v1/jobs?${pageQuery}`), { signal })
-    const page = await response.json() as JobsPage & { detail?: unknown }
-    if (!response.ok) throw new Error(typeof page.detail === 'string' ? page.detail : 'Could not load job results.')
-    items.push(...page.items)
-    total = page.total
-    counts = page.counts ?? counts
-    coverage = page.coverage ?? coverage
-    if (!page.items.length) break
-  }
-  return { items, total, counts, coverage }
-}
-
-function compareJobRows(sort: JobSort, a: Job, b: Job) {
-  const scoreDifference = (b.profile_match?.score ?? -1) - (a.profile_match?.score ?? -1)
-  const discoveredDifference = dateRank(b.first_seen_at) - dateRank(a.first_seen_at)
-  const postedDifference = dateRank(b.date_posted) - dateRank(a.date_posted)
-  if (sort === 'posted') return postedDifference || scoreDifference || discoveredDifference
-  if (sort === 'discovered') return discoveredDifference || scoreDifference || postedDifference
-  return scoreDifference || discoveredDifference || postedDifference
 }
 
 function statusLabel(status: string) {
@@ -226,6 +190,7 @@ function DirectoryPage() {
   const [locationOptions, setLocationOptions] = useState<LocationOption[]>([])
   const [locationsReady, setLocationsReady] = useState(false)
   const [query, setQuery] = useState(params.get('q') ?? '')
+  const [requestQuery, setRequestQuery] = useState(params.get('q') ?? '')
   const [companyFilter, setCompanyFilter] = useState<CompanyDiscoveryFilter>(initialCompanyFilter)
   const [companySort, setCompanySort] = useState<CompanySort>(params.get('company_sort') === 'name' ? 'name' : 'distance')
   const requestedJobSort = params.get('job_sort')
@@ -249,6 +214,8 @@ function DirectoryPage() {
   const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
   const [coverage, setCoverage] = useState<JobCoverage | null>(null)
   const [counts, setCounts] = useState<JobCounts | null>(null)
+  const [jobApplicationCounts, setJobApplicationCounts] = useState<Record<ApplicationStatus, number>>(() =>
+    Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
   const [minimumScore, setMinimumScore] = useState(params.get('min_match_score') ?? '0')
   const [includeUnknown, setIncludeUnknown] = useState(params.get('include_unknown') !== 'false')
   const [jobStatusFilter, setJobStatusFilter] = useState<ApplicationStatus | ''>(() =>
@@ -260,6 +227,7 @@ function DirectoryPage() {
   const [jobTotal, setJobTotal] = useState(0)
   const [summary, setSummary] = useState({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
   const [offset, setOffset] = useState(0)
+  const [jobReloadKey, setJobReloadKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [trackingError, setTrackingError] = useState('')
@@ -267,7 +235,14 @@ function DirectoryPage() {
   const [swipeSavingJobId, setSwipeSavingJobId] = useState<number | null>(null)
   const swipeRequestToken = useRef(0)
   const profileSelectionToken = useRef(0)
+  const jobSnapshotRef = useRef<{ criteria: string; id: string } | null>(null)
+  const priorJobCriteriaRef = useRef<string | null>(null)
   const requestOffset = tab === 'companies' ? offset : 0
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setRequestQuery(query.trim()), 250)
+    return () => window.clearTimeout(timer)
+  }, [query])
 
   const selectedProfile = profiles.find(profile => String(profile.id) === profileId)
   const profileArea = selectedProfile?.search_area
@@ -310,6 +285,21 @@ function DirectoryPage() {
     ? boardLocationParams(location, radius, params.get('country_code'), selectedProfile?.search_area?.country_code)
     : new URLSearchParams(),
   [location, radius, params, selectedLocationKey, selectedProfile?.search_area?.country_code])
+  const jobSnapshotCriteria = JSON.stringify([
+    activeProfileKey, minimumScore, includeUnknown, requestQuery, locationParams.toString(),
+    jobLocationScope, jobWorkStyle, jobSort,
+  ])
+  const jobCriteriaChanged = priorJobCriteriaRef.current !== null &&
+    priorJobCriteriaRef.current !== jobSnapshotCriteria
+  const jobRequestOffset = tab === 'jobs' && !jobCriteriaChanged ? offset : 0
+
+  useEffect(() => {
+    if (priorJobCriteriaRef.current !== jobSnapshotCriteria) {
+      priorJobCriteriaRef.current = jobSnapshotCriteria
+      jobSnapshotRef.current = null
+      if (offset !== 0) setOffset(0)
+    }
+  }, [jobSnapshotCriteria, offset])
 
   useEffect(() => {
     if (!profilesReady) return
@@ -377,7 +367,9 @@ function DirectoryPage() {
     if (!selectedLocationKey) {
       setCompanies([]); setCompanyTotal(0); setJobs([]); setJobTotal(0)
       setSummary({ companies_in_radius: 0, companies_with_domain: 0, jobs_for_location: 0, remote_jobs_in_result: 0 })
-      setCounts(null); setCoverage(null); setLoading(false)
+      setCounts(null); setCoverage(null)
+      setJobApplicationCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+      setLoading(false)
       return
     }
     setLoading(true)
@@ -386,70 +378,64 @@ function DirectoryPage() {
     companyParams.set('limit', String(PAGE_SIZE))
     companyParams.set('sort', location.search_scope === 'country' || location.search_scope === 'state' ? 'name' : companySort)
     if (companyFilter !== 'all') companyParams.set('discovery', companyFilter)
+    if (requestQuery) companyParams.set('query', requestQuery)
+
     const jobParams = new URLSearchParams(locationParams)
-    jobParams.set('sort', 'relevance')
+    jobParams.set('sort', jobSort)
     jobParams.set('location_scope', jobLocationScope)
+    jobParams.set('offset', String(tab === 'jobs' ? jobRequestOffset : 0))
+    jobParams.set('limit', String(tab === 'jobs' ? PAGE_SIZE : 1))
     if (jobWorkStyle !== 'all') jobParams.set('work_style', jobWorkStyle)
-    if (query.trim()) {
-      companyParams.set('query', query.trim())
-      jobParams.set('query', query.trim())
-    }
+    if (requestQuery) jobParams.set('query', requestQuery)
     const selectedProfiles = profiles.filter(profile => activeProfileIds.includes(profile.id!))
-    const profileQueries = selectedProfiles.length ? selectedProfiles.map(profile => {
-      const profileQuery = new URLSearchParams(jobParams)
-      profileQuery.set('profile_id', String(profile.id))
-      profileQuery.set('min_match_score', minimumScore)
-      profileQuery.set('include_unknown', String(includeUnknown))
-      return { profile, query: profileQuery }
-    }) : [{ profile: null, query: jobParams }]
+    if (selectedProfiles.length) {
+      jobParams.set('profile_ids', selectedProfiles.map(profile => profile.id).join(','))
+      jobParams.set('min_match_score', minimumScore)
+      jobParams.set('include_unknown', String(includeUnknown))
+      if (jobStatusFilter) jobParams.set('job_status', jobStatusFilter)
+    }
+    const cachedSnapshot = jobSnapshotRef.current
+    if (cachedSnapshot?.criteria === jobSnapshotCriteria) jobParams.set('snapshot_id', cachedSnapshot.id)
     try {
-      const [companyResponse, profilePages, summaryResponse] = await Promise.all([
+      const [companyResponse, jobsResponse, summaryResponse] = await Promise.all([
         fetch(apiUrl(`/api/v1/companies?${companyParams}`), { signal }),
-        Promise.all(profileQueries.map(async ({ profile, query: profileQuery }) => {
-          if (tab === 'jobs') {
-            const page = await fetchAllJobs(profileQuery, signal)
-            return { ...page, items: page.items.map(job => profile ? { ...job, profile_id: profile.id, profile_name: profile.name } : job) }
-          }
-          profileQuery.set('limit', '1')
-          profileQuery.set('offset', '0')
-          const response = await fetch(apiUrl(`/api/v1/jobs?${profileQuery}`), { signal })
-          const page = await response.json() as JobsPage & { detail?: unknown }
-          if (!response.ok) throw new Error(typeof page.detail === 'string' ? page.detail : 'Could not load job results.')
-          return { ...page, items: page.items.map(job => profile ? { ...job, profile_id: profile.id, profile_name: profile.name } : job) }
-        })),
+        fetch(apiUrl(`/api/v1/jobs?${jobParams}`), { signal }),
         fetch(apiUrl(`/api/v1/summary?${locationParams}`), { signal }),
       ])
-      if (!companyResponse.ok || !summaryResponse.ok) throw new Error(`Could not load company and job results (error ${!companyResponse.ok ? companyResponse.status : summaryResponse.status}).`)
-      const [companyPage, summaryData] = await Promise.all([companyResponse.json(), summaryResponse.json()])
-      const jobPage = {
-        items: profilePages.flatMap(page => page.items),
-        total: profilePages.reduce((total, page) => total + page.total, 0),
-        counts: profilePages.some(page => page.counts) ? profilePages.reduce<JobCounts>((total, page) => {
-          const next = page.counts
-          if (!next) return total
-          total.source += next.source
-          total.scoped += next.scoped
-          total.duplicates_removed += next.duplicates_removed
-          total.recommended += next.recommended
-          total.possible += next.possible
-          total.unlikely = (total.unlikely ?? 0) + (next.unlikely ?? 0)
-          for (const [key, value] of Object.entries(next.filtered)) total.filtered[key] = (total.filtered[key] ?? 0) + value
-          return total
-        }, { source: 0, scoped: 0, duplicates_removed: 0, recommended: 0, possible: 0, unlikely: 0, filtered: {} }) : null,
-        coverage: profilePages.find(page => page.coverage)?.coverage ?? null,
+      if (jobsResponse.status === 409 && jobParams.has('snapshot_id')) {
+        jobSnapshotRef.current = null
+        setOffset(0)
+        setJobReloadKey(value => value + 1)
+        return
       }
+      if (!companyResponse.ok || !jobsResponse.ok || !summaryResponse.ok) {
+        const failedResponse = !companyResponse.ok ? companyResponse : !jobsResponse.ok ? jobsResponse : summaryResponse
+        const errorBody = await failedResponse.json().catch(() => ({})) as { detail?: unknown }
+        throw new Error(typeof errorBody.detail === 'string' ? errorBody.detail : `Could not load company and job results (error ${failedResponse.status}).`)
+      }
+      const [companyPage, jobPage, summaryData] = await Promise.all([
+        companyResponse.json(), jobsResponse.json() as Promise<JobsPage>, summaryResponse.json(),
+      ])
       setCompanies(companyPage.items)
       setCompanyTotal(companyPage.total)
       setJobs(jobPage.items)
+      if (jobPage.snapshot_id) {
+        jobSnapshotRef.current = { criteria: jobSnapshotCriteria, id: jobPage.snapshot_id }
+      }
       setJobTotal(jobPage.total)
       setSummary(summaryData)
-      setCounts(jobPage.counts); setCoverage(jobPage.coverage)
+      setCounts(jobPage.counts ?? null)
+      setCoverage(jobPage.coverage ?? null)
+      setJobApplicationCounts(jobPage.application_counts ?? Object.fromEntries(
+        applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
     } catch (exception) {
       if (!signal.aborted) setError(exception instanceof Error ? exception.message : 'Could not load company and job results.')
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, locationParams, requestOffset, query, tab, activeProfileKey, activeProfileIds, profiles, minimumScore, includeUnknown, profilesReady, locationsReady, selectedLocationKey])
+  }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, jobSort, jobStatusFilter, locationParams,
+    requestOffset, jobRequestOffset, requestQuery, jobSnapshotCriteria, tab, activeProfileKey, activeProfileIds, profiles,
+    minimumScore, includeUnknown, profilesReady, locationsReady, selectedLocationKey, jobReloadKey])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -626,6 +612,15 @@ function DirectoryPage() {
       const saved = await saveApplication(API_BASE_URL, trackingProfileId, job.id, action.status)
       if (profileSelectionToken.current !== profileToken) return
       setJobs(current => current.map(item => item.id === job.id && item.profile_id === trackingProfileId ? { ...item, application: saved } : item))
+      const previousStatus = job.application?.status ?? 'new'
+      if (previousStatus !== saved.status) {
+        setJobApplicationCounts(current => ({
+          ...current,
+          [previousStatus]: Math.max(0, current[previousStatus] - 1),
+          [saved.status]: current[saved.status] + 1,
+        }))
+        setJobReloadKey(value => value + 1)
+      }
       const label = applicationStatusLabel(action.status)
       setTrackingNotice(action.kind === 'undo' ? `${job.title} restored to ${label}.` : `${job.title} moved to ${label}.`)
     } catch (reason) {
@@ -642,16 +637,9 @@ function DirectoryPage() {
     return `/companies/${companyId}?${detailParams}`
   }
 
-  const jobApplicationCounts = useMemo(() => {
-    const result = Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>
-    for (const job of jobs) if (job.application) result[job.application.status] += 1
-    return result
-  }, [jobs])
-  const filteredJobs = useMemo(() => jobs
-    .filter(job => !jobStatusFilter || job.application?.status === jobStatusFilter)
-    .sort((a, b) => compareJobRows(jobSort, a, b)), [jobs, jobSort, jobStatusFilter])
-  const visibleJobs = filteredJobs.slice(offset, offset + PAGE_SIZE)
-  const activeTotal = tab === 'companies' ? companyTotal : filteredJobs.length
+  const visibleJobs = jobs
+  const activeTotal = tab === 'companies' ? companyTotal : jobTotal
+  const allMatchingStages = Object.values(jobApplicationCounts).reduce((total, count) => total + count, 0)
   const pageNumber = Math.floor(offset / PAGE_SIZE) + 1
   const pageCount = Math.max(1, Math.ceil(activeTotal / PAGE_SIZE))
   const wholeState = Boolean(selectedLocationKey) && (location.search_scope === 'state' || location.search_scope === 'country')
@@ -785,7 +773,7 @@ function DirectoryPage() {
             {activeProfileIds.length > 0 && <div className="job-feed-filter-row" role="group" aria-label="Filter by application stage">
               <span className="job-feed-filter-label">Stage</span><div className="job-feed-chip-list">
                 <button type="button" className={`application-filter-chip ${jobStatusFilter === '' ? 'selected' : ''}`}
-                  aria-pressed={jobStatusFilter === ''} onClick={() => { setJobStatusFilter(''); setOffset(0) }}>All <span>{jobs.length}</span></button>
+                  aria-pressed={jobStatusFilter === ''} onClick={() => { setJobStatusFilter(''); setOffset(0) }}>All <span>{allMatchingStages}</span></button>
                 {applicationStatuses.map(item => <button type="button" key={item.value}
                   className={`application-filter-chip application-status-filter application-${item.value} ${jobStatusFilter === item.value ? 'selected' : ''}`}
                   aria-pressed={jobStatusFilter === item.value} onClick={() => { setJobStatusFilter(current => current === item.value ? '' : item.value); setOffset(0) }}>
@@ -876,7 +864,7 @@ function DirectoryPage() {
                   disabled={!job.profile_id || swipeSavingJobId !== null} saving={swipeSavingJobId === job.id}
                   onAction={action => { void changeJobApplication(job, action) }} onOpenOriginal={() => { void trackOpenedPost(job) }} />
               })}
-              {filteredJobs.length === 0 && <EmptyState title={jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'} body={jobStatusFilter ? 'Choose another stage or view all matching jobs.' : jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
+              {jobTotal === 0 && <EmptyState title={jobStatusFilter ? 'No jobs in this stage' : 'No matching jobs found yet'} body={jobStatusFilter ? 'Choose another stage or view all matching jobs.' : jobLocationScope === 'remote' ? 'Try adjusting your profile or search terms for remote roles.' : jobLocationScope === 'area_remote' ? 'Try adjusting your profile or search terms for roles in the selected area or remote roles.' : 'Try adjusting your profile or search terms for roles in the selected area.'} />}
             </div>
           )}
 

@@ -49,6 +49,12 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
             if 'previous_status' not in application_columns:
                 connection.exec_driver_sql("ALTER TABLE job_applications ADD COLUMN previous_status VARCHAR(24)")
+        profile_columns = {column['name'] for column in inspect(connection).get_columns('user_profiles')}
+        if 'match_index_version' not in profile_columns:
+            connection.exec_driver_sql("ALTER TABLE user_profiles ADD COLUMN match_index_version VARCHAR(40)")
+        application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
+        if 'auto_created' not in application_columns:
+            connection.exec_driver_sql("ALTER TABLE job_applications ADD COLUMN auto_created BOOLEAN NOT NULL DEFAULT 0")
         feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
         if 'enabled' not in feed_columns:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")
@@ -70,6 +76,16 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                 "REFERENCES companies(id) ON DELETE SET NULL")
         connection.exec_driver_sql(
             "CREATE INDEX IF NOT EXISTS ix_jobs_employer_company_id ON jobs (employer_company_id)")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_jobs_active_id ON jobs (id) WHERE is_active = 1")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_companies_latitude_longitude ON companies (latitude, longitude)")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_job_locations_latitude_longitude ON job_locations (latitude, longitude)")
+        connection.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_profile_job_matches_job_profile ON profile_job_matches (job_id, profile_id)")
+        if connection.exec_driver_sql("SELECT id FROM job_search_state LIMIT 1").first() is None:
+            connection.exec_driver_sql("INSERT INTO job_search_state DEFAULT VALUES")
 
         for table in ('configured_locations', 'discovery_jobs'):
             columns = {column['name'] for column in inspect(connection).get_columns(table)}
