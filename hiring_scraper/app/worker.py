@@ -31,7 +31,7 @@ from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, scope_due_at,
 )
 from hiring_scraper.geography import haversine_m
-from hiring_scraper.app.employers import upsert_job_employer
+from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
@@ -755,8 +755,19 @@ def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,
                 failed_run.status = "stale_source"
                 failed_run.error = "Feed source changed during this scan; the old response was discarded."
             else:
-                _requeue_search_scope(failed_feed, failed_run, _backoff(1, incomplete=True))
+                retry_at = None
+                if isinstance(error, EmployerUpsertDeferred):
+                    retry_at = utcnow() + timedelta(seconds=random.randint(15, 45))
+                    # This was contention, not a failed remote scan. Do not
+                    # increase the exponential retry delay for a healthy feed.
+                    failed_feed.attempt_count = max(0, failed_feed.attempt_count - 1)
+                _requeue_search_scope(
+                    failed_feed, failed_run,
+                    retry_at if retry_at is not None else _backoff(1, incomplete=True),
+                )
                 _set_failure(failed_feed, failed_run, "failed", {}, str(error))
+                if retry_at is not None:
+                    failed_feed.next_scan_at = retry_at if failed_feed.enabled else None
 
 
 def scan_once() -> bool:

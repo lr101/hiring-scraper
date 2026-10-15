@@ -17,6 +17,11 @@ if IS_SQLITE:
     # All preview services share one SQLite file. Give concurrent writers time
     # to serialize instead of failing at sqlite3's short default timeout.
     _engine_options["connect_args"] = {"check_same_thread": False, "timeout": 30}
+else:
+    # The runtime assigns a separate connection budget to the API and each
+    # background worker so their combined pools stay below PostgreSQL's limit.
+    _engine_options["pool_size"] = max(1, int(os.getenv("HIRING_DB_POOL_SIZE", "5")))
+    _engine_options["max_overflow"] = max(0, int(os.getenv("HIRING_DB_MAX_OVERFLOW", "10")))
 
 engine = create_engine(DATABASE_URL, **_engine_options)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
