@@ -112,6 +112,16 @@ def _semantic_index_ready(session: Session, entity_type: str) -> bool:
     )))
 
 
+def _semantic_query_embedding(session: Session, entity_type: str,
+                              query: str | None) -> list[float] | None:
+    if not query or IS_SQLITE or not _semantic_index_ready(session, entity_type):
+        return None
+    # The embedding request is local HTTP work. Release the read connection
+    # before waiting on it so concurrent searches do not occupy pool slots.
+    session.rollback()
+    return _query_embedding(query)
+
+
 class LocationQuery(BaseModel):
     search_scope: Literal["radius", "state", "country"] | None = None
     query: str = Field(min_length=2, max_length=200)
@@ -1237,8 +1247,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
     normalized_query = " ".join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "company") else None)
+    vector = _semantic_query_embedding(session, "company", normalized_query)
     if normalized_query and vector is None:
         # Stay responsive while the local model is loading or unavailable.
         filters.append(Company.name.ilike(f"%{normalized_query}%"))
@@ -2280,8 +2289,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     thresholds: dict[int | None, tuple[int, bool]] = {}
     thresholds[None] = (0, True)
     normalized_query = ' '.join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "job") else None)
+    vector = _semantic_query_embedding(session, "job", normalized_query)
     if vector is not None:
         semantic_page = _semantic_jobs_page(
             session, vector,

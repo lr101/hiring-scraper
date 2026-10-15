@@ -194,15 +194,23 @@ def _serve() -> int:
     if worker_setting not in {"true", "false"}:
         raise RuntimeError("RUN_BACKGROUND_WORKERS must be true or false")
 
-    commands = []
+    commands: list[tuple[list[str], dict[str, str]]] = []
     if worker_setting == "true":
-        commands.extend([
+        worker_pool = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
+        commands.extend((command, worker_pool) for command in [
             ["python", "-m", "hiring_scraper.app.worker"],
             ["python", "-m", "hiring_scraper.app.discovery_worker"],
             ["python", "-m", "hiring_scraper.app.search_snapshot_worker"],
             ["python", "-m", "hiring_scraper.app.semantic_search_worker"],
         ])
-    commands.append(["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"])
+    # The API's synchronous route pool can run up to 40 requests concurrently.
+    # With four worker pools capped at 10 each, the app uses at most 80 of
+    # PostgreSQL's default 100 connections.
+    api_pool = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
+    commands.append((
+        ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"],
+        api_pool,
+    ))
 
     environment = _runtime_environment()
     children: list[subprocess.Popen[bytes]] = []
@@ -216,8 +224,10 @@ def _serve() -> int:
     signal.signal(signal.SIGINT, request_stop)
 
     try:
-        for command in commands:
-            children.append(subprocess.Popen(command, env=environment, preexec_fn=_drop_privileges))
+        for command, pool_settings in commands:
+            process_environment = environment | pool_settings
+            children.append(subprocess.Popen(
+                command, env=process_environment, preexec_fn=_drop_privileges))
         exit_code = 0
         while not stop_requested:
             for child in children:
