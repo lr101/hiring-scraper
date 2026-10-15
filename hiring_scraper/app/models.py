@@ -315,6 +315,23 @@ class JobApplication(Base):
     job: Mapped[Job] = relationship(back_populates="applications")
 
 
+class ApplicationMomentumEvent(Base):
+    __tablename__ = "application_momentum_events"
+    __table_args__ = (
+        CheckConstraint("event_type IN ('applied', 'interview', 'accepted')",
+                        name="ck_application_momentum_event_type"),
+        Index("ix_application_momentum_events_type_date", "event_type", "occurred_at"),
+        Index("ix_application_momentum_events_job", "job_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    is_legacy: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+
+
 class ProfileJobMatch(Base):
     """Derived, rebuildable profile/job match data, separate from user tracking state."""
     __tablename__ = "profile_job_matches"

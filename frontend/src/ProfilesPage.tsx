@@ -34,8 +34,8 @@ function ProfileOverviewPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-overview-page">
-    <section className="profile-overview-heading"><div><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profiles</h1>
+  return <div className="app-shell"><SiteHeader active="settings" /><main className="content profile-overview-page">
+    <section className="profile-overview-heading"><div><h1>Your job profiles</h1>
       <p className="intro-copy">Save profile search areas and application context. Job search is ranked by text relevance, not by profile match scores.</p></div></section>
     {error && <div className="error-banner" role="alert">{error}</div>}
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profiles…</div> : <div className="profile-overview-grid">
@@ -141,9 +141,9 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     <fieldset className="profile-choices"><legend>{label} <small>{key === 'languages' ? 'Optional; omitted languages stay unknown' : 'Leave empty for any'}</small></legend>{values.map(([value,text]) =>
       <label key={value}><input type="checkbox" checked={form[key].includes(value)} onChange={() => toggle(key,value)} />{text}</label>)}</fieldset>
 
-  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-editor-page">
+  return <div className="app-shell"><SiteHeader active="settings" /><main className="content profile-editor-page">
     <a className="page-link profile-back-link" href="/profile">← All profiles</a>
-    <section className="detail-hero"><p className="eyebrow">YOUR NEXT ROLE</p><h1>{form.id ? `Edit ${form.name}` : 'Create a profile'}</h1>
+    <section className="detail-hero"><h1>{form.id ? `Edit ${form.name}` : 'Create a profile'}</h1>
       <p className="intro-copy">Tell us what you can do and what you’re looking for. Matching jobs start within your selected area; choose remote roles separately on the jobs board.</p>
       <p className="muted">This early version uses explicit skills and interests. It does not infer qualifications from your name, age, or other personal details.</p>
     </section>

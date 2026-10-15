@@ -10,9 +10,9 @@ const themeOptions: { value: ThemePreference; label: string; detail: string }[] 
 ]
 
 const settingsLinks = [
+  { href: '/discover', symbol: '⌕', label: 'Find companies & jobs', detail: 'Search the full directory of employers and open roles.' },
   { href: '/locations', symbol: '⌖', label: 'Search areas', detail: 'Configure the places used to find local jobs.' },
   { href: '/feeds', symbol: '≋', label: 'Job feeds', detail: 'Manage employer websites and other job sources.' },
-  { href: '/profile', symbol: '◎', label: 'Job profiles', detail: 'Edit the skills and preferences used for matching.' },
 ]
 
 export default function SettingsPage() {
@@ -27,13 +27,24 @@ export default function SettingsPage() {
     <SiteHeader active="settings" />
     <main className="content settings-page">
       <section className="settings-page-heading">
-        <p className="eyebrow">PREFERENCES</p>
         <h1>Settings</h1>
+      </section>
+
+      <section className="detail-panel settings-card" aria-labelledby="job-profiles-heading">
+        <div className="settings-section-heading">
+          <div><p className="eyebrow">Job matching</p><h2 id="job-profiles-heading">Job profiles</h2></div>
+          <p>Update the roles, skills, and preferences behind your matches.</p>
+        </div>
+        <a className="settings-link-card settings-profile-link" href="/profile">
+          <span className="settings-link-symbol" aria-hidden="true">◎</span>
+          <span className="settings-link-copy"><strong>Manage job profiles</strong><small>Edit the details used to find your next role.</small></span>
+          <span className="settings-link-arrow" aria-hidden="true">→</span>
+        </a>
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="appearance-heading">
         <div className="settings-section-heading">
-          <div><p className="eyebrow">APPEARANCE</p><h2 id="appearance-heading">Color theme</h2></div>
+          <div><p className="eyebrow">Appearance</p><h2 id="appearance-heading">Color theme</h2></div>
           <p>Choose how Radius looks on this device.</p>
         </div>
         <div className="theme-options" role="radiogroup" aria-label="Color theme">
@@ -49,7 +60,7 @@ export default function SettingsPage() {
 
       <section className="detail-panel settings-card" aria-labelledby="search-settings-heading">
         <div className="settings-section-heading">
-          <div><p className="eyebrow">JOB SEARCH</p><h2 id="search-settings-heading">Search setup</h2></div>
+          <div><p className="eyebrow">Job search</p><h2 id="search-settings-heading">Search setup</h2></div>
           <p>Manage the locations and sources used to discover jobs.</p>
         </div>
         <div className="settings-link-list">

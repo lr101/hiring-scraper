@@ -11,6 +11,7 @@ APPLICATION_STATUSES = get_args(ApplicationStatus)
 class ApplicationRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
     status: ApplicationStatus
+    action: Literal['stage', 'undo'] = 'stage'
 
 
 def application_json(application):

@@ -17,7 +17,7 @@ export function profileBoardDefaults(profile: Pick<Profile, 'search_area'>, para
 }
 export function profileBoardLink(profile: Pick<Profile, 'id'>) {
   const params = new URLSearchParams({ view: 'jobs', profile_id: String(profile.id) })
-  return `/?${params}`
+  return `/discover?${params}`
 }
 
 /** Persist only visible languages, preserving proficiency across case-only edits. */

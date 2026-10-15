@@ -51,9 +51,15 @@ export type Application = {
   created_at: string; updated_at: string
 }
 
-export async function saveApplication(base: string, profileId: number, jobId: number, status: ApplicationStatus): Promise<Application> {
+export async function saveApplication(
+  base: string,
+  profileId: number,
+  jobId: number,
+  status: ApplicationStatus,
+  action: ApplicationSwipeAction['kind'] = 'stage',
+): Promise<Application> {
   const response = await fetch(`${base}/api/v1/profiles/${profileId}/applications/${jobId}`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, action }),
   })
   const data = await response.json()
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')

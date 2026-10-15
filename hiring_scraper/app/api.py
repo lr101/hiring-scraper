@@ -30,7 +30,8 @@ from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
-    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
+    ApplicationMomentumEvent, Base, Company, ConfiguredLocation,
+    DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
     JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
     SemanticSearchIndexState, UserProfile,
     JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
@@ -72,6 +73,7 @@ _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
 _WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 _SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
+APPLICATION_WEEKLY_GOAL = max(1, int(os.getenv("APPLICATION_WEEKLY_GOAL", "10")))
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
 _QUERY_EMBEDDING_LOCK = threading.Lock()
 
@@ -2371,12 +2373,66 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             'snapshot_id': key, 'snapshot_stale': snapshot_stale}
 
 
+def _application_momentum_json(session: Session) -> dict[str, int]:
+    now = utcnow()
+    week_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+    weekly_jobs: dict[datetime, set[int]] = {}
+    lifetime_jobs: set[int] = set()
+    applied_events = session.execute(select(
+        ApplicationMomentumEvent.job_id,
+        ApplicationMomentumEvent.occurred_at,
+        ApplicationMomentumEvent.is_legacy,
+    ).where(ApplicationMomentumEvent.event_type == 'applied')
+        .order_by(ApplicationMomentumEvent.occurred_at)).all()
+    counted_weekly_jobs: set[int] = set()
+    for job_id, occurred_at, is_legacy in applied_events:
+        lifetime_jobs.add(job_id)
+        if is_legacy or job_id in counted_weekly_jobs:
+            continue
+        counted_weekly_jobs.add(job_id)
+        occurred_at = occurred_at.replace(tzinfo=timezone.utc) if occurred_at.tzinfo is None else occurred_at.astimezone(timezone.utc)
+        event_week = occurred_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=occurred_at.weekday())
+        weekly_jobs.setdefault(event_week, set()).add(job_id)
+
+    weekly_goal = APPLICATION_WEEKLY_GOAL
+    applied_this_week = len(weekly_jobs.get(week_start, set()))
+    successful_weeks = 0
+    streak_week = week_start
+    if len(weekly_jobs.get(streak_week, set())) < weekly_goal:
+        streak_week -= timedelta(days=7)
+    while len(weekly_jobs.get(streak_week, set())) >= weekly_goal:
+        successful_weeks += 1
+        streak_week -= timedelta(days=7)
+
+    interview_count = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'interview',
+    )) or 0
+    jobs_won = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'accepted',
+    )) or 0
+    return {
+        'weekly_goal': weekly_goal,
+        'applied_this_week': applied_this_week,
+        'lifetime_applied': len(lifetime_jobs),
+        'successful_weeks': successful_weeks,
+        'interview_count': interview_count,
+        'jobs_won': jobs_won,
+    }
+
+
+@app.get('/api/v1/application-momentum')
+def get_application_momentum(session: Session = Depends(get_session)) -> dict[str, int]:
+    return _application_momentum_json(session)
+
+
 @app.put('/api/v1/profiles/{profile_id}/applications/{job_id}')
 def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
     require_profile(profile_id, session)
     if session.get(Job, job_id) is None:
         raise HTTPException(status_code=404, detail='Job not found')
+    previous_status = session.scalar(select(JobApplication.status).where(
+        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
     # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
     if session.get_bind().dialect.name == 'sqlite':
         from sqlalchemy.dialects.sqlite import insert
@@ -2394,6 +2450,25 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
                 'updated_at': now,
             })
     session.execute(statement)
+    momentum_event_type = {
+        'waiting_for_reply': 'applied',
+        'interview': 'interview',
+        'accepted': 'accepted',
+    }.get(request.status)
+    if request.action == 'stage' and momentum_event_type and previous_status != request.status:
+        # Count a profile/job only on its first move into Waiting for reply.
+        already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
+            ApplicationMomentumEvent.profile_id == profile_id,
+            ApplicationMomentumEvent.job_id == job_id,
+            ApplicationMomentumEvent.event_type == 'applied',
+        ).limit(1)) is not None
+        if not already_counted:
+            session.add(ApplicationMomentumEvent(
+                profile_id=profile_id,
+                job_id=job_id,
+                event_type=momentum_event_type,
+                occurred_at=now,
+            ))
     session.commit()
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)

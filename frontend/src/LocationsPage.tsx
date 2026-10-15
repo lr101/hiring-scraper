@@ -73,10 +73,10 @@ function germanySearchStatus(job: DiscoveryJob) {
 }
 
 function germanySearchBadge(job: DiscoveryJob) {
-  if (job.status === 'queued') return 'QUEUED'
-  if (job.status === 'running' || isGermanyBetweenSections(job)) return 'SEARCHING'
-  if (job.error) return 'RETRYING'
-  return 'SCHEDULED'
+  if (job.status === 'queued') return 'Queued'
+  if (job.status === 'running' || isGermanyBetweenSections(job)) return 'Searching'
+  if (job.error) return 'Retrying'
+  return 'Scheduled'
 }
 
 function errorMessage(payload: { detail?: string }, fallback: string) {
@@ -280,11 +280,10 @@ export default function LocationsPage() {
     <main className="content locations-page">
       <section className="intro-row">
         <div>
-          <p className="eyebrow">YOUR SEARCH AREAS</p>
-          <h1>Places to <em>search.</em></h1>
+          <h1>Choose where to search.</h1>
           <p className="intro-copy">Search all of Germany, a German state, or a local area. We’ll find companies first, then check their websites for open jobs.</p>
         </div>
-        <div className="snapshot-pill"><span>{locations.length.toString().padStart(2, '0')}</span> SAVED SEARCH AREAS</div>
+        <div className="snapshot-pill"><span>{locations.length}</span> saved search {locations.length === 1 ? 'area' : 'areas'}</div>
       </section>
 
       {error && <div className="error-banner" role="alert">{error}<button type="button" onClick={() => setError('')}>Dismiss</button></div>}
@@ -292,11 +291,11 @@ export default function LocationsPage() {
 
       <section className="location-setup-card">
         <div className="section-heading">
-          <div><p className="eyebrow">START HERE</p><h2>Add a location</h2></div>
+          <div><h2>Add a location</h2></div>
           <p>Discover employers across Germany and continuously check their hiring pages.</p>
         </div>
         <label className="interval-control">
-          <span className="control-label">SEARCH COVERAGE</span>
+          <span className="control-label">Search coverage</span>
           <select aria-label="Search coverage" value={searchScope}
             onChange={event => { setSearchScope(event.target.value as 'radius' | 'state' | 'country'); setChoices([]) }}>
             <option value="country">All of Germany</option>
@@ -306,22 +305,22 @@ export default function LocationsPage() {
         </label>
         <form className="location-setup-form" onSubmit={resolveLocation}>
           {searchScope === 'country' ? <p className="location-setup-note">All 16 states, checked section by section.</p> : searchScope === 'state' ? <label className="location-query-field">
-            <span className="control-label">GERMAN STATE</span>
+            <span className="control-label">German state</span>
             <select aria-label="German state" value={selectedState} onChange={event => setSelectedState(event.target.value)}>
               {states.map(state => <option key={state} value={state}>{state}</option>)}
             </select>
           </label> : <label className="location-query-field">
-            <span className="control-label">CITY OR POSTCODE</span>
+            <span className="control-label">City or postcode</span>
             <input value={query} onChange={event => setQuery(event.target.value)} placeholder="e.g. Karlsruhe, Berlin, or 76133" />
           </label>}
           {searchScope === 'radius' && <label className="radius-control">
-            <span className="control-label">DISTANCE AROUND IT</span>
+            <span className="control-label">Distance around it</span>
             <select value={radius} onChange={event => setRadius(Number(event.target.value))}>
               {[5, 10, 15, 25, 50, 100, 200].map(value => <option key={value} value={value}>{value} km</option>)}
             </select>
           </label>}
           {searchScope !== 'country' && <label className="interval-control">
-            <span className="control-label">SEARCH AGAIN</span>
+            <span className="control-label">Check again</span>
             <select value={intervalDays} onChange={event => setIntervalDays(Number(event.target.value))}>
               {[1, 7, 14, 30, 60, 90].map(value => <option key={value} value={value}>{value === 1 ? 'Daily' : `Every ${value} days`}</option>)}
             </select>
@@ -345,7 +344,7 @@ export default function LocationsPage() {
 
       <section className="locations-list-section">
         <div className="section-heading">
-          <div><p className="eyebrow">YOUR SEARCH AREAS</p><h2>Saved locations</h2></div>
+          <div><h2>Saved locations</h2></div>
           <span className="section-count">{locations.length} {locations.length === 1 ? 'place' : 'places'}</span>
         </div>
         {loading ? <div className="loading-state"><span className="spinner" /> Loading saved locations…</div>
@@ -353,16 +352,16 @@ export default function LocationsPage() {
             {locations.map(location => <article className="configured-location-card" key={location.id}>
               <div className="configured-location-top">
                 <span className="location-card-pin" aria-hidden="true">⌖</span>
-                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? germanyInventoryJob ? germanySearchBadge(germanyInventoryJob) : 'RANKED' : location.enabled ? 'REPEATS' : 'PAUSED'}</span>
+                <span className={`schedule-state ${location.search_scope === 'country' || location.enabled ? 'is-enabled' : ''}`}>{location.search_scope === 'country' ? germanyInventoryJob ? germanySearchBadge(germanyInventoryJob) : 'Ranked' : location.enabled ? 'Repeats' : 'Paused'}</span>
               </div>
               <h3>{location.city || location.label.split(',')[0]}</h3>
               <p className="configured-location-label">{location.state || location.postcode || location.label}</p>
               <div className="location-card-meta"><span>{location.search_scope === 'country' ? 'All Germany' : location.search_scope === 'state' ? 'Whole state' : `Within ${location.radius_km} km`}</span><span>{location.search_scope === 'country' ? 'Continuous ranked checks' : `Every ${location.interval_days} days`}</span></div>
               <p className="next-run-label">{location.search_scope === 'country' ? 'Company page checks' : 'Next search'} <strong>{location.search_scope === 'country' ? 'Rank based' : location.enabled ? dateTime(location.next_run_at) : 'Paused'}</strong></p>
               {location.search_scope === 'country' && germanyInventoryJob && <p className="country-search-status" role="status"><span className="status-dot" />{germanySearchStatus(germanyInventoryJob)}</p>}
-              <a className="configure-locations-link" href={location.search_scope === 'country' ? `/?country=DE&location_key=saved:${location.id}` : location.search_scope === 'state'
-                ? `/?state=${encodeURIComponent(location.state || location.label)}&location_key=saved:${location.id}`
-                : `/?lat=${location.latitude}&lon=${location.longitude}&radius_km=${location.radius_km}&place=${encodeURIComponent(location.city || location.label)}&location_key=saved:${location.id}`}>
+              <a className="configure-locations-link" href={location.search_scope === 'country' ? `/discover?country=DE&location_key=saved:${location.id}` : location.search_scope === 'state'
+                ? `/discover?state=${encodeURIComponent(location.state || location.label)}&location_key=saved:${location.id}`
+                : `/discover?lat=${location.latitude}&lon=${location.longitude}&radius_km=${location.radius_km}&place=${encodeURIComponent(location.city || location.label)}&location_key=saved:${location.id}`}>
                 View companies and jobs
               </a>
               <div className="location-card-actions">
@@ -378,7 +377,7 @@ export default function LocationsPage() {
 
       <section className="worker-activity-section">
         <div className="section-heading">
-          <div><p className="eyebrow">LIVE WORK</p><h2>Active workers</h2></div>
+          <div><h2>Active workers</h2></div>
           <span className="refresh-indicator"><span className="status-dot" /> {workerActivityUnavailable ? 'Worker status unavailable' : `${activeWorkers.length} active · updates every few seconds`}</span>
         </div>
         {germanyMapProgress && <GermanyMapCoverage progress={germanyMapProgress} states={states} />}
@@ -390,7 +389,7 @@ export default function LocationsPage() {
 
       <section className="crawl-activity-section">
         <div className="section-heading">
-          <div><p className="eyebrow">SEARCH ACTIVITY</p><h2>Current and upcoming searches</h2></div>
+          <div><h2>Current and upcoming searches</h2></div>
           <span className="refresh-indicator"><span className="status-dot" /> Updates every few seconds</span>
         </div>
         <div className="activity-grid">
@@ -415,7 +414,7 @@ export default function LocationsPage() {
       </section>
 
       <section className="recent-crawls-section">
-        <div className="section-heading"><div><p className="eyebrow">PAST SEARCHES</p><h2>Recent results</h2></div></div>
+        <div className="section-heading"><div><h2>Recent results</h2></div></div>
         {recentJobs.length ? <div className="recent-crawl-list">{recentJobs.map(job => <div className="recent-crawl-row" key={job.id}>
           <span><strong>{job.label}</strong><small>{runStep(job.stage)} · {dateTime(job.created_at)}</small></span>
           <span className={`history-status history-${job.status}`}>{runStatus(job.status)}</span>
@@ -438,14 +437,14 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
     : mapping ? `Mapping ${currentState}`
       : stopped ? `Map stopped after ${progress.states_completed} states`
         : `Map saved through ${progress.states_completed} states`
-  const statusLabel = complete ? 'MAP SAVED'
-    : mapping ? 'MAPPING NOW'
-      : retrying ? 'RETRYING'
-        : progress.status === 'scheduled' ? 'NEXT SECTION SCHEDULED'
-          : progress.status === 'queued' ? 'WAITING TO START'
-            : stopped ? progress.status === 'failed' ? 'MAP FAILED'
-              : progress.status === 'cancelled' ? 'CANCELLED' : 'STOPPED'
-              : 'WAITING TO START'
+  const statusLabel = complete ? 'Map saved'
+    : mapping ? 'Mapping now'
+      : retrying ? 'Retrying'
+        : progress.status === 'scheduled' ? 'Next section scheduled'
+          : progress.status === 'queued' ? 'Waiting to start'
+            : stopped ? progress.status === 'failed' ? 'Map failed'
+              : progress.status === 'cancelled' ? 'Cancelled' : 'Stopped'
+              : 'Waiting to start'
   const detail = complete ? 'Germany’s map inventory is saved; ranked company website checks continue.'
     : mapping ? `State ${currentStateNumber} of ${progress.states_total} · each completed map section is saved before the next one runs.`
       : retrying ? `State ${currentStateNumber} is next · retry scheduled ${dateTime(progress.scheduled_for)}.`
@@ -454,7 +453,7 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
             : 'The saved Germany map will continue when a worker is available.'
   return <article className="germany-map-coverage" aria-label="Germany map coverage">
     <div className="germany-map-coverage-heading">
-      <div><span className="coverage-kicker">GERMANY MAP COVERAGE</span><strong>{title}</strong></div>
+      <div><span className="coverage-kicker">Germany map coverage</span><strong>{title}</strong></div>
       <span className="coverage-live"><span className="status-dot" />{statusLabel}</span>
     </div>
     <div className="coverage-metrics">
@@ -470,10 +469,10 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
 function ActiveWorkerCard({ worker }: { worker: ActiveWorker }) {
   const elapsed = elapsedLabel(worker.started_at)
   const labels: Record<ActiveWorker['kind'], string> = {
-    location_search: 'LOCATION SEARCH',
-    company_crawl: 'COMPANY DISCOVERY',
-    homepage_lookup: 'WEBSITE LOOKUP',
-    job_feed_scan: 'JOB FEED SCAN',
+    location_search: 'Location search',
+    company_crawl: 'Company discovery',
+    homepage_lookup: 'Website lookup',
+    job_feed_scan: 'Job feed scan',
   }
   return <article className="active-worker-card">
     <div className="active-worker-meta"><span>{labels[worker.kind]}</span>{elapsed && <time>Running {elapsed}</time>}</div>
@@ -516,7 +515,7 @@ function JobProgressCard({ job, onCancel, cancellingJobId }: {
     {waiting && hasWaitedTooLong(job.created_at) && <p className="progress-wait-note">This search has not started yet. It will begin when the search service is available.</p>}
     {germanyBetweenSections && <p className="progress-wait-note">The Germany search will continue automatically at the scheduled time.</p>}
     <div className="progress-results"><span>{job.companies_found} companies found</span><span>{job.homepages_found} websites found</span><span>{job.jobs_found} jobs found</span></div>
-    {job.search_scope === 'country' && <a className="job-results-link" href="/?country=DE&amp;view=jobs">Browse Germany job results</a>}
+    {job.search_scope === 'country' && <a className="job-results-link" href="/discover?country=DE&amp;view=jobs">Browse Germany job results</a>}
     {job.error && <p className="job-error">We couldn’t finish this search. Try again later.</p>}
   </div>
 }
