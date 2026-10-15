@@ -326,7 +326,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
   const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
   const electionResults = [...new Map(job.locations
     .map(location => location.city_election_result)
-    .filter((result): result is CityElectionResult => Boolean(result))
+    .filter((result): result is CityElectionResult => result != null && result.postal_ballots_included)
     .map(result => [result.municipality_code, result])).values()]
   const locationText = job.location_text || job.locations.map(item => item.label).join(' · ')
   const voteLeaderSummary = electionResults.map(result =>

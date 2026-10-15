@@ -1324,7 +1324,7 @@ def _resolved_search_area(profile, latitude, longitude, radius_km, place, countr
 
 
 def _profile_match(job, profile, scope):
-    match = match_job(job_input(job), profile.preferences, current_enrichment(job))
+    match = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
     if scope is not None:
         match['unknowns'] = list(dict.fromkeys(match['unknowns'] + scope['unknowns']))
         if scope['unknowns']:

@@ -87,7 +87,7 @@ def profile_json(profile):
     defaults = defaults if isinstance(defaults, dict) else {}
     data['matching_defaults'] = {
         **defaults,
-        'low_afd_vote_share_weight': defaults.get('low_afd_vote_share_weight', 0),
+        'low_afd_vote_share_weight': profile.low_afd_vote_share_weight,
     }
     area = data.get('search_area')
     if isinstance(area, dict):
@@ -124,12 +124,19 @@ def _save(profile, request, session):
         raise HTTPException(status_code=422, detail='Enter a profile name')
     data['skills'] = normalize_skills(data['skills'])
     previous = profile.preferences or {}
+    previous_weight = profile.low_afd_vote_share_weight
+    defaults = data.get('matching_defaults') or {}
+    requested_weight = defaults.pop('low_afd_vote_share_weight', 0)
+    if ('matching_defaults' not in request.model_fields_set or
+            'low_afd_vote_share_weight' not in request.matching_defaults.model_fields_set):
+        requested_weight = previous_weight
+    profile.low_afd_vote_share_weight = requested_weight
     for key in NEW_PREFERENCES - request.model_fields_set:
         if key in previous:
             data[key] = previous[key]
     profile.preferences = data
     profile.updated_at = utcnow()
-    preferences_changed = data != previous
+    preferences_changed = data != previous or profile.low_afd_vote_share_weight != previous_weight
     if preferences_changed:
         profile.match_index_version = None
     session.add(profile)

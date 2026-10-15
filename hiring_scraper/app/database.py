@@ -71,6 +71,30 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        profile_columns = {column['name'] for column in inspect(connection).get_columns('user_profiles')}
+        if 'low_afd_vote_share_weight' not in profile_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE user_profiles ADD COLUMN low_afd_vote_share_weight "
+                "INTEGER NOT NULL DEFAULT 0")
+            for profile_id, preferences in connection.exec_driver_sql(
+                    "SELECT id, preferences FROM user_profiles").all():
+                if isinstance(preferences, str):
+                    try:
+                        preferences = json.loads(preferences)
+                    except json.JSONDecodeError:
+                        continue
+                if not isinstance(preferences, dict):
+                    continue
+                defaults = preferences.get('matching_defaults')
+                if not isinstance(defaults, dict) or 'low_afd_vote_share_weight' not in defaults:
+                    continue
+                try:
+                    weight = max(0, min(20, int(defaults.pop('low_afd_vote_share_weight'))))
+                except (TypeError, ValueError):
+                    weight = 0
+                connection.exec_driver_sql(
+                    "UPDATE user_profiles SET low_afd_vote_share_weight=?, preferences=? WHERE id=?",
+                    (weight, json.dumps(preferences, ensure_ascii=False), profile_id))
         snapshot_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshots')}
         if 'criteria_hash' not in snapshot_columns:
             connection.exec_driver_sql(
