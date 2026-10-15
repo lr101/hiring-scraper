@@ -6,7 +6,7 @@ import type { Enrichment, ProfileMatch } from './JobEvidence'
 import { applicationStatuses, applicationStatusLabel, nextApplicationStages, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import JobOverviewTags from './JobOverviewTags'
-import type { Profile } from './profile'
+import type { CityElectionResult, Profile } from './profile'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -20,7 +20,7 @@ type Company = {
   location_label: string | null; source_url: string | null; active_job_count: number
   feeds: Feed[]; jobs: Job[]
 }
-type JobLocation = { label: string; precision: string | null }
+type JobLocation = { label: string; precision: string | null; city_election_result?: CityElectionResult | null }
 type Job = {
   id: number; title: string; url: string; company_id: number; company_name: string; company_name_is_employer?: boolean
   employer_company_id?: number | null
@@ -324,6 +324,14 @@ function JobPage({ job, profileId, onApplicationSaved }: {
 }) {
   const [trackingError, setTrackingError] = useState('')
   const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
+  const electionResults = [...new Map(job.locations
+    .map(location => location.city_election_result)
+    .filter((result): result is CityElectionResult => result != null && result.postal_ballots_included)
+    .map(result => [result.municipality_code, result])).values()]
+  const locationText = job.location_text || job.locations.map(item => item.label).join(' · ')
+  const voteLeaderSummary = electionResults.map(result =>
+    `${displayLeadingParty(result.leading_party)} - ${result.leading_party_vote_share_percent.toFixed(1)}% (${result.municipality.split(',', 1)[0].trim()})`,
+  ).join('; ')
   const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
   const languageRequirements = job.enrichment.languages.map(row =>
     `${row.value}${languageRequirementLabel(row)}`,
@@ -366,7 +374,8 @@ function JobPage({ job, profileId, onApplicationSaved }: {
     <section className="detail-panel job-detail-panel">
         <p className="eyebrow">JOB DETAILS</p>
       <div className="metadata-grid">
-        <Meta label="WORK LOCATION" value={job.location_text || job.locations.map(item => item.label).join(' · ')} />
+        <Meta label="WORK LOCATION" value={locationText} />
+        <Meta label="VOTE LEADER" value={voteLeaderSummary} wide />
         <Meta label="WORK STYLE" value={arrangement} />
         <Meta label="EMPLOYMENT TYPE" value={job.employment_type} />
         <Meta label="HOURS" value={job.schedule} />
@@ -448,9 +457,14 @@ function ApplicationStageActions({ jobId, profileId, application, onSaved }: {
 }
 
 
-function Meta({ label, value }: { label: string; value?: string | null }) {
+function Meta({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
   const displayValue = value?.trim()
   if (!displayValue || /^(?:not listed|not found|not provided|not specified|unknown|n\/a|none)$/i.test(displayValue)) return null
-  return <div className="meta-item"><span>{label}</span><strong>{displayValue}</strong></div>
+  return <div className={`meta-item${wide ? ' meta-item-wide' : ''}`}><span>{label}</span><strong>{displayValue}</strong></div>
 
+}
+
+function displayLeadingParty(party: string) {
+  return party.split(' / ').map(name => name === 'GRÜNE' ? 'Grüne'
+    : name === 'FREIE WÄHLER' ? 'Freie Wähler' : name).join(' / ')
 }

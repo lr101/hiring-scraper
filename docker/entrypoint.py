@@ -126,6 +126,36 @@ def _ensure_application_role(migration_url: str, application_password: str) -> N
         engine.dispose()
 
 
+def _ensure_profile_vote_weight(migration_url: str) -> None:
+    """Apply the additive profile field without advancing Alembic's revision.
+
+    Keeping the revision unchanged lets a previous application image start
+    against this database during a binary rollback.
+    """
+    engine = create_engine(migration_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(text(
+                "ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS "
+                "low_afd_vote_share_weight INTEGER NOT NULL DEFAULT 0"
+            ))
+            connection.execute(text("""
+                UPDATE user_profiles
+                   SET low_afd_vote_share_weight = LEAST(20, GREATEST(0,
+                           COALESCE(NULLIF(preferences::jsonb -> 'matching_defaults'
+                               ->> 'low_afd_vote_share_weight', '')::integer, 0))),
+                       preferences = jsonb_set(
+                           preferences::jsonb,
+                           '{matching_defaults}',
+                           (preferences::jsonb -> 'matching_defaults') - 'low_afd_vote_share_weight',
+                           true
+                       )::json
+                 WHERE (preferences::jsonb -> 'matching_defaults') ? 'low_afd_vote_share_weight'
+            """))
+    finally:
+        engine.dispose()
+
+
 def _bootstrap() -> str:
     application_url = _application_database_url()
     migration_url = _migration_database_url()
@@ -139,6 +169,9 @@ def _bootstrap() -> str:
     migration_environment.pop("POSTGRES_PASSWORD", None)
     subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
     del migration_environment
+
+    print("Ensuring profile matching preference schema", flush=True)
+    _ensure_profile_vote_weight(migration_url)
 
     return application_url
 

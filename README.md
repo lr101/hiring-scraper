@@ -44,6 +44,26 @@ Opened. Update later stages from the job details or application overview.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 
+### City election context
+
+German city and municipality records show the AfD share of valid second votes in
+the 2025 Bundestag election. This is an aggregate result from the latest federal
+election, not a live poll or a measure of any individual resident. The source is
+the Federal Returning Officer's [2025 polling-district CSV release](https://www.bundeswahlleiterin.de/mitteilungen/bundestagswahlen/2025/20250430_wbz_btw25.html).
+The checked-in municipality file is derived from its published CSV using
+[`scripts/import_btw2025_municipality_results.py`](scripts/import_btw2025_municipality_results.py).
+
+Profile settings can optionally adjust a match score by up to 20 points based
+on this share. A value of 0 disables the adjustment; a positive setting raises
+scores below 25% and lowers scores above 25%, capped at the selected value. Only
+unambiguous municipality-name matches are used, so missing or ambiguous city
+data leaves the match unchanged. Job details show the leading party's vote share
+and city in a dedicated overview row.
+Some postal ballots were counted for a
+shared local authority and cannot be assigned to one municipality; those
+polling-place-only figures are labelled and never affect scores. Fully remote
+jobs are not adjusted by a city result.
+
 ## Compose deployment
 
 Compose pulls the app and PostgreSQL/PostGIS image with pgvector from GitHub Container Registry (GHCR). The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, the pinned local multilingual embedding model, and startup logic. A background worker keeps company/job vectors current and prebuilds profile-area job snapshots, so normal job search does not wait for profile-match rebuilds. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.

@@ -14,7 +14,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hiring.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite:")
 _engine_options: dict[str, object] = {"pool_pre_ping": True}
 if IS_SQLITE:
-    _engine_options["connect_args"] = {"check_same_thread": False}
+    # All preview services share one SQLite file. Give concurrent writers time
+    # to serialize instead of failing at sqlite3's short default timeout.
+    _engine_options["connect_args"] = {"check_same_thread": False, "timeout": 30}
 
 engine = create_engine(DATABASE_URL, **_engine_options)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
@@ -29,6 +31,28 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
     from hiring_scraper.app.models import Base
     if target_engine.dialect.name != 'sqlite':
         return
+    database_name = target_engine.url.database or ""
+    is_memory_database = (database_name == ":memory:" or
+                          database_name.startswith("file::memory:") or
+                          target_engine.url.query.get("mode") == "memory")
+    if database_name and not is_memory_database:
+        # WAL lets API readers continue while background workers write. SQLite
+        # still serializes writers, handled by the connection busy timeout.
+        raw_connection = target_engine.raw_connection()
+        try:
+            cursor = raw_connection.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode")
+                journal_mode = cursor.fetchone()[0]
+                if str(journal_mode).casefold() != "wal":
+                    cursor.execute("PRAGMA journal_mode=WAL")
+                    journal_mode = cursor.fetchone()[0]
+            finally:
+                cursor.close()
+            if str(journal_mode).casefold() != "wal":
+                raise RuntimeError(f"Could not enable SQLite WAL mode (got {journal_mode!r})")
+        finally:
+            raw_connection.close()
     with target_engine.begin() as connection:
         # Older development databases may contain duplicate active Germany
         # inventories from before the coalescing guard was added.
@@ -47,6 +71,30 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        profile_columns = {column['name'] for column in inspect(connection).get_columns('user_profiles')}
+        if 'low_afd_vote_share_weight' not in profile_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE user_profiles ADD COLUMN low_afd_vote_share_weight "
+                "INTEGER NOT NULL DEFAULT 0")
+            for profile_id, preferences in connection.exec_driver_sql(
+                    "SELECT id, preferences FROM user_profiles").all():
+                if isinstance(preferences, str):
+                    try:
+                        preferences = json.loads(preferences)
+                    except json.JSONDecodeError:
+                        continue
+                if not isinstance(preferences, dict):
+                    continue
+                defaults = preferences.get('matching_defaults')
+                if not isinstance(defaults, dict) or 'low_afd_vote_share_weight' not in defaults:
+                    continue
+                try:
+                    weight = max(0, min(20, int(defaults.pop('low_afd_vote_share_weight'))))
+                except (TypeError, ValueError):
+                    weight = 0
+                connection.exec_driver_sql(
+                    "UPDATE user_profiles SET low_afd_vote_share_weight=?, preferences=? WHERE id=?",
+                    (weight, json.dumps(preferences, ensure_ascii=False), profile_id))
         snapshot_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshots')}
         if 'criteria_hash' not in snapshot_columns:
             connection.exec_driver_sql(

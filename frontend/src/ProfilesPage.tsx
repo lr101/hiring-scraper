@@ -6,7 +6,7 @@ import type { SearchArea, Profile } from './profile'
 import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
 const empty = (): Profile => ({ name: '', summary: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
-  education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true } })
+  education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
 
 export default function ProfilesPage() {
@@ -42,6 +42,8 @@ function ProfileOverviewPage() {
       {profiles.map(profile => {
         const tags = [`${profile.skills.length} skills`, ...profile.desired_roles.slice(0, 2),
           ...(profile.search_area ? [`${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km`] : []),
+          ...(profile.search_area?.city_election_result ? [`AfD ${profile.search_area.city_election_result.vote_share_percent}% · 2025`] : []),
+          ...(profile.matching_defaults?.low_afd_vote_share_weight ? [`City preference · up to ${profile.matching_defaults.low_afd_vote_share_weight} pts`] : []),
           ...profile.work_styles.slice(0, 2).map(style => style.replaceAll('_', ' '))].slice(0, 5)
         return <article className="saved-profile" key={profile.id}>
           <header className="saved-profile-header"><span className="saved-profile-avatar" aria-hidden="true">{profile.name.slice(0, 1).toUpperCase()}</span>
@@ -84,7 +86,9 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     return data
   }
   function edit(profile: Profile) {
-    setForm({ ...empty(), ...Object.fromEntries(Object.keys(empty()).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])), id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText(profile.desired_roles.join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
+    const defaults = empty()
+    setForm({ ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
+      matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText((profile.desired_roles ?? []).join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
   }
   function toggle(key: 'work_styles' | 'employment_types' | 'seniority_levels' | 'languages', value: string) {
     setForm(previous => ({ ...previous, [key]: previous[key].includes(value) ? previous[key].filter(item => item !== value) : [...previous[key], value] }))
@@ -115,7 +119,8 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
       const response = await fetch(`${API}/api/v1/locations/resolve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: areaQuery.trim() }) })
       const payload = await response.json()
       if (!response.ok) throw new Error('Could not find that area. Try a German city or postcode.')
-      setAreaChoices(payload.results.map((item: SearchArea) => ({ label: item.label, city: item.city, latitude: item.latitude, longitude: item.longitude, country_code: 'DE', radius_km: form.search_area?.radius_km ?? 35 })))
+      setAreaChoices(payload.results.map((item: SearchArea) => ({ label: item.label, city: item.city, latitude: item.latitude, longitude: item.longitude,
+        country_code: 'DE', city_election_result: item.city_election_result, radius_km: form.search_area?.radius_km ?? 35 })))
       if (!payload.results.length) setError('No matching area found. Try a German city or postcode.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not find that area.') }
     finally { setBusy(false) }
@@ -171,6 +176,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           <label>Change city or postcode<input value={areaQuery} onChange={event => setAreaQuery(event.target.value)} placeholder="e.g. Mannheim" /></label>
           <button type="button" disabled={busy || areaQuery.trim().length < 2} onClick={() => void findArea()}>Find area</button>
           {areaChoices.map((area,index) => <button type="button" key={index} onClick={() => { setForm({ ...form, search_area: area }); setAreaChoices([]) }}>{area.label}</button>)}
+          {form.search_area?.city_election_result && <p className="evidence-note city-election-note"><strong>{form.search_area.city_election_result.election}:</strong> AfD received {form.search_area.city_election_result.vote_share_percent}% of valid second votes in {form.search_area.city_election_result.municipality}. This is an aggregate election result, not a current poll. {form.search_area.city_election_result.postal_ballots_included ? 'Assigned postal ballots are included.' : 'This figure includes polling-place votes only; postal ballots were counted for a shared local authority.'} <a href={form.search_area.city_election_result.source_url} target="_blank" rel="noreferrer">Source</a></p>}
           {form.search_area ? <><div className="profile-area-grid">
             <label>Selected city<input readOnly value={form.search_area.city || form.search_area.label} /></label>
             <label>Radius (km)<input type="number" min={1} max={200} value={form.search_area.radius_km} onChange={event => setForm({ ...form, search_area: { ...form.search_area!, radius_km: Number(event.target.value) } })} /></label>
@@ -196,6 +202,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
         <fieldset className="profile-section"><legend>Board defaults</legend>
           <label>Minimum overlap score<input type="number" min={0} max={100} value={form.matching_defaults.min_match_score} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, min_match_score: Number(event.target.value) } })} /></label>
           <label className="unknown-filter"><input type="checkbox" checked={form.matching_defaults.include_unknown} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, include_unknown: event.target.checked } })} />Include possible leads with missing information</label>
+          <label>Prefer cities with lower AfD vote shares <small>Adjust scores by up to this many points; set to 0 to turn it off. Shares below 25% raise a score and shares above 25% lower it. Only unambiguous municipality results with assigned postal ballots affect scores; fully remote jobs stay unchanged.</small><input type="number" min={0} max={20} value={form.matching_defaults.low_afd_vote_share_weight ?? 0} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, low_afd_vote_share_weight: Number(event.target.value) } })} /></label>
         </fieldset>
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
         <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
