@@ -27,10 +27,13 @@ def import_board(session, profile_path, regional_snapshot, employer_snapshot=Non
     if not name:
         raise ValueError('Enter a profile name')
     data['skills'] = normalize_skills(data['skills'])
+    defaults = data.get('matching_defaults') or {}
+    defaults.pop('low_afd_vote_share_weight', None)
     profile = session.scalar(select(UserProfile).where(UserProfile.name == name).order_by(UserProfile.id))
     if profile is None:
         profile = UserProfile(name=name)
         session.add(profile)
+    profile.low_afd_vote_share_weight = payload.matching_defaults.low_afd_vote_share_weight
     profile.preferences = data
     profile.updated_at = utcnow()
     profile.match_index_version = None
