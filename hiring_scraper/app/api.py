@@ -38,6 +38,7 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
 )
+from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.app.feed_schedules import (
     configured_location_scope_payload, germany_search_scope_payload,
     is_synthetic_germany_scope, next_scope_due, queue_arbeitsagentur_scope,
@@ -428,12 +429,23 @@ def _nominatim_results(query: str) -> list[dict[str, Any]]:
             continue
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             continue
+        city_label = ", ".join(value for value in (city, state) if value)
         results.append({"label": item.get("display_name", query), "city": city,
                         "postcode": address.get("postcode"), "state": state,
                         "latitude": latitude, "longitude": longitude,
                         "precision": "city_centroid" if item.get("addresstype") in {"city", "town", "village", "municipality"} else "place_point",
-                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place"})
+                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place",
+                        "city_election_result": municipality_vote_result(city_label, "de")})
     return results
+
+
+def _with_city_election_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    enriched = []
+    for item in results:
+        city_label = ", ".join(value for value in (item.get("city"), item.get("state")) if value)
+        enriched.append({**item, "city_election_result": municipality_vote_result(
+            city_label or item.get("label"), item.get("country_code"))})
+    return enriched
 
 
 def _distance(company: Company, latitude: float, longitude: float) -> float:
@@ -676,7 +688,9 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
                               employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
-                  "country_code": location.country_code} for location in job.locations]
+                  "country_code": location.country_code,
+                  "city_election_result": municipality_vote_result(location.label, location.country_code)}
+                 for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
             "url": job.url, "company_id": company.id,
             "employer_company_id": job.employer_company_id,
@@ -796,15 +810,15 @@ def resolve_location(request: LocationQuery, session: Session = Depends(get_sess
         return {"query": request.query, "results": [_state_location(state)], "cached": True}
     normalized = _key(request.query)
     if normalized in {"karlsruhe", "karlsruhe baden württemberg", "karlsruhe baden-württemberg"}:
-        return {"query": request.query, "results": [KARLSRUHE], "cached": True}
+        return {"query": request.query, "results": _with_city_election_results([KARLSRUHE]), "cached": True}
     cached = session.scalar(select(LocationCache).where(LocationCache.query_key == normalized))
     if cached:
-        return {"query": request.query, "results": cached.results, "cached": True}
+        return {"query": request.query, "results": _with_city_election_results(cached.results), "cached": True}
     results = _nominatim_results(request.query)
     entry = LocationCache(query_key=normalized, results=results)
     session.add(entry)
     session.commit()
-    return {"query": request.query, "results": results, "cached": False}
+    return {"query": request.query, "results": _with_city_election_results(results), "cached": False}
 
 
 @app.get("/api/v1/locations")

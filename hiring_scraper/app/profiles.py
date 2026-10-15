@@ -1,5 +1,5 @@
 """Single-workspace profile preferences; CV text is parsed transiently, never stored."""
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from sqlalchemy import select
@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from hiring_scraper.app.database import get_session
 from hiring_scraper.app.models import UserProfile, utcnow
 from hiring_scraper.app.job_search import clear_profile_match_scores
+from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.matching import extract_profile_skills, normalize_skills
 
 router = APIRouter(prefix='/api/v1/profiles', tags=['Profiles'])
@@ -34,6 +35,7 @@ class SearchArea(BaseModel):
     longitude: float | None = Field(default=None, ge=-180, le=180)
     radius_km: float = Field(default=35, gt=0, le=200)
     country_code: Annotated[str, StringConstraints(to_upper=True, pattern=r'^[A-Za-z]{2}$')] | None = None
+    city_election_result: dict[str, Any] | None = Field(default=None, exclude=True)
 
     @model_validator(mode='after')
     def coordinate_pair(self):
@@ -46,6 +48,7 @@ class MatchingDefaults(BaseModel):
     model_config = ConfigDict(extra='forbid')
     min_match_score: int = Field(default=0, ge=0, le=100)
     include_unknown: bool = True
+    low_afd_vote_share_weight: int = Field(default=0, ge=0, le=20)
 
 
 NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'search_area',
@@ -78,8 +81,22 @@ class CVPreview(BaseModel):
 
 
 def profile_json(profile):
-    return {'id': profile.id, 'name': profile.name, **profile.preferences,
+    data = {'id': profile.id, 'name': profile.name, **profile.preferences,
             'updated_at': profile.updated_at.isoformat()}
+    defaults = data.get('matching_defaults')
+    defaults = defaults if isinstance(defaults, dict) else {}
+    data['matching_defaults'] = {
+        **defaults,
+        'low_afd_vote_share_weight': defaults.get('low_afd_vote_share_weight', 0),
+    }
+    area = data.get('search_area')
+    if isinstance(area, dict):
+        data['search_area'] = {
+            **area,
+            'city_election_result': municipality_vote_result(
+                area.get('label') or area.get('city'), area.get('country_code')),
+        }
+    return data
 
 
 def require_profile(profile_id, session):

@@ -11,11 +11,12 @@ import re
 from functools import lru_cache
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
+from hiring_scraper.election_data import job_city_vote_results
 from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v18'
+VERSION = 'rules-v20'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -1108,17 +1109,40 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     score += max(-10, min(5, experience_adjustment))
     score += max(-20, min(10, language_adjustment))
     # A title-only listing cannot imply a strong fit, even with matching skills or languages.
+    score_limit = 100
     if enriched['quality'] == 'limited':
-        score = min(score, 60)
+        score_limit = min(score_limit, 60)
     if roles and len(substantive_matches) < 2:
-        score = min(score, 85)
+        score_limit = min(score_limit, 85)
     if (roles and substantive_matches and set(substantive_matches) <= {'Customer service', 'Onboarding'}
             and not _role_match('Customer service', title)
             and not verified_requirements):
-        score = min(score, 64)
+        score_limit = min(score_limit, 64)
     if secondary_roles and not roles:
-        score = min(score, 59)
-    score = max(0, min(100, score))
+        score_limit = min(score_limit, 59)
+    score = max(0, min(score_limit, score))
+    fully_remote = (job.get('work_arrangement') in {None, 'remote'} and
+                    (job.get('is_remote') is True or job.get('work_arrangement') == 'remote'))
+    vote_results = [] if fully_remote else job_city_vote_results(job)
+    scoring_vote_results = [row for row in vote_results if row['postal_ballots_included']]
+    defaults = profile.get('matching_defaults') or {}
+    try:
+        location_weight = max(0, min(20, int(defaults.get('low_afd_vote_share_weight', 0))))
+    except (TypeError, ValueError):
+        location_weight = 0
+    average_vote_share = (round(sum(row['vote_share_percent'] for row in scoring_vote_results) /
+                                len(scoring_vote_results), 2) if scoring_vote_results else None)
+    location_adjustment = (max(-location_weight, min(location_weight,
+                           round((25 - average_vote_share) / 25 * location_weight)))
+                           if average_vote_share is not None and location_weight else 0)
+    score = max(0, min(score_limit, score + location_adjustment))
+    if location_adjustment:
+        direction = 'increased' if location_adjustment > 0 else 'reduced'
+        cities = ', '.join(row['municipality'] for row in scoring_vote_results)
+        reasons.append(
+            f"Location preference {direction} this score by {abs(location_adjustment)} points using "
+            f"the 2025 federal-election AfD second-vote results for {cities}."
+        )
     fit_tier = ('unlikely' if conflicts or score < 30 else
                 'recommended' if score >= 65 and enriched['quality'] != 'limited' and not requirement_gaps else
                 'possible')
@@ -1126,6 +1150,10 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
             'fit_tier': fit_tier, 'requirement_gaps': requirement_gaps,
             'matched_skills': matched, 'missing_skills': missing, 'reasons': reasons,
             'custom_skill_evidence': custom_evidence,
+            'local_context': {'city_election_results': vote_results,
+                              'average_afd_vote_share_percent': average_vote_share,
+                              'score_adjustment': location_adjustment,
+                              'weight': location_weight},
             'conflicts': conflicts, 'unknowns': unknowns,
             'label': 'Preference conflict' if conflicts else 'Strong overlap' if score >= 65 else 'Some overlap' if score >= 30 else 'Little evidence of a match'}
 

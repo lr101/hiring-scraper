@@ -1,11 +1,22 @@
-export type SearchArea = { label: string; city?: string | null; latitude: number | null; longitude: number | null; radius_km: number; country_code?: string | null }
+export type CityElectionResult = {
+  municipality_code: string; municipality: string; state: string; party: string; leading_party: string
+  leading_party_vote_share_percent: number; vote_share_percent: number; party_votes: number
+  valid_second_votes: number; postal_ballots_included: boolean
+  election: string; vote_type: string; source: string; source_url: string
+}
+export type SearchArea = {
+  label: string; city?: string | null; latitude: number | null; longitude: number | null
+  radius_km: number; country_code?: string | null; city_election_result?: CityElectionResult | null
+}
 export type Profile = {
   id?: number; name: string; summary: string; skills: string[]; desired_roles: string[]; secondary_roles: string[]
   work_styles: string[]; employment_types: string[]; seniority_levels: string[]; experience_years: number | null
   languages: string[]; language_levels: Record<string, string>; excluded_terms: string[]
   skill_evidence: Record<string, { context: string; note: string }>; search_area: SearchArea | null
   education: { level: 'vocational' | 'bachelor' | 'master' | 'doctorate'; field: string; note: string }[]
-  certifications: string[]; matching_defaults: { min_match_score: number; include_unknown: boolean }
+  certifications: string[]; matching_defaults: {
+    min_match_score: number; include_unknown: boolean; low_afd_vote_share_weight: number
+  }
 }
 export function profileBoardDefaults(profile: Pick<Profile, 'search_area'>, params = new URLSearchParams()) {
   const area = profile.search_area
