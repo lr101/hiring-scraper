@@ -78,7 +78,7 @@ export async function trackJobInteraction(
     const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}`)
     const payload = await response.json()
     if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Could not update application stage.')
-    latest = payload.application ?? null
+    return payload.application ?? null
   }
   if (latest) return latest
   return saveApplication(base, profileId, jobId, 'new')

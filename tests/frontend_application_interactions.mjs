@@ -4,10 +4,12 @@ import { applicationSwipeAction, nextApplicationStages, trackJobInteraction } fr
 
 let application = null
 let writes = 0
+let decideAfterRead = false
 const server = createServer(async (request, response) => {
   response.setHeader('Content-Type', 'application/json')
   if (request.method === 'GET' && request.url === '/api/v1/jobs/42?profile_id=9') {
     response.end(JSON.stringify({ id: 42, application }))
+    if (decideAfterRead) application = { profile_id: 9, job_id: 42, status: 'open' }
   } else if (request.method === 'PUT' && request.url === '/api/v1/profiles/9/applications/42') {
     let body = ''
     for await (const chunk of request) body += chunk
@@ -22,15 +24,21 @@ const server = createServer(async (request, response) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
 try {
   const base = `http://127.0.0.1:${server.address().port}`
+  decideAfterRead = true
+  await trackJobInteraction(base, 9, 42, null, 'open_post')
+  assert.equal(application.status, 'open', 'Opening must not overwrite an explicit decision made after its read')
+  decideAfterRead = false
   for (const interaction of ['view', 'open_post']) {
     application = null
     writes = 0
     const tracked = await trackJobInteraction(base, 9, 42, null, interaction)
-    assert.equal(tracked.status, 'new', `${interaction} must keep a new job undecided`)
-    assert.equal(writes, 1)
+    assert.equal(tracked?.status ?? null, interaction === 'view' ? 'new' : null,
+      `${interaction} must keep a new job undecided`)
+    assert.equal(writes, interaction === 'view' ? 1 : 0)
     writes = 0
     const revisited = await trackJobInteraction(base, 9, 42, tracked, interaction)
-    assert.equal(revisited.status, 'new', `${interaction} must not imply interest on repeated clicks`)
+    assert.equal(revisited?.status ?? null, interaction === 'view' ? 'new' : null,
+      `${interaction} must not imply interest on repeated clicks`)
     assert.equal(writes, 0, 'Revisiting must not save another stage')
   }
   for (const status of ['open', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted']) {

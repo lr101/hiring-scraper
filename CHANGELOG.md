@@ -39,7 +39,7 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
-- Opening a job post keeps it New until interest is explicitly selected. Interested roles can move to Not interested through their actions or a left swipe.
+- Opening an original job post leaves its stage unchanged until interest is explicitly selected. Interested roles can move to Not interested through their actions or a left swipe.
 
 - Cancelled company searches avoid a database lock cycle and preserve leases owned by newer discovery attempts.
 - Large job searches reuse normalized location aliases to reduce repeated geography processing.
