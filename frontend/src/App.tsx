@@ -617,7 +617,7 @@ function DirectoryPage() {
     setTrackingNotice('')
     setSwipeSavingJobId(job.id)
     try {
-      const saved = await saveApplication(API_BASE_URL, trackingProfileId, job.id, action.status)
+      const saved = await saveApplication(API_BASE_URL, trackingProfileId, job.id, action.status, action.kind)
       if (profileSelectionToken.current !== profileToken) return
       setJobs(current => current.map(item => item.id === job.id && item.profile_id === trackingProfileId ? { ...item, application: saved } : item))
       const previousStatus = job.application?.status ?? 'new'
@@ -661,17 +661,18 @@ function DirectoryPage() {
       <main className="content">
         <section className="intro-row">
           <div>
-            <p className="eyebrow">COMPANIES, JOBS, AND PLACES</p>
-            <h1>Opportunity, <em>around you.</em></h1>
-            <p className="intro-copy">Find nearby opportunities from employer hiring pages and selected public job listings.</p>
+            <h1>Find employers and open roles.</h1>
+            <p className="intro-copy">Search career pages and public listings by area, state, or across Germany.</p>
           </div>
-          <div className="snapshot-pill">{selectedLocationKey ? <><span>{radius}</span> KM SEARCH AREA</> : 'LOCATION REQUIRED'}</div>
+          <div className="snapshot-pill">{selectedLocationKey
+            ? wholeState ? `Across ${selectedScopeLabel}` : `${radius} km around ${locality}`
+            : 'Choose a search area'}</div>
         </section>
 
         <section className="search-card" aria-label="Choose a location">
           <div className="search-form">
             <label className="search-location">
-              <span className="control-label">LOCATION</span>
+              <span className="control-label">Saved search area</span>
               <span className="input-wrap location-select-wrap"><Icon name="pin" size={19} />
                 <select aria-label="Configured locations" value={selectedLocationKey} disabled={!locationsReady || selectableLocationOptions.length === 0}
                   onChange={event => selectLocation(event.target.value)}>
@@ -683,7 +684,7 @@ function DirectoryPage() {
               </span>
             </label>
             {selectedLocationKey && !wholeState && <label className="radius-control">
-              <span className="control-label">LISTING DISTANCE</span>
+              <span className="control-label">Job distance</span>
               <select aria-label="Listing distance around this place" value={radius} onChange={event => { setRadius(Number(event.target.value)); setOffset(0) }}>
                 {[...new Set([5, 10, 15, 25, 35, 50, 100, 200, radius])].sort((a,b) => a-b).map(value => <option key={value} value={value}>{value} km</option>)}
               </select>
@@ -698,25 +699,25 @@ function DirectoryPage() {
         {tab === 'companies' && selectedLocationKey && <section className="metrics-grid" aria-label="Search overview">
           <article className="metric-card metric-primary">
             <span className="metric-icon"><Icon name="building" size={19} /></span>
-            <span className="metric-label">COMPANIES IN THIS AREA</span>
+            <span className="metric-label">Companies in this area</span>
             <strong>{loading ? '—' : summary.companies_in_radius.toLocaleString('en')}</strong>
             <span className="metric-note">{wholeState ? `Across ${locality}` : `within ${radius} km of ${locality}`}</span>
           </article>
           <article className="metric-card">
             <span className="metric-icon metric-icon-green"><Icon name="globe" size={19} /></span>
-            <span className="metric-label">WITH A WEBSITE</span>
+            <span className="metric-label">With a website</span>
             <strong>{loading ? '—' : summary.companies_with_domain.toLocaleString('en')}</strong>
             <span className="metric-note">{wholeState ? 'company websites found in this search area' : 'company websites found nearby'}</span>
           </article>
           <article className="metric-card">
             <span className="metric-icon metric-icon-lilac"><Icon name="briefcase" size={19} /></span>
-            <span className="metric-label">{wholeState ? 'JOBS IN SELECTED SCOPE' : 'JOBS IN AREA'}</span>
+            <span className="metric-label">{wholeState ? 'Jobs in selected area' : 'Jobs in this area'}</span>
             <strong>{loading ? '—' : summary.jobs_for_location.toLocaleString('en')}</strong>
             <span className="metric-note">{wholeState ? 'matched by listed work location when available' : `roles within ${radius} km`}</span>
           </article>
           <article className="metric-card metric-remote">
             <span className="metric-icon metric-icon-sand"><Icon name="globe" size={19} /></span>
-            <span className="metric-label">REMOTE ROLES</span>
+            <span className="metric-label">Remote roles</span>
             <strong>{loading ? '—' : summary.remote_jobs_in_result.toLocaleString('en')}</strong>
             <span className="metric-note">select Remote in the job location filter</span>
           </article>
@@ -725,8 +726,14 @@ function DirectoryPage() {
         <section className="directory-card">
           <div className="directory-header">
             <div>
-              <p className="eyebrow">YOUR RESULTS</p>
-              <h2>{tab === 'jobs' ? 'Jobs around you' : 'What’s nearby'}</h2>
+              <h2>{!selectedLocationKey
+                ? tab === 'jobs' ? 'Jobs' : 'Companies'
+                : tab === 'jobs'
+                  ? jobLocationScope === 'remote' ? 'Remote jobs'
+                    : jobLocationScope === 'area_remote'
+                      ? wholeState ? `Jobs in ${selectedScopeLabel} + remote` : `Jobs near ${locality} + remote`
+                      : wholeState ? `Jobs in ${selectedScopeLabel}` : `Jobs near ${locality}`
+                  : wholeState ? `Companies in ${selectedScopeLabel}` : `Companies near ${locality}`}</h2>
             </div>
             <label className="table-search"><Icon name="search" size={17} />
               <input aria-label="Search results" value={query} onChange={event => { setQuery(event.target.value); setOffset(0) }} placeholder="Search companies or job text" />
@@ -835,7 +842,7 @@ function DirectoryPage() {
           </div> : loading ? <div className="loading-state"><span className="spinner" /> Gathering the latest results…</div> : tab === 'companies' ? (
             <div className="table-scroll mobile-results-scroll">
               <table className="companies-table mobile-results-table">
-                <thead><tr><th>COMPANY</th><th>WEBSITE</th><th>HIRING PAGE</th><th>{wholeState ? 'STATE' : 'DISTANCE'}</th><th /></tr></thead>
+                <thead><tr><th>Company</th><th>Website</th><th>Hiring page</th><th>{wholeState ? 'State' : 'Distance'}</th><th /></tr></thead>
                 <tbody>
                   {companies.map(company => <tr key={company.id} onClick={() => { window.location.href = companyHref(company.id) }} className="click-row">
                     <td className="result-primary"><div className="company-cell"><span className="company-monogram">{company.name.slice(0, 1).toUpperCase()}</span><span><strong><a href={companyHref(company.id)} onClick={event => event.stopPropagation()}>{company.name}</a></strong><small>{company.category?.replaceAll('_', ' ') || 'Business type not listed'}</small></span></div></td>
@@ -886,6 +893,7 @@ function App() {
   const path = window.location.pathname
   if (path === '/profile' || path.startsWith('/profile/')) return <ProfilesPage />
   if (path === '/applications' || path === '/applications/') return <ApplicationsPage />
+  if (path === '/discover' || path === '/discover/') return <DirectoryPage />
   if (path === '/settings' || path === '/settings/') return <SettingsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />
@@ -893,6 +901,7 @@ function App() {
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />
   const jobMatch = path.match(/^\/jobs\/(\d+)\/?$/)
   if (jobMatch) return <DetailPage kind="job" id={Number(jobMatch[1])} />
+  if (path === '/' || path === '') return <ApplicationsPage />
   return <DirectoryPage />
 }
 

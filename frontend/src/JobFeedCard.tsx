@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import JobOverviewTags from './JobOverviewTags'
-import { applicationStatuses } from './applications'
+import { applicationStatuses, nextApplicationStages } from './applications'
 import type { Application, ApplicationSwipeAction, ApplicationStatus } from './applications'
 import { languageRequirementLabel } from './JobEvidence'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
@@ -34,6 +34,15 @@ function formatDate(value?: string | null) {
   return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleDateString('en', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+const stageActionCopy: Partial<Record<ApplicationStatus, string>> = {
+  open: 'Mark interested',
+  not_interested: 'Skip role',
+  waiting_for_reply: 'Mark applied',
+  interview: 'Log interview',
+  rejected: 'Log rejection',
+  accepted: 'Log offer',
+}
+
 function JobFeedCard({
   job, href, profileId, profileName, updatedAt, disabled = false, saving = false, pendingStatus, onAction, onOpenOriginal,
 }: {
@@ -52,6 +61,7 @@ function JobFeedCard({
     ? { ...job.application, previous_status: job.application.status, status: pendingStatus }
     : job.application
   const status = application?.status ?? (profileId ? 'new' : null)
+  const nextMoves = status ? nextApplicationStages[status] : []
   const previousStatus: ApplicationStatus | null = application?.previous_status && application.previous_status !== application.status
     ? application.previous_status : null
   const matchingSkills = job.profile_match?.matched_skills ?? []
@@ -87,6 +97,16 @@ function JobFeedCard({
     <JobOverviewTags job={job} />
     {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : 'None identified yet'}</p>}
     {languageRequirements && <p className="application-language-requirements"><strong>Language requirements:</strong> {languageRequirements}</p>}
+    {nextMoves.length > 0 && profileId !== undefined && <div className="application-quick-moves" aria-label="Move this application to its next state">
+      <span className="application-quick-moves-label">Next move</span>
+      {nextMoves.map(nextStatus => <button type="button" key={nextStatus}
+        className={`application-quick-move move-${nextStatus}`} disabled={disabled}
+        onClick={() => onAction(job.id, profileId, { kind: 'stage', status: nextStatus })}>
+        <span aria-hidden="true">{nextStatus === 'not_interested' || nextStatus === 'rejected' ? '↘' : '↗'}</span>
+        {stageActionCopy[nextStatus] ?? `Move to ${applicationStatuses.find(item => item.value === nextStatus)?.label}`}
+      </button>)}
+    </div>}
+    {status === 'accepted' && <div className="application-outcome-banner"><span aria-hidden="true">★</span> Offer logged · checkpoint complete</div>}
     {(previousStatus || (job.url && onOpenOriginal)) && <footer className="application-card-footer application-job-card-footer">
       {previousStatus && <>
         <button type="button" data-swipe-undo className="application-undo-button application-card-undo"

@@ -25,7 +25,7 @@ export type Enrichment = {
 export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
   const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
-    <p className="eyebrow">HOW THIS JOB FITS</p>
+    <p className="eyebrow">How this job fits</p>
     {match ? <>
       <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
       <p className="muted">This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.</p>

@@ -223,7 +223,6 @@ export default function FeedSourcesPage() {
     <SiteHeader active="settings" />
     <main className="content feed-sources-page">
       <section className="feed-page-heading">
-        <p className="eyebrow">SOURCE MANAGEMENT</p>
         <h1>Job feeds</h1>
         <p>Add public job pages, publisher feeds, or a supported job-search adapter. Each source uses the scheduled feed scanner and can also be scanned on demand. The scraper reads listings only; it does not submit applications.</p>
       </section>
@@ -232,7 +231,6 @@ export default function FeedSourcesPage() {
       {notice && <p className="feed-notice" role="status">{notice}</p>}
 
       <section className="detail-panel feed-create-panel">
-        <p className="eyebrow">ADD A SOURCE</p>
         <h2>Connect a job source</h2>
         <form className="feed-create-form" onSubmit={createFeed}>
           {!companyId && <label>Company or source name <span>(optional)</span>
@@ -276,7 +274,7 @@ export default function FeedSourcesPage() {
       </section>
 
       <section className="detail-panel feed-list-panel">
-        <div className="feed-list-heading"><div><p className="eyebrow">{companyId ? 'COMPANY SOURCES' : 'SAVED SOURCES'}</p><h2>{visibleFeeds.length} {visibleFeeds.length === 1 ? 'feed' : 'feeds'}</h2></div>
+        <div className="feed-list-heading"><div><p className="eyebrow">{companyId ? 'Company sources' : 'Saved sources'}</p><h2>{visibleFeeds.length} {visibleFeeds.length === 1 ? 'feed' : 'feeds'}</h2></div>
           {companyId && <a className="page-link" href="/feeds">All feeds</a>}</div>
         {loading ? <div className="loading-state"><span className="spinner" /> Loading feeds…</div>
           : visibleFeeds.length ? <div className="managed-feed-list">{visibleFeeds.map(feed => {

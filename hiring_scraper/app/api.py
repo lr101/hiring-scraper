@@ -30,7 +30,8 @@ from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
-    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
+    ApplicationMomentumEvent, Base, Company, ConfiguredLocation,
+    DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
     JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
     SemanticSearchIndexState, UserProfile,
     JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
@@ -73,6 +74,7 @@ _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
 _WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 _SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
+APPLICATION_WEEKLY_GOAL = max(1, int(os.getenv("APPLICATION_WEEKLY_GOAL", "10")))
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
 _QUERY_EMBEDDING_LOCK = threading.Lock()
 
@@ -112,12 +114,11 @@ def _semantic_index_ready(session: Session, entity_type: str) -> bool:
     )))
 
 
-def _semantic_query_embedding(session: Session, entity_type: str,
-                              query: str | None) -> list[float] | None:
+def _search_query_embedding(session: Session, query: str | None, entity_type: str) -> list[float] | None:
     if not query or IS_SQLITE or not _semantic_index_ready(session, entity_type):
         return None
-    # The embedding request is local HTTP work. Release the read connection
-    # before waiting on it so concurrent searches do not occupy pool slots.
+    # These read endpoints must return their connection before local HTTP I/O.
+    # A burst of embedding requests otherwise exhausts the database pool.
     session.rollback()
     return _query_embedding(query)
 
@@ -1247,7 +1248,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
     normalized_query = " ".join(query.split()) if query else None
-    vector = _semantic_query_embedding(session, "company", normalized_query)
+    vector = _search_query_embedding(session, normalized_query, 'company')
     if normalized_query and vector is None:
         # Stay responsive while the local model is loading or unavailable.
         filters.append(Company.name.ilike(f"%{normalized_query}%"))
@@ -1572,11 +1573,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
 
 def _search_generation(session: Session) -> int:
     generation = session.scalar(select(func.max(JobSearchState.id)))
-    if generation is None:
-        session.add(JobSearchState())
-        session.flush()
-        generation = session.scalar(select(func.max(JobSearchState.id)))
-    return int(generation or 1)
+    return int(generation or 0)
 
 
 def _search_key(generation: int, criteria: dict[str, Any]) -> str:
@@ -1996,18 +1993,20 @@ def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime
 def _finish_search_snapshot_refresh(key: str, token: str, requested_at: datetime,
                                     *, retry: bool = False) -> None:
     with SessionLocal.begin() as session:
-        refresh = session.get(JobSearchRefresh, key)
-        if refresh is None or refresh.lease_token != token:
-            return
-        unchanged = refresh.requested_at == requested_at
-        refresh.lease_token = None
-        refresh.lease_until = None
-        if not unchanged:
-            return
-        if retry:
-            refresh.requested_at = utcnow()
-        else:
-            session.delete(refresh)
+        owned = (JobSearchRefresh.key == key, JobSearchRefresh.lease_token == token)
+        unchanged = (*owned, JobSearchRefresh.requested_at == requested_at)
+        if not retry:
+            removed = session.execute(delete(JobSearchRefresh).where(*unchanged))
+            if removed.rowcount:
+                return
+        # Conditional DML rechecks ownership after any concurrent enqueue or
+        # reclaim. A follow-up request keeps its timestamp and stays queued.
+        session.execute(update(JobSearchRefresh).where(*owned).values(
+            lease_token=None, lease_until=None,
+            requested_at=case((JobSearchRefresh.requested_at == requested_at, utcnow()),
+                              else_=JobSearchRefresh.requested_at) if retry
+                         else JobSearchRefresh.requested_at,
+        ))
 
 
 def process_search_snapshot_refresh_once() -> bool:
@@ -2289,7 +2288,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     thresholds: dict[int | None, tuple[int, bool]] = {}
     thresholds[None] = (0, True)
     normalized_query = ' '.join(query.split()) if query else None
-    vector = _semantic_query_embedding(session, "job", normalized_query)
+    vector = _search_query_embedding(session, normalized_query, 'job')
     if vector is not None:
         semantic_page = _semantic_jobs_page(
             session, vector,
@@ -2437,12 +2436,66 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             'snapshot_id': key, 'snapshot_stale': snapshot_stale}
 
 
+def _application_momentum_json(session: Session) -> dict[str, int]:
+    now = utcnow()
+    week_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+    weekly_jobs: dict[datetime, set[int]] = {}
+    lifetime_jobs: set[int] = set()
+    applied_events = session.execute(select(
+        ApplicationMomentumEvent.job_id,
+        ApplicationMomentumEvent.occurred_at,
+        ApplicationMomentumEvent.is_legacy,
+    ).where(ApplicationMomentumEvent.event_type == 'applied')
+        .order_by(ApplicationMomentumEvent.occurred_at)).all()
+    counted_weekly_jobs: set[int] = set()
+    for job_id, occurred_at, is_legacy in applied_events:
+        lifetime_jobs.add(job_id)
+        if is_legacy or job_id in counted_weekly_jobs:
+            continue
+        counted_weekly_jobs.add(job_id)
+        occurred_at = occurred_at.replace(tzinfo=timezone.utc) if occurred_at.tzinfo is None else occurred_at.astimezone(timezone.utc)
+        event_week = occurred_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=occurred_at.weekday())
+        weekly_jobs.setdefault(event_week, set()).add(job_id)
+
+    weekly_goal = APPLICATION_WEEKLY_GOAL
+    applied_this_week = len(weekly_jobs.get(week_start, set()))
+    successful_weeks = 0
+    streak_week = week_start
+    if len(weekly_jobs.get(streak_week, set())) < weekly_goal:
+        streak_week -= timedelta(days=7)
+    while len(weekly_jobs.get(streak_week, set())) >= weekly_goal:
+        successful_weeks += 1
+        streak_week -= timedelta(days=7)
+
+    interview_count = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'interview',
+    )) or 0
+    jobs_won = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'accepted',
+    )) or 0
+    return {
+        'weekly_goal': weekly_goal,
+        'applied_this_week': applied_this_week,
+        'lifetime_applied': len(lifetime_jobs),
+        'successful_weeks': successful_weeks,
+        'interview_count': interview_count,
+        'jobs_won': jobs_won,
+    }
+
+
+@app.get('/api/v1/application-momentum')
+def get_application_momentum(session: Session = Depends(get_session)) -> dict[str, int]:
+    return _application_momentum_json(session)
+
+
 @app.put('/api/v1/profiles/{profile_id}/applications/{job_id}')
 def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
     require_profile(profile_id, session)
     if session.get(Job, job_id) is None:
         raise HTTPException(status_code=404, detail='Job not found')
+    previous_status = session.scalar(select(JobApplication.status).where(
+        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
     # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
     if session.get_bind().dialect.name == 'sqlite':
         from sqlalchemy.dialects.sqlite import insert
@@ -2460,6 +2513,25 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
                 'updated_at': now,
             })
     session.execute(statement)
+    momentum_event_type = {
+        'waiting_for_reply': 'applied',
+        'interview': 'interview',
+        'accepted': 'accepted',
+    }.get(request.status)
+    if request.action == 'stage' and momentum_event_type and previous_status != request.status:
+        # Count a profile/job only on its first move into Waiting for reply.
+        already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
+            ApplicationMomentumEvent.profile_id == profile_id,
+            ApplicationMomentumEvent.job_id == job_id,
+            ApplicationMomentumEvent.event_type == 'applied',
+        ).limit(1)) is not None
+        if not already_counted:
+            session.add(ApplicationMomentumEvent(
+                profile_id=profile_id,
+                job_id=job_id,
+                event_type=momentum_event_type,
+                occurred_at=now,
+            ))
     session.commit()
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)
@@ -2723,12 +2795,8 @@ def create_managed_feed(request: ManagedFeedCreate,
 @app.patch("/api/v1/feeds/{feed_id}")
 def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    # Acquire the feed write lock before reading its revision. The no-op update
-    # also serializes this path on SQLite, where SELECT FOR UPDATE is ignored.
-    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
-        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
-    if locked.rowcount != 1:
-        raise HTTPException(status_code=404, detail="Job feed not found")
+    # Prepare URLs and geocoding before taking source row locks. Recheck the
+    # revision after locking so an edit cannot overwrite a concurrent edit.
     feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
         JobFeed.id == feed_id)).first()
     if feed is None:
@@ -2762,6 +2830,20 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         source = {"provider": feed.provider, "feed_url": feed.feed_url,
                   "board_url": feed.board_url or feed.feed_url, "tenant": feed.tenant}
         source_config = feed.source_config or {}
+    prepared_revision = feed.source_revision
+    company_id = feed.company_id
+    # Persist any location cache entry and release the preparation connection.
+    session.commit()
+    if session.get_bind().dialect.name == 'postgresql':
+        session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
+        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+    if locked.rowcount != 1:
+        raise HTTPException(status_code=404, detail="Job feed not found")
+    feed = session.scalar(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.id == feed_id).execution_options(populate_existing=True))
+    if feed.source_revision != prepared_revision or feed.company_id != company_id:
+        raise HTTPException(status_code=409, detail="Job feed changed during this edit; reload and try again")
     new_url = source["feed_url"]
     new_provider = source["provider"]
     new_board_url = source["board_url"]

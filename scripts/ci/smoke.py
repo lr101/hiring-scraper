@@ -80,8 +80,8 @@ def exercise_collation_repair_migration() -> None:
     try:
         with admin_engine.begin() as connection:
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0025_postgres_collation_repair', (
-                f'Expected the collation repair migration at head, got {version!r}'
+            assert version == '0027_merge_journey_and_main', (
+                f'Expected the merged migration head, got {version!r}'
             )
             connection.execute(text(
                 "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
@@ -91,9 +91,12 @@ def exercise_collation_repair_migration() -> None:
                 'SELECT datcollversion FROM pg_database WHERE datname = current_database()'
             ))
             assert recorded == 'ci-forced-stale', 'Could not force stale collation metadata'
+            # Keep the journey migrations applied while marking only the
+            # collation branch pending. Rewinding to their common ancestor
+            # would attempt to recreate existing application milestone tables.
             connection.execute(text(
                 'UPDATE alembic_version SET version_num = '
-                "'0024_semantic_search' WHERE version_num = '0025_postgres_collation_repair'"
+                "'0026_weekly_goal_environment' WHERE version_num = '0027_merge_journey_and_main'"
             ))
 
         from alembic import command
@@ -116,7 +119,7 @@ def exercise_collation_repair_migration() -> None:
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0025_postgres_collation_repair', (
+            assert version == '0027_merge_journey_and_main', (
                 f'Collation migration did not return to head: {version!r}'
             )
     finally:
