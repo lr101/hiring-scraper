@@ -38,9 +38,10 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-Save a job profile under **Your profile**. Viewing a job detail automatically
-adds it to **My applications** as New; opening the original post moves it to
-Opened. Update later stages from the job details or application overview.
+Save a job profile under **Your profile**. Viewing a job detail or opening the
+original post adds it to **My applications** as New. Mark a role as Interested
+when you choose to pursue it; you can also move it to Not interested later.
+Update stages from the job details or application overview.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 

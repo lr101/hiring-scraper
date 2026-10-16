@@ -535,12 +535,10 @@ export default function ApplicationsPage() {
   async function openOriginalPost(job: ProfiledJob) {
     const key = profileJobKey(job)
     const currentApplication = jobsRef.current.find(item => item.profileId === job.profileId && item.id === job.id)?.application ?? job.application
-    const willMoveToInterested = !currentApplication || currentApplication.status === 'new'
     if (savingKeysRef.current.has(key)) return
     invalidateInFlightPageRequests()
     savingKeysRef.current.add(key)
     setSavingKeys(current => new Set(current).add(key))
-    if (willMoveToInterested) setPendingStatuses(current => ({ ...current, [key]: 'open' }))
     try {
       const saved = await trackJobInteraction(API, job.profileId, job.id, currentApplication, 'open_post')
       if (saved) applyLocalStatus(job, saved)
