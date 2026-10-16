@@ -7,19 +7,58 @@ import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import Session, sessionmaker
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hiring.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite:")
-_engine_options: dict[str, object] = {"pool_pre_ping": True}
-if IS_SQLITE:
-    # The API and background workers share SQLite in local previews. Let
-    # concurrent writers wait for the active transaction instead of failing
-    # after sqlite3's short default timeout.
-    _engine_options["connect_args"] = {"check_same_thread": False, "timeout": 30}
 
-engine = create_engine(DATABASE_URL, **_engine_options)
+def create_runtime_engine(database_url: str):
+    """Budget each process's connections and bound PostgreSQL blocking waits."""
+    options: dict[str, object] = {"pool_pre_ping": True}
+    if database_url.startswith('sqlite:'):
+        options['connect_args'] = {'check_same_thread': False, 'timeout': 30}
+    elif database_url.startswith(('postgresql:', 'postgresql+')):
+        options.update(
+            pool_size=max(1, int(os.getenv('DB_POOL_SIZE', '4'))),
+            max_overflow=max(0, int(os.getenv('DB_MAX_OVERFLOW', '2'))),
+            pool_timeout=max(.1, float(os.getenv('DB_POOL_TIMEOUT_SECONDS', '10'))),
+            pool_recycle=1800,
+        )
+        postgres_settings = {
+            'lock_timeout': max(1, int(os.getenv('DB_LOCK_TIMEOUT_MS', '5000'))),
+            'statement_timeout': max(1, int(os.getenv('DB_STATEMENT_TIMEOUT_MS', '120000'))),
+            'idle_in_transaction_session_timeout': max(1, int(os.getenv('DB_IDLE_TRANSACTION_TIMEOUT_MS', '120000'))),
+        }
+        options['connect_args'] = {
+            'connect_timeout': max(1, int(os.getenv('DB_CONNECT_TIMEOUT_SECONDS', '5'))),
+            'application_name': 'radius',
+            'options': ' '.join(f'-c {name}={value}' for name, value in postgres_settings.items()),
+        }
+    return create_engine(database_url, **options)
+
+
+def is_transient_database_error(error: BaseException) -> bool:
+    """Retry contention/connection failures, while surfacing schema/code errors."""
+    if isinstance(error, DatabasePoolTimeout):
+        return True
+    if not isinstance(error, DBAPIError):
+        return False
+    if error.connection_invalidated:
+        return True
+    code = getattr(error.orig, 'sqlstate', None) or getattr(error.orig, 'pgcode', None)
+    if code:
+        return code.startswith('08') or code in {
+            '40001', '40P01', '55P03', '57014', '57P01', '57P02', '57P03', '53300',
+        }
+    sqlite_code = getattr(error.orig, 'sqlite_errorcode', None)
+    if sqlite_code is not None:
+        return sqlite_code & 0xff in {5, 6}  # SQLITE_BUSY / SQLITE_LOCKED, including extended codes.
+    return isinstance(error, OperationalError) and type(error.orig).__module__.startswith('psycopg')
+
+
+engine = create_runtime_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

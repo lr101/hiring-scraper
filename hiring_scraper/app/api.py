@@ -113,6 +113,15 @@ def _semantic_index_ready(session: Session, entity_type: str) -> bool:
     )))
 
 
+def _search_query_embedding(session: Session, query: str | None, entity_type: str) -> list[float] | None:
+    if not query or IS_SQLITE or not _semantic_index_ready(session, entity_type):
+        return None
+    # These read endpoints must return their connection before local HTTP I/O.
+    # A burst of embedding requests otherwise exhausts the database pool.
+    session.rollback()
+    return _query_embedding(query)
+
+
 class LocationQuery(BaseModel):
     search_scope: Literal["radius", "state", "country"] | None = None
     query: str = Field(min_length=2, max_length=200)
@@ -1181,8 +1190,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
     normalized_query = " ".join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "company") else None)
+    vector = _search_query_embedding(session, normalized_query, 'company')
     if normalized_query and vector is None:
         # Stay responsive while the local model is loading or unavailable.
         filters.append(Company.name.ilike(f"%{normalized_query}%"))
@@ -1507,11 +1515,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
 
 def _search_generation(session: Session) -> int:
     generation = session.scalar(select(func.max(JobSearchState.id)))
-    if generation is None:
-        session.add(JobSearchState())
-        session.flush()
-        generation = session.scalar(select(func.max(JobSearchState.id)))
-    return int(generation or 1)
+    return int(generation or 0)
 
 
 def _search_key(generation: int, criteria: dict[str, Any]) -> str:
@@ -1931,18 +1935,20 @@ def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime
 def _finish_search_snapshot_refresh(key: str, token: str, requested_at: datetime,
                                     *, retry: bool = False) -> None:
     with SessionLocal.begin() as session:
-        refresh = session.get(JobSearchRefresh, key)
-        if refresh is None or refresh.lease_token != token:
-            return
-        unchanged = refresh.requested_at == requested_at
-        refresh.lease_token = None
-        refresh.lease_until = None
-        if not unchanged:
-            return
-        if retry:
-            refresh.requested_at = utcnow()
-        else:
-            session.delete(refresh)
+        owned = (JobSearchRefresh.key == key, JobSearchRefresh.lease_token == token)
+        unchanged = (*owned, JobSearchRefresh.requested_at == requested_at)
+        if not retry:
+            removed = session.execute(delete(JobSearchRefresh).where(*unchanged))
+            if removed.rowcount:
+                return
+        # Conditional DML rechecks ownership after any concurrent enqueue or
+        # reclaim. A follow-up request keeps its timestamp and stays queued.
+        session.execute(update(JobSearchRefresh).where(*owned).values(
+            lease_token=None, lease_until=None,
+            requested_at=case((JobSearchRefresh.requested_at == requested_at, utcnow()),
+                              else_=JobSearchRefresh.requested_at) if retry
+                         else JobSearchRefresh.requested_at,
+        ))
 
 
 def process_search_snapshot_refresh_once() -> bool:
@@ -2224,8 +2230,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     thresholds: dict[int | None, tuple[int, bool]] = {}
     thresholds[None] = (0, True)
     normalized_query = ' '.join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "job") else None)
+    vector = _search_query_embedding(session, normalized_query, 'job')
     if vector is not None:
         semantic_page = _semantic_jobs_page(
             session, vector,

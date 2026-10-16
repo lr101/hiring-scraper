@@ -142,8 +142,18 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
     profile_ids = sorted({profile.id for profile in profiles})
     if not profile_ids:
         return False
-    # PostgreSQL serializes a rebuild with profile edits. The compare-and-set below
-    # also protects SQLite, where SELECT FOR UPDATE is not supported.
+    current_profiles = session.scalars(
+        select(UserProfile).where(UserProfile.id.in_(profile_ids)).order_by(UserProfile.id)
+        .execution_options(populate_existing=True)
+    ).all()
+    stale_profiles = [profile for profile in current_profiles
+                      if profile.match_index_version != _profile_index_version(profile)]
+    if not stale_profiles:
+        profiles_by_id = {profile.id: profile for profile in current_profiles}
+        profiles[:] = [profiles_by_id[profile_id] for profile_id in profile_ids]
+        return False
+
+    # Fresh index checks are reads. Only a rebuild needs to serialize with edits.
     current_profiles = session.scalars(
         select(UserProfile).where(UserProfile.id.in_(profile_ids)).order_by(UserProfile.id)
         .with_for_update().execution_options(populate_existing=True)
@@ -151,8 +161,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
     stale_profiles = [profile for profile in current_profiles
                       if profile.match_index_version != _profile_index_version(profile)]
     if not stale_profiles:
-        profiles_by_id = {profile.id: profile for profile in current_profiles}
-        profiles[:] = [profiles_by_id[profile_id] for profile_id in profile_ids]
+        profiles[:] = current_profiles
         return False
 
     expected_versions = {profile.id: _profile_index_version(profile) for profile in stale_profiles}

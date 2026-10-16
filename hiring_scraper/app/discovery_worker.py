@@ -14,10 +14,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import case, func, or_, select
+from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
-from hiring_scraper.app.database import SessionLocal, engine
+from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
@@ -1327,21 +1328,33 @@ def process_batch(*, location_jobs_only: bool = False,
     worker_count = min(MAX_CRAWL_WORKER_LIMIT, max(1, int(max_workers)))
     claims = []
     for _ in range(worker_count):
-        claim = _claim_campaign_company()
-        if claim is not None:
-            claims.append(claim)
-            continue
-        if location_jobs_only:
+        try:
+            claim = _claim_campaign_company()
+            if claim is not None:
+                claims.append(claim)
+                continue
+            if location_jobs_only:
+                break
+            due_company = _claim_due_company()
+            if due_company is None:
+                break
+            claims.append((*due_company, None, None))
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Discovery claim failed; finishing already claimed work', exc_info=True)
             break
-        due_company = _claim_due_company()
-        if due_company is None:
-            break
-        claims.append((*due_company, None, None))
 
     # Keep reverse lookups behind due career-page checks and cap their throughput
     # to one company per batch, independently of the crawl worker count.
-    homepage_claim = (_claim_due_homepage_resolution()
-                      if len(claims) < worker_count else None)
+    homepage_claim = None
+    if len(claims) < worker_count:
+        try:
+            homepage_claim = _claim_due_homepage_resolution()
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Homepage claim failed; finishing already claimed work', exc_info=True)
 
     if not claims:
         return _process_homepage_resolution(homepage_claim) if homepage_claim is not None else False
@@ -1371,7 +1384,13 @@ def main() -> None:
     LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s workers=%s location_jobs_only=%s",
              INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, MAX_CRAWL_WORKERS, args.location_jobs_only)
     while True:
-        worked = process_batch(location_jobs_only=args.location_jobs_only)
+        try:
+            worked = process_batch(location_jobs_only=args.location_jobs_only)
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Discovery database cycle failed; backing off before retry', exc_info=True)
+            worked = False
         time.sleep(CRAWL_BATCH_DELAY_SECONDS if worked else POLL_SECONDS)
 
 
