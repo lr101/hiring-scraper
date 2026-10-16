@@ -1184,6 +1184,15 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
                              error: Exception | None = None) -> None:
     now = utcnow()
     with SessionLocal.begin() as session:
+        # Persistence owns Company before checking the campaign. Cancellation
+        # also releases its company lease, so acquire that lock before task and
+        # parent locks, rather than taking it implicitly during the final flush.
+        company_id = session.scalar(select(DiscoveryJobCompany.company_id).where(
+            DiscoveryJobCompany.id == item_id))
+        if company_id is None:
+            return
+        company = session.scalar(select(Company).where(
+            Company.id == company_id).with_for_update())
         item = session.scalar(select(DiscoveryJobCompany).where(
             DiscoveryJobCompany.id == item_id).with_for_update())
         if item is None or item.status != "running" or item.discovery_run_id != run_id:
@@ -1191,8 +1200,8 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
         job = session.scalar(select(DiscoveryJob).where(
             DiscoveryJob.id == item.discovery_job_id).with_for_update())
         if job is not None and job.status == "cancelled":
-            company = session.get(Company, item.company_id)
-            run = session.get(DiscoveryRun, run_id)
+            run = (_lock_current_discovery_run(session, company_id, run_id)
+                   if company is not None else None)
             if company is not None and run is not None:
                 _discard_cancelled_campaign_attempt(company, run, item, now)
             else:

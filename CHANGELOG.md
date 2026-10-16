@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Application journey progress, weekly goals, and milestone rewards, with existing application history preserved as legacy milestones.
+
 - Germany discovery across all 16 states with durable section progress and employer-scoped directory results, including all work locations.
 - Failed Germany map searches can resume from their last saved section instead of restarting discovery.
 - Continuous ranked career and feed checks: daily for large employers or recent jobs, every 3/7/30 days for other employers, with evidence-based pauses that fresh size or hiring evidence can reactivate. Company details expose cadence, reason, and next check.
@@ -29,11 +31,16 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Application journey deployments advance the database migration history; rolling back requires a database rollback plan rather than reverting the application image alone.
+
 - Compose deployments pull a published PostgreSQL/PostGIS/pgvector image from GHCR instead of building it on the host.
 - Fresh Compose deployments start with an empty database; searches begin after a user adds a location in the app.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
 ### Fixed
+
+- Cancelled company searches avoid a database lock cycle and preserve leases owned by newer discovery attempts.
+- Large job searches reuse normalized location aliases to reduce repeated geography processing.
 
 - State-wide map scans query bounded sections and subdivide timed-out sections; incomplete Overpass timeout responses qualify for scheduled retries instead of failing permanently.
 

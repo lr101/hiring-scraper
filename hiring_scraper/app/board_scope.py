@@ -99,10 +99,17 @@ def _location_words(value):
 
 def _location_word_variants(value):
     if not isinstance(value, str):
-        return set()
+        return frozenset()
+    return _cached_location_word_variants(value)
+
+
+@lru_cache(maxsize=4096)
+def _cached_location_word_variants(value):
+    # The same workplace labels and static aliases occur across many jobs.
+    # Immutable results keep the bounded process-local cache safe to share.
     source = value.casefold().replace('ß', 'ss')
     transliterated = source.translate(str.maketrans({'ä': 'ae', 'ö': 'oe', 'ü': 'ue'}))
-    return {_location_words(source), _location_words(transliterated)}
+    return frozenset((_location_words(source), _location_words(transliterated)))
 
 
 @lru_cache(maxsize=1)
@@ -149,6 +156,7 @@ def _location_state(location_country, latitude, longitude):
         return None
 
 
+@lru_cache(maxsize=4096)
 def location_text_names(target):
     """Return configured city names and their common feed spelling aliases."""
     target_variants = _location_word_variants(target)

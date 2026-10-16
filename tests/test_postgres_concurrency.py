@@ -15,7 +15,8 @@ from psycopg.errors import LockNotAvailable
 from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, job_search
 from hiring_scraper.app import worker
 from hiring_scraper.app.models import (
-    Base, Company, Job, JobFeed, JobSearchRefresh, ScanRun, SemanticSearchIndexState, UserProfile, utcnow,
+    Base, Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobFeed,
+    JobSearchRefresh, ScanRun, SemanticSearchIndexState, UserProfile, utcnow,
 )
 
 
@@ -83,12 +84,91 @@ class PostgresConcurrencyTests(unittest.TestCase):
         self.assert_company_first(lambda feed_id, run_id: worker._persist_result(
             feed_id, run_id, {'state': 'not_modified', 'status': 304}, b'', 1))
 
+    def test_cancelled_campaign_finisher_waits_for_company_without_holding_parent(self):
+        with self.factory.begin() as session:
+            company = Company(source='test', source_id='cancelled', name='Employer',
+                              discovery_lease_until=utcnow() + timedelta(minutes=5))
+            campaign = DiscoveryJob(label='Cancelled', latitude=49, longitude=8,
+                                    radius_km=15, status='cancelled')
+            session.add_all([company, campaign])
+            session.flush()
+            run = DiscoveryRun(company_id=company.id, status='running')
+            session.add(run)
+            session.flush()
+            item = DiscoveryJobCompany(discovery_job_id=campaign.id, company_id=company.id,
+                                       discovery_run_id=run.id, status='running')
+            session.add(item)
+            session.flush()
+            company_id, campaign_id, item_id, run_id = company.id, campaign.id, item.id, run.id
+        reached_company = threading.Event()
+        errors = []
+
+        def before(_conn, _cursor, statement, *_args):
+            if threading.current_thread().name == 'campaign-finisher' and (
+                    ('FROM companies ' in statement and 'FOR UPDATE' in statement)
+                    or statement.startswith('UPDATE companies')):
+                reached_company.set()
+
+        def finish():
+            try:
+                discovery_worker._finish_campaign_company(item_id, run_id)
+            except Exception as error:
+                errors.append(error)
+
+        event.listen(self.engine, 'before_cursor_execute', before)
+        try:
+            with self.factory() as persistence:
+                persistence.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+                thread = threading.Thread(target=finish, name='campaign-finisher')
+                thread.start()
+                try:
+                    self.assertTrue(reached_company.wait(3))
+                    # Crawl persistence already owns Company before checking its campaign.
+                    persistence.scalar(select(DiscoveryJob.id).where(
+                        DiscoveryJob.id == campaign_id).with_for_update())
+                    persistence.commit()
+                finally:
+                    persistence.rollback()
+                    thread.join(6)
+            self.assertFalse(thread.is_alive())
+            self.assertEqual(errors, [])
+            with self.factory() as session:
+                self.assertEqual(session.get(DiscoveryJobCompany, item_id).status, 'cancelled')
+                self.assertEqual(session.get(DiscoveryRun, run_id).status, 'cancelled')
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', before)
+
     def test_feed_edit_waits_for_company_without_holding_feed(self):
         def edit(feed_id, _run_id):
             with self.factory() as session:
                 api.update_managed_feed(feed_id, api.ManagedFeedUpdate(
                     career_page_url='https://example.test/careers'), session)
         self.assert_company_first(edit)
+
+    def test_cancelled_campaign_finisher_preserves_a_newer_discovery_lease(self):
+        lease = utcnow() + timedelta(minutes=5)
+        with self.factory.begin() as session:
+            company = Company(source='test', source_id='reclaimed', name='Employer',
+                              discovery_lease_until=lease)
+            campaign = DiscoveryJob(label='Cancelled', latitude=49, longitude=8,
+                                    radius_km=15, status='cancelled')
+            session.add_all([company, campaign])
+            session.flush()
+            old = DiscoveryRun(company_id=company.id, status='failed', error='Lease expired')
+            session.add(old)
+            session.flush()
+            newer = DiscoveryRun(company_id=company.id, status='running')
+            item = DiscoveryJobCompany(discovery_job_id=campaign.id, company_id=company.id,
+                                       discovery_run_id=old.id, status='running')
+            session.add_all([newer, item])
+            session.flush()
+            company_id, old_id, newer_id, item_id = company.id, old.id, newer.id, item.id
+        discovery_worker._finish_campaign_company(item_id, old_id)
+        with self.factory() as session:
+            self.assertEqual(session.get(Company, company_id).discovery_lease_until, lease)
+            self.assertEqual(session.get(DiscoveryRun, newer_id).status, 'running')
+            self.assertEqual(session.get(DiscoveryRun, old_id).status, 'failed')
+            self.assertEqual(session.get(DiscoveryJobCompany, item_id).status, 'cancelled')
 
     def assert_company_first(self, action):
         company_id, feed_id, run_id = self.seed_feed()
