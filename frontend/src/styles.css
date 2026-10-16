@@ -279,6 +279,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .feed-record a { white-space: nowrap; display: flex; align-items: center; gap: 4px; color: #698961; font-size: 9px; text-decoration: none; }
 .metadata-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; overflow: hidden; background: #e7eaeb; border: 1px solid #e7eaeb; border-radius: 8px; margin: 20px 0; }
 .meta-item { min-height: 63px; padding: 11px; background: #fff; }
+.meta-item-wide { grid-column: 1 / -1; }
 .meta-item span { display: block; color: #98a199; font: 500 8px 'DM Mono',monospace; letter-spacing: .5px; }
 .meta-item strong { display: block; color: #4b5b50; margin-top: 6px; font-size: 10px; font-weight: 600; overflow-wrap: anywhere; }
 .company-domain-editor { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 7px; }
@@ -359,6 +360,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .coverage-metrics strong span { color: #8a9888; font-size: 10px; }
 .coverage-metrics small { margin-top: 4px; color: #89948b; font-size: 8px; }
 .germany-map-coverage > p { margin: 10px 0 0; color: #788579; font-size: 9px; line-height: 1.5; }
+.coverage-resume-button { margin-top: 10px; }
 .active-worker-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
 .active-worker-card { min-width: 0; padding: 13px; border: 1px solid #e7ebe3; border-radius: 9px; background: #fff; }
 .active-worker-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; }

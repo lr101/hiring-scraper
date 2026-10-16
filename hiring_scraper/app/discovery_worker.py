@@ -33,7 +33,7 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
-from hiring_scraper.app.employers import upsert_job_employer
+from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
@@ -559,6 +559,48 @@ def _record_failure(company_id: int, run_id: int, error: Exception,
         company.discovery_lease_until = None
         company.discovery_error = detail
         company.next_discovery_at = _retry_time(company.discovery_attempt_count)
+        run.finished_at = now
+        run.status = "failed"
+        run.error = detail
+
+
+def _defer_employer_contention(company_id: int, run_id: int, error: Exception,
+                               *, campaign_item_id: int | None = None) -> None:
+    """Retry a rolled-back crawl after the concurrent employer update finishes."""
+    now = utcnow()
+    retry_at = now + timedelta(seconds=random.randint(15, 45))
+    detail = str(error)[:2000]
+    with SessionLocal.begin() as session:
+        company = session.scalars(select(Company).where(
+            Company.id == company_id).with_for_update()).first()
+        run = _lock_current_discovery_run(session, company_id, run_id)
+        if company is None or run is None:
+            return
+        campaign_job = None
+        campaign_item = None
+        if campaign_item_id is not None:
+            attempt = _campaign_attempt(session, campaign_item_id, run_id)
+            if attempt is None:
+                return
+            campaign_job, campaign_item = attempt
+            if campaign_job.status == "cancelled":
+                _discard_cancelled_campaign_attempt(company, run, campaign_item, now)
+                return
+            if campaign_job.status not in {"scheduled", "queued", "running"}:
+                return
+            campaign_item.status = "queued"
+            campaign_item.discovery_run_id = None
+            campaign_item.started_at = None
+            campaign_item.finished_at = None
+            campaign_item.jobs_found = 0
+            campaign_item.error = None
+            campaign_job.progress_message = "Retrying company check"
+            campaign_job.progress_updated_at = now
+
+        company.discovery_lease_until = retry_at if campaign_item is not None else None
+        company.discovery_error = detail
+        company.discovery_attempt_count = max(0, company.discovery_attempt_count - 1)
+        company.next_discovery_at = retry_at
         run.finished_at = now
         run.status = "failed"
         run.error = detail
@@ -1284,18 +1326,35 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
         LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
                  company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
     except Exception as error:
-        LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
+        if is_transient_database_error(error):
+            # Database contention is not a remote-source failure. Preserve the
+            # attempt for lease recovery and let the worker cycle back off.
+            raise
+        if isinstance(error, EmployerUpsertDeferred):
+            def defer_retry() -> None:
+                _defer_employer_contention(
+                    company_id, run_id, error, campaign_item_id=item_id)
 
-        def record_failure() -> None:
-            _record_failure(company_id, run_id, error, campaign_item_id=item_id)
-            if item_id is not None:
-                _finish_campaign_company(item_id, run_id, error=error)
-
-        if engine.dialect.name == "sqlite":
-            with _SQLITE_FINALIZE_LOCK:
-                record_failure()
+            if engine.dialect.name == "sqlite":
+                with _SQLITE_FINALIZE_LOCK:
+                    defer_retry()
+            else:
+                defer_retry()
+            LOG.warning("company discovery deferred id=%s name=%r: %s",
+                        company_id, seed["name"], error)
         else:
-            record_failure()
+            LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
+
+            def record_failure() -> None:
+                _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+                if item_id is not None:
+                    _finish_campaign_company(item_id, run_id, error=error)
+
+            if engine.dialect.name == "sqlite":
+                with _SQLITE_FINALIZE_LOCK:
+                    record_failure()
+            else:
+                record_failure()
     return True
 
 

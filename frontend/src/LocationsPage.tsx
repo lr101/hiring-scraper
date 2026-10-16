@@ -26,7 +26,7 @@ type ActiveWorker = {
   title: string; activity: string; context: string | null; started_at: string | null
 }
 type GermanyMapProgress = {
-  status: string; stage: string; complete: boolean; states_completed: number
+  job_id: number; status: string; stage: string; complete: boolean; resumable: boolean; states_completed: number
   current_state_number: number | null; states_total: number; sections_saved: number
   companies_found: number; websites_found: number; scheduled_for: string | null; error: string | null
 }
@@ -98,6 +98,7 @@ export default function LocationsPage() {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
+  const [resumingGermanyJobId, setResumingGermanyJobId] = useState<number | null>(null)
   const [cancellingJobId, setCancellingJobId] = useState<number | null>(null)
   const [workerActivityUnavailable, setWorkerActivityUnavailable] = useState(false)
   const [error, setError] = useState('')
@@ -242,6 +243,23 @@ export default function LocationsPage() {
     }
   }
 
+  async function resumeGermanySearch(jobId: number) {
+    setResumingGermanyJobId(jobId)
+    setError('')
+    setNotice('')
+    try {
+      const response = await fetch(apiUrl(`/api/v1/discovery-jobs/${jobId}/resume`), { method: 'POST' })
+      const payload = await response.json()
+      if (!response.ok) throw new Error(errorMessage(payload, 'Could not continue the Germany map search.'))
+      setNotice('The Germany map search will continue from its last saved section.')
+      await refresh()
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not continue the Germany map search.')
+    } finally {
+      setResumingGermanyJobId(null)
+    }
+  }
+
   async function updateLocation(location: ConfiguredLocation, enabled: boolean) {
     setError('')
     try {
@@ -380,7 +398,9 @@ export default function LocationsPage() {
           <div><h2>Active workers</h2></div>
           <span className="refresh-indicator"><span className="status-dot" /> {workerActivityUnavailable ? 'Worker status unavailable' : `${activeWorkers.length} active · updates every few seconds`}</span>
         </div>
-        {germanyMapProgress && <GermanyMapCoverage progress={germanyMapProgress} states={states} />}
+        {germanyMapProgress && <GermanyMapCoverage progress={germanyMapProgress} states={states}
+          resuming={resumingGermanyJobId === germanyMapProgress.job_id}
+          onResume={jobId => void resumeGermanySearch(jobId)} />}
         {workerActivityUnavailable ? <div className="empty-activity">Live worker status is temporarily unavailable.</div>
           : activeWorkers.length ? <div className="active-worker-grid">
           {activeWorkers.map(worker => <ActiveWorkerCard key={worker.id} worker={worker} />)}
@@ -426,7 +446,9 @@ export default function LocationsPage() {
   </div>
 }
 
-function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress; states: string[] }) {
+function GermanyMapCoverage({ progress, states, resuming, onResume }: {
+  progress: GermanyMapProgress; states: string[]; resuming: boolean; onResume: (jobId: number) => void
+}) {
   const complete = progress.complete
   const currentStateNumber = progress.current_state_number ?? progress.states_total
   const currentState = states[currentStateNumber - 1] || `State ${currentStateNumber}`
@@ -463,6 +485,8 @@ function GermanyMapCoverage({ progress, states }: { progress: GermanyMapProgress
       <div><strong>{progress.websites_found}</strong><small>websites found</small></div>
     </div>
     <p>{detail}</p>
+    {progress.resumable && <button type="button" className="primary-small-button coverage-resume-button"
+      disabled={resuming} onClick={() => onResume(progress.job_id)}>{resuming ? 'Continuing…' : 'Continue from saved progress'}</button>}
   </article>
 }
 

@@ -76,14 +76,14 @@ def _insert_for(session: Session, model):
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
         "matcher": VERSION,
-        "preferences": profile.preferences or {},
+        "preferences": profile.matching_preferences,
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:40]
 
 
 def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> bool:
     """Apply the profile's default area and match threshold before creating user state."""
-    preferences = profile.preferences or {}
+    preferences = profile.matching_preferences
     area = preferences.get("search_area") or {}
     try:
         latitude = float(area.get("latitude", 49.0068705))
@@ -191,7 +191,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
             source = job_input(job)
             enrichment = current_enrichment(job)
             for profile in stale_profiles:
-                result = match_job(source, profile.preferences or {}, enrichment)
+                result = match_job(source, profile.matching_preferences, enrichment)
                 if not result.get("eligible"):
                     continue
                 pending_matches.append({
@@ -267,7 +267,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | l
             source = job_input(job)
             enrichment = current_enrichment(job)
             for profile in profiles:
-                result = match_job(source, profile.preferences or {}, enrichment)
+                result = match_job(source, profile.matching_preferences, enrichment)
                 if not result.get("eligible"):
                     continue
                 matches.append({

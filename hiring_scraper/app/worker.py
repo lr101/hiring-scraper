@@ -6,6 +6,7 @@ import json
 import os
 import random
 import re
+import sqlite3
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
@@ -15,7 +16,7 @@ from threading import Lock
 from urllib.parse import urlsplit
 
 from sqlalchemy import and_, case, select, or_, update
-from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
+from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
@@ -30,7 +31,7 @@ from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, scope_due_at,
 )
 from hiring_scraper.geography import haversine_m
-from hiring_scraper.app.employers import upsert_job_employer
+from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
 from hiring_scraper.ats import fetch_feed, parse_feed
 from hiring_scraper.browser import BROWSER_CLIENT_REQUEST_BUDGET
@@ -49,6 +50,31 @@ CAPTURE_DIR = Path(os.getenv("SCAN_CAPTURE_DIR", "/tmp/hiring-scraper-feed-captu
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public job-feed refresh)")
 _ORIGIN_LOCK = Lock()
 _LAST_ORIGIN_REQUEST: dict[str, float] = {}
+SQLITE_BUSY_RETRIES = 4
+
+
+def _is_sqlite_busy(error: Exception) -> bool:
+    if engine.dialect.name != "sqlite":
+        return False
+    driver_error = getattr(error, "orig", error)
+    code = getattr(driver_error, "sqlite_errorcode", None)
+    if isinstance(code, int) and (code & 0xFF) in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}:
+        return True
+    message = str(driver_error).casefold()
+    return "database is locked" in message or "database table is locked" in message
+
+
+def _retry_sqlite_busy(operation, *, action: str):
+    for attempt in range(SQLITE_BUSY_RETRIES):
+        try:
+            return operation()
+        except (OperationalError, sqlite3.OperationalError) as error:
+            if not _is_sqlite_busy(error) or attempt + 1 == SQLITE_BUSY_RETRIES:
+                raise
+            delay = min(2.0, 0.25 * (2 ** attempt)) + random.uniform(0, 0.15)
+            LOG.warning("SQLite is busy while %s; retrying in %.2fs (%s/%s)",
+                        action, delay, attempt + 1, SQLITE_BUSY_RETRIES)
+            time.sleep(delay)
 
 
 def _claim_due_feed() -> tuple[int, int, int, dict | None] | None:
@@ -735,8 +761,39 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             refresh_application_matches_for_jobs(session, touched_job_ids)
 
 
+def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,
+                         error: Exception) -> None:
+    with SessionLocal.begin() as failed_session:
+        failed_feed = _lock_feed_result(failed_session, feed_id)
+        failed_run = _current_feed_run(failed_session, feed_id, run_id)
+        if failed_feed and failed_run:
+            if failed_feed.source_revision != source_revision:
+                newer_run = failed_session.scalar(select(ScanRun.id).where(
+                    ScanRun.feed_id == failed_feed.id, ScanRun.id != failed_run.id,
+                    ScanRun.status == "running").limit(1))
+                if newer_run is None:
+                    failed_feed.lease_until = None
+                failed_run.finished_at = utcnow()
+                failed_run.status = "stale_source"
+                failed_run.error = "Feed source changed during this scan; the old response was discarded."
+            else:
+                retry_at = None
+                if isinstance(error, EmployerUpsertDeferred):
+                    retry_at = utcnow() + timedelta(seconds=random.randint(15, 45))
+                    # This was contention, not a failed remote scan. Do not
+                    # increase the exponential retry delay for a healthy feed.
+                    failed_feed.attempt_count = max(0, failed_feed.attempt_count - 1)
+                _requeue_search_scope(
+                    failed_feed, failed_run,
+                    retry_at if retry_at is not None else _backoff(1, incomplete=True),
+                )
+                _set_failure(failed_feed, failed_run, "failed", {}, str(error))
+                if retry_at is not None:
+                    failed_feed.next_scan_at = retry_at if failed_feed.enabled else None
+
+
 def scan_once() -> bool:
-    claimed = _claim_due_feed()
+    claimed = _retry_sqlite_busy(_claim_due_feed, action="claiming a due feed")
     if claimed is None:
         return False
     feed_id, run_id, source_revision, search_scope = claimed
@@ -748,31 +805,34 @@ def scan_once() -> bool:
     if feed is None:
         return True
     if feed.source_revision != source_revision:
-        _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision)
+        _retry_sqlite_busy(
+            lambda: _persist_result(feed_id, run_id, {"state": "stale_source"}, b"", source_revision),
+            action=f"discarding stale scan result for feed {feed_id}",
+        )
         return True
     try:
         metadata, body = _request(feed, search_scope, run_id=run_id)
-        _persist_result(feed_id, run_id, metadata, body, source_revision)
+        _retry_sqlite_busy(
+            lambda: _persist_result(feed_id, run_id, metadata, body, source_revision),
+            action=f"saving scan result for feed {feed_id}",
+        )
         LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
                  metadata.get("state"), metadata.get("status"))
     except Exception as error:
+        if is_transient_database_error(error):
+            # The rolled-back persistence transaction must not label a healthy
+            # source failed. The outer loop backs off; the lease allows recovery.
+            raise
         LOG.exception("feed scan failed id=%s", feed_id)
-        with SessionLocal.begin() as failed_session:
-            failed_feed = _lock_feed_result(failed_session, feed_id)
-            failed_run = _current_feed_run(failed_session, feed_id, run_id)
-            if failed_feed and failed_run:
-                if failed_feed.source_revision != source_revision:
-                    newer_run = failed_session.scalar(select(ScanRun.id).where(
-                        ScanRun.feed_id == failed_feed.id, ScanRun.id != failed_run.id,
-                        ScanRun.status == "running").limit(1))
-                    if newer_run is None:
-                        failed_feed.lease_until = None
-                    failed_run.finished_at = utcnow()
-                    failed_run.status = "stale_source"
-                    failed_run.error = "Feed source changed during this scan; the old response was discarded."
-                else:
-                    _requeue_search_scope(failed_feed, failed_run, _backoff(1, incomplete=True))
-                    _set_failure(failed_feed, failed_run, "failed", {}, str(error))
+        try:
+            _retry_sqlite_busy(
+                lambda: _record_scan_failure(feed_id, run_id, source_revision, error),
+                action=f"recording scan failure for feed {feed_id}",
+            )
+        except Exception:
+            # The lease expires if SQLite remains unavailable. Keep the worker
+            # alive so this transient lock cannot take down the preview stack.
+            LOG.exception("Could not record scan failure for feed %s; its lease will expire", feed_id)
     return True
 
 

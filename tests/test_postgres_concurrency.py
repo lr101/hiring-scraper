@@ -8,7 +8,7 @@ from uuid import uuid4
 from unittest.mock import patch
 
 from sqlalchemy import create_engine, event, select, text, update
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import sessionmaker
 from psycopg.errors import LockNotAvailable
 
@@ -51,7 +51,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
     def seed_feed(self):
         with self.factory.begin() as session:
             company = Company(source='test', source_id='employer', name='Employer')
-            feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml',
+            feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml', board_url='https://example.test/jobs.xml',
                            status='pending', next_scan_at=utcnow() - timedelta(minutes=1))
             session.add(feed)
             session.flush()
@@ -136,7 +136,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
             return [{'city': 'Berlin', 'label': 'Berlin', 'latitude': 52.52, 'longitude': 13.4}]
         with self.factory() as session, patch.object(api, '_nominatim_results', side_effect=geocode):
             result = api.update_managed_feed(feed_id,
-                api.ManagedFeedUpdate(location_query='Berlin', radius_km=35), session)
+                api.ManagedFeedUpdate(feed_url='https://example.test/new-jobs.xml',
+                                      location_query='Berlin', radius_km=35), session)
         self.assertEqual(result['source_config']['location_filter']['city'], 'Berlin')
 
     def test_feed_persistence_contention_does_not_mark_the_source_failed(self):
@@ -306,6 +307,21 @@ class PostgresConcurrencyTests(unittest.TestCase):
                             api.list_jobs(49, 8, 35, None, 'engineer', None, 0, 10, session=session)
         finally:
             single.dispose()
+
+    def test_empty_pool_overrides_keep_the_process_connection_budget(self):
+        with patch.dict(os.environ, {'DB_POOL_SIZE': '', 'DB_MAX_OVERFLOW': '',
+                                    'HIRING_DB_POOL_SIZE': '2', 'HIRING_DB_MAX_OVERFLOW': '0',
+                                    'DB_POOL_TIMEOUT_SECONDS': '.1'}):
+            bounded = database.create_runtime_engine(os.environ['TEST_POSTGRES_URL'])
+        try:
+            with bounded.connect(), bounded.connect():
+                with self.assertRaises(DatabasePoolTimeout):
+                    with bounded.connect():
+                        self.fail('The process exceeded its two-connection budget')
+            with bounded.connect() as recovered:
+                self.assertEqual(recovered.scalar(text('SELECT 1')), 1)
+        finally:
+            bounded.dispose()
 
     def test_runtime_postgres_engine_bounds_lock_and_connection_waits(self):
         factory = getattr(database, 'create_runtime_engine', None)

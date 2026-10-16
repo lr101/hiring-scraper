@@ -126,6 +126,36 @@ def _ensure_application_role(migration_url: str, application_password: str) -> N
         engine.dispose()
 
 
+def _ensure_profile_vote_weight(migration_url: str) -> None:
+    """Apply the additive profile field without advancing Alembic's revision.
+
+    Keeping the revision unchanged lets a previous application image start
+    against this database during a binary rollback.
+    """
+    engine = create_engine(migration_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(text(
+                "ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS "
+                "low_afd_vote_share_weight INTEGER NOT NULL DEFAULT 0"
+            ))
+            connection.execute(text("""
+                UPDATE user_profiles
+                   SET low_afd_vote_share_weight = LEAST(20, GREATEST(0,
+                           COALESCE(NULLIF(preferences::jsonb -> 'matching_defaults'
+                               ->> 'low_afd_vote_share_weight', '')::integer, 0))),
+                       preferences = jsonb_set(
+                           preferences::jsonb,
+                           '{matching_defaults}',
+                           (preferences::jsonb -> 'matching_defaults') - 'low_afd_vote_share_weight',
+                           true
+                       )::json
+                 WHERE (preferences::jsonb -> 'matching_defaults') ? 'low_afd_vote_share_weight'
+            """))
+    finally:
+        engine.dispose()
+
+
 def _bootstrap() -> str:
     application_url = _application_database_url()
     migration_url = _migration_database_url()
@@ -139,6 +169,9 @@ def _bootstrap() -> str:
     migration_environment.pop("POSTGRES_PASSWORD", None)
     subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
     del migration_environment
+
+    print("Ensuring profile matching preference schema", flush=True)
+    _ensure_profile_vote_weight(migration_url)
 
     return application_url
 
@@ -161,15 +194,23 @@ def _serve() -> int:
     if worker_setting not in {"true", "false"}:
         raise RuntimeError("RUN_BACKGROUND_WORKERS must be true or false")
 
-    commands = []
+    commands: list[tuple[list[str], dict[str, str]]] = []
     if worker_setting == "true":
-        commands.extend([
+        worker_pool = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
+        commands.extend((command, worker_pool) for command in [
             ["python", "-m", "hiring_scraper.app.worker"],
             ["python", "-m", "hiring_scraper.app.discovery_worker"],
             ["python", "-m", "hiring_scraper.app.search_snapshot_worker"],
             ["python", "-m", "hiring_scraper.app.semantic_search_worker"],
         ])
-    commands.append(["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"])
+    # The API's synchronous route pool can run up to 40 requests concurrently.
+    # With four worker pools capped at 10 each, the app uses at most 80 of
+    # PostgreSQL's default 100 connections.
+    api_pool = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
+    commands.append((
+        ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"],
+        api_pool,
+    ))
 
     environment = _runtime_environment()
     children: list[subprocess.Popen[bytes]] = []
@@ -183,8 +224,10 @@ def _serve() -> int:
     signal.signal(signal.SIGINT, request_stop)
 
     try:
-        for command in commands:
-            children.append(subprocess.Popen(command, env=environment, preexec_fn=_drop_privileges))
+        for command, pool_settings in commands:
+            process_environment = environment | pool_settings
+            children.append(subprocess.Popen(
+                command, env=process_environment, preexec_fn=_drop_privileges))
         exit_code = 0
         while not stop_requested:
             for child in children:

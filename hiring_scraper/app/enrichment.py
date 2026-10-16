@@ -21,11 +21,14 @@ from hiring_scraper.crawl_policy import ORIGIN_PACER
 from hiring_scraper.matching import VERSION, detail_updates, enrich_job
 
 SOURCE_FIELDS = ('title','url','description','raw_metadata','seniority','employment_type','schedule',
-                 'work_arrangement','is_remote','salary')
+                 'work_arrangement','is_remote','salary','location_text')
 
 
 def job_input(job: Job) -> dict:
-    return {field: getattr(job, field) for field in SOURCE_FIELDS}
+    source = {field: getattr(job, field) for field in SOURCE_FIELDS}
+    source["locations"] = [{"label": row.label, "country_code": row.country_code}
+                            for row in job.locations]
+    return source
 
 
 def current_enrichment(job: Job) -> dict:

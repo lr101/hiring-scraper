@@ -39,6 +39,7 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
 )
+from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.app.feed_schedules import (
     configured_location_scope_payload, germany_search_scope_payload,
     is_synthetic_germany_scope, next_scope_due, queue_arbeitsagentur_scope,
@@ -439,12 +440,23 @@ def _nominatim_results(query: str) -> list[dict[str, Any]]:
             continue
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             continue
+        city_label = ", ".join(value for value in (city, state) if value)
         results.append({"label": item.get("display_name", query), "city": city,
                         "postcode": address.get("postcode"), "state": state,
                         "latitude": latitude, "longitude": longitude,
                         "precision": "city_centroid" if item.get("addresstype") in {"city", "town", "village", "municipality"} else "place_point",
-                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place"})
+                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place",
+                        "city_election_result": municipality_vote_result(city_label, "de")})
     return results
+
+
+def _with_city_election_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    enriched = []
+    for item in results:
+        city_label = ", ".join(value for value in (item.get("city"), item.get("state")) if value)
+        enriched.append({**item, "city_election_result": municipality_vote_result(
+            city_label or item.get("label"), item.get("country_code"))})
+    return enriched
 
 
 def _distance(company: Company, latitude: float, longitude: float) -> float:
@@ -687,7 +699,9 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
                               employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
-                  "country_code": location.country_code} for location in job.locations]
+                  "country_code": location.country_code,
+                  "city_election_result": municipality_vote_result(location.label, location.country_code)}
+                 for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
             "url": job.url, "company_id": company.id,
             "employer_company_id": job.employer_company_id,
@@ -807,15 +821,15 @@ def resolve_location(request: LocationQuery, session: Session = Depends(get_sess
         return {"query": request.query, "results": [_state_location(state)], "cached": True}
     normalized = _key(request.query)
     if normalized in {"karlsruhe", "karlsruhe baden württemberg", "karlsruhe baden-württemberg"}:
-        return {"query": request.query, "results": [KARLSRUHE], "cached": True}
+        return {"query": request.query, "results": _with_city_election_results([KARLSRUHE]), "cached": True}
     cached = session.scalar(select(LocationCache).where(LocationCache.query_key == normalized))
     if cached:
-        return {"query": request.query, "results": cached.results, "cached": True}
+        return {"query": request.query, "results": _with_city_election_results(cached.results), "cached": True}
     results = _nominatim_results(request.query)
     entry = LocationCache(query_key=normalized, results=results)
     session.add(entry)
     session.commit()
-    return {"query": request.query, "results": results, "cached": False}
+    return {"query": request.query, "results": _with_city_election_results(results), "cached": False}
 
 
 @app.get("/api/v1/locations")
@@ -1031,9 +1045,12 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
         map_complete = bool(cursor.get("done"))
         state_index = max(0, int(cursor.get("state_index", 0)))
         germany_map_progress = {
+            "job_id": germany_job.id,
             "status": germany_job.status,
             "stage": germany_job.stage,
             "complete": map_complete,
+            "resumable": (not map_complete and germany_job.status == "failed" and
+                          germany_job.stage == "company_homepage_discovery"),
             "states_completed": len(GERMAN_STATES) if map_complete else min(len(GERMAN_STATES), state_index),
             "current_state_number": None if map_complete else min(len(GERMAN_STATES), state_index + 1),
             "states_total": len(GERMAN_STATES),
@@ -1171,6 +1188,47 @@ def cancel_discovery_job(discovery_job_id: int,
         DiscoveryJobCompany.discovery_job_id == job.id,
         DiscoveryJobCompany.status == "queued",
     ).values(status="cancelled", finished_at=now), execution_options={"synchronize_session": False})
+    session.commit()
+    session.refresh(job)
+    return discovery_job_json(job)
+
+
+@app.post("/api/v1/discovery-jobs/{discovery_job_id}/resume", status_code=202)
+def resume_discovery_job(discovery_job_id: int,
+                         session: Session = Depends(get_session)) -> dict[str, Any]:
+    """Continue an incomplete Germany map from its last persisted section."""
+    _lock_germany_inventory(session)
+    job = session.scalar(select(DiscoveryJob).where(
+        DiscoveryJob.id == discovery_job_id).with_for_update())
+    if job is None:
+        raise HTTPException(status_code=404, detail="Search not found")
+
+    cursor = job.map_cursor if isinstance(job.map_cursor, dict) else {}
+    if (job.search_scope != "country" or job.stage != "company_homepage_discovery" or
+            cursor.get("done")):
+        raise HTTPException(status_code=409, detail="Only an incomplete Germany map search can be resumed")
+
+    if job.status in {"scheduled", "queued", "running"}:
+        session.commit()
+        return discovery_job_json(job)
+    if job.status != "failed":
+        raise HTTPException(status_code=409, detail="Only a failed Germany map search can be resumed")
+    active = _active_germany_inventory(session)
+    if active is not None:
+        raise HTTPException(status_code=409, detail="Another Germany map search is already active")
+
+    now = utcnow()
+    state_number = min(len(GERMAN_STATES), max(0, int(cursor.get("state_index", 0))) + 1)
+    job.status = "queued"
+    job.scheduled_for = None
+    job.finished_at = None
+    job.location_scan_lease_until = None
+    job.location_scan_token = None
+    job.location_scan_attempt_count = 0
+    job.error = None
+    job.progress_message = (f"Resuming Germany map from saved progress · state {state_number} of "
+                            f"{len(GERMAN_STATES)}")
+    job.progress_updated_at = now
     session.commit()
     session.refresh(job)
     return discovery_job_json(job)
@@ -1320,7 +1378,7 @@ def _resolved_search_area(profile, latitude, longitude, radius_km, place, countr
 
 
 def _profile_match(job, profile, scope):
-    match = match_job(job_input(job), profile.preferences, current_enrichment(job))
+    match = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
     if scope is not None:
         match['unknowns'] = list(dict.fromkeys(match['unknowns'] + scope['unknowns']))
         if scope['unknowns']:
@@ -2737,12 +2795,8 @@ def create_managed_feed(request: ManagedFeedCreate,
 @app.patch("/api/v1/feeds/{feed_id}")
 def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    # Acquire the feed write lock before reading its revision. The no-op update
-    # also serializes this path on SQLite, where SELECT FOR UPDATE is ignored.
-    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
-        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
-    if locked.rowcount != 1:
-        raise HTTPException(status_code=404, detail="Job feed not found")
+    # Prepare URLs and geocoding before taking source row locks. Recheck the
+    # revision after locking so an edit cannot overwrite a concurrent edit.
     feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
         JobFeed.id == feed_id)).first()
     if feed is None:
@@ -2776,6 +2830,20 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         source = {"provider": feed.provider, "feed_url": feed.feed_url,
                   "board_url": feed.board_url or feed.feed_url, "tenant": feed.tenant}
         source_config = feed.source_config or {}
+    prepared_revision = feed.source_revision
+    company_id = feed.company_id
+    # Persist any location cache entry and release the preparation connection.
+    session.commit()
+    if session.get_bind().dialect.name == 'postgresql':
+        session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
+        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+    if locked.rowcount != 1:
+        raise HTTPException(status_code=404, detail="Job feed not found")
+    feed = session.scalar(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.id == feed_id).execution_options(populate_existing=True))
+    if feed.source_revision != prepared_revision or feed.company_id != company_id:
+        raise HTTPException(status_code=409, detail="Job feed changed during this edit; reload and try again")
     new_url = source["feed_url"]
     new_provider = source["provider"]
     new_board_url = source["board_url"]

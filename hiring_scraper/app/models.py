@@ -286,11 +286,21 @@ class UserProfile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    low_afd_vote_share_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
     match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+
+    @property
+    def matching_preferences(self) -> dict:
+        """Return preferences with versioned matcher settings merged in."""
+        preferences = dict(self.preferences or {})
+        defaults = dict(preferences.get("matching_defaults") or {})
+        defaults["low_afd_vote_share_weight"] = self.low_afd_vote_share_weight
+        preferences["matching_defaults"] = defaults
+        return preferences
 
 
 class JobApplication(Base):

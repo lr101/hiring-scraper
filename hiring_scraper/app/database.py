@@ -21,8 +21,8 @@ def create_runtime_engine(database_url: str):
         options['connect_args'] = {'check_same_thread': False, 'timeout': 30}
     elif database_url.startswith(('postgresql:', 'postgresql+')):
         options.update(
-            pool_size=max(1, int(os.getenv('DB_POOL_SIZE', '4'))),
-            max_overflow=max(0, int(os.getenv('DB_MAX_OVERFLOW', '2'))),
+            pool_size=max(1, int(os.getenv('DB_POOL_SIZE') or os.getenv('HIRING_DB_POOL_SIZE', '4'))),
+            max_overflow=max(0, int(os.getenv('DB_MAX_OVERFLOW') or os.getenv('HIRING_DB_MAX_OVERFLOW', '2'))),
             pool_timeout=max(.1, float(os.getenv('DB_POOL_TIMEOUT_SECONDS', '10'))),
             pool_recycle=1800,
         )
@@ -71,6 +71,28 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
     from hiring_scraper.app.models import Base
     if target_engine.dialect.name != 'sqlite':
         return
+    database_name = target_engine.url.database or ""
+    is_memory_database = (database_name == ":memory:" or
+                          database_name.startswith("file::memory:") or
+                          target_engine.url.query.get("mode") == "memory")
+    if database_name and not is_memory_database:
+        # WAL lets API readers continue while background workers write. SQLite
+        # still serializes writers, handled by the connection busy timeout.
+        raw_connection = target_engine.raw_connection()
+        try:
+            cursor = raw_connection.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode")
+                journal_mode = cursor.fetchone()[0]
+                if str(journal_mode).casefold() != "wal":
+                    cursor.execute("PRAGMA journal_mode=WAL")
+                    journal_mode = cursor.fetchone()[0]
+            finally:
+                cursor.close()
+            if str(journal_mode).casefold() != "wal":
+                raise RuntimeError(f"Could not enable SQLite WAL mode (got {journal_mode!r})")
+        finally:
+            raw_connection.close()
     with target_engine.begin() as connection:
         # Older development databases may contain duplicate active Germany
         # inventories from before the coalescing guard was added.
@@ -122,6 +144,30 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
             connection.exec_driver_sql(
                 "CREATE INDEX IF NOT EXISTS ix_application_momentum_events_job "
                 "ON application_momentum_events (job_id)")
+        profile_columns = {column['name'] for column in inspect(connection).get_columns('user_profiles')}
+        if 'low_afd_vote_share_weight' not in profile_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE user_profiles ADD COLUMN low_afd_vote_share_weight "
+                "INTEGER NOT NULL DEFAULT 0")
+            for profile_id, preferences in connection.exec_driver_sql(
+                    "SELECT id, preferences FROM user_profiles").all():
+                if isinstance(preferences, str):
+                    try:
+                        preferences = json.loads(preferences)
+                    except json.JSONDecodeError:
+                        continue
+                if not isinstance(preferences, dict):
+                    continue
+                defaults = preferences.get('matching_defaults')
+                if not isinstance(defaults, dict) or 'low_afd_vote_share_weight' not in defaults:
+                    continue
+                try:
+                    weight = max(0, min(20, int(defaults.pop('low_afd_vote_share_weight'))))
+                except (TypeError, ValueError):
+                    weight = 0
+                connection.exec_driver_sql(
+                    "UPDATE user_profiles SET low_afd_vote_share_weight=?, preferences=? WHERE id=?",
+                    (weight, json.dumps(preferences, ensure_ascii=False), profile_id))
         snapshot_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshots')}
         if 'criteria_hash' not in snapshot_columns:
             connection.exec_driver_sql(
