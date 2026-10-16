@@ -13,7 +13,7 @@ export type SwipeDirection = 'left' | 'right'
 export type ApplicationSwipeAction = { kind: 'stage' | 'undo'; status: ApplicationStatus }
 export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[]> = {
   new: ['open', 'not_interested'],
-  open: ['waiting_for_reply'],
+  open: ['waiting_for_reply', 'not_interested'],
   waiting_for_reply: ['interview', 'rejected'],
   interview: ['accepted', 'rejected'],
   accepted: [],
@@ -22,7 +22,7 @@ export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[
 }
 export const swipeApplicationStages: Record<ApplicationStatus, Partial<Record<SwipeDirection, ApplicationStatus>>> = {
   new: { left: 'not_interested', right: 'open' },
-  open: { right: 'waiting_for_reply' },
+  open: { left: 'not_interested', right: 'waiting_for_reply' },
   waiting_for_reply: { left: 'rejected', right: 'interview' },
   interview: { left: 'rejected', right: 'accepted' },
   accepted: {},
@@ -78,12 +78,8 @@ export async function trackJobInteraction(
     const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}`)
     const payload = await response.json()
     if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Could not update application stage.')
-    latest = payload.application ?? null
+    return payload.application ?? null
   }
-  const nextStatus: ApplicationStatus | null = interaction === 'view'
-    ? latest ? null : 'new'
-    : !latest || latest.status === 'new' ? 'open' : null
-
-  if (!nextStatus) return latest
-  return saveApplication(base, profileId, jobId, nextStatus)
+  if (latest) return latest
+  return saveApplication(base, profileId, jobId, 'new')
 }
