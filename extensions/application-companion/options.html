@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Applicant profile · Application Companion</title>
+    <link rel="stylesheet" href="ui.css" />
+    <script type="module" src="appearance.js"></script>
+    <script type="module" src="options.js"></script>
+    <script type="module" src="connection.js"></script>
+  </head>
+  <body>
+    <main class="editor">
+      <header class="editor-brand">
+        <a class="brand" href="#"
+          ><span class="brand-mark" aria-hidden="true"
+            ><i></i><i></i><i></i><i></i></span
+          ><span>radius<span class="brand-period">.</span></span></a
+        ><span>Application companion</span>
+      </header>
+      <section
+        id="radius-connection"
+        class="connection-panel"
+        aria-labelledby="connection-heading"
+      >
+        <h2 id="connection-heading">Connect your Radius</h2>
+        <p class="muted">
+          Your discovered jobs and prepared applications, available while you
+          browse.
+        </p>
+        <label
+          >Radius address<input
+            id="radius-origin"
+            type="url"
+            placeholder="https://your-radius.example"
+        /></label>
+        <details>
+          <summary>Connection details</summary>
+          <label
+            >Separate API address (optional)<input
+              id="radius-api"
+              type="url"
+              placeholder="Same as Radius"
+          /></label>
+          <p class="muted">
+            Use this only if your Radius API runs at a different address.
+          </p>
+        </details>
+        <div class="actions">
+          <button id="radius-connect" type="button" class="primary">
+            Connect Radius</button
+          ><button id="radius-refresh" type="button" hidden>Sync jobs</button
+          ><button
+            id="radius-disconnect"
+            type="button"
+            class="text-button"
+            hidden
+          >
+            Disconnect
+          </button>
+        </div>
+        <label id="radius-profile-label" hidden
+          >Radius profile<select id="radius-profile"></select
+        ></label>
+        <p id="radius-status" class="status" role="status"></p>
+        <small
+          >Access is requested only for your Radius address. The toolbar
+          recognises job URLs; employer forms are read only when you open the
+          extension.</small
+        >
+      </section>
+      <form id="profile-form">
+        <header>
+          <div>
+            <small>Reusable application details</small>
+            <h1>Your applicant profile</h1>
+          </div>
+          <button class="primary" type="submit">Save profile</button>
+        </header>
+        <p class="notice">
+          Saved in this browser. When you choose Fill known details, the
+          selected application site receives those values. Review the draft
+          before submitting.
+        </p>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+        <section class="section" aria-labelledby="contact-heading">
+          <h2 id="contact-heading">Contact details</h2>
+          <p class="muted">Leave anything you have not confirmed blank.</p>
+          <div class="grid">
+            <label
+              >First name<input
+                id="first_name"
+                autocomplete="given-name"
+                maxlength="300"
+            /></label>
+            <label
+              >Last name<input
+                id="last_name"
+                autocomplete="family-name"
+                maxlength="300"
+            /></label>
+            <label
+              >Email<input
+                id="email"
+                type="email"
+                autocomplete="email"
+                maxlength="300"
+            /></label>
+            <label
+              >Phone<input
+                id="phone"
+                type="tel"
+                autocomplete="tel"
+                maxlength="300"
+            /></label>
+            <label class="wide"
+              >LinkedIn URL<input
+                id="linkedin"
+                type="url"
+                placeholder="https://www.linkedin.com/in/…"
+                maxlength="300"
+            /></label>
+            <label
+              >Website<input
+                id="website"
+                type="url"
+                placeholder="https://…" /></label
+            ><label>Portfolio URL<input id="portfolio" type="url" /></label
+            ><label class="wide"
+              >GitHub URL<input id="github" type="url"
+            /></label>
+            <label>City<input id="city" autocomplete="address-level2" /></label
+            ><label
+              >Country<input id="country" autocomplete="country-name"
+            /></label>
+            <label
+              >Street address<input
+                id="street"
+                autocomplete="address-line1" /></label
+            ><label
+              >Postal code<input id="postal_code" autocomplete="postal-code"
+            /></label>
+          </div>
+        </section>
+        <section class="section" aria-labelledby="work-heading">
+          <h2 id="work-heading">Work experience</h2>
+          <p class="muted">
+            Keep employers, job titles, locations and original responsibilities
+            here. Enter known dates as YYYY or YYYY-MM. Tailored bullets are
+            connected separately for each application.
+          </p>
+          <div id="experiences"></div>
+          <button id="add" type="button">Add experience</button>
+        </section>
+        <section class="section" aria-labelledby="common-heading">
+          <h2 id="common-heading">Common application answers</h2>
+          <p class="muted">
+            These are reusable answers you provide. Leave unknown or
+            job-dependent answers blank. Work permission applies only to the
+            country you specify.
+          </p>
+          <div class="grid">
+            <label
+              >Available from<input id="available_from" type="date" /></label
+            ><label
+              >Notice period<input
+                id="notice_period"
+                placeholder="e.g. One calendar month"
+            /></label>
+            <label
+              >Expected salary amount<input
+                id="salary_amount"
+                inputmode="decimal"
+                placeholder="e.g. 65000" /></label
+            ><label
+              >Salary currency<input
+                id="salary_currency"
+                maxlength="3"
+                placeholder="e.g. EUR"
+            /></label>
+            <label
+              >Salary period<select id="salary_period">
+                <option value="">Unknown</option>
+                <option value="year">Per year</option>
+                <option value="month">Per month</option>
+                <option value="hour">Per hour</option>
+              </select></label
+            >
+            <label
+              >Hours per week<input
+                id="weekly_hours"
+                inputmode="decimal" /></label
+            ><label
+              >Employment type<input
+                id="employment_type"
+                placeholder="e.g. Part-time"
+            /></label>
+            <label
+              >Country of work permission<input
+                id="authorization_country"
+                placeholder="e.g. Germany"
+            /></label>
+            <label
+              >Authorized to work in that country?<select
+                id="authorized_to_work"
+              >
+                <option value="">Unknown</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select></label
+            >
+            <label
+              >Require visa sponsorship?<select id="sponsorship_required">
+                <option value="">Unknown</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select></label
+            >
+            <label
+              >Willing to relocate?<select id="willing_to_relocate">
+                <option value="">Unknown</option>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select></label
+            >
+          </div>
+        </section>
+        <section class="section" aria-labelledby="sources-heading">
+          <h2 id="sources-heading">Connect CV and ChatGPT result</h2>
+          <p class="muted">
+            Paste extracted original CV text and the package or return link
+            copied from the application-preparation workflow. No ChatGPT login
+            is needed.
+          </p>
+          <label
+            >Original CV text<textarea
+              id="cv_text"
+              maxlength="100000"
+            ></textarea>
+          </label>
+          <label
+            >ChatGPT package or Radius return link<textarea
+              id="package-input"
+              maxlength="300000"
+            ></textarea>
+          </label>
+          <label
+            >Employer application URL for these answers<input
+              id="application_url"
+              type="url"
+          /></label>
+          <details>
+            <summary>Ask ChatGPT for tailored work bullets</summary>
+            <p class="muted">
+              Use this request with the application-preparation prompt. It gives
+              each job a stable reference, so the returned bullets can be
+              connected without parsing employers or dates.
+            </p>
+            <button id="prepare-bullets" type="button">
+              Prepare bullet-point request</button
+            ><label
+              >Request to copy into ChatGPT<textarea
+                id="bullet-prompt"
+                readonly
+              ></textarea>
+            </label>
+          </details>
+          <button id="connect" type="button">Connect sources</button>
+          <p id="source-notes" class="muted"></p>
+          <button id="dummy-return" type="button">
+            Load paired fictional CV and return link
+          </button>
+          <div id="tailored-bullets"></div>
+          <details>
+            <summary>Connected application text</summary>
+            <label
+              >Application answers<textarea
+                id="application_answers"
+                maxlength="100000"
+              ></textarea></label
+            ><label
+              >Cover letter<textarea
+                id="cover_letter"
+                maxlength="100000"
+              ></textarea>
+            </label>
+          </details>
+        </section>
+      </form>
+      <div class="toolbar">
+        <div class="actions">
+          <button id="import" type="button">Import JSON</button
+          ><button id="export" type="button">Export saved profile</button
+          ><button id="example" type="button">Load fictional example</button
+          ><button id="structured-example" type="button">
+            Load structured example
+          </button>
+        </div>
+        <input
+          class="file-input"
+          id="import-file"
+          type="file"
+          accept=".json,application/json"
+          aria-label="Import profile JSON"
+        />
+        <p
+          class="status"
+          id="transfer-status"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <button class="danger" id="clear" type="button">
+          Delete saved profile</button
+        ><small
+          >Deleting also clears the current editor. Exported files remain on
+          your computer.</small
+        >
+      </div>
+    </main>
+  </body>
+</html>

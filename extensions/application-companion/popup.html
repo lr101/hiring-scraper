@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Radius applications</title>
+    <link rel="stylesheet" href="ui.css" />
+    <script type="module" src="appearance.js"></script>
+    <script type="module" src="popup.js"></script>
+  </head>
+  <body>
+    <main class="popup">
+      <header class="popup-header">
+        <a class="brand" href="#" aria-label="Radius"
+          ><span class="brand-mark" aria-hidden="true"
+            ><i></i><i></i><i></i><i></i></span
+          ><span>radius<span class="brand-period">.</span></span></a
+        ><button id="connection" class="text-button" type="button">
+          Connect Radius
+        </button>
+      </header>
+      <div class="profile">
+        <div>
+          <strong id="applicant-name">Your application profile</strong
+          ><small id="experience-count">Add your reusable details once.</small>
+        </div>
+        <span class="profile-dot" aria-hidden="true"></span>
+      </div>
+      <section id="jobs-section" hidden aria-labelledby="jobs-heading">
+        <div class="section-heading">
+          <h1 id="jobs-heading">On this page</h1>
+          <small id="jobs-caption"></small>
+        </div>
+        <div id="job-entries"></div>
+      </section>
+      <section
+        id="continue-section"
+        hidden
+        aria-label="Continue an application"
+      >
+        <h2>Continue your application</h2>
+        <div id="continue-entry"></div>
+      </section>
+      <details id="job-search" hidden>
+        <summary>Link a discovered job</summary>
+        <label
+          >Find your role<input
+            id="job-query"
+            type="search"
+            placeholder="Job title or company"
+            autocomplete="off"
+        /></label>
+        <div id="job-search-results"></div>
+      </details>
+      <div id="not-connected" class="empty-state" hidden>
+        <h2>Bring your Radius jobs along</h2>
+        <p>
+          Connect once to see discovered roles and prepared CVs as you browse.
+        </p>
+      </div>
+      <div class="page-context">
+        <p id="page-name">Checking this page…</p>
+        <small id="scope"></small>
+      </div>
+      <button id="fill" class="primary" type="button" disabled>
+        Fill known details
+      </button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <section id="result" hidden aria-label="Fill result">
+        <strong id="result-summary"></strong>
+        <p id="result-error" class="status error"></p>
+        <h2>Could not fill</h2>
+        <ul id="remaining"></ul>
+        <details>
+          <summary>All detected fields</summary>
+          <ul id="field-results"></ul>
+        </details>
+      </section>
+      <footer class="actions">
+        <button id="edit" class="text-button" type="button">Edit profile</button
+        ><small>Review before submitting</small>
+      </footer>
+    </main>
+  </body>
+</html>

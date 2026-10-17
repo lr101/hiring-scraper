@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Add the Chrome Application Companion with local CV preparation, job-linked autofill, and tested installable ZIP/checksum builds in CI, Settings, and tagged releases.
+
 - Application journey progress, weekly goals, and milestone rewards, with existing application history preserved as legacy milestones.
 
 - Germany discovery across all 16 states with durable section progress and employer-scoped directory results, including all work locations.
