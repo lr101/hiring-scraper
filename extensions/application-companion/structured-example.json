@@ -1,0 +1,56 @@
+{
+  "first_name": "Alex",
+  "last_name": "Example",
+  "email": "alex@example.invalid",
+  "experiences": [
+    {
+      "company": "Example Robotics",
+      "title": "Project Coordinator",
+      "description": "Fictional example: coordinated product milestones and stakeholder workshops.",
+      "start": "2024-03",
+      "end": null,
+      "current": true,
+      "id": "job-1",
+      "location": "Heidelberg, Germany"
+    },
+    {
+      "company": "Sample Learning GmbH",
+      "title": "Training Specialist",
+      "description": "Fictional example: developed onboarding programmes and tracked training outcomes.",
+      "start": "2022-08",
+      "end": "2024-02",
+      "current": false,
+      "id": "job-2",
+      "location": "Berlin, Germany"
+    },
+    {
+      "company": "Demo Research Institute",
+      "title": "Programme Assistant",
+      "description": "Fictional example: supported international projects and organised events.",
+      "start": "2020-10",
+      "end": "2022-07",
+      "current": false,
+      "id": "job-3",
+      "location": "Remote"
+    }
+  ],
+  "website": "https://example.invalid",
+  "city": "Heidelberg",
+  "country": "Germany",
+  "phone": "+49123456789",
+  "linkedin": "https://www.linkedin.com/in/example",
+  "preferences": {
+    "available_from": "2026-12-01",
+    "notice_period": "One month",
+    "salary_amount": "65000",
+    "salary_currency": "EUR",
+    "salary_period": "year",
+    "authorization_country": "Germany",
+    "authorized_to_work": true,
+    "sponsorship_required": false,
+    "willing_to_relocate": false,
+    "weekly_hours": "20",
+    "employment_type": "Part-time"
+  },
+  "source_notes": "All example facts and common answers are fictional user-entered demonstration data."
+}

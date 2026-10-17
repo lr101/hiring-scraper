@@ -42,6 +42,19 @@ export default function SettingsPage() {
         </a>
       </section>
 
+      <section className="detail-panel settings-card" aria-labelledby="companion-heading">
+        <div className="settings-section-heading">
+          <div><p className="eyebrow">Applications</p><h2 id="companion-heading">Application companion</h2></div>
+          <p>Prepare your CV in Radius and fill known details on employer application pages.</p>
+        </div>
+        <a className="settings-link-card" href="/downloads/radius-application-companion.zip" download>
+          <span className="settings-link-symbol" aria-hidden="true">↓</span>
+          <span className="settings-link-copy"><strong>Download Chrome extension</strong><small>Extract the ZIP, then load its extension folder in chrome://extensions with Developer mode enabled.</small></span>
+          <span className="settings-link-arrow" aria-hidden="true">→</span>
+        </a>
+        <p>Pin the extension, open Edit profile, save your reusable details, and connect this Radius address. The ZIP includes full installation instructions. Filling always requires your click; review and submit applications yourself.</p>
+      </section>
+
       <section className="detail-panel settings-card" aria-labelledby="appearance-heading">
         <div className="settings-section-heading">
           <div><p className="eyebrow">Appearance</p><h2 id="appearance-heading">Color theme</h2></div>

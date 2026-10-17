@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="autofill-fixture" content="demo-v1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Application autofill experiment</title>
+<style>
+  body {font:16px/1.5 system-ui,sans-serif; color:#20302b; background:#f5f7f5; margin:0}
+  main {max-width:900px; margin:32px auto; padding:24px}
+  h1 {font-size:30px; margin-bottom:8px} h2 {font-size:22px}
+  .notice {padding:16px; background:#e0eee8; border-radius:8px}
+  fieldset,article,dialog {border:1px solid #bacbc3; background:white; padding:20px; margin:20px 0; border-radius:8px}
+  dialog {margin:auto; max-height:85vh; overflow:auto; width:min(640px,85%)}
+  label {display:block; margin:10px 0} input,textarea,select,button {font:inherit; padding:8px; border:1px solid #98ada2; border-radius:4px}
+  input:not([type=checkbox]),textarea {display:block; width:calc(100% - 20px)}
+  textarea {min-height:64px} button {cursor:pointer; background:#edf4ef; margin:4px 8px 4px 0}
+  .dates {display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  [role=listbox] {border:1px solid #98ada2; padding:8px; max-height:180px; overflow:auto}
+  [role=option] {display:block; width:100%; text-align:left}
+  dt {font-weight:600} dd {margin:0 0 8px; white-space:pre-wrap}
+  .error {color:#9d2315} pre {white-space:pre-wrap; overflow-wrap:anywhere}
+  @media(max-width:600px) {.dates {grid-template-columns:1fr} main {padding:12px; margin:0}}
+</style>
+<main>
+  <p class="notice">Local experiment · Fictional applicant · No data is sent anywhere</p>
+  <h1>Application autofill experiment</h1>
+  <p id="pattern"></p>
+  <nav><a href="?layout=inline">Inline experience form</a> · <a href="?layout=modal">Dialog experience form (German)</a></nav>
+  <form id="application">
+    <fieldset><legend>Contact details</legend>
+      <label>First name<input id="first" autocomplete="given-name"></label>
+      <label>Last name<input id="last" autocomplete="family-name"></label>
+      <label>Email<input id="email" type="email" autocomplete="email"></label>
+    </fieldset>
+    <h2 id="experience-heading"></h2>
+    <div id="experiences"></div>
+    <button type="button" id="add"></button>
+    <fieldset><legend>Questions for your review</legend>
+      <label>Salary expectation<input id="salary"></label>
+      <label>Work authorization<select id="authorization"><option value="">Please choose</option><option>Yes</option><option>No</option></select></label>
+      <label><input type="checkbox" id="consent"> I agree to the privacy policy</label>
+    </fieldset>
+    <p class="error" id="error" role="status"></p>
+    <button type="button" id="review">Review draft</button>
+    <button type="submit">Submit application (local counter only)</button>
+  </form>
+  <section id="review-panel" hidden><h2>Draft ready for your review</h2><pre id="draft"></pre><button id="edit" type="button">Edit draft</button></section>
+  <dialog id="editor" aria-label="Berufserfahrung hinzufügen"><div id="dialog-fields"></div><button type="button" id="save">Erfahrung speichern</button><button type="button" id="cancel">Abbrechen</button></dialog>
+</main>
+<script>
+  // Stateful fixture deliberately re-renders controls. Direct .value assignment
+  // without input/change events does not update the draft used for review.
+  const layout = new URLSearchParams(location.search).get('layout') || 'inline';
+  const modal = layout === 'modal';
+  document.documentElement.dataset.layout = layout;
+  document.documentElement.lang = modal ? 'de' : 'en';
+  const labels = modal ? {company:'Unternehmen',title:'Position',description:'Aufgaben',current:'Aktuelle Tätigkeit',start:'Beginn',end:'Ende'}
+    : {company:'Company',title:'Job title',description:'Description',current:'I currently work here',start:'Start',end:'End'};
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const state = window.applicationDraft = {first_name:'',last_name:'',email:'',experiences:[],salary:'',authorization:'',consent:false,submissions:0};
+  let pending = null;
+  let openedMonth = null;
+  const emptyExperience = () => ({company:'',title:'',description:'',start:'',end:'',current:false});
+  const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const dateField = (entry,key) => {
+    if (key === 'end' && entry.current) return '';
+    const text = labels[key];
+    if (modal) return `<label>${text}<input data-key="${key}" type="month" value="${escape(entry[key])}"></label>`;
+    const [year='',month=''] = entry[key].split('-');
+    return `<div><label>${text} month</label><button type="button" role="combobox" aria-label="${text} month" aria-expanded="${openedMonth===key}" data-month="${key}">${month ? months[Number(month)-1] : 'Choose month'}</button>
+      ${openedMonth===key ? `<div role="listbox" aria-label="${text} month options">${months.map((m,i)=>`<button type="button" role="option" data-date="${key}" data-value="${String(i+1).padStart(2,'0')}">${m}</button>`).join('')}</div>` : ''}
+      <label>${text} year<input data-year="${key}" inputmode="numeric" value="${escape(year)}"></label></div>`;
+  };
+  function fields(entry,index) {
+    return `<fieldset data-experience="${index}"><legend>${modal?'Berufserfahrung':'Work experience'} ${index+1}</legend>
+      <label>${labels.company}<input data-key="company" value="${escape(entry.company)}"></label>
+      <label>${labels.title}<input data-key="title" value="${escape(entry.title)}"></label>
+      <label for="description-${index}">${labels.description}</label><textarea id="description-${index}" data-key="description">${escape(entry.description)}</textarea>
+      <label><input type="checkbox" data-key="current" ${entry.current?'checked':''}>${labels.current}</label>
+      <div class="dates">${dateField(entry,'start')}${dateField(entry,'end')}</div></fieldset>`;
+  }
+  function bind(container,entry,rerender) {
+    container.querySelectorAll('[data-key]').forEach(el => el.addEventListener(el.type==='checkbox'?'change':'input',() => {
+      entry[el.dataset.key] = el.type==='checkbox' ? el.checked : el.value;
+      if (el.type==='checkbox') {if(entry.current) entry.end=''; rerender();}
+    }));
+    container.querySelectorAll('[data-year]').forEach(el => el.addEventListener('input',() => {
+      entry[el.dataset.year] = el.value + '-' + (entry[el.dataset.year].split('-')[1] || '');
+    }));
+    container.querySelectorAll('[data-month]').forEach(el => el.addEventListener('click',() => {openedMonth=el.dataset.month; rerender();}));
+    container.querySelectorAll('[data-date]').forEach(el => el.addEventListener('click',() => {
+      const key=el.dataset.date; entry[key]=(entry[key].split('-')[0] || '')+'-'+el.dataset.value;
+      openedMonth=null; rerender();
+    }));
+  }
+  function renderInline() {
+    document.querySelector('#experiences').innerHTML=state.experiences.map(fields).join('');
+    document.querySelectorAll('[data-experience]').forEach((el,i)=>bind(el,state.experiences[i],renderInline));
+  }
+  function renderSaved() {
+    document.querySelector('#experiences').innerHTML=state.experiences.map((e,i)=>`<article data-saved-experience="${i}" aria-label="Gespeicherte Berufserfahrung ${i+1}"><h3>${escape(e.title)} · ${escape(e.company)}</h3><dl>${Object.entries(e).map(([k,v])=>`<dt>${escape(labels[k]||k)}</dt><dd data-key="${k}">${escape(v)}</dd>`).join('')}</dl></article>`).join('');
+  }
+  function renderDialog() {
+    const container=document.querySelector('#dialog-fields'); container.innerHTML=fields(pending,state.experiences.length);
+    bind(container,pending,renderDialog);
+  }
+  const valid = e => e.company && e.title && /^\d{4}-(0[1-9]|1[0-2])$/.test(e.start) && (e.current || (/^\d{4}-(0[1-9]|1[0-2])$/.test(e.end) && e.end>=e.start));
+  document.querySelector('#add').textContent=modal?'Berufserfahrung hinzufügen':'Add experience';
+  document.querySelector('#experience-heading').textContent=modal?'Berufserfahrung':'Work experience';
+  document.querySelector('#pattern').textContent=modal?'Dialog editor · native month inputs · asynchronous save':'Inline editor · custom month dropdowns · asynchronous add · draft review step';
+  document.querySelector('#add').onclick = async event => {
+    event.target.disabled=true;
+    await new Promise(resolve=>setTimeout(resolve,120));
+    if(modal) {pending=emptyExperience(); renderDialog(); document.querySelector('#editor').showModal();}
+    else {state.experiences.push(emptyExperience()); renderInline();}
+    event.target.disabled=false;
+  };
+  document.querySelector('#save').onclick = async event => {
+    if(!valid(pending)) return;
+    event.target.disabled=true;
+    await new Promise(resolve=>setTimeout(resolve,120));
+    state.experiences.push({...pending}); pending=null; renderSaved(); document.querySelector('#editor').close(); event.target.disabled=false;
+  };
+  document.querySelector('#cancel').onclick=()=>{pending=null; document.querySelector('#editor').close();};
+  for(const [id,key] of [['first','first_name'],['last','last_name'],['email','email'],['salary','salary'],['authorization','authorization'],['consent','consent']]) {
+    const el=document.getElementById(id);
+    el.addEventListener(el.type==='checkbox'?'change':'input',()=>state[key]=el.type==='checkbox'?el.checked:el.value);
+  }
+  document.querySelector('#review').onclick=()=>{
+    if(!state.experiences.every(valid)) {document.querySelector('#error').textContent='Please review incomplete experiences.'; return;}
+    document.querySelector('#application').hidden=true; document.querySelector('#review-panel').hidden=false;
+    document.querySelector('#draft').textContent=JSON.stringify(state,null,2);
+  };
+  document.querySelector('#edit').onclick=()=>{document.querySelector('#application').hidden=false; document.querySelector('#review-panel').hidden=true;};
+  document.querySelector('#application').onsubmit=event=>{event.preventDefault(); state.submissions++;};
+</script>
+</html>

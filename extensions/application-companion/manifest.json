@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Radius Application Companion",
+  "version": "1.0.0",
+  "minimum_chrome_version": "120",
+  "description": "Recognise Radius jobs, prepare your CV and fill the connected employer application.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs", "webNavigation"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Radius applications",
+    "default_icon": {
+      "16": "icons/16.png",
+      "32": "icons/32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "options_page": "options.html",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'self' https: http://localhost:* http://127.0.0.1:* http://[::1]:*"
+  },
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  }
+}

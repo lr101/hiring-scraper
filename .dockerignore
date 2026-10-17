@@ -23,3 +23,9 @@ hiring.db
 **/__pycache__
 **/*.py[cod]
 **/*.tsbuildinfo
+
+# Local research may contain private CVs and browser captures.
+poc
+extensions/**/node_modules
+frontend/public/downloads
+dist

@@ -366,6 +366,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
       <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}${profileId !== null ? `?profile_id=${profileId}` : ''}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
         <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
+        {profileId !== null && <a className="page-link" href={`/jobs/${job.id}/apply?profile_id=${profileId}`}>Prepare application <span aria-hidden="true">→</span></a>}
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
         {job.company_source_url && <ExternalLink href={job.company_source_url}>Company listing</ExternalLink>}
       </div>
