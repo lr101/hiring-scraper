@@ -12,6 +12,15 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Focused ChatGPT application pages with shorter instructions, one back link, and secondary actions under Options.
+
+- Company-based application download names and an in-app PDF page preview that works without a native mobile PDF viewer.
+
+- Saved custom application instructions per profile, explicit document-language precedence, and more specific cover-letter writing guidance.
+
+- Saved profile CVs (PDF, DOCX and TXT), a one-button application handoff, and a dedicated ChatGPT return/editor page. DOCX-based CV edits retain the original template and export to DOCX or PDF; PDF/TXT imports use an explicitly labeled simple layout. PostgreSQL adds migration `0028_profile_cv`.
+- Single-block ChatGPT application packages, optional return links that fill the correct editor, result-file import, and browser drafts with explicit clear and seven-day expiry.
+
 - Application journey progress, weekly goals, and milestone rewards, with existing application history preserved as legacy milestones.
 
 - Germany discovery across all 16 states with durable section progress and employer-scoped directory results, including all work locations.
@@ -31,6 +40,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- ChatGPT application briefs use available personal context directly and request finished documents without confirmation placeholders. Returned applications show downloads first with optional editing; unfinished drafting text is blocked from export. A realistic two-page CV fixture exercises layout and overflow.
+
 - Application journey deployments advance the database migration history; rolling back requires a database rollback plan rather than reverting the application image alone.
 
 - Compose deployments pull a published PostgreSQL/PostGIS/pgvector image from GHCR instead of building it on the host.
@@ -38,6 +49,8 @@ no historical releases have been reconstructed.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
 ### Fixed
+
+- ChatGPT application handoffs open the destination even when clipboard access fails, with a browser copy fallback and selected text for manual copying.
 
 - Opening an original job post leaves its stage unchanged until interest is explicitly selected. Interested roles can move to Not interested through their actions or a left swipe.
 

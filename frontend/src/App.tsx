@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DetailPage from './DetailPage'
+import ApplicationPreparationPage from './ApplicationPreparationPage'
 import FeedSourcesPage from './FeedSourcesPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
@@ -899,6 +900,8 @@ function App() {
   if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />
+  const applicationMatch = path.match(/^\/jobs\/(\d+)\/apply\/?$/)
+  if (applicationMatch) return <ApplicationPreparationPage jobId={Number(applicationMatch[1])} />
   const jobMatch = path.match(/^\/jobs\/(\d+)\/?$/)
   if (jobMatch) return <DetailPage kind="job" id={Number(jobMatch[1])} />
   if (path === '/' || path === '') return <ApplicationsPage />

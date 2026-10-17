@@ -9,7 +9,8 @@ export type SearchArea = {
   radius_km: number; country_code?: string | null; city_election_result?: CityElectionResult | null
 }
 export type Profile = {
-  id?: number; name: string; summary: string; skills: string[]; desired_roles: string[]; secondary_roles: string[]
+  cv?: { filename: string; content_type: string; size_bytes: number; updated_at: string } | null
+  id?: number; name: string; summary: string; custom_instructions: string; skills: string[]; desired_roles: string[]; secondary_roles: string[]
   work_styles: string[]; employment_types: string[]; seniority_levels: string[]; experience_years: number | null
   languages: string[]; language_levels: Record<string, string>; excluded_terms: string[]
   skill_evidence: Record<string, { context: string; note: string }>; search_area: SearchArea | null

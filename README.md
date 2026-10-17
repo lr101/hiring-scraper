@@ -4,7 +4,7 @@ Radius discovers employers and job openings in Germany. Local development uses S
 
 ## Local development
 
-Requires Python 3.11+, Node.js 20.19+ (or 22.12+), and [mise](https://mise.jdx.dev/).
+Requires Python 3.11+, Node.js 22.13+, and [mise](https://mise.jdx.dev/).
 
 ```bash
 mise install
@@ -190,6 +190,7 @@ network access using `.venv/bin/python -m experiments.summarize_expanded_homepag
 
 ## Documentation
 
+- [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)

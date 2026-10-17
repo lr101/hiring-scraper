@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import ApplicationSwipeCard, { ApplicationStateBadge } from './ApplicationSwipeCard'
 import JobOverviewTags from './JobOverviewTags'
+import { applicationStartLink } from './applicationHandoff'
 import { applicationStatuses, nextApplicationStages } from './applications'
 import type { Application, ApplicationSwipeAction, ApplicationStatus } from './applications'
 import { languageRequirementLabel } from './JobEvidence'
@@ -95,6 +96,7 @@ function JobFeedCard({
       <span><small>Last updated</small>{formatDate(lastUpdated)}</span>
     </div>
     <JobOverviewTags job={job} />
+    <a className="job-prepare-link" href={applicationStartLink(job.id, profileId)}>Start application <span aria-hidden="true">↗</span></a>
     {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : 'None identified yet'}</p>}
     {languageRequirements && <p className="application-language-requirements"><strong>Language requirements:</strong> {languageRequirements}</p>}
     {nextMoves.length > 0 && profileId !== undefined && <div className="application-quick-moves" aria-label="Move this application to its next state">

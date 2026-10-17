@@ -7,6 +7,7 @@ import { applicationStatuses, applicationStatusLabel, nextApplicationStages, sav
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import JobOverviewTags from './JobOverviewTags'
 import type { CityElectionResult, Profile } from './profile'
+import { applicationStartLink } from './applicationHandoff'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -365,6 +366,7 @@ function JobPage({ job, profileId, onApplicationSaved }: {
       <h1>{job.title}</h1>
       <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}${profileId !== null ? `?profile_id=${profileId}` : ''}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
+        <a className="primary-button" href={applicationStartLink(job.id, profileId)}>Start application →</a>
         <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
         {job.company_source_url && <ExternalLink href={job.company_source_url}>Company listing</ExternalLink>}
