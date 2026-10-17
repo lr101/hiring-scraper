@@ -49,7 +49,9 @@ POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "3")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
 HOMEPAGE_RESOLUTION_LEASE_MINUTES = max(5, int(os.getenv("HOMEPAGE_RESOLUTION_LEASE_MINUTES", "15")))
-HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3")))
+# Keep this bounded even if an older deployment configured a larger value.
+HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = min(
+    3, max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3"))))
 LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
 NATIONAL_FIRST_CRAWL_SPREAD_SECONDS = 300
@@ -159,6 +161,7 @@ def _claim_due_homepage_resolution(now=None) -> tuple[int, int, str] | None:
     with SessionLocal.begin() as session:
         statement = (select(Company)
                      .where(Company.website_url.is_(None), Company.homepage_source_tags.is_not(None),
+                            Company.homepage_resolution_attempts < HOMEPAGE_RESOLUTION_MAX_ATTEMPTS,
                             Company.homepage_resolution_next_at.is_not(None),
                             Company.homepage_resolution_next_at <= now,
                             or_(Company.homepage_resolution_lease_until.is_(None),
