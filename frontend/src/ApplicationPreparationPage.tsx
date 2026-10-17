@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PDFPreview from './PDFPreview'
+import BrowserApplicationPreparationPage from './BrowserApplicationPreparationPage'
 import type { Profile } from './profile'
 import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
@@ -46,6 +47,7 @@ export default function ApplicationPreparationPage({ jobId }: { jobId: number })
   const profile = profiles.find(item => String(item.id) === profileId)
   const href = applicationStartLink(jobId, profile?.id)
   const editHref = profile ? `/profile/${profile.id}/edit?return_to=${encodeURIComponent(href)}#profile-cv` : '/profile/new'
+  if (profile && !profile.cv) return <BrowserApplicationPreparationPage key={profile.id} jobId={jobId} attachHref={editHref} incoming={incoming} />
   return <div className="app-shell application-workspace"><main className="content application-finish-page">
     <a className="back-link" href={`/jobs/${jobId}${profileId ? `?profile_id=${profileId}` : ''}`}>← Back to job</a>
     {loading ? <div className="loading-state">Preparing your application…</div> : error ? <p className="error-banner" role="alert">{error}</p> : job && <>
@@ -330,6 +332,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   }
 
   return <>
+    {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
     {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
     {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
     <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>

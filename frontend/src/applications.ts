@@ -1,7 +1,7 @@
 export const applicationStatuses = [
   { value: 'new', label: 'New' },
   { value: 'open', label: 'Interested' },
-  { value: 'in_gots_hand', label: 'In GOD's hand' },
+  { value: 'in_gots_hand', label: 'In GOD\'s hand' },
   { value: 'waiting_for_reply', label: 'Waiting for reply' },
   { value: 'automated_application', label: 'Automated application' },
   { value: 'interview', label: 'Interview' },

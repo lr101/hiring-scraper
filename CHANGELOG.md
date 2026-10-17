@@ -24,6 +24,7 @@ no historical releases have been reconstructed.
 
 - Saved profile CVs (PDF, DOCX and TXT), a one-button application handoff, and a dedicated ChatGPT return/editor page. DOCX-based CV edits retain the original template and export to DOCX or PDF; PDF/TXT imports use an explicitly labeled simple layout. PostgreSQL adds migration `0028_profile_cv`.
 - Single-block ChatGPT application packages, optional return links that fill the correct editor, result-file import, and browser drafts with explicit clear and seven-day expiry.
+- Add the Chrome Application Companion with local CV preparation, job-linked autofill, and tested installable ZIP/checksum builds in CI, Settings, and tagged releases.
 
 - Application journey progress, weekly goals, and milestone rewards, with existing application history preserved as legacy milestones.
 

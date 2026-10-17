@@ -22,3 +22,7 @@ data/production-trials/
 .ci-results/
 data/bonn-discovery/raw/
 data/bonn-public/raw/
+
+# Reproducible extension artifacts are built by CI, never committed.
+dist/
+frontend/public/downloads/

@@ -1,0 +1,15 @@
+.application-preparation-page { max-width: 980px; }
+.application-preparation-hero { margin: 24px 0; }
+.application-preparation-card { margin: 18px 0; padding: 22px; border: 1px solid #e1e6dd; border-radius: 12px; background: #fff; box-shadow: 0 3px 14px rgb(38 54 44 / 3%); }
+.application-preparation-card h2 { margin: 0; color: #2e3d46; font: 700 22px/1.2 Manrope,sans-serif; }
+.application-preparation-card h3 { margin: 20px 0 7px; color: #526459; font-size: 13px; }
+.application-preparation-card p { color: #68757c; font-size: 13px; line-height: 1.5; }
+.application-preparation-card textarea { display: block; width: 100%; min-height: 170px; margin-top: 16px; padding: 12px; resize: vertical; border: 1px solid #dfe5df; border-radius: 8px; color: #34464f; background: #fbfcfa; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.application-preparation-card textarea:focus { border-color: #8ca878; outline: 2px solid #eef1ef; outline-offset: 1px; }
+.application-preparation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 13px; }
+.application-preparation-actions .search-button { min-width: auto; padding: 0 14px; }
+.application-chatgpt-link { display: inline-flex; align-items: center; text-decoration: none; }
+.application-cv-ready { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 9px; border: 1px solid #d4e4c9; border-radius: 999px; background: #f0f2f1; color: #657a5a; font-size: 11px; font-weight: 650; }
+.application-preparation-notice { color: #557152; font-size: 13px; }
+.application-package-output pre { margin: 0; padding: 12px; overflow: auto; border: 1px solid #edf0ea; border-radius: 7px; background: #f7f8f7; color: #43535b; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+@media (max-width: 600px) { .application-preparation-card { padding: 17px; } .application-preparation-actions > * { min-height: 40px; } }

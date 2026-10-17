@@ -5,7 +5,7 @@
 3. **Copy brief & open ChatGPT** includes the saved CV text, job description, employer/job URLs and the return format. Paste and send; a repeated file attachment is unnecessary.
 4. Click **Return to Radius with my documents** in ChatGPT; the documents open automatically in Radius. Download your finished documents; text editing is optional.
 
-The job page contains one start link rather than an inline workspace. Profiles without a CV get a direct link to attach one, then **Save & continue** returns them to the application. Multiple profiles can be selected when no profile was carried from the job. Language, extra instructions and recovery actions are under **Options**. The application page uses one back link and a short three-step indicator; repeated explanations and the global site navigation are omitted.
+The job page contains one start link rather than an inline workspace. Profiles without an attached CV can use the browser-local text preparation flow or follow the direct attach link; **Save & continue** returns them to the saved-profile workflow. Multiple profiles can be selected when no profile was carried from the job. Language, extra instructions and recovery actions are under **Options**. The application page uses one back link and a short three-step indicator; repeated explanations and the global site navigation are omitted.
 
 ## Saved instructions, language and writing style
 

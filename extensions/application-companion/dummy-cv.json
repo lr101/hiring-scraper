@@ -1,0 +1,45 @@
+{
+  "first_name": "Mara",
+  "last_name": "Neumann",
+  "email": "mara.neumann@example.com",
+  "phone": "+49 721 000000",
+  "city": "Karlsruhe",
+  "country": "Germany",
+  "experiences": [
+    {
+      "company": "Rheinbogen Systems GmbH",
+      "title": "Senior Project Manager",
+      "description": "Fictional CV: six research and digitalization projects, 2.4 million euro combined budget; coordination of engineering, university partners and finance.",
+      "start": "2021",
+      "end": null,
+      "current": true,
+      "id": "job-1",
+      "cv_bullet_ids": [12, 13],
+      "location": ""
+    },
+    {
+      "company": "Westhafen Engineering GmbH",
+      "title": "Project Coordinator",
+      "description": "Fictional CV: engineering change projects across product development, purchasing and production.",
+      "start": "2017",
+      "end": "2021",
+      "current": false,
+      "id": "job-2",
+      "cv_bullet_ids": [19, 20],
+      "location": ""
+    },
+    {
+      "company": "Elbwinkel Technology Services",
+      "title": "Graduate Project Analyst",
+      "description": "Fictional CV: Excel-based project cost models and steering committee material for industrial digitalization.",
+      "start": "2015",
+      "end": "2017",
+      "current": false,
+      "id": "job-3",
+      "cv_bullet_ids": [25, 26],
+      "location": ""
+    }
+  ],
+  "cv_text": "Fictional CV — Mara Neumann. Karlsruhe, Germany. mara.neumann@example.com. Project manager with eleven years of research, engineering and digitalization experience. Rheinbogen Systems GmbH, Senior Project Manager, 2021–present. Westhafen Engineering GmbH, Project Coordinator, 2017–2021. Elbwinkel Technology Services, Graduate Project Analyst, 2015–2017. Exact employment months are not stated.",
+  "source_notes": "Fictional CV paired with the dummy ChatGPT return. Kept separate from the real applicant."
+}

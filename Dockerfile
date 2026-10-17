@@ -1,5 +1,8 @@
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS frontend-build
 WORKDIR /frontend
+RUN apk add --no-cache python3
+COPY scripts/build_extension.py /scripts/build_extension.py
+COPY extensions/application-companion /extensions/application-companion
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./

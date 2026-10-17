@@ -1,0 +1,31 @@
+{
+  "first_name": "Alex",
+  "last_name": "Example",
+  "email": "alex@example.invalid",
+  "experiences": [
+    {
+      "company": "Example Robotics",
+      "title": "Project Coordinator",
+      "description": "Fictional example: coordinated product milestones and stakeholder workshops.",
+      "start": "2024-03",
+      "end": null,
+      "current": true
+    },
+    {
+      "company": "Sample Learning GmbH",
+      "title": "Training Specialist",
+      "description": "Fictional example: developed onboarding programmes and tracked training outcomes.",
+      "start": "2022-08",
+      "end": "2024-02",
+      "current": false
+    },
+    {
+      "company": "Demo Research Institute",
+      "title": "Programme Assistant",
+      "description": "Fictional example: supported international projects and organised events.",
+      "start": "2020-10",
+      "end": "2022-07",
+      "current": false
+    }
+  ]
+}

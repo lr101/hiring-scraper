@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DetailPage from './DetailPage'
-import ApplicationPreparationPage from './ApplicationPreparationPage'
 import FeedSourcesPage from './FeedSourcesPage'
 import LocationsPage from './LocationsPage'
 import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import ApplicationsPage from './ApplicationsPage'
 import SettingsPage from './SettingsPage'
+import ApplicationPreparationPage from './ApplicationPreparationPage'
 import JobFeedCard from './JobFeedCard'
 import { applicationStatusLabel, applicationStatuses, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
@@ -898,10 +898,10 @@ function App() {
   if (path === '/settings' || path === '/settings/') return <SettingsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />
+  const applicationPreparationMatch = path.match(/^\/jobs\/(\d+)\/apply\/?$/)
+  if (applicationPreparationMatch) return <ApplicationPreparationPage jobId={Number(applicationPreparationMatch[1])} />
   const companyMatch = path.match(/^\/companies\/(\d+)\/?$/)
   if (companyMatch) return <DetailPage kind="company" id={Number(companyMatch[1])} />
-  const applicationMatch = path.match(/^\/jobs\/(\d+)\/apply\/?$/)
-  if (applicationMatch) return <ApplicationPreparationPage jobId={Number(applicationMatch[1])} />
   const jobMatch = path.match(/^\/jobs\/(\d+)\/?$/)
   if (jobMatch) return <DetailPage kind="job" id={Number(jobMatch[1])} />
   if (path === '/' || path === '') return <ApplicationsPage />

@@ -37,7 +37,7 @@ function formatDate(value?: string | null) {
 
 const stageActionCopy: Partial<Record<ApplicationStatus, string>> = {
   open: 'Mark interested',
-  in_gots_hand: 'In GOD's hand',
+  in_gots_hand: 'In GOD\'s hand',
   not_interested: 'Skip role',
   waiting_for_reply: 'Mark applied',
   interview: 'Log interview',

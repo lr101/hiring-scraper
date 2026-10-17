@@ -14,7 +14,7 @@ with sync_playwright() as pw:
     try:
         page = context.new_page()
         page.goto(f'{web}/applications?profile_id={pid}&statuses=new')
-        stretch_filter = page.get_by_role('button', name=re.compile(r'^In GOD's hand, .* roles$'))
+        stretch_filter = page.get_by_role('button', name=re.compile(r'^In GOD\'s hand, .* roles$'))
         automated_filter = page.get_by_role('button', name=re.compile(r'^Automated application, .* roles$'))
         expect(stretch_filter).to_be_visible(timeout=15000)
         expect(automated_filter).to_be_visible()
@@ -26,13 +26,13 @@ with sync_playwright() as pw:
         card = page.locator('.application-job-card').first
         expect(card).to_be_visible(timeout=90000)
         job_id = int(card.locator('.application-job-title').get_attribute('href').split('/jobs/')[1].split('?')[0])
-        card.get_by_role('button', name='In GOD's hand', exact=True).click()
-        expect(stretch_filter).to_have_accessible_name('In GOD's hand, 1 roles')
+        card.get_by_role('button', name='In GOD\'s hand', exact=True).click()
+        expect(stretch_filter).to_have_accessible_name('In GOD\'s hand, 1 roles')
         stretch_filter.click()
         expect(page.locator('.application-job-card')).to_have_count(1)
-        expect(page.locator('.application-state-badge')).to_have_text('In GOD's hand')
+        expect(page.locator('.application-state-badge')).to_have_text('In GOD\'s hand')
         page.reload()
-        expect(page.locator('.application-state-badge')).to_have_text('In GOD's hand', timeout=25000)
+        expect(page.locator('.application-state-badge')).to_have_text('In GOD\'s hand', timeout=25000)
         expect(page.locator('.application-job-card').get_by_role('button', name='Automated application', exact=True)).to_have_count(0)
         # The sent-autofill stage is written by the plugin, not a manual action.
         saved = context.request.put(f'{api}/api/v1/profiles/{pid}/applications/{job_id}', data={'status':'automated_application'})
@@ -42,8 +42,8 @@ with sync_playwright() as pw:
         expect(page.get_by_role('progressbar', name='Weekly application pace')).to_have_attribute('aria-valuenow', str(min(10, initial_sent + 1)))
         automated_filter.click()
         expect(page.locator('.application-state-badge')).to_have_text('Automated application')
-        page.get_by_role('button', name='Undo to In GOD's hand', exact=False).click()
-        expect(stretch_filter).to_have_accessible_name('In GOD's hand, 1 roles')
+        page.get_by_role('button', name='Undo to In GOD\'s hand', exact=False).click()
+        expect(stretch_filter).to_have_accessible_name('In GOD\'s hand, 1 roles')
         # Simulate the browser plugin persisting its result through the public API.
         saved = context.request.put(f'{api}/api/v1/profiles/{pid}/applications/{job_id}', data={'status':'automated_application'})
         assert saved.ok, saved.text()
@@ -57,8 +57,8 @@ with sync_playwright() as pw:
         # Interested offers the same stretch-role destination as New.
         context.request.put(f'{api}/api/v1/profiles/{pid}/applications/{job_id}', data={'status':'open'})
         page.goto(f'{web}/applications?profile_id={pid}&statuses=open')
-        page.locator('.application-job-card').get_by_role('button', name='In GOD's hand', exact=True).click()
-        expect(stretch_filter).to_have_accessible_name('In GOD's hand, 1 roles')
+        page.locator('.application-job-card').get_by_role('button', name='In GOD\'s hand', exact=True).click()
+        expect(stretch_filter).to_have_accessible_name('In GOD\'s hand, 1 roles')
         stretch_filter.click()
         saved = context.request.put(f'{api}/api/v1/profiles/{pid}/applications/{job_id}', data={'status':'automated_application'})
         assert saved.ok, saved.text()
