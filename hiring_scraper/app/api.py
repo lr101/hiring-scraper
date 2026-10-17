@@ -46,6 +46,7 @@ from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, queue_arbeitsagentur_scope,
 )
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
+from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
 from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
@@ -167,7 +168,8 @@ class ManagedFeedCreate(BaseModel):
     company_name: str | None = Field(default=None, max_length=500)
     website_url: str | None = Field(default=None, max_length=2000)
     feed_url: str = Field(min_length=8, max_length=2000)
-    provider: Literal["external_html", "browser_html", "rss", "ats", "arbeitsagentur"] = "external_html"
+    provider: Literal["auto", "external_html", "browser_html", "rss", "ats", "arbeitsagentur"] = "external_html"
+    track_company: bool = False
     location_query: str | None = Field(default=None, max_length=200)
     radius_km: float | None = Field(default=None, gt=0, le=200)
     terms: list[str] | None = Field(default=None, max_length=50)
@@ -257,6 +259,13 @@ def _managed_feed_source(url: str, provider: str,
                          source_config: dict[str, Any] | None = None) -> dict[str, Any]:
     """Resolve a manually entered career page to its bounded provider feed."""
     source_config = source_config or {}
+    if provider == "auto":
+        from hiring_scraper.ats import identify
+        identified = identify(url)
+        if identified and identified.get("provider") in ATS_FEED_PROVIDERS and identified.get("feed_url"):
+            provider = "ats"
+        else:
+            provider = "rss" if re.search(r'\.(?:rss|xml|atom)$', urlsplit(url).path, re.I) else "external_html"
     if provider == "arbeitsagentur":
         parts = urlsplit(url)
         if (parts.hostname or "").casefold().removeprefix("www.") != "arbeitsagentur.de" or not re.match(
@@ -2736,63 +2745,110 @@ def _managed_feed_json(feed: JobFeed) -> dict[str, Any]:
 
 @app.get("/api/v1/feeds")
 def list_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
-    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).order_by(
-        Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
+    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.provider != "manual_job").order_by(
+            Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
     return {"items": [_managed_feed_json(feed) for feed in feeds], "total": len(feeds)}
 
 
 @app.post("/api/v1/feeds", status_code=201)
 def create_managed_feed(request: ManagedFeedCreate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
+    if session.get_bind().dialect.name == 'sqlite':
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
     source_url = _managed_page_url(request.feed_url)
     source_config = _managed_feed_config(session, request, request.provider)
     source = _managed_feed_source(source_url, request.provider, source_config)
     website_url = _managed_page_url(request.website_url, "Company website") if request.website_url else None
+    track_company = getattr(request, "track_company", False)
+    if website_url and is_hosted_job_site(website_url):
+        raise HTTPException(status_code=422, detail="Enter the employer's own website, rather than its hosted job board")
+    if not website_url and not is_hosted_job_site(source_url):
+        parts = urlsplit(source_url)
+        website_url = f"{parts.scheme}://{parts.netloc}/"
     company = session.get(Company, request.company_id) if request.company_id else None
     if request.company_id and company is None:
         raise HTTPException(status_code=404, detail="Company not found")
+    if company is None and website_url:
+        company = find_company_by_website(session, website_url)
+    if company is None and not request.company_id:
+        # The canonical ATS feed URL includes the tenant; its shared host alone
+        # must never combine different employers.
+        source_company = session.scalar(select(Company).join(JobFeed).where(
+            JobFeed.feed_url == source["feed_url"]).order_by(Company.id).limit(1))
+        if source_company is not None and (not request.website_url or not source_company.domain):
+            company = source_company
+    company_created = company is None
     if company is None:
         company_name = (request.company_name or "").strip()
         if len(company_name) < 2:
             if request.provider == "arbeitsagentur":
                 company_name = "Agentur für Arbeit"
             else:
-                host = (urlsplit(source["board_url"]).hostname or "job source").casefold().removeprefix("www.")
-                company_name = f"Jobs · {host}"
-        normalized = _key(company_name)
-        source_id = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+                company_name = source.get("tenant") or company_domain(website_url or source["board_url"])
+        domain = company_domain(website_url) if website_url else None
+        identity = f"domain:{domain}" if domain else f"feed:{source['feed_url']}"
+        source_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()
         company = session.scalar(select(Company).where(
             Company.source == "managed_feed", Company.source_id == source_id))
+        company_created = company is None
         if company is None:
-            website_host = urlsplit(website_url).hostname if website_url else None
-            company = Company(source="managed_feed", source_id=source_id,
+            company_values = dict(source="managed_feed", source_id=source_id,
                               name=company_name, website_url=website_url,
-                              domain=website_host, category="job_board_source",
+                              domain=domain, category="manual_company" if track_company else "job_board_source",
                               source_url=source["board_url"], career_url=source["board_url"],
-                              career_status="jobs_feed_found")
-            session.add(company)
-            session.flush()
-        elif website_url:
+                              career_status="jobs_feed_found",
+                              next_discovery_at=utcnow() if track_company and website_url else None)
+            company_id = session.scalar(insert(Company).values(**company_values).on_conflict_do_nothing(
+                index_elements=['source', 'source_id']).returning(Company.id))
+            company_created = company_id is not None
+            company = (session.get(Company, company_id) if company_created else
+                       session.scalar(select(Company).where(
+                           Company.source == 'managed_feed', Company.source_id == source_id)))
+    if website_url:
+        if not company.website_url:
             company.website_url = website_url
-            if company.domain_match_method != "manual":
-                company.domain = urlsplit(website_url).hostname
+        if not company.domain and company.domain_match_method != "manual":
+            company.domain = company_domain(website_url)
+    if track_company:
+        if company.source == "extension_job" and company.category == "job_posting":
+            company.crawl_paused = False
+            company.category = "manual_company"
+        if company.category == "job_board_source" and website_url:
+            company.category = "manual_company"
+        if not company.career_url_manual:
+            company.career_url = source["board_url"]
+            company.career_status = "jobs_feed_found"
+        if company.website_url and not company.crawl_paused:
+            company.next_discovery_at = utcnow()
     duplicate = session.scalar(select(JobFeed).where(
         JobFeed.company_id == company.id, JobFeed.provider == source["provider"],
         JobFeed.feed_url == source["feed_url"]))
     if duplicate:
+        if track_company:
+            session.commit()
+            return {**_managed_feed_json(duplicate), "company_created": False, "already_tracked": True}
         raise HTTPException(status_code=409, detail="This page is already managed for this company")
     now = utcnow()
-    feed = JobFeed(company_id=company.id, provider=source["provider"], tenant=source["tenant"],
+    feed_values = dict(company_id=company.id, provider=source["provider"], tenant=source["tenant"],
                    source_config=source_config, board_url=source["board_url"], feed_url=source["feed_url"], status="pending",
                    enabled=True, job_count=0,
                    next_scan_at=now if source["provider"] != "arbeitsagentur" else None)
-    session.add(feed)
-    session.flush()
-    if source["provider"] == "arbeitsagentur":
+    feed_id = session.scalar(insert(JobFeed).values(**feed_values).on_conflict_do_nothing(
+        index_elements=['company_id', 'provider', 'feed_url']).returning(JobFeed.id))
+    already_tracked = feed_id is None
+    if already_tracked and not track_company:
+        raise HTTPException(status_code=409, detail="This page is already managed for this company")
+    feed = (session.get(JobFeed, feed_id) if feed_id is not None else
+            session.scalar(select(JobFeed).where(JobFeed.company_id == company.id,
+                JobFeed.provider == source['provider'], JobFeed.feed_url == source['feed_url'])))
+    if source["provider"] == "arbeitsagentur" and not already_tracked:
         _schedule_managed_arbeitsagentur_feed(session, feed, now)
     session.commit()
     session.refresh(feed)
-    return _managed_feed_json(feed)
+    return {**_managed_feed_json(feed), "company_created": company_created, "already_tracked": already_tracked}
 
 
 @app.patch("/api/v1/feeds/{feed_id}")

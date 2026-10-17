@@ -1,6 +1,6 @@
 # Radius Application Companion
 
-Prepare a CV for a discovered Radius job, follow its Apply link to the employer or ATS, and fill known details from your reusable profile. Filling is always started by you; the extension never submits an application or changes its application stage.
+Prepare a CV for a discovered Radius job, follow its Apply link to the employer or ATS, and fill known details from your reusable profile. While browsing, use the popup to track a company and its job feed, or save one specific posting to a chosen profile. Filling is always started by you; the extension never submits an application or advances its application stage.
 
 ## Install in Chrome
 
@@ -20,9 +20,11 @@ The ZIP is unsigned and installed manually. To update, replace the extracted fil
 - A green **1** means an exact matching job has a prepared package. Higher numbers require choosing a job. A shared hostname alone never authorizes tailored answers.
 - Open the toolbar on the listing before clicking **Apply**, or choose **Open application** in the popup. This grants temporary page access and tracks the employer/ATS URL back to the same job, including new tabs and redirects.
 - If a login or wizard breaks the chain, use **Continue your application → Use on this page**, or **Link a discovered job**. Shared generic `/apply` pages require an explicit confirmation for each fill; confirmation is tied to the current document/form and consumed after one use.
+- From **Track this company or save a job**, choose **Track company** to add the current page. Radius reuses a company with the same domain (including its careers subdomain), or creates a company and queues discovery and job scans. Supported ATS feeds are detected automatically. For a hosted job board, enter the employer's website to connect it by domain. Repeated captures reuse the existing feed.
+- Choose **One specific job for a profile** to save just that posting to the selected profile's New applications. Feed listings are not bulk-added to profiles, and saving an already tracked posting preserves its application stage.
 - Click **Fill known details**, inspect unresolved fields, and repeat on later steps. Review and upload the CV yourself. The extension does not click Next, Review, consent, signatures or Submit. Employers may autosave entered fields.
 
-Source URLs stay unchanged. Separate application aliases are kept per job. Meaningful queries and fragments matter; marketing parameters are ignored. Login/session URLs are never permanent aliases. English/German native fields and unambiguous semantic inline work-history groups are supported; custom employer modals, frames, shadow DOM and rich text need manual entry.
+Feed source URLs stay unchanged. One-off job links drop common marketing parameters. Separate application aliases are kept per job. Meaningful queries and fragments matter; login/session URLs are never permanent aliases. English/German native fields and unambiguous semantic inline work-history groups are supported; custom employer modals, frames, shadow DOM and rich text need manual entry.
 
 ## Data and freshness
 
@@ -32,7 +34,7 @@ CV files attached to a Radius profile are stored on the Radius server. The alter
 
 Packages turn grey after seven days or when the selected profile, original CV version or reusable facts change. CV metadata refreshes while Radius is open; the current profile or browser-local CV version is checked again before tailored filling. A stale cached draft cannot silently rebind to edited reusable facts. The extension validates job/profile/version and conflicting contact emails; it cannot independently verify every generated claim. Review all generated text.
 
-Catalog sync is bounded to 2,000 jobs, 2 MB of retained metadata, 20 pages and one minute. A limit is reported in connection settings. A job opened directly in Radius can still be prepared and imported by ID. No background crawl or indefinite polling occurs when Radius is closed.
+Catalog sync is bounded to 2,000 jobs, 2 MB of retained metadata, 20 pages and one minute. A limit is reported in connection settings. A job opened directly in Radius can still be prepared and imported by ID. The extension does not run background crawls; companies and feeds you add use the Radius server's scheduled workers.
 
 Structured work histories include stable experience IDs, locations and known dates (`YYYY` or `YYYY-MM`). Missing months stay blank. Optional `cv_bullet_ids` connect selected CV paragraph edits to an experience; alternatively return `experience_bullets: [{"experience_id":"job-1","bullets":["Known accomplishment."]}]`. Original employment facts remain unchanged. Existing differing form values are preserved and reported.
 
