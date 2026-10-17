@@ -17,6 +17,7 @@ import {
 import {
   syncRadius,
   radiusJSON,
+  radiusRequest,
   currentCV,
   cancelRadiusRequests,
 } from "./radius-client.js";
@@ -108,6 +109,36 @@ export async function selectedProfile(profileId) {
   const revision = ++connectionRevision;
   const vault = await loadVault();
   return connectRadius({ ...vault.settings, profile_id: profileId }, revision);
+}
+export async function addFeed(feed) {
+  const vault = await loadVault();
+  if (!vault.settings) throw new Error("Connect Radius before adding a feed.");
+  return radiusRequest(vault.settings, "/api/v1/feeds", {
+    method: "POST",
+    body: feed,
+  });
+}
+export async function addJobToProfile(job) {
+  const vault = await loadVault();
+  if (!vault.settings) throw new Error("Connect Radius before adding a job.");
+  if (!vault.profiles?.some((profile) => profile.id === job.profile_id))
+    throw new Error("Choose a Radius profile and sync the connection again.");
+  const result = await radiusRequest(vault.settings, "/api/v1/companion/jobs", {
+    method: "POST",
+    body: job,
+  });
+  if (result?.job) {
+    const saved = normalizeJob(result.job);
+    await changeVault((current) => ({
+      ...current,
+      jobs: [
+        ...current.jobs.filter((item) => item.id !== saved.id),
+        saved,
+      ].sort((first, second) => first.id - second.id),
+    }));
+    await refreshAllBadges();
+  }
+  return result;
 }
 async function pageIdentity(tabId) {
   const [injected] = await chrome.scripting.executeScript({

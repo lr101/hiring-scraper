@@ -52,6 +52,62 @@
         /></label>
         <div id="job-search-results"></div>
       </details>
+      <details id="add-to-radius" hidden>
+        <summary>Track this company or save a job</summary>
+        <p class="add-description">
+          Radius finds the company by domain or creates it and starts tracking
+          its jobs.
+        </p>
+        <label for="add-kind">Add</label>
+        <select id="add-kind">
+          <option value="feed">A company and its job feed</option>
+          <option value="job">One specific job for a profile</option>
+        </select>
+        <form id="add-job-form">
+          <label for="add-company-website"
+            >Company website <small>Optional</small></label
+          >
+          <input
+            id="add-company-website"
+            type="url"
+            placeholder="https://company.example"
+          />
+          <small
+            >Uses the page's domain by default. On a hosted job board, enter the
+            employer's website.</small
+          >
+          <div id="add-job-fields" hidden>
+            <label for="add-job-url">Job page</label>
+            <input id="add-job-url" type="url" required />
+            <label for="add-job-title">Job title</label>
+            <input id="add-job-title" type="text" maxlength="1000" required />
+            <label for="add-job-company">Company <small>Optional</small></label>
+            <input id="add-job-company" type="text" maxlength="500" />
+            <label for="add-job-profile">Add this job to</label>
+            <select id="add-job-profile" required></select>
+          </div>
+          <div id="add-feed-fields">
+            <label for="add-feed-url">Listings page or feed URL</label>
+            <input id="add-feed-url" type="url" required />
+            <label for="add-feed-company"
+              >Company name <small>Optional</small></label
+            >
+            <input id="add-feed-company" type="text" maxlength="500" />
+            <label for="add-feed-provider">Page type</label>
+            <select id="add-feed-provider">
+              <option value="auto">Detect automatically</option>
+              <option value="external_html">Public HTML page</option>
+              <option value="browser_html">JavaScript page</option>
+              <option value="rss">RSS / Atom feed</option>
+              <option value="ats">ATS career page</option>
+            </select>
+          </div>
+          <button id="add-submit" class="primary" type="submit">
+            Track company
+          </button>
+        </form>
+        <p id="add-status" class="status" role="status" aria-live="polite"></p>
+      </details>
       <div id="not-connected" class="empty-state" hidden>
         <h2>Bring your Radius jobs along</h2>
         <p>

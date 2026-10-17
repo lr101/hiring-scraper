@@ -1,10 +1,12 @@
 import { validateProfile } from "./profile.js";
+import { transientURL, urlKey } from "./vault.js";
 const button = document.querySelector("#fill"),
   status = document.querySelector("#status");
 let tabId,
   mode = "fill",
   selectedJob = null,
-  info;
+  info,
+  activeTab;
 async function request(type, extra = {}) {
   const result = await chrome.runtime.sendMessage({ type, tabId, ...extra });
   if (!result?.ok)
@@ -14,6 +16,11 @@ async function request(type, extra = {}) {
 function message(error) {
   status.textContent = error.message;
   status.classList.add("error");
+}
+function suggestedPageUrl(value) {
+  if (transientURL(value)) return "";
+  const key = urlKey(value);
+  return key && !new URL(key).hash ? key : "";
 }
 function showReport(report) {
   document.querySelector("#result").hidden = false;
@@ -200,6 +207,79 @@ document.querySelector("#connection").onclick = () =>
   chrome.tabs.create({
     url: chrome.runtime.getURL("options.html#radius-connection"),
   });
+const addKind = document.querySelector("#add-kind"),
+  addForm = document.querySelector("#add-job-form"),
+  addStatus = document.querySelector("#add-status"),
+  addJobFields = document.querySelector("#add-job-fields"),
+  addFeedFields = document.querySelector("#add-feed-fields"),
+  addSubmit = document.querySelector("#add-submit");
+function setAddKind() {
+  const isJob = addKind.value === "job";
+  addJobFields.hidden = !isJob;
+  addFeedFields.hidden = isJob;
+  document.querySelector("#add-job-url").required = isJob;
+  document.querySelector("#add-job-title").required = isJob;
+  document.querySelector("#add-job-profile").required = isJob;
+  document.querySelector("#add-feed-url").required = !isJob;
+  addSubmit.textContent = isJob ? "Add job to profile" : "Track company";
+  document.querySelector("#add-to-radius .add-description").textContent = isJob
+    ? "Save this posting to a profile and connect it to the company by domain."
+    : "Radius finds the company by domain or creates it and starts tracking its jobs.";
+}
+addKind.onchange = setAddKind;
+setAddKind();
+addForm.onsubmit = async (event) => {
+  event.preventDefault();
+  addSubmit.disabled = true;
+  addStatus.classList.remove("error");
+  addStatus.textContent =
+    addKind.value === "job" ? "Adding this job…" : "Adding this feed…";
+  try {
+    if (addKind.value === "job") {
+      const profileId = Number(
+        document.querySelector("#add-job-profile").value,
+      );
+      const result = await request("add-job", {
+        job: {
+          profile_id: profileId,
+          url: document.querySelector("#add-job-url").value.trim(),
+          title: document.querySelector("#add-job-title").value.trim(),
+          company_name: document.querySelector("#add-job-company").value.trim(),
+          website_url:
+            document.querySelector("#add-company-website").value.trim() ||
+            undefined,
+        },
+      });
+      addStatus.textContent = result.already_added
+        ? `${result.job.title} is already tracked on ${result.profile_name} (${result.status.replaceAll("_", " ")}).`
+        : `Added ${result.job.title} to ${result.profile_name} as a new application.`;
+    } else {
+      const result = await request("add-feed", {
+        feed: {
+          feed_url: document.querySelector("#add-feed-url").value.trim(),
+          company_name: document
+            .querySelector("#add-feed-company")
+            .value.trim(),
+          provider: document.querySelector("#add-feed-provider").value,
+          website_url:
+            document.querySelector("#add-company-website").value.trim() ||
+            undefined,
+          track_company: true,
+        },
+      });
+      addStatus.textContent = result.already_tracked
+        ? `${result.company_name} and this job feed are already tracked.`
+        : result.company_created
+          ? `Now tracking ${result.company_name}. Its first job scan is queued.`
+          : `Added this job feed to ${result.company_name}. Its first scan is queued.`;
+    }
+  } catch (error) {
+    addStatus.textContent = error.message;
+    addStatus.classList.add("error");
+  } finally {
+    addSubmit.disabled = false;
+  }
+};
 try {
   const { applicant } = await chrome.storage.local.get("applicant"),
     profile = applicant ? validateProfile(applicant) : null;
@@ -211,6 +291,7 @@ try {
       `${profile.experiences.length} work experiences saved`;
   }
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTab = tab;
   tabId = tab?.id;
   info = await request("inspect");
   mode = info.mode || "fill";
@@ -220,6 +301,32 @@ try {
     : "Connect Radius";
   document.querySelector("#not-connected").hidden = !!catalog?.connected;
   document.querySelector("#job-search").hidden = !catalog?.connected;
+  document.querySelector("#add-to-radius").hidden = !catalog?.connected;
+  document.querySelector("#add-to-radius").open =
+    !!catalog?.connected && !catalog?.items?.length;
+  const profilePicker = document.querySelector("#add-job-profile"),
+    profilePlaceholder = document.createElement("option");
+  profilePlaceholder.value = "";
+  profilePlaceholder.textContent = "Choose a profile";
+  profilePicker.replaceChildren(profilePlaceholder);
+  for (const profile of catalog?.profiles || []) {
+    const option = document.createElement("option");
+    option.value = profile.id;
+    option.textContent = profile.name;
+    profilePicker.append(option);
+  }
+  if (catalog?.settings?.profile_id)
+    profilePicker.value = String(catalog.settings.profile_id);
+  const exactJob = (catalog?.items || []).find((item) => item.exact)?.job,
+    pageURL = exactJob?.url || activeTab?.url || "",
+    sourceUrl = suggestedPageUrl(pageURL);
+  document.querySelector("#add-job-url").value = sourceUrl;
+  document.querySelector("#add-feed-url").value = sourceUrl;
+  document.querySelector("#add-job-title").value =
+    exactJob?.title || activeTab?.title || "";
+  document.querySelector("#add-job-company").value =
+    exactJob?.company_name || "";
+  setAddKind();
   if (catalog?.settings?.profile_name && profile)
     document.querySelector("#experience-count").textContent =
       `${profile.experiences.length} work experiences · ${catalog.settings.profile_name}`;

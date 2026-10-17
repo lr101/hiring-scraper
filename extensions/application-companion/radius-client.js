@@ -7,9 +7,18 @@ export function cancelRadiusRequests() {
 }
 
 // Bound bytes while streaming, before allocating a complete response body.
-export async function radiusJSON(settings, path, signal) {
+export async function radiusRequest(
+  settings,
+  path,
+  { method = "GET", body, signal } = {},
+) {
   const origin = validateSettings(settings).api_origin;
+  const headers =
+    body === undefined ? {} : { "Content-Type": "application/json" };
   const response = await fetch(new URL(path, origin), {
+    method,
+    headers,
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     credentials: "include",
     cache: "no-store",
     redirect: "error",
@@ -19,12 +28,6 @@ export async function radiusJSON(settings, path, signal) {
       ...(signal ? [signal] : []),
     ]),
   });
-  if (!response.ok) {
-    void response.body?.cancel();
-    throw new Error(
-      `Radius returned ${response.status}. Check the connection and sign in to Radius in this browser.`,
-    );
-  }
   const reader = response.body.getReader();
   const chunks = [];
   let size = 0;
@@ -46,13 +49,36 @@ export async function radiusJSON(settings, path, signal) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
   }
+  let result;
   try {
-    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+    result = JSON.parse(
+      new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+    );
   } catch {
+    if (!response.ok)
+      throw new Error(
+        `Radius returned ${response.status}. Check the connection and sign in to Radius in this browser.`,
+      );
     throw new Error(
       "Radius did not return API JSON. Check the API address under Connection details.",
     );
   }
+  if (!response.ok) {
+    const detail = Array.isArray(result?.detail)
+      ? result.detail
+          .map((issue) => issue.msg || issue.type || "Invalid request")
+          .join("; ")
+      : result?.detail;
+    throw new Error(
+      detail ||
+        `Radius returned ${response.status}. Check the connection and sign in to Radius in this browser.`,
+    );
+  }
+  return result;
+}
+
+export async function radiusJSON(settings, path, signal) {
+  return radiusRequest(settings, path, { signal });
 }
 
 // Production CVs live in the Radius tab's origin storage, never in the API.

@@ -5,6 +5,8 @@ import {
   connectRadius,
   refreshRadius,
   selectedProfile,
+  addFeed,
+  addJobToProfile,
   disconnectRadius,
   prepareJob,
   usePage,
@@ -51,6 +53,8 @@ async function inspect(tabId) {
 
 async function handle(message) {
   await storageReady;
+  if (message.type === "add-feed") return addFeed(message.feed);
+  if (message.type === "add-job") return addJobToProfile(message.job);
   if (message.type === "search-jobs") return searchJobs(message.query);
   if (message.type === "import-package")
     return importReturnedPackage(message.input, message.url);
@@ -219,6 +223,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "select-profile",
       "disconnect-radius",
       "prepare-job",
+      "add-feed",
+      "add-job",
       "use-page",
       "open-application",
     ].includes(message?.type)
@@ -236,6 +242,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "connect-radius",
             "refresh-radius",
             "select-profile",
+            "add-feed",
+            "add-job",
             "use-page",
             "prepare-job",
             "open-application",
