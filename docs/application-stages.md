@@ -4,13 +4,13 @@ The Journey map groups alternatives at the same checkpoint:
 
 | Checkpoint | Main stage | Alternative |
 | --- | --- | --- |
-| 2 | Interested (`open`) | In gots hand (`in_gots_hand`) |
+| 2 | Interested (`open`) | In GOD's hand (`in_gots_hand`) |
 | 3 | Waiting for reply (`waiting_for_reply`) | Automated application (`automated_application`) |
 
-New and Interested offer **In gots hand** for overqualified roles. Automated application
+New and Interested offer **In GOD's hand** for overqualified roles. Automated application
 is assigned by the plugin's successful-submission callback. It can
 move to Interview or Rejected. Existing swipe directions are
-preserved; swiping right in In gots hand marks a manual application sent, and
+preserved; swiping right in In GOD's hand marks a manual application sent, and
 swiping right in Automated application logs an interview. Undo returns to the
 previous stage.
 
@@ -37,5 +37,5 @@ submission-status save never counts the same application twice.
 
 Migration `0029_parallel_application_stages` expands the database constraint.
 Local SQLite startup upgrades the old constraint while keeping existing records,
-indexes and undo history. Downgrading maps In gots hand to Interested and
+indexes and undo history. Downgrading maps In GOD's hand to Interested and
 Automated application to Waiting for reply, including previous-stage values.
