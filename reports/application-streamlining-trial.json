@@ -1,0 +1,895 @@
+{
+  "run_at": "2026-10-16T18:03:32.194485+00:00",
+  "limitations": [
+    "Synthetic diagnostics, not recommendation precision or hiring outcomes.",
+    "No OAuth login, model inference, CV generation or real ATS submission tested."
+  ],
+  "matching": {
+    "rule_version": "rules-v20",
+    "matcher_sha256": "842ea396cf9b911ad574cd071275bcd76018407c37deaeccfc245010685a2af4",
+    "profile_sha256": "5c909882629afe347ec3088617055c55c74867f03d6df1a0cf4b27603dc42d59",
+    "jobs_sha256": "9e8ae57dfd072af50baebcb1ff61aa88189e685c7b12eb5b785adbca40c48780",
+    "synthetic_job_count": 11,
+    "variants": {
+      "saved_fixture": {
+        "base": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "tenure_2": {
+          "score": 45,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [
+            "Verify minimum relevant experience: 2 years; CV exact months not established"
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Profile experience not provided",
+            "Verify minimum relevant experience: 2 years; CV exact months not established"
+          ],
+          "label": "Some overlap"
+        },
+        "tenure_5": {
+          "score": 45,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [
+            "Verify minimum relevant experience: 5 years; CV exact months not established"
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Profile experience not provided",
+            "Verify minimum relevant experience: 5 years; CV exact months not established"
+          ],
+          "label": "Some overlap"
+        },
+        "language_c1": {
+          "score": 82,
+          "eligible": false,
+          "uncertain": false,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [
+            "German C1 required; profile has B2"
+          ],
+          "unknowns": [],
+          "label": "Preference conflict"
+        },
+        "language_optional": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "academic_cad": {
+          "score": 29,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [
+            "Verify requirement: At least 3 years of professional experience with SolidWorks required.",
+            "Verify minimum relevant experience: 3 years; CV exact months not established"
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding",
+            "CAD",
+            "SolidWorks"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding, SolidWorks",
+            "Title mentions: CAD",
+            "CAD evidence is academic or project based",
+            "SolidWorks evidence is academic or project based",
+            "Secondary role matches CAD designer"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Profile experience not provided",
+            "Verify requirement: At least 3 years of professional experience with SolidWorks required.",
+            "Verify minimum relevant experience: 3 years; CV exact months not established"
+          ],
+          "label": "Little evidence of a match"
+        },
+        "unquantified_cad": {
+          "score": 49,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "possible",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding",
+            "CAD",
+            "SolidWorks"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding, SolidWorks",
+            "Title mentions: CAD",
+            "CAD evidence is academic or project based",
+            "SolidWorks evidence is academic or project based",
+            "Secondary role matches CAD designer"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Some overlap"
+        },
+        "master": {
+          "score": 40,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [
+            "Verify requirement: A completed Master degree is required."
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Verify requirement: A completed Master degree is required."
+          ],
+          "label": "Some overlap"
+        },
+        "onsite": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "remote": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "sparse": {
+          "score": 55,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [],
+          "matched_skills": [],
+          "missing_skills": [],
+          "reasons": [
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Full job description needs checking",
+            "Skills not stated or not recognized"
+          ],
+          "label": "Some overlap"
+        }
+      },
+      "hypothetical_two_years_remote_or_hybrid": {
+        "base": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "tenure_2": {
+          "score": 97,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Experience minimum met: profile has 2 relevant years; role requires at least 2",
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "tenure_5": {
+          "score": 82,
+          "eligible": false,
+          "uncertain": false,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [
+            "Requires at least 5 years; profile has 2"
+          ],
+          "unknowns": [],
+          "label": "Preference conflict"
+        },
+        "language_c1": {
+          "score": 82,
+          "eligible": false,
+          "uncertain": false,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [
+            "German C1 required; profile has B2"
+          ],
+          "unknowns": [],
+          "label": "Preference conflict"
+        },
+        "language_optional": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "academic_cad": {
+          "score": 19,
+          "eligible": false,
+          "uncertain": true,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [
+            "Verify requirement: At least 3 years of professional experience with SolidWorks required."
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding",
+            "CAD",
+            "SolidWorks"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding, SolidWorks",
+            "Title mentions: CAD",
+            "CAD evidence is academic or project based",
+            "SolidWorks evidence is academic or project based",
+            "Secondary role matches CAD designer"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [
+            "Requires at least 3 years; profile has 2"
+          ],
+          "unknowns": [
+            "Verify requirement: At least 3 years of professional experience with SolidWorks required."
+          ],
+          "label": "Preference conflict"
+        },
+        "unquantified_cad": {
+          "score": 49,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "possible",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding",
+            "CAD",
+            "SolidWorks"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding, SolidWorks",
+            "Title mentions: CAD",
+            "CAD evidence is academic or project based",
+            "SolidWorks evidence is academic or project based",
+            "Secondary role matches CAD designer"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Some overlap"
+        },
+        "master": {
+          "score": 40,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [
+            "Verify requirement: A completed Master degree is required."
+          ],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Verify requirement: A completed Master degree is required."
+          ],
+          "label": "Some overlap"
+        },
+        "onsite": {
+          "score": 92,
+          "eligible": false,
+          "uncertain": false,
+          "fit_tier": "unlikely",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [
+            "Work style: onsite"
+          ],
+          "unknowns": [],
+          "label": "Preference conflict"
+        },
+        "remote": {
+          "score": 92,
+          "eligible": true,
+          "uncertain": false,
+          "fit_tier": "recommended",
+          "requirement_gaps": [],
+          "matched_skills": [
+            "Project management",
+            "Product development",
+            "Stakeholder coordination",
+            "Process improvement",
+            "Onboarding"
+          ],
+          "missing_skills": [
+            "Project coordination"
+          ],
+          "reasons": [
+            "Skills mentioned: Project management, Product development, Stakeholder coordination, Process improvement, Onboarding",
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [],
+          "label": "Strong overlap"
+        },
+        "sparse": {
+          "score": 55,
+          "eligible": true,
+          "uncertain": true,
+          "fit_tier": "possible",
+          "requirement_gaps": [],
+          "matched_skills": [],
+          "missing_skills": [],
+          "reasons": [
+            "Role matches Project coordinator",
+            "Role matches Project manager"
+          ],
+          "custom_skill_evidence": [],
+          "local_context": {
+            "city_election_results": [],
+            "average_afd_vote_share_percent": null,
+            "score_adjustment": 0,
+            "weight": 0
+          },
+          "conflicts": [],
+          "unknowns": [
+            "Work style not stated",
+            "Full job description needs checking",
+            "Skills not stated or not recognized"
+          ],
+          "label": "Some overlap"
+        }
+      }
+    },
+    "example_evidence_packet": {
+      "kind": "evidence_selection_only",
+      "job_id": "base",
+      "job_description": "<h3>Responsibilities</h3><p>Coordinate product development and onboarding with international teams, document progress and maintain plans. Organize planning sessions, maintain the delivery calendar, prepare team updates and follow up on agreed actions. Work with colleagues across several offices to support smooth delivery and keep project documentation current.</p><p>Project coordination, stakeholder management and process improvement.</p><h3>Requirements</h3><ul><li></li></ul>",
+      "approved_profile_excerpt": {
+        "summary": "Innovation and development engineering graduate with professional project/product coordination, stakeholder and requirements work, process improvement, training and onboarding delivery. CAD and physical prototyping are supported by academic/research projects. Exact relevant employment months, work authorization, salary and work-style preferences are not established by the CV.",
+        "skill_evidence": {
+          "Project management": {
+            "context": "professional",
+            "note": "Project/product lead and coordination roles; planning, scope and timeline tracking. Exact months not stated."
+          },
+          "Product development": {
+            "context": "professional",
+            "note": "Early web-platform product development with stakeholder feedback."
+          },
+          "Stakeholder management": {
+            "context": "professional",
+            "note": "Cross-functional work with founders, clients, executives, departmental teams, international partners and researchers."
+          },
+          "Process improvement": {
+            "context": "professional",
+            "note": "Standardized training/quality processes and revised SOPs; also an academic process-redesign project."
+          },
+          "Onboarding": {
+            "context": "professional",
+            "note": "Designed and delivered onboarding programmes in the Learning and Development role."
+          }
+        },
+        "language_levels": {
+          "Spanish": "native",
+          "English": "C1",
+          "German": "B2",
+          "French": "A2"
+        }
+      },
+      "missing_for_complete_cv": [
+        "verified employment timeline",
+        "identity/contact details",
+        "dated achievement bullets",
+        "original CV layout"
+      ],
+      "unknown_answers": [
+        "work authorization",
+        "notice period",
+        "salary expectations"
+      ]
+    }
+  },
+  "browser": {
+    "scope": "synthetic DOM injection, not a packaged extension or live ATS test",
+    "browser_version": "153.0.8010.12",
+    "cross_origin_parent_access": "SecurityError",
+    "forms": {
+      "english": {
+        "filled": [
+          "first",
+          "last",
+          "email",
+          "phone"
+        ],
+        "preserved": [],
+        "manual": [],
+        "values": {
+          "first": "Alex",
+          "last": "Example",
+          "email": "alex@example.invalid",
+          "phone": "+49 000 000000"
+        },
+        "submissions": 0,
+        "inputEvents": 4
+      },
+      "german": {
+        "filled": [
+          "first",
+          "last",
+          "email",
+          "phone",
+          "city"
+        ],
+        "preserved": [],
+        "manual": [],
+        "values": {
+          "first": "Alex",
+          "last": "Example",
+          "email": "alex@example.invalid",
+          "phone": "+49 000 000000",
+          "city": "Heidelberg"
+        },
+        "submissions": 0,
+        "inputEvents": 5
+      },
+      "review_required": {
+        "filled": [
+          "email"
+        ],
+        "preserved": [
+          "first"
+        ],
+        "manual": [
+          "ambiguous",
+          "salary",
+          "authorization",
+          "consent",
+          "cv",
+          "motivation",
+          "honeypot",
+          "password"
+        ],
+        "values": {
+          "first": "Edited by applicant",
+          "email": "alex@example.invalid",
+          "ambiguous": "",
+          "salary": "",
+          "authorization": "",
+          "consent": false,
+          "cv": "",
+          "motivation": "",
+          "honeypot": "",
+          "password": ""
+        },
+        "submissions": 0,
+        "inputEvents": 1
+      }
+    },
+    "external_requests": 0,
+    "submissions": 0
+  }
+}

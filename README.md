@@ -4,7 +4,7 @@ Radius discovers employers and job openings in Germany. Local development uses S
 
 ## Local development
 
-Requires Python 3.11+, Node.js 20.19+ (or 22.12+), and [mise](https://mise.jdx.dev/).
+Requires Python 3.11+, Node.js 22.13+, and [mise](https://mise.jdx.dev/).
 
 ```bash
 mise install
@@ -43,6 +43,10 @@ Save a job profile under **Your profile**. Viewing a job detail adds it to
 Mark a role as Interested
 when you choose to pursue it; you can also move it to Not interested later.
 Update stages from the job details or application overview.
+**In GOD's hand** is an alternative to Interested for overqualified roles and can
+be selected from New or Interested. **Automated application** runs alongside
+Waiting for reply for applications sent using browser-plugin autofill. Both sent
+stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 
@@ -190,6 +194,7 @@ network access using `.venv/bin/python -m experiments.summarize_expanded_homepag
 
 ## Documentation
 
+- [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
@@ -213,6 +218,6 @@ The Karlsruhe sample includes OpenStreetMap-derived data. See [OpenStreetMap att
 
 ## Chrome application companion
 
-In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Prepare application** flow to save CV text locally and tailor it with ChatGPT. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
+In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Start application** flow to tailor its CV with ChatGPT. Saved profile CVs retain their original DOCX template; profiles without an attached CV can save CV text in the browser or attach one to the profile. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
 
 [Installation, privacy, limits, and developer checks](extensions/application-companion/README.md). CI builds the same installable ZIP and checksum for every PR/main/tag, and includes them in tagged releases.

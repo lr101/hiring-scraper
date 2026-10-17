@@ -4,7 +4,7 @@ import SiteHeader from './SiteHeader'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
 import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
-const empty = (): Profile => ({ name: '', summary: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -50,6 +50,7 @@ function ProfileOverviewPage() {
             <div><h2>{profile.name}</h2><small>{profile.summary || profile.skills.slice(0, 3).join(' · ') || 'Add skills and roles to tune this profile.'}</small></div>
           </header>
           <div className="profile-overview-tags">{tags.map((tag, index) => <span key={`${tag}-${index}`}>{tag}</span>)}</div>
+          <p className="saved-profile-cv">{profile.cv ? `CV attached · ${profile.cv.filename}` : 'No CV attached yet'}</p>
           <footer className="saved-profile-actions">
             <a className="page-link" href={profileBoardLink(profile)}>View jobs in this area <span aria-hidden="true">→</span></a>
             <a className="page-link" href={`/applications?profile_id=${profile.id}`}>Applications <span aria-hidden="true">→</span></a>
@@ -74,10 +75,13 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   const [areaQuery, setAreaQuery] = useState('')
   const [areaChoices, setAreaChoices] = useState<SearchArea[]>([])
   const [cv, setCV] = useState('')
+  const [pendingCV, setPendingCV] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(Boolean(profileId))
+  const requestedReturn = new URLSearchParams(window.location.search).get('return_to') ?? ''
+  const returnTo = /^\/jobs\/\d+\/apply(?:\?profile_id=\d+)?$/.test(requestedReturn) ? requestedReturn : ''
 
   async function request(path: string, options?: RequestInit) {
     const response = await fetch(`${API}/api/v1/profiles${path}`, options)
@@ -96,12 +100,39 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     try {
-      const { id, ...payload } = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const payload = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const id = payload.id
+      delete payload.id
+      delete payload.cv
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit`)
-      edit(saved); setNotice('Profile saved. Its search area is available on the jobs page.')
+      setForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
+      if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit${returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : ''}`)
+      if (pendingCV) {
+        const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}`,
+          { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pendingCV })
+        const metadata = await uploaded.json()
+        if (!uploaded.ok) throw new Error(typeof metadata.detail === 'string' ? metadata.detail : 'Could not attach this CV.')
+        saved.cv = metadata
+        setPendingCV(null)
+      }
+      edit(saved); setNotice(returnTo && !saved.cv ? 'Profile saved. Attach your CV above to continue.' : 'Profile saved. Its search area is available on the jobs page.')
+      if (returnTo && saved.cv) {
+        const destination = new URL(returnTo, window.location.origin)
+        destination.searchParams.set('profile_id', String(saved.id))
+        window.location.href = destination.pathname + destination.search
+      }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save your profile.') }
+    finally { setBusy(false) }
+  }
+  async function removeCV() {
+    if (!form.id) return
+    setBusy(true); setError('')
+    try {
+      const response = await fetch(`${API}/api/v1/profiles/${form.id}/cv`, { method: 'DELETE' })
+      if (!response.ok) throw new Error('Could not remove the CV. Try again.')
+      setForm(current => ({ ...current, cv: null })); setPendingCV(null); setNotice('CV removed from this profile.')
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not remove the CV.') }
     finally { setBusy(false) }
   }
   async function removeProfile() {
@@ -157,6 +188,22 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profile…</div> : <form className="detail-panel profile-form" onSubmit={save}>
         <h2>{form.id ? 'Edit your profile' : 'Create a profile'}</h2>
         <label>Profile name<input required maxLength={120} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Backend developer" /></label>
+        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Your CV</legend>
+          <p>Attach it once. We’ll reuse its text when you start an application.</p>
+          {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>
+            <a href={`${API}/api/v1/profiles/${form.id}/cv`}>Download CV</a>
+            <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove CV</button></div>}
+          <label>{form.cv ? 'Replace CV' : 'Attach CV'}<input type="file" accept=".pdf,.docx,.txt" disabled={busy}
+            onChange={event => { const file = event.target.files?.[0] ?? null; if (file && file.size > 5 * 1024 * 1024) { setError('CV files must be 5 MB or smaller.'); event.target.value = ''; setPendingCV(null) } else { setPendingCV(file); setError('') } }} /></label>
+          <small>PDF, DOCX or TXT · up to 5 MB. Choose DOCX to keep your original layout when editing and exporting to PDF. Saved with your profile.</small>
+          {pendingCV && <p role="status">{pendingCV.name} · ready to save</p>}
+        </fieldset>
+        <fieldset className="profile-section"><legend>Application writing preferences</legend>
+          <label htmlFor="profile-custom-instructions">Custom application instructions</label>
+          <textarea id="profile-custom-instructions" aria-describedby="profile-instructions-help" rows={5} maxLength={5000} value={form.custom_instructions} onChange={event => setForm({ ...form, custom_instructions: event.target.value })}
+            placeholder="For example: Write in German. Keep my cover letter under 250 words, use a warm, direct voice, and focus on research coordination." />
+          <small id="profile-instructions-help">Saved for every application using this profile. Add your preferred voice, language or points to emphasize. Documents match the job posting by default. You can override these preferences for an individual application.</small>
+        </fieldset>
         <label>Profile summary<textarea maxLength={5000} value={form.summary} onChange={event => setForm({ ...form, summary: event.target.value })} /></label>
         <label>Skills <small>Separate with commas; you can add skills beyond our suggestions</small><textarea maxLength={8000} value={skillsText} onChange={event => setSkillsText(event.target.value)} placeholder="Python, SQL, Docker, project management" /></label>
         <label>Roles you’re interested in <small>Separate with commas</small><input value={rolesText} onChange={event => setRolesText(event.target.value)} placeholder="Software developer, backend" /></label>
@@ -205,7 +252,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           <label>Prefer cities with lower AfD vote shares <small>Adjust scores by up to this many points; set to 0 to turn it off. Shares below 25% raise a score and shares above 25% lower it. Only unambiguous municipality results with assigned postal ballots affect scores; fully remote jobs stay unchanged.</small><input type="number" min={0} max={20} value={form.matching_defaults.low_afd_vote_share_weight ?? 0} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, low_afd_vote_share_weight: Number(event.target.value) } })} /></label>
         </fieldset>
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
-        <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
+        <button className="primary-button" disabled={busy} type="submit">{busy ? 'Saving…' : returnTo ? 'Save & continue' : 'Save profile'}</button>
         {form.id && <div className="profile-editor-actions">
           <a className="page-link" href={profileBoardLink(form)}>View jobs in this area →</a>
           <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void removeProfile()}>Delete profile</button>

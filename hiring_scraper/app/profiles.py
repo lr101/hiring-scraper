@@ -1,11 +1,20 @@
-"""Single-workspace profile preferences; CV text is parsed transiently, never stored."""
+"""Single-workspace profile preferences and explicitly saved CV attachments."""
+import json
+import hashlib
+from pathlib import Path
+import subprocess
+import sys
+from urllib.parse import quote
 from typing import Annotated, Any, Literal
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from hiring_scraper.app.database import get_session
-from hiring_scraper.app.models import UserProfile, utcnow
+from hiring_scraper.app.models import ProfileCV, UserProfile, utcnow
+from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
 from hiring_scraper.app.job_search import clear_profile_match_scores
 from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.matching import extract_profile_skills, normalize_skills
@@ -51,7 +60,7 @@ class MatchingDefaults(BaseModel):
     low_afd_vote_share_weight: int = Field(default=0, ge=0, le=20)
 
 
-NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'search_area',
+NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
                    'secondary_roles', 'education', 'certifications', 'matching_defaults'}
 
 
@@ -69,6 +78,7 @@ class ProfileRequest(BaseModel):
     language_levels: dict[Term, Literal['A1','A2','B1','B2','C1','C2','native']] = Field(default_factory=dict, max_length=20)
     skill_evidence: dict[Term, Evidence] = Field(default_factory=dict, max_length=100)
     summary: str = Field(default='', max_length=5000)
+    custom_instructions: str = Field(default='', max_length=5000)
     search_area: SearchArea | None = None
     secondary_roles: list[Term] = Field(default_factory=list, max_length=20)
     education: list[Education] = Field(default_factory=list, max_length=20)
@@ -82,7 +92,8 @@ class CVPreview(BaseModel):
 
 def profile_json(profile):
     data = {'id': profile.id, 'name': profile.name, **profile.preferences,
-            'updated_at': profile.updated_at.isoformat()}
+            'updated_at': profile.updated_at.isoformat(), 'cv': cv_metadata(profile.cv)}
+    data.setdefault('custom_instructions', '')
     defaults = data.get('matching_defaults')
     defaults = defaults if isinstance(defaults, dict) else {}
     data['matching_defaults'] = {
@@ -164,3 +175,122 @@ def delete_profile(profile_id: int, session: Session = Depends(get_session)):
     session.delete(require_profile(profile_id, session))
     session.commit()
     return {'deleted': True}
+
+
+def cv_metadata(cv):
+    return None if cv is None else {'filename': cv.filename, 'content_type': cv.content_type,
+                                   'size_bytes': cv.size_bytes, 'updated_at': cv.updated_at.isoformat()}
+
+
+def store_profile_cv(session, profile_id, filename, data):
+    extension = Path(filename).suffix.lower()
+    if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or extension not in TYPES:
+        raise HTTPException(422, 'Choose a PDF, DOCX or TXT file with a simple filename.')
+    if len(data) > MAX_BYTES:
+        raise HTTPException(413, 'CV files must be 5 MB or smaller.')
+    if not data:
+        raise HTTPException(422, 'Choose a nonempty CV file.')
+    # No database connection is held while parsing untrusted uploaded documents.
+    try:
+        result = subprocess.run([sys.executable, '-m', 'hiring_scraper.app.cv_documents', extension],
+                                input=data, capture_output=True, timeout=10)
+        parsed = json.loads(result.stdout)
+    except (subprocess.TimeoutExpired, ValueError):
+        raise HTTPException(422, 'Could not read this CV within the limit. Try a simpler PDF, DOCX or TXT.') from None
+    if result.returncode or not parsed.get('text'):
+        raise HTTPException(422, parsed.get('error') or 'Could not read this CV.')
+    profile = require_profile(profile_id, session)
+    cv = profile.cv or ProfileCV(profile=profile)
+    cv.filename, cv.content_type, cv.size_bytes = filename, TYPES[extension], len(data)
+    cv.data, cv.extracted_text, cv.updated_at = data, parsed['text'], utcnow()
+    session.add(cv)
+    session.commit()
+    return cv_metadata(cv)
+
+
+@router.put('/{profile_id}/cv')
+async def upload_cv(profile_id: int, request: Request, filename: str = Query(..., min_length=1, max_length=200),
+                    session: Session = Depends(get_session)):
+    data = bytearray()
+    async for chunk in request.stream():
+        if len(data) + len(chunk) > MAX_BYTES:
+            raise HTTPException(413, 'CV files must be 5 MB or smaller.')
+        data.extend(chunk)
+    return await run_in_threadpool(store_profile_cv, session, profile_id, filename, bytes(data))
+
+
+def require_cv(profile_id, session):
+    require_profile(profile_id, session)
+    cv = session.get(ProfileCV, profile_id)
+    if cv is None:
+        raise HTTPException(404, 'Attach a CV to this profile first.')
+    return cv
+
+
+@router.get('/{profile_id}/cv/text')
+def cv_text(profile_id: int, session: Session = Depends(get_session)):
+    cv = require_cv(profile_id, session)
+    return JSONResponse({'text': cv.extracted_text, 'filename': cv.filename}, headers={'Cache-Control': 'no-store'})
+
+
+@router.get('/{profile_id}/cv')
+def download_cv(profile_id: int, session: Session = Depends(get_session)):
+    cv = require_cv(profile_id, session)
+    return Response(cv.data, media_type=cv.content_type, headers={
+        'Content-Disposition': f"attachment; filename=\"cv{Path(cv.filename).suffix.lower()}\"; filename*=UTF-8''{quote(cv.filename, safe='')}",
+        'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})
+
+
+@router.delete('/{profile_id}/cv', status_code=204)
+def delete_cv(profile_id: int, session: Session = Depends(get_session)):
+    profile = require_profile(profile_id, session)
+    profile.cv = None
+    session.commit()
+    return Response(status_code=204)
+
+
+class TemplateChange(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    id: int = Field(ge=0)
+    text: str = Field(max_length=5000)
+
+
+class CVExport(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    source_sha256: Annotated[str, StringConstraints(pattern=r'^[a-f0-9]{64}$')]
+    changes: list[TemplateChange] = Field(default_factory=list, max_length=1000)
+
+
+@router.get('/{profile_id}/cv/template')
+def cv_template(profile_id: int, session: Session = Depends(get_session)):
+    from hiring_scraper.app.cv_templates import template_paragraphs
+    cv = require_cv(profile_id, session)
+    if not cv.filename.lower().endswith('.docx'):
+        raise HTTPException(422, 'Attach a DOCX to keep and edit your original CV template.')
+    data = cv.data
+    return JSONResponse({'source_sha256': hashlib.sha256(data).hexdigest(), 'paragraphs': template_paragraphs(data)},
+                        headers={'Cache-Control': 'no-store'})
+
+
+@router.post('/{profile_id}/cv/export')
+def export_cv(profile_id: int, request: CVExport, format: Literal['docx', 'pdf'] = 'docx',
+              preview: bool = False, session: Session = Depends(get_session)):
+    from hiring_scraper.app.cv_templates import edit_template, render_pdf
+    cv = require_cv(profile_id, session)
+    if not cv.filename.lower().endswith('.docx'):
+        raise HTTPException(422, 'Attach a DOCX to keep and edit your original CV template.')
+    data = cv.data
+    if hashlib.sha256(data).hexdigest() != request.source_sha256:
+        raise HTTPException(409, 'Your saved CV changed. Reload this application before exporting.')
+    session.rollback()  # Don't keep a database connection while rendering a file.
+    try:
+        output = edit_template(data, [row.model_dump() for row in request.changes])
+        if format == 'pdf':
+            output = render_pdf(output)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from None
+    except RuntimeError as error:
+        raise HTTPException(503, str(error)) from None
+    return Response(output, media_type='application/pdf' if format == 'pdf' else TYPES['.docx'], headers={
+        'Content-Disposition': f'{"inline" if preview else "attachment"}; filename="tailored-cv.{format}"',
+        'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})

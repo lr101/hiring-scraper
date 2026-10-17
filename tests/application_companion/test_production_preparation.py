@@ -85,12 +85,21 @@ class ProductionPreparationTests(ExtensionHarness):
         else:
             super().route(route)
 
-    def setup_preparation(self):
+    def setup_preparation(self, attached=False):
+        if attached:
+            uploaded = self.context.request.put(self.origin + '/api/v1/profiles/1/cv?filename=original.txt',
+                data=b'Alex Example. Contact alex@example.invalid. Coordinated research teams.',
+                headers={'Content-Type': 'application/octet-stream'})
+            self.assertTrue(uploaded.ok, uploaded.text())
         self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
-        self.page.get_by_role('textbox', name='Original CV text', exact=True).fill('Alex Example. Contact alex@example.invalid. Coordinated research teams.')
-        self.page.get_by_role('button', name='Save CV', exact=True).click()
-        expect(self.page.locator('.application-cv-ready')).to_be_visible()
-        version = self.page.evaluate("JSON.parse(localStorage.getItem('radius:application-cv:v1:1')).updated_at")
+        if attached:
+            expect(self.page.get_by_role('button', name='Copy brief & open ChatGPT')).to_be_enabled()
+            version = self.context.request.get(self.origin + '/api/v1/profiles').json()['items'][0]['cv']['updated_at']
+        else:
+            self.page.get_by_role('textbox', name='Original CV text', exact=True).fill('Alex Example. Contact alex@example.invalid. Coordinated research teams.')
+            self.page.get_by_role('button', name='Save CV', exact=True).click()
+            expect(self.page.locator('.application-cv-ready')).to_be_visible()
+            version = self.page.evaluate("JSON.parse(localStorage.getItem('radius:application-cv:v1:1')).updated_at")
         options = self.context.new_page()
         options.goto(f'chrome-extension://{self.extension_id}/options.html')
         options.locator('#radius-origin').fill(self.origin)
@@ -100,11 +109,22 @@ class ProductionPreparationTests(ExtensionHarness):
         return version
 
     def test_production_cv_return_badge_apply_alias_and_fill(self):
-        version = self.setup_preparation()
+        self.check_prepared_package_fill()
+
+    def test_saved_profile_cv_return_sync_and_autofill(self):
+        self.check_prepared_package_fill(attached=True)
+
+    def check_prepared_package_fill(self, attached=False):
+        version = self.setup_preparation(attached=attached)
         payload = {'format': 'radius-application-v1', 'job_id': 1574, 'profile_id': 1, 'cv_updated_at': version, 'cv': 'Alex Example. Coordinated research teams.', 'cover_letter': 'I coordinate research projects.', 'application_answers': 'Q: Why this role?\nA: I coordinate research teams.', 'review_notes': 'Review before applying.'}
-        self.page.get_by_role('textbox', name='Returned application package', exact=True).fill(json.dumps(payload))
-        self.page.get_by_role('button', name='Validate and save package', exact=True).click()
-        expect(self.page.get_by_role('status')).to_contain_text('Prepared package saved')
+        if attached:
+            from urllib.parse import quote
+            self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1#application=' + quote(json.dumps(payload), safe=''))
+            expect(self.page.get_by_role('heading', name='Your documents are ready.')).to_be_visible()
+        else:
+            self.page.get_by_role('textbox', name='Returned application package', exact=True).fill(json.dumps(payload))
+            self.page.get_by_role('button', name='Validate and save package', exact=True).click()
+            expect(self.page.get_by_role('status')).to_contain_text('Prepared package saved')
         saved = self.page.evaluate("JSON.parse(localStorage.getItem('radius:application-draft:v1:1574:1'))")
         self.assertIsInstance(saved['saved_at'], (int, float))
         source = self.context.new_page()

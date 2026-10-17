@@ -1,0 +1,69 @@
+{
+  "fictional_sample": true,
+  "person": "Mara Neumann",
+  "results": [
+    {
+      "variant": "original",
+      "pages": 2,
+      "words_checked": 593,
+      "all_paragraph_text_preserved": true,
+      "words_outside_page": [],
+      "unchanged_template_parts": true,
+      "edited_paragraphs": 0,
+      "paragraphs_over_original_length_budget": 0
+    },
+    {
+      "variant": "tailored",
+      "pages": 2,
+      "words_checked": 590,
+      "all_paragraph_text_preserved": true,
+      "words_outside_page": [],
+      "unchanged_template_parts": true,
+      "edited_paragraphs": 3,
+      "paragraphs_over_original_length_budget": 0
+    },
+    {
+      "variant": "expanded",
+      "pages": 3,
+      "words_checked": 794,
+      "all_paragraph_text_preserved": true,
+      "words_outside_page": [],
+      "unchanged_template_parts": true,
+      "edited_paragraphs": 20,
+      "paragraphs_over_original_length_budget": 19
+    },
+    {
+      "variant": "stress",
+      "pages": 5,
+      "words_checked": 1316,
+      "all_paragraph_text_preserved": true,
+      "words_outside_page": [],
+      "unchanged_template_parts": true,
+      "edited_paragraphs": 20,
+      "paragraphs_over_original_length_budget": 19
+    }
+  ],
+  "unchanged_header_footer": [
+    {
+      "page": 1,
+      "region": "header",
+      "identical_pixels": true
+    },
+    {
+      "page": 1,
+      "region": "footer",
+      "identical_pixels": true
+    },
+    {
+      "page": 2,
+      "region": "header",
+      "identical_pixels": true
+    },
+    {
+      "page": 2,
+      "region": "footer",
+      "identical_pixels": true
+    }
+  ],
+  "note": "Original and concise tailoring stay at two pages. Deliberate expansion demonstrates reflow; page count is not guaranteed for arbitrary longer text. No live personal ChatGPT account was used."
+}

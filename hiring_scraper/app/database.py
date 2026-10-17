@@ -272,15 +272,28 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
         if 'auto_created' not in application_columns:
             connection.exec_driver_sql("ALTER TABLE job_applications ADD COLUMN auto_created BOOLEAN NOT NULL DEFAULT 0")
+        status_constraint = next((item for item in inspect(connection).get_check_constraints('job_applications')
+                                  if item['name'] == 'ck_job_application_status'), None)
+        if not status_constraint or any(status not in status_constraint['sqltext']
+                                        for status in ('in_gots_hand', 'automated_application')):
+            from alembic.migration import MigrationContext
+            from alembic.operations import Operations
+            from hiring_scraper.app.models import JobApplication
+            constraint = next(item for item in JobApplication.__table__.constraints
+                              if item.name == 'ck_job_application_status')
+            with Operations(MigrationContext.configure(connection)).batch_alter_table('job_applications') as batch:
+                if status_constraint:
+                    batch.drop_constraint('ck_job_application_status', type_='check')
+                batch.create_check_constraint('ck_job_application_status', str(constraint.sqltext))
         connection.exec_driver_sql("""
             INSERT INTO application_momentum_events
                 (profile_id, job_id, event_type, occurred_at, is_legacy)
             SELECT application.profile_id, application.job_id, 'applied', application.updated_at, 1
               FROM job_applications AS application
              WHERE (
-                    application.status IN ('waiting_for_reply', 'interview', 'accepted')
+                    application.status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted')
                     OR (application.status = 'rejected'
-                        AND application.previous_status IN ('waiting_for_reply', 'interview', 'accepted'))
+                        AND application.previous_status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted'))
                    )
                AND NOT EXISTS (
                     SELECT 1

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
+import JourneyConnections from './JourneyConnections'
 import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import { getApplicationMomentum } from './applicationMomentum'
@@ -17,7 +18,9 @@ const sortModes = [
 ] as const
 type SortMode = typeof sortModes[number]['value']
 
-const journeyStages: ApplicationStatus[] = ['new', 'open', 'waiting_for_reply', 'interview', 'accepted']
+const journeyStages: ApplicationStatus[][] = [
+  ['new'], ['open', 'in_gots_hand'], ['waiting_for_reply', 'automated_application'], ['interview'], ['accepted'],
+]
 const outcomeStages: ApplicationStatus[] = ['not_interested', 'rejected']
 const applicationRewardCycle = [
   { reward: 'Kisses', icon: '💋' },
@@ -30,7 +33,7 @@ const applicationMilestones = Array.from({ length: 40 }, (_, index) => {
   return { count, step: `${count} applications`, ...gift }
 })
 const stagePalette: Record<ApplicationStatus, string> = {
-  new: 'green', open: 'blue', waiting_for_reply: 'amber', interview: 'violet',
+  new: 'green', open: 'blue', in_gots_hand: 'sand', waiting_for_reply: 'amber', automated_application: 'teal', interview: 'violet',
   accepted: 'mint', not_interested: 'stone', rejected: 'rose',
 }
 
@@ -137,6 +140,7 @@ export default function ApplicationsPage() {
   const pageRequestsRef = useRef(new Map<string, Promise<ApplicationResultsPage>>())
   const pageRequestQueueRef = useRef<Promise<void>>(Promise.resolve())
   const rewardTimelineRef = useRef<HTMLOListElement>(null)
+  const trailRef = useRef<HTMLDivElement>(null)
   const cacheGenerationRef = useRef(0)
   const [pageOffsets, setPageOffsets] = useState([0])
   const [pageIndex, setPageIndex] = useState(0)
@@ -507,9 +511,9 @@ export default function ApplicationsPage() {
       const saved = await saveApplication(API, job.profileId, job.id, action.status, action.kind)
       applyLocalStatus(job, saved)
       const label = applicationStatuses.find(item => item.value === action.status)?.label
-      const applied = action.kind === 'stage' && action.status === 'waiting_for_reply'
+      const applied = action.kind === 'stage' && ['waiting_for_reply', 'automated_application'].includes(action.status)
       const milestoneAction = action.kind === 'stage'
-        && ['waiting_for_reply', 'interview', 'accepted'].includes(action.status)
+        && ['waiting_for_reply', 'automated_application', 'interview', 'accepted'].includes(action.status)
       setNotice(applied ? `Application sent · ${job.title}` : action.kind === 'undo'
         ? `${job.title} · ${job.profileName} · restored to ${label}`
         : `${job.title} · ${job.profileName} · ${label}`)
@@ -664,10 +668,12 @@ export default function ApplicationsPage() {
           </div>}
         </div>
 
-        <div className="quest-trail" role="group" aria-label="Filter applications by checkpoint">
-          {journeyStages.map((stage, index) => {
+        <div className="quest-trail" ref={trailRef} role="group" aria-label="Filter applications by checkpoint">
+          <JourneyConnections containerRef={trailRef} />
+          {journeyStages.map((stages, index) => <div className="quest-stage-group" key={stages[0]}>{stages.map(stage => {
             const item = applicationStatuses.find(option => option.value === stage)!
             return <button type="button" key={stage} disabled={hasSavingJob}
+              data-journey-stage={stage}
               aria-pressed={statuses.includes(stage)}
               aria-label={`${item.label}, ${countsReady ? visibleCounts[stage] : 'loading'} roles`}
               className={`quest-stage quest-${stagePalette[stage]} ${visibleCounts[stage] ? 'has-roles' : 'quiet'} ${statuses.includes(stage) ? 'selected' : ''}`}
@@ -677,7 +683,7 @@ export default function ApplicationsPage() {
               <strong>{item.label}</strong>
               <span className="quest-stage-dot" aria-hidden="true" />
             </button>
-          })}
+          })}</div>)}
         </div>
 
         <div className="quest-map-footer">

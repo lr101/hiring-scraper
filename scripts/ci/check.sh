@@ -15,6 +15,7 @@ printf '%s\n' 'Checking profile behavior with Node and the real Python matcher'
 node tests/frontend_profile_defaults.mjs
 node tests/frontend_applications.mjs
 node tests/frontend_application_interactions.mjs
+node tests/frontend_application_handoff.mjs
 node tests/frontend_application_preparation.mjs
 node --test tests/application_companion/*.mjs
 

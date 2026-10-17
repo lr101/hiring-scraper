@@ -1,7 +1,9 @@
 export const applicationStatuses = [
   { value: 'new', label: 'New' },
   { value: 'open', label: 'Interested' },
+  { value: 'in_gots_hand', label: 'In GOD\'s hand' },
   { value: 'waiting_for_reply', label: 'Waiting for reply' },
+  { value: 'automated_application', label: 'Automated application' },
   { value: 'interview', label: 'Interview' },
   { value: 'not_interested', label: 'Not interested' },
   { value: 'rejected', label: 'Rejected' },
@@ -12,9 +14,11 @@ export type ApplicationStatus = typeof applicationStatuses[number]['value']
 export type SwipeDirection = 'left' | 'right'
 export type ApplicationSwipeAction = { kind: 'stage' | 'undo'; status: ApplicationStatus }
 export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[]> = {
-  new: ['open', 'not_interested'],
-  open: ['waiting_for_reply', 'not_interested'],
+  new: ['open', 'in_gots_hand', 'not_interested'],
+  open: ['waiting_for_reply', 'in_gots_hand', 'not_interested'],
+  in_gots_hand: ['waiting_for_reply', 'not_interested'],
   waiting_for_reply: ['interview', 'rejected'],
+  automated_application: ['interview', 'rejected'],
   interview: ['accepted', 'rejected'],
   accepted: [],
   rejected: [],
@@ -23,7 +27,9 @@ export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[
 export const swipeApplicationStages: Record<ApplicationStatus, Partial<Record<SwipeDirection, ApplicationStatus>>> = {
   new: { left: 'not_interested', right: 'open' },
   open: { left: 'not_interested', right: 'waiting_for_reply' },
+  in_gots_hand: { left: 'not_interested', right: 'waiting_for_reply' },
   waiting_for_reply: { left: 'rejected', right: 'interview' },
+  automated_application: { left: 'rejected', right: 'interview' },
   interview: { left: 'rejected', right: 'accepted' },
   accepted: {},
   rejected: {},

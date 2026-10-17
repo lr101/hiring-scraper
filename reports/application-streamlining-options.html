@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Application workflow options</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--foreground,#20252b); font-family: var(--font-sans,system-ui,sans-serif); font-size: 14px; line-height: 1.5; }
+  .flow { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; margin-bottom: 24px; }
+  .step { padding: 16px; border: 1px solid var(--border,#ddd); border-radius: var(--radius,10px); }
+  .step span { display: block; color: var(--muted-foreground,#636b75); font-size: 12px; margin-bottom: 8px; }
+  .step strong { display: block; line-height: 1.35; }
+  h2 { font-size: 17px; margin: 22px 0 10px; }
+  p { margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th,td { text-align: left; vertical-align: top; padding: 13px 8px; border-bottom: 1px solid var(--border,#ddd); overflow-wrap: anywhere; }
+  th { font-size: 12px; color: var(--muted-foreground,#636b75); font-weight: 500; }
+  th:first-child,td:first-child { padding-left: 0; width: 31%; }
+  th:last-child,td:last-child { padding-right: 0; }
+  a { color: var(--accent-foreground,#2759a1); text-underline-offset: 3px; }
+  small,.muted { color: var(--muted-foreground,#636b75); }
+  small { display: block; font-size: 12px; margin-top: 5px; }
+  details { padding: 12px 0; border-bottom: 1px solid var(--border,#ddd); }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { padding-left: 16px; }
+  .evidence { padding: 16px; background: var(--secondary,#f2f4f6); border-radius: var(--radius,10px); margin-top: 20px; }
+  .evidence strong { display: block; margin-bottom: 6px; }
+  @media(max-width:480px) { .flow { grid-template-columns: repeat(2,minmax(0,1fr)); } th,td { padding: 11px 6px; } }
+</style>
+<body>
+<div class="flow" aria-label="Recommended application workflow">
+  <div class="step"><span>01 · Establish facts</span><strong>Verified career profile</strong></div>
+  <div class="step"><span>02 · Find fit</span><strong>Personalized shortlist</strong></div>
+  <div class="step"><span>03 · Prepare</span><strong>Tailored CV &amp; answers</strong></div>
+  <div class="step"><span>04 · Apply</span><strong>Autofill, review, submit</strong></div>
+</div>
+<table aria-label="Integration options and practical boundaries">
+  <thead><tr><th>Option</th><th>What it enables / what it needs</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ChatGPT Pro connection</strong></td><td>Eligible local/open-source apps can request plan usage. It does not expose conversations or account context. Hosted deployment eligibility needs checking.<small><a href="https://developers.openai.com/siwc/token-sharing-open-source">Official sign-in documentation</a></small></td></tr>
+    <tr><td><strong>Career knowledge handoff</strong></td><td>Review a career brief in ChatGPT, then import approved facts. A ChatGPT plugin could later exchange jobs and drafts within the active conversation.<small>Recommended first experiment; full account-memory export is not established.</small></td></tr>
+    <tr><td><strong>Tailored application pack</strong></td><td>Generate CV edits and answers from verified achievements plus the posting. Show changes and qualification gaps before exporting.<small>Requires employment history, document generation and version storage.</small></td></tr>
+    <tr><td><strong>Assisted autofill</strong></td><td>A user-triggered extension fills supported fields on employer pages. Keep unknown answers and final submission with the applicant.<small><a href="https://developer.chrome.com/docs/extensions/develop/concepts/activeTab">Chrome temporary tab access</a> · live ATS compatibility remains untested.</small></td></tr>
+  </tbody>
+</table>
+<h2>Where to invest first</h2>
+<details open><summary>1. Capture missing facts and reuse answers</summary><p>Relevant work dates, professional achievements, work authorization, salary, notice period and work style. Reuse the existing skills, language and evidence profile.</p></details>
+<details><summary>2. Add “Prepare application”</summary><p>Begin with a ChatGPT handoff, then add integrated generation and reviewed DOCX/PDF export. Preserve the master CV and attach the approved version to each application.</p></details>
+<details><summary>3. Improve the personalized shortlist</summary><p>Broad discovery currently ranks independently of profile fit. Reuse existing multilingual search, add evidence-based reranking, collect skip reasons and move profile rebuilding to background work.</p></details>
+<details><summary>4. Pilot extension autofill on selected providers</summary><p>Measure field accuracy and corrections on representative forms. Basic text mapping is feasible; uploads, custom widgets, logins and multi-step flows require further work.</p></details>
+<div class="evidence"><strong>Evidence from this review</strong>22 synthetic matching evaluations and 3 synthetic browser forms; 47 existing Python tests and 2 Node checks passed.<small>No account login, model generation or live employer form was tested. Zero employer requests and submissions. No measured time savings or recommendation uplift yet.</small></div>
+</body>
+</html>

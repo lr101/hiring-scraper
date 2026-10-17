@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer,
+    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
     JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
@@ -292,6 +292,7 @@ class UserProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
 
     @property
     def matching_preferences(self) -> dict:
@@ -303,11 +304,24 @@ class UserProfile(Base):
         return preferences
 
 
+class ProfileCV(Base):
+    __tablename__ = "profile_cvs"
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    filename: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    extracted_text: Mapped[str] = mapped_column(Text, nullable=False, deferred=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    profile: Mapped[UserProfile] = relationship(back_populates="cv")
+
+
 class JobApplication(Base):
     __tablename__ = "job_applications"
     __table_args__ = (
         UniqueConstraint("profile_id", "job_id", name="uq_job_application_profile_job"),
-        CheckConstraint("status IN ('new', 'open', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted')",
+        CheckConstraint("status IN ('new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted')",
                         name="ck_job_application_status"),
         Index("ix_job_applications_profile_status", "profile_id", "status"),
     )

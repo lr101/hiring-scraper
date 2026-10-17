@@ -19,6 +19,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SEMANTIC_MODEL_DIR=/opt/models/multilingual-e5-small \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project

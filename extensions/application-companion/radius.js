@@ -35,7 +35,9 @@
       Date.now() - saved.saved_at > 7 * 86400000
     )
       return null;
-    let cvText = "";
+    let cvText =
+      document.querySelector(".application-cv-ready")?.dataset.originalCvText ||
+      "";
     const prompt =
       document.querySelector(
         'textarea[aria-label="Prepared application prompt"]',

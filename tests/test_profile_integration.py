@@ -99,3 +99,29 @@ class ProfileIntegrationTests(unittest.TestCase):
             self.assertEqual(job.description,'Python')
             self.assertEqual(job.enrichment,{})
             self.assertEqual(session.scalars(select(models.UserProfile)).all(),[])
+
+    def test_application_instructions_persist_survive_older_clients_and_can_be_cleared(self):
+        profiles = self.profile_api()
+        instructions = "Write in German.\nUse a warm, direct voice and focus on research coordination."
+        with Session(self.engine) as session:
+            created = profiles.create_profile(profiles.ProfileRequest(name='Writer', custom_instructions=instructions), session)
+            self.assertEqual(created['custom_instructions'], instructions)
+            other = profiles.create_profile(profiles.ProfileRequest(name='Another profile'), session)
+            self.assertEqual(other['custom_instructions'], '')
+            session.expire_all()
+            saved = next(p for p in profiles.list_profiles(session)['items'] if p['id'] == created['id'])
+            self.assertEqual(saved['custom_instructions'], instructions)
+            updated = profiles.update_profile(created['id'], profiles.ProfileRequest(name='Renamed'), session)
+            self.assertEqual(updated['custom_instructions'], instructions)
+            cleared = profiles.update_profile(created['id'], profiles.ProfileRequest(name='Renamed', custom_instructions=''), session)
+            self.assertEqual(cleared['custom_instructions'], '')
+            legacy = models.UserProfile(name='Legacy', preferences={})
+            session.add(legacy); session.commit()
+            self.assertEqual(profiles.profile_json(legacy)['custom_instructions'], '')
+
+    def test_application_instructions_reject_oversized_input(self):
+        from pydantic import ValidationError
+        profiles = self.profile_api()
+        self.assertEqual(len(profiles.ProfileRequest(name='Writer', custom_instructions='x' * 5000).custom_instructions), 5000)
+        with self.assertRaises(ValidationError):
+            profiles.ProfileRequest(name='Writer', custom_instructions='x' * 5001)

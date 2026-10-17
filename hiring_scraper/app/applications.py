@@ -3,8 +3,8 @@ from typing import Literal, get_args
 
 from pydantic import BaseModel, ConfigDict
 
-ApplicationStatus = Literal['new', 'open', 'not_interested', 'waiting_for_reply',
-                            'interview', 'rejected', 'accepted']
+ApplicationStatus = Literal['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply',
+                            'automated_application', 'interview', 'rejected', 'accepted']
 APPLICATION_STATUSES = get_args(ApplicationStatus)
 
 

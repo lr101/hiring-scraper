@@ -71,17 +71,49 @@ def exercise_company_domain_index() -> None:
 
 
 def exercise_collation_repair_migration() -> None:
-    # Force stale catalog metadata, then run the real migration on the populated
-    # database. This covers the persisted-database upgrade path in CI.
+    # Force stale catalog metadata, then run the real migration on the fresh
+    # CI database. Rewinding newer empty-table migrations lets CI exercise the
+    # historical repair against every current migration without deleting data.
     admin_url = (
         f"postgresql+psycopg://postgres:{quote(postgres_password, safe='')}@db:5432/hiring"
     )
     admin_engine = create_engine(admin_url)
     try:
-        with admin_engine.begin() as connection:
+        with admin_engine.connect() as connection:
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0027_merge_journey_and_main', (
-                f'Expected the merged migration head, got {version!r}'
+            assert version == '0029_parallel_application_stages', (
+                f'Expected the current migration head, got {version!r}'
+            )
+            counts = connection.execute(text(
+                'SELECT (SELECT count(*) FROM user_profiles), '
+                '(SELECT count(*) FROM profile_cvs), '
+                '(SELECT count(*) FROM job_applications)'
+            )).one()
+            assert counts == (0, 0, 0), (
+                'The collation migration smoke must run before fixture or user data is added'
+            )
+
+        from alembic import command
+        from alembic.config import Config
+
+        app_database_url = os.environ['DATABASE_URL']
+        os.environ['DATABASE_URL'] = admin_url
+        try:
+            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
+            command.downgrade(config, '0026_weekly_goal_environment')
+        finally:
+            os.environ['DATABASE_URL'] = app_database_url
+
+        with admin_engine.begin() as connection:
+            # Alembic represents the mergepoint downgrade as both parent
+            # revisions. Keep the app/journey parent applied and mark only the
+            # collation branch as pending so this upgrade executes 0025 again.
+            deleted = connection.execute(text(
+                "DELETE FROM alembic_version "
+                "WHERE version_num = '0025_postgres_collation_repair'"
+            ))
+            assert deleted.rowcount == 1, (
+                'Expected the PostgreSQL collation revision at the migration branchpoint'
             )
             connection.execute(text(
                 "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
@@ -91,16 +123,12 @@ def exercise_collation_repair_migration() -> None:
                 'SELECT datcollversion FROM pg_database WHERE datname = current_database()'
             ))
             assert recorded == 'ci-forced-stale', 'Could not force stale collation metadata'
-            # Keep the journey migrations applied while marking only the
-            # collation branch pending. Rewinding to their common ancestor
-            # would attempt to recreate existing application milestone tables.
-            connection.execute(text(
-                'UPDATE alembic_version SET version_num = '
-                "'0026_weekly_goal_environment' WHERE version_num = '0027_merge_journey_and_main'"
-            ))
 
-        from alembic import command
-        from alembic.config import Config
+        with admin_engine.connect() as connection:
+            revisions = set(connection.scalars(text('SELECT version_num FROM alembic_version')))
+            assert revisions == {'0026_weekly_goal_environment'}, (
+                f'Expected only the application branch applied, got {revisions!r}'
+            )
 
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
@@ -119,7 +147,7 @@ def exercise_collation_repair_migration() -> None:
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0027_merge_journey_and_main', (
+            assert version == '0029_parallel_application_stages', (
                 f'Collation migration did not return to head: {version!r}'
             )
     finally:
@@ -141,9 +169,9 @@ def main() -> None:
     assert before == {'companies': 0, 'feeds': 0, 'jobs': 0}, 'Fresh startup imported fixture data'
     assert read(WEB + '/api/v1/companies?limit=1')['total'] == 0
 
+    exercise_collation_repair_migration()
     imported = import_fixture(Path('fixtures/karlsruhe-osm-candidates.csv'),
                               Path('fixtures/karlsruhe-career-enrichment.json'))
-    exercise_collation_repair_migration()
     exercise_company_domain_index()
     after_import = database_counts()
     assert imported == after_import and imported['companies'] > 0 and imported['jobs'] > 0

@@ -1,124 +1,406 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import SiteHeader from './SiteHeader'
-import { buildApplicationPrompt, deleteCv, parseReturnedPackage, readCv, readDraft, removeDraft, saveCv, saveDraft, type ApplicationPackage, type StoredCv } from './applicationPreparation'
-import './application-preparation.css'
+import PDFPreview from './PDFPreview'
+import BrowserApplicationPreparationPage from './BrowserApplicationPreparationPage'
+import type { Profile } from './profile'
+import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
+import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-const apiUrl = (path: string) => `${API_BASE_URL}${path}`
-type Profile = { id: number; name: string }
-type Job = { id: number; title: string; url: string; company_name: string; description: string | null; location_text: string | null; employment_type: string | null; work_arrangement: string | null }
+const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+const CHATGPT = 'https://chatgpt.com/'
 
 export default function ApplicationPreparationPage({ jobId }: { jobId: number }) {
-  const requestedProfileId = Number(new URLSearchParams(window.location.search).get('profile_id'))
-  const [job, setJob] = useState<Job | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [cv, setCv] = useState<StoredCv | null>(null)
-  const [cvText, setCvText] = useState('')
-  const [returned, setReturned] = useState('')
-  const [pendingHash, setPendingHash] = useState('')
-  const [packageValue, setPackageValue] = useState<ApplicationPackage | null>(null)
-  const [notice, setNotice] = useState('')
+  const [job, setJob] = useState<HandoffJob | null>(null)
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [profileId, setProfileId] = useState(new URLSearchParams(location.search).get('profile_id') ?? '')
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
-  const cvGeneration = useRef(0)
-  const validRequestedProfile = Number.isSafeInteger(requestedProfileId) && requestedProfileId > 0
-
+  const [incoming, setIncoming] = useState(() => ({ hash: /^#applicationz?=/.test(location.hash) ? location.hash : '' }))
   useEffect(() => {
-    if (!validRequestedProfile) { setError('Choose a valid application profile before preparing this application.'); return }
-    const controller = new AbortController()
-    Promise.all([fetch(apiUrl('/api/v1/profiles'), { signal: controller.signal }), fetch(apiUrl(`/api/v1/jobs/${jobId}?profile_id=${requestedProfileId}`), { signal: controller.signal })])
-      .then(async ([profileResponse, jobResponse]) => {
-        if (!profileResponse.ok) throw new Error('Could not load application profiles.')
-        if (!jobResponse.ok) throw new Error('Could not load this job.')
-        const profilePayload = await profileResponse.json(); const jobPayload = await jobResponse.json()
-        const selected = (profilePayload.items as Profile[]).find(item => item.id === requestedProfileId)
-        if (!selected) throw new Error('The selected application profile is unavailable. Return to the job and choose a profile.')
-        if (controller.signal.aborted) return
-        cvGeneration.current++; setProfile(selected); setJob(jobPayload); const localCv = readCv(localStorage, selected.id); setCv(localCv); setCvText(localCv?.text ?? '')
-      }).catch(reason => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load preparation details.') })
-    return () => controller.abort()
-  }, [jobId, requestedProfileId, validRequestedProfile])
-
-  useEffect(() => { if (job && profile && cv) setPackageValue(readDraft(localStorage, job.id, profile.id, cv.updated_at)) }, [job, profile, cv])
-  useEffect(() => {
-    function consumeHash() {
-      if (!window.location.hash.startsWith('#application')) return
-    const hash = window.location.hash
-    window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}`)
-    setReturned(hash); setPendingHash(hash)
+    function receive() {
+      if (!/^#applicationz?=/.test(location.hash)) return
+      setIncoming({ hash: location.hash })
+      // Remove private document data before rendering previews or following links.
+      history.replaceState(history.state, '', location.pathname + location.search)
     }
-    consumeHash(); window.addEventListener('hashchange', consumeHash)
-    return () => window.removeEventListener('hashchange', consumeHash)
+    receive()
+    window.addEventListener('hashchange', receive)
+    return () => window.removeEventListener('hashchange', receive)
   }, [])
   useEffect(() => {
-    if (!job || !profile || !cv || !pendingHash) return
-    let cancelled = false
-    const expected = cv
-    void parseReturnedPackage(pendingHash, { jobId: job.id, profileId: profile.id, cvUpdatedAt: expected.updated_at }).then(parsed => {
-      const latest = readCv(localStorage, profile.id)
-      if (cancelled || latest?.updated_at !== expected.updated_at || latest.text !== expected.text) throw new Error('The saved CV changed while this package was being read. Paste a package for the current CV.')
-      if (!saveDraft(localStorage, job.id, profile.id, parsed, { job_id: job.id, profile_id: profile.id, cv_updated_at: expected.updated_at })) throw new Error('Could not save this package.')
-      if (!cancelled) { setPackageValue(parsed); setReturned(''); setNotice('Returned package validated and saved in this browser only.'); setError('') }
-    }).catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : 'Could not read this returned package.') }).finally(() => { if (!cancelled) setPendingHash('') })
-    return () => { cancelled = true }
-  }, [cv, job, pendingHash, profile])
-  useEffect(() => {
-    function changed(event: StorageEvent) {
-      if (!profile || !job || !event.key) return
-      if (event.key === `radius:application-cv:v1:${profile.id}`) {
-        cvGeneration.current++; const next = readCv(localStorage, profile.id); setCv(next); setCvText(next?.text ?? ''); setPackageValue(null)
-      } else if (event.key === `radius:application-draft:v1:${job.id}:${profile.id}` && cv) setPackageValue(readDraft(localStorage, job.id, profile.id, cv.updated_at))
+    const controller = new AbortController()
+    async function load() {
+      try {
+        const [jobResponse, profilesResponse] = await Promise.all([
+          fetch(`${API}/api/v1/jobs/${jobId}`, { signal: controller.signal }),
+          fetch(`${API}/api/v1/profiles`, { signal: controller.signal }),
+        ])
+        if (!jobResponse.ok || !profilesResponse.ok) throw new Error('Could not load this application. Go back to the job and try again.')
+        const [jobData, profileData] = await Promise.all([jobResponse.json(), profilesResponse.json()])
+        setJob(jobData); setProfiles(profileData.items)
+        if (!new URLSearchParams(location.search).has('profile_id') && profileData.items.length === 1) setProfileId(String(profileData.items[0].id))
+      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load this application.') }
+      finally { if (!controller.signal.aborted) setLoading(false) }
     }
-    window.addEventListener('storage', changed); return () => window.removeEventListener('storage', changed)
-  }, [cv, job, profile])
-
-  const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`
-  const prompt = useMemo(() => cv && job && profile ? buildApplicationPrompt(cv, { job, profile, returnUrl }) : '', [cv, job, profile, returnUrl])
-  function saveLocalCv() {
-    if (!profile) return
-    try { cvGeneration.current++; const next = saveCv(localStorage, profile.id, cvText); setCv(next); setPackageValue(null); setNotice('Original CV saved in this browser only.'); setError('') }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save the CV.') }
-  }
-  async function importText(file: File | undefined) {
-    if (!file) return
-    if (!file.name.toLowerCase().endsWith('.txt') || file.size > 100_000) { setError('Choose a plain .txt CV file under 100,000 bytes.'); return }
-    const generation = cvGeneration.current; const profileId = profile?.id
-    try {
-      const text = await file.text()
-      if (text.length > 100_000) throw new Error('Choose CV text under 100,000 characters.')
-      if (generation !== cvGeneration.current || profileId !== profile?.id) return
-      setCvText(text); setNotice('CV text imported. Select Save CV to keep it in this browser.'); setError('')
-    } catch (reason) { if (generation === cvGeneration.current) setError(reason instanceof Error ? reason.message : 'Could not import this CV file.') }
-  }
-  async function acceptReturned() {
-    if (!job || !profile || !cv) return
-    try {
-      const expected = cv
-      const parsed = await parseReturnedPackage(returned, { jobId: job.id, profileId: profile.id, cvUpdatedAt: expected.updated_at })
-      const latest = readCv(localStorage, profile.id)
-      if (latest?.updated_at !== expected.updated_at || latest.text !== expected.text) throw new Error('The saved CV changed while this package was being read. Paste a package for the current CV.')
-      if (!saveDraft(localStorage, job.id, profile.id, parsed, { job_id: job.id, profile_id: profile.id, cv_updated_at: expected.updated_at })) throw new Error('Could not save this package.')
-      setPackageValue(parsed); setError(''); setNotice('Prepared package saved in this browser only.'); setReturned('')
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not read this returned package.') }
-  }
-  async function copyPrompt() { try { await navigator.clipboard.writeText(prompt); setNotice('Prompt copied. Paste it into ChatGPT when you choose.'); setError('') } catch { setError('Could not copy the prompt. Select and copy the text manually.') } }
-  function download() {
-    if (!packageValue) return
-    downloadText(`application-${job?.id}.txt`, `Cover letter\n\n${packageValue.cover_letter}\n\nApplication answers\n\n${packageValue.application_answers}\n\nReview notes\n\n${packageValue.review_notes}`)
-  }
-  function downloadText(name: string, text: string) { const href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = href; anchor.download = name; anchor.click(); URL.revokeObjectURL(href) }
-  if (error && !job && !profile) return <div className="app-shell"><SiteHeader active="applications" /><main className="content"><div className="error-banner" role="alert">{error}</div></main></div>
-  return <div className="app-shell"><SiteHeader active="applications" /><main className="content application-preparation-page">
-    <a className="back-link" href={job ? `/jobs/${job.id}?profile_id=${requestedProfileId}` : '/discover?view=jobs'}>← Back to job</a>
-    <header className="application-preparation-hero"><p className="eyebrow">Local application preparation</p><h1>{job?.title ?? 'Prepare application'}</h1><p className="intro-copy">{job ? `${job.company_name} · ${profile?.name ?? 'loading profile'}` : 'Loading selected job and profile…'}</p></header>
-    {error && <p className="error-banner" role="alert">{error}</p>}{notice && <p className="application-preparation-notice" role="status">{notice}</p>}
-    {profile && <section className="application-preparation-card"><p className="eyebrow">1 · Original CV</p><h2>Keep the source text in this browser</h2><p>Radius never sends this CV to its API. Save it explicitly, replace it with pasted text or a plain text file, or delete it here.</p>
-      <textarea value={cvText} onChange={event => setCvText(event.target.value)} aria-label="Original CV text" placeholder="Paste original CV text" />
-      <div className="application-preparation-actions"><button className="search-button" type="button" onClick={saveLocalCv}>Save CV</button><button className="secondary-button" type="button" onClick={() => fileRef.current?.click()}>Import .txt</button><input ref={fileRef} type="file" accept="text/plain,.txt" hidden onChange={event => void importText(event.target.files?.[0])} />{cv && <><span className="application-cv-ready">Original CV saved locally</span><button className="text-button" type="button" onClick={() => { cvGeneration.current++; deleteCv(localStorage, profile.id); setCv(null); setPackageValue(null); setNotice('Saved CV and all its prepared drafts were removed from this browser.'); }}>Delete saved CV</button></>}</div>
-    </section>}
-    {cv && job && profile && <><section className="application-preparation-card"><p className="eyebrow">2 · Prompt</p><h2>Review and send only when ready</h2><p>Copy this prompt or open ChatGPT yourself. Generated content remains text for your review; Radius does not submit an application. If you use the companion extension, save a reusable extension profile once from this original CV, then keep this Radius tab open while it checks the CV version.</p><textarea aria-label="Prepared application prompt" value={prompt} readOnly />
-      <div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void copyPrompt()}>Copy prompt</button><a className="secondary-button application-chatgpt-link" href="https://chatgpt.com" target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div></section>
-      <section className="application-preparation-card"><p className="eyebrow">3 · Returned package</p><h2>Paste the JSON or return link</h2><textarea aria-label="Returned application package" value={returned} onChange={event => setReturned(event.target.value)} placeholder="Paste the returned JSON or Radius return URL" /><div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void acceptReturned()}>Validate and save package</button>{packageValue && <button className="secondary-button" type="button" onClick={download}>Download letter and answers</button>}{packageValue && <button className="secondary-button" type="button" onClick={() => downloadText(`tailored-cv-${job.id}.txt`, typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n'))}>Download CV</button>}{packageValue && <button className="text-button" type="button" onClick={() => { removeDraft(localStorage, job.id, profile.id); setPackageValue(null); setNotice('Saved package removed from this browser.'); }}>Delete package</button>}</div>
-      {packageValue && <div className="application-package-output"><h3>Tailored CV</h3><pre>{typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n')}</pre><h3>Cover letter</h3><pre>{packageValue.cover_letter}</pre><h3>Application answers</h3><pre>{packageValue.application_answers}</pre><h3>Review notes</h3><pre>{packageValue.review_notes}</pre>{packageValue.experience_bullets && <><h3>Experience bullets</h3><pre>{JSON.stringify(packageValue.experience_bullets, null, 2)}</pre></>}</div>}</section></>}
+    void load()
+    return () => controller.abort()
+  }, [jobId])
+  const profile = profiles.find(item => String(item.id) === profileId)
+  const href = applicationStartLink(jobId, profile?.id)
+  const editHref = profile ? `/profile/${profile.id}/edit?return_to=${encodeURIComponent(href)}#profile-cv` : '/profile/new'
+  if (profile && !profile.cv) return <BrowserApplicationPreparationPage key={profile.id} jobId={jobId} attachHref={editHref} incoming={incoming} />
+  return <div className="app-shell application-workspace"><main className="content application-finish-page">
+    <a className="back-link" href={`/jobs/${jobId}${profileId ? `?profile_id=${profileId}` : ''}`}>← Back to job</a>
+    {loading ? <div className="loading-state">Preparing your application…</div> : error ? <p className="error-banner" role="alert">{error}</p> : job && <>
+      <header className="application-finish-heading"><h1>{job.company_name}</h1><p>{job.title}</p></header>
+      {!profile ? <section className="application-finish-card"><h2>{profiles.length ? 'Choose your profile' : 'Add a profile to get started'}</h2>
+        {profiles.length ? <label>Application profile<select value={profileId} onChange={event => {
+          setProfileId(event.target.value)
+          history.replaceState({}, '', applicationStartLink(jobId, Number(event.target.value)))
+        }}><option value="">Choose a profile</option>{profiles.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          : <a className="primary-button" href={`/profile/new?return_to=${encodeURIComponent(applicationStartLink(jobId))}`}>Create profile</a>}</section>
+        : !profile.cv ? <section className="application-finish-card"><h2>Attach your CV once</h2><p>Add your CV to {profile.name}. It will be ready for this application and every one after it.</p>
+          <a className="primary-button" href={editHref}>Attach CV to profile →</a></section>
+          : <ApplicationFinish key={profile.id} job={job} profile={profile} editHref={editHref} incoming={incoming} />}
+    </>}
   </main></div>
+}
+
+function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJob; profile: Profile; editHref: string; incoming: { hash: string } }) {
+  const [cvText, setCVText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [step, setStep] = useState<'handoff' | 'response' | 'edit'>('handoff')
+  const [language, setLanguage] = useState('the language of the job posting')
+  const [notes, setNotes] = useState('')
+  const [response, setResponse] = useState('')
+  const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
+  const [selected, setSelected] = useState<keyof ApplicationDocuments>('cv')
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [manual, setManual] = useState(false)
+  const [manualResult, setManualResult] = useState(false)
+  const [optionsOpen, setOptionsOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [template, setTemplate] = useState<{ source_sha256: string; paragraphs: TemplateParagraph[] } | null>(null)
+  const [changes, setChanges] = useState<TemplateParagraph[]>([])
+  const [pdf, setPDF] = useState<{ url: string; body: string } | null>(null)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  const [previewError, setPreviewError] = useState('')
+  const [draftReady, setDraftReady] = useState(false)
+  const [storageError, setStorageError] = useState('')
+  const [draftExpiresAt, setDraftExpiresAt] = useState(0)
+  const restored = useRef(false)
+  const skipHydrationSave = useRef(false)
+  const lastReturn = useRef<object | null>(null)
+  const importVersion = useRef(0)
+  const pdfURL = useRef('')
+  const isTemplate = profile.cv?.filename.toLowerCase().endsWith('.docx')
+  const promptRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    const controller = new AbortController()
+    async function get(path: string) {
+      const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/${path}`, { signal: controller.signal, cache: 'no-store' })
+      const data = await result.json()
+      if (!result.ok) throw new Error(data.detail ?? 'Could not read the saved CV.')
+      return data
+    }
+    Promise.all([get('text'), isTemplate ? get('template') : Promise.resolve(null)])
+      .then(([data, layout]) => { setCVText(data.text); setTemplate(layout) })
+      .catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false) })
+    return () => controller.abort()
+  }, [profile.id, isTemplate])
+  const context = useMemo(() => ({ job_id: job.id, profile_id: profile.id!, cv_updated_at: profile.cv!.updated_at }), [job.id, profile.id, profile.cv?.updated_at])
+  const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
+  const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
+  const prompt = useMemo(() => buildApplicationPrompt({ job, profile, language, cvText, notes, templateParagraphs: template?.paragraphs,
+    handoff: { ...context, return_url: returnURL } }), [job, profile, language, cvText, notes, template, context, returnURL])
+  useEffect(() => {
+    if (loading || !cvText || restored.current) return
+    restored.current = true
+    try {
+      const raw = localStorage.getItem(draftKey)
+      const saved = raw && raw.length <= 450000 ? JSON.parse(raw) : null
+      if (saved && Date.now() - saved.saved_at < 7 * 86400000 && saved.saved_at <= Date.now() && JSON.stringify(saved.context) === JSON.stringify(context)) {
+        if (saved.package) {
+          const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs)
+          setDocuments(imported.documents); setChanges(imported.changes)
+        }
+        if (['handoff', 'response', 'edit'].includes(saved.step) && (saved.step !== 'edit' || saved.package)) setStep(saved.step)
+        if (typeof saved.response === 'string' && saved.response.length <= 200000) setResponse(saved.response)
+        if (typeof saved.language === 'string' && saved.language.length < 100) setLanguage(saved.language)
+        if (typeof saved.notes === 'string' && saved.notes.length <= 5000) setNotes(saved.notes)
+        setDraftExpiresAt(saved.saved_at + 7 * 86400000)
+        skipHydrationSave.current = true
+      } else if (raw) localStorage.removeItem(draftKey)
+    } catch {
+      // Discard corrupt drafts as well; never retain an unusable document silently.
+      try { localStorage.removeItem(draftKey) } catch { /* Storage may be disabled. */ }
+    }
+    setDraftReady(true)
+  }, [loading, cvText, draftKey, context, template])
+  useEffect(() => {
+    if (!draftReady || !incoming.hash || lastReturn.current === incoming) return
+    let cancelled = false
+    const version = ++importVersion.current
+    void readApplicationReturn(incoming.hash).then(text => {
+      if (cancelled || version !== importVersion.current) return
+      lastReturn.current = incoming
+      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs)
+      setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit'); setError('')
+      setNotice(''); setOptionsOpen(false)
+    }).catch(reason => {
+      if (cancelled || version !== importVersion.current) return
+      lastReturn.current = incoming
+      setError(reason instanceof Error ? reason.message : 'Could not import this return link. Import the application package file instead.')
+    })
+    return () => { cancelled = true }
+  }, [draftReady, incoming, context, template])
+  useEffect(() => {
+    if (!draftReady) return
+    // Restoring a draft is not an edit and must not extend its expiry window.
+    if (skipHydrationSave.current) { skipHydrationSave.current = false; return }
+    const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
+      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes } : null
+    // No original CV bytes are copied into browser storage. Drafts expire in a week.
+    if (step === 'handoff' && !result && !response && !notes) return
+    try {
+      const savedAt = Date.now()
+      localStorage.setItem(draftKey, JSON.stringify({ context, package: result, step, language, notes, response, saved_at: savedAt }))
+      setDraftExpiresAt(savedAt + 7 * 86400000)
+      setStorageError('')
+    } catch { setStorageError('This browser cannot save your draft. Export your documents before closing the page.') }
+  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response])
+  useEffect(() => {
+    if (!draftExpiresAt) return
+    function expire() {
+      if (Date.now() < draftExpiresAt) return
+      clearDraft()
+      setNotice('Your browser draft expired after 7 days without changes. Your original CV is still attached.')
+    }
+    const timer = setTimeout(expire, Math.max(0, draftExpiresAt - Date.now()))
+    window.addEventListener('focus', expire)
+    return () => { clearTimeout(timer); window.removeEventListener('focus', expire) }
+  }, [draftExpiresAt])
+  const exportBody = JSON.stringify({ source_sha256: template?.source_sha256, changes })
+  useEffect(() => {
+    if (step !== 'edit' || selected !== 'cv' || !template) return
+    const controller = new AbortController()
+    setPreviewBusy(true); setPreviewError('')
+    const timer = setTimeout(() => {
+      fetch(`${API}/api/v1/profiles/${profile.id}/cv/export?format=pdf&preview=true`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: exportBody, signal: controller.signal,
+      }).then(async result => {
+        if (!result.ok) { const data = await result.json(); throw new Error(data.detail ?? 'Could not preview the template.') }
+        const blob = await result.blob()
+        if (controller.signal.aborted) return
+        if (pdfURL.current) URL.revokeObjectURL(pdfURL.current)
+        pdfURL.current = URL.createObjectURL(blob)
+        setPDF({ url: pdfURL.current, body: exportBody })
+      }).catch(reason => { if (!controller.signal.aborted) setPreviewError(reason.message) })
+        .finally(() => { if (!controller.signal.aborted) setPreviewBusy(false) })
+    }, 1000)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [step, selected, template, profile.id, exportBody])
+  useEffect(() => () => { if (pdfURL.current) URL.revokeObjectURL(pdfURL.current) }, [])
+  const section = documentSections.find(item => item.key === selected)!
+  const text = documents[selected]
+  const finalCVText = template ? template.paragraphs.map(row => changes.find(change => change.id === row.id)?.text ?? row.text).join('\n') : documents.cv
+
+  async function start(openChatGPT = true) {
+    setError(''); setNotice(''); setBusy(true); setManualResult(false); setOptionsOpen(false); setManual(false)
+    // Copy during the click, before opening a tab can take focus away. The
+    // gesture-based copy also works in browsers that block the Clipboard API.
+    const copying = (async () => {
+      const field = document.createElement('textarea')
+      const previousFocus = document.activeElement
+      field.value = prompt; field.readOnly = true
+      field.style.cssText = 'position:fixed;left:-9999px;top:0'
+      document.body.appendChild(field)
+      try {
+        field.focus({ preventScroll: true }); field.select()
+        if (document.execCommand('copy')) return true
+      } catch { /* Try the Clipboard API when gesture-based copying is unavailable. */ }
+      finally {
+        field.remove()
+        if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true })
+      }
+      try { await navigator.clipboard.writeText(prompt); return true }
+      catch { return false }
+    })()
+    // Navigation must not depend on clipboard permission or an async result.
+    const target = openChatGPT ? window.open(CHATGPT, '_blank') : null
+    if (target) target.opener = null
+    try {
+      setStep('response')
+      if (await copying) {
+        if (openChatGPT && !target) setManual(true)
+        setNotice(target || !openChatGPT ? 'Brief copied. Paste it in ChatGPT and send.' : 'Brief copied. Use Open ChatGPT to continue.')
+      } else {
+        setManual(true)
+        setError('Clipboard access was blocked. Copy the selected brief, then paste it in ChatGPT.')
+        setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0)
+      }
+    } finally { setBusy(false) }
+  }
+
+  async function importResponse(input = response) {
+    const version = ++importVersion.current
+    setError(''); setNotice('')
+    try {
+      const text = await readApplicationReturnInput(input, returnURL)
+      if (version !== importVersion.current) return
+      // Existing four-section replies remain importable from the manual field.
+      const legacy = text.trim().replace(/^```(?:markdown|text)?\s*\n/, '').startsWith('<<<CV>>>')
+      const parsed = legacy ? parseApplicationResponse(text) : null
+      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [] }
+        : parseApplicationPackage(text, context, template?.paragraphs)
+      if (template) assertFinishedText(template.paragraphs.map(row => imported.changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
+      setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit')
+      setNotice(''); setOptionsOpen(false)
+    }
+    catch (reason) { if (version === importVersion.current) setError(reason instanceof Error ? reason.message : 'Could not read this response.') }
+  }
+
+  async function pastePackage() {
+    try {
+      const value = await navigator.clipboard.readText()
+      setResponse(value); await importResponse(value)
+    } catch {
+      setError('Paste the copied result in the box.')
+      document.getElementById('application-package')?.focus()
+    }
+  }
+
+  async function importFile(file?: File) {
+    if (!file) return
+    if (file.size > 200000) { setError('Choose an application package file under 200 KB.'); return }
+    try { const value = await file.text(); setResponse(value); await importResponse(value) }
+    catch { setError('Could not read this file. Copy and paste the application package instead.') }
+  }
+
+  function clearDraft() {
+    importVersion.current++
+    setManualResult(false); setOptionsOpen(false)
+    try { localStorage.removeItem(draftKey); setStorageError('') }
+    catch { setStorageError('This browser could not remove the saved draft. Clear this site’s browser storage to remove it.') }
+    setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes('')
+    setLanguage('the language of the job posting'); setDraftExpiresAt(0)
+    setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
+  }
+
+  async function downloadTemplate(format: 'docx' | 'pdf') {
+    setBusy(true); setError('')
+    try {
+      assertFinishedText(finalCVText)
+      let url = format === 'pdf' && pdf?.body === exportBody ? pdf.url : ''
+      let temporary = false
+      if (!url) {
+        const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/export?format=${format}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: exportBody,
+        })
+        if (!result.ok) { const data = await result.json(); throw new Error(data.detail ?? 'Could not export the CV.') }
+        url = URL.createObjectURL(await result.blob()); temporary = true
+      }
+      const link = document.createElement('a')
+      link.href = url; link.download = applicationDocumentFilename(job.company_name, 'cv', format); link.click()
+      if (temporary) setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export the CV.') }
+    finally { setBusy(false) }
+  }
+
+  function printDocument() {
+    try { assertFinishedText(text) } catch (reason) { setError((reason as Error).message); return }
+    const target = window.open('about:blank', '_blank')
+    if (!target) { setError('Allow popups to open the print window.'); return }
+    target.opener = null
+    target.document.open(); target.document.write(documentHTML(text, applicationDocumentFilename(job.company_name, selected, 'pdf').replace(/\.pdf$/, ''))); target.document.close()
+    target.focus(); target.print()
+    setNotice('Choose Save as PDF. Turn off browser headers and footers for a clean document.')
+  }
+
+  async function copyDocument() {
+    setError(''); setNotice('')
+    try { assertFinishedText(text) } catch (reason) { setError((reason as Error).message); return }
+    try {
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard.write) await navigator.clipboard.write([new ClipboardItem({
+        'text/plain': new Blob([documentPlainText(text)], { type: 'text/plain' }),
+        'text/html': new Blob([documentHTML(text, section.label)], { type: 'text/html' }),
+      })])
+      else await navigator.clipboard.writeText(documentPlainText(text))
+      setNotice(`${section.label} copied for your document editor.`)
+    } catch { setError('Clipboard access was blocked. Copy the document text directly from the editor.') }
+  }
+
+  return <>
+    {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
+    {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
+    {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
+    <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>
+    <section className="application-finish-card">
+      {step === 'handoff' && <>
+        <h2>Tailor this application.</h2>
+        <p>Paste the brief in ChatGPT, then click its return link.</p>
+        <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : 'Copy brief & open ChatGPT ↗'}</button>
+      </>}
+      {step === 'response' && <>
+        <h2>Finish in ChatGPT.</h2>
+        <p>Click <strong>Return to Radius with my documents</strong> in ChatGPT.</p>
+        <div className="finish-actions"><a className="primary-button" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div>
+        <details className="finish-options" open={manualResult} onToggle={event => setManualResult(event.currentTarget.open)}><summary>Import manually</summary>
+          <label>Import result file<input type="file" accept=".json,.txt,application/json,text/plain" onChange={event => { void importFile(event.target.files?.[0]); event.currentTarget.value = '' }} /></label>
+          <label htmlFor="application-package">Or paste a result<textarea id="application-package" aria-label="Application package" rows={5} value={response} maxLength={200000} onChange={event => setResponse(event.target.value)}
+            onPaste={event => { const value = event.clipboardData.getData('text/plain'); if (value) { event.preventDefault(); setResponse(value); void importResponse(value) } }}
+            placeholder="Paste the return link or package from ChatGPT." /></label>
+          <button onClick={() => void pastePackage()}>Paste & open documents</button>
+          {response.trim() && <button onClick={() => void importResponse()}>Open documents</button>}
+          {documents.cv && <button className="finish-text-button" onClick={() => { setStep('edit'); setError(''); setManualResult(false) }}>Keep current documents</button>}
+        </details>
+      </>}
+      {step === 'edit' && <>
+        <h2>Your documents are ready.</h2>
+        <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
+        {selected === 'cv' && !template && <p className="preparation-warning">Text-only CV. <a href={editHref}>Attach a DOCX</a> to keep your original layout.</p>}
+        <div className="finish-actions finish-download-actions">{selected === 'cv' && template ? <>
+          <button className="primary-button" disabled={busy} onClick={() => void downloadTemplate('pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
+          <button disabled={busy} onClick={() => void downloadTemplate('docx')}>Download editable DOCX</button>
+        </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>{selected === 'cv' ? 'Print simple PDF' : 'Print / save PDF'}</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
+        <div className="finish-download-preview">{selected === 'cv' && template ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
+          {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
+          : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>
+        <details className="finish-options"><summary>Edit document text</summary>
+          {selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
+            {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000}
+              value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => setChanges(current => {
+                const next = current.filter(change => change.id !== row.id)
+                return event.target.value === row.text ? next : [...next, { id: row.id, text: event.target.value }]
+              })} /></label>)}</div>
+            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => setDocuments(current => ({ ...current, [selected]: event.target.value }))} /></label>}
+        </details>
+      </>}
+      <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>
+        {step === 'handoff' && <>
+          <label>Document language<select aria-label="Document language" value={language} onChange={event => setLanguage(event.target.value)}>
+            <option value="the language of the job posting">Match the job posting</option><option>English</option><option>German</option><option>Spanish</option><option>French</option>
+          </select></label>
+          <p className="finish-help">A language selection overrides your saved instructions.</p>
+          <label>Additional instructions<textarea value={notes} maxLength={5000} rows={3} onChange={event => setNotes(event.target.value)} placeholder="Optional instructions for this application" /></label>
+          {profile.custom_instructions?.trim() && <a className="finish-help" href={editHref.replace('#profile-cv', '#profile-custom-instructions')}>Edit profile instructions</a>}
+          <button disabled={loading || !draftReady} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>
+        </>}
+        {step !== 'handoff' && <button onClick={() => { setStep('handoff'); setOptionsOpen(false); setError('') }}>Back to brief</button>}
+        {step === 'edit' && <button onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>Paste a new response</button>}
+        {step !== 'edit' && <button disabled={!cvText} onClick={() => { setOptionsOpen(false); setManual(true); setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0) }}>Show brief</button>}
+        {draftExpiresAt > 0 && <button onClick={clearDraft}>Clear browser draft</button>}
+        {step === 'edit' && documents.reviewNotes && <p className="finish-help">{documents.reviewNotes}</p>}
+      </details>
+      {manual && step !== 'edit' && cvText && <div className="finish-manual">
+        <label>Brief to copy<textarea ref={promptRef} aria-label="Prepared application prompt" value={prompt} readOnly rows={6} /></label>
+        <button disabled={busy} onClick={() => void start(false)}>Copy brief</button>
+      </div>}
+      {notice && <p className="preparation-notice" role="status">{notice}</p>}
+      {error && <p className="preparation-error" role="alert">{error} {!cvText && !loading && <a href={editHref}>Update CV</a>}</p>}
+      {storageError && <p className="preparation-error" role="alert">{storageError}</p>}
+    </section>
+    {step !== 'handoff' && !storageError && <p className="finish-saved-note">Saved on this device · 7 days</p>}
+  </>
 }
