@@ -43,6 +43,10 @@ Save a job profile under **Your profile**. Viewing a job detail adds it to
 Mark a role as Interested
 when you choose to pursue it; you can also move it to Not interested later.
 Update stages from the job details or application overview.
+**In gots hand** is an alternative to Interested for overqualified roles and can
+be selected from New or Interested. **Automated application** runs alongside
+Waiting for reply for applications sent using browser-plugin autofill. Both sent
+stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 

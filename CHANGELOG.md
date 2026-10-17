@@ -12,6 +12,10 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Pipeline-style branch and merge connections between Journey checkpoints, including mobile scrolling and resizing.
+
+- Parallel Journey stages: In gots hand for overqualified roles and Automated application for applications sent using browser-plugin autofill, with persistent filters, undo history and application momentum.
+
 - Focused ChatGPT application pages with shorter instructions, one back link, and secondary actions under Options.
 
 - Company-based application download names and an in-app PDF page preview that works without a native mobile PDF viewer.

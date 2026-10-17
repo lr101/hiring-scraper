@@ -41,7 +41,7 @@ try {
       `${interaction} must not imply interest on repeated clicks`)
     assert.equal(writes, 0, 'Revisiting must not save another stage')
   }
-  for (const status of ['open', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted']) {
+  for (const status of ['open', 'in_gots_hand', 'automated_application', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted']) {
     application = { profile_id: 9, job_id: 42, status }
     writes = 0
     const opened = await trackJobInteraction(base, 9, 42, application, 'open_post')
@@ -53,6 +53,18 @@ try {
   assert.equal((await trackJobInteraction(base, 9, 42, stale, 'open_post')).status, 'not_interested',
     'Opening with stale card data must preserve the latest saved decision')
   assert.ok(nextApplicationStages.open.includes('not_interested'), 'Interested jobs must offer a Not interested action')
+  for (const stage of ['new', 'open']) {
+    assert.ok(nextApplicationStages[stage].includes('in_gots_hand'), `${stage} jobs can be set aside as stretch roles`)
+  }
+  for (const stage of ['new', 'open', 'in_gots_hand']) {
+    assert.ok(!nextApplicationStages[stage].includes('automated_application'), 'Only plugin submission callbacks assign the automated lane')
+  }
+  assert.deepEqual(applicationSwipeAction({ status: 'in_gots_hand' }, 'right'),
+    { kind: 'stage', status: 'waiting_for_reply' }, 'Manual swipes mark a sent application without claiming autofill')
+  assert.deepEqual(applicationSwipeAction({ status: 'automated_application', previous_status: 'in_gots_hand' }, 'right'),
+    { kind: 'stage', status: 'interview' }, 'Automated applications can progress to interview')
+  assert.deepEqual(applicationSwipeAction({ status: 'automated_application' }, 'left'),
+    { kind: 'stage', status: 'rejected' }, 'Automated applications can record rejection')
   assert.deepEqual(applicationSwipeAction({ status: 'open', previous_status: 'new' }, 'left'),
     { kind: 'stage', status: 'not_interested' }, 'Swiping left on an interested job must skip it')
   assert.deepEqual(applicationSwipeAction({ status: 'open' }, 'right'),

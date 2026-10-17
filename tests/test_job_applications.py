@@ -1,5 +1,10 @@
 """Application tracking persists independently of vacancy and matching lifecycles."""
 import unittest
+import importlib
+from unittest.mock import patch
+
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
 
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -41,7 +46,7 @@ class JobApplicationTests(unittest.TestCase):
         return endpoint((profile or self.profile)['id'], session=self.session, **kwargs)
 
     def test_every_status_roundtrips_without_creating_duplicate_applications(self):
-        for status in ['new', 'open', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted']:
+        for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted']:
             with self.subTest(status=status):
                 saved = self.save(self.jobs[0], status)
                 self.session.expire_all()
@@ -72,7 +77,39 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(len(page['items']), 1)
         self.assertEqual(page['items'][0]['application']['status'], 'interview')
         self.assertEqual(page['counts'], {'new': 1, 'open': 0, 'not_interested': 0,
+                         'in_gots_hand': 0, 'automated_application': 0,
                          'waiting_for_reply': 0, 'interview': 2, 'rejected': 0, 'accepted': 0})
+
+    def test_parallel_stages_filter_independently_and_keep_undo_history(self):
+        self.save(self.jobs[0], 'new')
+        held = self.save(self.jobs[0], 'in_gots_hand')
+        self.assertEqual(held['previous_status'], 'new')
+        self.save(self.jobs[1], 'open')
+        held = self.save(self.jobs[1], 'in_gots_hand')
+        self.assertEqual(held['previous_status'], 'open')
+        automated = self.save(self.jobs[0], 'automated_application')
+        self.assertEqual(automated['previous_status'], 'in_gots_hand')
+        self.assertEqual(self.overview(status='in_gots_hand')['total'], 1)
+        page = api.list_applications(profile_ids=str(self.profile['id']),
+                                     statuses='automated_application', session=self.session)
+        self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
+        self.assertEqual(page['counts']['in_gots_hand'], 1)
+        restored = api.set_job_application(self.profile['id'], self.jobs[0].id,
+            api.ApplicationRequest(status='in_gots_hand', action='undo'), self.session)
+        self.assertEqual(restored['status'], 'in_gots_hand')
+        self.assertEqual(self.overview(status='in_gots_hand')['total'], 2)
+
+    def test_sent_autofill_applications_count_once_across_both_sent_stages(self):
+        self.save(self.jobs[0], 'in_gots_hand')
+        self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 0)
+        self.save(self.jobs[0], 'automated_application')
+        self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 1)
+        self.save(self.jobs[0], 'waiting_for_reply')
+        self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 1)
+        self.assertEqual(api.get_application_momentum(self.session)['applied_this_week'], 1)
+        self.save(self.jobs[0], 'automated_application')
+        self.save(self.jobs[0], 'waiting_for_reply')
+        self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 1)
 
     def test_closed_expired_and_out_of_scope_applications_remain_in_overview(self):
         self.save(self.jobs[0], 'waiting_for_reply')
@@ -138,3 +175,46 @@ class JobApplicationTests(unittest.TestCase):
                 self.assertEqual(endpoint(profile['id'], session=session)['total'], 0)
         finally:
             engine.dispose()
+
+    def legacy_application_table(self):
+        for job in self.jobs:
+            self.session.refresh(job)
+        self.session.close()
+        with self.engine.begin() as connection:
+            connection.exec_driver_sql('DROP TABLE job_applications')
+            connection.exec_driver_sql("""CREATE TABLE job_applications (
+                id INTEGER PRIMARY KEY, profile_id INTEGER NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+                job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                status VARCHAR(24) NOT NULL, previous_status VARCHAR(24),
+                auto_created BOOLEAN NOT NULL DEFAULT 0,
+                created_at DATETIME NOT NULL, updated_at DATETIME NOT NULL,
+                CONSTRAINT uq_job_application_profile_job UNIQUE (profile_id, job_id),
+                CONSTRAINT ck_job_application_status CHECK (status IN
+                    ('new','open','not_interested','waiting_for_reply','interview','rejected','accepted'))
+            )""")
+            connection.exec_driver_sql('CREATE INDEX ix_job_applications_profile_status ON job_applications (profile_id,status)')
+            connection.exec_driver_sql('CREATE INDEX ix_job_applications_job_id ON job_applications (job_id)')
+        self.session = Session(self.engine)
+
+    def test_sqlite_upgrade_preserves_old_applications_and_accepts_parallel_stages(self):
+        self.legacy_application_table()
+        old = self.save(self.jobs[0], 'open')
+        initialize_sqlite_schema(self.engine)
+        initialize_sqlite_schema(self.engine)
+        self.assertEqual(self.overview()['items'][0]['application'], old)
+        self.assertEqual(self.save(self.jobs[0], 'in_gots_hand')['previous_status'], 'open')
+        self.assertEqual(self.save(self.jobs[1], 'automated_application')['status'], 'automated_application')
+
+    def test_alembic_upgrade_and_downgrade_preserve_parallel_stage_records(self):
+        self.legacy_application_table()
+        self.save(self.jobs[0], 'open')
+        migration = importlib.import_module('hiring_scraper.app.migrations.versions.0029_parallel_application_stages')
+        with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
+            migration.upgrade()
+        self.save(self.jobs[0], 'in_gots_hand')
+        self.save(self.jobs[0], 'automated_application')
+        with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
+            migration.downgrade()
+        self.session.expire_all()
+        row = self.session.scalar(select(models.JobApplication))
+        self.assertEqual((row.status, row.previous_status), ('waiting_for_reply', 'open'))

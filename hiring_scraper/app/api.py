@@ -2515,11 +2515,12 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
     session.execute(statement)
     momentum_event_type = {
         'waiting_for_reply': 'applied',
+        'automated_application': 'applied',
         'interview': 'interview',
         'accepted': 'accepted',
     }.get(request.status)
     if request.action == 'stage' and momentum_event_type and previous_status != request.status:
-        # Count a profile/job only on its first move into Waiting for reply.
+        # Count a profile/job only once across the manual and autofill sent stages.
         already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
             ApplicationMomentumEvent.profile_id == profile_id,
             ApplicationMomentumEvent.job_id == job_id,
