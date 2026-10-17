@@ -105,6 +105,16 @@ def exercise_collation_repair_migration() -> None:
             os.environ['DATABASE_URL'] = app_database_url
 
         with admin_engine.begin() as connection:
+            # Alembic represents the mergepoint downgrade as both parent
+            # revisions. Keep the app/journey parent applied and mark only the
+            # collation branch as pending so this upgrade executes 0025 again.
+            deleted = connection.execute(text(
+                "DELETE FROM alembic_version "
+                "WHERE version_num = '0025_postgres_collation_repair'"
+            ))
+            assert deleted.rowcount == 1, (
+                'Expected the PostgreSQL collation revision at the migration branchpoint'
+            )
             connection.execute(text(
                 "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
                 'WHERE datname = current_database()'
@@ -113,6 +123,13 @@ def exercise_collation_repair_migration() -> None:
                 'SELECT datcollversion FROM pg_database WHERE datname = current_database()'
             ))
             assert recorded == 'ci-forced-stale', 'Could not force stale collation metadata'
+
+        with admin_engine.connect() as connection:
+            revisions = set(connection.scalars(text('SELECT version_num FROM alembic_version')))
+            assert revisions == {'0026_weekly_goal_environment'}, (
+                f'Expected only the application branch applied, got {revisions!r}'
+            )
+
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
