@@ -60,8 +60,8 @@ class ApplicationDocumentRequest(BaseModel):
         return self
 
 
-def _finished_text(text):
-    if not text.strip():
+def _finished_text(text, *, allow_empty=False):
+    if not allow_empty and not text.strip():
         raise ValueError('The selected document is empty. Return a finished application document before exporting.')
     if re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]', text):
         raise ValueError('The selected document contains unsupported control characters. Remove them before exporting.')
@@ -114,6 +114,9 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
     session.rollback()  # Return the DB connection before editing/conversion.
     try:
         if changes is not None:
+            # The editor flattens line breaks, which can hide line-start TODOs.
+            for row in changes:
+                _finished_text(row.text, allow_empty=True)
             output = cv_templates.edit_template(source, [row.model_dump() for row in changes])
             _finished_text('\n'.join(row['text'] for row in cv_templates.template_paragraphs(output)))
         else:

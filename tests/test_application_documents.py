@@ -138,6 +138,24 @@ class ApplicationDocumentTests(unittest.TestCase):
             self.export(cv_updated_at=revision, cv=[])
         self.assertEqual(raised.exception.status_code, 422)
 
+    def test_raw_paragraph_placeholders_are_rejected_before_newline_normalization(self):
+        revision = self.attach()
+        for text in ['Hello\nTODO: finish', 'Hello\r\nTBD — finish']:
+            for format in ['docx', 'pdf']:
+                with self.subTest(text=text, format=format):
+                    with self.assertRaises(HTTPException) as raised:
+                        self.export(format=format, cv_updated_at=revision, cv=[{'id': 4, 'text': text}])
+                    self.assertEqual(raised.exception.status_code, 422)
+        letter = self.export(kind='cover_letter', cv_updated_at=revision,
+                             cv=[{'id': 4, 'text': 'Hello\nTODO: finish'}])
+        self.assertEqual(self.text(letter.body), 'Dear team,\nI coordinate projects.')
+
+    def test_template_paragraph_can_be_removed_when_document_remains_nonempty(self):
+        revision = self.attach()
+        response = self.export(cv_updated_at=revision, cv=[{'id': 4, 'text': ''}])
+        self.assertIn('Alex Example', self.text(response.body))
+        self.assertNotIn('Coordinate projects', self.text(response.body))
+
     def test_unedited_template_placeholders_are_rejected(self):
         original = template_docx()
         output = BytesIO()
