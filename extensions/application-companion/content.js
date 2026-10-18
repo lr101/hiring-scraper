@@ -22,7 +22,7 @@
     return matches[0];
   };
 
-  function inspect() {
+  function inspect(linkedApplication = false) {
     if (globalThis.applicationFields?.hasAuthenticationControls())
       return {
         supported: false,
@@ -62,15 +62,16 @@
             "Known facts and exact job-linked answers; other controls reported for review",
         };
       }
-      return {
-        supported: false,
-        reason:
-          "The Greenhouse contact fields are not visible yet. Open the application form, then try again.",
-      };
+      if (!linkedApplication || !globalThis.applicationFields?.supports(true))
+        return {
+          supported: false,
+          reason:
+            "The Greenhouse contact fields are not visible yet. Open the application form, then try again.",
+        };
     }
     if (
       (location.protocol === "https:" || local) &&
-      globalThis.applicationFields?.supports()
+      globalThis.applicationFields?.supports(linkedApplication)
     )
       return {
         supported: true,
@@ -88,8 +89,9 @@
 
   async function run(profile) {
     if (
-      profile.page_guard &&
-      globalThis.applicationPageContext?.identity() !== profile.page_guard
+      (profile.page_url && location.href !== profile.page_url) ||
+      (profile.page_guard &&
+        globalThis.applicationPageContext?.identity() !== profile.page_guard)
     ) {
       return {
         status: "needs_review",
@@ -105,12 +107,12 @@
     }
     if (busy)
       return { status: "busy", error: "This page is already being filled." };
-    const info = inspect();
-    if (!info.supported) return { status: "unsupported", error: info.reason };
-    busy = true;
     const scoped = globalThis.applicationFields.sameApplication(
       profile.application?.url,
     );
+    const info = inspect(scoped);
+    if (!info.supported) return { status: "unsupported", error: info.reason };
+    busy = true;
     profile = {
       ...profile,
       experiences: profile.experiences.map((entry) => {
@@ -129,7 +131,7 @@
       }),
     };
     const started = performance.now();
-    const before = globalThis.applicationFields.snapshot();
+    const before = globalThis.applicationFields.snapshot(scoped);
     const report = {
       adapter: info.adapter,
       status: "ready_for_review",

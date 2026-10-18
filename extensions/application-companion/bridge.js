@@ -18,6 +18,15 @@
         lastTheme = theme;
         void chrome.runtime
           .sendMessage({ type: "radius-state", theme })
+          .then((response) => {
+            const form = response?.ok && response.result?.form;
+            if (!form || form.format !== "radius-form-v1") return;
+            localStorage.setItem(
+              `radius:application-form:v1:${form.job_id}:${form.profile_id}`,
+              JSON.stringify(form),
+            );
+            document.dispatchEvent(new CustomEvent("radius-form-updated"));
+          })
           .catch(() => {});
       }
       const source = globalThis.radiusApplicationSource?.read();

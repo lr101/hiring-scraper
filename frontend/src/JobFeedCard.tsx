@@ -46,7 +46,7 @@ const stageActionCopy: Partial<Record<ApplicationStatus, string>> = {
 }
 
 function JobFeedCard({
-  job, href, profileId, profileName, updatedAt, disabled = false, saving = false, pendingStatus, onAction, onOpenOriginal,
+  job, href, profileId, profileName, updatedAt, disabled = false, saving = false, pendingStatus, onAction, onOpenOriginal, showStartApplication = true,
 }: {
   job: JobCardData
   href: string
@@ -58,6 +58,7 @@ function JobFeedCard({
   pendingStatus?: ApplicationStatus
   onAction: (jobId: number, profileId: number | undefined, action: ApplicationSwipeAction) => void
   onOpenOriginal?: (jobId: number, profileId: number | undefined) => void
+  showStartApplication?: boolean
 }) {
   const application = pendingStatus && job.application
     ? { ...job.application, previous_status: job.application.status, status: pendingStatus }
@@ -97,7 +98,7 @@ function JobFeedCard({
       <span><small>Last updated</small>{formatDate(lastUpdated)}</span>
     </div>
     <JobOverviewTags job={job} />
-    <a className="job-prepare-link" href={applicationStartLink(job.id, profileId)}>Start application <span aria-hidden="true">↗</span></a>
+    {showStartApplication && <a className="job-prepare-link" href={applicationStartLink(job.id, profileId)}>Start application <span aria-hidden="true">↗</span></a>}
     {profileId !== undefined && <p className="application-matching-skills"><strong>Matching skills:</strong> {matchingSkills.length ? matchingSkills.join(' · ') : 'None identified yet'}</p>}
     {languageRequirements && <p className="application-language-requirements"><strong>Language requirements:</strong> {languageRequirements}</p>}
     {nextMoves.length > 0 && profileId !== undefined && <div className="application-quick-moves" aria-label="Move this application to its next state">

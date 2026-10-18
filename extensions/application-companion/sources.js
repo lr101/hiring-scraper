@@ -1,4 +1,8 @@
-import { validateProfile, validateBullets } from "./profile.js";
+import {
+  validateProfile,
+  validateBullets,
+  validateFormAnswers,
+} from "./profile.js";
 
 // Radius return links are decoded locally. Never navigate or fetch the link.
 export async function readPackage(input) {
@@ -83,6 +87,7 @@ export async function readPackage(input) {
     }
   }
   validateBullets(data.experience_bullets ?? []);
+  if (data.form_answers !== undefined) validateFormAnswers(data.form_answers);
   return data;
 }
 
@@ -109,6 +114,9 @@ export function connectSources(
       applicationPackage.cover_letter,
       applicationPackage.application_answers,
       JSON.stringify(applicationPackage.experience_bullets || []),
+      ...(applicationPackage.form_answers?.answers || []).map(
+        (answer) => answer.value,
+      ),
       typeof applicationPackage.cv === "string"
         ? applicationPackage.cv
         : applicationPackage.cv.map((row) => row.text).join("\n"),
@@ -170,6 +178,11 @@ export function connectSources(
       profile_id: applicationPackage.profile_id,
       cv_updated_at: applicationPackage.cv_updated_at,
       experience_bullets: bulletRows,
+      ...(applicationPackage.form_answers === undefined
+        ? {}
+        : {
+            form_answers: validateFormAnswers(applicationPackage.form_answers),
+          }),
     };
     notes.push(
       `Connected ChatGPT package for Radius job ${applicationPackage.job_id}, profile ${applicationPackage.profile_id}.`,

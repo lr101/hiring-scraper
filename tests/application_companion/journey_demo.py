@@ -25,7 +25,7 @@ class Handler(BaseHTTPRequestHandler):
   if path=='/api/v1/companion/jobs':
    hold=state.pop('hold_jobs',None)
    if hold:hold[0].set();hold[1].wait(5)
-   return self.respond({'items':jobs,'next_after_id':None})
+   return self.respond({'items':state.get('catalog_jobs',jobs),'next_after_id':None})
   if path.startswith('/api/v1/jobs/'):
    job=next((j for j in jobs if str(j['id'])==path.rsplit('/',1)[-1]),None);return self.respond(job,200 if job else 404)
   body=''

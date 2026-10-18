@@ -110,3 +110,61 @@ class JourneyBrowserTests(ExtensionHarness):
         self.assertEqual(self.page.locator('#letter').input_value(),'')
         self.assertEqual(self.page.locator('#why').input_value(),'')
         self.assertEqual(self.page.locator('#first').input_value(),'')
+
+    def test_unchanged_docx_package_fills_role_specific_answers(self):
+        self.seed(True)
+        self.worker.evaluate("""async()=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.packages['1574:1'].package.cv=[];await chrome.storage.local.set({radiusVault:v});}""")
+        self.page.goto(LISTING);popup=self.popup()
+        expect(popup.locator('#job-entries')).to_contain_text('CV prepared')
+        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
+        popup.close();self.page=event.value;self.page.wait_for_url(ATS)
+        popup=self.popup();self.fill(popup)
+        expect(self.page.locator('#why')).to_have_value('I coordinate research projects.')
+
+    def test_linked_question_only_wizard_step_fills_exact_answers(self):
+        self.seed(True);self.page.goto(LISTING);popup=self.popup()
+        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
+        popup.close();self.page=event.value;self.page.wait_for_url(ATS)
+        popup=self.popup();self.fill(popup);popup.close()
+        next_url=ATS+'&step=2'
+        body='<title>Application questions</title><form><h1>Your application</h1><label>Why this role?<textarea id=why required></textarea></label><label><input type=checkbox id=consent>Privacy consent</label><button type=submit>Submit</button></form>'
+        self.context.route(next_url,lambda route:route.fulfill(content_type='text/html',body=body))
+        self.page.locator('form').evaluate("(el,url)=>{const a=document.createElement('a');a.href=url;a.textContent='Next step';el.after(a);}",next_url)
+        self.page.get_by_role('link',name='Next step').click();self.page.wait_for_url(next_url)
+        popup=self.popup()
+        expect(popup.locator('#fill')).to_be_enabled()
+        self.fill(popup)
+        expect(self.page.locator('#why')).to_have_value('I coordinate research projects.')
+        expect(self.page.locator('#consent')).not_to_be_checked()
+        popup.close()
+        self.page.goto(next_url.replace('1574','2000'))
+        self.page.set_content(body)
+        popup=self.popup()
+        expect(popup.locator('#fill')).to_be_disabled()
+        expect(self.page.locator('#why')).to_have_value('')
+
+    def test_linked_greenhouse_question_step_does_not_require_contact_fields_again(self):
+        self.seed(True);self.page.goto(LISTING);popup=self.popup()
+        popup.get_by_role('button',name='View documents',exact=True).click();popup.close()
+        url='https://job-boards.greenhouse.io/acme/jobs/1574'
+        self.context.route(url,lambda route:route.fulfill(content_type='text/html',body='<title>Application questions</title><form><h1>Your application</h1><label>Why this role?<textarea id=why></textarea></label></form>'))
+        self.page.goto(url);popup=self.popup()
+        popup.locator('#continue-entry').get_by_role('button',name='Use on this page',exact=True).click()
+        expect(self.page.locator('#why')).to_have_value('I coordinate research projects.')
+
+    def test_navigation_during_inspection_cannot_fill_a_different_requisition(self):
+        self.seed(True);self.page.goto(LISTING);popup=self.popup()
+        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
+        popup.close();self.page=event.value;self.page.wait_for_url(ATS)
+        popup=self.popup()
+        self.worker.evaluate('''()=>{
+          const original=chrome.scripting.executeScript.bind(chrome.scripting);
+          chrome.scripting.executeScript=async details=>{
+            if(details.func?.toString().includes('applicationCompanion.inspect'))
+              await original({target:details.target,func:()=>history.replaceState({},'',location.href.replace('1574','2000'))});
+            return original(details);
+          };
+        }''')
+        self.fill(popup)
+        expect(self.page.locator('#first')).to_have_value('')
+        expect(self.page.locator('#letter')).to_have_value('')

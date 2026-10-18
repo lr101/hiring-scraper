@@ -25,6 +25,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from hiring_scraper.app.companion import router as companion_router
+from hiring_scraper.app.application_documents import router as application_documents_router
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, delete, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
@@ -760,6 +761,7 @@ def initialize_sqlite() -> None:
 
 app.include_router(profiles_router)
 app.include_router(companion_router)
+app.include_router(application_documents_router)
 
 
 @app.get("/health/ready")

@@ -13,6 +13,7 @@ import {
   readyPackage,
   profileStamp,
   applicationURL,
+  cacheJobs,
 } from "./vault.js";
 import {
   syncRadius,
@@ -70,7 +71,7 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       same &&
       current.settings?.profile_id === synced.settings.profile_id &&
       current.cv_observed_at > synced.cv_observed_at;
-    return {
+    const next = {
       ...emptyVault(),
       ...synced,
       settings: newer
@@ -79,7 +80,11 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       cv_observed_at: newer ? current.cv_observed_at : synced.cv_observed_at,
       bindings: same ? current.bindings : [],
       packages: same ? current.packages : {},
+      forms: same ? current.forms || {} : {},
     };
+    return cacheJobs({ ...next, jobs: same ? current.jobs : [] }, synced.jobs, {
+      preservePinned: true,
+    });
   });
   await refreshAllBadges();
   await attachRadiusTabs();
@@ -128,14 +133,7 @@ export async function addJobToProfile(job) {
     body: job,
   });
   if (result?.job) {
-    const saved = normalizeJob(result.job);
-    await changeVault((current) => ({
-      ...current,
-      jobs: [
-        ...current.jobs.filter((item) => item.id !== saved.id),
-        saved,
-      ].sort((first, second) => first.id - second.id),
-    }));
+    await cacheRemoteJobs(vault.settings, { items: [result.job] }, 1);
     await refreshAllBadges();
   }
   return result;
@@ -218,22 +216,55 @@ export async function pageState(tabId, url) {
   };
 }
 export async function searchJobs(query) {
-  const vault = await loadVault(),
-    { applicant } = await chrome.storage.local.get("applicant"),
-    stamp = await profileStamp(applicant);
-  const words = String(query || "")
+  let vault = await loadVault();
+  const revision = connectionRevision;
+  let remoteJobs = [];
+  const text = String(query || "")
     .trim()
-    .toLowerCase()
-    .split(/\s+/);
-  if (words.join(" ").length < 2) return [];
-  return vault.jobs
-    .filter((job) =>
-      words.every((word) =>
-        (job.title + " " + job.company_name + " " + job.url)
-          .toLowerCase()
-          .includes(word),
-      ),
-    )
+    .slice(0, 200);
+  if (text.length < 2) return [];
+  const words = text.toLowerCase().split(/\s+/);
+  const matches = (job) =>
+    words.every((word) =>
+      (job.title + " " + job.company_name + " " + job.url)
+        .toLowerCase()
+        .includes(word),
+    );
+  if (vault.settings) {
+    try {
+      const result = await radiusJSON(
+        vault.settings,
+        `/api/v1/companion/jobs/search?q=${encodeURIComponent(text)}`,
+      );
+      vault = await cacheRemoteJobs(vault.settings, result, 10);
+      remoteJobs = result.items.map(normalizeJob);
+    } catch (error) {
+      const current = await loadVault();
+      if (
+        revision !== connectionRevision ||
+        !sameConnection(current.settings, vault.settings)
+      )
+        throw new Error("Radius connection changed during search.");
+      vault = current;
+      if (!vault.jobs.some(matches)) throw error;
+    }
+  }
+  const { applicant } = await chrome.storage.local.get("applicant"),
+    stamp = await profileStamp(applicant);
+  const current = await loadVault();
+  if (
+    revision !== connectionRevision ||
+    !sameConnection(current.settings, vault.settings)
+  )
+    throw new Error("Radius connection changed during search.");
+  return [
+    ...new Map(
+      [...remoteJobs, ...vault.jobs.filter(matches)].map((job) => [
+        job.id,
+        job,
+      ]),
+    ).values(),
+  ]
     .slice(0, 10)
     .map((job) => ({
       job,
@@ -241,6 +272,64 @@ export async function searchJobs(query) {
       ready: !!readyPackage(vault, job.id, stamp),
       has_saved: !!vault.packages?.[`${job.id}:${vault.settings?.profile_id}`],
     }));
+}
+
+function sameConnection(first, second) {
+  return (
+    first?.origin === second?.origin &&
+    first?.api_origin === second?.api_origin &&
+    first?.profile_id === second?.profile_id
+  );
+}
+
+async function cacheRemoteJobs(settings, result, limit) {
+  if (!Array.isArray(result?.items) || result.items.length > limit)
+    throw new Error("Radius returned an invalid job lookup.");
+  const jobs = result.items.map(normalizeJob);
+  return changeVault((current) => {
+    if (!sameConnection(current.settings, settings))
+      throw new Error("Radius connection changed during lookup.");
+    return cacheJobs(current, jobs);
+  });
+}
+
+// Only the user's popup inspection resolves a cache miss. Badge updates never
+// transmit the user's browsing URLs to Radius.
+export async function lookupPage(url) {
+  const vault = await loadVault(),
+    page = safeURL(url);
+  if (
+    !vault.settings ||
+    !page ||
+    matchJobs(vault, url).length ||
+    transientURL(url)
+  )
+    return;
+  const internal =
+    page.origin === vault.settings.origin &&
+    page.pathname.match(/^\/jobs\/(\d+)(?:\/apply)?\/?$/);
+  if (
+    !internal &&
+    (page.protocol !== "https:" ||
+      !persistableURL(url) ||
+      page.origin === vault.settings.origin)
+  )
+    return;
+  try {
+    const result = internal
+      ? {
+          items: [
+            await radiusJSON(vault.settings, `/api/v1/jobs/${internal[1]}`),
+          ],
+        }
+      : await radiusJSON(
+          vault.settings,
+          `/api/v1/companion/jobs/lookup?url=${encodeURIComponent(urlKey(url))}`,
+        );
+    await cacheRemoteJobs(vault.settings, result, 100);
+  } catch {
+    return "Radius lookup is unavailable. You can still use cached jobs or reconnect Radius.";
+  }
 }
 export async function updateBadge(tabId, url) {
   try {
@@ -299,6 +388,61 @@ export async function prepareJob(jobId) {
     expires: Date.now() + 30 * 60000,
   });
   await chrome.tabs.create({ url: applicationURL(vault, jobId) });
+}
+
+export async function captureQuestions(tabId, requestedJobId, documentId) {
+  const tab = await chrome.tabs.get(tabId),
+    state = await pageState(tabId, tab.url);
+  const exact = state.items.filter(
+    (item) => item.exact && (!requestedJobId || item.job.id === requestedJobId),
+  );
+  if (!state.settings?.profile_id || exact.length !== 1)
+    throw new Error(
+      "Choose a profile and link this page to one Radius job first.",
+    );
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async () => {
+      try {
+        return await globalThis.applicationFields.describe(true, true);
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+  });
+  if (result?.result?.error) throw new Error(result.result.error);
+  if (
+    !result?.result ||
+    (await chrome.tabs.get(tabId)).url !== tab.url ||
+    result.result.url !== tab.url
+  )
+    throw new Error(
+      "The application changed during scanning. Try again on the intended step.",
+    );
+  const form = {
+    format: "radius-form-v1",
+    job_id: exact[0].job.id,
+    profile_id: state.settings.profile_id,
+    ...result.result,
+    captured_at: Date.now(),
+  };
+  await changeVault((current) => {
+    if (!sameConnection(current.settings, state.settings))
+      throw new Error("Radius connection changed during scanning.");
+    const forms = {
+      ...current.forms,
+      [`${form.job_id}:${form.profile_id}`]: form,
+    };
+    const keys = Object.keys(forms).sort(
+      (a, b) => forms[b].captured_at - forms[a].captured_at,
+    );
+    for (const key of keys.slice(20)) delete forms[key];
+    return { ...current, forms };
+  });
+  await prepareJob(form.job_id);
+  return {
+    message: `${form.fields.length} questions captured. Your Radius brief will include this application step.`,
+  };
 }
 export async function usePage(tabId, jobId, url) {
   const vault = await loadVault();
@@ -378,6 +522,134 @@ export async function fillProfile(tabId, url, jobId, base) {
   );
   return guard ? { ...connected, page_guard: guard.identity } : connected;
 }
+export async function attachPreparedDocuments(tabId, documentId, jobId) {
+  const revision = connectionRevision;
+  const tab = await chrome.tabs.get(tabId),
+    vault = await loadVault();
+  const { applicant } = await chrome.storage.local.get("applicant");
+  if (!applicant) throw new Error("Save your applicant profile first.");
+  const stamp = await profileStamp(applicant);
+  const saved = readyPackage(vault, jobId, stamp);
+  if (!saved) throw new Error("Prepare a current package for this job first.");
+  // Reuse the same job binding, CV revision and one-use page identity checks as filling.
+  const profile = await fillProfile(
+    tabId,
+    tab.url,
+    jobId,
+    validateProfile(applicant),
+  );
+  const [scan] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async () => {
+      try {
+        return await globalThis.applicationFields.documentTargets();
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+  });
+  const form = scan?.result;
+  if (form?.error) throw new Error(form.error);
+  if (!form || form.url !== tab.url)
+    throw new Error("The application page changed.");
+  const types = {
+    pdf: "application/pdf",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  const classified = form.fields
+    .filter((field) => field.type === "file")
+    .map((field) => ({ ...field, kind: field.document_kind }));
+  const files = [];
+  for (const kind of ["cv", "cover_letter"]) {
+    const matches = classified.filter((field) => field.kind === kind);
+    if (matches.length !== 1 || !matches[0].available) continue;
+    const field = matches[0];
+    const accepts = field.accept
+      .toLowerCase()
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const format = ["pdf", "docx"].find(
+      (format) =>
+        !accepts.length ||
+        accepts.some((value) =>
+          ["*/*", "application/*", `.${format}`, types[format]].includes(value),
+        ),
+    );
+    if (!format) continue;
+    const document = await radiusRequest(
+      vault.settings,
+      `/api/v1/profiles/${saved.profile_id}/application-document?kind=${kind}&format=${format}`,
+      {
+        method: "POST",
+        responseType: "bytes",
+        body: {
+          job_id: jobId,
+          cv_updated_at: saved.cv_updated_at,
+          cv: saved.package.cv,
+          cover_letter: saved.package.cover_letter,
+        },
+      },
+    );
+    if (document.type !== types[format])
+      throw new Error("Radius returned the wrong document format.");
+    // Bounded bytes exist only for this action; never persist them to extension storage.
+    let binary = "";
+    for (let i = 0; i < document.bytes.length; i += 32768)
+      binary += String.fromCharCode(...document.bytes.subarray(i, i + 32768));
+    files.push({
+      id: field.id,
+      name: `${kind === "cv" ? "CV" : "Cover-letter"}-${jobId}.${format}`,
+      type: document.type,
+      base64: btoa(binary),
+    });
+  }
+  const current = await loadVault(),
+    latestApplicant = (await chrome.storage.local.get("applicant")).applicant;
+  if (
+    !sameConnection(vault.settings, current.settings) ||
+    (await profileStamp(latestApplicant)) !== stamp ||
+    stableJSON(current.packages?.[`${jobId}:${saved.profile_id}`]) !==
+      stableJSON(saved) ||
+    (await currentCV(current.settings)) !== saved.cv_updated_at ||
+    (await chrome.tabs.get(tabId)).url !== tab.url
+  )
+    throw new Error(
+      "Your application, CV or connection changed during export. Prepare it again.",
+    );
+  if (revision !== connectionRevision)
+    throw new Error("Radius connection changed during export.");
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async (plan) => {
+      try {
+        return await globalThis.applicationFields.attachDocuments(plan);
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+    args: [
+      {
+        url: tab.url,
+        form_id: form.form_id,
+        page_guard: profile.page_guard,
+        files,
+      },
+    ],
+  });
+  if (result?.result?.error) throw new Error(result.result.error);
+  if (!result?.result)
+    throw new Error("The page changed before documents could be selected.");
+  const skipped = classified.length - files.length + (form.hidden_uploads || 0);
+  return {
+    ...result.result,
+    message:
+      result.result.message +
+      (skipped
+        ? ` ${skipped} upload fields need manual review (existing files, hidden controls, ambiguous labels or unsupported formats).`
+        : ""),
+  };
+}
 export async function captureDraft(source, sender) {
   let vault = await loadVault();
   const settings = vault.settings;
@@ -423,10 +695,7 @@ async function storePreparedPackage(pack, cvText, url = "") {
         v.settings?.profile_id !== settings.profile_id
       )
         throw new Error("Radius connection changed during import.");
-      return {
-        ...v,
-        jobs: [...v.jobs.filter((row) => row.id !== job.id), normalizeJob(job)],
-      };
+      return cacheJobs(v, [normalizeJob(job)]);
     });
   }
   // Check CV metadata against Radius at capture time, not just the last sync.
@@ -561,7 +830,16 @@ export async function radiusState(sender, theme) {
         ? { ...v, settings: { ...v.settings, theme } }
         : v,
     );
-  if (Date.now() - metadataAt < 10000) return;
+  const path = safeURL(sender.url),
+    match = path.pathname.match(/^\/jobs\/(\d+)\/apply\/?$/);
+  const profileId = Number(path.searchParams.get("profile_id"));
+  const reply = {
+    form:
+      match && profileId === settings.profile_id
+        ? vault.forms?.[`${match[1]}:${profileId}`] || null
+        : null,
+  };
+  if (Date.now() - metadataAt < 10000) return reply;
   metadataAt = Date.now();
   const checkedAt = Date.now();
   const data = await radiusJSON(settings, "/api/v1/profiles");
@@ -579,6 +857,7 @@ export async function radiusState(sender, theme) {
         }
       : v,
   );
+  return reply;
 }
 export async function attachRadius(tab) {
   const vault = await loadVault();

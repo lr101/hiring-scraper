@@ -37,6 +37,13 @@ test('connection settings require explicit safe origins, and transient URLs cann
  assert.throws(()=>validateSettings({...settings,origin:'https://name:password@radius.example'}));
  assert.equal(urlKey('javascript:alert(1)'),null);
 });
+test('an unchanged DOCX package remains ready until its original CV changes',async()=>{
+ const stamp=await profileStamp({first_name:'Alex',experiences:[]});
+ const record={job_id:10,profile_id:1,cv_updated_at:'cv1',profile_stamp:stamp,saved_at:Date.now(),package:{format:'radius-application-v1',job_id:10,profile_id:1,cv_updated_at:'cv1',cv:[],cover_letter:'Role-specific letter',application_answers:'Q: Why?\nA: Relevant experience.'}};
+ const state={settings,jobs,bindings:[],packages:{'10:1':record}};
+ assert.equal(readyPackage(state,10,stamp)?.package.cover_letter,'Role-specific letter');
+ assert.equal(readyPackage({...state,settings:{...settings,cv_updated_at:'cv2'}},10,stamp),null);
+});
 test('only a same-origin, explicit unchanged job identifier links a later wizard step',async()=>{
  const {sameJobReference}=await import('../../extensions/application-companion/vault.js');
  assert.equal(sameJobReference('https://ats.example/apply?jobId=10&step=1','https://ats.example/apply?jobId=10&step=2'),true);
@@ -53,4 +60,19 @@ test('the canonical Radius detail/preparation page shares the same job identity 
  assert.equal(matchJobs(state,'https://radius.example/jobs/10?profile_id=1')[0].id,10);
  assert.equal(matchJobs(state,'https://radius.example/jobs/10/apply?profile_id=1')[0].id,10);
  assert.equal(matchJobs(state,'https://unrelated.example/jobs/10').length,0);
+});
+test('on-demand catalog caching is bounded while retaining prepared jobs and newly found roles',async()=>{
+ const {cacheJobs}=await import('../../extensions/application-companion/vault.js');
+ const cached=Array.from({length:2000},(_,i)=>({id:i+1,title:'Role',company_name:'Labs',url:`https://example.org/jobs/${i+1}`,active:true}));
+ const state={settings,jobs:cached,bindings:[],packages:{'1:1':{job_id:1}}};
+ const result=cacheJobs(state,[{id:3001,title:'New role',company_name:'Labs',url:'https://example.org/jobs/3001',active:true}]);
+ assert.equal(result.jobs.length,2000);
+ assert.ok(result.jobs.some(job=>job.id===1));
+ assert.ok(result.jobs.some(job=>job.id===3001));
+ assert.equal(result.truncated,true);
+ const synced=cacheJobs(state,Array.from({length:2000},(_,i)=>({id:i+2,title:'Synced role',company_name:'Labs',url:`https://example.org/jobs/${i+2}`,active:true})),{preservePinned:true});
+ assert.equal(synced.jobs.length,2000);
+ assert.ok(synced.jobs.some(job=>job.id===1),'A full sync must retain an out-of-window prepared job');
+ const large=cacheJobs({...state,jobs:[]},Array.from({length:1000},(_,i)=>({id:i+1,title:'X'.repeat(300),company_name:'Labs',url:`https://example.org/jobs/${i+1}?q=${'a'.repeat(1800)}`,active:true})));
+ assert.ok(new TextEncoder().encode(JSON.stringify(large.jobs)).length<=2000000);
 });

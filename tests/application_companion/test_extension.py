@@ -37,7 +37,7 @@ class ExtensionHarness(unittest.TestCase):
         self.directory = TemporaryDirectory()
         extension_path=getattr(self,"extension_path",EXTENSION)
         self.context = self.playwright.chromium.launch_persistent_context(
-            self.directory.name, channel="chromium", headless=True, service_workers="block",
+            self.directory.name, channel="chromium", headless=True, service_workers=getattr(self, "service_workers", "block"),
             args=[f"--disable-extensions-except={extension_path}", f"--load-extension={extension_path}",
                   "--enable-unsafe-extension-debugging"],
         )

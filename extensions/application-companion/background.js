@@ -18,6 +18,9 @@ import {
   radiusState,
   applyClick,
   installNavigation,
+  lookupPage,
+  captureQuestions,
+  attachPreparedDocuments,
 } from "./application-state.js";
 import { validateProfile } from "./profile.js";
 import { readPackage, connectSources } from "./sources.js";
@@ -29,7 +32,7 @@ const storageReady = chrome.storage.local.setAccessLevel({
 const running = new Set();
 class UserError extends Error {}
 
-async function inspect(tabId) {
+async function inspect(tabId, linkedApplication = false) {
   const injected = await chrome.scripting.executeScript({
     target: { tabId },
     files: [
@@ -46,7 +49,8 @@ async function inspect(tabId) {
     throw new UserError("Open an application page and try again.");
   const [result] = await chrome.scripting.executeScript({
     target: { tabId, documentIds: [documentId] },
-    func: () => globalThis.applicationCompanion.inspect(),
+    func: (linked) => globalThis.applicationCompanion.inspect(linked),
+    args: [linkedApplication],
   });
   return { ...result.result, documentId };
 }
@@ -76,11 +80,16 @@ async function handle(message) {
     throw new UserError("Select an application tab first.");
   if (message.type === "inspect") {
     const tab = await chrome.tabs.get(tabId);
+    const lookupError = await lookupPage(tab.url);
     const catalog = await pageState(tabId, tab.url);
+    catalog.lookup_error = lookupError;
     if (catalog.items.some((item) => item.exact)) watchPage(tabId);
     let info;
     try {
-      info = await inspect(tabId);
+      info = await inspect(
+        tabId,
+        catalog.items.some((item) => item.exact && item.ready),
+      );
     } catch {
       info = {
         supported: false,
@@ -100,6 +109,26 @@ async function handle(message) {
     const tab = await chrome.tabs.get(tabId);
     await usePage(tabId, message.jobId, tab.url);
     return {};
+  }
+  if (message.type === "scan-form") {
+    const info = await inspect(tabId, true);
+    return captureQuestions(tabId, message.jobId, info.documentId);
+  }
+  if (message.type === "attach-documents") {
+    if (running.has(tabId))
+      throw new UserError("An application action is already running.");
+    running.add(tabId);
+    try {
+      const info = await inspect(tabId, true);
+      if (!info.supported) throw new UserError(info.reason);
+      return await attachPreparedDocuments(
+        tabId,
+        info.documentId,
+        message.jobId,
+      );
+    } finally {
+      running.delete(tabId);
+    }
   }
   if (message.type === "open-application") {
     await openApplication(tabId, message.jobId);
@@ -151,8 +180,23 @@ async function handle(message) {
     throw new UserError("This application is already being filled.");
   running.add(tabId);
   try {
-    const info = await inspect(tabId);
+    const tab = await chrome.tabs.get(tabId);
+    const catalog = await pageState(tabId, tab.url);
+    const info = await inspect(
+      tabId,
+      catalog.items.some(
+        (item) =>
+          item.exact &&
+          item.ready &&
+          (!message.jobId || item.job.id === message.jobId),
+      ),
+    );
     if (!info.supported) throw new UserError(info.reason);
+    const currentTab = await chrome.tabs.get(tabId);
+    if (currentTab.url !== tab.url)
+      throw new UserError(
+        "The application page changed. Inspect it before filling again.",
+      );
     const { applicant } = await chrome.storage.local.get("applicant");
     if (!applicant) throw new UserError("Save your applicant profile first.");
     let profile;
@@ -162,7 +206,6 @@ async function handle(message) {
       throw new UserError(error.message);
     }
     try {
-      const tab = await chrome.tabs.get(tabId);
       profile = await fillProfile(tabId, tab.url, message.jobId, profile);
     } catch (error) {
       throw new UserError(error.message);
@@ -171,7 +214,7 @@ async function handle(message) {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId, documentIds: [info.documentId] },
       func: (data) => globalThis.applicationCompanion.run(data),
-      args: [{ ...profile, cv_text: "", source_notes: "" }],
+      args: [{ ...profile, page_url: tab.url, cv_text: "", source_notes: "" }],
     });
     if (!result?.result)
       throw new UserError(
@@ -227,6 +270,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "add-job",
       "use-page",
       "open-application",
+      "scan-form",
+      "attach-documents",
     ].includes(message?.type)
   )
     return false;
@@ -247,6 +292,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "use-page",
             "prepare-job",
             "open-application",
+            "scan-form",
+            "attach-documents",
           ].includes(message.type)
             ? error.message
             : "Could not complete this action. Open the application tab and click the extension toolbar icon again. Chrome pages cannot be filled; file pages require Allow access to file URLs. If filling had started, inspect the draft before retrying.",

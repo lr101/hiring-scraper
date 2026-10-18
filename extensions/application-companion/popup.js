@@ -169,6 +169,26 @@ function entry(item, continuation = false) {
           request("prepare-job", { jobId: job.id }),
         ),
       );
+    if (
+      exact &&
+      mode !== "import" &&
+      new URL(activeTab.url).origin !== info.catalog?.settings?.origin
+    )
+      links.append(
+        action("Prepare from these questions", async () => {
+          const result = await request("scan-form", { jobId: job.id });
+          status.textContent = result.message;
+        }),
+      );
+    if (exact && ready && info.supported)
+      links.append(
+        action("Attach prepared documents", async () => {
+          status.classList.remove("error");
+          status.textContent = "Preparing documents…";
+          const result = await request("attach-documents", { jobId: job.id });
+          status.textContent = result.message;
+        }),
+      );
   }
   const source = document.createElement("small");
   source.className = "entry-source";
@@ -331,18 +351,21 @@ try {
     document.querySelector("#experience-count").textContent =
       `${profile.experiences.length} work experiences · ${catalog.settings.profile_name}`;
   let searchTimer;
+  let searchVersion = 0;
   document.querySelector("#job-query").oninput = () => {
+    const version = ++searchVersion;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(async () => {
       try {
         const results = await request("search-jobs", {
           query: document.querySelector("#job-query").value,
         });
+        if (version !== searchVersion) return;
         document
           .querySelector("#job-search-results")
           .replaceChildren(...results.map((item) => entry(item)));
       } catch (error) {
-        message(error);
+        if (version === searchVersion) message(error);
       }
     }, 200);
   };
@@ -387,6 +410,7 @@ try {
   else if (catalog?.connected && !catalog.settings?.profile_id)
     status.textContent =
       "Choose your Radius profile in Connection to prepare applications.";
+  else if (catalog?.lookup_error) status.textContent = catalog.lookup_error;
 } catch (e) {
   document.querySelector("#page-name").textContent = "Page unavailable";
   message(e);

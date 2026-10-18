@@ -94,11 +94,19 @@ jobs:
           npm --prefix frontend ci
           uv run python -m playwright install --with-deps chromium
 
+      - name: Install PDF export runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation
+          libreoffice --version
+
       - name: Check extension and build production frontend
         run: |
           npm --prefix extensions/application-companion run check
           npm --prefix extensions/application-companion test
           node tests/frontend_application_preparation.mjs
+          node tests/frontend_application_handoff.mjs
+          node tests/frontend_application_form.mjs
           npm --prefix frontend run build
 
       - name: Test shipped extension and production CV flow in Chromium

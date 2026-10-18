@@ -12,6 +12,10 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Form-aware application briefs and question answers bound to the captured step, plus explicit selection of current prepared PDF/DOCX documents in native employer upload fields.
+
+- On-demand posting lookup and server-backed extension search for jobs outside the bounded local catalog, with exact URL matching and bounded metadata caching.
+
 - Pipeline-style branch and merge connections between Journey checkpoints, including mobile scrolling and resizing.
 
 - Parallel Journey stages: In GOD's hand for overqualified roles and Automated application for applications sent using browser-plugin autofill, with persistent filters, undo history and application momentum.
@@ -56,6 +60,8 @@ no historical releases have been reconstructed.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
 ### Fixed
+
+- Unchanged DOCX application packages remain prepared in the companion, and linked question-only wizard steps can reuse their exact application answers without requiring contact fields again.
 
 - ChatGPT application handoffs open the destination even when clipboard access fails, with a browser copy fallback and selected text for manual copying.
 

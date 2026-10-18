@@ -1,6 +1,8 @@
+import { downloadApplicationDocument } from './applicationDocumentExport'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import { buildApplicationPrompt, deleteCv, parseReturnedPackage, readCv, readDraft, removeDraft, saveCv, saveDraft, type ApplicationPackage, type StoredCv } from './applicationPreparation'
+import { readApplicationForm, validateFormAnswers } from './applicationForm'
 import './application-preparation.css'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -17,6 +19,8 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
   const [returned, setReturned] = useState('')
   const [pendingHash, setPendingHash] = useState('')
   const [packageValue, setPackageValue] = useState<ApplicationPackage | null>(null)
+  const [form, setForm] = useState(() => readApplicationForm(jobId, requestedProfileId))
+  const [exporting, setExporting] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -58,13 +62,14 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
     let cancelled = false
     const expected = cv
     void parseReturnedPackage(pendingHash, { jobId: job.id, profileId: profile.id, cvUpdatedAt: expected.updated_at }).then(parsed => {
+      validateFormAnswers(parsed.form_answers, form)
       const latest = readCv(localStorage, profile.id)
       if (cancelled || latest?.updated_at !== expected.updated_at || latest.text !== expected.text) throw new Error('The saved CV changed while this package was being read. Paste a package for the current CV.')
       if (!saveDraft(localStorage, job.id, profile.id, parsed, { job_id: job.id, profile_id: profile.id, cv_updated_at: expected.updated_at })) throw new Error('Could not save this package.')
       if (!cancelled) { setPackageValue(parsed); setReturned(''); setNotice('Returned package validated and saved in this browser only.'); setError('') }
     }).catch(reason => { if (!cancelled) setError(reason instanceof Error ? reason.message : 'Could not read this returned package.') }).finally(() => { if (!cancelled) setPendingHash('') })
     return () => { cancelled = true }
-  }, [cv, job, pendingHash, profile])
+  }, [cv, job, pendingHash, profile, form])
   useEffect(() => {
     function changed(event: StorageEvent) {
       if (!profile || !job || !event.key) return
@@ -75,8 +80,14 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
     window.addEventListener('storage', changed); return () => window.removeEventListener('storage', changed)
   }, [cv, job, profile])
 
+  useEffect(() => {
+    const refresh = () => setForm(readApplicationForm(jobId, requestedProfileId))
+    refresh(); document.addEventListener('radius-form-updated', refresh); window.addEventListener('storage', refresh)
+    return () => { document.removeEventListener('radius-form-updated', refresh); window.removeEventListener('storage', refresh) }
+  }, [jobId, requestedProfileId])
+
   const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`
-  const prompt = useMemo(() => cv && job && profile ? buildApplicationPrompt(cv, { job, profile, returnUrl }) : '', [cv, job, profile, returnUrl])
+  const prompt = useMemo(() => cv && job && profile ? buildApplicationPrompt(cv, { job, profile, returnUrl, form }) : '', [cv, job, profile, returnUrl, form])
   function saveLocalCv() {
     if (!profile) return
     try { cvGeneration.current++; const next = saveCv(localStorage, profile.id, cvText); setCv(next); setPackageValue(null); setNotice('Original CV saved in this browser only.'); setError('') }
@@ -98,6 +109,7 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
     try {
       const expected = cv
       const parsed = await parseReturnedPackage(returned, { jobId: job.id, profileId: profile.id, cvUpdatedAt: expected.updated_at })
+      validateFormAnswers(parsed.form_answers, form)
       const latest = readCv(localStorage, profile.id)
       if (latest?.updated_at !== expected.updated_at || latest.text !== expected.text) throw new Error('The saved CV changed while this package was being read. Paste a package for the current CV.')
       if (!saveDraft(localStorage, job.id, profile.id, parsed, { job_id: job.id, profile_id: profile.id, cv_updated_at: expected.updated_at })) throw new Error('Could not save this package.')
@@ -108,6 +120,15 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
   function download() {
     if (!packageValue) return
     downloadText(`application-${job?.id}.txt`, `Cover letter\n\n${packageValue.cover_letter}\n\nApplication answers\n\n${packageValue.application_answers}\n\nReview notes\n\n${packageValue.review_notes}`)
+  }
+  async function exportDocument(kind: 'cv' | 'cover_letter', format: 'pdf' | 'docx') {
+    if (!packageValue || !profile) return
+    setExporting(true); setError('')
+    try {
+      if (readCv(localStorage, profile.id)?.updated_at !== packageValue.cv_updated_at) throw new Error('The saved CV changed. Prepare a current package.')
+      await downloadApplicationDocument(packageValue, kind, format, `${kind}-${jobId}.${format}`)
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export the document.') }
+    finally { setExporting(false) }
   }
   function downloadText(name: string, text: string) { const href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })); const anchor = document.createElement('a'); anchor.href = href; anchor.download = name; anchor.click(); URL.revokeObjectURL(href) }
   if (error && !job && !profile) return <div className="app-shell"><SiteHeader active="applications" /><main className="content"><div className="error-banner" role="alert">{error}</div></main></div>
@@ -120,9 +141,9 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
       <textarea value={cvText} onChange={event => setCvText(event.target.value)} aria-label="Original CV text" placeholder="Paste original CV text" />
       <div className="application-preparation-actions"><button className="search-button" type="button" onClick={saveLocalCv}>Save CV</button><button className="secondary-button" type="button" onClick={() => fileRef.current?.click()}>Import .txt</button><input ref={fileRef} type="file" accept="text/plain,.txt" hidden onChange={event => void importText(event.target.files?.[0])} />{cv && <><span className="application-cv-ready">Original CV saved locally</span><button className="text-button" type="button" onClick={() => { cvGeneration.current++; deleteCv(localStorage, profile.id); setCv(null); setPackageValue(null); setNotice('Saved CV and all its prepared drafts were removed from this browser.'); }}>Delete saved CV</button></>}</div>
     </section>}
-    {cv && job && profile && <><section className="application-preparation-card"><p className="eyebrow">2 · Prompt</p><h2>Review and send only when ready</h2><p>Copy this prompt or open ChatGPT yourself. Generated content remains text for your review; Radius does not submit an application. If you use the companion extension, save a reusable extension profile once from this original CV, then keep this Radius tab open while it checks the CV version.</p><textarea aria-label="Prepared application prompt" value={prompt} readOnly />
+    {cv && job && profile && <><section className="application-preparation-card"><p className="eyebrow">2 · Prompt</p><h2>Review and send only when ready</h2><p>{form ? `${form.fields.length} questions from the captured application step are included. ` : ''}Copy this prompt or open ChatGPT yourself. Generated content remains text for your review; Radius does not submit an application. If you use the companion extension, save a reusable extension profile once from this original CV, then keep this Radius tab open while it checks the CV version.</p><textarea aria-label="Prepared application prompt" value={prompt} readOnly />
       <div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void copyPrompt()}>Copy prompt</button><a className="secondary-button application-chatgpt-link" href="https://chatgpt.com" target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div></section>
       <section className="application-preparation-card"><p className="eyebrow">3 · Returned package</p><h2>Paste the JSON or return link</h2><textarea aria-label="Returned application package" value={returned} onChange={event => setReturned(event.target.value)} placeholder="Paste the returned JSON or Radius return URL" /><div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void acceptReturned()}>Validate and save package</button>{packageValue && <button className="secondary-button" type="button" onClick={download}>Download letter and answers</button>}{packageValue && <button className="secondary-button" type="button" onClick={() => downloadText(`tailored-cv-${job.id}.txt`, typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n'))}>Download CV</button>}{packageValue && <button className="text-button" type="button" onClick={() => { removeDraft(localStorage, job.id, profile.id); setPackageValue(null); setNotice('Saved package removed from this browser.'); }}>Delete package</button>}</div>
-      {packageValue && <div className="application-package-output"><h3>Tailored CV</h3><pre>{typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n')}</pre><h3>Cover letter</h3><pre>{packageValue.cover_letter}</pre><h3>Application answers</h3><pre>{packageValue.application_answers}</pre><h3>Review notes</h3><pre>{packageValue.review_notes}</pre>{packageValue.experience_bullets && <><h3>Experience bullets</h3><pre>{JSON.stringify(packageValue.experience_bullets, null, 2)}</pre></>}</div>}</section></>}
+      {packageValue && <p>PDF and DOCX exports send the prepared document text to Radius to create the file.</p>}{packageValue && <div className="application-preparation-actions">{(['cv', 'cover_letter'] as const).flatMap(kind => (['pdf', 'docx'] as const).map(format => <button type="button" className="secondary-button" disabled={exporting} key={`${kind}-${format}`} onClick={() => void exportDocument(kind, format)}>Download {kind === 'cv' ? 'CV' : 'letter'} {format.toUpperCase()}</button>))}</div>}{packageValue && <div className="application-package-output"><h3>Tailored CV</h3><pre>{typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n')}</pre><h3>Cover letter</h3><pre>{packageValue.cover_letter}</pre><h3>Application answers</h3><pre>{packageValue.application_answers}</pre>{packageValue.form_answers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== packageValue.form_answers.form_id && <p>These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{packageValue.form_answers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === packageValue.form_answers?.form_id ? form?.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}</section>}<h3>Review notes</h3><pre>{packageValue.review_notes}</pre>{packageValue.experience_bullets && <><h3>Experience bullets</h3><pre>{JSON.stringify(packageValue.experience_bullets, null, 2)}</pre></>}</div>}</section></>}
   </main></div>
 }

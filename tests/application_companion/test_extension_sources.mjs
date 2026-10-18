@@ -41,3 +41,10 @@ test('rejects malformed and oversized packages and preserves differing known CV 
   const merged=connectSources({email:'existing@example.invalid'},'other@example.invalid',null,'');
   assert.equal(merged.email,'existing@example.invalid');assert.match(merged.source_notes,/preserved/);
 });
+
+test('structured question answers reject duplicate, unfinished and control text', async () => {
+ const form_id='a'.repeat(64);
+ const original=JSON.parse(JSON.stringify(pack));
+ for(const answers of [[{id:'q0',value:'One'},{id:'q0',value:'Two'}],[{id:'q0',value:'[TODO: answer]'}],[{id:'q0',value:'Unsafe\u0001text'}]])
+  await assert.rejects(readPackage(JSON.stringify({...original,form_answers:{form_id,answers}})));
+});
