@@ -169,6 +169,26 @@ function entry(item, continuation = false) {
           request("prepare-job", { jobId: job.id }),
         ),
       );
+    if (
+      exact &&
+      mode !== "import" &&
+      new URL(activeTab.url).origin !== info.catalog?.settings?.origin
+    )
+      links.append(
+        action("Prepare from these questions", async () => {
+          const result = await request("scan-form", { jobId: job.id });
+          status.textContent = result.message;
+        }),
+      );
+    if (exact && ready && info.supported)
+      links.append(
+        action("Attach prepared documents", async () => {
+          status.classList.remove("error");
+          status.textContent = "Preparing documents…";
+          const result = await request("attach-documents", { jobId: job.id });
+          status.textContent = result.message;
+        }),
+      );
   }
   const source = document.createElement("small");
   source.className = "entry-source";

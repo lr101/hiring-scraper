@@ -1,9 +1,12 @@
+import { downloadApplicationDocument } from './applicationDocumentExport'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PDFPreview from './PDFPreview'
 import BrowserApplicationPreparationPage from './BrowserApplicationPreparationPage'
 import type { Profile } from './profile'
 import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
+import { readApplicationForm } from './applicationForm'
+import type { FormAnswers } from './applicationForm'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const CHATGPT = 'https://chatgpt.com/'
@@ -73,6 +76,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [notes, setNotes] = useState('')
   const [response, setResponse] = useState('')
   const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
+  const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
+  const [formAnswers, setFormAnswers] = useState<FormAnswers>()
+  useEffect(() => {
+    const update = () => setForm(readApplicationForm(job.id, profile.id!))
+    document.addEventListener('radius-form-updated', update); window.addEventListener('storage', update)
+    return () => { document.removeEventListener('radius-form-updated', update); window.removeEventListener('storage', update) }
+  }, [job.id, profile.id])
   const [selected, setSelected] = useState<keyof ApplicationDocuments>('cv')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -113,7 +123,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
   const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
   const prompt = useMemo(() => buildApplicationPrompt({ job, profile, language, cvText, notes, templateParagraphs: template?.paragraphs,
-    handoff: { ...context, return_url: returnURL } }), [job, profile, language, cvText, notes, template, context, returnURL])
+    handoff: { ...context, return_url: returnURL }, form }), [job, profile, language, cvText, notes, template, context, returnURL, form])
   useEffect(() => {
     if (loading || !cvText || restored.current) return
     restored.current = true
@@ -124,6 +134,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         if (saved.package) {
           const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs)
           setDocuments(imported.documents); setChanges(imported.changes)
+          setFormAnswers(imported.formAnswers)
         }
         if (['handoff', 'response', 'edit'].includes(saved.step) && (saved.step !== 'edit' || saved.package)) setStep(saved.step)
         if (typeof saved.response === 'string' && saved.response.length <= 200000) setResponse(saved.response)
@@ -145,8 +156,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     void readApplicationReturn(incoming.hash).then(text => {
       if (cancelled || version !== importVersion.current) return
       lastReturn.current = incoming
-      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs)
+      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs, form)
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit'); setError('')
+      setFormAnswers(imported.formAnswers)
       setNotice(''); setOptionsOpen(false)
     }).catch(reason => {
       if (cancelled || version !== importVersion.current) return
@@ -154,13 +166,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       setError(reason instanceof Error ? reason.message : 'Could not import this return link. Import the application package file instead.')
     })
     return () => { cancelled = true }
-  }, [draftReady, incoming, context, template])
+  }, [draftReady, incoming, context, template, form])
   useEffect(() => {
     if (!draftReady) return
     // Restoring a draft is not an edit and must not extend its expiry window.
     if (skipHydrationSave.current) { skipHydrationSave.current = false; return }
     const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
-      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes } : null
+      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes, ...(formAnswers ? {form_answers:formAnswers} : {}) } : null
     // No original CV bytes are copied into browser storage. Drafts expire in a week.
     if (step === 'handoff' && !result && !response && !notes) return
     try {
@@ -169,7 +181,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       setDraftExpiresAt(savedAt + 7 * 86400000)
       setStorageError('')
     } catch { setStorageError('This browser cannot save your draft. Export your documents before closing the page.') }
-  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response])
+  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers])
   useEffect(() => {
     if (!draftExpiresAt) return
     function expire() {
@@ -252,10 +264,11 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       // Existing four-section replies remain importable from the manual field.
       const legacy = text.trim().replace(/^```(?:markdown|text)?\s*\n/, '').startsWith('<<<CV>>>')
       const parsed = legacy ? parseApplicationResponse(text) : null
-      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [] }
-        : parseApplicationPackage(text, context, template?.paragraphs)
+      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined }
+        : parseApplicationPackage(text, context, template?.paragraphs, form)
       if (template) assertFinishedText(template.paragraphs.map(row => imported.changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit')
+      setFormAnswers(imported.formAnswers)
       setNotice(''); setOptionsOpen(false)
     }
     catch (reason) { if (version === importVersion.current) setError(reason instanceof Error ? reason.message : 'Could not read this response.') }
@@ -283,28 +296,18 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     setManualResult(false); setOptionsOpen(false)
     try { localStorage.removeItem(draftKey); setStorageError('') }
     catch { setStorageError('This browser could not remove the saved draft. Clear this site’s browser storage to remove it.') }
-    setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes('')
+    setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes(''); setFormAnswers(undefined)
     setLanguage('the language of the job posting'); setDraftExpiresAt(0)
     setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
   }
 
-  async function downloadTemplate(format: 'docx' | 'pdf') {
+  async function downloadDocument(format: 'docx' | 'pdf') {
     setBusy(true); setError('')
     try {
-      assertFinishedText(finalCVText)
-      let url = format === 'pdf' && pdf?.body === exportBody ? pdf.url : ''
-      let temporary = false
-      if (!url) {
-        const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/export?format=${format}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: exportBody,
-        })
-        if (!result.ok) { const data = await result.json(); throw new Error(data.detail ?? 'Could not export the CV.') }
-        url = URL.createObjectURL(await result.blob()); temporary = true
-      }
-      const link = document.createElement('a')
-      link.href = url; link.download = applicationDocumentFilename(job.company_name, 'cv', format); link.click()
-      if (temporary) setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export the CV.') }
+      const kind = selected === 'cv' ? 'cv' : 'cover_letter'
+      assertFinishedText(selected === 'cv' ? finalCVText : text)
+      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format))
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export this document.') }
     finally { setBusy(false) }
   }
 
@@ -340,6 +343,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       {step === 'handoff' && <>
         <h2>Tailor this application.</h2>
         <p>Paste the brief in ChatGPT, then click its return link.</p>
+        {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
         <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : 'Copy brief & open ChatGPT ↗'}</button>
       </>}
       {step === 'response' && <>
@@ -360,10 +364,11 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         <h2>Your documents are ready.</h2>
         <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
         {selected === 'cv' && !template && <p className="preparation-warning">Text-only CV. <a href={editHref}>Attach a DOCX</a> to keep your original layout.</p>}
-        <div className="finish-actions finish-download-actions">{selected === 'cv' && template ? <>
-          <button className="primary-button" disabled={busy} onClick={() => void downloadTemplate('pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
-          <button disabled={busy} onClick={() => void downloadTemplate('docx')}>Download editable DOCX</button>
-        </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>{selected === 'cv' ? 'Print simple PDF' : 'Print / save PDF'}</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
+        <div className="finish-actions finish-download-actions">{(selected === 'cv' || selected === 'coverLetter') ? <>
+          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument('pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
+          <button disabled={busy} onClick={() => void downloadDocument('docx')}>Download editable DOCX</button>
+        </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>Print / save PDF</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
+        {selected === 'answers' && formAnswers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{formAnswers.answers.map(answer => <div key={answer.id}><strong>{form?.fields.find(field => field.id === answer.id)?.label ?? answer.id}</strong><pre>{answer.value}</pre></div>)}<p className="finish-help">These answers fill only the unchanged captured form. Editing the reference text clears them.</p></section>}
         <div className="finish-download-preview">{selected === 'cv' && template ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
           {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
           : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>
@@ -374,7 +379,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
                 const next = current.filter(change => change.id !== row.id)
                 return event.target.value === row.text ? next : [...next, { id: row.id, text: event.target.value }]
               })} /></label>)}</div>
-            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => setDocuments(current => ({ ...current, [selected]: event.target.value }))} /></label>}
+            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined) }} /></label>}
         </details>
       </>}
       <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>

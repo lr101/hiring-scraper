@@ -33,3 +33,10 @@ test('disconnect cancellation aborts metadata requests as well as catalog sync',
  try {const pending=radiusJSON({origin},'/api/v1/profiles');await seen;cancelRadiusRequests();await assert.rejects(pending,/abort/i);}
  finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
 });
+
+test('document reader returns bounded binary files and preserves API errors',async()=>{
+ const server=createServer((req,res)=>{if(req.url==='/error'){res.statusCode=409;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({detail:'Original CV changed'}));return}res.setHeader('Content-Type','application/pdf');res.end(req.url==='/large'?'x'.repeat(5242881):'%PDF-1.7\nfixture');});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
+ try {const {radiusRequest}=await import('../../extensions/application-companion/radius-client.js');const result=await radiusRequest({origin},'/pdf',{responseType:'bytes'});assert.equal(new TextDecoder().decode(result.bytes),'%PDF-1.7\nfixture');assert.equal(result.type,'application/pdf');await assert.rejects(radiusRequest({origin},'/large',{responseType:'bytes'}),/too much data/i);await assert.rejects(radiusRequest({origin},'/error',{responseType:'bytes'}),/Original CV changed/);}
+ finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
+});

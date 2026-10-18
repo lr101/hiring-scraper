@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Form-aware application briefs and question answers bound to the captured step, plus explicit selection of current prepared PDF/DOCX documents in native employer upload fields.
+
 - On-demand posting lookup and server-backed extension search for jobs outside the bounded local catalog, with exact URL matching and bounded metadata caching.
 
 - Pipeline-style branch and merge connections between Journey checkpoints, including mobile scrolling and resizing.

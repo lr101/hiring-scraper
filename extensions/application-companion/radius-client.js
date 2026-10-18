@@ -10,7 +10,7 @@ export function cancelRadiusRequests() {
 export async function radiusRequest(
   settings,
   path,
-  { method = "GET", body, signal } = {},
+  { method = "GET", body, signal, responseType = "json" } = {},
 ) {
   const origin = validateSettings(settings).api_origin;
   const headers =
@@ -36,7 +36,7 @@ export async function radiusRequest(
       const { value, done } = await reader.read();
       if (done) break;
       size += value.byteLength;
-      if (size > 500000)
+      if (size > (responseType === "bytes" && response.ok ? 5242880 : 500000))
         throw new Error("Radius returned too much data for one page.");
       chunks.push(value);
     }
@@ -48,6 +48,18 @@ export async function radiusRequest(
   for (const chunk of chunks) {
     bytes.set(chunk, offset);
     offset += chunk.byteLength;
+  }
+  if (responseType === "bytes" && response.ok) {
+    const type = response.headers.get("content-type")?.split(";")[0];
+    if (
+      ![
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(type)
+    )
+      throw new Error("Radius did not return a PDF or DOCX document.");
+    if (!bytes.length) throw new Error("Radius returned an empty document.");
+    return { bytes, type };
   }
   let result;
   try {

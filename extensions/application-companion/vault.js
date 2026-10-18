@@ -5,6 +5,7 @@ export const emptyVault = () => ({
   jobs: [],
   bindings: [],
   packages: {},
+  forms: {},
   synced_at: 0,
 });
 export function safeURL(value) {

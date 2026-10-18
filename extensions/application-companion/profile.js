@@ -224,6 +224,9 @@ export function validateProfile(input) {
     profile_id: application.profile_id ?? null,
     cv_updated_at: text(application.cv_updated_at, "CV version", 100),
     experience_bullets: validateBullets(application.experience_bullets ?? []),
+    ...(application.form_answers === undefined
+      ? {}
+      : { form_answers: validateFormAnswers(application.form_answers) }),
   };
   if (profile.application.url) {
     let url;
@@ -240,6 +243,44 @@ export function validateProfile(input) {
       fail("Use an HTTP(S) application URL without credentials.");
   }
   return profile;
+}
+
+export function validateFormAnswers(input) {
+  if (
+    !input ||
+    !/^[a-f0-9]{64}$/.test(input.form_id) ||
+    !Array.isArray(input.answers) ||
+    input.answers.length > 100
+  )
+    throw new Error("Invalid prepared form answers.");
+  const ids = new Set();
+  for (const answer of input.answers) {
+    if (
+      !answer ||
+      !/^q\d{1,2}$/.test(answer.id) ||
+      ids.has(answer.id) ||
+      typeof answer.value !== "string" ||
+      !answer.value.trim() ||
+      answer.value.length > 10000
+    )
+      throw new Error("Invalid or duplicate prepared question answer.");
+    ids.add(answer.id);
+    if (
+      /[\u0000-\u0008\u000B\u000C\u000E-\u001F]|\[(?:CONFIRM\b|TODO\b|TBD\b|INSERT\b|YOUR\b)[^\]]*\]|(?:^|\n)\s*(?:TODO|TBD)\s*[:—-]|(?:please|can you) confirm (?:your|the following)|awaiting your (?:confirmation|approval)/i.test(
+        answer.value,
+      )
+    )
+      throw new Error(
+        "Prepared question answers contain unfinished or invalid text.",
+      );
+  }
+  return {
+    form_id: input.form_id,
+    answers: input.answers.map((answer) => ({
+      id: answer.id,
+      value: answer.value,
+    })),
+  };
 }
 
 // Shared validation for the optional ChatGPT extension to radius-application-v1.

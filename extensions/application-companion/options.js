@@ -173,6 +173,11 @@ function readEditor() {
       cover_letter: document.querySelector("#cover_letter").value,
     },
   });
+  if (
+    linked.application.application_answers !==
+    next.application.application_answers
+  )
+    delete next.application.form_answers;
   const facts = (profile) =>
     JSON.stringify([
       ...keys.map((key) => profile[key]),
@@ -190,6 +195,7 @@ function readEditor() {
       cover_letter: "",
       application_answers: "",
       experience_bullets: [],
+      form_answers: undefined,
       job_id: null,
       profile_id: null,
       cv_updated_at: "",

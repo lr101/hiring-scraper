@@ -80,6 +80,7 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       cv_observed_at: newer ? current.cv_observed_at : synced.cv_observed_at,
       bindings: same ? current.bindings : [],
       packages: same ? current.packages : {},
+      forms: same ? current.forms || {} : {},
     };
     return cacheJobs({ ...next, jobs: same ? current.jobs : [] }, synced.jobs, {
       preservePinned: true,
@@ -388,6 +389,61 @@ export async function prepareJob(jobId) {
   });
   await chrome.tabs.create({ url: applicationURL(vault, jobId) });
 }
+
+export async function captureQuestions(tabId, requestedJobId, documentId) {
+  const tab = await chrome.tabs.get(tabId),
+    state = await pageState(tabId, tab.url);
+  const exact = state.items.filter(
+    (item) => item.exact && (!requestedJobId || item.job.id === requestedJobId),
+  );
+  if (!state.settings?.profile_id || exact.length !== 1)
+    throw new Error(
+      "Choose a profile and link this page to one Radius job first.",
+    );
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async () => {
+      try {
+        return await globalThis.applicationFields.describe(true);
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+  });
+  if (result?.result?.error) throw new Error(result.result.error);
+  if (
+    !result?.result ||
+    (await chrome.tabs.get(tabId)).url !== tab.url ||
+    result.result.url !== tab.url
+  )
+    throw new Error(
+      "The application changed during scanning. Try again on the intended step.",
+    );
+  const form = {
+    format: "radius-form-v1",
+    job_id: exact[0].job.id,
+    profile_id: state.settings.profile_id,
+    ...result.result,
+    captured_at: Date.now(),
+  };
+  await changeVault((current) => {
+    if (!sameConnection(current.settings, state.settings))
+      throw new Error("Radius connection changed during scanning.");
+    const forms = {
+      ...current.forms,
+      [`${form.job_id}:${form.profile_id}`]: form,
+    };
+    const keys = Object.keys(forms).sort(
+      (a, b) => forms[b].captured_at - forms[a].captured_at,
+    );
+    for (const key of keys.slice(20)) delete forms[key];
+    return { ...current, forms };
+  });
+  await prepareJob(form.job_id);
+  return {
+    message: `${form.fields.length} questions captured. Your Radius brief will include this application step.`,
+  };
+}
 export async function usePage(tabId, jobId, url) {
   const vault = await loadVault();
   if (!vault.jobs.some((j) => j.id === jobId))
@@ -465,6 +521,134 @@ export async function fillProfile(tabId, url, jobId, base) {
     url,
   );
   return guard ? { ...connected, page_guard: guard.identity } : connected;
+}
+export async function attachPreparedDocuments(tabId, documentId, jobId) {
+  const revision = connectionRevision;
+  const tab = await chrome.tabs.get(tabId),
+    vault = await loadVault();
+  const { applicant } = await chrome.storage.local.get("applicant");
+  if (!applicant) throw new Error("Save your applicant profile first.");
+  const stamp = await profileStamp(applicant);
+  const saved = readyPackage(vault, jobId, stamp);
+  if (!saved) throw new Error("Prepare a current package for this job first.");
+  // Reuse the same job binding, CV revision and one-use page identity checks as filling.
+  const profile = await fillProfile(
+    tabId,
+    tab.url,
+    jobId,
+    validateProfile(applicant),
+  );
+  const [scan] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async () => {
+      try {
+        return await globalThis.applicationFields.documentTargets();
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+  });
+  const form = scan?.result;
+  if (form?.error) throw new Error(form.error);
+  if (!form || form.url !== tab.url)
+    throw new Error("The application page changed.");
+  const types = {
+    pdf: "application/pdf",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  const classified = form.fields
+    .filter((field) => field.type === "file")
+    .map((field) => ({ ...field, kind: field.document_kind }));
+  const files = [];
+  for (const kind of ["cv", "cover_letter"]) {
+    const matches = classified.filter((field) => field.kind === kind);
+    if (matches.length !== 1 || !matches[0].available) continue;
+    const field = matches[0];
+    const accepts = field.accept
+      .toLowerCase()
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const format = ["pdf", "docx"].find(
+      (format) =>
+        !accepts.length ||
+        accepts.some((value) =>
+          ["*/*", "application/*", `.${format}`, types[format]].includes(value),
+        ),
+    );
+    if (!format) continue;
+    const document = await radiusRequest(
+      vault.settings,
+      `/api/v1/profiles/${saved.profile_id}/application-document?kind=${kind}&format=${format}`,
+      {
+        method: "POST",
+        responseType: "bytes",
+        body: {
+          job_id: jobId,
+          cv_updated_at: saved.cv_updated_at,
+          cv: saved.package.cv,
+          cover_letter: saved.package.cover_letter,
+        },
+      },
+    );
+    if (document.type !== types[format])
+      throw new Error("Radius returned the wrong document format.");
+    // Bounded bytes exist only for this action; never persist them to extension storage.
+    let binary = "";
+    for (let i = 0; i < document.bytes.length; i += 32768)
+      binary += String.fromCharCode(...document.bytes.subarray(i, i + 32768));
+    files.push({
+      id: field.id,
+      name: `${kind === "cv" ? "CV" : "Cover-letter"}-${jobId}.${format}`,
+      type: document.type,
+      base64: btoa(binary),
+    });
+  }
+  const current = await loadVault(),
+    latestApplicant = (await chrome.storage.local.get("applicant")).applicant;
+  if (
+    !sameConnection(vault.settings, current.settings) ||
+    (await profileStamp(latestApplicant)) !== stamp ||
+    stableJSON(current.packages?.[`${jobId}:${saved.profile_id}`]) !==
+      stableJSON(saved) ||
+    (await currentCV(current.settings)) !== saved.cv_updated_at ||
+    (await chrome.tabs.get(tabId)).url !== tab.url
+  )
+    throw new Error(
+      "Your application, CV or connection changed during export. Prepare it again.",
+    );
+  if (revision !== connectionRevision)
+    throw new Error("Radius connection changed during export.");
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId, documentIds: [documentId] },
+    func: async (plan) => {
+      try {
+        return await globalThis.applicationFields.attachDocuments(plan);
+      } catch (error) {
+        return { error: error.message };
+      }
+    },
+    args: [
+      {
+        url: tab.url,
+        form_id: form.form_id,
+        page_guard: profile.page_guard,
+        files,
+      },
+    ],
+  });
+  if (result?.result?.error) throw new Error(result.result.error);
+  if (!result?.result)
+    throw new Error("The page changed before documents could be selected.");
+  const skipped = classified.length - files.length + (form.hidden_uploads || 0);
+  return {
+    ...result.result,
+    message:
+      result.result.message +
+      (skipped
+        ? ` ${skipped} upload fields need manual review (existing files, hidden controls, ambiguous labels or unsupported formats).`
+        : ""),
+  };
 }
 export async function captureDraft(source, sender) {
   let vault = await loadVault();
@@ -646,7 +830,16 @@ export async function radiusState(sender, theme) {
         ? { ...v, settings: { ...v.settings, theme } }
         : v,
     );
-  if (Date.now() - metadataAt < 10000) return;
+  const path = safeURL(sender.url),
+    match = path.pathname.match(/^\/jobs\/(\d+)\/apply\/?$/);
+  const profileId = Number(path.searchParams.get("profile_id"));
+  const reply = {
+    form:
+      match && profileId === settings.profile_id
+        ? vault.forms?.[`${match[1]}:${profileId}`] || null
+        : null,
+  };
+  if (Date.now() - metadataAt < 10000) return reply;
   metadataAt = Date.now();
   const checkedAt = Date.now();
   const data = await radiusJSON(settings, "/api/v1/profiles");
@@ -664,6 +857,7 @@ export async function radiusState(sender, theme) {
         }
       : v,
   );
+  return reply;
 }
 export async function attachRadius(tab) {
   const vault = await loadVault();

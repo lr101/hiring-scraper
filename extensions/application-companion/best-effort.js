@@ -270,7 +270,9 @@
             label: name.replace(/\s+/g, " ").trim().slice(0, 180),
             key: key(el),
             required:
-              el.required || el.getAttribute("aria-required") === "true",
+              el.required ||
+              el.getAttribute("aria-required") === "true" ||
+              /(?:\*|\brequired\b|pflichtfeld)/i.test(name),
           });
         }
     }
@@ -315,7 +317,7 @@
       return false;
     }
   }
-  function valueFor(field, profile, answers, scoped) {
+  function valueFor(field, profile, answers, scoped, preparedAnswer) {
     const { el, key } = field;
     const structured = globalThis.applicationHistory?.mapping(el, profile);
     if (structured) return structured;
@@ -451,6 +453,13 @@
             : profile[key] || "",
         source: "CV/profile",
       };
+    if (scoped && profile.application?.form_answers)
+      return {
+        value: preparedAnswer || "",
+        source: preparedAnswer ? "Prepared form answer" : "",
+        reason:
+          "This question is unanswered, requires manual entry, or the captured form changed. Scan the current step to prepare new answers.",
+      };
     const answer = answers.get(normalize(field.label));
     return {
       value: scoped ? answer || "" : "",
@@ -476,9 +485,99 @@
     );
   }
 
+  async function describe(linkedApplication = false) {
+    const controls = inventory(linkedApplication);
+    if (!controls.length || controls.length > 100)
+      throw new Error("Open one application step with at most 100 fields.");
+    const fields = controls.map((field, index) => {
+      const el = field.el;
+      const type =
+        el.tagName === "TEXTAREA"
+          ? "textarea"
+          : el.tagName === "SELECT"
+            ? "select"
+            : el.type || el.getAttribute("role") || "custom";
+      const options =
+        el instanceof HTMLSelectElement
+          ? [...el.options]
+              .filter((option) => !option.disabled)
+              .map((option) => ({
+                value: option.value,
+                label: option.textContent.trim(),
+              }))
+          : [];
+      const manual =
+        ![
+          "text",
+          "textarea",
+          "select",
+          "email",
+          "tel",
+          "url",
+          "number",
+          "date",
+        ].includes(type) ||
+        el.disabled ||
+        el.readOnly ||
+        el.multiple ||
+        el.getAttribute("role") === "combobox" ||
+        /(?:consent|privacy|signature|declaration|authori[sz]|sponsor|einwilligung|datenschutz|arbeitserlaubnis)/i.test(
+          field.label,
+        );
+      return {
+        id: `q${index}`,
+        label: field.label,
+        type,
+        required: !!field.required,
+        max_length: el.maxLength > 0 ? el.maxLength : null,
+        options,
+        accept: el.type === "file" ? el.accept : "",
+        document_kind:
+          el.type === "file"
+            ? (() => {
+                const hint = `${field.label} ${el.id} ${el.name}`.replace(
+                  /[_-]/g,
+                  " ",
+                );
+                const cv = /\b(cv|resume|résumé|lebenslauf)\b/i.test(hint);
+                const letter = /cover.?letter|anschreiben|motivation/i.test(
+                  hint,
+                );
+                return cv !== letter ? (cv ? "cv" : "cover_letter") : "";
+              })()
+            : "",
+        manual: !!manual,
+      };
+    });
+    const shape = JSON.stringify({
+      url: location.href,
+      identity: globalThis.applicationPageContext?.identity(),
+      fields,
+    });
+    if (shape.length > 30000)
+      throw new Error("This form is too large to prepare automatically.");
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(shape),
+    );
+    return {
+      url: location.href,
+      form_id: [...new Uint8Array(digest)]
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join(""),
+      fields,
+    };
+  }
+
   async function run(profile, { fill = true, before = new Map() } = {}) {
     const scoped = sameApplication(profile.application?.url);
     const fields = inventory(scoped);
+    const prepared = profile.application?.form_answers;
+    const form = scoped && prepared ? await describe(true) : null;
+    const preparedAnswers =
+      form && prepared && form.form_id === prepared.form_id
+        ? new Map(prepared.answers.map((answer) => [answer.id, answer.value]))
+        : new Map();
     const answers = parseAnswers(
       profile.application?.application_answers || "",
     );
@@ -507,7 +606,13 @@
         reason: "",
         source: "",
       };
-      const mapped = valueFor(field, profile, answers, scoped);
+      const mapped = valueFor(
+        field,
+        profile,
+        answers,
+        scoped,
+        form?.fields[index]?.manual ? "" : preparedAnswers.get(`q${index}`),
+      );
       const value = mapped.value;
       record.source = mapped.source;
       const stop = (status, reason) => {
@@ -973,7 +1078,84 @@
         });
     return { fields: report, filled, unchanged, mutated };
   }
+  async function documentTargets() {
+    const form = await describe(true);
+    const controls = inventory(true);
+    return {
+      ...form,
+      hidden_uploads: [
+        ...document.querySelectorAll('input[type="file"]'),
+      ].filter((el) => !controls.some((field) => field.el === el)).length,
+      fields: form.fields.map((field, i) => ({
+        ...field,
+        available:
+          field.type === "file" &&
+          !controls[i].el.disabled &&
+          !controls[i].el.files.length,
+      })),
+    };
+  }
+  async function attachDocuments(plan) {
+    if (
+      location.href !== plan.url ||
+      (plan.page_guard &&
+        globalThis.applicationPageContext.identity() !== plan.page_guard)
+    )
+      throw new Error("The application page changed. Inspect it again.");
+    if ((await describe(true)).form_id !== plan.form_id)
+      throw new Error(
+        "The application form changed during export. Scan it again.",
+      );
+    const controls = inventory(true);
+    const files = plan.files.map((file) => {
+      const el = controls[Number(file.id.slice(1))]?.el;
+      if (!el || el.type !== "file" || el.disabled || el.files.length)
+        throw new Error(
+          "An upload field changed or already contains a file. Review it before retrying.",
+        );
+      const bytes = Uint8Array.from(atob(file.base64), (char) =>
+        char.charCodeAt(0),
+      );
+      return { el, file: new File([bytes], file.name, { type: file.type }) };
+    });
+    let selected = 0;
+    for (const item of files) {
+      // A previous input/change handler can replace controls or navigate the wizard.
+      if (
+        !item.el.isConnected ||
+        item.el.disabled ||
+        item.el.files.length ||
+        location.href !== plan.url ||
+        (await describe(true)).form_id !== plan.form_id
+      )
+        throw new Error(
+          `${selected} documents selected before the form changed. Review the upload fields.`,
+        );
+      const transfer = new DataTransfer();
+      transfer.items.add(item.file);
+      item.el.files = transfer.files;
+      item.el.dispatchEvent(new Event("input", { bubbles: true }));
+      item.el.dispatchEvent(new Event("change", { bubbles: true }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (
+        !item.el.isConnected ||
+        item.el.files?.[0]?.name !== item.file.name ||
+        item.el.files?.[0]?.size !== item.file.size
+      )
+        throw new Error(
+          "The site did not retain the selected file. Check its upload confirmation before retrying.",
+        );
+      selected++;
+    }
+    return {
+      selected,
+      message: `${selected} documents selected. Check the site's upload confirmation and review the application.`,
+    };
+  }
   globalThis.applicationFields = {
+    documentTargets,
+    attachDocuments,
+    describe,
     sameApplication,
     supports: (linkedApplication = false) => {
       const fields = inventory(linkedApplication);

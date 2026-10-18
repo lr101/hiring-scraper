@@ -19,6 +19,10 @@ from .test_application_journey import ATS, LISTING, FORM
 
 
 class ProductionPreparationTests(ExtensionHarness):
+    # Playwright's service_workers=block init script reads navigator.serviceWorker
+    # in every frame and throws in the app's deliberately sandboxed previews.
+    # This harness serves Radius locally and intercepts all employer requests.
+    service_workers = "allow"
     def setUp(self):
         self.server_directory = TemporaryDirectory()
         self.addCleanup(self.server_directory.cleanup)
@@ -273,3 +277,53 @@ class ProductionPreparationTests(ExtensionHarness):
         self.assertEqual(self.page.locator('#letter').input_value(),'')
         self.assertEqual(self.page.locator('#why').input_value(),'')
         self.assertEqual(self.page.evaluate('window.submits'),0)
+
+    def test_captured_questions_return_documents_and_select_files_through_real_api(self):
+        self.check_captured_question_and_document_flow(attached=True)
+
+    def test_browser_local_cv_captured_questions_and_document_exports(self):
+        self.check_captured_question_and_document_flow(attached=False)
+
+    def check_captured_question_and_document_flow(self, attached):
+        from urllib.parse import quote
+        from .test_form_preparation import QUESTIONS
+        from pypdf import PdfReader
+        version=self.setup_preparation(attached=attached)
+        self.context.route('https://ats.example/**',lambda route:route.fulfill(content_type='text/html',body=QUESTIONS.replace('.pdf,.docx','.docx')))
+        self.page.goto(LISTING);popup=self.popup()
+        with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
+        popup.close();self.page=event.value;self.page.wait_for_url(ATS)
+        self.page.locator('#why').fill('')
+        popup=self.popup()
+        with self.context.expect_page() as event:popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
+        prepared=event.value;prepared.wait_for_load_state()
+        if attached:expect(prepared.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
+        else:expect(prepared.get_by_role('textbox',name='Prepared application prompt')).to_have_value(__import__('re').compile('Why this role[?]',__import__('re').S))
+        captured=prepared.evaluate("JSON.parse(localStorage.getItem('radius:application-form:v1:1574:1'))")
+        payload={'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':version,'cv':'Alex Example. Coordinated research teams.','cover_letter':'I coordinate research projects.','application_answers':'I coordinate research teams.','review_notes':'Review before applying.','form_answers':{'form_id':captured['form_id'],'answers':[{'id':'q0','value':'I coordinate research teams.'},{'id':'q1','value':'research'}]}}
+        prepared.goto(self.origin+'/jobs/1574/apply?profile_id=1#application='+quote(json.dumps(payload),safe=''))
+        if attached:expect(prepared.get_by_role('heading',name='Your documents are ready.')).to_be_visible()
+        else:expect(prepared.get_by_role('status')).to_contain_text('Returned package validated')
+        with prepared.expect_download() as download:prepared.get_by_role('button',name='Download editable DOCX' if attached else 'Download CV DOCX',exact=True).click()
+        with ZipFile(download.value.path()) as archive:self.assertIn('Alex Example',archive.read('word/document.xml').decode())
+        if attached:prepared.get_by_role('button',name='Cover letter',exact=True).click()
+        with prepared.expect_download() as download:prepared.get_by_role('button',name='Download PDF' if attached else 'Download letter PDF',exact=True).click()
+        self.assertIn('I coordinate research projects.', ''.join(page.extract_text() for page in PdfReader(download.value.path()).pages))
+        deadline=time.monotonic()+10
+        while time.monotonic()<deadline:
+            packages=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.packages")
+            if packages.get('1574:1',{}).get('package',{}).get('form_answers'):break
+            self.page.wait_for_timeout(50)
+        self.assertEqual(packages['1574:1']['package']['form_answers'],payload['form_answers'])
+        popup.close();popup=self.popup();self.fill(popup)
+        expect(self.page.locator('#why')).to_have_value('I coordinate research teams.')
+        expect(self.page.locator('#team')).to_have_value('research')
+        self.page.evaluate("window.submits=0;document.querySelector('form').addEventListener('submit',e=>{e.preventDefault();submits++})")
+        popup.get_by_role('button',name='Attach prepared documents',exact=True).click()
+        expect(popup.locator('#status')).to_contain_text('2 documents selected')
+        self.assertEqual(self.page.locator('#cv').evaluate('el=>el.files[0].type'),'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+        self.assertEqual(self.page.locator('#letter-file').evaluate('el=>el.files[0].type'),'application/pdf')
+        self.assertTrue(self.page.locator('#cv').evaluate("async el=>(await el.files[0].arrayBuffer()).byteLength>100"))
+        expect(self.page.locator('#consent')).not_to_be_checked()
+        self.assertEqual(self.page.evaluate('window.submits'),0)
+        self.assertEqual(self.context.request.get(self.origin+'/api/v1/profiles/1/applications').json()['total'],0)

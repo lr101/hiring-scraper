@@ -19,6 +19,8 @@ import {
   applyClick,
   installNavigation,
   lookupPage,
+  captureQuestions,
+  attachPreparedDocuments,
 } from "./application-state.js";
 import { validateProfile } from "./profile.js";
 import { readPackage, connectSources } from "./sources.js";
@@ -107,6 +109,26 @@ async function handle(message) {
     const tab = await chrome.tabs.get(tabId);
     await usePage(tabId, message.jobId, tab.url);
     return {};
+  }
+  if (message.type === "scan-form") {
+    const info = await inspect(tabId, true);
+    return captureQuestions(tabId, message.jobId, info.documentId);
+  }
+  if (message.type === "attach-documents") {
+    if (running.has(tabId))
+      throw new UserError("An application action is already running.");
+    running.add(tabId);
+    try {
+      const info = await inspect(tabId, true);
+      if (!info.supported) throw new UserError(info.reason);
+      return await attachPreparedDocuments(
+        tabId,
+        info.documentId,
+        message.jobId,
+      );
+    } finally {
+      running.delete(tabId);
+    }
   }
   if (message.type === "open-application") {
     await openApplication(tabId, message.jobId);
@@ -248,6 +270,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "add-job",
       "use-page",
       "open-application",
+      "scan-form",
+      "attach-documents",
     ].includes(message?.type)
   )
     return false;
@@ -268,6 +292,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "use-page",
             "prepare-job",
             "open-application",
+            "scan-form",
+            "attach-documents",
           ].includes(message.type)
             ? error.message
             : "Could not complete this action. Open the application tab and click the extension toolbar icon again. Chrome pages cannot be filled; file pages require Allow access to file URLs. If filling had started, inspect the draft before retrying.",

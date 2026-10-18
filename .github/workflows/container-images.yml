@@ -99,6 +99,8 @@ jobs:
           npm --prefix extensions/application-companion run check
           npm --prefix extensions/application-companion test
           node tests/frontend_application_preparation.mjs
+          node tests/frontend_application_handoff.mjs
+          node tests/frontend_application_form.mjs
           npm --prefix frontend run build
 
       - name: Test shipped extension and production CV flow in Chromium
