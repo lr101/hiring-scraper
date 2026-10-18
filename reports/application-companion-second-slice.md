@@ -31,6 +31,8 @@ The rejected-file trial exposed Chrome's loss of asynchronous injected exception
 
 Backend review found newline normalization could conceal a raw TODO paragraph. Raw edits are now checked before normalization, with DOCX/PDF regressions; empty paragraph deletion still works.
 
+Whole-slice review exposed a conditional-form issue: an earlier selection could change a later question while filling retained the earlier answer map. Filling now compares the live canonical form and control identity before subsequent mutations and after asynchronous dropdown waits, stopping on change. Structured packages also disable every legacy answer fallback; safe bound availability answers can fill missing reusable values while known facts and manual-decision restrictions keep priority. Both preparation screens label older answers only with their original question IDs when the captured form hash differs, instead of showing unrelated new question labels.
+
 ## Remaining manual work
 
 CAPTCHAs, signatures, consent, authorization decisions, custom/hidden upload widgets, rich editors and embedded forms remain manual. File selection verifies the browser control, not server-side receipt; check the site's upload confirmation. No live filled/uploaded application was attempted, and nothing was officially submitted.
@@ -41,4 +43,6 @@ CAPTCHAs, signatures, consent, authorization decisions, custom/hidden upload wid
 - Full Chromium extension suite: 76 tests passed. After the final heading guard and answer-review UI changes, the eight form/attachment trials and both real API/React document flows passed again (10 tests).
 - Document rendering, original CV/template exports and profile CV behavior: 26 focused Python tests passed, including real LibreOffice conversion.
 - Five frontend scripts passed: preparation storage/returns, handoff/export validation, captured-form validation, application interactions and statuses. CI now runs the added form contract check.
-- Backend task review: approved after the raw-placeholder fix. Whole-slice review and fresh preview verification are recorded separately when completed.
+- Final review fixes: three new runtime regressions demonstrated failures and then passed; all 21 selected form, real export/attachment and legacy/preference safety checks have passing final evidence. One aggregate run passed 20 with a test-helper tab-name error; correcting that selector and rerunning the failed production flow passed. No runtime change followed those checks.
+- Backend task review: approved after the raw-placeholder fix. Final scoped whole-slice re-review of `9e9a9afc..76c6632d`: approved; both Important findings and the label-review finding addressed, no new issues found.
+- CI provisions the same LibreOffice Writer/font packages as the application Docker image so the real PDF tests have their renderer. Workflow parsing passed; remote CI execution was not performed.
