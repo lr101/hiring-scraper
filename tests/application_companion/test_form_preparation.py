@@ -59,6 +59,57 @@ class FormPreparationTests(ExtensionHarness):
         expect(self.page.locator('#why')).to_have_value('')
         expect(self.page.locator('#team')).to_have_value('')
 
+    def capture_bound_questions(self, markup):
+        self.seed(True);self.page.goto(ATS);self.page.set_content(markup)
+        self.worker.evaluate("async url=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.bindings=[{job_id:1574,url,kind:'confirmed'}];await chrome.storage.local.set({radiusVault:v});}",ATS)
+        popup=self.popup();popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
+        expect(popup.locator('#status')).to_contain_text('questions captured')
+        return popup
+
+    def save_form_answers(self, answers, legacy='', matching=True):
+        self.worker.evaluate("""async ({answers,legacy,matching})=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');const pack=v.packages['1574:1'].package;pack.application_answers=legacy;pack.form_answers={form_id:matching?v.forms['1574:1'].form_id:'0'.repeat(64),answers};await chrome.storage.local.set({radiusVault:v});}""",{'answers':answers,'legacy':legacy,'matching':matching})
+
+    def test_earlier_prepared_selection_cannot_fill_a_changed_later_question(self):
+        for change in ['label', 'async-options']:
+            with self.subTest(change=change):
+                popup=self.capture_bound_questions('''<form><h1>Research application</h1>
+                <label>Preferred team<select id=team><option value="">Choose</option><option value=research>Research</option></select></label>
+                <label><span id=why-label>Why research?</span><textarea id=why></textarea></label>
+                <label>Preferred office<select id=office><option value="">Choose</option><option value=berlin>Berlin</option></select></label>
+                <label><input id=consent type=checkbox>I agree to the privacy policy</label><button type=submit>Submit</button></form>''')
+                self.save_form_answers([{'id':'q0','value':'research'},{'id':'q1','value':'My research experience.'},{'id':'q2','value':'berlin'}])
+                self.page.evaluate("""change=>{window.submits=0;document.querySelector('form').onsubmit=e=>{e.preventDefault();submits++};document.querySelector('#team').onchange=()=>{if(change==='label')document.querySelector('#why-label').textContent='Explain your disciplinary history';else setTimeout(()=>document.querySelector('#office').add(new Option('Remote','remote')),0)}}""",change)
+                self.fill(popup)
+                expect(self.page.locator('#team')).to_have_value('research')
+                expect(self.page.locator('#why')).to_have_value('')
+                expect(self.page.locator('#office')).to_have_value('')
+                expect(popup.locator('#remaining')).to_contain_text('captured form changed')
+                self.assertTrue(self.report()['partial_fill'])
+                expect(self.page.locator('#consent')).not_to_be_checked()
+                self.assertEqual(self.page.evaluate('window.submits'),0)
+                popup.close()
+
+    def test_mismatched_structured_form_cannot_use_legacy_preference_answers(self):
+        self.applicant['preferences']={}
+        popup=self.capture_bound_questions('<form><label>First name<input id=first></label><label>Available from<input id=available type=date></label><label>Why research?<textarea id=why></textarea></label></form>')
+        self.save_form_answers([{'id':'q1','value':'2026-11-01'}],legacy='Available from: 2026-12-01\nWhy research?: An unbound answer.',matching=False)
+        self.fill(popup)
+        expect(self.page.locator('#first')).to_have_value('Alex')
+        expect(self.page.locator('#available')).to_have_value('')
+        expect(self.page.locator('#why')).to_have_value('')
+
+    def test_bound_structured_availability_fills_without_overriding_common_facts_or_manual_decisions(self):
+        self.applicant['preferences']={'notice_period':'One month'}
+        popup=self.capture_bound_questions('''<form><label>Available from<input id=available type=date></label>
+        <label>Notice period<input id=notice></label><label>Expected salary<input id=salary></label>
+        <label>Are you authorized to work in Germany?<input id=auth></label>
+        <label>Willing to relocate<input id=relocate></label></form>''')
+        self.save_form_answers([{'id':'q0','value':'2026-12-01'},{'id':'q1','value':'Two months'},{'id':'q2','value':'70000'},{'id':'q3','value':'Yes'},{'id':'q4','value':'Yes'}],legacy='Available from: 2027-01-01')
+        self.fill(popup)
+        expect(self.page.locator('#available')).to_have_value('2026-12-01')
+        expect(self.page.locator('#notice')).to_have_value('One month')
+        for selector in ['#salary','#auth','#relocate']:expect(self.page.locator(selector)).to_have_value('')
+
 
     def test_explicit_attachment_selects_files_once_without_consent_or_submit(self):
         self.seed(True)

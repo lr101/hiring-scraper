@@ -304,6 +304,19 @@ class ProductionPreparationTests(ExtensionHarness):
         prepared.goto(self.origin+'/jobs/1574/apply?profile_id=1#application='+quote(json.dumps(payload),safe=''))
         if attached:expect(prepared.get_by_role('heading',name='Your documents are ready.')).to_be_visible()
         else:expect(prepared.get_by_role('status')).to_contain_text('Returned package validated')
+        if attached:prepared.get_by_role('button',name='Application answers',exact=True).click()
+        answers=prepared.get_by_role('region',name='Prepared form answers')
+        expect(answers.locator('strong')).to_have_text(['Why this role?','Preferred team'])
+        changed=json.loads(json.dumps(captured));changed['form_id']='0'*64
+        changed['fields'][0]['label']='Explain your disciplinary history'
+        changed['fields'][1]['label']='Choose a legal declaration'
+        prepared.evaluate("form=>{localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify(form));document.dispatchEvent(new Event('radius-form-updated'))}",changed)
+        expect(answers.locator('strong')).to_have_text(['q0','q1'])
+        expect(answers).to_contain_text('earlier capture')
+        expect(answers).to_contain_text('I coordinate research teams.')
+        prepared.evaluate("form=>{localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify(form));document.dispatchEvent(new Event('radius-form-updated'))}",captured)
+        expect(answers.locator('strong')).to_have_text(['Why this role?','Preferred team'])
+        if attached:prepared.get_by_role('button',name='CV',exact=True).click()
         with prepared.expect_download() as download:prepared.get_by_role('button',name='Download editable DOCX' if attached else 'Download CV DOCX',exact=True).click()
         with ZipFile(download.value.path()) as archive:self.assertIn('Alex Example',archive.read('word/document.xml').decode())
         if attached:prepared.get_by_role('button',name='Cover letter',exact=True).click()

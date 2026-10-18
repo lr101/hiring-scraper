@@ -387,9 +387,12 @@
           "salary_amount",
         ].includes(property) &&
         scoped &&
-        answers.has(name)
+        (preparedAnswer || answers.has(name))
       )
-        return { value: answers.get(name), source: "ChatGPT package" };
+        return {
+          value: preparedAnswer || answers.get(name),
+          source: preparedAnswer ? "Prepared form answer" : "ChatGPT package",
+        };
       return {
         value: value ?? "",
         source: "User-provided common answer",
@@ -485,7 +488,7 @@
     );
   }
 
-  async function describe(linkedApplication = false) {
+  function capture(linkedApplication = false) {
     const controls = inventory(linkedApplication);
     if (!controls.length || controls.length > 100)
       throw new Error("Open one application step with at most 100 fields.");
@@ -556,12 +559,16 @@
     });
     if (shape.length > 30000)
       throw new Error("This form is too large to prepare automatically.");
+    return { url: location.href, fields, shape, controls };
+  }
+
+  async function describeCapture({ url, fields, shape }) {
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(shape),
     );
     return {
-      url: location.href,
+      url,
       form_id: [...new Uint8Array(digest)]
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join(""),
@@ -569,23 +576,46 @@
     };
   }
 
+  async function describe(linkedApplication = false) {
+    return describeCapture(capture(linkedApplication));
+  }
+
   async function run(profile, { fill = true, before = new Map() } = {}) {
     const scoped = sameApplication(profile.application?.url);
     const fields = inventory(scoped);
     const prepared = profile.application?.form_answers;
-    const form = scoped && prepared ? await describe(true) : null;
+    const captured = scoped && prepared ? capture(true) : null;
+    const form = captured ? await describeCapture(captured) : null;
+    const boundShape =
+      form?.form_id === prepared?.form_id ? captured?.shape : null;
     const preparedAnswers =
       form && prepared && form.form_id === prepared.form_id
         ? new Map(prepared.answers.map((answer) => [answer.id, answer.value]))
         : new Map();
-    const answers = parseAnswers(
-      profile.application?.application_answers || "",
-    );
+    const answers = prepared
+      ? new Map()
+      : parseAnswers(profile.application?.application_answers || "");
     const report = [];
     let filled = 0;
     let unchanged = 0;
     let mutated = false;
-    let halted = false;
+    let halted = "";
+    const formStillMatches = () => {
+      if (!boundShape) return true;
+      try {
+        const current = capture(true);
+        if (
+          current.shape === boundShape &&
+          current.controls.every(
+            (field, index) => field.el === fields[index]?.el,
+          )
+        )
+          return true;
+      } catch {}
+      halted =
+        "The captured form changed while filling. Accepted entries were preserved. Scan the current step to prepare new answers.";
+      return false;
+    };
     const deadline = performance.now() + 20000;
     const keyCounts = new Map();
     for (const field of fields)
@@ -596,6 +626,7 @@
       )
         keyCounts.set(field.key, (keyCounts.get(field.key) || 0) + 1);
     for (const [index, field] of fields.entries()) {
+      formStillMatches();
       const { el } = field;
       const id = fieldId(field, index);
       const record = {
@@ -621,10 +652,7 @@
         report.push(record);
       };
       if (halted) {
-        stop(
-          "not_attempted",
-          "An earlier dropdown changed without a verified selection. Review it before continuing.",
-        );
+        stop("not_attempted", halted);
         continue;
       }
       if (mapped.status) {
@@ -923,6 +951,10 @@
           el.focus();
           el.click();
           await new Promise((resolve) => setTimeout(resolve, 0));
+          if (!formStillMatches()) {
+            stop("not_attempted", halted);
+            continue;
+          }
           let listId =
             el.getAttribute("aria-controls") || el.getAttribute("aria-owns");
           if (!listId && el instanceof HTMLInputElement) {
@@ -930,6 +962,10 @@
               new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }),
             );
             await new Promise((resolve) => setTimeout(resolve, 0));
+            if (!formStillMatches()) {
+              stop("not_attempted", halted);
+              continue;
+            }
             listId =
               el.getAttribute("aria-controls") || el.getAttribute("aria-owns");
           }
@@ -969,6 +1005,10 @@
             if (matches.length) break;
             await new Promise((resolve) => setTimeout(resolve, 35));
           }
+          if (!formStillMatches()) {
+            stop("not_attempted", halted);
+            continue;
+          }
           if (matches.length !== 1) {
             if (el instanceof HTMLInputElement) {
               Object.getOwnPropertyDescriptor(
@@ -989,7 +1029,8 @@
             read(el) !== expected ||
             el.getAttribute("aria-expanded") === "true"
           ) {
-            halted = true;
+            halted =
+              "An earlier dropdown changed without a verified selection. Review it before continuing.";
             stop(
               "changed_unverified",
               "The dropdown changed, but the chosen value could not be verified. Inspect the current selection before retrying.",
