@@ -13,6 +13,7 @@ import {
   readyPackage,
   profileStamp,
   applicationURL,
+  cacheJobs,
 } from "./vault.js";
 import {
   syncRadius,
@@ -70,7 +71,7 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       same &&
       current.settings?.profile_id === synced.settings.profile_id &&
       current.cv_observed_at > synced.cv_observed_at;
-    return {
+    const next = {
       ...emptyVault(),
       ...synced,
       settings: newer
@@ -80,6 +81,9 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       bindings: same ? current.bindings : [],
       packages: same ? current.packages : {},
     };
+    return cacheJobs({ ...next, jobs: same ? current.jobs : [] }, synced.jobs, {
+      preservePinned: true,
+    });
   });
   await refreshAllBadges();
   await attachRadiusTabs();
@@ -128,14 +132,7 @@ export async function addJobToProfile(job) {
     body: job,
   });
   if (result?.job) {
-    const saved = normalizeJob(result.job);
-    await changeVault((current) => ({
-      ...current,
-      jobs: [
-        ...current.jobs.filter((item) => item.id !== saved.id),
-        saved,
-      ].sort((first, second) => first.id - second.id),
-    }));
+    await cacheRemoteJobs(vault.settings, { items: [result.job] }, 1);
     await refreshAllBadges();
   }
   return result;
@@ -218,22 +215,55 @@ export async function pageState(tabId, url) {
   };
 }
 export async function searchJobs(query) {
-  const vault = await loadVault(),
-    { applicant } = await chrome.storage.local.get("applicant"),
-    stamp = await profileStamp(applicant);
-  const words = String(query || "")
+  let vault = await loadVault();
+  const revision = connectionRevision;
+  let remoteJobs = [];
+  const text = String(query || "")
     .trim()
-    .toLowerCase()
-    .split(/\s+/);
-  if (words.join(" ").length < 2) return [];
-  return vault.jobs
-    .filter((job) =>
-      words.every((word) =>
-        (job.title + " " + job.company_name + " " + job.url)
-          .toLowerCase()
-          .includes(word),
-      ),
-    )
+    .slice(0, 200);
+  if (text.length < 2) return [];
+  const words = text.toLowerCase().split(/\s+/);
+  const matches = (job) =>
+    words.every((word) =>
+      (job.title + " " + job.company_name + " " + job.url)
+        .toLowerCase()
+        .includes(word),
+    );
+  if (vault.settings) {
+    try {
+      const result = await radiusJSON(
+        vault.settings,
+        `/api/v1/companion/jobs/search?q=${encodeURIComponent(text)}`,
+      );
+      vault = await cacheRemoteJobs(vault.settings, result, 10);
+      remoteJobs = result.items.map(normalizeJob);
+    } catch (error) {
+      const current = await loadVault();
+      if (
+        revision !== connectionRevision ||
+        !sameConnection(current.settings, vault.settings)
+      )
+        throw new Error("Radius connection changed during search.");
+      vault = current;
+      if (!vault.jobs.some(matches)) throw error;
+    }
+  }
+  const { applicant } = await chrome.storage.local.get("applicant"),
+    stamp = await profileStamp(applicant);
+  const current = await loadVault();
+  if (
+    revision !== connectionRevision ||
+    !sameConnection(current.settings, vault.settings)
+  )
+    throw new Error("Radius connection changed during search.");
+  return [
+    ...new Map(
+      [...remoteJobs, ...vault.jobs.filter(matches)].map((job) => [
+        job.id,
+        job,
+      ]),
+    ).values(),
+  ]
     .slice(0, 10)
     .map((job) => ({
       job,
@@ -241,6 +271,64 @@ export async function searchJobs(query) {
       ready: !!readyPackage(vault, job.id, stamp),
       has_saved: !!vault.packages?.[`${job.id}:${vault.settings?.profile_id}`],
     }));
+}
+
+function sameConnection(first, second) {
+  return (
+    first?.origin === second?.origin &&
+    first?.api_origin === second?.api_origin &&
+    first?.profile_id === second?.profile_id
+  );
+}
+
+async function cacheRemoteJobs(settings, result, limit) {
+  if (!Array.isArray(result?.items) || result.items.length > limit)
+    throw new Error("Radius returned an invalid job lookup.");
+  const jobs = result.items.map(normalizeJob);
+  return changeVault((current) => {
+    if (!sameConnection(current.settings, settings))
+      throw new Error("Radius connection changed during lookup.");
+    return cacheJobs(current, jobs);
+  });
+}
+
+// Only the user's popup inspection resolves a cache miss. Badge updates never
+// transmit the user's browsing URLs to Radius.
+export async function lookupPage(url) {
+  const vault = await loadVault(),
+    page = safeURL(url);
+  if (
+    !vault.settings ||
+    !page ||
+    matchJobs(vault, url).length ||
+    transientURL(url)
+  )
+    return;
+  const internal =
+    page.origin === vault.settings.origin &&
+    page.pathname.match(/^\/jobs\/(\d+)(?:\/apply)?\/?$/);
+  if (
+    !internal &&
+    (page.protocol !== "https:" ||
+      !persistableURL(url) ||
+      page.origin === vault.settings.origin)
+  )
+    return;
+  try {
+    const result = internal
+      ? {
+          items: [
+            await radiusJSON(vault.settings, `/api/v1/jobs/${internal[1]}`),
+          ],
+        }
+      : await radiusJSON(
+          vault.settings,
+          `/api/v1/companion/jobs/lookup?url=${encodeURIComponent(urlKey(url))}`,
+        );
+    await cacheRemoteJobs(vault.settings, result, 100);
+  } catch {
+    return "Radius lookup is unavailable. You can still use cached jobs or reconnect Radius.";
+  }
 }
 export async function updateBadge(tabId, url) {
   try {
@@ -423,10 +511,7 @@ async function storePreparedPackage(pack, cvText, url = "") {
         v.settings?.profile_id !== settings.profile_id
       )
         throw new Error("Radius connection changed during import.");
-      return {
-        ...v,
-        jobs: [...v.jobs.filter((row) => row.id !== job.id), normalizeJob(job)],
-      };
+      return cacheJobs(v, [normalizeJob(job)]);
     });
   }
   // Check CV metadata against Radius at capture time, not just the last sync.

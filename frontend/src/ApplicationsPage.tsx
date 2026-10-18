@@ -728,7 +728,7 @@ export default function ApplicationsPage() {
                 {visibleJobs.map(job => {
                   const key = profileJobKey(job)
                   return <JobFeedCard key={key} job={job} href={cardHref(job)} profileId={job.profileId} profileName={job.profileName}
-                    updatedAt={jobUpdatedAt(job)} disabled={savingKeys.has(key)} saving={savingKeys.has(key)}
+                    updatedAt={jobUpdatedAt(job)} disabled={savingKeys.has(key)} saving={savingKeys.has(key)} showStartApplication={false}
                     pendingStatus={pendingStatuses[key]} onAction={onCardAction} onOpenOriginal={onOriginalPost} />
                 })}
               </div> : <div className="journey-empty"><span className="journey-empty-icon" aria-hidden="true">✦</span>

@@ -331,18 +331,21 @@ try {
     document.querySelector("#experience-count").textContent =
       `${profile.experiences.length} work experiences · ${catalog.settings.profile_name}`;
   let searchTimer;
+  let searchVersion = 0;
   document.querySelector("#job-query").oninput = () => {
+    const version = ++searchVersion;
     clearTimeout(searchTimer);
     searchTimer = setTimeout(async () => {
       try {
         const results = await request("search-jobs", {
           query: document.querySelector("#job-query").value,
         });
+        if (version !== searchVersion) return;
         document
           .querySelector("#job-search-results")
           .replaceChildren(...results.map((item) => entry(item)));
       } catch (error) {
-        message(error);
+        if (version === searchVersion) message(error);
       }
     }, 200);
   };
@@ -387,6 +390,7 @@ try {
   else if (catalog?.connected && !catalog.settings?.profile_id)
     status.textContent =
       "Choose your Radius profile in Connection to prepare applications.";
+  else if (catalog?.lookup_error) status.textContent = catalog.lookup_error;
 } catch (e) {
   document.querySelector("#page-name").textContent = "Page unavailable";
   message(e);

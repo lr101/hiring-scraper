@@ -3,12 +3,12 @@ import hashlib
 import ipaddress
 import re
 from typing import Annotated
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import func, select, update
-from sqlalchemy.orm import Session, joinedload, load_only
+from sqlalchemy import func, or_, select, update
+from sqlalchemy.orm import Session, aliased, joinedload, load_only
 
 from hiring_scraper.app.database import get_session
 from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
@@ -82,24 +82,104 @@ def list_companion_jobs(
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     session: Session = Depends(get_session),
 ) -> dict:
-    rows = session.scalars(select(Job).where(Job.id > after_id).options(
+    rows = session.scalars(_catalog_query().where(Job.id > after_id)
+                           .order_by(Job.id).limit(limit + 1)).all()
+    items = [_catalog_item(job) for job in rows[:limit] if len(job.url) <= 2048]
+    return {'items': items, 'next_after_id': rows[limit - 1].id if len(rows) > limit else None}
+
+
+def _catalog_query():
+    return select(Job).options(
         load_only(Job.id, Job.title, Job.url, Job.is_active, Job.raw_metadata,
                   Job.feed_id, Job.employer_company_id),
         joinedload(Job.feed).load_only(JobFeed.company_id).joinedload(JobFeed.company).load_only(Company.name),
         joinedload(Job.employer_company).load_only(Company.name),
-    ).order_by(Job.id).limit(limit + 1)).all()
-    items = []
-    for job in rows[:limit]:
-        if len(job.url) > 2048:
+    )
+
+
+def _catalog_item(job: Job) -> dict:
+    metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
+    organization = metadata.get('hiring_organization')
+    name = organization.get('name') if isinstance(organization, dict) else None
+    company_name = (job.employer_company.name if job.employer_company else
+                    name.strip() if isinstance(name, str) and name.strip() else job.feed.company.name)
+    return {'id': job.id, 'title': job.title[:300], 'company_name': company_name[:300],
+            'url': job.url, 'is_active': job.is_active and not expiry(job)['expired']}
+
+
+def _catalog_url(value: str) -> str:
+    try:
+        parts = urlsplit(value)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail='Invalid job URL') from error
+    # Keep SPA requisitions distinct; only presentation anchors are ignored.
+    fragment = '' if parts.fragment.casefold() in {'apply', 'application', 'top'} else parts.fragment
+    canonical, _, _ = _job_page_url(urlunsplit(parts._replace(fragment='')))
+    return canonical + ('#' + fragment if fragment else '')
+
+
+@router.get('/jobs/lookup')
+def lookup_companion_jobs(
+    url: Annotated[str, Query(min_length=8, max_length=2048)],
+    session: Session = Depends(get_session),
+) -> dict:
+    canonical = _catalog_url(url)
+    parts = urlsplit(canonical)
+    base = urlunsplit(parts._replace(query='', fragment=''))
+    # Restrict candidates to the exact page path, never an entire ATS hostname.
+    query = _catalog_query().where(or_(
+        Job.url == base, Job.url.startswith(base + '?', autoescape=True),
+        Job.url.startswith(base + '#', autoescape=True),
+    ))
+    if parts.fragment:
+        query = query.where(Job.url.endswith('#' + parts.fragment, autoescape=True))
+    # Query-only ATS boards can contain thousands of requisitions on one path.
+    # Narrow by meaningful query values before the candidate cap; comparison below
+    # still checks every meaningful query/fragment and never trusts an ID alone.
+    for key, value in parse_qsl(parts.query, keep_blank_values=True):
+        if not value:
             continue
-        metadata = job.raw_metadata if isinstance(job.raw_metadata, dict) else {}
-        organization = metadata.get('hiring_organization')
-        name = organization.get('name') if isinstance(organization, dict) else None
-        company_name = (job.employer_company.name if job.employer_company else
-                        name.strip() if isinstance(name, str) and name.strip() else job.feed.company.name)
-        items.append({'id': job.id, 'title': job.title[:300], 'company_name': company_name[:300],
-                      'url': job.url, 'is_active': job.is_active and not expiry(job)['expired']})
-    return {'items': items, 'next_after_id': rows[limit - 1].id if len(rows) > limit else None}
+        pairs = {urlencode([(key, value)]), urlencode([(key, value)], quote_via=quote)}
+        matches = []
+        for pair in pairs:
+            for prefix in ('?', '&'):
+                token = prefix + pair
+                matches.extend((Job.url.endswith(token, autoescape=True),
+                                Job.url.contains(token + '&', autoescape=True),
+                                Job.url.contains(token + '#', autoescape=True)))
+        query = query.where(or_(*matches))
+    rows = session.scalars(query.order_by(Job.id).limit(101)).all()
+    if len(rows) > 100:
+        return {'items': [], 'truncated': True}
+    items = []
+    for job in rows:
+        try:
+            if len(job.url) <= 2048 and _catalog_url(job.url) == canonical:
+                items.append(_catalog_item(job))
+        except HTTPException:
+            continue
+    return {'items': items, 'truncated': False}
+
+
+@router.get('/jobs/search')
+def search_companion_jobs(
+    q: Annotated[str, Query(min_length=2, max_length=200)],
+    session: Session = Depends(get_session),
+) -> dict:
+    words = q.split()
+    if len(q.strip()) < 2:
+        return {'items': []}
+    employer = aliased(Company)
+    query = _catalog_query().join(Job.feed).join(JobFeed.company).outerjoin(
+        employer, Job.employer_company_id == employer.id)
+    for word in words:
+        pattern = '%' + word.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_') + '%'
+        query = query.where(or_(Job.title.ilike(pattern, escape='\\'),
+                                Company.name.ilike(pattern, escape='\\'),
+                                employer.name.ilike(pattern, escape='\\'),
+                                Job.url.ilike(pattern, escape='\\')))
+    rows = session.scalars(query.order_by(Job.is_active.desc(), Job.id.desc()).limit(10)).all()
+    return {'items': [_catalog_item(job) for job in rows if len(job.url) <= 2048]}
 
 
 @router.post('/jobs', status_code=201)

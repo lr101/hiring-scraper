@@ -128,6 +128,39 @@ export function matchJobs(vault, url) {
     (j) => urlKey(j.url) === key || ids.has(j.id),
   );
 }
+// Newly resolved rows take priority; retain prepared/linked jobs before old cache rows.
+export function cacheJobs(vault, incoming, { preservePinned = false } = {}) {
+  const pinned = new Set([
+    ...Object.values(vault.packages || {}).map((pack) => pack.job_id),
+    ...(vault.bindings || []).map((binding) => binding.job_id),
+  ]);
+  const existing = [...vault.jobs].reverse();
+  const latest = new Map(incoming.map((job) => [job.id, job]));
+  const pinnedRows = existing
+    .filter((job) => pinned.has(job.id))
+    .map((job) => latest.get(job.id) || job);
+  const candidates = preservePinned
+    ? [...pinnedRows, ...incoming]
+    : [...incoming, ...pinnedRows, ...existing];
+  const seen = new Set(),
+    jobs = [];
+  let bytes = 2,
+    truncated = !!vault.truncated;
+  for (const job of candidates) {
+    if (seen.has(job.id)) continue;
+    seen.add(job.id);
+    const size =
+      new TextEncoder().encode(JSON.stringify(job)).length +
+      (jobs.length ? 1 : 0);
+    if (jobs.length >= 2000 || bytes + size > 2000000) {
+      truncated = true;
+      continue;
+    }
+    jobs.push(job);
+    bytes += size;
+  }
+  return { ...vault, jobs: jobs.sort((a, b) => a.id - b.id), truncated };
+}
 export function addBinding(vault, jobId, url, kind = "apply") {
   if (!vault.jobs.some((job) => job.id === jobId))
     throw new Error("Unknown Radius job.");
@@ -180,8 +213,7 @@ export function readyPackage(vault, jobId, stamp, now = Date.now()) {
   )
     return null;
   const cv = saved.package?.cv;
-  if (!(typeof cv === "string" ? cv.trim() : Array.isArray(cv) && cv.length))
-    return null;
+  if (!(typeof cv === "string" ? cv.trim() : Array.isArray(cv))) return null;
   return saved;
 }
 export function applicationURL(vault, jobId) {

@@ -136,3 +136,45 @@ class RadiusConnectionTests(ExtensionHarness):
   pending=options.evaluate('()=>window.pendingSync');self.assertFalse(pending['ok'])
   state=self.worker.evaluate("async ()=>(await chrome.storage.local.get('radiusVault')).radiusVault")
   self.assertIsNone(state['settings']);self.assertEqual(state['jobs'],[]);self.assertEqual(state['packages'],{})
+
+ def test_refresh_preserves_a_prepared_job_outside_the_new_catalog_window(self):
+  from .journey_demo import package
+  self.connect();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
+  imported=options.evaluate("pack=>chrome.runtime.sendMessage({type:'import-package',input:JSON.stringify(pack)})",package(1574,'cv1'))
+  self.assertTrue(imported['ok'])
+  self.server.state['catalog_jobs']=[{'id':2000,'title':'Other role','company_name':'Research Labs','url':OTHER,'is_active':True}]
+  refreshed=options.evaluate("()=>chrome.runtime.sendMessage({type:'refresh-radius'})")
+  self.assertTrue(refreshed['ok']);options.close()
+  self.page.goto(LISTING);self.badge(LISTING,'1')
+
+ def test_direct_package_import_keeps_the_catalog_bounded(self):
+  from .journey_demo import package
+  self.connect();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
+  self.worker.evaluate("""async()=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.jobs=Array.from({length:2000},(_,i)=>({id:10000+i,title:'Cached role',company_name:'Labs',url:`https://example.org/jobs/${10000+i}`,active:true}));await chrome.storage.local.set({radiusVault:v});}""")
+  imported=options.evaluate("pack=>chrome.runtime.sendMessage({type:'import-package',input:JSON.stringify(pack)})",package(1574,'cv1'))
+  self.assertTrue(imported['ok'])
+  jobs=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.jobs")
+  self.assertLessEqual(len(jobs),2000)
+  self.assertTrue(any(job['id']==1574 for job in jobs))
+
+ def test_disconnecting_during_search_cannot_return_the_old_cached_roles(self):
+  self.connect();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
+  self.worker.evaluate('''()=>{
+    const original=globalThis.fetch;
+    globalThis.fetch=async(input,options)=>{
+      if(String(input).includes('/jobs/search?')) {
+        globalThis.searchStarted=true;
+        await new Promise(resolve=>{globalThis.releaseSearch=resolve;});
+      }
+      return original(input,options);
+    };
+  }''')
+  options.evaluate("()=>{window.pendingSearch=chrome.runtime.sendMessage({type:'search-jobs',query:'Research'});}")
+  deadline=time.monotonic()+5
+  while not self.worker.evaluate('!!globalThis.searchStarted') and time.monotonic()<deadline:self.page.wait_for_timeout(20)
+  self.assertTrue(self.worker.evaluate('!!globalThis.searchStarted'))
+  disconnected=options.evaluate("()=>chrome.runtime.sendMessage({type:'disconnect-radius'})")
+  self.assertTrue(disconnected['ok'])
+  self.worker.evaluate('globalThis.releaseSearch()')
+  result=options.evaluate('()=>window.pendingSearch')
+  self.assertFalse(result['ok'])

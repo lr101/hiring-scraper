@@ -203,14 +203,15 @@
         'input[type="password"],input[autocomplete="one-time-code"]',
       ),
     ].some(visible);
-  function roots() {
+  function roots(linkedApplication = false) {
     if (hasAuthenticationControls()) return [];
     let forms = [...document.querySelectorAll("form")].filter((form) => {
       const fields = controls(form);
       const known = fields.filter((el) => key(el));
       return (
         !form.querySelector('input[type="password"]') &&
-        (known.length >= 2 ||
+        ((linkedApplication && fields.length > 0) ||
+          known.length >= 2 ||
           (known.length && fields.some((el) => el.type === "file")))
       );
     });
@@ -237,10 +238,10 @@
       ? [document]
       : [];
   }
-  function inventory() {
+  function inventory(linkedApplication = false) {
     const result = [];
     const seen = new Set();
-    for (const root of roots()) {
+    for (const root of roots(linkedApplication)) {
       for (const el of controls(root))
         if (!seen.has(el)) {
           seen.add(el);
@@ -466,18 +467,21 @@
       ? `experience-${row.dataset.experience}-${field.el.dataset.key || field.el.dataset.year || field.el.dataset.month || index}-${field.el.dataset.year ? "year" : field.el.dataset.month ? "month" : "value"}`
       : field.el.id || `field-${index}`;
   }
-  function snapshot() {
+  function snapshot(linkedApplication = false) {
     return new Map(
-      inventory().map((field, i) => [fieldId(field, i), read(field.el)]),
+      inventory(linkedApplication).map((field, i) => [
+        fieldId(field, i),
+        read(field.el),
+      ]),
     );
   }
 
   async function run(profile, { fill = true, before = new Map() } = {}) {
-    const fields = inventory();
+    const scoped = sameApplication(profile.application?.url);
+    const fields = inventory(scoped);
     const answers = parseAnswers(
       profile.application?.application_answers || "",
     );
-    const scoped = sameApplication(profile.application?.url);
     const report = [];
     let filled = 0;
     let unchanged = 0;
@@ -971,7 +975,13 @@
   }
   globalThis.applicationFields = {
     sameApplication,
-    supports: () => inventory().some((field) => field.key),
+    supports: (linkedApplication = false) => {
+      const fields = inventory(linkedApplication);
+      return (
+        fields.some((field) => field.key) ||
+        (linkedApplication && fields.length > 0)
+      );
+    },
     hasAuthenticationControls,
     acceptsControl: (el) => roots().some((root) => root.contains(el)),
     run,

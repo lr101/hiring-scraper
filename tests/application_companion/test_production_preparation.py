@@ -114,6 +114,101 @@ class ProductionPreparationTests(ExtensionHarness):
     def test_saved_profile_cv_return_sync_and_autofill(self):
         self.check_prepared_package_fill(attached=True)
 
+    def test_uncached_posting_is_recognized_and_server_search_can_link_another_job(self):
+        self.setup_preparation(attached=True)
+        posting='https://employer.example/jobs/3001'
+        self.context.route(posting+'*',lambda route:route.fulfill(content_type='text/html',body='<title>Fresh research role</title><h1>Fresh research role</h1>'))
+        for url,title in [(posting,'Fresh research role'),('https://employer.example/jobs/3002','Uncached specialist')]:
+            result=self.context.request.post(self.origin+'/api/v1/companion/jobs',data={'profile_id':1,'url':url,'title':title})
+            self.assertTrue(result.ok,result.text())
+        self.page.goto(posting+'?utm_source=mail');popup=self.popup()
+        expect(popup.locator('#job-entries')).to_contain_text('Fresh research role')
+        popup.get_by_text('Link a discovered job',exact=True).click()
+        popup.locator('#job-query').fill('Uncached specialist')
+        expect(popup.locator('#job-search-results')).to_contain_text('Uncached specialist')
+        popup.locator('#job-search-results').get_by_role('button',name='Prepare with ChatGPT',exact=True).click()
+        bindings=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.bindings")
+        self.assertTrue(any(binding['url']==posting for binding in bindings))
+
+    def test_delayed_search_response_cannot_replace_the_current_query(self):
+        self.setup_preparation(attached=True)
+        for number,title in [(3001,'Earlier specialist'),(3002,'Latest specialist')]:
+            result=self.context.request.post(self.origin+'/api/v1/companion/jobs',data={'profile_id':1,'url':f'https://employer.example/jobs/{number}','title':title})
+            self.assertTrue(result.ok,result.text())
+        self.worker.evaluate('''()=>{
+          const original=globalThis.fetch;
+          globalThis.fetch=async(input,options)=>{
+            if(String(input).endsWith('/jobs/search?q=Earlier')) {
+              globalThis.searchStarted=true;
+              await new Promise(resolve=>{globalThis.releaseSearch=resolve;});
+            }
+            const response=await original(input,options);
+            if(String(input).endsWith('/jobs/search?q=Earlier')) globalThis.searchFinished=true;
+            return response;
+          };
+        }''')
+        self.page.goto(LISTING);popup=self.popup()
+        popup.get_by_text('Link a discovered job',exact=True).click()
+        popup.locator('#job-query').fill('Earlier')
+        deadline=time.monotonic()+5
+        while not self.worker.evaluate('!!globalThis.searchStarted') and time.monotonic()<deadline:self.page.wait_for_timeout(20)
+        self.assertTrue(self.worker.evaluate('!!globalThis.searchStarted'))
+        popup.locator('#job-query').fill('Latest')
+        expect(popup.locator('#job-search-results')).to_contain_text('Latest specialist')
+        self.worker.evaluate('globalThis.releaseSearch()')
+        deadline=time.monotonic()+5
+        while not self.worker.evaluate('!!globalThis.searchFinished') and time.monotonic()<deadline:self.page.wait_for_timeout(20)
+        self.assertTrue(self.worker.evaluate('!!globalThis.searchFinished'))
+        popup.wait_for_timeout(300)
+        expect(popup.locator('#job-search-results')).to_contain_text('Latest specialist')
+        expect(popup.locator('#job-search-results')).not_to_contain_text('Earlier specialist')
+
+    def test_badges_never_send_browsing_urls_and_lookup_skips_session_pages(self):
+        self.setup_preparation(attached=True)
+        self.context.route('https://unseen.example/**',lambda route:route.fulfill(content_type='text/html',body='<title>Uncached employer</title>'))
+        self.worker.evaluate('''()=>{
+          const original=globalThis.fetch;globalThis.lookupRequests=[];
+          globalThis.fetch=(input,options)=>{
+            if(String(input).includes('/jobs/lookup?')) lookupRequests.push(String(input));
+            return original(input,options);
+          };
+        }''')
+        self.page.goto('https://unseen.example/jobs/77?utm_source=mail')
+        self.page.wait_for_timeout(200)
+        self.assertEqual(self.worker.evaluate('lookupRequests'),[])
+        popup=self.popup()
+        requests=self.worker.evaluate('lookupRequests')
+        self.assertGreaterEqual(len(requests),1)
+        self.assertIn('url=https%3A%2F%2Funseen.example%2Fjobs%2F77',requests[0])
+        self.assertNotIn('utm_source',requests[0])
+        popup.close()
+        for path in ['/login?token=private','/apply']:
+            self.page.goto('https://unseen.example'+path);popup=self.popup();popup.close()
+        self.assertTrue(all(request==requests[0] for request in self.worker.evaluate('lookupRequests')))
+
+    def test_search_uses_server_results_even_when_ten_cached_jobs_match(self):
+        self.setup_preparation(attached=True)
+        jobs=[]
+        for number in range(11):
+            result=self.context.request.post(self.origin+'/api/v1/companion/jobs',data={'profile_id':1,'url':f'https://employer.example/jobs/{3000+number}','title':f'Specialist {number}'})
+            self.assertTrue(result.ok,result.text());jobs.append(result.json()['job'])
+        self.worker.evaluate("""async rows=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.jobs=rows.map(row=>({...row,active:row.is_active}));await chrome.storage.local.set({radiusVault:v});}""",jobs[:10])
+        self.page.goto(LISTING);popup=self.popup()
+        popup.get_by_text('Link a discovered job',exact=True).click()
+        popup.locator('#job-query').fill('Specialist')
+        expect(popup.locator('#job-search-results')).to_contain_text('Specialist 10')
+        expect(popup.locator('#job-search-results .job-entry').first).to_contain_text('Specialist 10')
+
+    def test_saving_an_uncached_job_keeps_the_catalog_bounded(self):
+        self.setup_preparation(attached=True)
+        self.worker.evaluate("""async()=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.jobs=Array.from({length:2000},(_,i)=>({id:10000+i,title:'Cached role',company_name:'Labs',url:`https://example.org/jobs/${10000+i}`,active:true}));await chrome.storage.local.set({radiusVault:v});}""")
+        options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
+        saved=options.evaluate("()=>chrome.runtime.sendMessage({type:'add-job',job:{profile_id:1,url:'https://employer.example/jobs/3001',title:'New specialist'}})")
+        self.assertTrue(saved['ok'])
+        jobs=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.jobs")
+        self.assertLessEqual(len(jobs),2000)
+        self.assertTrue(any(job['id']==saved['result']['job']['id'] for job in jobs))
+
     def check_prepared_package_fill(self, attached=False):
         version = self.setup_preparation(attached=attached)
         payload = {'format': 'radius-application-v1', 'job_id': 1574, 'profile_id': 1, 'cv_updated_at': version, 'cv': 'Alex Example. Coordinated research teams.', 'cover_letter': 'I coordinate research projects.', 'application_answers': 'Q: Why this role?\nA: I coordinate research teams.', 'review_notes': 'Review before applying.'}
