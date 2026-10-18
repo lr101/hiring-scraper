@@ -17,6 +17,7 @@ node tests/frontend_applications.mjs
 node tests/frontend_application_interactions.mjs
 node tests/frontend_application_handoff.mjs
 node tests/frontend_application_preparation.mjs
+node tests/frontend_application_form.mjs
 node --test tests/application_companion/*.mjs
 
 printf '%s\n' 'Building the frontend with locked dependencies'

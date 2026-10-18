@@ -70,13 +70,21 @@ def _finished_text(text, *, allow_empty=False):
 
 
 def _text_docx(text):
-    """A simple self-contained A4 document; supplied text is always XML text."""
-    paragraphs = ''.join(
-        '<w:p><w:r><w:rPr><w:rFonts w:ascii="Liberation Sans" w:hAnsi="Liberation Sans"/>'
-        '<w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">'
-        + escape(line) + '</w:t></w:r></w:p>'
-        for line in text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
-    )
+    """Render the brief's simple Markdown subset; supplied prose stays XML text."""
+    paragraphs = []
+    for line in text.replace('\r\n', '\n').replace('\r', '\n').split('\n'):
+        heading = re.match(r'^(#{1,3})\s+(.+)$', line)
+        bullet = re.match(r'^\s*[-*]\s+(.+)$', line)
+        size = {'#': '32', '##': '28', '###': '24'}.get(heading[1], '22') if heading else '22'
+        content = heading[2] if heading else '• ' + bullet[1] if bullet else line
+        runs = []
+        for part in re.split(r'(\*\*[^*\n]+\*\*)', content):
+            bold = part.startswith('**') and part.endswith('**') and len(part) > 4
+            prose = part[2:-2] if bold else part
+            runs.append('<w:r><w:rPr><w:rFonts w:ascii="Liberation Sans" w:hAnsi="Liberation Sans"/>'
+                        + ('<w:b/>' if heading or bold else '') + f'<w:sz w:val="{size}"/></w:rPr>'
+                        + '<w:t xml:space="preserve">' + escape(prose) + '</w:t></w:r>')
+        paragraphs.append('<w:p>' + ''.join(runs) + '</w:p>')
     parts = {
         '[Content_Types].xml': '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
             '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
@@ -85,7 +93,7 @@ def _text_docx(text):
         '_rels/.rels': '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
         'word/document.xml': '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>'
-            + paragraphs + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
+            + ''.join(paragraphs) + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/>'
             '<w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/>'
             '</w:sectPr></w:body></w:document>',
     }

@@ -82,6 +82,25 @@ class ApplicationDocumentTests(unittest.TestCase):
         self.assertIsNone(self.session.get(models.ProfileCV, self.profile_id))
         self.assertEqual(self.session.scalars(select(models.JobApplication)).all(), [])
 
+    def test_simple_markdown_exports_as_document_formatting(self):
+        markdown = '# Alex Example\n## Experience\n**Research** & <coordination>\n- Led teams\n* Improved delivery'
+        response = self.export(cv=markdown)
+        self.assertEqual(self.text(response.body), 'Alex Example\nExperience\nResearch & <coordination>\n• Led teams\n• Improved delivery')
+        with ZipFile(BytesIO(response.body)) as archive:
+            root = ElementTree.fromstring(archive.read('word/document.xml'))
+        ns = {'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+        paragraphs = root.findall('.//w:body/w:p', ns)
+        self.assertIsNotNone(paragraphs[0].find('.//w:b', ns))
+        self.assertEqual(paragraphs[0].find('.//w:sz', ns).get('{'+ns['w']+'}val'), '32')
+        self.assertIsNotNone(paragraphs[2].find('.//w:b', ns))
+        pdf = self.export(cv=markdown, format='pdf')
+        from pypdf import PdfReader
+        text = '\n'.join(page.extract_text() for page in PdfReader(BytesIO(pdf.body)).pages)
+        self.assertIn('Alex Example', text)
+        self.assertNotIn('#', text)
+        self.assertNotIn('**', text)
+        self.assertNotIn('- Led', text)
+
     def test_paragraph_exports_preserve_unchanged_parts_and_saved_original(self):
         revision = self.attach()
         original = self.session.get(models.ProfileCV, self.profile_id).data

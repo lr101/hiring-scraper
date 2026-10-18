@@ -98,6 +98,38 @@ class FormPreparationTests(ExtensionHarness):
         expect(self.page.locator('#available')).to_have_value('')
         expect(self.page.locator('#why')).to_have_value('')
 
+    def test_choice_mutations_stop_before_later_bound_answers(self):
+        for control in ['select', 'checkbox', 'radio']:
+            with self.subTest(control=control):
+                self.applicant['preferences']={'authorization_country':'Germany','authorized_to_work':True}
+                choice = {
+                    'select':'<label>Preferred team<select id=choice><option value="">Choose</option><option value=research>Research</option></select></label>',
+                    'checkbox':'<label>Are you authorized to work in Germany?<input id=choice type=checkbox></label>',
+                    'radio':'<fieldset><legend>Are you authorized to work in Germany?</legend><label>Yes<input id=choice type=radio name=auth value=yes></label><label>No<input type=radio name=auth value=no></label></fieldset>',
+                }[control]
+                popup=self.capture_bound_questions('<form>'+choice+'<label><span id=question>Why research?</span><textarea id=why></textarea></label></form>')
+                form=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
+                question=next(field for field in form['fields'] if field['label']=='Why research?')
+                self.save_form_answers([{'id':'q0','value':'research'},{'id':question['id'],'value':'My research experience.'}])
+                self.page.evaluate("""()=>document.querySelector('#choice').onchange=()=>setTimeout(()=>{document.querySelector('#question').textContent='Explain your disciplinary history'},100)""")
+                self.fill(popup)
+                self.page.wait_for_timeout(150)
+                self.assertEqual(self.page.locator('#why').input_value(),'')
+                self.assertTrue(self.report()['partial_fill'])
+                popup.close()
+
+    def test_repeated_fill_requires_a_fresh_capture_after_a_choice(self):
+        popup=self.capture_bound_questions('''<form><label>Preferred team<select id=team><option value="">Choose</option><option value=research>Research</option></select></label><label>Why research?<textarea id=why></textarea></label></form>''')
+        self.save_form_answers([{'id':'q0','value':'research'},{'id':'q1','value':'My research experience.'}])
+        self.fill(popup)
+        expect(self.page.locator('#why')).to_have_value('')
+        self.fill(popup)
+        self.assertEqual(self.page.locator('#why').input_value(),'')
+        popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
+        expect(popup.locator('#status')).to_contain_text('questions captured')
+        self.fill(popup)
+        expect(self.page.locator('#why')).to_have_value('My research experience.')
+
     def test_bound_structured_availability_fills_without_overriding_common_facts_or_manual_decisions(self):
         self.applicant['preferences']={'notice_period':'One month'}
         popup=self.capture_bound_questions('''<form><label>Available from<input id=available type=date></label>

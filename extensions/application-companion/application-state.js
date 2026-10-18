@@ -404,7 +404,7 @@ export async function captureQuestions(tabId, requestedJobId, documentId) {
     target: { tabId, documentIds: [documentId] },
     func: async () => {
       try {
-        return await globalThis.applicationFields.describe(true);
+        return await globalThis.applicationFields.describe(true, true);
       } catch (error) {
         return { error: error.message };
       }

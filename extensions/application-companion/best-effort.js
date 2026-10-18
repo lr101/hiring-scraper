@@ -1,6 +1,11 @@
 // Field discovery and conservative value mapping. No values are retained globally.
 (() => {
   if (globalThis.applicationFields) return;
+  // A choice can trigger a slow network-driven form update. Only an explicit
+  // question capture acknowledges that state; another fill must not bypass it.
+  let requiresCapture = false;
+  const choicePause =
+    "A choice may change later questions asynchronously. Let the page finish updating, then use Prepare from these questions before filling again.";
   const normalize = (text) =>
     text
       .normalize("NFKD")
@@ -576,8 +581,10 @@
     };
   }
 
-  async function describe(linkedApplication = false) {
-    return describeCapture(capture(linkedApplication));
+  async function describe(linkedApplication = false, refresh = false) {
+    const description = await describeCapture(capture(linkedApplication));
+    if (refresh) requiresCapture = false;
+    return description;
   }
 
   async function run(profile, { fill = true, before = new Map() } = {}) {
@@ -599,7 +606,7 @@
     let filled = 0;
     let unchanged = 0;
     let mutated = false;
-    let halted = "";
+    let halted = prepared && requiresCapture ? choicePause : "";
     const formStillMatches = () => {
       if (!boundShape) return true;
       try {
@@ -615,6 +622,12 @@
       halted =
         "The captured form changed while filling. Accepted entries were preserved. Scan the current step to prepare new answers.";
       return false;
+    };
+    const pauseAfterChoice = () => {
+      if (boundShape) {
+        requiresCapture = true;
+        halted = choicePause;
+      }
     };
     const deadline = performance.now() + 20000;
     const keyCounts = new Map();
@@ -755,6 +768,7 @@
           }
           options[0].click();
           mutated = true;
+          pauseAfterChoice();
           if (!options[0].isConnected || !options[0].checked) {
             stop("rejected", "The site did not retain the selected answer.");
             continue;
@@ -776,6 +790,7 @@
           }
           el.click();
           mutated = true;
+          pauseAfterChoice();
           if (!el.isConnected || el.checked !== value) {
             stop("rejected", "The site did not retain the selected answer.");
             continue;
@@ -1024,6 +1039,7 @@
             continue;
           }
           matches[0].click();
+          pauseAfterChoice();
           await new Promise((resolve) => setTimeout(resolve, 0));
           if (
             read(el) !== expected ||
@@ -1076,6 +1092,7 @@
         el.dispatchEvent(
           new Event("change", { bubbles: true, composed: true }),
         );
+        if (el instanceof HTMLSelectElement) pauseAfterChoice();
         el.blur();
         await new Promise((resolve) => setTimeout(resolve, 0));
         if (
