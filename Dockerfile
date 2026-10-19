@@ -1,5 +1,8 @@
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS frontend-build
 WORKDIR /frontend
+RUN apk add --no-cache python3
+COPY scripts/build_extension.py /scripts/build_extension.py
+COPY extensions/application-companion /extensions/application-companion
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
@@ -7,7 +10,7 @@ RUN npm run build
 
 FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
 
-FROM python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
+FROM python:3.14-slim-bookworm@sha256:48b13b003dda20b16f9442b8475aa05fe21bf6579a8c881db92ffb4d8fd20f83
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
@@ -16,6 +19,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SEMANTIC_MODEL_DIR=/opt/models/multilingual-e5-small \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project

@@ -24,13 +24,16 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from hiring_scraper.app.companion import router as companion_router
+from hiring_scraper.app.application_documents import router as application_documents_router
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, delete, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
-    Base, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
+    ApplicationMomentumEvent, Base, Company, ConfiguredLocation,
+    DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
     JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
     SemanticSearchIndexState, UserProfile,
     JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
@@ -38,11 +41,13 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.discovery_jobs import (
     configured_location_json, create_discovery_job as make_discovery_job, discovery_job_json, german_company_filter,
 )
+from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.app.feed_schedules import (
     configured_location_scope_payload, germany_search_scope_payload,
     is_synthetic_germany_scope, next_scope_due, queue_arbeitsagentur_scope,
 )
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
+from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
 from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_german_state
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
@@ -72,6 +77,7 @@ _SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
 _WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 _SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
+APPLICATION_WEEKLY_GOAL = max(1, int(os.getenv("APPLICATION_WEEKLY_GOAL", "10")))
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
 _QUERY_EMBEDDING_LOCK = threading.Lock()
 
@@ -109,6 +115,15 @@ def _semantic_index_ready(session: Session, entity_type: str) -> bool:
         SemanticSearchIndexState.entity_type == entity_type,
         SemanticSearchIndexState.model_revision == _SEMANTIC_MODEL_KEY,
     )))
+
+
+def _search_query_embedding(session: Session, query: str | None, entity_type: str) -> list[float] | None:
+    if not query or IS_SQLITE or not _semantic_index_ready(session, entity_type):
+        return None
+    # These read endpoints must return their connection before local HTTP I/O.
+    # A burst of embedding requests otherwise exhausts the database pool.
+    session.rollback()
+    return _query_embedding(query)
 
 
 class LocationQuery(BaseModel):
@@ -154,7 +169,8 @@ class ManagedFeedCreate(BaseModel):
     company_name: str | None = Field(default=None, max_length=500)
     website_url: str | None = Field(default=None, max_length=2000)
     feed_url: str = Field(min_length=8, max_length=2000)
-    provider: Literal["external_html", "browser_html", "rss", "ats", "arbeitsagentur"] = "external_html"
+    provider: Literal["auto", "external_html", "browser_html", "rss", "ats", "arbeitsagentur"] = "external_html"
+    track_company: bool = False
     location_query: str | None = Field(default=None, max_length=200)
     radius_km: float | None = Field(default=None, gt=0, le=200)
     terms: list[str] | None = Field(default=None, max_length=50)
@@ -244,6 +260,13 @@ def _managed_feed_source(url: str, provider: str,
                          source_config: dict[str, Any] | None = None) -> dict[str, Any]:
     """Resolve a manually entered career page to its bounded provider feed."""
     source_config = source_config or {}
+    if provider == "auto":
+        from hiring_scraper.ats import identify
+        identified = identify(url)
+        if identified and identified.get("provider") in ATS_FEED_PROVIDERS and identified.get("feed_url"):
+            provider = "ats"
+        else:
+            provider = "rss" if re.search(r'\.(?:rss|xml|atom)$', urlsplit(url).path, re.I) else "external_html"
     if provider == "arbeitsagentur":
         parts = urlsplit(url)
         if (parts.hostname or "").casefold().removeprefix("www.") != "arbeitsagentur.de" or not re.match(
@@ -428,12 +451,23 @@ def _nominatim_results(query: str) -> list[dict[str, Any]]:
             continue
         if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
             continue
+        city_label = ", ".join(value for value in (city, state) if value)
         results.append({"label": item.get("display_name", query), "city": city,
                         "postcode": address.get("postcode"), "state": state,
                         "latitude": latitude, "longitude": longitude,
                         "precision": "city_centroid" if item.get("addresstype") in {"city", "town", "village", "municipality"} else "place_point",
-                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place"})
+                        "country_code": "de", "type": item.get("type") or item.get("addresstype") or "place",
+                        "city_election_result": municipality_vote_result(city_label, "de")})
     return results
+
+
+def _with_city_election_results(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    enriched = []
+    for item in results:
+        city_label = ", ".join(value for value in (item.get("city"), item.get("state")) if value)
+        enriched.append({**item, "city_election_result": municipality_vote_result(
+            city_label or item.get("label"), item.get("country_code"))})
+    return enriched
 
 
 def _distance(company: Company, latitude: float, longitude: float) -> float:
@@ -676,7 +710,9 @@ def _job_json(job: Job, *, include_description: bool = False) -> dict[str, Any]:
                               employer_name.strip() if employer_name and employer_name.strip() else source_company.name)
     locations = [{"label": location.label, "latitude": location.latitude,
                   "longitude": location.longitude, "precision": location.precision,
-                  "country_code": location.country_code} for location in job.locations]
+                  "country_code": location.country_code,
+                  "city_election_result": municipality_vote_result(location.label, location.country_code)}
+                 for location in job.locations]
     data = {"id": job.id, "external_id": job.external_id, "title": job.title,
             "url": job.url, "company_id": company.id,
             "employer_company_id": job.employer_company_id,
@@ -724,6 +760,8 @@ def initialize_sqlite() -> None:
 
 
 app.include_router(profiles_router)
+app.include_router(companion_router)
+app.include_router(application_documents_router)
 
 
 @app.get("/health/ready")
@@ -796,15 +834,15 @@ def resolve_location(request: LocationQuery, session: Session = Depends(get_sess
         return {"query": request.query, "results": [_state_location(state)], "cached": True}
     normalized = _key(request.query)
     if normalized in {"karlsruhe", "karlsruhe baden württemberg", "karlsruhe baden-württemberg"}:
-        return {"query": request.query, "results": [KARLSRUHE], "cached": True}
+        return {"query": request.query, "results": _with_city_election_results([KARLSRUHE]), "cached": True}
     cached = session.scalar(select(LocationCache).where(LocationCache.query_key == normalized))
     if cached:
-        return {"query": request.query, "results": cached.results, "cached": True}
+        return {"query": request.query, "results": _with_city_election_results(cached.results), "cached": True}
     results = _nominatim_results(request.query)
     entry = LocationCache(query_key=normalized, results=results)
     session.add(entry)
     session.commit()
-    return {"query": request.query, "results": results, "cached": False}
+    return {"query": request.query, "results": _with_city_election_results(results), "cached": False}
 
 
 @app.get("/api/v1/locations")
@@ -1020,9 +1058,12 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
         map_complete = bool(cursor.get("done"))
         state_index = max(0, int(cursor.get("state_index", 0)))
         germany_map_progress = {
+            "job_id": germany_job.id,
             "status": germany_job.status,
             "stage": germany_job.stage,
             "complete": map_complete,
+            "resumable": (not map_complete and germany_job.status == "failed" and
+                          germany_job.stage == "company_homepage_discovery"),
             "states_completed": len(GERMAN_STATES) if map_complete else min(len(GERMAN_STATES), state_index),
             "current_state_number": None if map_complete else min(len(GERMAN_STATES), state_index + 1),
             "states_total": len(GERMAN_STATES),
@@ -1165,6 +1206,47 @@ def cancel_discovery_job(discovery_job_id: int,
     return discovery_job_json(job)
 
 
+@app.post("/api/v1/discovery-jobs/{discovery_job_id}/resume", status_code=202)
+def resume_discovery_job(discovery_job_id: int,
+                         session: Session = Depends(get_session)) -> dict[str, Any]:
+    """Continue an incomplete Germany map from its last persisted section."""
+    _lock_germany_inventory(session)
+    job = session.scalar(select(DiscoveryJob).where(
+        DiscoveryJob.id == discovery_job_id).with_for_update())
+    if job is None:
+        raise HTTPException(status_code=404, detail="Search not found")
+
+    cursor = job.map_cursor if isinstance(job.map_cursor, dict) else {}
+    if (job.search_scope != "country" or job.stage != "company_homepage_discovery" or
+            cursor.get("done")):
+        raise HTTPException(status_code=409, detail="Only an incomplete Germany map search can be resumed")
+
+    if job.status in {"scheduled", "queued", "running"}:
+        session.commit()
+        return discovery_job_json(job)
+    if job.status != "failed":
+        raise HTTPException(status_code=409, detail="Only a failed Germany map search can be resumed")
+    active = _active_germany_inventory(session)
+    if active is not None:
+        raise HTTPException(status_code=409, detail="Another Germany map search is already active")
+
+    now = utcnow()
+    state_number = min(len(GERMAN_STATES), max(0, int(cursor.get("state_index", 0))) + 1)
+    job.status = "queued"
+    job.scheduled_for = None
+    job.finished_at = None
+    job.location_scan_lease_until = None
+    job.location_scan_token = None
+    job.location_scan_attempt_count = 0
+    job.error = None
+    job.progress_message = (f"Resuming Germany map from saved progress · state {state_number} of "
+                            f"{len(GERMAN_STATES)}")
+    job.progress_updated_at = now
+    session.commit()
+    session.refresh(job)
+    return discovery_job_json(job)
+
+
 @app.get("/api/v1/companies")
 def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
                    longitude: float = Query(8.4034195, ge=-180, le=180),
@@ -1179,8 +1261,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
     base = select(Company).options(selectinload(Company.feeds))
     filters = []
     normalized_query = " ".join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "company") else None)
+    vector = _search_query_embedding(session, normalized_query, 'company')
     if normalized_query and vector is None:
         # Stay responsive while the local model is loading or unavailable.
         filters.append(Company.name.ilike(f"%{normalized_query}%"))
@@ -1310,7 +1391,7 @@ def _resolved_search_area(profile, latitude, longitude, radius_km, place, countr
 
 
 def _profile_match(job, profile, scope):
-    match = match_job(job_input(job), profile.preferences, current_enrichment(job))
+    match = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
     if scope is not None:
         match['unknowns'] = list(dict.fromkeys(match['unknowns'] + scope['unknowns']))
         if scope['unknowns']:
@@ -1505,11 +1586,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
 
 def _search_generation(session: Session) -> int:
     generation = session.scalar(select(func.max(JobSearchState.id)))
-    if generation is None:
-        session.add(JobSearchState())
-        session.flush()
-        generation = session.scalar(select(func.max(JobSearchState.id)))
-    return int(generation or 1)
+    return int(generation or 0)
 
 
 def _search_key(generation: int, criteria: dict[str, Any]) -> str:
@@ -1929,18 +2006,20 @@ def _claim_search_snapshot_refresh() -> tuple[str, dict[str, Any], str, datetime
 def _finish_search_snapshot_refresh(key: str, token: str, requested_at: datetime,
                                     *, retry: bool = False) -> None:
     with SessionLocal.begin() as session:
-        refresh = session.get(JobSearchRefresh, key)
-        if refresh is None or refresh.lease_token != token:
-            return
-        unchanged = refresh.requested_at == requested_at
-        refresh.lease_token = None
-        refresh.lease_until = None
-        if not unchanged:
-            return
-        if retry:
-            refresh.requested_at = utcnow()
-        else:
-            session.delete(refresh)
+        owned = (JobSearchRefresh.key == key, JobSearchRefresh.lease_token == token)
+        unchanged = (*owned, JobSearchRefresh.requested_at == requested_at)
+        if not retry:
+            removed = session.execute(delete(JobSearchRefresh).where(*unchanged))
+            if removed.rowcount:
+                return
+        # Conditional DML rechecks ownership after any concurrent enqueue or
+        # reclaim. A follow-up request keeps its timestamp and stays queued.
+        session.execute(update(JobSearchRefresh).where(*owned).values(
+            lease_token=None, lease_until=None,
+            requested_at=case((JobSearchRefresh.requested_at == requested_at, utcnow()),
+                              else_=JobSearchRefresh.requested_at) if retry
+                         else JobSearchRefresh.requested_at,
+        ))
 
 
 def process_search_snapshot_refresh_once() -> bool:
@@ -2222,8 +2301,7 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     thresholds: dict[int | None, tuple[int, bool]] = {}
     thresholds[None] = (0, True)
     normalized_query = ' '.join(query.split()) if query else None
-    vector = (_query_embedding(normalized_query)
-              if normalized_query and not IS_SQLITE and _semantic_index_ready(session, "job") else None)
+    vector = _search_query_embedding(session, normalized_query, 'job')
     if vector is not None:
         semantic_page = _semantic_jobs_page(
             session, vector,
@@ -2371,12 +2449,66 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             'snapshot_id': key, 'snapshot_stale': snapshot_stale}
 
 
+def _application_momentum_json(session: Session) -> dict[str, int]:
+    now = utcnow()
+    week_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+    weekly_jobs: dict[datetime, set[int]] = {}
+    lifetime_jobs: set[int] = set()
+    applied_events = session.execute(select(
+        ApplicationMomentumEvent.job_id,
+        ApplicationMomentumEvent.occurred_at,
+        ApplicationMomentumEvent.is_legacy,
+    ).where(ApplicationMomentumEvent.event_type == 'applied')
+        .order_by(ApplicationMomentumEvent.occurred_at)).all()
+    counted_weekly_jobs: set[int] = set()
+    for job_id, occurred_at, is_legacy in applied_events:
+        lifetime_jobs.add(job_id)
+        if is_legacy or job_id in counted_weekly_jobs:
+            continue
+        counted_weekly_jobs.add(job_id)
+        occurred_at = occurred_at.replace(tzinfo=timezone.utc) if occurred_at.tzinfo is None else occurred_at.astimezone(timezone.utc)
+        event_week = occurred_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=occurred_at.weekday())
+        weekly_jobs.setdefault(event_week, set()).add(job_id)
+
+    weekly_goal = APPLICATION_WEEKLY_GOAL
+    applied_this_week = len(weekly_jobs.get(week_start, set()))
+    successful_weeks = 0
+    streak_week = week_start
+    if len(weekly_jobs.get(streak_week, set())) < weekly_goal:
+        streak_week -= timedelta(days=7)
+    while len(weekly_jobs.get(streak_week, set())) >= weekly_goal:
+        successful_weeks += 1
+        streak_week -= timedelta(days=7)
+
+    interview_count = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'interview',
+    )) or 0
+    jobs_won = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
+        ApplicationMomentumEvent.event_type == 'accepted',
+    )) or 0
+    return {
+        'weekly_goal': weekly_goal,
+        'applied_this_week': applied_this_week,
+        'lifetime_applied': len(lifetime_jobs),
+        'successful_weeks': successful_weeks,
+        'interview_count': interview_count,
+        'jobs_won': jobs_won,
+    }
+
+
+@app.get('/api/v1/application-momentum')
+def get_application_momentum(session: Session = Depends(get_session)) -> dict[str, int]:
+    return _application_momentum_json(session)
+
+
 @app.put('/api/v1/profiles/{profile_id}/applications/{job_id}')
 def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
     require_profile(profile_id, session)
     if session.get(Job, job_id) is None:
         raise HTTPException(status_code=404, detail='Job not found')
+    previous_status = session.scalar(select(JobApplication.status).where(
+        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
     # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
     if session.get_bind().dialect.name == 'sqlite':
         from sqlalchemy.dialects.sqlite import insert
@@ -2394,6 +2526,26 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
                 'updated_at': now,
             })
     session.execute(statement)
+    momentum_event_type = {
+        'waiting_for_reply': 'applied',
+        'automated_application': 'applied',
+        'interview': 'interview',
+        'accepted': 'accepted',
+    }.get(request.status)
+    if request.action == 'stage' and momentum_event_type and previous_status != request.status:
+        # Count a profile/job only once across the manual and autofill sent stages.
+        already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
+            ApplicationMomentumEvent.profile_id == profile_id,
+            ApplicationMomentumEvent.job_id == job_id,
+            ApplicationMomentumEvent.event_type == 'applied',
+        ).limit(1)) is not None
+        if not already_counted:
+            session.add(ApplicationMomentumEvent(
+                profile_id=profile_id,
+                job_id=job_id,
+                event_type=momentum_event_type,
+                occurred_at=now,
+            ))
     session.commit()
     application = session.scalar(select(JobApplication).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)
@@ -2595,74 +2747,117 @@ def _managed_feed_json(feed: JobFeed) -> dict[str, Any]:
 
 @app.get("/api/v1/feeds")
 def list_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
-    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).order_by(
-        Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
+    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.provider != "manual_job").order_by(
+            Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
     return {"items": [_managed_feed_json(feed) for feed in feeds], "total": len(feeds)}
 
 
 @app.post("/api/v1/feeds", status_code=201)
 def create_managed_feed(request: ManagedFeedCreate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
+    if session.get_bind().dialect.name == 'sqlite':
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
     source_url = _managed_page_url(request.feed_url)
     source_config = _managed_feed_config(session, request, request.provider)
     source = _managed_feed_source(source_url, request.provider, source_config)
     website_url = _managed_page_url(request.website_url, "Company website") if request.website_url else None
+    track_company = getattr(request, "track_company", False)
+    if website_url and is_hosted_job_site(website_url):
+        raise HTTPException(status_code=422, detail="Enter the employer's own website, rather than its hosted job board")
+    if not website_url and not is_hosted_job_site(source_url):
+        parts = urlsplit(source_url)
+        website_url = f"{parts.scheme}://{parts.netloc}/"
     company = session.get(Company, request.company_id) if request.company_id else None
     if request.company_id and company is None:
         raise HTTPException(status_code=404, detail="Company not found")
+    if company is None and website_url:
+        company = find_company_by_website(session, website_url)
+    if company is None and not request.company_id:
+        # The canonical ATS feed URL includes the tenant; its shared host alone
+        # must never combine different employers.
+        source_company = session.scalar(select(Company).join(JobFeed).where(
+            JobFeed.feed_url == source["feed_url"]).order_by(Company.id).limit(1))
+        if source_company is not None and (not request.website_url or not source_company.domain):
+            company = source_company
+    company_created = company is None
     if company is None:
         company_name = (request.company_name or "").strip()
         if len(company_name) < 2:
             if request.provider == "arbeitsagentur":
                 company_name = "Agentur für Arbeit"
             else:
-                host = (urlsplit(source["board_url"]).hostname or "job source").casefold().removeprefix("www.")
-                company_name = f"Jobs · {host}"
-        normalized = _key(company_name)
-        source_id = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+                company_name = source.get("tenant") or company_domain(website_url or source["board_url"])
+        domain = company_domain(website_url) if website_url else None
+        identity = f"domain:{domain}" if domain else f"feed:{source['feed_url']}"
+        source_id = hashlib.sha256(identity.encode("utf-8")).hexdigest()
         company = session.scalar(select(Company).where(
             Company.source == "managed_feed", Company.source_id == source_id))
+        company_created = company is None
         if company is None:
-            website_host = urlsplit(website_url).hostname if website_url else None
-            company = Company(source="managed_feed", source_id=source_id,
+            company_values = dict(source="managed_feed", source_id=source_id,
                               name=company_name, website_url=website_url,
-                              domain=website_host, category="job_board_source",
+                              domain=domain, category="manual_company" if track_company else "job_board_source",
                               source_url=source["board_url"], career_url=source["board_url"],
-                              career_status="jobs_feed_found")
-            session.add(company)
-            session.flush()
-        elif website_url:
+                              career_status="jobs_feed_found",
+                              next_discovery_at=utcnow() if track_company and website_url else None)
+            company_id = session.scalar(insert(Company).values(**company_values).on_conflict_do_nothing(
+                index_elements=['source', 'source_id']).returning(Company.id))
+            company_created = company_id is not None
+            company = (session.get(Company, company_id) if company_created else
+                       session.scalar(select(Company).where(
+                           Company.source == 'managed_feed', Company.source_id == source_id)))
+    if website_url:
+        if not company.website_url:
             company.website_url = website_url
-            if company.domain_match_method != "manual":
-                company.domain = urlsplit(website_url).hostname
+        if not company.domain and company.domain_match_method != "manual":
+            company.domain = company_domain(website_url)
+    if track_company:
+        if company.source == "extension_job" and company.category == "job_posting":
+            company.crawl_paused = False
+            company.category = "manual_company"
+        if company.category == "job_board_source" and website_url:
+            company.category = "manual_company"
+        if not company.career_url_manual:
+            company.career_url = source["board_url"]
+            company.career_status = "jobs_feed_found"
+        if company.website_url and not company.crawl_paused:
+            company.next_discovery_at = utcnow()
     duplicate = session.scalar(select(JobFeed).where(
         JobFeed.company_id == company.id, JobFeed.provider == source["provider"],
         JobFeed.feed_url == source["feed_url"]))
     if duplicate:
+        if track_company:
+            session.commit()
+            return {**_managed_feed_json(duplicate), "company_created": False, "already_tracked": True}
         raise HTTPException(status_code=409, detail="This page is already managed for this company")
     now = utcnow()
-    feed = JobFeed(company_id=company.id, provider=source["provider"], tenant=source["tenant"],
+    feed_values = dict(company_id=company.id, provider=source["provider"], tenant=source["tenant"],
                    source_config=source_config, board_url=source["board_url"], feed_url=source["feed_url"], status="pending",
                    enabled=True, job_count=0,
                    next_scan_at=now if source["provider"] != "arbeitsagentur" else None)
-    session.add(feed)
-    session.flush()
-    if source["provider"] == "arbeitsagentur":
+    feed_id = session.scalar(insert(JobFeed).values(**feed_values).on_conflict_do_nothing(
+        index_elements=['company_id', 'provider', 'feed_url']).returning(JobFeed.id))
+    already_tracked = feed_id is None
+    if already_tracked and not track_company:
+        raise HTTPException(status_code=409, detail="This page is already managed for this company")
+    feed = (session.get(JobFeed, feed_id) if feed_id is not None else
+            session.scalar(select(JobFeed).where(JobFeed.company_id == company.id,
+                JobFeed.provider == source['provider'], JobFeed.feed_url == source['feed_url'])))
+    if source["provider"] == "arbeitsagentur" and not already_tracked:
         _schedule_managed_arbeitsagentur_feed(session, feed, now)
     session.commit()
     session.refresh(feed)
-    return _managed_feed_json(feed)
+    return {**_managed_feed_json(feed), "company_created": company_created, "already_tracked": already_tracked}
 
 
 @app.patch("/api/v1/feeds/{feed_id}")
 def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    # Acquire the feed write lock before reading its revision. The no-op update
-    # also serializes this path on SQLite, where SELECT FOR UPDATE is ignored.
-    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
-        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
-    if locked.rowcount != 1:
-        raise HTTPException(status_code=404, detail="Job feed not found")
+    # Prepare URLs and geocoding before taking source row locks. Recheck the
+    # revision after locking so an edit cannot overwrite a concurrent edit.
     feed = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
         JobFeed.id == feed_id)).first()
     if feed is None:
@@ -2696,6 +2891,20 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         source = {"provider": feed.provider, "feed_url": feed.feed_url,
                   "board_url": feed.board_url or feed.feed_url, "tenant": feed.tenant}
         source_config = feed.source_config or {}
+    prepared_revision = feed.source_revision
+    company_id = feed.company_id
+    # Persist any location cache entry and release the preparation connection.
+    session.commit()
+    if session.get_bind().dialect.name == 'postgresql':
+        session.scalar(select(Company.id).where(Company.id == company_id).with_for_update())
+    locked = session.execute(update(JobFeed).where(JobFeed.id == feed_id).values(
+        source_revision=JobFeed.source_revision).execution_options(synchronize_session=False))
+    if locked.rowcount != 1:
+        raise HTTPException(status_code=404, detail="Job feed not found")
+    feed = session.scalar(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.id == feed_id).execution_options(populate_existing=True))
+    if feed.source_revision != prepared_revision or feed.company_id != company_id:
+        raise HTTPException(status_code=409, detail="Job feed changed during this edit; reload and try again")
     new_url = source["feed_url"]
     new_provider = source["provider"]
     new_board_url = source["board_url"]

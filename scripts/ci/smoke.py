@@ -6,23 +6,28 @@ import json
 import os
 import re
 import time
+from datetime import timedelta
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 from dotenv import dotenv_values
-from sqlalchemy import func, select, text
+from sqlalchemy import create_engine, func, select, text
 
-database_password = dotenv_values('/run/app-bootstrap.env').get('HIRING_DB_PASSWORD')
+bootstrap_environment = dotenv_values('/run/app-bootstrap.env')
+database_password = bootstrap_environment.get('HIRING_DB_PASSWORD')
 if not database_password:
     raise RuntimeError('HIRING_DB_PASSWORD is missing from the CI bootstrap environment file')
+postgres_password = bootstrap_environment.get('POSTGRES_PASSWORD')
+if not postgres_password:
+    raise RuntimeError('POSTGRES_PASSWORD is missing from the CI bootstrap environment file')
 os.environ['DATABASE_URL'] = (
     f"postgresql+psycopg://hiring_app:{quote(database_password, safe='')}@db:5432/hiring"
 )
 
 from hiring_scraper.app.database import SessionLocal
-from hiring_scraper.app.models import Company, Job, JobFeed
+from hiring_scraper.app.models import Company, Job, JobFeed, utcnow
 from hiring_scraper.app.seed import import_fixture
 
 WEB = 'http://app:8000'
@@ -45,8 +50,108 @@ def database_counts() -> dict:
         assert session.bind.dialect.name == 'postgresql'
         assert session.scalar(text('SELECT current_user')) == 'hiring_app'
         assert session.scalar(text('SELECT postgis_version()'))
+        recorded, actual = session.execute(text(
+            'SELECT datcollversion, pg_database_collation_actual_version(oid) '
+            'FROM pg_database WHERE datname = current_database()'
+        )).one()
+        assert actual is not None and recorded == actual, (
+            f'Database collation version is stale or unavailable: {recorded!r} != {actual!r}'
+        )
         return {name: session.scalar(select(func.count()).select_from(model))
                 for name, model in [('companies', Company), ('feeds', JobFeed), ('jobs', Job)]}
+
+
+def exercise_company_domain_index() -> None:
+    # A lease-only update still inserts a new tuple into every index when the
+    # indexed lease column changes, including ix_companies_domain.
+    with SessionLocal.begin() as session:
+        company = session.scalars(select(Company).limit(1)).first()
+        assert company is not None, 'The company fixture was not imported'
+        company.discovery_lease_until = utcnow() + timedelta(minutes=1)
+
+
+def exercise_collation_repair_migration() -> None:
+    # Force stale catalog metadata, then run the real migration on the fresh
+    # CI database. Rewinding newer empty-table migrations lets CI exercise the
+    # historical repair against every current migration without deleting data.
+    admin_url = (
+        f"postgresql+psycopg://postgres:{quote(postgres_password, safe='')}@db:5432/hiring"
+    )
+    admin_engine = create_engine(admin_url)
+    try:
+        with admin_engine.connect() as connection:
+            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
+            assert version == '0029_parallel_application_stages', (
+                f'Expected the current migration head, got {version!r}'
+            )
+            counts = connection.execute(text(
+                'SELECT (SELECT count(*) FROM user_profiles), '
+                '(SELECT count(*) FROM profile_cvs), '
+                '(SELECT count(*) FROM job_applications)'
+            )).one()
+            assert counts == (0, 0, 0), (
+                'The collation migration smoke must run before fixture or user data is added'
+            )
+
+        from alembic import command
+        from alembic.config import Config
+
+        app_database_url = os.environ['DATABASE_URL']
+        os.environ['DATABASE_URL'] = admin_url
+        try:
+            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
+            command.downgrade(config, '0026_weekly_goal_environment')
+        finally:
+            os.environ['DATABASE_URL'] = app_database_url
+
+        with admin_engine.begin() as connection:
+            # Alembic represents the mergepoint downgrade as both parent
+            # revisions. Keep the app/journey parent applied and mark only the
+            # collation branch as pending so this upgrade executes 0025 again.
+            deleted = connection.execute(text(
+                "DELETE FROM alembic_version "
+                "WHERE version_num = '0025_postgres_collation_repair'"
+            ))
+            assert deleted.rowcount == 1, (
+                'Expected the PostgreSQL collation revision at the migration branchpoint'
+            )
+            connection.execute(text(
+                "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
+                'WHERE datname = current_database()'
+            ))
+            recorded = connection.scalar(text(
+                'SELECT datcollversion FROM pg_database WHERE datname = current_database()'
+            ))
+            assert recorded == 'ci-forced-stale', 'Could not force stale collation metadata'
+
+        with admin_engine.connect() as connection:
+            revisions = set(connection.scalars(text('SELECT version_num FROM alembic_version')))
+            assert revisions == {'0026_weekly_goal_environment'}, (
+                f'Expected only the application branch applied, got {revisions!r}'
+            )
+
+        app_database_url = os.environ['DATABASE_URL']
+        os.environ['DATABASE_URL'] = admin_url
+        try:
+            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
+            command.upgrade(config, 'head')
+        finally:
+            os.environ['DATABASE_URL'] = app_database_url
+
+        with admin_engine.connect() as connection:
+            recorded, actual = connection.execute(text(
+                'SELECT datcollversion, pg_database_collation_actual_version(oid) '
+                'FROM pg_database WHERE datname = current_database()'
+            )).one()
+            assert actual is not None and recorded == actual, (
+                f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
+            )
+            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
+            assert version == '0029_parallel_application_stages', (
+                f'Collation migration did not return to head: {version!r}'
+            )
+    finally:
+        admin_engine.dispose()
 
 
 def main() -> None:
@@ -64,8 +169,10 @@ def main() -> None:
     assert before == {'companies': 0, 'feeds': 0, 'jobs': 0}, 'Fresh startup imported fixture data'
     assert read(WEB + '/api/v1/companies?limit=1')['total'] == 0
 
+    exercise_collation_repair_migration()
     imported = import_fixture(Path('fixtures/karlsruhe-osm-candidates.csv'),
                               Path('fixtures/karlsruhe-career-enrichment.json'))
+    exercise_company_domain_index()
     after_import = database_counts()
     assert imported == after_import and imported['companies'] > 0 and imported['jobs'] > 0
     assert read(WEB + '/api/v1/companies?limit=1')['total'] > 0
@@ -138,6 +245,7 @@ def main() -> None:
                       'application_role': 'hiring_app', 'fresh_database': before,
                       'repeat_import': repeated,
                       'checks': ['empty fresh startup', 'static assets and SPA', 'same-origin API',
+                                 'stale collation repair migration and domain index update',
                                  'profile create/edit/validation/delete', 'regional defaults',
                                  'unique pagination', 'list/detail agreement', 'country override']}, indent=2))
 

@@ -4,9 +4,9 @@ import SiteHeader from './SiteHeader'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
 import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
-const empty = (): Profile => ({ name: '', summary: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
-  education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true } })
+  education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
 
 export default function ProfilesPage() {
@@ -34,20 +34,23 @@ function ProfileOverviewPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-overview-page">
-    <section className="profile-overview-heading"><div><p className="eyebrow">YOUR NEXT ROLE</p><h1>Your job profiles</h1>
+  return <div className="app-shell"><SiteHeader active="settings" /><main className="content profile-overview-page">
+    <section className="profile-overview-heading"><div><h1>Your job profiles</h1>
       <p className="intro-copy">Save profile search areas and application context. Job search is ranked by text relevance, not by profile match scores.</p></div></section>
     {error && <div className="error-banner" role="alert">{error}</div>}
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profiles…</div> : <div className="profile-overview-grid">
       {profiles.map(profile => {
         const tags = [`${profile.skills.length} skills`, ...profile.desired_roles.slice(0, 2),
           ...(profile.search_area ? [`${profile.search_area.city || profile.search_area.label} · ${profile.search_area.radius_km} km`] : []),
+          ...(profile.search_area?.city_election_result ? [`AfD ${profile.search_area.city_election_result.vote_share_percent}% · 2025`] : []),
+          ...(profile.matching_defaults?.low_afd_vote_share_weight ? [`City preference · up to ${profile.matching_defaults.low_afd_vote_share_weight} pts`] : []),
           ...profile.work_styles.slice(0, 2).map(style => style.replaceAll('_', ' '))].slice(0, 5)
         return <article className="saved-profile" key={profile.id}>
           <header className="saved-profile-header"><span className="saved-profile-avatar" aria-hidden="true">{profile.name.slice(0, 1).toUpperCase()}</span>
             <div><h2>{profile.name}</h2><small>{profile.summary || profile.skills.slice(0, 3).join(' · ') || 'Add skills and roles to tune this profile.'}</small></div>
           </header>
           <div className="profile-overview-tags">{tags.map((tag, index) => <span key={`${tag}-${index}`}>{tag}</span>)}</div>
+          <p className="saved-profile-cv">{profile.cv ? `CV attached · ${profile.cv.filename}` : 'No CV attached yet'}</p>
           <footer className="saved-profile-actions">
             <a className="page-link" href={profileBoardLink(profile)}>View jobs in this area <span aria-hidden="true">→</span></a>
             <a className="page-link" href={`/applications?profile_id=${profile.id}`}>Applications <span aria-hidden="true">→</span></a>
@@ -72,10 +75,13 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   const [areaQuery, setAreaQuery] = useState('')
   const [areaChoices, setAreaChoices] = useState<SearchArea[]>([])
   const [cv, setCV] = useState('')
+  const [pendingCV, setPendingCV] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(Boolean(profileId))
+  const requestedReturn = new URLSearchParams(window.location.search).get('return_to') ?? ''
+  const returnTo = /^\/jobs\/\d+\/apply(?:\?profile_id=\d+)?$/.test(requestedReturn) ? requestedReturn : ''
 
   async function request(path: string, options?: RequestInit) {
     const response = await fetch(`${API}/api/v1/profiles${path}`, options)
@@ -84,7 +90,9 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     return data
   }
   function edit(profile: Profile) {
-    setForm({ ...empty(), ...Object.fromEntries(Object.keys(empty()).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])), id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText(profile.desired_roles.join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
+    const defaults = empty()
+    setForm({ ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
+      matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText((profile.desired_roles ?? []).join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
   }
   function toggle(key: 'work_styles' | 'employment_types' | 'seniority_levels' | 'languages', value: string) {
     setForm(previous => ({ ...previous, [key]: previous[key].includes(value) ? previous[key].filter(item => item !== value) : [...previous[key], value] }))
@@ -92,12 +100,39 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     try {
-      const { id, ...payload } = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const payload = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const id = payload.id
+      delete payload.id
+      delete payload.cv
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit`)
-      edit(saved); setNotice('Profile saved. Its search area is available on the jobs page.')
+      setForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
+      if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit${returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : ''}`)
+      if (pendingCV) {
+        const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}`,
+          { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pendingCV })
+        const metadata = await uploaded.json()
+        if (!uploaded.ok) throw new Error(typeof metadata.detail === 'string' ? metadata.detail : 'Could not attach this CV.')
+        saved.cv = metadata
+        setPendingCV(null)
+      }
+      edit(saved); setNotice(returnTo && !saved.cv ? 'Profile saved. Attach your CV above to continue.' : 'Profile saved. Its search area is available on the jobs page.')
+      if (returnTo && saved.cv) {
+        const destination = new URL(returnTo, window.location.origin)
+        destination.searchParams.set('profile_id', String(saved.id))
+        window.location.href = destination.pathname + destination.search
+      }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save your profile.') }
+    finally { setBusy(false) }
+  }
+  async function removeCV() {
+    if (!form.id) return
+    setBusy(true); setError('')
+    try {
+      const response = await fetch(`${API}/api/v1/profiles/${form.id}/cv`, { method: 'DELETE' })
+      if (!response.ok) throw new Error('Could not remove the CV. Try again.')
+      setForm(current => ({ ...current, cv: null })); setPendingCV(null); setNotice('CV removed from this profile.')
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not remove the CV.') }
     finally { setBusy(false) }
   }
   async function removeProfile() {
@@ -115,7 +150,8 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
       const response = await fetch(`${API}/api/v1/locations/resolve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: areaQuery.trim() }) })
       const payload = await response.json()
       if (!response.ok) throw new Error('Could not find that area. Try a German city or postcode.')
-      setAreaChoices(payload.results.map((item: SearchArea) => ({ label: item.label, city: item.city, latitude: item.latitude, longitude: item.longitude, country_code: 'DE', radius_km: form.search_area?.radius_km ?? 35 })))
+      setAreaChoices(payload.results.map((item: SearchArea) => ({ label: item.label, city: item.city, latitude: item.latitude, longitude: item.longitude,
+        country_code: 'DE', city_election_result: item.city_election_result, radius_km: form.search_area?.radius_km ?? 35 })))
       if (!payload.results.length) setError('No matching area found. Try a German city or postcode.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not find that area.') }
     finally { setBusy(false) }
@@ -141,9 +177,9 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     <fieldset className="profile-choices"><legend>{label} <small>{key === 'languages' ? 'Optional; omitted languages stay unknown' : 'Leave empty for any'}</small></legend>{values.map(([value,text]) =>
       <label key={value}><input type="checkbox" checked={form[key].includes(value)} onChange={() => toggle(key,value)} />{text}</label>)}</fieldset>
 
-  return <div className="app-shell"><SiteHeader active="profile" /><main className="content profile-editor-page">
+  return <div className="app-shell"><SiteHeader active="settings" /><main className="content profile-editor-page">
     <a className="page-link profile-back-link" href="/profile">← All profiles</a>
-    <section className="detail-hero"><p className="eyebrow">YOUR NEXT ROLE</p><h1>{form.id ? `Edit ${form.name}` : 'Create a profile'}</h1>
+    <section className="detail-hero"><h1>{form.id ? `Edit ${form.name}` : 'Create a profile'}</h1>
       <p className="intro-copy">Tell us what you can do and what you’re looking for. Matching jobs start within your selected area; choose remote roles separately on the jobs board.</p>
       <p className="muted">This early version uses explicit skills and interests. It does not infer qualifications from your name, age, or other personal details.</p>
     </section>
@@ -152,6 +188,35 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profile…</div> : <form className="detail-panel profile-form" onSubmit={save}>
         <h2>{form.id ? 'Edit your profile' : 'Create a profile'}</h2>
         <label>Profile name<input required maxLength={120} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Backend developer" /></label>
+        <fieldset className="profile-section"><legend>Application details</legend>
+          <p className="muted">Saved with this profile and synced to the browser extension. Enter confirmed facts only; leave unknown answers blank. Your profile name above is a label, not your applicant name.</p>
+          {([['first_name', 'First name'], ['last_name', 'Last name'], ['email', 'Email'], ['phone', 'Phone'], ['street', 'Street'], ['postal_code', 'Postal code'], ['city', 'City'], ['country', 'Country'], ['linkedin', 'LinkedIn URL'], ['website', 'Website URL'], ['portfolio', 'Portfolio URL'], ['github', 'GitHub URL']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input maxLength={300} type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : ['linkedin', 'website', 'portfolio', 'github'].includes(key) ? 'url' : 'text'} value={form.application_details?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, [key]: event.target.value } })} /></label>)}
+          {([['salary_amount', 'Expected salary'], ['salary_currency', 'Salary currency (e.g. EUR)'], ['salary_period', 'Salary period (e.g. year)'], ['available_from', 'Available from'], ['notice_period', 'Notice period'], ['weekly_hours', 'Weekly hours'], ['employment_type', 'Employment type'], ['authorization_country', 'Work authorization country']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input maxLength={300} value={form.application_details?.preferences?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
+          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate']] as const).map(([key, label]) =>
+            <label key={key}>{label}<select value={form.application_details?.preferences?.[key] == null ? '' : String(form.application_details.preferences[key])}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
+              <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
+        </fieldset>
+        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Your CV</legend>
+          <p>Attach it once. We’ll reuse its text when you start an application.</p>
+          {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>
+            <a href={`${API}/api/v1/profiles/${form.id}/cv`}>Download CV</a>
+            <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove CV</button></div>}
+          <label>{form.cv ? 'Replace CV' : 'Attach CV'}<input type="file" accept=".pdf,.docx,.txt" disabled={busy}
+            onChange={event => { const file = event.target.files?.[0] ?? null; if (file && file.size > 5 * 1024 * 1024) { setError('CV files must be 5 MB or smaller.'); event.target.value = ''; setPendingCV(null) } else { setPendingCV(file); setError('') } }} /></label>
+          <small>PDF, DOCX or TXT · up to 5 MB. Choose DOCX to keep your original layout when editing and exporting to PDF. Saved with your profile.</small>
+          {pendingCV && <p role="status">{pendingCV.name} · ready to save</p>}
+        </fieldset>
+        <fieldset className="profile-section"><legend>Application writing preferences</legend>
+          <label htmlFor="profile-custom-instructions">Custom application instructions</label>
+          <textarea id="profile-custom-instructions" aria-describedby="profile-instructions-help" rows={5} maxLength={5000} value={form.custom_instructions} onChange={event => setForm({ ...form, custom_instructions: event.target.value })}
+            placeholder="For example: Write in German. Keep my cover letter under 250 words, use a warm, direct voice, and focus on research coordination." />
+          <small id="profile-instructions-help">Saved for every application using this profile. Add your preferred voice, language or points to emphasize. Documents match the job posting by default. You can override these preferences for an individual application.</small>
+        </fieldset>
         <label>Profile summary<textarea maxLength={5000} value={form.summary} onChange={event => setForm({ ...form, summary: event.target.value })} /></label>
         <label>Skills <small>Separate with commas; you can add skills beyond our suggestions</small><textarea maxLength={8000} value={skillsText} onChange={event => setSkillsText(event.target.value)} placeholder="Python, SQL, Docker, project management" /></label>
         <label>Roles you’re interested in <small>Separate with commas</small><input value={rolesText} onChange={event => setRolesText(event.target.value)} placeholder="Software developer, backend" /></label>
@@ -171,6 +236,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           <label>Change city or postcode<input value={areaQuery} onChange={event => setAreaQuery(event.target.value)} placeholder="e.g. Mannheim" /></label>
           <button type="button" disabled={busy || areaQuery.trim().length < 2} onClick={() => void findArea()}>Find area</button>
           {areaChoices.map((area,index) => <button type="button" key={index} onClick={() => { setForm({ ...form, search_area: area }); setAreaChoices([]) }}>{area.label}</button>)}
+          {form.search_area?.city_election_result && <p className="evidence-note city-election-note"><strong>{form.search_area.city_election_result.election}:</strong> AfD received {form.search_area.city_election_result.vote_share_percent}% of valid second votes in {form.search_area.city_election_result.municipality}. This is an aggregate election result, not a current poll. {form.search_area.city_election_result.postal_ballots_included ? 'Assigned postal ballots are included.' : 'This figure includes polling-place votes only; postal ballots were counted for a shared local authority.'} <a href={form.search_area.city_election_result.source_url} target="_blank" rel="noreferrer">Source</a></p>}
           {form.search_area ? <><div className="profile-area-grid">
             <label>Selected city<input readOnly value={form.search_area.city || form.search_area.label} /></label>
             <label>Radius (km)<input type="number" min={1} max={200} value={form.search_area.radius_km} onChange={event => setForm({ ...form, search_area: { ...form.search_area!, radius_km: Number(event.target.value) } })} /></label>
@@ -196,9 +262,10 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
         <fieldset className="profile-section"><legend>Board defaults</legend>
           <label>Minimum overlap score<input type="number" min={0} max={100} value={form.matching_defaults.min_match_score} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, min_match_score: Number(event.target.value) } })} /></label>
           <label className="unknown-filter"><input type="checkbox" checked={form.matching_defaults.include_unknown} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, include_unknown: event.target.checked } })} />Include possible leads with missing information</label>
+          <label>Prefer cities with lower AfD vote shares <small>Adjust scores by up to this many points; set to 0 to turn it off. Shares below 25% raise a score and shares above 25% lower it. Only unambiguous municipality results with assigned postal ballots affect scores; fully remote jobs stay unchanged.</small><input type="number" min={0} max={20} value={form.matching_defaults.low_afd_vote_share_weight ?? 0} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, low_afd_vote_share_weight: Number(event.target.value) } })} /></label>
         </fieldset>
         <label>Hide job titles containing <small>Separate with commas</small><input value={excludedText} onChange={event => setExcludedText(event.target.value)} placeholder="Internship, Praktikum" /></label>
-        <button className="primary-button" disabled={busy} type="submit">{busy ? 'Working…' : 'Save profile'}</button>
+        <button className="primary-button" disabled={busy} type="submit">{busy ? 'Saving…' : returnTo ? 'Save & continue' : 'Save profile'}</button>
         {form.id && <div className="profile-editor-actions">
           <a className="page-link" href={profileBoardLink(form)}>View jobs in this area →</a>
           <button type="button" className="profile-delete-button" disabled={busy} onClick={() => void removeProfile()}>Delete profile</button>

@@ -1,0 +1,47 @@
+{
+  "format": "radius-application-v1",
+  "job_id": 1574,
+  "profile_id": 1,
+  "cv_updated_at": "2026-10-16T22:28:31.209875",
+  "cv": [
+    {
+      "id": 1,
+      "text": "Projektmanagerin | Forschung, Förderung & Digitalisierung"
+    },
+    {
+      "id": 4,
+      "text": "Berufliches Profil"
+    },
+    {
+      "id": 5,
+      "text": "Projektmanagerin mit elf Jahren Erfahrung in Forschungs-, Engineering- und Digitalisierungsprojekten. Steuerung von Förderanträgen, Meilensteinen, Budgets und prüffähigen Nachweisen."
+    },
+    {
+      "id": 12,
+      "text": "Steuerung von sechs Forschungs- und Digitalisierungsprojekten mit 2,4 Mio. € Gesamtbudget; Koordination von Engineering, Hochschulpartnern und Finanzen von der Antragstellung bis zum Abschlussbericht."
+    },
+    {
+      "id": 13,
+      "text": "Erstellung von Förderanträgen, Meilensteinplänen und prüffähigen Kostennachweisen; 780.000 € bewilligte Fördermittel aus drei erfolgreichen Verbundanträgen."
+    },
+    {
+      "id": 19,
+      "text": "Koordination technischer Änderungsprojekte zwischen Entwicklung, Einkauf und Produktion; integrierte Terminplanung für Teams mit acht bis zwölf Personen."
+    },
+    {
+      "id": 20,
+      "text": "Pflege von Lieferantennachweisen, Bestellungen und Projektkosten; termingerechte Umsetzung eines Modernisierungsprogramms über 620.000 € unterstützt."
+    },
+    {
+      "id": 25,
+      "text": "Erstellung Excel-basierter Kostenmodelle, Entscheidungsvorlagen und Aufgabenlisten für industrielle Digitalisierungsprojekte."
+    },
+    {
+      "id": 26,
+      "text": "Analyse administrativer Abläufe und Unterstützung der Einführung eines Dokumentenmanagementsystems für 45 Beschäftigte."
+    }
+  ],
+  "cover_letter": "Mara Neumann\nKarlsruhe · mara.neumann@example.com\n\nBewerbung als Projektmanagerin Forschungs- und Förderprojekte\n\nLiebes Recruiting-Team,\n\nForschungsprojekte brauchen eine verlässliche Verbindung zwischen technischer Arbeit, Förderbedingungen und nachvollziehbaren Nachweisen. In meiner bisherigen Arbeit koordiniere ich Engineering, Hochschulpartner und Finanzen von der Antragstellung bis zum Abschlussbericht.\n\nBei Rheinbogen Systems steuere ich sechs Forschungs- und Digitalisierungsprojekte mit einem Gesamtbudget von 2,4 Millionen Euro. Für Förderanträge und Berichte halte ich Meilensteine, Kosten und Zuständigkeiten zusammen. Ein gemeinsames Projekt-Dashboard und regelmäßige Risikoprüfungen haben dabei geholfen, überfällige Aufgaben um 28 Prozent zu reduzieren.\n\nDiese Erfahrung möchte ich in die Koordination Ihrer Forschungs- und Förderprojekte einbringen.\n\nFreundliche Grüße\nMara Neumann",
+  "application_answers": "Q: Why this role?\nA: Ich verbinde Forschungsprojektsteuerung mit Förderanträgen, Budgetkontrolle und der Abstimmung zwischen technischen Teams und Hochschulpartnern.\nQ: Relevant experience?\nA: Ich steuere sechs Forschungs- und Digitalisierungsprojekte mit 2,4 Millionen Euro Gesamtbudget und koordiniere die Zusammenarbeit zwischen Engineering, Hochschulpartnern und Finanzen.",
+  "review_notes": "Fictional demonstration package for Mara Neumann. Not facts about the real CV applicant."
+}

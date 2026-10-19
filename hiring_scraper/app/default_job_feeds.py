@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
@@ -46,6 +46,9 @@ def _configured_feeds() -> list[dict]:
 
 
 def _ensure_default_job_feeds(session: Session, now) -> int:
+    if session.get_bind().dialect.name == 'postgresql':
+        # Concurrent replicas must not both observe a missing maintained source.
+        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
     created = 0
     for item in _configured_feeds():
         company = session.scalar(select(Company).where(

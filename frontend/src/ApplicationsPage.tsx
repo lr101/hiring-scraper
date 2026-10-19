@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
+import JourneyConnections from './JourneyConnections'
 import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
+import { getApplicationMomentum } from './applicationMomentum'
+import type { ApplicationMomentum } from './applicationMomentum'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import type { Profile } from './profile'
 
@@ -14,6 +17,25 @@ const sortModes = [
   { value: 'discovered', label: 'Discovered' },
 ] as const
 type SortMode = typeof sortModes[number]['value']
+
+const journeyStages: ApplicationStatus[][] = [
+  ['new'], ['open', 'in_gots_hand'], ['waiting_for_reply', 'automated_application'], ['interview'], ['accepted'],
+]
+const outcomeStages: ApplicationStatus[] = ['not_interested', 'rejected']
+const applicationRewardCycle = [
+  { reward: 'Kisses', icon: '💋' },
+  { reward: 'Flowers', icon: '💐' },
+  { reward: 'Jello', icon: '🍮' },
+] as const
+const applicationMilestones = Array.from({ length: 40 }, (_, index) => {
+  const count = (index + 1) * 5
+  const gift = applicationRewardCycle[index % applicationRewardCycle.length]
+  return { count, step: `${count} applications`, ...gift }
+})
+const stagePalette: Record<ApplicationStatus, string> = {
+  new: 'green', open: 'blue', in_gots_hand: 'sand', waiting_for_reply: 'amber', automated_application: 'teal', interview: 'violet',
+  accepted: 'mint', not_interested: 'stone', rejected: 'rose',
+}
 
 type MatchingJob = {
   id: number; title: string; company_name: string; location_text: string | null
@@ -95,13 +117,6 @@ function profileJobKey(job: Pick<ProfiledJob, 'profileId' | 'id'>) {
   return `${job.profileId}:${job.id}`
 }
 
-function toggleStatusSelection(current: ApplicationStatus[], value: ApplicationStatus) {
-  const selected = new Set(current)
-  if (selected.has(value)) selected.delete(value)
-  else selected.add(value)
-  return applicationStatuses.filter(item => selected.has(item.value)).map(item => item.value)
-}
-
 export default function ApplicationsPage() {
   const [params] = useState(() => new URLSearchParams(window.location.search))
   const [profiles, setProfiles] = useState<SavedProfile[]>([])
@@ -123,9 +138,10 @@ export default function ApplicationsPage() {
   const [resultQueryKey, setResultQueryKey] = useState('')
   const pageCacheRef = useRef(new Map<string, ApplicationResultsPage>())
   const pageRequestsRef = useRef(new Map<string, Promise<ApplicationResultsPage>>())
+  const pageRequestQueueRef = useRef<Promise<void>>(Promise.resolve())
+  const rewardTimelineRef = useRef<HTMLOListElement>(null)
+  const trailRef = useRef<HTMLDivElement>(null)
   const cacheGenerationRef = useRef(0)
-  const prefetchFailuresRef = useRef(new Set<string>())
-  const [cacheRevision, setCacheRevision] = useState(0)
   const [pageOffsets, setPageOffsets] = useState([0])
   const [pageIndex, setPageIndex] = useState(0)
   const offset = pageOffsets[pageIndex] ?? 0
@@ -135,6 +151,10 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [noticeKind, setNoticeKind] = useState<'standard' | 'applied' | 'milestone'>('standard')
+  const [momentum, setMomentum] = useState<ApplicationMomentum | null>(null)
+  const momentumRef = useRef<ApplicationMomentum | null>(null)
+  const [momentumRefreshKey, setMomentumRefreshKey] = useState(0)
   const [savingKeys, setSavingKeys] = useState<Set<string>>(() => new Set())
   const savingKeysRef = useRef(new Set<string>())
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, ApplicationStatus>>({})
@@ -157,20 +177,47 @@ export default function ApplicationsPage() {
       : trackedCount
     : 0)
   const loadingCurrentPage = !currentPage && loading
+  const resultStageHeading = !statuses.length ? 'All roles'
+    : statuses.length === 1 ? applicationStatuses.find(item => item.value === statuses[0])?.label ?? 'Selected checkpoint'
+      : 'Selected checkpoints'
+  const weeklyProgress = momentum?.weekly_goal
+    ? Math.min(100, Math.round(momentum.applied_this_week / momentum.weekly_goal * 100))
+    : 0
+  const rewardTimeline = momentum ? [
+    ...applicationMilestones.map(milestone => ({
+      id: `applications-${milestone.count}`,
+      step: milestone.step,
+      reward: milestone.reward,
+      icon: milestone.icon,
+      unlocked: momentum.lifetime_applied >= milestone.count,
+      target: milestone.count,
+      progress: Math.min(100, Math.round(momentum.lifetime_applied / milestone.count * 100)),
+      progressLabel: `${Math.min(momentum.lifetime_applied, milestone.count)} / ${milestone.count} ${milestone.count === 1 ? 'application' : 'applications'}`,
+    })),
+    { id: 'interview', step: 'Interview', reward: 'Weekend trip', icon: '🧳', unlocked: momentum.interview_count > 0,
+      target: null, progress: 0, progressLabel: 'Reach an interview' },
+    { id: 'job', step: 'Job offer', reward: 'Trip to Mexico', icon: '🌴', unlocked: momentum.jobs_won > 0,
+      target: null, progress: 0, progressLabel: 'Get a job offer' },
+  ] : []
+  const nextRewardIndex = rewardTimeline.findIndex(reward => !reward.unlocked)
+  const visibleRewardTimeline = nextRewardIndex < 0 ? rewardTimeline : rewardTimeline.slice(0, nextRewardIndex + 1)
+  const nextReward = nextRewardIndex < 0 ? null : rewardTimeline[nextRewardIndex]
 
-  const readySingleFilterKeys = useMemo(() => {
-    const ready = new Set<string>()
-    const filters: ApplicationStatus[][] = [[], ...applicationStatuses.map(item => [item.value])]
-    for (const selectedStatuses of filters) {
-      const key = applicationResultsKey(activeProfileKey, selectedStatuses, sortBy, 0)
-      if (pageCacheRef.current.has(key) || prefetchFailuresRef.current.has(key)) {
-        ready.add(JSON.stringify(selectedStatuses))
-      }
+  useEffect(() => {
+    const timeline = rewardTimelineRef.current
+    const currentReward = timeline?.querySelector<HTMLElement>('.journey-reward-step.is-current')
+    if (!timeline || !currentReward || timeline.scrollWidth <= timeline.clientWidth) return
+
+    const timelineLeft = timeline.getBoundingClientRect().left
+    const currentLeft = currentReward.getBoundingClientRect().left - timelineLeft + timeline.scrollLeft
+    const currentRight = currentLeft + currentReward.getBoundingClientRect().width
+    const viewportRight = timeline.scrollLeft + timeline.clientWidth
+    if (currentLeft < timeline.scrollLeft || currentRight > viewportRight) {
+      const left = Math.max(0, currentRight - timeline.clientWidth + 16)
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      timeline.scrollTo({ left, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
     }
-    return ready
-  }, [activeProfileKey, sortBy, cacheRevision])
-  const preparingSingleFilters = profilesReady && activeProfileIds.length > 0
-    && readySingleFilterKeys.size < applicationStatuses.length + 1 && !error
+  }, [nextRewardIndex, profilesReady, profiles.length])
 
   if (currentPage) jobsRef.current = currentPage.jobs
 
@@ -207,40 +254,22 @@ export default function ApplicationsPage() {
 
     const generation = cacheGenerationRef.current
     let request: Promise<ApplicationResultsPage>
-    request = requestApplicationPage(profileKey, selectedStatuses, sort, selectedOffset).then(page => {
+    request = pageRequestQueueRef.current.catch(() => undefined).then(async () => {
+      const cachedAfterQueue = pageCacheRef.current.get(key)
+      if (cachedAfterQueue) return cachedAfterQueue
+
+      return requestApplicationPage(profileKey, selectedStatuses, sort, selectedOffset)
+    }).then(page => {
       if (generation === cacheGenerationRef.current) {
         cacheApplicationResults(pageCacheRef.current, key, page)
-        prefetchFailuresRef.current.delete(key)
-        setCacheRevision(revision => revision + 1)
       }
       return page
     }).finally(() => {
       if (pageRequestsRef.current.get(key) === request) pageRequestsRef.current.delete(key)
     })
     pageRequestsRef.current.set(key, request)
+    pageRequestQueueRef.current = request.then(() => undefined, () => undefined)
     return request
-  }
-
-  function prefetchFilterPages(profileKey: string, sort: SortMode) {
-    const filters: ApplicationStatus[][] = [[], ...applicationStatuses.map(item => [item.value])]
-    const missingFilters = filters.filter(selectedStatuses =>
-      !pageCacheRef.current.has(applicationResultsKey(profileKey, selectedStatuses, sort, 0)))
-    void Promise.allSettled(missingFilters.map(async selectedStatuses => {
-      const key = applicationResultsKey(profileKey, selectedStatuses, sort, 0)
-      try {
-        await loadApplicationPage(profileKey, selectedStatuses, sort, 0)
-      } catch {
-        prefetchFailuresRef.current.add(key)
-        setCacheRevision(revision => revision + 1)
-      }
-    }))
-  }
-
-  function canOpenFilter(selectedStatuses: ApplicationStatus[]) {
-    const key = applicationResultsKey(activeProfileKey, selectedStatuses, sortBy, 0)
-    return pageCacheRef.current.has(key)
-      || (selectedStatuses.length <= 1 && readySingleFilterKeys.has(JSON.stringify(selectedStatuses)))
-      || selectedStatuses.length > 1
   }
 
   function invalidateInFlightPageRequests() {
@@ -292,7 +321,6 @@ export default function ApplicationsPage() {
       setResultQueryKey(queryKey)
       setLoading(false)
       setError('')
-      prefetchFilterPages(activeProfileKey, sortBy)
       return
     }
 
@@ -307,13 +335,45 @@ export default function ApplicationsPage() {
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(resultPage.total)
       setResultQueryKey(queryKey)
-      prefetchFilterPages(activeProfileKey, sortBy)
     }).catch(reason => {
       if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not load matching jobs.')
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
 
     return () => controller.abort()
   }, [profilesReady, activeProfileKey, activeProfileIds.length, reloadKey, profiles, statuses, sortBy, offset, queryKey])
+
+  useEffect(() => {
+    let active = true
+    getApplicationMomentum().then(value => {
+      if (!active) return
+      const previous = momentumRef.current
+      momentumRef.current = value
+      setMomentum(value)
+
+      if (momentumRefreshKey && previous) {
+        const reachedJob = previous.jobs_won === 0 && value.jobs_won > 0
+        const reachedInterview = previous.interview_count === 0 && value.interview_count > 0
+        const reached = applicationMilestones.find(milestone =>
+          previous.lifetime_applied < milestone.count && value.lifetime_applied >= milestone.count)
+        const paceMet = previous.applied_this_week < previous.weekly_goal
+          && value.applied_this_week >= value.weekly_goal
+        if (reachedJob) {
+          setNotice('Reward unlocked · Trip to Mexico')
+          setNoticeKind('milestone')
+        } else if (reachedInterview) {
+          setNotice('Reward unlocked · Weekend trip')
+          setNoticeKind('milestone')
+        } else if (reached) {
+          setNotice(`Reward unlocked · ${reached.reward}`)
+          setNoticeKind('milestone')
+        } else if (paceMet) {
+          setNotice('Weekly pace met')
+          setNoticeKind('milestone')
+        }
+      }
+    }).catch(() => { /* Momentum is optional; application tracking remains available. */ })
+    return () => { active = false }
+  }, [momentumRefreshKey])
 
   useEffect(() => {
     if (!profilesReady) return
@@ -331,7 +391,8 @@ export default function ApplicationsPage() {
   const nextSort = sortModes[(sortIndex + 1) % sortModes.length]
 
   function filter(value: ApplicationStatus | '') {
-    const nextStatuses = !value ? [] : toggleStatusSelection(statuses, value)
+    const nextStatuses = value ? [value] : []
+    if (statuses.length === nextStatuses.length && statuses.every((status, index) => status === nextStatuses[index])) return
     setStatuses(nextStatuses)
     resetPagination()
     activateCachedPage(activeProfileKey, nextStatuses, sortBy, 0)
@@ -366,7 +427,6 @@ export default function ApplicationsPage() {
   function updateCachedApplicationPages(job: ProfiledJob, previousStatus: ApplicationStatus, application: Application) {
     const statusChanged = previousStatus !== application.status
 
-    let changed = false
     for (const [cacheKey, cachedPage] of pageCacheRef.current) {
       const [profileKey, selectedStatuses] = JSON.parse(cacheKey) as [string, ApplicationStatus[], SortMode, number]
       if (!profileKey.split(',').includes(String(job.profileId))) continue
@@ -381,8 +441,6 @@ export default function ApplicationsPage() {
 
       if (!previouslySelected && nowSelected) {
         pageCacheRef.current.delete(cacheKey)
-        prefetchFailuresRef.current.delete(cacheKey)
-        changed = true
         continue
       }
 
@@ -399,9 +457,7 @@ export default function ApplicationsPage() {
         counts: nextCounts,
         total: Math.max(0, total),
       })
-      changed = true
     }
-    if (changed) setCacheRevision(revision => revision + 1)
   }
 
   function applyLocalStatus(job: ProfiledJob, application: Application) {
@@ -452,17 +508,21 @@ export default function ApplicationsPage() {
     setError('')
     setNotice('')
     try {
-      const saved = await saveApplication(API, job.profileId, job.id, action.status)
+      const saved = await saveApplication(API, job.profileId, job.id, action.status, action.kind)
       applyLocalStatus(job, saved)
       const label = applicationStatuses.find(item => item.value === action.status)?.label
-      setNotice(action.kind === 'undo'
+      const applied = action.kind === 'stage' && ['waiting_for_reply', 'automated_application'].includes(action.status)
+      const milestoneAction = action.kind === 'stage'
+        && ['waiting_for_reply', 'automated_application', 'interview', 'accepted'].includes(action.status)
+      setNotice(applied ? `Application sent · ${job.title}` : action.kind === 'undo'
         ? `${job.title} · ${job.profileName} · restored to ${label}`
         : `${job.title} · ${job.profileName} · ${label}`)
+      setNoticeKind(applied ? 'applied' : 'standard')
+      if (milestoneAction) setMomentumRefreshKey(current => current + 1)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save application status.')
     } finally {
       savingKeysRef.current.delete(key)
-      if (!savingKeysRef.current.size) prefetchFilterPages(activeProfileKey, sortBy)
       setSavingKeys(current => {
         const next = new Set(current)
         next.delete(key)
@@ -479,12 +539,10 @@ export default function ApplicationsPage() {
   async function openOriginalPost(job: ProfiledJob) {
     const key = profileJobKey(job)
     const currentApplication = jobsRef.current.find(item => item.profileId === job.profileId && item.id === job.id)?.application ?? job.application
-    const willMoveToInterested = !currentApplication || currentApplication.status === 'new'
     if (savingKeysRef.current.has(key)) return
     invalidateInFlightPageRequests()
     savingKeysRef.current.add(key)
     setSavingKeys(current => new Set(current).add(key))
-    if (willMoveToInterested) setPendingStatuses(current => ({ ...current, [key]: 'open' }))
     try {
       const saved = await trackJobInteraction(API, job.profileId, job.id, currentApplication, 'open_post')
       if (saved) applyLocalStatus(job, saved)
@@ -492,7 +550,6 @@ export default function ApplicationsPage() {
       setError(reason instanceof Error ? reason.message : 'Could not update application status.')
     } finally {
       savingKeysRef.current.delete(key)
-      if (!savingKeysRef.current.size) prefetchFilterPages(activeProfileKey, sortBy)
       setSavingKeys(current => {
         const next = new Set(current)
         next.delete(key)
@@ -542,62 +599,143 @@ export default function ApplicationsPage() {
   }
 
   return <div className="app-shell"><SiteHeader active="applications" />
-    <main className="content applications-page">
-      <section className="intro-row"><h1>My applications</h1></section>
-      {profilesReady && profiles.length > 0 && <section className="application-filters" aria-label="Filter applications">
-        <div className="application-profile-filters" role="group" aria-label="Filter by profile">
-          <button type="button" disabled={hasSavingJob} className={`application-filter-chip ${allProfilesActive ? 'selected' : ''}`} aria-pressed={allProfilesActive}
-            onClick={selectAllProfiles}>All profiles</button>
-          {profiles.map(profile => <button type="button" key={profile.id}
-            disabled={hasSavingJob}
-            className={`application-filter-chip ${activeProfileIds.includes(profile.id) ? 'selected' : ''}`}
-            aria-pressed={activeProfileIds.includes(profile.id)} onClick={() => toggleProfile(profile.id)}>{profile.name}</button>)}
-        </div>
-        <div className="application-status-grid" role="group" aria-label="Filter by application stage">
-          <button type="button" disabled={hasSavingJob || !canOpenFilter([])} aria-pressed={statuses.length === 0} className={`application-filter-chip application-status-filter ${statuses.length === 0 ? 'selected' : ''}`}
-          onClick={() => filter('')}>All <span>{countsReady ? trackedCount : '—'}</span></button>
-          {applicationStatuses.map(item => {
-            const nextStatuses = toggleStatusSelection(statuses, item.value)
-            return <button type="button" key={item.value} disabled={hasSavingJob || !canOpenFilter(nextStatuses)}
-              aria-pressed={statuses.includes(item.value)}
-              className={`application-filter-chip application-status-filter application-${item.value} ${statuses.includes(item.value) ? 'selected' : ''}`}
-              onClick={() => filter(item.value)}>
-              {item.label} <span>{countsReady ? visibleCounts[item.value] : '—'}</span>
-            </button>
-          })}
-        </div>
-        {preparingSingleFilters && <p className="evidence-note" role="status">Preparing stage filters…</p>}
+    <main className="content applications-page journey-page">
+      {profilesReady && !profiles.length && <section className="journey-first-profile">
+        <h2>Start with a profile</h2>
+        <a href="/profile/new">Create a profile <span aria-hidden="true">→</span></a>
       </section>}
-      {error && <div className="error-banner" role="alert">{error}</div>}
-      {notice && <p className="evidence-note" role="status">{notice}</p>}
-      {profilesReady && !profiles.length ? <section className="detail-panel empty-state">
-        <h2>Create a job profile to get started</h2><p>Save a profile to see matching jobs and track each opportunity here.</p>
-        <a className="page-link" href="/profile">Create a profile →</a>
-      </section> : profiles.length > 0 && <section className="directory-card applications-results">
-        <div className="application-results-summary"><span>{visibleTotal} {statuses.length ? statuses.length === 1 ? 'jobs in this stage' : 'jobs in selected stages' : 'jobs'}</span>
-          <span>{countsReady ? trackedCount : '—'} tracked</span>
-          <button type="button" className="application-sort-cycle" disabled={hasSavingJob} onClick={cycleSort}
-            aria-label={`Sort by ${sortModes[sortIndex].label}. Tap to switch to ${nextSort.label}.`}
-            title={`Tap to sort by ${nextSort.label}`}>Sort: {sortModes[sortIndex].label} <span aria-hidden="true">↻</span></button>
+
+      {profilesReady && profiles.length > 0 && momentum && <section className="journey-momentum" aria-label="Application momentum">
+        <div className="journey-momentum-week">
+          <div className="journey-momentum-title"><span aria-hidden="true">◷</span><span>This week</span></div>
+          <strong className="journey-momentum-value">{momentum.applied_this_week}<span> / {momentum.weekly_goal}</span></strong>
+          <div className="journey-momentum-track" role="progressbar" aria-label="Weekly application pace"
+            aria-valuemin={0} aria-valuemax={momentum.weekly_goal}
+            aria-valuenow={Math.min(momentum.applied_this_week, momentum.weekly_goal)}
+            aria-valuetext={`${momentum.applied_this_week} of ${momentum.weekly_goal} applications sent this week`}>
+            <span style={{ width: `${weeklyProgress}%` }} />
+          </div>
+          <small>{momentum.applied_this_week >= momentum.weekly_goal ? 'Pace met' : 'applications sent'}</small>
         </div>
-        {loadingCurrentPage ? <div className="loading-state"><span className="spinner" /> Loading matching jobs…</div>
+        <span className="journey-momentum-divider" aria-hidden="true" />
+        <div className="journey-momentum-streak">
+          <div className="journey-momentum-title"><span aria-hidden="true">✦</span><span>Successful weeks</span></div>
+          <strong className="journey-momentum-value">{momentum.successful_weeks}<span> {momentum.successful_weeks === 1 ? 'week' : 'weeks'}</span></strong>
+          <small>{momentum.successful_weeks ? 'in a row' : 'Your first one starts here'}</small>
+        </div>
+      </section>}
+
+      {profilesReady && profiles.length > 0 && momentum && <section className="journey-rewards" aria-label="Application rewards">
+        <div className="journey-rewards-heading">
+          <h2>Reward timeline</h2>
+          <small>{nextReward ? `Up next · ${nextReward.step} · ${nextReward.reward}` : 'All rewards earned'}</small>
+        </div>
+        <ol ref={rewardTimelineRef} className="journey-reward-timeline" aria-label="Completed rewards and next milestone">
+          {visibleRewardTimeline.map(reward => <li key={reward.id}
+            aria-label={`${reward.step}: ${reward.reward}, ${reward.unlocked ? 'earned' : 'next reward'}`}
+            className={`journey-reward-step ${reward.unlocked ? 'is-complete' : 'is-current'}`}>
+            <span className="journey-reward-node" aria-hidden="true">{reward.unlocked ? '✓' : reward.icon}</span>
+            <span className="journey-reward-copy"><small>{reward.step}</small><strong>{reward.reward}</strong></span>
+            {!reward.unlocked && reward.target !== null && <>
+              <div className="journey-reward-progress" role="progressbar" aria-label={`Progress to ${reward.reward}`}
+                aria-valuemin={0} aria-valuemax={reward.target}
+                aria-valuenow={Math.min(momentum.lifetime_applied, reward.target)}
+                aria-valuetext={reward.progressLabel}>
+                <span style={{ width: `${reward.progress}%` }} />
+              </div>
+              <small className="journey-reward-progress-label">{reward.progressLabel}</small>
+            </>}
+            {!reward.unlocked && reward.target === null && <small className="journey-reward-progress-label">{reward.progressLabel}</small>}
+          </li>)}
+        </ol>
+      </section>}
+
+      {profilesReady && profiles.length > 0 && <section id="quest-map" className="quest-map" aria-labelledby="quest-map-heading">
+        <div className="quest-map-heading">
+          <div><h2 id="quest-map-heading">Choose a checkpoint</h2></div>
+          {profiles.length > 1 ? <details className="journey-profile-picker">
+            <summary><span>Profile scope</span><strong>{allProfilesActive ? 'All profiles' : activeProfileIds.length
+              ? `${activeProfileIds.length} selected` : 'None selected'}</strong><span className="journey-profile-adjust">Adjust</span></summary>
+            <div className="journey-profile-options" role="group" aria-label="Choose profiles">
+              <button type="button" disabled={hasSavingJob} className={`application-filter-chip ${allProfilesActive ? 'selected' : ''}`} aria-pressed={allProfilesActive}
+                onClick={selectAllProfiles}>All profiles</button>
+              {profiles.map(profile => <button type="button" key={profile.id} disabled={hasSavingJob}
+                className={`application-filter-chip ${activeProfileIds.includes(profile.id) ? 'selected' : ''}`}
+                aria-pressed={activeProfileIds.includes(profile.id)} onClick={() => toggleProfile(profile.id)}>{profile.name}</button>)}
+            </div>
+          </details> : <div className="journey-profile-single"><span>PROFILE</span><strong>{profiles[0].name}</strong>
+            {!activeProfileIds.includes(profiles[0].id) && <button type="button" disabled={hasSavingJob} onClick={() => toggleProfile(profiles[0].id)}>Select</button>}
+          </div>}
+        </div>
+
+        <div className="quest-trail" ref={trailRef} role="group" aria-label="Filter applications by checkpoint">
+          <JourneyConnections containerRef={trailRef} />
+          {journeyStages.map((stages, index) => <div className="quest-stage-group" key={stages[0]}>{stages.map(stage => {
+            const item = applicationStatuses.find(option => option.value === stage)!
+            return <button type="button" key={stage} disabled={hasSavingJob}
+              data-journey-stage={stage}
+              aria-pressed={statuses.includes(stage)}
+              aria-label={`${item.label}, ${countsReady ? visibleCounts[stage] : 'loading'} roles`}
+              className={`quest-stage quest-${stagePalette[stage]} ${visibleCounts[stage] ? 'has-roles' : 'quiet'} ${statuses.includes(stage) ? 'selected' : ''}`}
+              onClick={() => filter(stage)}>
+              <span className="quest-stage-top"><span className="quest-stage-number">{String(index + 1).padStart(2, '0')}</span>
+                <span className="quest-stage-count">{countsReady ? visibleCounts[stage] : '—'}</span></span>
+              <strong>{item.label}</strong>
+              <span className="quest-stage-dot" aria-hidden="true" />
+            </button>
+          })}</div>)}
+        </div>
+
+        <div className="quest-map-footer">
+          <details className={`quest-outcomes ${statuses.some(status => outcomeStages.includes(status)) ? 'has-selection' : ''}`}>
+            <summary className="quest-outcomes-trigger">Past outcomes <span aria-hidden="true">⌄</span></summary>
+            <div className="quest-outcome-options" role="group" aria-label="Filter applications by outcome">
+              {outcomeStages.map(stage => {
+                const item = applicationStatuses.find(option => option.value === stage)!
+                return <button type="button" key={stage} disabled={hasSavingJob}
+                  aria-label={`${item.label} applications`} aria-pressed={statuses.includes(stage)} className={`quest-outcome quest-${stagePalette[stage]} ${statuses.includes(stage) ? 'selected' : ''}`}
+                  onClick={() => filter(stage)}>{item.label}</button>
+              })}
+            </div>
+          </details>
+          <button type="button" disabled={hasSavingJob} aria-pressed={statuses.length === 0}
+            className={`quest-show-all ${statuses.length === 0 ? 'selected' : ''}`} onClick={() => filter('')}>
+            All roles <span>{countsReady ? trackedCount : '—'}</span>
+          </button>
+        </div>
+      </section>}
+
+      {error && <div className="error-banner" role="alert">{error}</div>}
+      {notice && <p className={`journey-notice ${noticeKind === 'standard' ? '' : `is-${noticeKind}`}`} role="status">
+        <span aria-hidden="true">{noticeKind === 'milestone' ? '★' : '✓'}</span> {notice}</p>}
+      {profilesReady && profiles.length > 0 && <section id="journey-roles" className="journey-results" aria-labelledby="journey-results-heading">
+        <div className="journey-results-heading">
+          <div><h2 id="journey-results-heading">{resultStageHeading}</h2></div>
+          <div className="journey-results-tools"><span className="journey-result-count"><strong>{currentPage ? visibleTotal : countsReady ? visibleTotal : '—'}</strong> {visibleTotal === 1 ? 'role' : 'roles'}</span>
+            <button type="button" className="application-sort-cycle" disabled={hasSavingJob} onClick={cycleSort}
+              aria-label={`Sort by ${sortModes[sortIndex].label}. Tap to switch to ${nextSort.label}.`}
+              title={`Tap to sort by ${nextSort.label}`}>Sort: {sortModes[sortIndex].label} <span aria-hidden="true">↻</span></button>
+          </div>
+        </div>
+        {loadingCurrentPage ? <div className="loading-state"><span className="spinner" /> Loading your roles…</div>
           : error ? <div className="empty-state"><p>Matching jobs could not be loaded.</p><button type="button" className="broaden-button" onClick={() => {
             pageCacheRef.current.delete(queryKey)
             setLoading(true)
             setReloadKey(current => current + 1)
           }}>Try again</button></div>
-            : !activeProfileIds.length ? <div className="empty-state"><h2>Choose a profile</h2><p>Turn on one or more profiles above to see their matching jobs.</p></div>
+            : !activeProfileIds.length ? <div className="journey-empty"><span className="journey-empty-icon" aria-hidden="true">◎</span><h3>Choose a profile</h3></div>
               : visibleJobs.length ? <div className="application-job-list">
                 {visibleJobs.map(job => {
                   const key = profileJobKey(job)
                   return <JobFeedCard key={key} job={job} href={cardHref(job)} profileId={job.profileId} profileName={job.profileName}
-                    updatedAt={jobUpdatedAt(job)} disabled={savingKeys.has(key)} saving={savingKeys.has(key)}
+                    updatedAt={jobUpdatedAt(job)} disabled={savingKeys.has(key)} saving={savingKeys.has(key)} showStartApplication={false}
                     pendingStatus={pendingStatuses[key]} onAction={onCardAction} onOpenOriginal={onOriginalPost} />
                 })}
-              </div> : <div className="empty-state"><h2>{statuses.length ? statuses.length === 1 ? 'No jobs in this stage' : 'No jobs in these stages' : 'No matching jobs yet'}</h2>
-                <p>{statuses.length ? 'Choose another stage or clear the stage filters.' : 'The selected profiles do not have any matching or tracked jobs yet.'}</p>
+              </div> : <div className="journey-empty"><span className="journey-empty-icon" aria-hidden="true">✦</span>
+                <h3>{statuses.length ? 'Nothing here yet' : 'Your next role is out there'}</h3>
+                <a className="journey-empty-link" href="/discover?view=jobs">Find a role <span aria-hidden="true">↗</span></a>
               </div>}
-        <div className="table-footer"><span>{visibleTotal} {statuses.length ? statuses.length === 1 ? 'in this stage' : 'in selected stages' : 'jobs'} · {countsReady ? trackedCount : '—'} tracked</span>
+        <div className="journey-results-footer">
           <div className="pagination"><button type="button" disabled={!currentPage || pageIndex === 0 || hasSavingJob} onClick={goToPreviousPage}>Previous</button>
             <span>{currentPage
               ? `${pageIndex + 1} / ${pageIndex + 1 + Math.ceil(Math.max(0, visibleTotal - offset - visibleJobs.length) / PAGE_SIZE)}`

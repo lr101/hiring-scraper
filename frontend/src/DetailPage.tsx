@@ -6,7 +6,8 @@ import type { Enrichment, ProfileMatch } from './JobEvidence'
 import { applicationStatuses, applicationStatusLabel, nextApplicationStages, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import JobOverviewTags from './JobOverviewTags'
-import type { Profile } from './profile'
+import type { CityElectionResult, Profile } from './profile'
+import { applicationStartLink } from './applicationHandoff'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
@@ -20,7 +21,7 @@ type Company = {
   location_label: string | null; source_url: string | null; active_job_count: number
   feeds: Feed[]; jobs: Job[]
 }
-type JobLocation = { label: string; precision: string | null }
+type JobLocation = { label: string; precision: string | null; city_election_result?: CityElectionResult | null }
 type Job = {
   id: number; title: string; url: string; company_id: number; company_name: string; company_name_is_employer?: boolean
   employer_company_id?: number | null
@@ -144,7 +145,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
   return <div className="app-shell">
     <SiteHeader active={fromApplications ? 'applications' : 'directory'} />
     <main className="content detail-page">
-      <a className="back-link" href={fromApplications ? applicationsBackHref : kind === 'company' ? '/' : `/?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to companies and jobs'}</a>
+      <a className="back-link" href={fromApplications ? applicationsBackHref : kind === 'company' ? '/discover' : `/discover?view=jobs${window.location.search ? '&' + window.location.search.slice(1) : ''}`}>← {fromApplications ? 'Back to my applications' : 'Back to role discovery'}</a>
       {profiles.length > 0 && <div className="detail-profile-context">
         <span>Tracking with</span>
         {profiles.length > 1 || profileSelectionRequired ? <select aria-label="Application profile" value={profileId}
@@ -160,7 +161,7 @@ export default function DetailPage({ kind, id }: { kind: 'company' | 'job'; id: 
       {profileError && <div className="error-banner" role="alert">{profileError}</div>}
       {trackingError && <p className="tracking-error-note" role="status">{trackingError}</p>}
       {loading ? <div className="loading-state"><span className="spinner" /> Loading details…</div>
-          : error ? <div className="error-banner" role="alert">{error}<a href="/">Return to companies and jobs</a></div>
+          : error ? <div className="error-banner" role="alert">{error}<a href="/discover">Return to role discovery</a></div>
           : kind === 'company' && record ? <CompanyPage company={record as Company} profileId={profileId ? Number(profileId) : null}
               onApplicationSaved={(jobId, application) => setRecord(current => current && 'jobs' in current
                 ? { ...current, jobs: current.jobs.map(job => job.id === jobId ? { ...job, application } : job) } : current)} />
@@ -211,7 +212,7 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
     setApplicationError('')
     setApplicationNotice('')
     try {
-      const application = await saveApplication(API_BASE_URL, profileId, job.id, action.status)
+      const application = await saveApplication(API_BASE_URL, profileId, job.id, action.status, action.kind)
       onApplicationSaved(job.id, application)
       const stage = applicationStatusLabel(application.status)
       setApplicationNotice(action.kind === 'undo' ? `${job.title} restored to ${stage}.` : `${job.title} moved to ${stage}.`)
@@ -245,7 +246,7 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
 
   return <>
     <section className="detail-hero">
-      <p className="eyebrow">COMPANY · {company.category?.replaceAll('_', ' ') || 'BUSINESS'}</p>
+      <p className="eyebrow">Company · {company.category?.replaceAll('_', ' ') || 'business'}</p>
       <h1>{company.name}</h1>
       <p className="intro-copy">Company website, hiring page, and the open jobs listed there.</p>
       <div className="detail-links">
@@ -257,11 +258,11 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
     </section>
     <section className="detail-layout">
       <article className="detail-panel">
-        <p className="eyebrow">HIRING STATUS</p>
+        <p className="eyebrow">Hiring status</p>
         <h2>{statusLabels[company.career_status] || 'Not checked yet'}</h2>
         <div className="metadata-grid">
           <form className="company-domain-editor meta-item" onSubmit={saveCompanyDomain}>
-            <label htmlFor="company-domain"><span>COMPANY DOMAIN</span></label>
+            <label htmlFor="company-domain"><span>Company domain</span></label>
             <div className="company-domain-input">
               <input id="company-domain" type="text" maxLength={255} autoCapitalize="none" autoCorrect="off"
                 spellCheck={false} value={companyDomain} onChange={event => setCompanyDomain(event.target.value)}
@@ -271,13 +272,13 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
             {domainError && <small className="company-domain-error" role="alert">{domainError}</small>}
             {domainNotice && <small className="company-domain-notice" role="status">{domainNotice}</small>}
           </form>
-          <Meta label="HIRING PAGE" value={company.career_url || 'Not found yet'} />
-          <Meta label="BUSINESS TYPE" value={(company.category || company.location_label)?.replaceAll('_', ' ') || 'Not listed'} />
-          <Meta label="LOCATION DETAIL" value={precisionLabels[company.location_precision || ''] || company.location_precision || 'Not provided'} />
-          <Meta label="CHECK SCHEDULE" value={company.crawl_paused ? 'Paused' : company.crawl_interval_days === 1 ? 'Daily' : `Every ${company.crawl_interval_days ?? 7} days`} />
-          <Meta label="WHY THIS SCHEDULE" value={company.crawl_reason || 'Waiting for employer evidence'} />
-          <Meta label="NEXT CHECK" value={company.crawl_paused ? 'Paused until fresh evidence or a manual search' : company.next_check_at ? new Date(company.next_check_at).toLocaleString() : 'Pending'} />
-          <Meta label="ACTIVE JOBS" value={String(company.active_job_count ?? company.jobs.filter(job => job.is_active !== false).length)} />
+          <Meta label="Hiring page" value={company.career_url || 'Not found yet'} />
+          <Meta label="Business type" value={(company.category || company.location_label)?.replaceAll('_', ' ') || 'Not listed'} />
+          <Meta label="Location detail" value={precisionLabels[company.location_precision || ''] || company.location_precision || 'Not provided'} />
+          <Meta label="Check schedule" value={company.crawl_paused ? 'Paused' : company.crawl_interval_days === 1 ? 'Daily' : `Every ${company.crawl_interval_days ?? 7} days`} />
+          <Meta label="Why this schedule" value={company.crawl_reason || 'Waiting for employer evidence'} />
+          <Meta label="Next check" value={company.crawl_paused ? 'Paused until fresh evidence or a manual search' : company.next_check_at ? new Date(company.next_check_at).toLocaleString() : 'Pending'} />
+          <Meta label="Active jobs" value={String(company.active_job_count ?? company.jobs.filter(job => job.is_active !== false).length)} />
         </div>
         <div className="feed-section-heading"><h3 className="panel-subheading">Where job listings were found</h3>
           <a className="page-link" href={`/feeds?company_id=${company.id}`}>Manage feeds</a></div>
@@ -287,7 +288,7 @@ function CompanyPage({ company, profileId, onApplicationSaved }: {
         </div>) : <p className="muted">No job listings found on this company’s website yet.</p>}
       </article>
       <article className="detail-panel company-jobs-panel">
-        <p className="eyebrow">OPEN JOBS</p>
+        <p className="eyebrow">Open jobs</p>
         <h2>{company.jobs.length} {company.jobs.length === 1 ? 'job' : 'jobs'}</h2>
         {applicationError && <p className="error-banner" role="alert">{applicationError}</p>}
         {applicationNotice && <p className="evidence-note" role="status">{applicationNotice}</p>}
@@ -324,6 +325,14 @@ function JobPage({ job, profileId, onApplicationSaved }: {
 }) {
   const [trackingError, setTrackingError] = useState('')
   const arrangement = job.work_arrangement || (job.is_remote ? 'remote' : 'not specified')
+  const electionResults = [...new Map(job.locations
+    .map(location => location.city_election_result)
+    .filter((result): result is CityElectionResult => result != null && result.postal_ballots_included)
+    .map(result => [result.municipality_code, result])).values()]
+  const locationText = job.location_text || job.locations.map(item => item.label).join(' · ')
+  const voteLeaderSummary = electionResults.map(result =>
+    `${displayLeadingParty(result.leading_party)} - ${result.leading_party_vote_share_percent.toFixed(1)}% (${result.municipality.split(',', 1)[0].trim()})`,
+  ).join('; ')
   const linkCompany = !job.company_name_is_employer || job.employer_company_id != null
   const languageRequirements = job.enrichment.languages.map(row =>
     `${row.value}${languageRequirementLabel(row)}`,
@@ -353,10 +362,11 @@ function JobPage({ job, profileId, onApplicationSaved }: {
   }
   return <>
     <section className="detail-hero">
-      <p className="eyebrow">JOB POSTING · {providerLabels[job.provider] || 'Company job page'}</p>
+      <p className="eyebrow">Job posting · {providerLabels[job.provider] || 'Company job page'}</p>
       <h1>{job.title}</h1>
       <p className="intro-copy">{linkCompany ? <a href={`/companies/${job.company_id}${profileId !== null ? `?profile_id=${profileId}` : ''}`}>{job.company_name}</a> : job.company_name}{job.company_domain ? ` · ${job.company_domain}` : ''}</p>
       <div className="detail-links">
+        <a className="primary-button" href={applicationStartLink(job.id, profileId)}>Start application →</a>
         <ExternalLink href={job.url} onClick={() => { void markOriginalPostOpened() }}>Original job post</ExternalLink>
         {job.company_website && <ExternalLink href={job.company_website}>Company website</ExternalLink>}
         {job.company_source_url && <ExternalLink href={job.company_source_url}>Company listing</ExternalLink>}
@@ -364,24 +374,25 @@ function JobPage({ job, profileId, onApplicationSaved }: {
     </section>
     {trackingError && <p className="tracking-error-note" role="status">{trackingError}</p>}
     <section className="detail-panel job-detail-panel">
-        <p className="eyebrow">JOB DETAILS</p>
+        <p className="eyebrow">Job details</p>
       <div className="metadata-grid">
-        <Meta label="WORK LOCATION" value={job.location_text || job.locations.map(item => item.label).join(' · ')} />
-        <Meta label="WORK STYLE" value={arrangement} />
-        <Meta label="EMPLOYMENT TYPE" value={job.employment_type} />
-        <Meta label="HOURS" value={job.schedule} />
-        <Meta label="TEAM" value={job.department} />
-        <Meta label="EXPERIENCE LEVEL" value={job.seniority} />
-        <Meta label="MINIMUM EXPERIENCE" value={job.enrichment.experience_years ? `${job.enrichment.experience_years.value} years` : null} />
-        <Meta label="LANGUAGE REQUIREMENTS" value={languageRequirements} />
-        <Meta label="POSTED" value={job.date_posted ? formatDate(job.date_posted) : null} />
-        <Meta label="LAST SEEN" value={formatDate(job.last_seen_at)} />
-        <Meta label="SOURCE DEADLINE" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : null} />
-        <Meta label="REMOTE COUNTRY ELIGIBILITY" value={job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : null} />
-        <Meta label="EMPLOYER TYPE" value={employerType} />
-        <Meta label="FIRST SEEN" value={formatDate(job.first_seen_at)} />
-        <Meta label="SALARY" value={job.salary} />
-        <Meta label="LOCATION DETAIL" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ')} />
+        <Meta label="Work location" value={locationText} />
+        <Meta label="Vote leader" value={voteLeaderSummary} wide />
+        <Meta label="Work style" value={arrangement} />
+        <Meta label="Employment type" value={job.employment_type} />
+        <Meta label="Hours" value={job.schedule} />
+        <Meta label="Team" value={job.department} />
+        <Meta label="Experience level" value={job.seniority} />
+        <Meta label="Minimum experience" value={job.enrichment.experience_years ? `${job.enrichment.experience_years.value} years` : null} />
+        <Meta label="Language requirements" value={languageRequirements} />
+        <Meta label="Posted" value={job.date_posted ? formatDate(job.date_posted) : null} />
+        <Meta label="Last seen" value={formatDate(job.last_seen_at)} />
+        <Meta label="Source deadline" value={job.valid_through ? `${formatDate(job.valid_through)}${job.expired ? ' · Expired' : ''}` : null} />
+        <Meta label="Remote country eligibility" value={job.remote_country_codes?.length ? job.remote_country_codes.join(', ') : null} />
+        <Meta label="Employer type" value={employerType} />
+        <Meta label="First seen" value={formatDate(job.first_seen_at)} />
+        <Meta label="Salary" value={job.salary} />
+        <Meta label="Location detail" value={[...new Set(job.locations.map(item => item.precision).filter(Boolean))].map(value => precisionLabels[value || ''] || value).join(' · ')} />
       </div>
       {job.description && <section className="job-description"><h2>Role description</h2><p>{job.description}</p></section>}
     </section>
@@ -422,10 +433,10 @@ function ApplicationStageActions({ jobId, profileId, application, onSaved }: {
     disabled={profileId === null || savingStatus !== null}
     onAction={action => { void choose(action.status, action.kind === 'undo') }}>
     {profileId === null ? <>
-      <div><p className="eyebrow">YOUR APPLICATION</p><h2>Track this role with a profile</h2></div>
+      <div><p className="eyebrow">Your application</p><h2>Track this role with a profile</h2></div>
       <a className="page-link" href="/profile">Create a profile →</a>
     </> : <>
-      <div className="application-stage-heading"><p className="eyebrow">YOUR APPLICATION · CURRENT STAGE</p>
+      <div className="application-stage-heading"><p className="eyebrow">Your application · current stage</p>
         <h2>{applicationStatuses.find(item => item.value === currentStatus)?.label ?? 'New'}</h2></div>
       {options.length > 0 && <div className="application-stage-buttons" role="group" aria-label="Next application stage">
         {options.map(status => <button key={status} type="button" className={`application-stage-button stage-${status}`}
@@ -448,9 +459,14 @@ function ApplicationStageActions({ jobId, profileId, application, onSaved }: {
 }
 
 
-function Meta({ label, value }: { label: string; value?: string | null }) {
+function Meta({ label, value, wide = false }: { label: string; value?: string | null; wide?: boolean }) {
   const displayValue = value?.trim()
   if (!displayValue || /^(?:not listed|not found|not provided|not specified|unknown|n\/a|none)$/i.test(displayValue)) return null
-  return <div className="meta-item"><span>{label}</span><strong>{displayValue}</strong></div>
+  return <div className={`meta-item${wide ? ' meta-item-wide' : ''}`}><span>{label}</span><strong>{displayValue}</strong></div>
 
+}
+
+function displayLeadingParty(party: string) {
+  return party.split(' / ').map(name => name === 'GRÜNE' ? 'Grüne'
+    : name === 'FREIE WÄHLER' ? 'Freie Wähler' : name).join(' / ')
 }

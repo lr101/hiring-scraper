@@ -14,10 +14,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from sqlalchemy import case, func, or_, select
+from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
-from hiring_scraper.app.database import SessionLocal, engine
+from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
@@ -32,7 +33,7 @@ from hiring_scraper.app.models import (
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
-from hiring_scraper.app.employers import upsert_job_employer
+from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
@@ -48,7 +49,9 @@ POLL_SECONDS = max(3, int(os.getenv("CAREER_DISCOVERY_POLL_SECONDS", "3")))
 INTERVAL_DAYS = max(1, int(os.getenv("CAREER_DISCOVERY_INTERVAL_DAYS", "30")))
 LEASE_MINUTES = max(5, int(os.getenv("CAREER_DISCOVERY_LEASE_MINUTES", "30")))
 HOMEPAGE_RESOLUTION_LEASE_MINUTES = max(5, int(os.getenv("HOMEPAGE_RESOLUTION_LEASE_MINUTES", "15")))
-HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3")))
+# Keep this bounded even if an older deployment configured a larger value.
+HOMEPAGE_RESOLUTION_MAX_ATTEMPTS = min(
+    3, max(1, int(os.getenv("HOMEPAGE_RESOLUTION_MAX_ATTEMPTS", "3"))))
 LOCATION_SCAN_MAX_ATTEMPTS = 3
 NATIONAL_MAP_INTERVAL_SECONDS = max(60, int(os.getenv('NATIONAL_MAP_INTERVAL_SECONDS','300')))
 NATIONAL_FIRST_CRAWL_SPREAD_SECONDS = 300
@@ -158,6 +161,7 @@ def _claim_due_homepage_resolution(now=None) -> tuple[int, int, str] | None:
     with SessionLocal.begin() as session:
         statement = (select(Company)
                      .where(Company.website_url.is_(None), Company.homepage_source_tags.is_not(None),
+                            Company.homepage_resolution_attempts < HOMEPAGE_RESOLUTION_MAX_ATTEMPTS,
                             Company.homepage_resolution_next_at.is_not(None),
                             Company.homepage_resolution_next_at <= now,
                             or_(Company.homepage_resolution_lease_until.is_(None),
@@ -558,6 +562,48 @@ def _record_failure(company_id: int, run_id: int, error: Exception,
         company.discovery_lease_until = None
         company.discovery_error = detail
         company.next_discovery_at = _retry_time(company.discovery_attempt_count)
+        run.finished_at = now
+        run.status = "failed"
+        run.error = detail
+
+
+def _defer_employer_contention(company_id: int, run_id: int, error: Exception,
+                               *, campaign_item_id: int | None = None) -> None:
+    """Retry a rolled-back crawl after the concurrent employer update finishes."""
+    now = utcnow()
+    retry_at = now + timedelta(seconds=random.randint(15, 45))
+    detail = str(error)[:2000]
+    with SessionLocal.begin() as session:
+        company = session.scalars(select(Company).where(
+            Company.id == company_id).with_for_update()).first()
+        run = _lock_current_discovery_run(session, company_id, run_id)
+        if company is None or run is None:
+            return
+        campaign_job = None
+        campaign_item = None
+        if campaign_item_id is not None:
+            attempt = _campaign_attempt(session, campaign_item_id, run_id)
+            if attempt is None:
+                return
+            campaign_job, campaign_item = attempt
+            if campaign_job.status == "cancelled":
+                _discard_cancelled_campaign_attempt(company, run, campaign_item, now)
+                return
+            if campaign_job.status not in {"scheduled", "queued", "running"}:
+                return
+            campaign_item.status = "queued"
+            campaign_item.discovery_run_id = None
+            campaign_item.started_at = None
+            campaign_item.finished_at = None
+            campaign_item.jobs_found = 0
+            campaign_item.error = None
+            campaign_job.progress_message = "Retrying company check"
+            campaign_job.progress_updated_at = now
+
+        company.discovery_lease_until = retry_at if campaign_item is not None else None
+        company.discovery_error = detail
+        company.discovery_attempt_count = max(0, company.discovery_attempt_count - 1)
+        company.next_discovery_at = retry_at
         run.finished_at = now
         run.status = "failed"
         run.error = detail
@@ -1141,6 +1187,15 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
                              error: Exception | None = None) -> None:
     now = utcnow()
     with SessionLocal.begin() as session:
+        # Persistence owns Company before checking the campaign. Cancellation
+        # also releases its company lease, so acquire that lock before task and
+        # parent locks, rather than taking it implicitly during the final flush.
+        company_id = session.scalar(select(DiscoveryJobCompany.company_id).where(
+            DiscoveryJobCompany.id == item_id))
+        if company_id is None:
+            return
+        company = session.scalar(select(Company).where(
+            Company.id == company_id).with_for_update())
         item = session.scalar(select(DiscoveryJobCompany).where(
             DiscoveryJobCompany.id == item_id).with_for_update())
         if item is None or item.status != "running" or item.discovery_run_id != run_id:
@@ -1148,8 +1203,8 @@ def _finish_campaign_company(item_id: int, run_id: int, jobs_found: int = 0,
         job = session.scalar(select(DiscoveryJob).where(
             DiscoveryJob.id == item.discovery_job_id).with_for_update())
         if job is not None and job.status == "cancelled":
-            company = session.get(Company, item.company_id)
-            run = session.get(DiscoveryRun, run_id)
+            run = (_lock_current_discovery_run(session, company_id, run_id)
+                   if company is not None else None)
             if company is not None and run is not None:
                 _discard_cancelled_campaign_attempt(company, run, item, now)
             else:
@@ -1283,18 +1338,35 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
         LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
                  company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
     except Exception as error:
-        LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
+        if is_transient_database_error(error):
+            # Database contention is not a remote-source failure. Preserve the
+            # attempt for lease recovery and let the worker cycle back off.
+            raise
+        if isinstance(error, EmployerUpsertDeferred):
+            def defer_retry() -> None:
+                _defer_employer_contention(
+                    company_id, run_id, error, campaign_item_id=item_id)
 
-        def record_failure() -> None:
-            _record_failure(company_id, run_id, error, campaign_item_id=item_id)
-            if item_id is not None:
-                _finish_campaign_company(item_id, run_id, error=error)
-
-        if engine.dialect.name == "sqlite":
-            with _SQLITE_FINALIZE_LOCK:
-                record_failure()
+            if engine.dialect.name == "sqlite":
+                with _SQLITE_FINALIZE_LOCK:
+                    defer_retry()
+            else:
+                defer_retry()
+            LOG.warning("company discovery deferred id=%s name=%r: %s",
+                        company_id, seed["name"], error)
         else:
-            record_failure()
+            LOG.exception("company discovery failed id=%s name=%r", company_id, seed["name"])
+
+            def record_failure() -> None:
+                _record_failure(company_id, run_id, error, campaign_item_id=item_id)
+                if item_id is not None:
+                    _finish_campaign_company(item_id, run_id, error=error)
+
+            if engine.dialect.name == "sqlite":
+                with _SQLITE_FINALIZE_LOCK:
+                    record_failure()
+            else:
+                record_failure()
     return True
 
 
@@ -1327,21 +1399,33 @@ def process_batch(*, location_jobs_only: bool = False,
     worker_count = min(MAX_CRAWL_WORKER_LIMIT, max(1, int(max_workers)))
     claims = []
     for _ in range(worker_count):
-        claim = _claim_campaign_company()
-        if claim is not None:
-            claims.append(claim)
-            continue
-        if location_jobs_only:
+        try:
+            claim = _claim_campaign_company()
+            if claim is not None:
+                claims.append(claim)
+                continue
+            if location_jobs_only:
+                break
+            due_company = _claim_due_company()
+            if due_company is None:
+                break
+            claims.append((*due_company, None, None))
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Discovery claim failed; finishing already claimed work', exc_info=True)
             break
-        due_company = _claim_due_company()
-        if due_company is None:
-            break
-        claims.append((*due_company, None, None))
 
     # Keep reverse lookups behind due career-page checks and cap their throughput
     # to one company per batch, independently of the crawl worker count.
-    homepage_claim = (_claim_due_homepage_resolution()
-                      if len(claims) < worker_count else None)
+    homepage_claim = None
+    if len(claims) < worker_count:
+        try:
+            homepage_claim = _claim_due_homepage_resolution()
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Homepage claim failed; finishing already claimed work', exc_info=True)
 
     if not claims:
         return _process_homepage_resolution(homepage_claim) if homepage_claim is not None else False
@@ -1371,7 +1455,13 @@ def main() -> None:
     LOG.info("career discovery worker started; interval=%s days pages=%s depth=%s workers=%s location_jobs_only=%s",
              INTERVAL_DAYS, MAX_PAGES, MAX_DEPTH, MAX_CRAWL_WORKERS, args.location_jobs_only)
     while True:
-        worked = process_batch(location_jobs_only=args.location_jobs_only)
+        try:
+            worked = process_batch(location_jobs_only=args.location_jobs_only)
+        except (DBAPIError, DatabasePoolTimeout) as error:
+            if not is_transient_database_error(error):
+                raise
+            LOG.warning('Discovery database cycle failed; backing off before retry', exc_info=True)
+            worked = False
         time.sleep(CRAWL_BATCH_DELAY_SECONDS if worked else POLL_SECONDS)
 
 

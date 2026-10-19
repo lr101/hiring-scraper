@@ -1,7 +1,9 @@
 export const applicationStatuses = [
   { value: 'new', label: 'New' },
   { value: 'open', label: 'Interested' },
+  { value: 'in_gots_hand', label: 'In GOD\'s hand' },
   { value: 'waiting_for_reply', label: 'Waiting for reply' },
+  { value: 'automated_application', label: 'Automated application' },
   { value: 'interview', label: 'Interview' },
   { value: 'not_interested', label: 'Not interested' },
   { value: 'rejected', label: 'Rejected' },
@@ -12,9 +14,11 @@ export type ApplicationStatus = typeof applicationStatuses[number]['value']
 export type SwipeDirection = 'left' | 'right'
 export type ApplicationSwipeAction = { kind: 'stage' | 'undo'; status: ApplicationStatus }
 export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[]> = {
-  new: ['open', 'not_interested'],
-  open: ['waiting_for_reply'],
+  new: ['open', 'in_gots_hand', 'not_interested'],
+  open: ['waiting_for_reply', 'in_gots_hand', 'not_interested'],
+  in_gots_hand: ['waiting_for_reply', 'not_interested'],
   waiting_for_reply: ['interview', 'rejected'],
+  automated_application: ['interview', 'rejected'],
   interview: ['accepted', 'rejected'],
   accepted: [],
   rejected: [],
@@ -22,8 +26,10 @@ export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[
 }
 export const swipeApplicationStages: Record<ApplicationStatus, Partial<Record<SwipeDirection, ApplicationStatus>>> = {
   new: { left: 'not_interested', right: 'open' },
-  open: { right: 'waiting_for_reply' },
+  open: { left: 'not_interested', right: 'waiting_for_reply' },
+  in_gots_hand: { left: 'not_interested', right: 'waiting_for_reply' },
   waiting_for_reply: { left: 'rejected', right: 'interview' },
+  automated_application: { left: 'rejected', right: 'interview' },
   interview: { left: 'rejected', right: 'accepted' },
   accepted: {},
   rejected: {},
@@ -51,9 +57,15 @@ export type Application = {
   created_at: string; updated_at: string
 }
 
-export async function saveApplication(base: string, profileId: number, jobId: number, status: ApplicationStatus): Promise<Application> {
+export async function saveApplication(
+  base: string,
+  profileId: number,
+  jobId: number,
+  status: ApplicationStatus,
+  action: ApplicationSwipeAction['kind'] = 'stage',
+): Promise<Application> {
   const response = await fetch(`${base}/api/v1/profiles/${profileId}/applications/${jobId}`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
+    method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, action }),
   })
   const data = await response.json()
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')
@@ -72,12 +84,8 @@ export async function trackJobInteraction(
     const response = await fetch(`${base}/api/v1/jobs/${jobId}?profile_id=${profileId}`)
     const payload = await response.json()
     if (!response.ok) throw new Error(typeof payload.detail === 'string' ? payload.detail : 'Could not update application stage.')
-    latest = payload.application ?? null
+    return payload.application ?? null
   }
-  const nextStatus: ApplicationStatus | null = interaction === 'view'
-    ? latest ? null : 'new'
-    : !latest || latest.status === 'new' ? 'open' : null
-
-  if (!nextStatus) return latest
-  return saveApplication(base, profileId, jobId, nextStatus)
+  if (latest) return latest
+  return saveApplication(base, profileId, jobId, 'new')
 }

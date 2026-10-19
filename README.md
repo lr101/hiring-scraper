@@ -4,7 +4,7 @@ Radius discovers employers and job openings in Germany. Local development uses S
 
 ## Local development
 
-Requires Python 3.11+, Node.js 20.19+ (or 22.12+), and [mise](https://mise.jdx.dev/).
+Requires Python 3.11+, Node.js 22.13+, and [mise](https://mise.jdx.dev/).
 
 ```bash
 mise install
@@ -38,11 +38,37 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-Save a job profile under **Your profile**. Viewing a job detail automatically
-adds it to **My applications** as New; opening the original post moves it to
-Opened. Update later stages from the job details or application overview.
+Save a job profile under **Your profile**. Viewing a job detail adds it to
+**My applications** as New. Opening the original post leaves its stage unchanged.
+Mark a role as Interested
+when you choose to pursue it; you can also move it to Not interested later.
+Update stages from the job details or application overview.
+**In GOD's hand** is an alternative to Interested for overqualified roles and can
+be selected from New or Interested. **Automated application** runs alongside
+Waiting for reply for applications sent using browser-plugin autofill. Both sent
+stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
+
+### City election context
+
+German city and municipality records show the AfD share of valid second votes in
+the 2025 Bundestag election. This is an aggregate result from the latest federal
+election, not a live poll or a measure of any individual resident. The source is
+the Federal Returning Officer's [2025 polling-district CSV release](https://www.bundeswahlleiterin.de/mitteilungen/bundestagswahlen/2025/20250430_wbz_btw25.html).
+The checked-in municipality file is derived from its published CSV using
+[`scripts/import_btw2025_municipality_results.py`](scripts/import_btw2025_municipality_results.py).
+
+Profile settings can optionally adjust a match score by up to 20 points based
+on this share. A value of 0 disables the adjustment; a positive setting raises
+scores below 25% and lowers scores above 25%, capped at the selected value. Only
+unambiguous municipality-name matches are used, so missing or ambiguous city
+data leaves the match unchanged. Job details show the leading party's vote share
+and city in a dedicated overview row.
+Some postal ballots were counted for a
+shared local authority and cannot be assigned to one municipality; those
+polling-place-only figures are labelled and never affect scores. Fully remote
+jobs are not adjusted by a city result.
 
 ## Compose deployment
 
@@ -168,6 +194,7 @@ network access using `.venv/bin/python -m experiments.summarize_expanded_homepag
 
 ## Documentation
 
+- [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
 - [Architecture and implementation plan](docs/implementation-plan.md)
 - [CV profile board findings](docs/cv-profile-board-findings.md)
 - [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
@@ -188,3 +215,9 @@ The software is licensed under the [MIT License](LICENSE). Third-party data reta
 its respective licenses and attribution requirements.
 
 The Karlsruhe sample includes OpenStreetMap-derived data. See [OpenStreetMap attribution and license](https://www.openstreetmap.org/copyright); other source data retains its respective rights.
+
+## Chrome application companion
+
+In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Start application** flow to tailor its CV with ChatGPT. Saved profile CVs retain their original DOCX template; profiles without an attached CV can save CV text in the browser or attach one to the profile. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
+
+[Installation, privacy, limits, and developer checks](extensions/application-companion/README.md). CI builds the same installable ZIP and checksum for every PR/main/tag, and includes them in tagged releases.

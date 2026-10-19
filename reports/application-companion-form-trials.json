@@ -1,0 +1,945 @@
+{
+  "at": "2026-10-18T11:00:35.562749+00:00",
+  "mode": "read-only GET/HEAD; no applicant values",
+  "cases": [
+    {
+      "provider": "Greenhouse wrapper",
+      "source_url": "https://www.mail-and-media.com/jobs/bewerbung?gh_jid=4399833101",
+      "filled": 0,
+      "files_selected": 0,
+      "submissions": 0,
+      "status": 200,
+      "final_url": "https://www.mail-and-media.com/jobs/bewerbung/?gh_jid=4399833101",
+      "title": "Bewerbung | Mail & Media Applications",
+      "top_document": {
+        "reason": "Open one application step with at most 100 fields.",
+        "forms": 1,
+        "native_controls": 14,
+        "iframes": [
+          {
+            "title": "Greenhouse Job Board",
+            "src": "https://job-boards.eu.greenhouse.io/embed/job_app"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "url": "https://job-boards.eu.greenhouse.io/embed/job_app",
+          "native_controls": 29
+        },
+        {
+          "url": "https://www.recaptcha.net/recaptcha/enterprise/anchor",
+          "native_controls": 1
+        }
+      ],
+      "embedded_direct": {
+        "status": 200,
+        "url": "https://job-boards.eu.greenhouse.io/embed/job_app?for=mailmediaportal",
+        "form": {
+          "url": "https://job-boards.eu.greenhouse.io/embed/job_app?for=mailmediaportal",
+          "form_id": "acadf8e67b348896c0ea3782ff3661f6b87fc3a4ccfe6c751fc0758f54da0897",
+          "fields": [
+            {
+              "id": "q0",
+              "label": "Vorname",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q1",
+              "label": "Nachname",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q2",
+              "label": "E-Mail",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q3",
+              "label": "Land",
+              "type": "text",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q4",
+              "label": "Telefon",
+              "type": "tel",
+              "required": false,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q5",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "cv",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q6",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "cover_letter",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q7",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q8",
+              "label": "Stra\u00dfe / Hausnummer",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q9",
+              "label": "Postleitzahl",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q10",
+              "label": "Ort",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q11",
+              "label": "Land",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q12",
+              "label": "Nationalit\u00e4t:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q13",
+              "label": "Welchem Geschlecht f\u00fchlst du dich zugeh\u00f6rig?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q14",
+              "label": "Bitte teile uns deinen j\u00e4hrlichen Bruttogehaltswunsch (\u20ac) mit:",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q15",
+              "label": "Bitte gebe dein fr\u00fchest m\u00f6gliches Startdatum an:",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q16",
+              "label": "Pr\u00e4ferierter Standort:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q17",
+              "label": "Pr\u00e4ferierte Kontaktsprache:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q18",
+              "label": "Gibt es etwas, was du uns noch gerne mitteilen m\u00f6chtest?",
+              "type": "text",
+              "required": false,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q19",
+              "label": "Stimmst du den unten genannten Bedingungen zu ?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q20",
+              "label": "D\u00fcrfen wir deine Bewerbung auch f\u00fcr weitere Positionen ber\u00fccksichtigen?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            }
+          ],
+          "hidden_uploads": 0
+        }
+      },
+      "blocked_non_read_requests": [
+        {
+          "method": "POST",
+          "origin": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2"
+        },
+        {
+          "method": "POST",
+          "origin": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2"
+        }
+      ]
+    },
+    {
+      "provider": "Greenhouse direct posting",
+      "source_url": "https://job-boards.eu.greenhouse.io/mailmediaportal/jobs/4399833101",
+      "filled": 0,
+      "files_selected": 0,
+      "submissions": 0,
+      "status": 200,
+      "final_url": "https://www.mail-and-media.com/jobs/bewerbung/?gh_jid=4399833101",
+      "title": "Bewerbung | Mail & Media Applications",
+      "top_document": {
+        "reason": "Open one application step with at most 100 fields.",
+        "forms": 1,
+        "native_controls": 14,
+        "iframes": [
+          {
+            "title": "Greenhouse Job Board",
+            "src": "https://job-boards.eu.greenhouse.io/embed/job_app"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "url": "https://job-boards.eu.greenhouse.io/embed/job_app",
+          "native_controls": 29
+        },
+        {
+          "url": "https://www.recaptcha.net/recaptcha/enterprise/anchor",
+          "native_controls": 1
+        }
+      ],
+      "embedded_direct": {
+        "status": 200,
+        "url": "https://job-boards.eu.greenhouse.io/embed/job_app?for=mailmediaportal",
+        "form": {
+          "url": "https://job-boards.eu.greenhouse.io/embed/job_app?for=mailmediaportal",
+          "form_id": "acadf8e67b348896c0ea3782ff3661f6b87fc3a4ccfe6c751fc0758f54da0897",
+          "fields": [
+            {
+              "id": "q0",
+              "label": "Vorname",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q1",
+              "label": "Nachname",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q2",
+              "label": "E-Mail",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q3",
+              "label": "Land",
+              "type": "text",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q4",
+              "label": "Telefon",
+              "type": "tel",
+              "required": false,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q5",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "cv",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q6",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "cover_letter",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q7",
+              "label": "Anh\u00e4ngen",
+              "type": "file",
+              "required": false,
+              "max_length": null,
+              "options": [],
+              "accept": ".pdf,.doc,.docx,.txt,.rtf",
+              "document_kind": "",
+              "manual": true,
+              "available": true
+            },
+            {
+              "id": "q8",
+              "label": "Stra\u00dfe / Hausnummer",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q9",
+              "label": "Postleitzahl",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q10",
+              "label": "Ort",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q11",
+              "label": "Land",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q12",
+              "label": "Nationalit\u00e4t:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q13",
+              "label": "Welchem Geschlecht f\u00fchlst du dich zugeh\u00f6rig?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q14",
+              "label": "Bitte teile uns deinen j\u00e4hrlichen Bruttogehaltswunsch (\u20ac) mit:",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q15",
+              "label": "Bitte gebe dein fr\u00fchest m\u00f6gliches Startdatum an:",
+              "type": "text",
+              "required": true,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q16",
+              "label": "Pr\u00e4ferierter Standort:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q17",
+              "label": "Pr\u00e4ferierte Kontaktsprache:*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q18",
+              "label": "Gibt es etwas, was du uns noch gerne mitteilen m\u00f6chtest?",
+              "type": "text",
+              "required": false,
+              "max_length": 255,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": false,
+              "available": false
+            },
+            {
+              "id": "q19",
+              "label": "Stimmst du den unten genannten Bedingungen zu ?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            },
+            {
+              "id": "q20",
+              "label": "D\u00fcrfen wir deine Bewerbung auch f\u00fcr weitere Positionen ber\u00fccksichtigen?*",
+              "type": "text",
+              "required": true,
+              "max_length": null,
+              "options": [],
+              "accept": "",
+              "document_kind": "",
+              "manual": true,
+              "available": false
+            }
+          ],
+          "hidden_uploads": 0
+        }
+      },
+      "blocked_non_read_requests": [
+        {
+          "method": "POST",
+          "origin": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2"
+        },
+        {
+          "method": "POST",
+          "origin": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2"
+        }
+      ]
+    },
+    {
+      "provider": "Lever",
+      "source_url": "https://jobs.eu.lever.co/engelvoelkers/e8c91d6d-2775-4fb5-b58e-1b810d5ebc30/apply",
+      "filled": 0,
+      "files_selected": 0,
+      "submissions": 0,
+      "status": 200,
+      "final_url": "https://jobs.eu.lever.co/engelvoelkers/e8c91d6d-2775-4fb5-b58e-1b810d5ebc30/apply",
+      "title": "Engel & V\u00f6lkers - (Mid level) Platform Engineer (f/m/d)*",
+      "top_document": {
+        "form_id": "36afb12c2973fc4e1cc3f1db38f6991a034b4eb64111296a755d1b2db5be8166",
+        "fields": [
+          {
+            "id": "q0",
+            "label": "Resume/CV \u2731ATTACH RESUME/CVCouldn't auto-read resume.Analyzing resume...Success!",
+            "type": "file",
+            "required": false,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "cv",
+            "manual": true,
+            "available": true
+          },
+          {
+            "id": "q1",
+            "label": "Full name\u2731",
+            "type": "text",
+            "required": true,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q2",
+            "label": "Email\u2731",
+            "type": "email",
+            "required": true,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q3",
+            "label": "Phone",
+            "type": "text",
+            "required": false,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q4",
+            "label": "Current location No location found. Try entering a different locationLoading",
+            "type": "text",
+            "required": false,
+            "max_length": 100,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q5",
+            "label": "Current company",
+            "type": "text",
+            "required": false,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q6",
+            "label": "Engel & V\u00f6lkers has my consent to contact me about future job opportunities.",
+            "type": "checkbox",
+            "required": false,
+            "max_length": null,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": true,
+            "available": false
+          }
+        ],
+        "hidden_uploads": 0
+      },
+      "frames": [
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha-enclave.html",
+          "native_controls": 2
+        },
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha-enclave.html",
+          "native_controls": 2
+        },
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha.html",
+          "native_controls": 0
+        },
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha.html",
+          "native_controls": 0
+        },
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha.html",
+          "native_controls": 0
+        },
+        {
+          "url": "https://newassets.hcaptcha.com/captcha/v1/86591f996c36877668d253e353e36fac021db33b/static/hcaptcha.html",
+          "native_controls": 0
+        }
+      ],
+      "blocked_non_read_requests": [
+        {
+          "method": "POST",
+          "origin": "https://region1.analytics.google.com/g/collect"
+        },
+        {
+          "method": "POST",
+          "origin": "https://stats.g.doubleclick.net/g/collect"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api2.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api2.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api2.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://api2.hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://hcaptcha.com/checksiteconfig"
+        },
+        {
+          "method": "POST",
+          "origin": "https://hcaptcha.com/checksiteconfig"
+        }
+      ]
+    },
+    {
+      "provider": "Personio",
+      "source_url": "https://amiconsult.jobs.personio.de/job/1851542?display=en",
+      "filled": 0,
+      "files_selected": 0,
+      "submissions": 0,
+      "status": 200,
+      "final_url": "https://amiconsult.jobs.personio.de/job/1851542/apply?display=en",
+      "title": "Developer & Consultant - CIAM (m/w/d) | Jobs at amiconsult GmbH",
+      "top_document": {
+        "form_id": "c33456bcb132be2158d4a4f3b8b99c0a171bc11bcf904485ecde8d7f35cee852",
+        "fields": [
+          {
+            "id": "q0",
+            "label": "First",
+            "type": "text",
+            "required": false,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q1",
+            "label": "Last",
+            "type": "text",
+            "required": false,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q2",
+            "label": "Email* (required)",
+            "type": "email",
+            "required": true,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q3",
+            "label": "Phone* (required)",
+            "type": "text",
+            "required": true,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q4",
+            "label": "Location* (required)",
+            "type": "text",
+            "required": true,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q5",
+            "label": "Expected salary* (required)",
+            "type": "text",
+            "required": true,
+            "max_length": 255,
+            "options": [],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          },
+          {
+            "id": "q6",
+            "label": "Wo hast du uns gefunden?* (required)",
+            "type": "select",
+            "required": true,
+            "max_length": null,
+            "options": [
+              {
+                "value": "",
+                "label": "Please select"
+              },
+              {
+                "value": "custom_option_40743",
+                "label": "amiconsult.de"
+              },
+              {
+                "value": "custom_option_40744",
+                "label": "Direktansprache (z.B. \u00fcber LinkedIn, Xing)"
+              },
+              {
+                "value": "custom_option_40745",
+                "label": "Kununu"
+              },
+              {
+                "value": "custom_option_40746",
+                "label": "LinkedIn"
+              },
+              {
+                "value": "custom_option_40747",
+                "label": "Xing"
+              },
+              {
+                "value": "custom_option_40748",
+                "label": "Indeed"
+              },
+              {
+                "value": "custom_option_40750",
+                "label": "Messe/Event"
+              },
+              {
+                "value": "custom_option_40751",
+                "label": "Universit\u00e4t/Hochschule"
+              },
+              {
+                "value": "custom_option_40829",
+                "label": "Mitarbeiterempfehlung"
+              },
+              {
+                "value": "custom_option_41671",
+                "label": "Stepstone"
+              },
+              {
+                "value": "custom_option_41672",
+                "label": "Sonstiges"
+              },
+              {
+                "value": "custom_option_52074",
+                "label": "Instagram"
+              }
+            ],
+            "accept": "",
+            "document_kind": "",
+            "manual": false,
+            "available": false
+          }
+        ],
+        "hidden_uploads": 2
+      },
+      "frames": [],
+      "blocked_non_read_requests": []
+    }
+  ]
+}

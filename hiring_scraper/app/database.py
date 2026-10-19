@@ -7,16 +7,58 @@ import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, inspect
+from sqlalchemy.exc import DBAPIError, OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import Session, sessionmaker
 
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hiring.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite:")
-_engine_options: dict[str, object] = {"pool_pre_ping": True}
-if IS_SQLITE:
-    _engine_options["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, **_engine_options)
+def create_runtime_engine(database_url: str):
+    """Budget each process's connections and bound PostgreSQL blocking waits."""
+    options: dict[str, object] = {"pool_pre_ping": True}
+    if database_url.startswith('sqlite:'):
+        options['connect_args'] = {'check_same_thread': False, 'timeout': 30}
+    elif database_url.startswith(('postgresql:', 'postgresql+')):
+        options.update(
+            pool_size=max(1, int(os.getenv('DB_POOL_SIZE') or os.getenv('HIRING_DB_POOL_SIZE', '4'))),
+            max_overflow=max(0, int(os.getenv('DB_MAX_OVERFLOW') or os.getenv('HIRING_DB_MAX_OVERFLOW', '2'))),
+            pool_timeout=max(.1, float(os.getenv('DB_POOL_TIMEOUT_SECONDS', '10'))),
+            pool_recycle=1800,
+        )
+        postgres_settings = {
+            'lock_timeout': max(1, int(os.getenv('DB_LOCK_TIMEOUT_MS', '5000'))),
+            'statement_timeout': max(1, int(os.getenv('DB_STATEMENT_TIMEOUT_MS', '120000'))),
+            'idle_in_transaction_session_timeout': max(1, int(os.getenv('DB_IDLE_TRANSACTION_TIMEOUT_MS', '120000'))),
+        }
+        options['connect_args'] = {
+            'connect_timeout': max(1, int(os.getenv('DB_CONNECT_TIMEOUT_SECONDS', '5'))),
+            'application_name': 'radius',
+            'options': ' '.join(f'-c {name}={value}' for name, value in postgres_settings.items()),
+        }
+    return create_engine(database_url, **options)
+
+
+def is_transient_database_error(error: BaseException) -> bool:
+    """Retry contention/connection failures, while surfacing schema/code errors."""
+    if isinstance(error, DatabasePoolTimeout):
+        return True
+    if not isinstance(error, DBAPIError):
+        return False
+    if error.connection_invalidated:
+        return True
+    code = getattr(error.orig, 'sqlstate', None) or getattr(error.orig, 'pgcode', None)
+    if code:
+        return code.startswith('08') or code in {
+            '40001', '40P01', '55P03', '57014', '57P01', '57P02', '57P03', '53300',
+        }
+    sqlite_code = getattr(error.orig, 'sqlite_errorcode', None)
+    if sqlite_code is not None:
+        return sqlite_code & 0xff in {5, 6}  # SQLITE_BUSY / SQLITE_LOCKED, including extended codes.
+    return isinstance(error, OperationalError) and type(error.orig).__module__.startswith('psycopg')
+
+
+engine = create_runtime_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 
@@ -29,6 +71,28 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
     from hiring_scraper.app.models import Base
     if target_engine.dialect.name != 'sqlite':
         return
+    database_name = target_engine.url.database or ""
+    is_memory_database = (database_name == ":memory:" or
+                          database_name.startswith("file::memory:") or
+                          target_engine.url.query.get("mode") == "memory")
+    if database_name and not is_memory_database:
+        # WAL lets API readers continue while background workers write. SQLite
+        # still serializes writers, handled by the connection busy timeout.
+        raw_connection = target_engine.raw_connection()
+        try:
+            cursor = raw_connection.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode")
+                journal_mode = cursor.fetchone()[0]
+                if str(journal_mode).casefold() != "wal":
+                    cursor.execute("PRAGMA journal_mode=WAL")
+                    journal_mode = cursor.fetchone()[0]
+            finally:
+                cursor.close()
+            if str(journal_mode).casefold() != "wal":
+                raise RuntimeError(f"Could not enable SQLite WAL mode (got {journal_mode!r})")
+        finally:
+            raw_connection.close()
     with target_engine.begin() as connection:
         # Older development databases may contain duplicate active Germany
         # inventories from before the coalescing guard was added.
@@ -47,6 +111,63 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
+        if 'application_momentum_settings' in inspect(connection).get_table_names():
+            connection.exec_driver_sql("DROP TABLE application_momentum_settings")
+
+        momentum_events_sql = connection.exec_driver_sql(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='application_momentum_events'").scalar() or ""
+        if "interview" not in momentum_events_sql.lower() or "accepted" not in momentum_events_sql.lower():
+            connection.exec_driver_sql("""
+                CREATE TABLE application_momentum_events_next (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    profile_id INTEGER NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+                    job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+                    event_type VARCHAR(32) NOT NULL,
+                    occurred_at DATETIME NOT NULL,
+                    is_legacy BOOLEAN DEFAULT 0 NOT NULL,
+                    CONSTRAINT ck_application_momentum_event_type
+                        CHECK (event_type IN ('applied', 'interview', 'accepted'))
+                )
+            """)
+            connection.exec_driver_sql("""
+                INSERT INTO application_momentum_events_next
+                    (id, profile_id, job_id, event_type, occurred_at, is_legacy)
+                SELECT id, profile_id, job_id, event_type, occurred_at, is_legacy
+                  FROM application_momentum_events
+            """)
+            connection.exec_driver_sql("DROP TABLE application_momentum_events")
+            connection.exec_driver_sql(
+                "ALTER TABLE application_momentum_events_next RENAME TO application_momentum_events")
+            connection.exec_driver_sql(
+                "CREATE INDEX IF NOT EXISTS ix_application_momentum_events_type_date "
+                "ON application_momentum_events (event_type, occurred_at)")
+            connection.exec_driver_sql(
+                "CREATE INDEX IF NOT EXISTS ix_application_momentum_events_job "
+                "ON application_momentum_events (job_id)")
+        profile_columns = {column['name'] for column in inspect(connection).get_columns('user_profiles')}
+        if 'low_afd_vote_share_weight' not in profile_columns:
+            connection.exec_driver_sql(
+                "ALTER TABLE user_profiles ADD COLUMN low_afd_vote_share_weight "
+                "INTEGER NOT NULL DEFAULT 0")
+            for profile_id, preferences in connection.exec_driver_sql(
+                    "SELECT id, preferences FROM user_profiles").all():
+                if isinstance(preferences, str):
+                    try:
+                        preferences = json.loads(preferences)
+                    except json.JSONDecodeError:
+                        continue
+                if not isinstance(preferences, dict):
+                    continue
+                defaults = preferences.get('matching_defaults')
+                if not isinstance(defaults, dict) or 'low_afd_vote_share_weight' not in defaults:
+                    continue
+                try:
+                    weight = max(0, min(20, int(defaults.pop('low_afd_vote_share_weight'))))
+                except (TypeError, ValueError):
+                    weight = 0
+                connection.exec_driver_sql(
+                    "UPDATE user_profiles SET low_afd_vote_share_weight=?, preferences=? WHERE id=?",
+                    (weight, json.dumps(preferences, ensure_ascii=False), profile_id))
         snapshot_columns = {column['name'] for column in inspect(connection).get_columns('job_search_snapshots')}
         if 'criteria_hash' not in snapshot_columns:
             connection.exec_driver_sql(
@@ -151,6 +272,56 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         application_columns = {column['name'] for column in inspect(connection).get_columns('job_applications')}
         if 'auto_created' not in application_columns:
             connection.exec_driver_sql("ALTER TABLE job_applications ADD COLUMN auto_created BOOLEAN NOT NULL DEFAULT 0")
+        status_constraint = next((item for item in inspect(connection).get_check_constraints('job_applications')
+                                  if item['name'] == 'ck_job_application_status'), None)
+        if not status_constraint or any(status not in status_constraint['sqltext']
+                                        for status in ('in_gots_hand', 'automated_application')):
+            from alembic.migration import MigrationContext
+            from alembic.operations import Operations
+            from hiring_scraper.app.models import JobApplication
+            constraint = next(item for item in JobApplication.__table__.constraints
+                              if item.name == 'ck_job_application_status')
+            with Operations(MigrationContext.configure(connection)).batch_alter_table('job_applications') as batch:
+                if status_constraint:
+                    batch.drop_constraint('ck_job_application_status', type_='check')
+                batch.create_check_constraint('ck_job_application_status', str(constraint.sqltext))
+        connection.exec_driver_sql("""
+            INSERT INTO application_momentum_events
+                (profile_id, job_id, event_type, occurred_at, is_legacy)
+            SELECT application.profile_id, application.job_id, 'applied', application.updated_at, 1
+              FROM job_applications AS application
+             WHERE (
+                    application.status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted')
+                    OR (application.status = 'rejected'
+                        AND application.previous_status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted'))
+                   )
+               AND NOT EXISTS (
+                    SELECT 1
+                      FROM application_momentum_events AS existing
+                     WHERE existing.profile_id = application.profile_id
+                       AND existing.job_id = application.job_id
+                       AND existing.event_type = 'applied'
+                       AND existing.is_legacy = 1
+               )
+        """)
+        for event_type, legacy_filter in (
+                ('interview', "application.status = 'interview' OR application.previous_status = 'interview'"),
+                ('accepted', "application.status = 'accepted' OR application.previous_status = 'accepted'")):
+            connection.exec_driver_sql(f"""
+                INSERT INTO application_momentum_events
+                    (profile_id, job_id, event_type, occurred_at, is_legacy)
+                SELECT application.profile_id, application.job_id, '{event_type}', application.updated_at, 1
+                  FROM job_applications AS application
+                 WHERE ({legacy_filter})
+                   AND NOT EXISTS (
+                        SELECT 1
+                          FROM application_momentum_events AS existing
+                         WHERE existing.profile_id = application.profile_id
+                           AND existing.job_id = application.job_id
+                           AND existing.event_type = '{event_type}'
+                           AND existing.is_legacy = 1
+                   )
+            """)
         feed_columns = {column['name'] for column in inspect(connection).get_columns('job_feeds')}
         if 'enabled' not in feed_columns:
             connection.exec_driver_sql("ALTER TABLE job_feeds ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT 1")

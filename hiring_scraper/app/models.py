@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer,
+    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
     JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
@@ -286,18 +286,42 @@ class UserProfile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    low_afd_vote_share_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
     match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
+
+    @property
+    def matching_preferences(self) -> dict:
+        """Return preferences with versioned matcher settings merged in."""
+        preferences = dict(self.preferences or {})
+        defaults = dict(preferences.get("matching_defaults") or {})
+        defaults["low_afd_vote_share_weight"] = self.low_afd_vote_share_weight
+        preferences["matching_defaults"] = defaults
+        return preferences
+
+
+class ProfileCV(Base):
+    __tablename__ = "profile_cvs"
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    filename: Mapped[str] = mapped_column(String(200), nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    extracted_text: Mapped[str] = mapped_column(Text, nullable=False, deferred=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    profile: Mapped[UserProfile] = relationship(back_populates="cv")
 
 
 class JobApplication(Base):
     __tablename__ = "job_applications"
     __table_args__ = (
         UniqueConstraint("profile_id", "job_id", name="uq_job_application_profile_job"),
-        CheckConstraint("status IN ('new', 'open', 'not_interested', 'waiting_for_reply', 'interview', 'rejected', 'accepted')",
+        CheckConstraint("status IN ('new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted')",
                         name="ck_job_application_status"),
         Index("ix_job_applications_profile_status", "profile_id", "status"),
     )
@@ -313,6 +337,23 @@ class JobApplication(Base):
 
     profile: Mapped[UserProfile] = relationship(back_populates="applications")
     job: Mapped[Job] = relationship(back_populates="applications")
+
+
+class ApplicationMomentumEvent(Base):
+    __tablename__ = "application_momentum_events"
+    __table_args__ = (
+        CheckConstraint("event_type IN ('applied', 'interview', 'accepted')",
+                        name="ck_application_momentum_event_type"),
+        Index("ix_application_momentum_events_type_date", "event_type", "occurred_at"),
+        Index("ix_application_momentum_events_job", "job_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    is_legacy: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
 
 
 class ProfileJobMatch(Base):
@@ -460,22 +501,32 @@ def _search_data_changed(session: Session) -> bool:
 
 @event.listens_for(Session, "before_flush")
 def _invalidate_job_search_snapshots(session: Session, _flush_context, _instances) -> None:
-    """Bump the shared generation once per transaction when indexed source data changes."""
-    if session.info.get("job_search_generation_bumped"):
-        return
-    if not _search_data_changed(session):
+    """Remember invalidation without taking a global lock during source work."""
+    if _search_data_changed(session):
+        session.info["job_search_generation_dirty"] = True
+
+
+@event.listens_for(Session, "before_commit")
+def _commit_job_search_generation(session: Session) -> None:
+    # Finish domain writes first. Holding the shared marker during a feed/job
+    # flush inverted its order with Company/Profile locks in other transactions.
+    session.flush()
+    if not session.info.get("job_search_generation_dirty"):
         return
     connection = session.connection()
+    if connection.dialect.name == "postgresql":
+        # Serialize sequence allocation with commit, including an empty table.
+        # Otherwise a lower sequence ID committing later can miss invalidation.
+        connection.execute(text("SELECT pg_advisory_xact_lock(85793011, 2)"))
     connection.execute(insert(JobSearchState).values())
     generation = connection.execute(select(JobSearchState.id).order_by(JobSearchState.id.desc()).limit(1)).scalar_one()
     connection.execute(delete(JobSearchState).where(JobSearchState.id < generation))
-    session.info["job_search_generation_bumped"] = True
 
 
 @event.listens_for(Session, "after_commit")
 @event.listens_for(Session, "after_rollback")
 def _reset_job_search_generation_flag(session: Session) -> None:
-    session.info.pop("job_search_generation_bumped", None)
+    session.info.pop("job_search_generation_dirty", None)
 
 
 class ScanRun(Base):

@@ -1,7 +1,13 @@
+import type { CityElectionResult } from './profile'
+
 export type ProfileMatch = {
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
+  local_context?: {
+    city_election_results: CityElectionResult[]; average_afd_vote_share_percent: number | null
+    score_adjustment: number; weight: number
+  }
   matched_skills: string[]; missing_skills: string[]; reasons: string[]; conflicts: string[]; unknowns: string[]
 }
 export type Enrichment = {
@@ -19,10 +25,11 @@ export type Enrichment = {
 export default function JobEvidence({ enrichment, match }: { enrichment: Enrichment; match?: ProfileMatch }) {
   const skillEvidence = [...enrichment.skills, ...(match?.custom_skill_evidence ?? [])]
   return <section className="detail-panel evidence-panel">
-    <p className="eyebrow">HOW THIS JOB FITS</p>
+    <p className="eyebrow">How this job fits</p>
     {match ? <>
       <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
       <p className="muted">This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.</p>
+      {match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Outside your preferences</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
