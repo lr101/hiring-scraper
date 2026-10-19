@@ -70,6 +70,33 @@ class DiscoveryWorkerTests(unittest.TestCase):
                          "A more relevant branch must not create a second page crawl for the same domain")
         self.assertIsNone(worker._claim_due_company())
 
+    def test_due_company_uses_german_employer_instead_of_an_older_foreign_job_board(self):
+        due = utcnow() - timedelta(minutes=1)
+        board = self._company(source="imported", source_id="old-austrian-board", name="Austrian job board",
+                              country_code="AT", category="job_board_source", domain="shared-board.example",
+                              crawl_interval_days=1, next_discovery_at=due)
+        german = self._company(source_id="german-employer", name="German employer", country_code="DE",
+                               domain="www.shared-board.example", crawl_interval_days=7,
+                               next_discovery_at=due)
+
+        claim = worker._claim_due_company()
+
+        self.assertIsNotNone(claim)
+        self.assertEqual(claim[0], german)
+        self.assertNotEqual(claim[0], board)
+
+    def test_active_german_alias_is_claimed_when_an_older_alias_is_paused(self):
+        due = utcnow() - timedelta(minutes=1)
+        self._company(source_id="paused-german-alias", name="Paused alias", country_code="DE",
+                      domain="shared-paused.example", crawl_paused=True, next_discovery_at=due)
+        active = self._company(source_id="active-german-alias", name="Active alias", country_code="DE",
+                               domain="www.shared-paused.example", next_discovery_at=due)
+
+        claim = worker._claim_due_company()
+
+        self.assertIsNotNone(claim)
+        self.assertEqual(claim[0], active)
+
     def test_expired_company_lease_marks_the_old_attempt_failed_before_requeue(self):
         company_id = self._company(discovery_lease_until=utcnow() - timedelta(minutes=1))
         with self.factory.begin() as session:

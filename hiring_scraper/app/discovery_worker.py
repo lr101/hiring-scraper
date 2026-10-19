@@ -13,9 +13,9 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
-from sqlalchemy.orm import aliased, selectinload
+from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.applications import close_job_applications
@@ -24,7 +24,7 @@ from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, canonical_company_ids, canonical_company_map,
-    company_ids_for_search, create_discovery_job,
+    company_ids_for_search, create_discovery_job, german_company_filter,
 )
 from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
@@ -84,23 +84,43 @@ _POSITIVE_CAREER_STATUSES = {"career_page_found", "jobs_feed_found", "jobs_extra
 def _claim_due_company() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
-        earlier_domain_company = aliased(Company)
         company_domain = case(
             (func.lower(Company.domain).like("www.%"), func.substr(func.lower(Company.domain), 5)),
             else_=func.lower(Company.domain))
-        earlier_domain = case(
-            (func.lower(earlier_domain_company.domain).like("www.%"),
-             func.substr(func.lower(earlier_domain_company.domain), 5)),
-            else_=func.lower(earlier_domain_company.domain))
-        duplicate_domain = select(earlier_domain_company.id).where(
-            Company.domain.is_not(None), earlier_domain_company.domain.is_not(None),
-            earlier_domain_company.id < Company.id,
-            earlier_domain_company.website_url.is_not(None), earlier_domain_company.website_url != "",
-            earlier_domain == company_domain,
-        ).correlate(Company).exists()
+        german_priority = case((german_company_filter(), 0), else_=1)
+        pause_priority = case((Company.crawl_paused.is_(False), 0), else_=1)
+        eligible_domains = (select(Company.id.label("company_id"),
+                                   company_domain.label("domain_key"),
+                                   german_priority.label("german_priority"),
+                                   pause_priority.label("pause_priority"))
+                            .where(Company.domain.is_not(None), Company.domain != "",
+                                   Company.website_url.is_not(None), Company.website_url != "",
+                                   or_(Company.category.is_(None), Company.category != "job_board_source"))
+                            .subquery())
+        domain_roots = (select(
+            eligible_domains.c.domain_key,
+            func.coalesce(
+                func.min(case((and_(eligible_domains.c.german_priority == 0,
+                                    eligible_domains.c.pause_priority == 0),
+                              eligible_domains.c.company_id), else_=None)),
+                func.min(case((eligible_domains.c.german_priority == 0,
+                               eligible_domains.c.company_id), else_=None)),
+                func.min(case((and_(eligible_domains.c.german_priority == 1,
+                                    eligible_domains.c.pause_priority == 0),
+                              eligible_domains.c.company_id), else_=None)),
+                func.min(eligible_domains.c.company_id),
+            ).label("company_id"),
+        ).group_by(eligible_domains.c.domain_key).subquery())
+        canonical_roots = (select(domain_roots.c.company_id)
+                           .union_all(select(Company.id).where(
+                               or_(Company.domain.is_(None), Company.domain == ""),
+                               Company.website_url.is_not(None), Company.website_url != "",
+                               or_(Company.category.is_(None), Company.category != "job_board_source")))
+                           .subquery())
         statement = (select(Company)
-                     .where(Company.website_url.is_not(None), Company.website_url != "", Company.crawl_paused.is_(False),
-                            ~duplicate_domain,
+                     .where(Company.id.in_(select(canonical_roots.c.company_id)),
+                            Company.website_url.is_not(None), Company.website_url != "",
+                            Company.crawl_paused.is_(False),
                             ~Company.id.in_(select(DiscoveryJobCompany.company_id).join(DiscoveryJob).where(
                                 DiscoveryJobCompany.status.in_(("queued", "running")),
                                 DiscoveryJob.status.in_(("scheduled", "queued", "running")))),

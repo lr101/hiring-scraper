@@ -1047,6 +1047,53 @@ def list_discovery_jobs(status: str | None = Query(None),
     return {"items": [discovery_job_json(job) for job in jobs]}
 
 
+def _ranked_company_health(session: Session, now: datetime) -> dict[str, int]:
+    company_domain = func.lower(Company.domain)
+    company_domain = case((company_domain.like("www.%"), func.substr(company_domain, 5)), else_=company_domain)
+    german_companies = (select(Company.id.label("company_id"), company_domain.label("domain_key"),
+                               Company.crawl_paused.label("crawl_paused"))
+                        .where(german_company_filter(), Company.website_url.is_not(None), Company.website_url != "",
+                               or_(Company.category.is_(None), Company.category != "job_board_source"))
+                        .subquery())
+    german_domain_roots = (select(
+        german_companies.c.domain_key,
+        func.coalesce(
+            func.min(case((german_companies.c.crawl_paused.is_(False), german_companies.c.company_id), else_=None)),
+            func.min(german_companies.c.company_id),
+        ).label("company_id"),
+    ).where(german_companies.c.domain_key.is_not(None), german_companies.c.domain_key != "")
+        .group_by(german_companies.c.domain_key).subquery())
+    german_company_roots = (select(func.coalesce(german_domain_roots.c.company_id,
+                                                 german_companies.c.company_id).label("company_id"))
+                            .select_from(german_companies)
+                            .outerjoin(german_domain_roots,
+                                       german_domain_roots.c.domain_key == german_companies.c.domain_key)
+                            .distinct().subquery())
+    interval = func.coalesce(Company.crawl_interval_days, 7)
+    health_counts = session.execute(select(
+        func.count(Company.id).label("total"),
+        func.sum(case((interval <= 1, 1), else_=0)).label("daily"),
+        func.sum(case((interval == 7, 1), else_=0)).label("weekly"),
+        func.sum(case((interval == 30, 1), else_=0)).label("monthly"),
+        func.sum(case((and_(interval > 1, interval != 7, interval != 30), 1), else_=0)).label("other"),
+        func.sum(case((and_(Company.next_discovery_at.is_not(None), Company.next_discovery_at <= now), 1),
+                      else_=0)).label("due"),
+        func.sum(case((and_(Company.next_discovery_at.is_not(None),
+                            Company.next_discovery_at <= now - timedelta(hours=24)), 1), else_=0)).label("overdue"),
+        func.sum(case((Company.next_discovery_at.is_(None), 1), else_=0)).label("unscheduled"),
+    ).join(german_company_roots, Company.id == german_company_roots.c.company_id)
+      .where(Company.website_url.is_not(None), Company.website_url != "", Company.crawl_paused.is_(False))
+      ).mappings().one()
+    return {key: int(health_counts[key] or 0) for key in
+            ("total", "daily", "weekly", "monthly", "other", "due", "overdue", "unscheduled")}
+
+
+@app.get("/api/v1/ranked-company-health")
+def list_ranked_company_health(session: Session = Depends(get_session)) -> dict[str, int]:
+    """Return Germany's ranked company check schedule and backlog counts."""
+    return _ranked_company_health(session, utcnow())
+
+
 @app.get("/api/v1/active-workers")
 def list_active_workers(session: Session = Depends(get_session)) -> dict[str, Any]:
     """Return work with a live lease, without creating a persistent activity history."""
@@ -1158,6 +1205,7 @@ def list_active_workers(session: Session = Depends(get_session)) -> dict[str, An
         items.append({
             "id": f"feed:{run.id}",
             "kind": "job_feed_scan",
+            "feed_id": feed.id,
             "title": company.name,
             "activity": f"Refreshing {feed.provider} job listings",
             "context": feed.tenant or feed.provider,
@@ -2784,6 +2832,21 @@ def list_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
         JobFeed.provider != "manual_job").order_by(
             Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
     return {"items": [_managed_feed_json(feed) for feed in feeds], "total": len(feeds)}
+
+
+@app.get("/api/v1/feeds/special")
+def list_special_feeds(session: Session = Depends(get_session)) -> dict[str, Any]:
+    """Return enabled managed Agentur für Arbeit feeds for the Locations view."""
+    managed_marker = or_(
+        Company.source == "managed_feed",
+        JobFeed.source_config["managed_adapter"].as_boolean().is_(True),
+        JobFeed.source_config["location_filter"].as_string().is_not(None),
+    )
+    feeds = session.scalars(select(JobFeed).options(joinedload(JobFeed.company)).where(
+        JobFeed.provider == "arbeitsagentur", JobFeed.enabled.is_(True), managed_marker).order_by(
+            Company.name.asc(), JobFeed.id.asc()).join(JobFeed.company)).all()
+    items = [_managed_feed_json(feed) for feed in feeds if _is_managed_arbeitsagentur_feed(feed)]
+    return {"items": items, "total": len(items)}
 
 
 @app.post("/api/v1/feeds", status_code=201)
