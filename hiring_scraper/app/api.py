@@ -54,7 +54,7 @@ from hiring_scraper.app.profiles import router as profiles_router, require_profi
 from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
                                             ApplicationStatus, application_json, close_job_applications)
 from hiring_scraper.app.job_search import (
-    ProfileIndexChanged, ensure_profile_match_indexes,
+    ProfileIndexChanged, ensure_profile_match_indexes, refresh_application_matches_for_jobs,
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
 from hiring_scraper.app.board_scope import (
@@ -3037,6 +3037,11 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         feed.status = "source_replaced"
         feed.next_scan_at = None
         feed.lease_until = None
+        # Match rebuilds lock profiles before writing rows that reference jobs.
+        # Use the same order here before taking job row locks, so a concurrent
+        # rebuild cannot wait on a retiring job while this transaction waits
+        # for that rebuild's profile lock.
+        session.scalars(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
         retiring_jobs = session.scalars(select(Job).where(
             Job.feed_id == feed.id, Job.is_active.is_(True)).order_by(Job.id)
             .with_for_update().execution_options(populate_existing=True)).all()
@@ -3045,6 +3050,8 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
             job.closed_at = now
         session.flush()
         close_job_applications(session, [job.id for job in retiring_jobs], now)
+        if retiring_jobs:
+            refresh_application_matches_for_jobs(session, [job.id for job in retiring_jobs])
         if (feed.company.source == "managed_feed" and not career_page_supplied and
                 not feed.company.career_url_manual):
             feed.company.career_url = new_board_url

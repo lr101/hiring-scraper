@@ -15,8 +15,8 @@ from psycopg.errors import LockNotAvailable
 from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, job_search
 from hiring_scraper.app import worker
 from hiring_scraper.app.models import (
-    Base, Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobFeed,
-    JobSearchRefresh, ScanRun, SemanticSearchIndexState, UserProfile, utcnow,
+    Base, Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed,
+    JobSearchRefresh, ProfileJobMatch, ScanRun, SemanticSearchIndexState, UserProfile, utcnow,
 )
 
 
@@ -361,6 +361,96 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertFalse(job_search.ensure_profile_match_indexes(reader, [reader.get(UserProfile, profile_id)]))
             with self.factory.begin() as editor:
                 editor.execute(update(UserProfile).where(UserProfile.id == profile_id).values(name='Edited'))
+
+    def test_retiring_feed_during_index_publish_retracts_rows_after_rebuild(self):
+        with self.factory.begin() as session:
+            company = Company(source='managed_feed', source_id='index-race', name='Employer')
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider='external_html',
+                           feed_url='https://example.test/jobs', board_url='https://example.test/jobs',
+                           status='parsed', enabled=True, source_revision=1)
+            profile = UserProfile(name='Developer', preferences={})
+            session.add_all([feed, profile])
+            session.flush()
+            job = Job(feed_id=feed.id, external_id='role', title='Engineer',
+                      url='https://example.test/jobs/role', is_active=True)
+            session.add(job)
+            session.flush()
+            feed_id, profile_id, job_id = feed.id, profile.id, job.id
+
+        index_at_publish = threading.Event()
+        release_index = threading.Event()
+        retirement_waiting_for_profile = threading.Event()
+        retirement_done = threading.Event()
+        generation_reads = 0
+        errors = []
+
+        def pause_index_before_publish(_conn, _cursor, statement, *_args):
+            nonlocal generation_reads
+            if (threading.current_thread().name == 'profile-index-rebuild' and
+                    statement.startswith('SELECT max(job_search_state.id)')):
+                generation_reads += 1
+                if generation_reads == 2:
+                    index_at_publish.set()
+                    if not release_index.wait(4):
+                        raise AssertionError('index race test did not release rebuild')
+
+        def observe_retirement_lock(_conn, _cursor, statement, *_args):
+            if (threading.current_thread().name == 'feed-retirement' and
+                    'FROM user_profiles' in statement and 'FOR UPDATE' in statement):
+                retirement_waiting_for_profile.set()
+
+        event.listen(self.engine, 'after_cursor_execute', pause_index_before_publish)
+        event.listen(self.engine, 'before_cursor_execute', observe_retirement_lock)
+
+        def rebuild():
+            try:
+                with patch.object(job_search, 'match_job', return_value={
+                        'eligible': True, 'score': 70, 'fit_tier': 'recommended', 'uncertain': False}), \
+                        patch.object(job_search, 'application_match_allowed', return_value=True), \
+                        self.factory.begin() as session:
+                    profile = session.get(UserProfile, profile_id)
+                    job_search.ensure_profile_match_indexes(session, [profile])
+            except Exception as error:
+                errors.append(error)
+
+        def retire_feed():
+            try:
+                with self.factory() as session:
+                    session.execute(text("SET lock_timeout = '8s'"))
+                    api.update_managed_feed(feed_id, api.ManagedFeedUpdate(
+                        feed_url='https://example.test/new-jobs.xml', provider='rss'), session)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                retirement_done.set()
+
+        index_thread = threading.Thread(target=rebuild, name='profile-index-rebuild')
+        retirement_thread = threading.Thread(target=retire_feed, name='feed-retirement')
+        try:
+            index_thread.start()
+            self.assertTrue(index_at_publish.wait(3), 'index rebuild did not reach its publish check')
+            retirement_thread.start()
+            progressed = (retirement_waiting_for_profile.wait(3) or retirement_done.wait(0.1))
+            self.assertTrue(progressed, 'feed retirement neither blocked on nor finished its profile update')
+        finally:
+            release_index.set()
+            index_thread.join(6)
+            if retirement_thread.ident is not None:
+                retirement_thread.join(6)
+            event.remove(self.engine, 'after_cursor_execute', pause_index_before_publish)
+            event.remove(self.engine, 'before_cursor_execute', observe_retirement_lock)
+
+        self.assertFalse(index_thread.is_alive())
+        self.assertFalse(retirement_thread.is_alive())
+        self.assertEqual(errors, [])
+        with self.factory() as session:
+            self.assertFalse(session.get(Job, job_id).is_active)
+            self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))
+            self.assertIsNone(session.scalar(select(JobApplication).where(
+                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id,
+                JobApplication.status == 'new')))
 
     def test_embedding_wait_releases_the_request_connection(self):
         with self.factory.begin() as session:
