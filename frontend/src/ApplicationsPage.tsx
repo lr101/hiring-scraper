@@ -21,7 +21,7 @@ type SortMode = typeof sortModes[number]['value']
 const journeyStages: ApplicationStatus[][] = [
   ['new'], ['open', 'in_gots_hand'], ['waiting_for_reply', 'automated_application'], ['interview'], ['accepted'],
 ]
-const outcomeStages: ApplicationStatus[] = ['not_interested', 'rejected']
+const outcomeStages: ApplicationStatus[] = ['not_interested', 'rejected', 'closed']
 const applicationRewardCycle = [
   { reward: 'Kisses', icon: '💋' },
   { reward: 'Flowers', icon: '💐' },
@@ -34,7 +34,7 @@ const applicationMilestones = Array.from({ length: 40 }, (_, index) => {
 })
 const stagePalette: Record<ApplicationStatus, string> = {
   new: 'green', open: 'blue', in_gots_hand: 'sand', waiting_for_reply: 'amber', automated_application: 'teal', interview: 'violet',
-  accepted: 'mint', not_interested: 'stone', rejected: 'rose',
+  accepted: 'mint', not_interested: 'stone', rejected: 'rose', closed: 'stone',
 }
 
 type MatchingJob = {

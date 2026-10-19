@@ -21,6 +21,7 @@ type JobCardData = {
   is_remote?: boolean
   url?: string | null
   is_active?: boolean
+  closed_at?: string | null
   expired?: boolean
   last_seen_at?: string | null
   first_seen_at?: string | null
@@ -82,7 +83,8 @@ function JobFeedCard({
       <div className="application-role">
         <a className="application-job-title" href={href}>{job.title}</a>
         <small className="application-company-name">{job.company_name}{job.department ? ` · ${job.department}` : ''}</small>
-        {(job.expired || job.is_active === false) && <small className="application-closed">{job.expired ? 'Posting expired' : 'Posting closed'}</small>}
+        {(job.expired || job.is_active === false) && <small className="application-closed">{job.is_active === false
+          ? `Posting closed${job.closed_at ? ` · ${formatDate(job.closed_at)}` : ''}` : 'Posting expired'}</small>}
       </div>
       <div className="application-card-state">
         <ApplicationStateBadge application={application} fallbackStatus={profileId ? 'new' : undefined} />

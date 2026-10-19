@@ -18,6 +18,7 @@ from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import aliased, selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
+from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
@@ -286,6 +287,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
     seen: set[str] = set()
     seen_job_ids: set[int] = set()
     touched_job_ids: set[int] = set()
+    closed_job_ids: set[int] = set()
     for data in rows:
         external_id, title, url = data.get("id"), data.get("title"), data.get("url")
         if external_id in (None, "") or not title or not url:
@@ -331,14 +333,17 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
             if external_id in seen:
                 continue
             job.missing_complete_scans += 1
-            last_seen = job.last_seen_at
-            if last_seen.tzinfo is None:
-                last_seen = last_seen.replace(tzinfo=timezone.utc)
-            if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
+            # Only complete listings establish removal; partial discovery must
+            # leave existing jobs active. Keep the first closure timestamp.
+            if job.is_active:
                 job.is_active = False
                 job.closed_at = now
+                closed_job_ids.add(job.id)
                 touched_job_ids.add(job.id)
 
+    if closed_job_ids:
+        session.flush()
+        close_job_applications(session, closed_job_ids, now)
     feed.job_count = len(seen)
     feed.status = "parsed" if complete and seen else "complete_empty" if complete else "incomplete"
     feed.last_checked_at = now

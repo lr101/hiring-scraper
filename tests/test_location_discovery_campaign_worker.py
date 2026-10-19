@@ -125,7 +125,12 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             page = api.list_jobs(latitude=49.0, longitude=8.4, radius_km=15,
                 company_id=None, query=None, place="Karlsruhe", offset=0, limit=100,
                 location_scope="area", session=session)
-            self.assertEqual({row["external_id"] for row in page["items"]}, {"old", "local"})
+            self.assertEqual({row["external_id"] for row in page["items"]}, {"local"})
+            closed = api.list_jobs(latitude=49.0, longitude=8.4, radius_km=15,
+                company_id=None, query=None, place="Karlsruhe", offset=0, limit=100,
+                location_scope="area", posting_status="closed", session=session)
+            self.assertEqual({row["external_id"] for row in closed["items"]}, {"old"})
+            self.assertIsNotNone(closed["items"][0]["closed_at"])
             self.assertEqual(page["counts"]["filtered"]["outside_area"], 2)
             self.assertEqual(page["counts"]["filtered"]["remote_not_selected"], 1)
             self.assertEqual(page["counts"]["filtered"]["expired"], 1)

@@ -8,6 +8,7 @@ export const applicationStatuses = [
   { value: 'not_interested', label: 'Not interested' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'accepted', label: 'Accepted' },
+  { value: 'closed', label: 'Closed' },
 ] as const
 
 export type ApplicationStatus = typeof applicationStatuses[number]['value']
@@ -23,6 +24,7 @@ export const nextApplicationStages: Record<ApplicationStatus, ApplicationStatus[
   accepted: [],
   rejected: [],
   not_interested: [],
+  closed: [],
 }
 export const swipeApplicationStages: Record<ApplicationStatus, Partial<Record<SwipeDirection, ApplicationStatus>>> = {
   new: { left: 'not_interested', right: 'open' },
@@ -34,6 +36,7 @@ export const swipeApplicationStages: Record<ApplicationStatus, Partial<Record<Sw
   accepted: {},
   rejected: {},
   not_interested: {},
+  closed: {},
 }
 
 export function applicationStatusLabel(status?: ApplicationStatus | null) {

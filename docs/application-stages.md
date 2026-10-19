@@ -39,3 +39,14 @@ Migration `0029_parallel_application_stages` expands the database constraint.
 Local SQLite startup upgrades the old constraint while keeping existing records,
 indexes and undo history. Downgrading maps In GOD's hand to Interested and
 Automated application to Waiting for reply, including previous-stage values.
+
+## Closed postings
+
+When a complete source scan confirms that a posting disappeared, its Journey
+state changes as follows: Accepted and Rejected stay unchanged; Waiting for reply
+and Automated application move to Rejected; every other stage moves to Closed. Closed appears under **Past outcomes** and can be filtered there.
+The previous stage is retained in history, and repeated scans do not change the
+outcome again. If the posting reappears, its saved Journey outcome remains.
+
+Migration `0030_closed_application_stage` adds Closed and applies these rules to
+existing inactive postings. Local SQLite startup performs the same upgrade once.

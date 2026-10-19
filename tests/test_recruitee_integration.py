@@ -163,6 +163,9 @@ class RecruiteeIntegrationTests(unittest.TestCase):
             self.assertEqual((supported.status, supported.job_count), ('parsed', 3))
             supported.next_scan_at = utcnow() - timedelta(minutes=1)
             self.assertEqual(session.get(Job, missing_id).missing_complete_scans, 1)
+            self.assertFalse(session.get(Job, missing_id).is_active)
+            closed_at = session.get(Job, missing_id).closed_at
+            self.assertIsNotNone(closed_at)
         capture(self.cache, FEED, b'<offers total="2"><offer/></offers>', 'application/xml')
         with patch.object(worker, 'Client', return_value=self.client('malformed')):
             self.assertTrue(worker.scan_once())
@@ -170,8 +173,8 @@ class RecruiteeIntegrationTests(unittest.TestCase):
             self.assertEqual(session.get(JobFeed, self.feed_id).status, 'schema_error')
             missing = session.get(Job, missing_id)
             self.assertEqual(missing.missing_complete_scans, 1)
-            self.assertTrue(missing.is_active)
-            self.assertIsNone(missing.closed_at)
+            self.assertFalse(missing.is_active)
+            self.assertEqual(missing.closed_at, closed_at)
 
     def legacy_html_jobs(self, active=True):
         with self.factory.begin() as session:

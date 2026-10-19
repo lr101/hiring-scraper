@@ -46,7 +46,7 @@ class JobApplicationTests(unittest.TestCase):
         return endpoint((profile or self.profile)['id'], session=self.session, **kwargs)
 
     def test_every_status_roundtrips_without_creating_duplicate_applications(self):
-        for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted']:
+        for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted', 'closed']:
             with self.subTest(status=status):
                 saved = self.save(self.jobs[0], status)
                 self.session.expire_all()
@@ -78,7 +78,7 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(page['items'][0]['application']['status'], 'interview')
         self.assertEqual(page['counts'], {'new': 1, 'open': 0, 'not_interested': 0,
                          'in_gots_hand': 0, 'automated_application': 0,
-                         'waiting_for_reply': 0, 'interview': 2, 'rejected': 0, 'accepted': 0})
+                         'waiting_for_reply': 0, 'interview': 2, 'rejected': 0, 'accepted': 0, 'closed': 0})
 
     def test_parallel_stages_filter_independently_and_keep_undo_history(self):
         self.save(self.jobs[0], 'new')
@@ -176,6 +176,31 @@ class JobApplicationTests(unittest.TestCase):
         finally:
             engine.dispose()
 
+    def test_new_tracking_of_an_inactive_job_uses_closed_stage(self):
+        self.jobs[0].is_active = False
+        self.session.commit()
+        saved = self.save(self.jobs[0], 'new')
+        self.assertEqual(saved['status'], 'closed')
+        page = api.list_applications(profile_ids=str(self.profile['id']), statuses='closed', session=self.session)
+        self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
+
+    def test_inactive_jobs_cannot_reenter_active_journey_stages(self):
+        targets = {'new': 'closed', 'open': 'closed', 'in_gots_hand': 'closed',
+                   'not_interested': 'closed', 'interview': 'closed', 'closed': 'closed',
+                   'waiting_for_reply': 'rejected', 'automated_application': 'rejected'}
+        for job, (requested, expected) in zip(self.jobs, targets.items()):
+            job.is_active = False
+            self.session.commit()
+            self.assertEqual(self.save(job, requested)['status'], expected)
+        self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 2)
+
+    def test_stale_new_tracking_preserves_closed_jobs_completed_outcomes(self):
+        for job, status in zip(self.jobs, ['accepted', 'rejected']):
+            self.save(job, status)
+            job.is_active = False
+            self.session.commit()
+            self.assertEqual(self.save(job, 'new')['status'], status)
+
     def legacy_application_table(self):
         for job in self.jobs:
             self.session.refresh(job)
@@ -204,6 +229,43 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(self.overview()['items'][0]['application'], old)
         self.assertEqual(self.save(self.jobs[0], 'in_gots_hand')['previous_status'], 'open')
         self.assertEqual(self.save(self.jobs[1], 'automated_application')['status'], 'automated_application')
+
+    def closed_stage_upgrade_fixture(self):
+        self.legacy_application_table()
+        previous_migration = importlib.import_module('hiring_scraper.app.migrations.versions.0029_parallel_application_stages')
+        with self.engine.begin() as connection, patch.object(previous_migration, 'op', Operations(MigrationContext.configure(connection))):
+            previous_migration.upgrade()
+        for job, status in zip(self.jobs[:5], ['waiting_for_reply', 'open', 'accepted', 'rejected', 'automated_application']):
+            self.save(job, status)
+            self.session.get(models.Job, job.id).is_active = False
+        self.session.commit()
+
+    def assert_closed_stage_upgrade(self):
+        self.session.expire_all()
+        states = {row.job_id: (row.status, row.previous_status) for row in self.session.scalars(select(models.JobApplication))}
+        self.assertEqual(states, {
+            self.jobs[0].id: ('rejected', 'waiting_for_reply'), self.jobs[1].id: ('closed', 'open'),
+            self.jobs[2].id: ('accepted', None), self.jobs[3].id: ('rejected', None),
+            self.jobs[4].id: ('rejected', 'automated_application')})
+
+    def test_sqlite_closed_stage_upgrade_backfills_existing_closed_jobs_once(self):
+        self.closed_stage_upgrade_fixture()
+        initialize_sqlite_schema(self.engine)
+        self.assert_closed_stage_upgrade()
+        initialize_sqlite_schema(self.engine)
+        self.assert_closed_stage_upgrade()
+
+    def test_alembic_closed_stage_upgrade_and_downgrade_preserve_tracking(self):
+        self.closed_stage_upgrade_fixture()
+        migration = importlib.import_module('hiring_scraper.app.migrations.versions.0030_closed_application_stage')
+        with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
+            migration.upgrade()
+        self.assert_closed_stage_upgrade()
+        with self.engine.begin() as connection, patch.object(migration, 'op', Operations(MigrationContext.configure(connection))):
+            migration.downgrade()
+        self.session.expire_all()
+        row = self.session.scalar(select(models.JobApplication).where(models.JobApplication.job_id == self.jobs[1].id))
+        self.assertEqual(row.status, 'open')
 
     def test_alembic_upgrade_and_downgrade_preserve_parallel_stage_records(self):
         self.legacy_application_table()
