@@ -81,6 +81,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   useEffect(() => {
     const update = () => setForm(readApplicationForm(job.id, profile.id!))
     document.addEventListener('radius-form-updated', update); window.addEventListener('storage', update)
+    update()
     return () => { document.removeEventListener('radius-form-updated', update); window.removeEventListener('storage', update) }
   }, [job.id, profile.id])
   const [selected, setSelected] = useState<keyof ApplicationDocuments>('cv')

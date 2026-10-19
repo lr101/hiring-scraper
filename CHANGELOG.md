@@ -65,6 +65,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Captured application questions remain available when the extension delivers them while the saved-CV preparation page mounts.
+
 - Unchanged DOCX application packages remain prepared in the companion, and linked question-only wizard steps can reuse their exact application answers without requiring contact fields again.
 
 - ChatGPT application handoffs open the destination even when clipboard access fails, with a browser copy fallback and selected text for manual copying.
