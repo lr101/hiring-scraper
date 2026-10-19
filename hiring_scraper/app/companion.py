@@ -161,6 +161,51 @@ def lookup_companion_jobs(
     return {'items': items, 'truncated': False}
 
 
+@router.get('/site')
+def companion_site(
+    host: Annotated[str, Query(min_length=3, max_length=253)],
+    session: Session = Depends(get_session),
+) -> dict:
+    # Automatic badges send a hostname only, never paths, queries or form state.
+    _, host, _ = _job_page_url('https://' + host + '/')
+    candidates = [host]
+    if is_hosted_job_site('https://' + host):
+        # These providers assign a distinct hostname to each employer. Boards
+        # with tenants in paths (Greenhouse/Lever/etc.) cannot be resolved from
+        # a hostname alone; the explicit exact-job lookup handles those pages.
+        tenant_suffixes = ('personio.de', 'personio.com', 'recruitee.com', 'myworkdayjobs.com',
+                           'teamtailor.com', 'softgarden.io', 'softgarden.de', 'onlyfy.jobs', 'helixjobs.com')
+        tenant = next((host[:-len(suffix)-1] for suffix in tenant_suffixes if host.endswith('.' + suffix)), '')
+        if not tenant or tenant in {'www', 'jobs', 'careers', 'apply'} or re.fullmatch(r'wd\d+', tenant):
+            return {'job_count': 0, 'feeds': [], 'items': []}
+    else:
+        while host.count('.') >= 2:
+            host = host.split('.', 1)[1]
+            candidates.append(host)
+    company_ids = set()
+    for domain in candidates:
+        company = find_company_by_website(session, 'https://' + domain)
+        if company:
+            company_ids.add(company.id)
+    feed_ids = set(session.scalars(select(JobFeed.id).where(JobFeed.company_id.in_(company_ids))))
+    # Hosted ATS tenants must match a feed's full hostname; never its shared root.
+    feeds = session.scalars(select(JobFeed).where(or_(
+        JobFeed.id.in_(feed_ids),
+        *(or_(func.lower(JobFeed.feed_url) == root,
+              func.lower(JobFeed.feed_url).startswith(root + '/', autoescape=True))
+          for candidate in candidates for scheme in ('https', 'http')
+          for root in [scheme + '://' + candidate]),
+    )).order_by(JobFeed.id).limit(100)).all()
+    feed_ids.update(feed.id for feed in feeds)
+    condition = or_(Job.feed_id.in_(feed_ids), Job.employer_company_id.in_(company_ids))
+    count = session.scalar(select(func.count(Job.id)).where(condition))
+    jobs = session.scalars(_catalog_query().where(condition).order_by(Job.is_active.desc(), Job.id.desc()).limit(8)).all()
+    return {'job_count': count, 'feeds': [
+        {'id': feed.id, 'url': feed.feed_url, 'status': feed.status}
+        for feed in feeds
+    ], 'items': [_catalog_item(job) for job in jobs if len(job.url) <= 2048]}
+
+
 @router.get('/jobs/search')
 def search_companion_jobs(
     q: Annotated[str, Query(min_length=2, max_length=200)],

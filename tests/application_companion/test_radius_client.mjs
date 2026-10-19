@@ -8,12 +8,13 @@ test('sync uses the small companion catalog and terminates nonadvancing cursors'
  const server=createServer((req,res)=>{
   requests.push(req.url);res.setHeader('Content-Type','application/json');
   if(req.url==='/api/v1/profiles')res.end(JSON.stringify({items:[{id:1,name:'Alex',cv:{updated_at:'v1'}}]}));
+  else if(req.url==='/api/v1/profiles/1/cv/text')res.end(JSON.stringify({text:'Saved CV'}));
   else if(req.url==='/api/v1/companion/jobs?limit=100&after_id=0')res.end(JSON.stringify({items:[{id:10,title:'Local role',url:'https://employer.example/jobs/10'}],next_after_id:10}));
   else if(req.url==='/api/v1/companion/jobs?limit=100&after_id=10')res.end(JSON.stringify({items:[],next_after_id:10}));
   else {res.statusCode=404;res.end('{}');}
  });
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
- try{await assert.rejects(syncRadius({origin,profile_id:1}),/cursor/i);assert.deepEqual(requests,['/api/v1/profiles','/api/v1/companion/jobs?limit=100&after_id=0','/api/v1/companion/jobs?limit=100&after_id=10']);}
+ try{await assert.rejects(syncRadius({origin,profile_id:1}),/cursor/i);assert.deepEqual(requests,['/api/v1/profiles','/api/v1/profiles/1/cv/text','/api/v1/companion/jobs?limit=100&after_id=0','/api/v1/companion/jobs?limit=100&after_id=10']);}
  finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
 });
 
@@ -39,4 +40,40 @@ test('document reader returns bounded binary files and preserves API errors',asy
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
  try {const {radiusRequest}=await import('../../extensions/application-companion/radius-client.js');const result=await radiusRequest({origin},'/pdf',{responseType:'bytes'});assert.equal(new TextDecoder().decode(result.bytes),'%PDF-1.7\nfixture');assert.equal(result.type,'application/pdf');await assert.rejects(radiusRequest({origin},'/large',{responseType:'bytes'}),/too much data/i);await assert.rejects(radiusRequest({origin},'/error',{responseType:'bytes'}),/Original CV changed/);}
  finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
+});
+
+test('sync imports the selected application facts and CV text, and clears facts for another profile', async () => {
+ const server=createServer((req,res)=>{
+  res.setHeader('Content-Type','application/json');
+  if(req.url==='/api/v1/profiles') res.end(JSON.stringify({items:[
+   {id:1,name:'Developer',cv:{updated_at:'v1'},application_details:{first_name:'Alex',preferences:{salary_amount:'75000'}}},
+   {id:2,name:'Other',cv:null,application_details:{}}
+  ]}));
+  else if(req.url==='/api/v1/profiles/1/cv/text') res.end(JSON.stringify({text:'Confirmed CV text'}));
+  else if(req.url.startsWith('/api/v1/companion/jobs?')) res.end(JSON.stringify({items:[],next_after_id:null}));
+  else {res.statusCode=404;res.end('{}');}
+ });
+ await new Promise(r=>server.listen(0,'127.0.0.1',r)); const origin=`http://127.0.0.1:${server.address().port}`;
+ globalThis.chrome={tabs:{query:async()=>[]}};
+ try {
+  const first=await syncRadius({origin,profile_id:1});
+  assert.equal(first.applicant?.first_name,'Alex');
+  assert.equal(first.applicant.cv_text,'Confirmed CV text');
+  assert.equal(first.applicant.preferences.salary_amount,'75000');
+  const second=await syncRadius({origin,profile_id:2});
+  assert.equal(second.applicant.first_name,'');
+  assert.equal(second.applicant.cv_text,'');
+ } finally {delete globalThis.chrome;server.closeAllConnections();await new Promise(r=>server.close(r));}
+});
+
+test('browser-local application CV text is imported from the connected Radius origin', async () => {
+ const server=createServer((req,res)=>{res.setHeader('Content-Type','application/json');res.end(JSON.stringify(req.url==='/api/v1/profiles'?{items:[{id:1,name:'Developer',cv:null,application_details:{first_name:'Alex'}}]}:{items:[],next_after_id:null}));});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
+ globalThis.chrome={tabs:{query:async()=>[{id:10}]},scripting:{executeScript:async ({func,args})=>{
+  const previous=globalThis.localStorage;
+  globalThis.localStorage={getItem:key=>key==='radius:application-cv:v1:1'?JSON.stringify({text:'Saved browser CV',updated_at:'local-v1'}):null};
+  try{return [{result:func(...args)}];}finally{globalThis.localStorage=previous;}
+ }}};
+ try{const synced=await syncRadius({origin,profile_id:1});assert.equal(synced.applicant.cv_text,'Saved browser CV');assert.equal(synced.settings.cv_updated_at,'local-v1');}
+ finally{delete globalThis.chrome;server.closeAllConnections();await new Promise(r=>server.close(r));}
 });

@@ -82,6 +82,10 @@ export async function connectRadius(input, revision = ++connectionRevision) {
       packages: same ? current.packages : {},
       forms: same ? current.forms || {} : {},
     };
+    if (synced.applicant)
+      await chrome.storage.local.set({ applicant: synced.applicant });
+    else await chrome.storage.local.remove("applicant");
+    delete next.applicant;
     return cacheJobs({ ...next, jobs: same ? current.jobs : [] }, synced.jobs, {
       preservePinned: true,
     });
@@ -156,6 +160,9 @@ export async function pageState(tabId, url) {
     sessionGet(`page:${tabId}`),
     sessionGet("recentApplication"),
   ]);
+  const siteEntry =
+    vault.settings && (await sessionGet(siteKey(vault.settings, url)));
+  const site = fresh(siteEntry) ? siteEntry.value : null;
   const stamp = await profileStamp(applicant);
   let exact = matchJobs(vault, url);
   if (
@@ -180,16 +187,21 @@ export async function pageState(tabId, url) {
   const host = safeURL(url)?.hostname;
   const related = exact.length
     ? []
-    : vault.jobs
+    : [...(site?.items || []), ...vault.jobs]
         .filter(
           (j) =>
+            (site?.items || []).some((row) => row.id === j.id) ||
             safeURL(j.url)?.hostname === host ||
             vault.bindings.some(
               (b) => b.job_id === j.id && safeURL(b.url)?.hostname === host,
             ),
         )
         .slice(0, 8);
-  const items = (exact.length ? exact : related).map((job) => ({
+  const items = [
+    ...new Map(
+      (exact.length ? exact : related).map((job) => [job.id, job]),
+    ).values(),
+  ].map((job) => ({
     job,
     exact: exact.some((j) => j.id === job.id),
     ready: !!readyPackage(vault, job.id, stamp),
@@ -201,6 +213,7 @@ export async function pageState(tabId, url) {
       : null;
   return {
     connected: !!vault.settings,
+    site,
     settings: vault.settings,
     profiles: vault.profiles || [],
     synced_at: vault.synced_at,
@@ -296,6 +309,7 @@ async function cacheRemoteJobs(settings, result, limit) {
 // Only the user's popup inspection resolves a cache miss. Badge updates never
 // transmit the user's browsing URLs to Radius.
 export async function lookupPage(url) {
+  await lookupSite(url);
   const vault = await loadVault(),
     page = safeURL(url);
   if (
@@ -331,17 +345,79 @@ export async function lookupPage(url) {
     return "Radius lookup is unavailable. You can still use cached jobs or reconnect Radius.";
   }
 }
+function siteKey(settings, url) {
+  return `site:${settings.api_origin}:${safeURL(url)?.hostname}`;
+}
+const pendingSites = new Map();
+async function lookupSite(url) {
+  const vault = await loadVault(),
+    page = safeURL(url);
+  if (
+    !vault.settings ||
+    !page ||
+    page.protocol !== "https:" ||
+    page.origin === vault.settings.origin ||
+    page.origin === vault.settings.api_origin
+  )
+    return;
+  const settings = vault.settings,
+    key = siteKey(settings, url);
+  if (fresh(await sessionGet(key))) return;
+  if (pendingSites.has(key)) return pendingSites.get(key);
+  const revision = connectionRevision;
+  const request = (async () => {
+    try {
+      const value = await radiusJSON(
+        settings,
+        `/api/v1/companion/site?host=${encodeURIComponent(page.hostname)}`,
+      );
+      if (
+        !Array.isArray(value.feeds) ||
+        value.feeds.length > 100 ||
+        !Array.isArray(value.items) ||
+        value.items.length > 8 ||
+        !Number.isSafeInteger(value.job_count) ||
+        value.job_count < 0
+      )
+        throw new Error("Invalid site status");
+      const rawItems = value.items;
+      value.items = value.items.map(normalizeJob);
+      if (
+        revision === connectionRevision &&
+        sameConnection((await loadVault()).settings, settings)
+      ) {
+        await sessionPut(key, { value, expires: Date.now() + 300000 });
+        if (rawItems.length)
+          await cacheRemoteJobs(settings, { items: rawItems }, 8);
+      }
+    } catch {
+      // Briefly back off when the API is unavailable; retain offline job matching.
+      if (revision === connectionRevision)
+        await sessionPut(key, { value: null, expires: Date.now() + 30000 });
+    }
+  })();
+  pendingSites.set(key, request);
+  try {
+    await request;
+  } finally {
+    pendingSites.delete(key);
+  }
+}
 export async function updateBadge(tabId, url) {
   try {
     if (!url) {
       const tab = await chrome.tabs.get(tabId);
       url = tab.url;
     }
+    await lookupSite(url);
     const state = await pageState(tabId, url);
     const ready = state.items.filter(
       (i) => i.exact && i.ready && i.job.active !== false,
     ).length;
-    const found = state.items.length > 0;
+    const found =
+      state.items.length > 0 ||
+      state.site?.feeds?.length > 0 ||
+      state.site?.job_count > 0;
     await chrome.action.setBadgeText({
       tabId,
       text: ready ? String(Math.min(ready, 99)) : found ? "•" : "",
@@ -355,7 +431,9 @@ export async function updateBadge(tabId, url) {
       title: ready
         ? `Radius · ${ready} application${ready === 1 ? "" : "s"} ready`
         : found
-          ? "Radius · Discovered job · Prepare your CV"
+          ? state.site
+            ? `Radius · ${state.site.job_count} jobs · ${state.site.feeds.length} career feeds`
+            : "Radius · Discovered job · Prepare your CV"
           : "Radius applications",
     });
   } catch {

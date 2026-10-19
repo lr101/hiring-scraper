@@ -2,6 +2,7 @@
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urlsplit,parse_qs
 import argparse,json
+from pathlib import Path
 from html import escape
 
 STYLE='''<style>:root{font:15px/1.6 'Avenir Next','Segoe UI',sans-serif;background:#f6f3ef;color:#29343c}body{margin:0}header{background:#fcfcfb;border-bottom:1px solid #dce3d8;padding:18px max(24px,7vw);display:flex;align-items:center;justify-content:space-between}.brand{font-size:27px;font-weight:800;letter-spacing:-1px;text-decoration:none}main{max-width:900px;margin:42px auto;padding:0 24px}h1{font-size:32px;line-height:1.25;letter-spacing:-.8px}h2{font-size:21px}p{max-width:70ch}.paper{background:#fcfcfb;border:1px solid #dce3d8;border-radius:12px;padding:28px;margin:24px 0}.application-cv-ready{background:#edf3e9;border:1px solid #dce3d8;border-radius:10px;padding:18px}.primary-button,button{display:inline-block;border:1px solid #354e41;background:#354e41;color:white;border-radius:7px;padding:12px 17px;font:600 14px inherit;text-decoration:none;cursor:pointer}a{color:inherit}small{color:#6d7b73}label{display:block;margin:16px 0}input,textarea{display:block;width:95%;font:inherit;padding:10px;border:1px solid #dce3d8;border-radius:6px}textarea{min-height:110px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:600px){.grid{grid-template-columns:1fr}}[data-theme=dark]{background:#171c20;color:#e2e7e9}</style>'''
@@ -18,10 +19,12 @@ class Handler(BaseHTTPRequestHandler):
   jobs=[{'id':1574,'title':'Research project manager','company_name':'Research Labs','url':source+'/jobs/1574','is_active':True},{'id':2000,'title':'Engineering coordinator','company_name':'Research Labs','url':source+'/jobs/2000','is_active':True}]
   parsed=urlsplit(self.path);path=parsed.path
   if path=='/api/v1/profiles':
-   result={'items':state.get('profiles',[{'id':1,'name':'Research profile','cv':{'filename':'example-cv.docx','updated_at':state.get('cv_version','cv1')}}])}
+   result={'items':state.get('profiles',[{'id':1,'name':'Research profile','application_details':json.loads((Path(__file__).parent / 'profile.example.json').read_text()),'cv':{'filename':'example-cv.docx','updated_at':state.get('cv_version','cv1')}}])}
    hold=state.pop('hold_profiles',None)
    if hold:hold[0].set();hold[1].wait(5)
    return self.respond(result)
+  if path.startswith('/api/v1/profiles/') and path.endswith('/cv/text'):
+   return self.respond({'text':state.get('cv_text','Alex Example. Contact alex@example.invalid. Coordinated research teams.')})
   if path=='/api/v1/companion/jobs':
    hold=state.pop('hold_jobs',None)
    if hold:hold[0].set();hold[1].wait(5)

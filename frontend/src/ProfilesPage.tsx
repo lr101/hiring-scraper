@@ -4,7 +4,7 @@ import SiteHeader from './SiteHeader'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
 import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
-const empty = (): Profile => ({ cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -188,6 +188,19 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profile…</div> : <form className="detail-panel profile-form" onSubmit={save}>
         <h2>{form.id ? 'Edit your profile' : 'Create a profile'}</h2>
         <label>Profile name<input required maxLength={120} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Backend developer" /></label>
+        <fieldset className="profile-section"><legend>Application details</legend>
+          <p className="muted">Saved with this profile and synced to the browser extension. Enter confirmed facts only; leave unknown answers blank. Your profile name above is a label, not your applicant name.</p>
+          {([['first_name', 'First name'], ['last_name', 'Last name'], ['email', 'Email'], ['phone', 'Phone'], ['street', 'Street'], ['postal_code', 'Postal code'], ['city', 'City'], ['country', 'Country'], ['linkedin', 'LinkedIn URL'], ['website', 'Website URL'], ['portfolio', 'Portfolio URL'], ['github', 'GitHub URL']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input maxLength={300} type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : ['linkedin', 'website', 'portfolio', 'github'].includes(key) ? 'url' : 'text'} value={form.application_details?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, [key]: event.target.value } })} /></label>)}
+          {([['salary_amount', 'Expected salary'], ['salary_currency', 'Salary currency (e.g. EUR)'], ['salary_period', 'Salary period (e.g. year)'], ['available_from', 'Available from'], ['notice_period', 'Notice period'], ['weekly_hours', 'Weekly hours'], ['employment_type', 'Employment type'], ['authorization_country', 'Work authorization country']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input maxLength={300} value={form.application_details?.preferences?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
+          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate']] as const).map(([key, label]) =>
+            <label key={key}>{label}<select value={form.application_details?.preferences?.[key] == null ? '' : String(form.application_details.preferences[key])}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
+              <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
+        </fieldset>
         <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Your CV</legend>
           <p>Attach it once. We’ll reuse its text when you start an application.</p>
           {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>

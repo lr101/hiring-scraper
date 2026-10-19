@@ -1,10 +1,12 @@
 """Single-workspace profile preferences and explicitly saved CV attachments."""
 import json
 import hashlib
+import re
+from datetime import date
 from pathlib import Path
 import subprocess
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
@@ -61,12 +63,72 @@ class MatchingDefaults(BaseModel):
 
 
 NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
-                   'secondary_roles', 'education', 'certifications', 'matching_defaults'}
+                   'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details'}
+
+
+class ApplicationPreferences(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    available_from: str = Field(default='', max_length=300)
+    notice_period: str = Field(default='', max_length=300)
+    salary_amount: str = Field(default='', max_length=300)
+    salary_currency: str = Field(default='', max_length=300)
+    salary_period: str = Field(default='', max_length=300)
+    authorization_country: str = Field(default='', max_length=300)
+    employment_type: str = Field(default='', max_length=300)
+    weekly_hours: str = Field(default='', max_length=300)
+    authorized_to_work: bool | None = None
+    sponsorship_required: bool | None = None
+    willing_to_relocate: bool | None = None
+
+    @model_validator(mode='after')
+    def validate_answers(self):
+        if self.available_from:
+            if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', self.available_from):
+                raise ValueError('Available from must be YYYY-MM-DD')
+            date.fromisoformat(self.available_from)
+        if self.salary_amount and not re.fullmatch(r'\d+(?:\.\d{1,2})?', self.salary_amount):
+            raise ValueError('Salary must be numeric without currency or separators')
+        if self.salary_currency and not re.fullmatch(r'[A-Z]{3}', self.salary_currency):
+            raise ValueError('Salary currency must be a three-letter code such as EUR')
+        if self.salary_period and self.salary_period not in {'year', 'month', 'hour'}:
+            raise ValueError('Salary period must be year, month or hour')
+        if self.weekly_hours and (not re.fullmatch(r'\d+(?:\.\d)?', self.weekly_hours) or float(self.weekly_hours) > 168):
+            raise ValueError('Weekly hours must be between 0 and 168')
+        return self
+
+
+class ApplicationDetails(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    first_name: str = Field(default='', max_length=300)
+    last_name: str = Field(default='', max_length=300)
+    email: str = Field(default='', max_length=300)
+    phone: str = Field(default='', max_length=300)
+    linkedin: str = Field(default='', max_length=300)
+    city: str = Field(default='', max_length=300)
+    country: str = Field(default='', max_length=300)
+    street: str = Field(default='', max_length=300)
+    postal_code: str = Field(default='', max_length=300)
+    website: str = Field(default='', max_length=300)
+    portfolio: str = Field(default='', max_length=300)
+    github: str = Field(default='', max_length=300)
+    preferences: ApplicationPreferences = Field(default_factory=ApplicationPreferences)
+
+    @model_validator(mode='after')
+    def validate_contacts(self):
+        if self.email and not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', self.email):
+            raise ValueError('Enter a valid email address')
+        for value in (self.linkedin, self.website, self.portfolio, self.github):
+            if value:
+                url = urlsplit(value)
+                if url.scheme != 'https' or not url.hostname or url.username or url.password:
+                    raise ValueError('Contact links must be complete HTTPS URLs')
+        return self
 
 
 class ProfileRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
+    application_details: ApplicationDetails = Field(default_factory=ApplicationDetails)
     skills: list[Term] = Field(default_factory=list, max_length=100)
     desired_roles: list[Term] = Field(default_factory=list, max_length=20)
     work_styles: list[Literal['remote','hybrid','onsite']] = Field(default_factory=list, max_length=3)

@@ -41,11 +41,11 @@ function render(state) {
   document.querySelector("#radius-profile-label").hidden = !connected;
   if (connected)
     show(
-      `${state.total ?? state.jobs?.length ?? 0} discovered jobs synced${state.truncated ? " (catalog limit reached; prepare an unlisted job from its Radius page)" : ""}. ` +
+      `${state.total ?? state.jobs?.length ?? 0} jobs cached${state.truncated ? " (offline cache limit; live lookup checks all jobs and company feeds)" : ""}. ` +
         (connected.profile_id
           ? connected.cv_updated_at
-            ? "Original CV connected. Prepared CVs will sync when you return from ChatGPT."
-            : "Open a job in Radius, choose Prepare application, and save your CV text for this profile."
+            ? "Application details and original CV synced from Radius. Use Sync after editing your app profile. Prepared CVs sync when you return from ChatGPT."
+            : "Application details synced. Attach a CV to your profile in Radius."
           : "Choose a Radius profile to continue."),
     );
 }

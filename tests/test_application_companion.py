@@ -6,6 +6,98 @@ from hiring_scraper.app import models
 
 
 class CompanionCatalogTests(unittest.TestCase):
+    def test_site_status_matches_any_company_subdomain_without_crossing_host_boundaries(self):
+        from hiring_scraper.app.companion import companion_site
+        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        with Session(engine) as session:
+            company = models.Company(source='test', source_id='site', name='Employer', domain='employer.example', website_url='https://employer.example')
+            feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://careers.employer.example/jobs', status='parsed')
+            session.add(models.Job(feed=feed, external_id='one', title='Engineer', url='https://careers.employer.example/jobs/1'))
+            session.commit()
+            found = companion_site(host='news.eu.employer.example', session=session)
+            self.assertEqual(found['job_count'], 1)
+            self.assertEqual(found['feeds'][0]['url'], feed.feed_url)
+            self.assertEqual(found['items'][0]['title'], 'Engineer')
+            self.assertEqual(companion_site(host='notemployer.example', session=session)['job_count'], 0)
+            self.assertEqual(companion_site(host='employer.example.evil.example', session=session)['feeds'], [])
+        engine.dispose()
+
+    def test_site_status_uses_an_imported_root_feed_without_company_website_metadata(self):
+        from hiring_scraper.app.companion import companion_site
+        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        with Session(engine) as session:
+            company = models.Company(source='test', source_id='legacy-site', name='Employer')
+            feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://employer.example/jobs', status='parsed')
+            session.add(models.Job(feed=feed, external_id='one', title='Engineer', url='https://employer.example/jobs/1'))
+            session.commit()
+            self.assertEqual(companion_site(host='news.employer.example', session=session)['job_count'], 1)
+        engine.dispose()
+
+    def test_site_status_keeps_shared_ats_tenants_separate(self):
+        from hiring_scraper.app.companion import companion_site
+        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        with Session(engine) as session:
+            for tenant in ['acme', 'other']:
+                company = models.Company(source='test', source_id=tenant, name=tenant)
+                feed = models.JobFeed(company=company, provider='html_jobs', feed_url=f'https://{tenant}.personio.de/jobs', status='parsed')
+                session.add(models.Job(feed=feed, external_id='1', title=tenant, url=f'https://{tenant}.personio.de/job/1'))
+            session.commit()
+            self.assertEqual(companion_site(host='acme.personio.de', session=session)['items'][0]['title'], 'acme')
+            self.assertEqual(companion_site(host='personio.de', session=session)['job_count'], 0)
+            self.assertEqual(companion_site(host='unknown.personio.de', session=session)['feeds'], [])
+            for tenant in ['acme', 'other']:
+                company = models.Company(source='test', source_id='gh-' + tenant, name=tenant)
+                feed = models.JobFeed(company=company, provider='greenhouse', feed_url=f'https://boards.greenhouse.io/{tenant}', status='parsed')
+                session.add(models.Job(feed=feed, external_id='1', title=tenant, url=f'https://boards.greenhouse.io/{tenant}/jobs/1'))
+            session.commit()
+            self.assertEqual(companion_site(host='boards.greenhouse.io', session=session)['job_count'], 0)
+        engine.dispose()
+
+    def test_site_status_recognizes_supported_hostname_tenants(self):
+        from hiring_scraper.app.companion import companion_site
+        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        with Session(engine) as session:
+            for suffix in ['softgarden.io', 'softgarden.de', 'onlyfy.jobs', 'helixjobs.com']:
+                for tenant in ['acme', 'other']:
+                    company = models.Company(source='test', source_id=f'{tenant}.{suffix}', name=tenant)
+                    feed = models.JobFeed(company=company, provider='html_jobs', feed_url=f'https://{tenant}.{suffix}/jobs', status='parsed')
+                    session.add(models.Job(feed=feed, external_id='1', title=tenant, url=f'https://{tenant}.{suffix}/jobs/1'))
+            session.commit()
+            for suffix in ['softgarden.io', 'softgarden.de', 'onlyfy.jobs', 'helixjobs.com']:
+                with self.subTest(suffix=suffix):
+                    found = companion_site(host='acme.' + suffix, session=session)
+                    self.assertEqual(found['job_count'], 1)
+                    self.assertEqual([item['title'] for item in found['items']], ['acme'])
+                    self.assertEqual(companion_site(host=suffix, session=session)['feeds'], [])
+        engine.dispose()
+
+    def test_application_details_reject_answers_the_extension_cannot_fill(self):
+        from pydantic import ValidationError
+        from hiring_scraper.app.profiles import ProfileRequest
+        for details in [
+            {'email': 'invalid'}, {'website': 'javascript:alert(1)'},
+            {'preferences': {'salary_amount': '75,000'}},
+            {'preferences': {'salary_currency': 'eur'}},
+            {'preferences': {'salary_period': 'weekly'}},
+            {'preferences': {'weekly_hours': '200'}},
+            {'preferences': {'available_from': '2026-02-30'}},
+        ]:
+            with self.subTest(details=details), self.assertRaises(ValidationError):
+                ProfileRequest(name='Developer', application_details=details)
+
+    def test_profile_saves_application_details_without_confusing_profile_label_with_name(self):
+        from hiring_scraper.app.profiles import ProfileRequest, create_profile, update_profile
+        engine = create_engine('sqlite://'); models.Base.metadata.create_all(engine)
+        with Session(engine) as session:
+            result = create_profile(ProfileRequest(name='Developer', application_details={
+                'first_name': 'Alex', 'last_name': 'Example',
+                'preferences': {'salary_amount': '75000', 'salary_currency': 'EUR', 'salary_period': 'year'}
+            }), session=session)
+            self.assertEqual(result['application_details']['first_name'], 'Alex')
+            result = update_profile(result['id'], ProfileRequest(name='Senior developer'), session=session)
+            self.assertEqual(result['application_details']['preferences']['salary_amount'], '75000')
+        engine.dispose()
+
     def test_lookup_finds_jobs_after_the_catalog_limit_without_matching_other_requisitions(self):
         from hiring_scraper.app.companion import lookup_companion_jobs
         engine = create_engine('sqlite://')

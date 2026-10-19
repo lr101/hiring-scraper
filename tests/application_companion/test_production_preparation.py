@@ -108,9 +108,42 @@ class ProductionPreparationTests(ExtensionHarness):
         options.goto(f'chrome-extension://{self.extension_id}/options.html')
         options.locator('#radius-origin').fill(self.origin)
         options.locator('#radius-connect').click()
-        expect(options.locator('#radius-status')).to_contain_text('1 discovered jobs synced')
+        expect(options.locator('#radius-status')).to_contain_text('1 jobs cached')
         options.close()
         return version
+
+    def test_app_profile_details_survive_edit_and_sync_without_local_entry(self):
+        self.context.set_default_timeout(60000)
+        self.page.goto(self.origin + '/profile/1/edit')
+        self.page.get_by_label('First name', exact=True).fill('Alex')
+        self.page.get_by_label('Last name', exact=True).fill('Example')
+        self.page.get_by_label('Expected salary', exact=True).fill('75000')
+        self.page.get_by_label('Salary currency (e.g. EUR)', exact=True).fill('EUR')
+        self.page.get_by_label('Salary period (e.g. year)', exact=True).fill('year')
+        self.page.get_by_role('button', name='Save profile', exact=True).click()
+        expect(self.page.get_by_role('status')).to_contain_text('Profile saved', timeout=60000)
+        expect(self.page.get_by_label('First name', exact=True)).to_have_value('Alex', timeout=60000)
+        self.page.reload()
+        expect(self.page.get_by_label('First name', exact=True)).to_have_value('Alex', timeout=60000)
+        uploaded = self.context.request.put(self.origin + '/api/v1/profiles/1/cv?filename=original.txt',
+            data=b'Alex Example. Contact alex@example.invalid. Coordinated research teams.',
+            headers={'Content-Type': 'application/octet-stream'})
+        self.assertTrue(uploaded.ok, uploaded.text())
+        options = self.context.new_page()
+        options.goto(f'chrome-extension://{self.extension_id}/options.html')
+        options.locator('#radius-origin').fill(self.origin)
+        options.locator('#radius-connect').click()
+        expect(options.locator('#radius-status')).to_contain_text('1 jobs cached', timeout=60000)
+        options.close()
+        applicant = self.worker.evaluate("async () => (await chrome.storage.local.get('applicant')).applicant")
+        self.assertEqual(applicant['first_name'], 'Alex')
+        self.assertEqual(applicant['preferences']['salary_amount'], '75000')
+        self.assertIn('Coordinated research teams', applicant['cv_text'])
+        self.context.route('https://news.employer.example/**', lambda route: route.fulfill(content_type='text/html', body='<title>Company news</title>'))
+        self.page.goto('https://news.employer.example/')
+        popup = self.popup()
+        expect(popup.locator('#site-status')).to_contain_text('1 jobs')
+        expect(popup.locator('#site-status a')).to_have_attribute('href', 'https://employer.example/jobs')
 
     def test_production_cv_return_badge_apply_alias_and_fill(self):
         self.check_prepared_package_fill()
