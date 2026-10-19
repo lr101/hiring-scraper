@@ -275,7 +275,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
         status_constraint = next((item for item in inspect(connection).get_check_constraints('job_applications')
                                   if item['name'] == 'ck_job_application_status'), None)
         if not status_constraint or any(status not in status_constraint['sqltext']
-                                        for status in ('in_gots_hand', 'automated_application')):
+                                        for status in ('in_gots_hand', 'automated_application', 'closed')):
             from alembic.migration import MigrationContext
             from alembic.operations import Operations
             from hiring_scraper.app.models import JobApplication
@@ -285,6 +285,12 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                 if status_constraint:
                     batch.drop_constraint('ck_job_application_status', type_='check')
                 batch.create_check_constraint('ck_job_application_status', str(constraint.sqltext))
+            # Reconcile retained inactive postings once during the schema
+            # upgrade. Later startups must preserve the resulting outcomes.
+            from hiring_scraper.app.applications import close_job_applications
+            from hiring_scraper.app.models import utcnow
+            closed_ids = [row[0] for row in connection.exec_driver_sql('SELECT id FROM jobs WHERE NOT is_active')]
+            close_job_applications(connection, closed_ids, utcnow())
         connection.exec_driver_sql("""
             INSERT INTO application_momentum_events
                 (profile_id, job_id, event_type, occurred_at, is_legacy)
@@ -292,7 +298,7 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
               FROM job_applications AS application
              WHERE (
                     application.status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted')
-                    OR (application.status = 'rejected'
+                    OR (application.status IN ('rejected', 'closed')
                         AND application.previous_status IN ('waiting_for_reply', 'automated_application', 'interview', 'accepted'))
                    )
                AND NOT EXISTS (

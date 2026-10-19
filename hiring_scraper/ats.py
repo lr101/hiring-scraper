@@ -864,7 +864,7 @@ def parse_feed(provider, body, board_url):
             from .html_jobs import extract_html_jobs
             parsed = extract_html_jobs(body, board_url)
             complete = parsed['complete']
-            if provider in {'external_html', 'browser_html'} and not parsed['jobs']:
+            if not parsed['jobs']:
                 rendered_text = body.decode('utf-8', 'replace') if isinstance(body, bytes) else str(body)
                 explicit_empty = re.search(
                     r'no (?:current |open )?(?:job|position|vacanc)|keine (?:offenen? )?stellen|keine jobs',

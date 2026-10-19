@@ -10,7 +10,8 @@ from fastapi import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
 from hiring_scraper.app import api
-from hiring_scraper.app.models import Base, Company, DiscoveryJob, DiscoveryJobCompany, Job, JobFeed, utcnow
+from hiring_scraper.app.models import (Base, Company, DiscoveryJob, DiscoveryJobCompany, Job,
+                                       JobApplication, JobFeed, JobLocation, UserProfile, utcnow)
 
 
 class DiscoveryJobsApiTests(unittest.TestCase):
@@ -197,10 +198,16 @@ class DiscoveryJobsApiTests(unittest.TestCase):
             session.flush()
             feed_id = feed.id
             job = Job(feed_id=feed.id, external_id="role-1", title="Old source role",
-                      url="https://acme.example/jobs/role-1", is_active=True)
+                      url="https://acme.example/jobs/role-1", is_active=True,
+                      locations=[JobLocation(label='Karlsruhe', country_code='DE')])
             session.add(job)
             session.flush()
             job_id = job.id
+            for stage in ('open', 'waiting_for_reply', 'automated_application', 'accepted', 'rejected'):
+                profile = UserProfile(name=stage, preferences={})
+                session.add(profile)
+                session.flush()
+                session.add(JobApplication(profile_id=profile.id, job_id=job_id, status=stage))
 
         session = self.factory()
         try:
@@ -233,6 +240,17 @@ class DiscoveryJobsApiTests(unittest.TestCase):
             self.assertEqual(replacement.status, "pending")
             self.assertIsNotNone(replacement.next_scan_at)
             self.assertEqual(session.scalars(select(Job).where(Job.feed_id == replacement.id)).all(), [])
+            states = {row.profile.name: (row.status, row.previous_status)
+                      for row in session.scalars(select(JobApplication))}
+            self.assertEqual(states, {
+                'open': ('closed', 'open'),
+                'waiting_for_reply': ('rejected', 'waiting_for_reply'),
+                'automated_application': ('rejected', 'automated_application'),
+                'accepted': ('accepted', None), 'rejected': ('rejected', None),
+            })
+            closed = api.list_jobs(49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
+                                   posting_status='closed', session=session)
+            self.assertEqual([item['id'] for item in closed['items']], [job_id])
 
     def test_managed_ats_page_is_resolved_to_its_public_provider_feed(self):
         board = "https://careers.smartrecruiters.com/RheindataGmbH"

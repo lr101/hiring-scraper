@@ -32,6 +32,7 @@ type Job = {
   last_seen_at: string; valid_through?: string | null; expired?: boolean; remote_country_codes?: string[]
   seniority: string | null; date_posted: string | null; first_seen_at: string
   salary: string | null; description: string | null; is_active: boolean
+  closed_at?: string | null
   enrichment: Enrichment; profile_match?: ProfileMatch
   application?: Application | null
   raw_metadata: Record<string, unknown>
@@ -376,6 +377,8 @@ function JobPage({ job, profileId, onApplicationSaved }: {
     <section className="detail-panel job-detail-panel">
         <p className="eyebrow">Job details</p>
       <div className="metadata-grid">
+        <Meta label="Posting status" value={job.is_active ? 'Open' : 'Closed'} />
+        {!job.is_active && <Meta label="Closed" value={job.closed_at ? formatDate(job.closed_at) : 'Date unknown'} />}
         <Meta label="Work location" value={locationText} />
         <Meta label="Vote leader" value={voteLeaderSummary} wide />
         <Meta label="Work style" value={arrangement} />
