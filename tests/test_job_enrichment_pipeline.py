@@ -23,9 +23,9 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
     def tearDown(self):
         self.engine.dispose()
 
-    def upsert(self, data):
+    def upsert(self, *data):
         with self.factory.begin() as session:
-            _upsert_jobs(session, session.get(JobFeed,self.feed_id),[data],True,utcnow())
+            _upsert_jobs(session, session.get(JobFeed,self.feed_id),list(data),True,utcnow())
 
     def test_crawler_persists_enrichment_and_refreshes_it_on_changed_job_content(self):
         data = {'id':'1','title':'Developer','url':'https://example.org/jobs/1','description':'Python'}
@@ -81,8 +81,8 @@ class JobEnrichmentPipelineTests(unittest.TestCase):
             self.assertEqual(job.enrichment['quality'],'description_available')
 
     def test_one_bad_detail_response_does_not_stop_other_jobs(self):
-        self.upsert({'id':'1','title':'Developer','url':'https://example.org/jobs/1'})
-        self.upsert({'id':'2','title':'Developer','url':'https://example.org/jobs/2'})
+        self.upsert({'id':'1','title':'Developer','url':'https://example.org/jobs/1'},
+                    {'id':'2','title':'Developer','url':'https://example.org/jobs/2'})
         class OfflineClient:
             def get(self,url):
                 if url.endswith('/1'): raise ValueError('malformed source')
