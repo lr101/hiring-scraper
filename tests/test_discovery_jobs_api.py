@@ -4,14 +4,14 @@ from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, event, select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from starlette.middleware.cors import CORSMiddleware
 
 from hiring_scraper.app import api
 from hiring_scraper.app.models import (Base, Company, DiscoveryJob, DiscoveryJobCompany, Job,
-                                       JobApplication, JobFeed, JobLocation, UserProfile, utcnow)
+                                       JobApplication, JobFeed, JobLocation, ScanRun, UserProfile, utcnow)
 
 
 class DiscoveryJobsApiTests(unittest.TestCase):
@@ -340,6 +340,136 @@ class DiscoveryJobsApiTests(unittest.TestCase):
 
         self.assertEqual(job["status"], "scheduled")
         self.assertIsNotNone(job["scheduled_for"])
+
+    def test_active_workers_reports_ranked_company_check_health(self):
+        now = utcnow()
+        companies = [
+            Company(source="test", source_id="health-daily", name="Daily", country_code="DE",
+                    website_url="https://daily.example", crawl_interval_days=1,
+                    next_discovery_at=now - timedelta(hours=25)),
+            Company(source="test", source_id="health-weekly", name="Weekly", country_code="DE",
+                    website_url="https://weekly.example", crawl_interval_days=7,
+                    next_discovery_at=now + timedelta(days=2)),
+            Company(source="test", source_id="health-monthly-due", name="Monthly due", country_code="DE",
+                    website_url="https://monthly-due.example", crawl_interval_days=30,
+                    next_discovery_at=now - timedelta(hours=1)),
+            Company(source="test", source_id="health-monthly-unscheduled", name="Monthly unscheduled", country_code="DE",
+                    website_url="https://monthly-unscheduled.example", domain="monthly-unscheduled.example",
+                    crawl_interval_days=30),
+            Company(source="test", source_id="health-other", name="Other", state="Berlin",
+                    website_url="https://other.example", domain="other.example", crawl_interval_days=3,
+                    next_discovery_at=now + timedelta(days=10)),
+            Company(source="test", source_id="health-shared-root", name="Shared root", country_code="DE",
+                    website_url="https://shared.example", domain="shared.example", crawl_interval_days=7,
+                    next_discovery_at=now + timedelta(hours=1)),
+            Company(source="test", source_id="health-shared-office", name="Shared office", country_code="DE",
+                    website_url="https://www.shared.example/office", domain="www.shared.example",
+                    crawl_interval_days=1, next_discovery_at=now - timedelta(hours=30)),
+            Company(source="test", source_id="health-paused", name="Paused", country_code="DE",
+                    website_url="https://paused.example", domain="paused.example", crawl_paused=True),
+            Company(source="test", source_id="health-board", name="Job board", country_code="DE",
+                    website_url="https://board.example", domain="board.example", category="job_board_source"),
+            Company(source="test", source_id="health-empty-site", name="Empty website", country_code="DE",
+                    website_url="", crawl_interval_days=1),
+            Company(source="test", source_id="health-no-site", name="No website", country_code="DE"),
+            Company(source="test", source_id="health-not-germany", name="Not Germany", country_code="AT",
+                    website_url="https://at.example", domain="at.example", crawl_interval_days=1),
+            Company(source="test", source_id="health-austrian-board-root", name="Austrian board", country_code="AT",
+                    website_url="https://shared-with-board.example/jobs", domain="shared-with-board.example",
+                    category="job_board_source", crawl_interval_days=1,
+                    next_discovery_at=now - timedelta(hours=30)),
+            Company(source="test", source_id="health-german-company-behind-board", name="German company",
+                    country_code="DE", website_url="https://shared-with-board.example/careers",
+                    domain="www.shared-with-board.example", crawl_interval_days=7,
+                    next_discovery_at=now + timedelta(days=3)),
+            Company(source="test", source_id="health-paused-domain-root", name="Paused shared root",
+                    country_code="DE", website_url="https://shared-with-paused.example/company",
+                    domain="shared-with-paused.example", crawl_interval_days=1, crawl_paused=True,
+                    next_discovery_at=now - timedelta(days=2)),
+            Company(source="test", source_id="health-active-domain-alias", name="Active shared company",
+                    country_code="DE", website_url="https://www.shared-with-paused.example/careers",
+                    domain="www.shared-with-paused.example", crawl_interval_days=7,
+                    next_discovery_at=now + timedelta(days=3)),
+        ]
+        with self.factory.begin() as session:
+            session.add_all(companies)
+
+        with self.factory() as session:
+            health = api.list_ranked_company_health(session)
+            active_workers = api.list_active_workers(session)
+
+        self.assertNotIn("ranked_company_health", active_workers)
+
+        self.assertEqual(health, {
+            "total": 8, "daily": 1, "weekly": 4, "monthly": 2, "other": 1,
+            "due": 2, "overdue": 1, "unscheduled": 1,
+        })
+
+    def test_special_feeds_lists_only_enabled_managed_arbeitsagentur_feeds(self):
+        with self.factory.begin() as session:
+            managed_company = Company(source="managed_feed", source_id="ba-managed", name="Agentur für Arbeit",
+                                      website_url="https://arbeitsagentur.de")
+            managed = JobFeed(company=managed_company, provider="arbeitsagentur",
+                              feed_url="https://arbeitsagentur.de/jobsuche/?adapter_query=Karlsruhe",
+                              status="scheduled", enabled=True,
+                              source_config={"location_filter": {"query": "Karlsruhe"}})
+            imported_company = Company(source="openstreetmap", source_id="ba-imported", name="Imported BA",
+                                       website_url="https://arbeitsagentur.de")
+            imported = JobFeed(company=imported_company, provider="arbeitsagentur",
+                               feed_url="https://arbeitsagentur.de/jobsuche/imported", status="scheduled",
+                               enabled=True, source_config={})
+            disabled = JobFeed(company=Company(source="managed_feed", source_id="ba-disabled", name="Disabled BA",
+                                               website_url="https://arbeitsagentur.de"),
+                               provider="arbeitsagentur", feed_url="https://arbeitsagentur.de/jobsuche/disabled",
+                               status="scheduled", enabled=False, source_config={"managed_adapter": True})
+            other_provider = JobFeed(company=Company(source="managed_feed", source_id="other", name="Other",
+                                                    website_url="https://other.example"),
+                                     provider="rss", feed_url="https://other.example/jobs.xml", status="scheduled",
+                                     enabled=True,
+                                     source_config={"managed_adapter": True})
+            session.add_all([managed, imported, disabled, other_provider])
+            session.flush()
+            managed_id = managed.id
+
+        statements = []
+        def capture(_conn, _cursor, statement, parameters, _context, _executemany):
+            if "FROM job_feeds" in statement and "WHERE" in statement:
+                statements.append((statement, parameters))
+        event.listen(self.engine, "before_cursor_execute", capture)
+        with self.factory() as session:
+            try:
+                result = api.list_special_feeds(session)
+            finally:
+                event.remove(self.engine, "before_cursor_execute", capture)
+
+        self.assertEqual(result["total"], 1)
+        self.assertEqual([feed["id"] for feed in result["items"]], [managed_id])
+        feed_query, parameters = next(query for query in statements if "FROM job_feeds" in query[0])
+        self.assertIn("source_config", feed_query.split("WHERE", 1)[1],
+                      "The special-feed predicate should filter imported Agentur feeds in SQL")
+        with self.engine.connect() as connection:
+            loaded_feed_ids = [row[0] for row in connection.exec_driver_sql(feed_query, parameters)]
+        self.assertEqual(loaded_feed_ids, [managed_id],
+                         "The SQL query should load only qualifying managed feeds")
+
+    def test_active_feed_worker_identifies_its_feed(self):
+        now = utcnow()
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="arbeitsagentur-test",
+                              name="Agentur für Arbeit", website_url="https://arbeitsagentur.de")
+            feed = JobFeed(company=company, provider="arbeitsagentur", feed_url="https://arbeitsagentur.de/jobsuche",
+                           status="scanning", enabled=True, lease_until=now + timedelta(minutes=5))
+            session.add(feed)
+            session.flush()
+            feed_id = feed.id
+            session.add(ScanRun(feed_id=feed_id, status="running", started_at=now))
+
+        with self.factory() as session:
+            workers = api.list_active_workers(session)["items"]
+
+        feed_workers = [worker for worker in workers if worker["kind"] == "job_feed_scan"]
+        self.assertEqual(len(feed_workers), 1)
+        self.assertEqual(feed_workers[0]["feed_id"], feed_id)
 
 
 if __name__ == "__main__":

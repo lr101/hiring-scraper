@@ -12,6 +12,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Agentur für Arbeit scheduled scans in the current and upcoming search lists, with Germany ranked-check cadence, due, overdue, and unscheduled counts.
 - Open, Closed, and All posting filters, retained closure dates, and a Closed Journey outcome.
 
 - Form-aware application briefs and question answers bound to the captured step, plus explicit selection of current prepared PDF/DOCX documents in native employer upload fields.

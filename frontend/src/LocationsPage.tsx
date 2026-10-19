@@ -22,7 +22,7 @@ type DiscoveryJob = {
   companies_found: number; homepages_found: number; error?: string | null
 }
 type ActiveWorker = {
-  id: string; kind: 'location_search' | 'company_crawl' | 'homepage_lookup' | 'job_feed_scan'
+  id: string; kind: 'location_search' | 'company_crawl' | 'homepage_lookup' | 'job_feed_scan'; feed_id?: number
   title: string; activity: string; context: string | null; started_at: string | null
 }
 type GermanyMapProgress = {
@@ -30,6 +30,8 @@ type GermanyMapProgress = {
   current_state_number: number | null; states_total: number; sections_saved: number
   companies_found: number; websites_found: number; scheduled_for: string | null; error: string | null
 }
+type RankedCompanyHealth = { total: number; daily: number; weekly: number; monthly: number; other: number; due: number; overdue: number; unscheduled: number }
+type SpecialFeed = { id: number; company_name: string; company_source: string; provider: string; enabled: boolean; status: string; job_count: number | null; last_checked_at: string | null; next_scan_at: string | null; last_error: string | null; source_config?: { managed_adapter?: boolean; location_filter?: unknown } }
 
 function runStatus(status: string) {
   const labels: Record<string, string> = {
@@ -53,10 +55,23 @@ function isActiveGermanyInventoryJob(job: DiscoveryJob) {
 
 function dateTime(value: string | null) {
   if (!value) return 'Not scheduled'
-  const date = new Date(value)
+  // SQLite serializes UTC datetimes without an offset; interpret those as UTC.
+  const withTimezone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value) ? value : `${value}Z`
+  const date = new Date(withTimezone)
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('en', {
     dateStyle: 'medium', timeStyle: 'short',
   }).format(date)
+}
+
+function rankedHealthSummary(health: RankedCompanyHealth) {
+  const messages: string[] = []
+  if (health.overdue) {
+    messages.push(`${health.overdue} company ${health.overdue === 1 ? 'check is' : 'checks are'} more than 24 hours late`)
+  }
+  if (health.unscheduled) {
+    messages.push(`${health.unscheduled} ${health.unscheduled === 1 ? 'company has' : 'companies have'} no next check scheduled`)
+  }
+  return messages.length ? `${messages.join('; ')}.` : 'All scheduled company checks are within their 24-hour grace period.'
 }
 
 function isGermanyBetweenSections(job: DiscoveryJob) {
@@ -88,6 +103,8 @@ export default function LocationsPage() {
   const [jobs, setJobs] = useState<DiscoveryJob[]>([])
   const [activeWorkers, setActiveWorkers] = useState<ActiveWorker[]>([])
   const [germanyMapProgress, setGermanyMapProgress] = useState<GermanyMapProgress | null>(null)
+  const [rankedHealth, setRankedHealth] = useState<RankedCompanyHealth | null>(null)
+  const [specialFeeds, setSpecialFeeds] = useState<SpecialFeed[]>([])
   const [query, setQuery] = useState('')
   const [searchScope, setSearchScope] = useState<'radius' | 'state' | 'country'>('country')
   const [states, setStates] = useState<string[]>([])
@@ -134,6 +151,37 @@ export default function LocationsPage() {
       setGermanyMapProgress(null)
       setWorkerActivityUnavailable(true)
     }
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const refreshRankedHealth = () => {
+      fetch(apiUrl('/api/v1/ranked-company-health'), { signal: controller.signal })
+        .then(async response => {
+          if (!response.ok) return
+          setRankedHealth(await response.json() as RankedCompanyHealth)
+        })
+        .catch(() => {})
+    }
+    refreshRankedHealth()
+    const timer = window.setInterval(refreshRankedHealth, 60000)
+    return () => { window.clearInterval(timer); controller.abort() }
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const refreshSpecialFeeds = () => {
+      fetch(apiUrl('/api/v1/feeds/special'), { signal: controller.signal })
+        .then(async response => {
+          if (!response.ok) return
+          const feedData = await response.json()
+          setSpecialFeeds(feedData.items as SpecialFeed[])
+        })
+        .catch(() => {})
+    }
+    refreshSpecialFeeds()
+    const timer = window.setInterval(refreshSpecialFeeds, 30000)
+    return () => { window.clearInterval(timer); controller.abort() }
   }, [])
 
   useEffect(() => {
@@ -292,6 +340,9 @@ export default function LocationsPage() {
   const recentJobs = jobs.filter(job => ['completed', 'partial', 'failed', 'cancelled'].includes(job.status)).slice(0, 8)
   const germanyInventoryJob = jobs.find(isActiveGermanyInventoryJob)
   const comingUpLocations = locations.filter(location => location.enabled && location.search_scope !== 'country')
+  const runningSpecialFeeds = specialFeeds.filter(feed => activeWorkers.some(worker => worker.kind === 'job_feed_scan' && worker.feed_id === feed.id))
+  const upcomingSpecialFeeds = specialFeeds.filter(feed => !runningSpecialFeeds.includes(feed) && feed.next_scan_at)
+  const unscheduledSpecialFeeds = specialFeeds.filter(feed => !runningSpecialFeeds.includes(feed) && !feed.next_scan_at)
 
   return <div className="app-shell">
     <SiteHeader active="settings" />
@@ -414,13 +465,14 @@ export default function LocationsPage() {
         </div>
         <div className="activity-grid">
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Current searches</h3><span>{currentJobs.length}</span></div>
+            <div className="activity-column-heading"><h3>Current searches</h3><span>{currentJobs.length + runningSpecialFeeds.length}</span></div>
             {currentJobs.length ? currentJobs.map(job => <JobProgressCard key={job.id} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)
-              : <div className="empty-activity">No searches are active. Start one from a saved location.</div>}
+              : !runningSpecialFeeds.length && <div className="empty-activity">No searches are active. Start one from a saved location.</div>}
+            {runningSpecialFeeds.map(feed => <SpecialFeedRow key={feed.id} feed={feed} running />)}
           </article>
           <article className="activity-column">
-            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + comingUpLocations.length}</span></div>
+            <div className="activity-column-heading"><h3>Coming up</h3><span>{scheduledJobs.length + comingUpLocations.length + upcomingSpecialFeeds.length}</span></div>
             {scheduledJobs.map(job => <ScheduledJobCard key={`job-${job.id}`} job={job}
               cancellingJobId={cancellingJobId} onCancel={() => void cancelSearch(job)} />)}
             {comingUpLocations.map(location => <div className="scheduled-location" key={`location-${location.id}`}>
@@ -428,9 +480,16 @@ export default function LocationsPage() {
               <span><strong>{location.city || location.label}</strong><small>Repeats · {location.search_scope === 'country' ? 'all Germany' : location.search_scope === 'state' ? 'whole state' : `within ${location.radius_km} km`} · {location.search_scope === 'country' ? 'continuous ranked checks' : `every ${location.interval_days} days`}</small></span>
               <time>{dateTime(location.next_run_at)}</time>
             </div>)}
-            {!scheduledJobs.length && !comingUpLocations.length && <div className="empty-activity">Nothing is scheduled.</div>}
+            {upcomingSpecialFeeds.map(feed => <SpecialFeedRow key={feed.id} feed={feed} />)}
+            {unscheduledSpecialFeeds.length > 0 && <div className="unscheduled-feed-heading"><strong>Enabled feeds without a next scan</strong><span>{unscheduledSpecialFeeds.length}</span></div>}
+            {unscheduledSpecialFeeds.map(feed => <SpecialFeedRow key={feed.id} feed={feed} />)}
+            {!scheduledJobs.length && !comingUpLocations.length && !upcomingSpecialFeeds.length && !unscheduledSpecialFeeds.length && <div className="empty-activity">Nothing is scheduled.</div>}
           </article>
         </div>
+        {rankedHealth && <section className={`ranked-health ${rankedHealth.overdue || rankedHealth.unscheduled ? 'has-overdue' : ''}`} aria-label="German ranked company check health">
+          <div className="ranked-health-heading"><div><h3>Germany ranked checks</h3><p>{rankedHealthSummary(rankedHealth)}</p></div><strong className={rankedHealth.overdue || rankedHealth.unscheduled ? 'health-late' : 'health-ok'}>{rankedHealth.overdue || rankedHealth.unscheduled ? 'Needs attention' : 'On pace'}</strong></div>
+          <div className="ranked-health-metrics"><div><strong>{rankedHealth.total}</strong><span>companies tracked</span></div><div><strong>{rankedHealth.daily}</strong><span>daily</span></div><div><strong>{rankedHealth.weekly}</strong><span>weekly</span></div><div><strong>{rankedHealth.monthly}</strong><span>monthly</span></div><div><strong>{rankedHealth.other}</strong><span>other cadence</span></div><div><strong>{rankedHealth.due}</strong><span>due now</span></div><div className={rankedHealth.overdue ? 'health-late' : undefined}><strong>{rankedHealth.overdue}</strong><span>overdue &gt;24h</span></div><div><strong>{rankedHealth.unscheduled}</strong><span>no next check</span></div></div>
+        </section>}
       </section>
 
       <section className="recent-crawls-section">
@@ -443,6 +502,17 @@ export default function LocationsPage() {
         </div>)}</div> : <div className="empty-activity">Finished searches will appear here.</div>}
       </section>
     </main>
+  </div>
+}
+
+function SpecialFeedRow({ feed, running = false }: { feed: SpecialFeed; running?: boolean }) {
+  const timing = running ? null : feed.next_scan_at
+    ? `Next scan ${dateTime(feed.next_scan_at)}`
+    : `No next scan scheduled · last checked ${dateTime(feed.last_checked_at)}`
+  return <div className="scheduled-location special-feed-row">
+    <span className="scheduled-icon" aria-hidden="true">✳</span>
+    <span><strong>{feed.company_name || 'Agentur für Arbeit'}</strong><small>{running ? 'Scanning now' : feed.status.replaceAll('_', ' ')} · {feed.job_count ?? 0} listings{timing ? ` · ${timing}` : ''}{feed.last_error ? ` · Issue: ${feed.last_error}` : ''}</small></span>
+    <a href="/feeds">Manage feed</a>
   </div>
 }
 

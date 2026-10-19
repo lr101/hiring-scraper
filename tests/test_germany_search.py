@@ -101,6 +101,24 @@ class GermanySearchTests(unittest.TestCase):
                              'Germany page work is shared by website domain')
             self.assertEqual(state_ids,[bw_id],
                              'State campaigns retain their own office membership')
+
+    def test_country_search_canonicalizes_among_german_companies_only(self):
+        with self.factory.begin() as session:
+            board = models.Company(source='test', source_id='old-austrian-board', name='Austrian board',
+                                  country_code='AT', category='job_board_source',
+                                  website_url='https://shared-employer.example/jobs',
+                                  domain='shared-employer.example', crawl_interval_days=1)
+            german = models.Company(source='test', source_id='german-employer', name='German employer',
+                                    country_code='DE', website_url='https://shared-employer.example/careers',
+                                    domain='www.shared-employer.example', crawl_interval_days=7)
+            session.add_all([board, german])
+            session.flush()
+            german_id = german.id
+
+        with self.factory() as session:
+            ids = company_ids_for_search(session, SimpleNamespace(search_scope='country'))
+
+        self.assertEqual(ids, [german_id])
     def test_explicit_country_without_state_and_rank_information_are_exposed(self):
         with self.factory.begin() as session:
             company = models.Company(source='test', source_id='explicit', name='German employer', country_code='DE',
