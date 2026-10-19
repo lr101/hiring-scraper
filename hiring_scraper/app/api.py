@@ -2688,7 +2688,8 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     try:
         index_rebuilt = ensure_profile_match_indexes(session, profiles)
     except ProfileIndexChanged as error:
-        raise HTTPException(status_code=409, detail='Profile changed during search; retry the request') from error
+        raise HTTPException(status_code=409,
+                            detail='Profile or job inventory changed during search; retry the request') from error
     if index_rebuilt:
         session.commit()
 

@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
-    Job, JobApplication, JobFeed, JobLocation, ProfileJobMatch, UserProfile, utcnow,
+    Job, JobApplication, JobFeed, JobLocation, JobSearchState, ProfileJobMatch, UserProfile, utcnow,
 )
 from hiring_scraper.matching import VERSION, match_job
 
@@ -153,29 +153,16 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         profiles[:] = [profiles_by_id[profile_id] for profile_id in profile_ids]
         return False
 
-    # Fresh index checks are reads. Only a rebuild needs to serialize with edits.
-    current_profiles = session.scalars(
-        select(UserProfile).where(UserProfile.id.in_(profile_ids)).order_by(UserProfile.id)
-        .with_for_update().execution_options(populate_existing=True)
-    ).all()
-    stale_profiles = [profile for profile in current_profiles
-                      if profile.match_index_version != _profile_index_version(profile)]
-    if not stale_profiles:
-        profiles[:] = current_profiles
-        return False
-
     expected_versions = {profile.id: _profile_index_version(profile) for profile in stale_profiles}
-    expected_updated_at = {profile.id: profile.updated_at for profile in stale_profiles}
-    stale_ids = list(expected_versions)
-    session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id.in_(stale_ids)))
-    session.execute(delete(JobApplication).where(
-        JobApplication.profile_id.in_(stale_ids),
-        JobApplication.status == "new",
-        JobApplication.auto_created.is_(True),
-    ))
+    search_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
+    # Matching every active job can take much longer than a database lock
+    # timeout. Compute from the snapshot first, then lock and verify the
+    # profiles before replacing their derived rows.
     active_job_ids = session.scalars(
         select(Job.id).where(Job.is_active.is_(True)).order_by(Job.id)
     ).all()
+    pending_match_batches: list[list[dict]] = []
+    pending_state_batches: list[list[dict]] = []
     pending_matches: list[dict] = []
     pending_states: list[dict] = []
     now = utcnow()
@@ -211,28 +198,66 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                         "updated_at": now,
                     })
                 if len(pending_matches) >= 500:
-                    _upsert_profile_matches(session, pending_matches)
-                    pending_matches.clear()
+                    pending_match_batches.append(pending_matches)
+                    pending_matches = []
                 if len(pending_states) >= 500:
-                    upsert_new_match_states(session, pending_states)
-                    pending_states.clear()
-    _upsert_profile_matches(session, pending_matches)
-    upsert_new_match_states(session, pending_states)
+                    pending_state_batches.append(pending_states)
+                    pending_states = []
+    if pending_matches:
+        pending_match_batches.append(pending_matches)
+    if pending_states:
+        pending_state_batches.append(pending_states)
 
-    # Do not mark a backfill complete if preferences changed during the scan.
-    for profile in stale_profiles:
-        changed = session.execute(update(UserProfile).where(
-            UserProfile.id == profile.id,
-            UserProfile.updated_at == expected_updated_at[profile.id],
-        ).values(match_index_version=expected_versions[profile.id])).rowcount
-        if changed != 1:
+    # Do not publish a backfill if preferences changed during the scan. If a
+    # competing request already rebuilt the same version, leave its rows alone.
+    locked_profiles = session.scalars(
+        select(UserProfile).where(UserProfile.id.in_(list(expected_versions))).order_by(UserProfile.id)
+        .with_for_update().execution_options(populate_existing=True)
+    ).all()
+    current_by_id = {profile.id: profile for profile in current_profiles}
+    locked_by_id = {profile.id: profile for profile in locked_profiles}
+    for profile_id in expected_versions:
+        if profile_id in locked_by_id:
+            current_by_id[profile_id] = locked_by_id[profile_id]
+        else:
+            current_by_id.pop(profile_id, None)
+    for profile_id, expected_version in expected_versions.items():
+        profile = current_by_id.get(profile_id)
+        if profile is None or _profile_index_version(profile) != expected_version:
             raise ProfileIndexChanged("Profile changed while its matches were being rebuilt")
-        profile.match_index_version = expected_versions[profile.id]
+    current_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
+    if current_generation != search_generation:
+        raise ProfileIndexChanged("Job inventory changed while profile matches were being rebuilt")
 
-    profiles_by_id = {profile.id: profile for profile in current_profiles}
-    profiles[:] = [profiles_by_id[profile_id] for profile_id in profile_ids]
+    # The locked query refreshes ORM identities in place, but construct from
+    # the merged map so this remains correct if a caller passed detached rows.
+    stable_profiles = [
+        current_by_id[profile_id]
+        for profile_id in expected_versions
+        if profile_id in current_by_id
+        and current_by_id[profile_id].match_index_version != expected_versions[profile_id]
+    ]
+    stable_ids = {profile.id for profile in stable_profiles}
+    if stable_ids:
+        session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id.in_(stable_ids)))
+        session.execute(delete(JobApplication).where(
+            JobApplication.profile_id.in_(stable_ids),
+            JobApplication.status == "new",
+            JobApplication.auto_created.is_(True),
+        ))
+        # The pending rows were built from the versions now protected by row
+        # locks. Replace only those profiles; another rebuild may have finished
+        # while this one was scanning.
+        for batch in pending_match_batches:
+            _upsert_profile_matches(session, [row for row in batch if row["profile_id"] in stable_ids])
+        for batch in pending_state_batches:
+            upsert_new_match_states(session, [row for row in batch if row["profile_id"] in stable_ids])
+        for profile in stable_profiles:
+            profile.match_index_version = expected_versions[profile.id]
+
+    profiles[:] = [current_by_id.get(profile_id) for profile_id in profile_ids]
     session.flush()
-    return True
+    return bool(stable_ids)
 
 
 def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | list[int]) -> None:
@@ -249,6 +274,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | l
         return
     profile_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
     now = utcnow()
+    pending_batches: list[tuple[list[int], list[dict], list[dict], dict[int, list[int]]]] = []
     for start in range(0, len(ids), 500):
         job_batch = ids[start:start + 500]
         jobs = session.scalars(
@@ -287,17 +313,20 @@ def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | l
                         "created_at": now,
                         "updated_at": now,
                     })
-        # Lock only after computation. This serializes the short derived-write
-        # section with profile edits while avoiding holding profile locks during
-        # the Python matching pass.
-        current_profiles = session.scalars(select(UserProfile).where(
-            UserProfile.id.in_(list(profile_versions))
-        ).order_by(UserProfile.id).with_for_update().execution_options(populate_existing=True)).all()
-        stable_profiles = [profile for profile in current_profiles
-                           if _profile_index_version(profile) == profile_versions[profile.id]]
-        stable_ids = {profile.id for profile in stable_profiles}
-        if not stable_ids:
-            continue
+        pending_batches.append((job_batch, matches, states, qualifying_job_ids))
+
+    # One invocation can span many batches. Keep the profile rows unlocked
+    # through every matching pass, then serialize the derived writes together.
+    current_profiles = session.scalars(select(UserProfile).where(
+        UserProfile.id.in_(list(profile_versions))
+    ).order_by(UserProfile.id).with_for_update().execution_options(populate_existing=True)).all()
+    stable_profiles = [profile for profile in current_profiles
+                       if _profile_index_version(profile) == profile_versions[profile.id]]
+    stable_ids = {profile.id for profile in stable_profiles}
+    if not stable_ids:
+        return
+
+    for job_batch, matches, states, qualifying_job_ids in pending_batches:
         matches = [match for match in matches if match["profile_id"] in stable_ids]
         states = [state for state in states if state["profile_id"] in stable_ids]
         for profile_start in range(0, len(stable_profiles), 300):
