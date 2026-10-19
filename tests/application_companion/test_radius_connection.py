@@ -26,7 +26,7 @@ class RadiusConnectionTests(ExtensionHarness):
   try:super().tearDown()
   finally:self.copy.cleanup();self.server.shutdown();self.server.server_close()
  def connect(self):
-  options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html');options.locator('#radius-origin').fill(self.origin);options.locator('#radius-connect').click();expect(options.locator('#radius-status')).to_contain_text('2 discovered jobs synced');options.close()
+  options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html');options.locator('#radius-origin').fill(self.origin);options.locator('#radius-connect').click();expect(options.locator('#radius-status')).to_contain_text('2 jobs cached');options.close()
  def badge(self,url,want):
   end=time.monotonic()+8;text=''
   while time.monotonic()<end:
@@ -53,7 +53,7 @@ class RadiusConnectionTests(ExtensionHarness):
   self.connect();self.page.goto(self.origin+'/jobs/1574/apply?profile_id=1');self.page.get_by_role('button',name='Use simulated ChatGPT return').click()
   source=self.context.new_page();source.goto(LISTING);self.badge(LISTING,'1')
   self.server.state['cv_version']='cv2'
-  options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html');options.locator('#radius-refresh').click();expect(options.locator('#radius-status')).to_contain_text('2 discovered jobs synced');self.badge(LISTING,'•')
+  options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html');options.locator('#radius-refresh').click();expect(options.locator('#radius-status')).to_contain_text('2 jobs cached');self.badge(LISTING,'•')
  def test_old_draft_reload_does_not_rebind_after_reusable_facts_change(self):
   self.connect();self.page.goto(self.origin+'/jobs/1574/apply?profile_id=1');self.page.get_by_role('button',name='Use simulated ChatGPT return').click()
   source=self.context.new_page();source.goto(LISTING);self.badge(LISTING,'1')

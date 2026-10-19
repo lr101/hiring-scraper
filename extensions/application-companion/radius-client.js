@@ -1,3 +1,4 @@
+import { validateProfile } from "./profile.js";
 import { normalizeJob, validateSettings } from "./vault.js";
 
 let connectionRequests = new AbortController();
@@ -93,9 +94,8 @@ export async function radiusJSON(settings, path, signal) {
   return radiusRequest(settings, path, { signal });
 }
 
-// Production CVs live in the Radius tab's origin storage, never in the API.
-// Read one selected key and return only metadata; reusable facts remain in the vault.
-export async function localCVVersion(settings) {
+// Legacy browser-local CVs stay scoped to the explicitly connected app origin.
+async function localCVData(settings) {
   if (!settings.profile_id) return "";
   const tabs = await chrome.tabs.query({ url: settings.origin + "/*" });
   for (const tab of tabs) {
@@ -114,20 +114,24 @@ export async function localCVVersion(settings) {
               cv.text.length <= 100000 &&
               typeof cv.updated_at === "string" &&
               cv.updated_at.length <= 200
-              ? cv.updated_at
-              : "";
+              ? { text: cv.text, updated_at: cv.updated_at }
+              : null;
           } catch {
             return "";
           }
         },
         args: [settings.profile_id],
       });
-      if (typeof result?.result === "string") return result.result;
+      if (result?.result?.updated_at && typeof result.result.text === "string")
+        return result.result;
     } catch {
       /* Closing/navigating tab: try the next connected Radius tab. */
     }
   }
   return "";
+}
+export async function localCVVersion(settings) {
+  return (await localCVData(settings))?.updated_at || "";
 }
 export async function currentCV(settings, profiles) {
   profiles ||= await radiusJSON(settings, "/api/v1/profiles");
@@ -168,6 +172,21 @@ export async function syncRadius(settings, signal) {
     ? await currentCV(selectedSettings, profilesResult)
     : "";
   if (profile) profile.has_cv = !!selectedSettings.cv_updated_at;
+  const source = profilesResult.items.find((p) => p.id === profile?.id);
+  const applicant = profile
+    ? validateProfile({
+        ...(source?.application_details || {}),
+        cv_text: source?.cv
+          ? (
+              await radiusJSON(
+                settings,
+                `/api/v1/profiles/${profile.id}/cv/text`,
+                signal,
+              )
+            ).text
+          : (await localCVData(selectedSettings))?.text || "",
+      })
+    : null;
   const jobs = [];
   let after = 0,
     jobBytes = 0,
@@ -208,6 +227,7 @@ export async function syncRadius(settings, signal) {
   }
   const unique = [...new Map(jobs.map((j) => [j.id, j])).values()];
   return {
+    applicant,
     jobs: unique,
     profiles,
     total: unique.length,

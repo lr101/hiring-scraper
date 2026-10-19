@@ -221,8 +221,14 @@ async function fill() {
   }
 }
 button.onclick = fill;
-document.querySelector("#edit").onclick = () =>
-  chrome.runtime.openOptionsPage();
+document.querySelector("#edit").onclick = async () => {
+  const catalog = await request("overview");
+  if (catalog.settings?.profile_id) {
+    await chrome.tabs.create({
+      url: `${catalog.settings.origin}/profile/${catalog.settings.profile_id}/edit`,
+    });
+  } else chrome.runtime.openOptionsPage();
+};
 document.querySelector("#connection").onclick = () =>
   chrome.tabs.create({
     url: chrome.runtime.getURL("options.html#radius-connection"),
@@ -369,6 +375,25 @@ try {
       }
     }, 200);
   };
+  const siteStatus = document.querySelector("#site-status");
+  if (catalog?.site) {
+    siteStatus.hidden = false;
+    siteStatus.textContent = `${catalog.site.job_count} jobs · ${catalog.site.feeds.length} career feeds found for this company`;
+    for (const feed of catalog.site.feeds) {
+      try {
+        const url = new URL(feed.url);
+        if (!["https:", "http:"].includes(url.protocol)) continue;
+        const link = document.createElement("a");
+        link.href = url.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = `Career feed · ${feed.status}`;
+        siteStatus.append(document.createElement("br"), link);
+      } catch {
+        /* Ignore malformed feed links. */
+      }
+    }
+  }
   const items = catalog?.items || [];
   if (items.length) {
     document.querySelector("#jobs-section").hidden = false;
