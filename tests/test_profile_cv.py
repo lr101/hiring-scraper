@@ -33,6 +33,38 @@ def sample_pdf(text='Alex Example - Project coordinator'):
 
 
 class ProfileCVTests(unittest.TestCase):
+    def test_tex_cv_preserves_source_across_sessions_and_original_download(self):
+        # Uploaded source is read as data, including custom templates; it is
+        # never executed to extract its content.
+        source = '\ufeff\\documentclass{moderncv}\n% My master CV\n\\name{José}{Müller}\n\\section{Experience}\nR\\&D in Genève 2021-2024\n\\input{private-file.tex}\n'
+        original = source.encode('utf-8')
+        metadata = self.save('Master CV.TEX', original)
+        self.assertEqual(metadata['filename'], 'Master CV.TEX')
+        self.assertEqual(metadata['content_type'], 'application/x-tex')
+        self.assertEqual(metadata['size_bytes'], len(original))
+        self.session.close()
+        self.session = Session(self.engine)
+        stored = self.session.get(models.ProfileCV, self.profile['id'])
+        self.assertEqual(stored.extracted_text, source.lstrip('\ufeff').strip())
+        payload = json.loads(profiles.cv_text(self.profile['id'], self.session).body)
+        self.assertEqual(payload['text'], source.lstrip('\ufeff').strip())
+        download = profiles.download_cv(self.profile['id'], self.session)
+        self.assertEqual(download.body, original)
+        self.assertEqual(download.headers['content-type'], 'application/x-tex')
+        self.assertIn('cv.tex', download.headers['content-disposition'])
+        self.assertEqual(download.headers['cache-control'], 'no-store')
+        self.assertEqual(download.headers['x-content-type-options'], 'nosniff')
+
+    def test_invalid_tex_replacement_keeps_the_previous_cv(self):
+        self.save()
+        for source in [b'', b'\xff\xfe', b'Alex\x00Example', b' ' * 100, b'x' * 100001,
+                       b'x' * (5 * 1024 * 1024 + 1)]:
+            with self.subTest(size=len(source)), self.assertRaises(HTTPException) as raised:
+                self.save('replacement.tex', source)
+            self.assertIn(raised.exception.status_code, [413, 422])
+        self.assertEqual(self.session.get(models.ProfileCV, self.profile['id']).filename, 'cv.txt')
+        self.assertIn('Verified project coordination', self.session.get(models.ProfileCV, self.profile['id']).extracted_text)
+
     def setUp(self):
         self.engine = create_engine('sqlite://')
         models.Base.metadata.create_all(self.engine)

@@ -20,6 +20,105 @@ from test_cv_template import template_docx
 
 
 class ApplicationDocumentTests(unittest.TestCase):
+    def test_canvas_latex_source_is_exported_verbatim_and_used_for_pdf(self):
+        from hiring_scraper.app.latex_documents import latex_source
+        source = latex_source('# Canvas-only heading\nJosé in Genève 2021-2024')
+        letter_source = latex_source('Canvas-only letter')
+        sources = {'cv': source, 'cover_letter': letter_source}
+        response = self.export(format='tex', latex_documents=sources)
+        self.assertEqual(response.body.decode(), source)
+        response = self.export(kind='cover_letter', format='tex', latex_documents=sources)
+        self.assertEqual(response.body.decode(), letter_source)
+        if shutil.which('lualatex'):
+            from pypdf import PdfReader
+            response = self.export(format='latex_pdf', latex_documents=sources)
+            text = '\n'.join(p.extract_text() for p in PdfReader(BytesIO(response.body)).pages)
+            self.assertIn('Canvas-only heading', text)
+            self.assertIn('José in Genève 2021-2024', text)
+            self.assertNotIn('Tailored CV', text)
+
+    def test_canvas_latex_rejects_executable_commands_and_preamble_changes(self):
+        from hiring_scraper.app.latex_documents import latex_source
+        from pydantic import ValidationError
+        for text in [r'\input{/etc/passwd}', r'\directlua{os.execute("id")}', r'\catcode`x=0',
+                     r'\csname input\endcsname', r'^^5cinput{/etc/passwd}', r'\begin{filecontents}{pwn}x\end{filecontents}',
+                     '% hidden comment', r'\section*{unclosed', r'\end{itemize}', '[TODO write CV]']:
+            source = latex_source('safe').replace('safe\\par', text)
+            with self.subTest(text=text), self.assertRaises((HTTPException, ValidationError)):
+                self.export(format='latex_pdf', latex_documents={'cv': source})
+        source = latex_source('safe').replace('margin=22mm', 'margin=1mm')
+        with self.assertRaises((HTTPException, ValidationError)):
+            self.export(format='tex', latex_documents={'cv': source})
+
+    def test_latex_source_escapes_prose_and_keeps_selected_document(self):
+        response = self.export(format='tex', cv='# José Müller\n## Experience\n- R&D: 20% with C_1 and $5\n\\input{/etc/passwd} ~ ^ { }',
+                               cover_letter='Unused letter')
+        source = response.body.decode('utf-8')
+        self.assertIn('José Müller', source)
+        self.assertIn(r'\section*{Experience}', source)
+        self.assertIn(r'R\&D: 20\% with C\_1 and \$5', source)
+        self.assertIn(r'\textbackslash{}input\{/etc/passwd\}', source)
+        self.assertNotIn(r'\input{', source)
+        self.assertNotIn('Unused letter', source)
+        self.assertIn('.tex"', response.headers['content-disposition'])
+        self.assertIn('text/plain', response.headers['content-type'])
+        self.assertEqual(response.headers['cache-control'], 'no-store')
+        letter = self.export(kind='cover_letter', format='tex', cover_letter='Dear team,\nGrüße & thanks')
+        self.assertIn(r'Grüße \& thanks', letter.body.decode())
+        self.assertNotIn('Tailored CV', letter.body.decode())
+
+    def test_latex_from_template_uses_entire_cv_after_edits_without_changing_original(self):
+        revision = self.attach()
+        original = bytes(self.session.get(models.ProfileCV, self.profile_id).data)
+        output = self.export(format='tex', cv_updated_at=revision, cv=[{'id': 4, 'text': 'Coordinate programs'}])
+        source = output.body.decode()
+        self.assertIn('ORIGINAL CV TEMPLATE', source)
+        self.assertIn('Coordinate programs', source)
+        self.assertNotIn('Coordinate projects', source)
+        self.assertEqual(bytes(self.session.get(models.ProfileCV, self.profile_id).data), original)
+
+    def test_latex_rejects_unfinished_content_and_stale_cv(self):
+        with self.assertRaises(HTTPException) as raised:
+            self.export(format='tex', cv='[TODO add achievements]')
+        self.assertEqual(raised.exception.status_code, 422)
+        self.attach()
+        with self.assertRaises(HTTPException) as raised:
+            self.export(format='tex')
+        self.assertEqual(raised.exception.status_code, 409)
+
+    def test_latex_pdf_without_engine_offers_source_and_source_still_works(self):
+        with patch('hiring_scraper.app.latex_documents.shutil.which', return_value=None):
+            with self.assertRaises(HTTPException) as raised:
+                self.export(format='latex_pdf')
+            self.assertEqual(raised.exception.status_code, 503)
+            self.assertIn('source', raised.exception.detail)
+            self.assertIn(r'\begin{document}', self.export(format='tex').body.decode())
+
+    def test_latex_reports_unsupported_glyphs_instead_of_silently_losing_text(self):
+        if not shutil.which('lualatex'):
+            self.skipTest('LuaLaTeX unavailable')
+        with self.assertRaises(HTTPException) as raised:
+            self.export(format='latex_pdf', cv='Alex Example 東京')
+        self.assertEqual(raised.exception.status_code, 422)
+        self.assertIn('font', raised.exception.detail)
+
+    def test_real_latex_pdf_has_unicode_text_dates_and_no_executed_tex(self):
+        if not shutil.which('lualatex'):
+            self.skipTest('LuaLaTeX unavailable')
+        from pypdf import PdfReader
+        for kind in ['cv', 'cover_letter']:
+            with self.subTest(kind=kind):
+                text = '# José Müller\n## Experience\n- R&D in Genève 2021-2024: 20% faster\n\\input{/etc/passwd}'
+                response = self.export(kind=kind, format='latex_pdf', cv=text, cover_letter=text)
+                reader = PdfReader(BytesIO(response.body))
+                extracted = '\n'.join(page.extract_text() for page in reader.pages)
+                for expected in ['José Müller', 'R&D', 'Genève', '2021-2024', '20%', 'input{/etc/passwd}']:
+                    self.assertIn(expected, extracted)
+                self.assertNotIn('root:x:', extracted)
+                self.assertEqual(len(reader.pages), 1)
+                self.assertEqual(response.headers['content-type'], 'application/pdf')
+                self.assertIn('.pdf"', response.headers['content-disposition'])
+
     def setUp(self):
         self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
         models.Base.metadata.create_all(self.engine)

@@ -5,7 +5,7 @@ import ApplicationWorkHistory from './ApplicationWorkHistory'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
 import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
-const empty = (): Profile => ({ application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ application_personalization: {}, application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -209,10 +209,24 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>
             <a href={`${API}/api/v1/profiles/${form.id}/cv`}>Download CV</a>
             <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove CV</button></div>}
-          <label>{form.cv ? 'Replace CV' : 'Attach CV'}<input type="file" accept=".pdf,.docx,.txt" disabled={busy}
+          <label>{form.cv ? 'Replace CV' : 'Attach CV'}<input type="file" accept=".pdf,.docx,.txt,.tex" disabled={busy}
             onChange={event => { const file = event.target.files?.[0] ?? null; if (file && file.size > 5 * 1024 * 1024) { setError('CV files must be 5 MB or smaller.'); event.target.value = ''; setPendingCV(null) } else { setPendingCV(file); setError('') } }} /></label>
-          <small>PDF, DOCX or TXT · up to 5 MB. Choose DOCX to keep your original layout when editing and exporting to PDF. Saved with your profile.</small>
+          <small>PDF, DOCX, TXT or LaTeX (.tex) · up to 5 MB. Choose DOCX to keep your original Word layout. LaTeX source is read without compiling and reused in your ChatGPT brief. Saved with your profile.</small>
           {pendingCV && <p role="status">{pendingCV.name} · ready to save</p>}
+        </fieldset>
+        <fieldset className="profile-section" id="profile-personalization"><legend>About me for applications</legend>
+          <p className="muted">Add confirmed examples and preferences once. They’re included when you copy an application or fit brief to ChatGPT. You can draft these in your usual ChatGPT conversation using the context it already has, then check the facts before saving here.</p>
+          {([
+            ['career_evidence', 'Career evidence bank', 12000, 'Projects and achievements: the situation, your actions, and the outcome. Include dates, links and measured results when known. Distinguish academic projects from employment.'],
+            ['writing_samples', 'Writing samples', 12000, 'Paste two or three short pieces you wrote. ChatGPT will use these as voice examples, without borrowing their facts for this application.'],
+            ['wording_to_avoid', 'Wording to avoid', 3000, 'Words or phrases that don’t sound like you.'],
+            ['career_goals', 'Career goals', 5000, 'What you want to do next, skills you want to develop, and roles you would consider.'],
+            ['work_preferences', 'Working preferences and dealbreakers', 5000, 'Team environment, management style, travel limits, and other practical needs.'],
+          ] as const).map(([key, label, limit, hint]) => <label key={key}>{label}
+            <textarea rows={key === 'career_evidence' || key === 'writing_samples' ? 5 : 3} maxLength={limit}
+              value={form.application_personalization?.[key] ?? ''} placeholder={hint}
+              onChange={event => setForm({ ...form, application_personalization: { ...form.application_personalization, [key]: event.target.value } })} />
+            <small>{hint}</small></label>)}
         </fieldset>
         <fieldset className="profile-section"><legend>Application writing preferences</legend>
           <label htmlFor="profile-custom-instructions">Custom application instructions</label>

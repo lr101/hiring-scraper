@@ -54,6 +54,9 @@ with sync_playwright() as pw:
         page.get_by_role('button', name='Next CV page', exact=True).click()
         second_page = page.get_by_role('img', name='CV page 2 of 2', exact=True)
         expect(second_page).to_be_visible()
+        # The canvas label changes before the asynchronous PDF paint completes.
+        # Wait for page-two content before inspecting its pixels.
+        expect(second_page).to_have_attribute('aria-description', re.compile('Community involvement'))
         assert inked(second_page) > 1000, 'The second CV page must render too'
         page.get_by_role('button', name='Previous CV page', exact=True).click()
         expect(canvas).to_be_visible()

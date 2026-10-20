@@ -63,7 +63,17 @@ class MatchingDefaults(BaseModel):
 
 
 NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
-                   'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details'}
+                   'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details',
+                   'application_personalization'}
+
+
+class ApplicationPersonalization(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    career_evidence: str = Field(default='', max_length=12000)
+    writing_samples: str = Field(default='', max_length=12000)
+    wording_to_avoid: str = Field(default='', max_length=3000)
+    career_goals: str = Field(default='', max_length=5000)
+    work_preferences: str = Field(default='', max_length=5000)
 
 
 class ApplicationPreferences(BaseModel):
@@ -168,6 +178,7 @@ class ProfileRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
     application_details: ApplicationDetails = Field(default_factory=ApplicationDetails)
+    application_personalization: ApplicationPersonalization = Field(default_factory=ApplicationPersonalization)
     skills: list[Term] = Field(default_factory=list, max_length=100)
     desired_roles: list[Term] = Field(default_factory=list, max_length=20)
     work_styles: list[Literal['remote','hybrid','onsite']] = Field(default_factory=list, max_length=3)
@@ -195,6 +206,7 @@ def profile_json(profile):
     data = {'id': profile.id, 'name': profile.name, **profile.preferences,
             'updated_at': profile.updated_at.isoformat(), 'cv': cv_metadata(profile.cv)}
     data.setdefault('custom_instructions', '')
+    data.setdefault('application_personalization', ApplicationPersonalization().model_dump())
     defaults = data.get('matching_defaults')
     defaults = defaults if isinstance(defaults, dict) else {}
     data['matching_defaults'] = {
@@ -286,7 +298,7 @@ def cv_metadata(cv):
 def store_profile_cv(session, profile_id, filename, data):
     extension = Path(filename).suffix.lower()
     if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or extension not in TYPES:
-        raise HTTPException(422, 'Choose a PDF, DOCX or TXT file with a simple filename.')
+        raise HTTPException(422, 'Choose a PDF, DOCX, TXT or TEX file with a simple filename.')
     if len(data) > MAX_BYTES:
         raise HTTPException(413, 'CV files must be 5 MB or smaller.')
     if not data:
@@ -297,7 +309,7 @@ def store_profile_cv(session, profile_id, filename, data):
                                 input=data, capture_output=True, timeout=10)
         parsed = json.loads(result.stdout)
     except (subprocess.TimeoutExpired, ValueError):
-        raise HTTPException(422, 'Could not read this CV within the limit. Try a simpler PDF, DOCX or TXT.') from None
+        raise HTTPException(422, 'Could not read this CV within the limit. Try a simpler PDF, DOCX, TXT or TEX.') from None
     if result.returncode or not parsed.get('text'):
         raise HTTPException(422, parsed.get('error') or 'Could not read this CV.')
     profile = require_profile(profile_id, session)

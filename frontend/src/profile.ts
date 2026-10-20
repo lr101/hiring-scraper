@@ -25,6 +25,10 @@ export type ApplicationDetails = {
   }
 }
 export type Profile = {
+  application_personalization?: {
+    career_evidence?: string; writing_samples?: string; wording_to_avoid?: string
+    career_goals?: string; work_preferences?: string
+  }
   application_details?: ApplicationDetails
   cv?: { filename: string; content_type: string; size_bytes: number; updated_at: string } | null
   id?: number; name: string; summary: string; custom_instructions: string; skills: string[]; desired_roles: string[]; secondary_roles: string[]

@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Reusable career evidence, writing samples, goals and working preferences, with a separate ChatGPT job-fit brief.
+- LaTeX CV uploads and Canvas source return links, with editable `.tex` and LuaLaTeX PDF downloads for application documents.
 - Agentur für Arbeit scheduled scans in the current and upcoming search lists, with Germany ranked-check cadence, due, overdue, and unscheduled counts.
 - Open, Closed, and All posting filters, retained closure dates, and a Closed Journey outcome.
 

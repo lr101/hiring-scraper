@@ -1,4 +1,7 @@
 import { downloadApplicationDocument } from './applicationDocumentExport'
+import type { DocumentFormat } from './applicationDocumentExport'
+import { buildFitAssessmentPrompt } from './applicationHandoff'
+import type { Profile as SavedProfile } from './profile'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import { buildApplicationPrompt, deleteCv, parseReturnedPackage, readCv, readDraft, removeDraft, saveCv, saveDraft, type ApplicationPackage, type StoredCv } from './applicationPreparation'
@@ -7,7 +10,7 @@ import './application-preparation.css'
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const apiUrl = (path: string) => `${API_BASE_URL}${path}`
-type Profile = { id: number; name: string }
+type Profile = Partial<SavedProfile> & { id: number; name: string }
 type Job = { id: number; title: string; url: string; company_name: string; description: string | null; location_text: string | null; employment_type: string | null; work_arrangement: string | null }
 
 export default function BrowserApplicationPreparationPage({ jobId, attachHref, incoming }: { jobId: number; attachHref: string; incoming: { hash: string } }) {
@@ -21,6 +24,7 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
   const [packageValue, setPackageValue] = useState<ApplicationPackage | null>(null)
   const [form, setForm] = useState(() => readApplicationForm(jobId, requestedProfileId))
   const [exporting, setExporting] = useState(false)
+  const [briefType, setBriefType] = useState<'application' | 'fit'>('application')
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
@@ -87,7 +91,9 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
   }, [jobId, requestedProfileId])
 
   const returnUrl = `${window.location.origin}${window.location.pathname}${window.location.search}`
-  const prompt = useMemo(() => cv && job && profile ? buildApplicationPrompt(cv, { job, profile, returnUrl, form }) : '', [cv, job, profile, returnUrl, form])
+  const prompt = useMemo(() => cv && job && profile ? briefType === 'fit'
+    ? buildFitAssessmentPrompt({ job, profile, cvText: cv.text, language: 'the language of the job posting' })
+    : buildApplicationPrompt(cv, { job, profile, returnUrl, form }) : '', [briefType, cv, job, profile, returnUrl, form])
   function saveLocalCv() {
     if (!profile) return
     try { cvGeneration.current++; const next = saveCv(localStorage, profile.id, cvText); setCv(next); setPackageValue(null); setNotice('Original CV saved in this browser only.'); setError('') }
@@ -95,7 +101,7 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
   }
   async function importText(file: File | undefined) {
     if (!file) return
-    if (!file.name.toLowerCase().endsWith('.txt') || file.size > 100_000) { setError('Choose a plain .txt CV file under 100,000 bytes.'); return }
+    if (!/\.(txt|tex)$/i.test(file.name) || file.size > 100_000) { setError('Choose a .txt or .tex CV source file under 100,000 bytes.'); return }
     const generation = cvGeneration.current; const profileId = profile?.id
     try {
       const text = await file.text()
@@ -121,12 +127,12 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
     if (!packageValue) return
     downloadText(`application-${job?.id}.txt`, `Cover letter\n\n${packageValue.cover_letter}\n\nApplication answers\n\n${packageValue.application_answers}\n\nReview notes\n\n${packageValue.review_notes}`)
   }
-  async function exportDocument(kind: 'cv' | 'cover_letter', format: 'pdf' | 'docx') {
+  async function exportDocument(kind: 'cv' | 'cover_letter', format: DocumentFormat) {
     if (!packageValue || !profile) return
     setExporting(true); setError('')
     try {
       if (readCv(localStorage, profile.id)?.updated_at !== packageValue.cv_updated_at) throw new Error('The saved CV changed. Prepare a current package.')
-      await downloadApplicationDocument(packageValue, kind, format, `${kind}-${jobId}.${format}`)
+      await downloadApplicationDocument(packageValue, kind, format, `${kind}-${jobId}.${format === 'latex_pdf' ? 'pdf' : format}`)
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export the document.') }
     finally { setExporting(false) }
   }
@@ -137,13 +143,13 @@ export default function BrowserApplicationPreparationPage({ jobId, attachHref, i
     <header className="application-preparation-hero"><p className="eyebrow">Local application preparation</p><h1>{job?.title ?? 'Prepare application'}</h1><p className="intro-copy">{job ? `${job.company_name} · ${profile?.name ?? 'loading profile'}` : 'Loading selected job and profile…'}</p></header>
     {error && <p className="error-banner" role="alert">{error}</p>}{notice && <p className="application-preparation-notice" role="status">{notice}</p>}
     {profile && <p><a className="primary-button" href={attachHref}>Attach CV to profile →</a></p>}
-    {profile && <section className="application-preparation-card"><p className="eyebrow">1 · Original CV</p><h2>Keep the source text in this browser</h2><p>Radius never sends this CV to its API. Save it explicitly, replace it with pasted text or a plain text file, or delete it here.</p>
+    {profile && <section className="application-preparation-card"><p className="eyebrow">1 · Original CV</p><h2>Keep the source text in this browser</h2><p>Radius never sends this CV to its API. Save it explicitly, replace it with pasted text, a plain text file or LaTeX source, or delete it here.</p>
       <textarea value={cvText} onChange={event => setCvText(event.target.value)} aria-label="Original CV text" placeholder="Paste original CV text" />
-      <div className="application-preparation-actions"><button className="search-button" type="button" onClick={saveLocalCv}>Save CV</button><button className="secondary-button" type="button" onClick={() => fileRef.current?.click()}>Import .txt</button><input ref={fileRef} type="file" accept="text/plain,.txt" hidden onChange={event => void importText(event.target.files?.[0])} />{cv && <><span className="application-cv-ready">Original CV saved locally</span><button className="text-button" type="button" onClick={() => { cvGeneration.current++; deleteCv(localStorage, profile.id); setCv(null); setPackageValue(null); setNotice('Saved CV and all its prepared drafts were removed from this browser.'); }}>Delete saved CV</button></>}</div>
+      <div className="application-preparation-actions"><button className="search-button" type="button" onClick={saveLocalCv}>Save CV</button><button className="secondary-button" type="button" onClick={() => fileRef.current?.click()}>Import .txt or .tex</button><input ref={fileRef} type="file" accept=".txt,.tex" hidden onChange={event => void importText(event.target.files?.[0])} />{cv && <><span className="application-cv-ready">Original CV saved locally</span><button className="text-button" type="button" onClick={() => { cvGeneration.current++; deleteCv(localStorage, profile.id); setCv(null); setPackageValue(null); setNotice('Saved CV and all its prepared drafts were removed from this browser.'); }}>Delete saved CV</button></>}</div>
     </section>}
-    {cv && job && profile && <><section className="application-preparation-card"><p className="eyebrow">2 · Prompt</p><h2>Review and send only when ready</h2><p>{form ? `${form.fields.length} questions from the captured application step are included. ` : ''}Copy this prompt or open ChatGPT yourself. Generated content remains text for your review; Radius does not submit an application. If you use the companion extension, save a reusable extension profile once from this original CV, then keep this Radius tab open while it checks the CV version.</p><textarea aria-label="Prepared application prompt" value={prompt} readOnly />
+    {cv && job && profile && <><section className="application-preparation-card"><p className="eyebrow">2 · Prompt</p><h2>Review and send only when ready</h2><p>{form ? `${form.fields.length} questions from the captured application step are included. ` : ''}Copy this prompt or open ChatGPT yourself. Generated content remains text for your review; Radius does not submit an application. If you use the companion extension, save a reusable extension profile once from this original CV, then keep this Radius tab open while it checks the CV version.</p><label>Brief type<select aria-label="Brief type" value={briefType} onChange={event => setBriefType(event.target.value as 'application' | 'fit')}><option value="application">Prepare application documents</option><option value="fit">Assess job fit</option></select></label>{briefType === 'fit' && <p>The fit assessment stays in your ChatGPT conversation. Choose application documents when you’re ready to prepare a package.</p>}<textarea aria-label="Prepared application prompt" value={prompt} readOnly />
       <div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void copyPrompt()}>Copy prompt</button><a className="secondary-button application-chatgpt-link" href="https://chatgpt.com" target="_blank" rel="noreferrer">Open ChatGPT ↗</a></div></section>
       <section className="application-preparation-card"><p className="eyebrow">3 · Returned package</p><h2>Paste the JSON or return link</h2><textarea aria-label="Returned application package" value={returned} onChange={event => setReturned(event.target.value)} placeholder="Paste the returned JSON or Radius return URL" /><div className="application-preparation-actions"><button className="search-button" type="button" onClick={() => void acceptReturned()}>Validate and save package</button>{packageValue && <button className="secondary-button" type="button" onClick={download}>Download letter and answers</button>}{packageValue && <button className="secondary-button" type="button" onClick={() => downloadText(`tailored-cv-${job.id}.txt`, typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n'))}>Download CV</button>}{packageValue && <button className="text-button" type="button" onClick={() => { removeDraft(localStorage, job.id, profile.id); setPackageValue(null); setNotice('Saved package removed from this browser.'); }}>Delete package</button>}</div>
-      {packageValue && <p>PDF and DOCX exports send the prepared document text to Radius to create the file.</p>}{packageValue && <div className="application-preparation-actions">{(['cv', 'cover_letter'] as const).flatMap(kind => (['pdf', 'docx'] as const).map(format => <button type="button" className="secondary-button" disabled={exporting} key={`${kind}-${format}`} onClick={() => void exportDocument(kind, format)}>Download {kind === 'cv' ? 'CV' : 'letter'} {format.toUpperCase()}</button>))}</div>}{packageValue && <div className="application-package-output"><h3>Tailored CV</h3><pre>{typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n')}</pre><h3>Cover letter</h3><pre>{packageValue.cover_letter}</pre><h3>Application answers</h3><pre>{packageValue.application_answers}</pre>{packageValue.form_answers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== packageValue.form_answers.form_id && <p>These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{packageValue.form_answers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === packageValue.form_answers?.form_id ? form?.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}</section>}<h3>Review notes</h3><pre>{packageValue.review_notes}</pre>{packageValue.experience_bullets && <><h3>Experience bullets</h3><pre>{JSON.stringify(packageValue.experience_bullets, null, 2)}</pre></>}</div>}</section></>}
+      {packageValue && <p>PDF, DOCX and LaTeX exports send the prepared document text to Radius to create the file.</p>}{packageValue && <div className="application-preparation-actions">{(['cv', 'cover_letter'] as const).flatMap(kind => (['pdf', 'docx', 'latex_pdf', 'tex'] as const).map(format => <button type="button" className="secondary-button" disabled={exporting} key={`${kind}-${format}`} onClick={() => void exportDocument(kind, format)}>Download {kind === 'cv' ? 'CV' : 'letter'} {format === 'latex_pdf' ? 'LaTeX PDF' : format === 'tex' ? 'LaTeX source' : format.toUpperCase()}</button>))}</div>}{packageValue && <div className="application-package-output"><h3>Tailored CV</h3><pre>{typeof packageValue.cv === 'string' ? packageValue.cv : packageValue.cv.map(row => row.text).join('\n')}</pre><h3>Cover letter</h3><pre>{packageValue.cover_letter}</pre><h3>Application answers</h3><pre>{packageValue.application_answers}</pre>{packageValue.form_answers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== packageValue.form_answers.form_id && <p>These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{packageValue.form_answers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === packageValue.form_answers?.form_id ? form?.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}</section>}<h3>Review notes</h3><pre>{packageValue.review_notes}</pre>{packageValue.experience_bullets && <><h3>Experience bullets</h3><pre>{JSON.stringify(packageValue.experience_bullets, null, 2)}</pre></>}</div>}</section></>}
   </main></div>
 }

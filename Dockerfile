@@ -6,6 +6,7 @@ COPY extensions/application-companion /extensions/application-companion
 COPY frontend/package.json frontend/package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
 COPY frontend/ ./
+COPY hiring_scraper/app/latex_template.json /hiring_scraper/app/latex_template.json
 RUN npm run build
 
 FROM ghcr.io/astral-sh/uv:0.13.1@sha256:4a1f3666816dafadd20ceb71eac9a7d56d7ef30279f7d64048519ab901ada336 AS uv
@@ -19,7 +20,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SEMANTIC_MODEL_DIR=/opt/models/multilingual-e5-small \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation \
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
