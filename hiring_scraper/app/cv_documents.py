@@ -7,11 +7,13 @@ from zipfile import ZipFile
 
 MAX_BYTES = 5 * 1024 * 1024
 MAX_TEXT = 100000
-TYPES = {'.pdf': 'application/pdf', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', '.txt': 'text/plain'}
+TYPES = {'.pdf': 'application/pdf', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+         '.txt': 'text/plain', '.tex': 'application/x-tex'}
 
 
 def extract_text(data, extension):
-    if extension == '.txt':
+    if extension in {'.txt', '.tex'}:
+        # LaTeX uploads are source data for the brief, never compiled or expanded.
         text = data.decode('utf-8-sig')
         if '\x00' in text:
             raise ValueError('Use a UTF-8 text file.')
@@ -46,10 +48,10 @@ def extract_text(data, extension):
                     raise ValueError('The CV contains too much text.')
             text = '\n'.join(parts)
     else:
-        raise ValueError('Choose a PDF, DOCX or UTF-8 TXT file.')
+        raise ValueError('Choose a PDF, DOCX, UTF-8 TXT or LaTeX TEX file.')
     text = text.strip()
     if not text:
-        raise ValueError('No readable text found. Use a text-based PDF, DOCX or TXT file instead of a scan.')
+        raise ValueError('No readable text found. Use a text-based PDF, DOCX, TXT or TEX file instead of a scan.')
     if len(text) > MAX_TEXT:
         raise ValueError('The CV contains too much text. Use at most 100,000 characters.')
     return text
@@ -70,11 +72,11 @@ def main():
     except ValueError as error:
         # Only our own validation messages are exposed; library failures are generic.
         allowed = ('Use a ', 'The expanded ', 'This DOCX ', 'This file ', 'Upload a ', 'The CV ', 'No readable ', 'Choose a ', 'CV files ')
-        message = str(error) if str(error).startswith(allowed) else 'Could not read this CV. Try a text-based PDF, DOCX or TXT.'
+        message = str(error) if str(error).startswith(allowed) else 'Could not read this CV. Try a text-based PDF, DOCX, UTF-8 TXT or TEX.'
         print(json.dumps({'error': message}))
         sys.exit(1)
     except Exception:
-        print(json.dumps({'error': 'Could not read this CV. Try a text-based PDF, DOCX or TXT.'}))
+        print(json.dumps({'error': 'Could not read this CV. Try a text-based PDF, DOCX, UTF-8 TXT or TEX.'}))
         sys.exit(1)
 
 

@@ -10,6 +10,31 @@ from hiring_scraper.app import api, models
 
 
 class ProfileIntegrationTests(unittest.TestCase):
+    def test_application_personalization_is_saved_preserved_and_explicitly_cleared(self):
+        profiles = self.profile_api()
+        context = dict(career_evidence='Built an academic prototype; reduced test time by 20%.',
+                       writing_samples='I explain the work in direct sentences.',
+                       wording_to_avoid='passionate, perfect fit', career_goals='Move into research coordination.',
+                       work_preferences='Small teams, clear expectations; no regular travel.')
+        with Session(self.engine) as session:
+            saved = profiles.create_profile(profiles.ProfileRequest(name='Alex', application_personalization=context), session)
+            self.assertEqual(saved['application_personalization'], context)
+            updated = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Renamed'), session)
+            self.assertEqual(updated['application_personalization'], context)
+            other = profiles.create_profile(profiles.ProfileRequest(name='Other'), session)
+            self.assertTrue(all(value == '' for value in other['application_personalization'].values()))
+            cleared = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex', application_personalization={}), session)
+            self.assertTrue(all(value == '' for value in cleared['application_personalization'].values()))
+
+    def test_application_personalization_rejects_unknown_and_oversized_fields(self):
+        from pydantic import ValidationError
+        profiles = self.profile_api()
+        for context in [{'career_evidence': 'x' * 12001}, {'writing_samples': 'x' * 12001},
+                        {'career_goals': 'x' * 5001}, {'work_preferences': 'x' * 5001},
+                        {'wording_to_avoid': 'x' * 3001}, {'invented_credentials': True}]:
+            with self.subTest(context=list(context)), self.assertRaises(ValidationError):
+                profiles.ProfileRequest(name='Alex', application_personalization=context)
+
     def setUp(self):
         self.engine = create_engine('sqlite://')
         models.Base.metadata.create_all(self.engine)

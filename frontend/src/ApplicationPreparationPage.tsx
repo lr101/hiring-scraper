@@ -1,9 +1,11 @@
 import { downloadApplicationDocument } from './applicationDocumentExport'
+import type { DocumentFormat } from './applicationDocumentExport'
+import type { LatexDocuments } from './applicationLatex'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PDFPreview from './PDFPreview'
 import BrowserApplicationPreparationPage from './BrowserApplicationPreparationPage'
 import type { Profile } from './profile'
-import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
+import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
 import { readApplicationForm } from './applicationForm'
 import type { FormAnswers } from './applicationForm'
@@ -73,6 +75,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [loading, setLoading] = useState(true)
   const [step, setStep] = useState<'handoff' | 'response' | 'edit'>('handoff')
   const [language, setLanguage] = useState('the language of the job posting')
+  const [briefType, setBriefType] = useState<'application' | 'fit'>('application')
+  const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('original')
+  const [latexDocuments, setLatexDocuments] = useState<LatexDocuments>()
   const [notes, setNotes] = useState('')
   const [response, setResponse] = useState('')
   const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
@@ -123,8 +128,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const context = useMemo(() => ({ job_id: job.id, profile_id: profile.id!, cv_updated_at: profile.cv!.updated_at }), [job.id, profile.id, profile.cv?.updated_at])
   const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
   const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
-  const prompt = useMemo(() => buildApplicationPrompt({ job, profile, language, cvText, notes, templateParagraphs: template?.paragraphs,
-    handoff: { ...context, return_url: returnURL }, form }), [job, profile, language, cvText, notes, template, context, returnURL, form])
+  const prompt = useMemo(() => briefType === 'fit' ? buildFitAssessmentPrompt({ job, profile, language, cvText })
+    : buildApplicationPrompt({ job, profile, language, cvText, notes, templateParagraphs: template?.paragraphs,
+      handoff: { ...context, return_url: returnURL }, form }), [briefType, job, profile, language, cvText, notes, template, context, returnURL, form])
   useEffect(() => {
     if (loading || !cvText || restored.current) return
     restored.current = true
@@ -135,6 +141,8 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         if (saved.package) {
           const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs)
           setDocuments(imported.documents); setChanges(imported.changes)
+          setLatexDocuments(imported.latexDocuments)
+          if (imported.latexDocuments) setDocumentLayout('latex')
           setFormAnswers(imported.formAnswers)
         }
         if (['handoff', 'response', 'edit'].includes(saved.step) && (saved.step !== 'edit' || saved.package)) setStep(saved.step)
@@ -159,6 +167,8 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       lastReturn.current = incoming
       const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs, form)
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit'); setError('')
+      setLatexDocuments(imported.latexDocuments)
+      if (imported.latexDocuments) setDocumentLayout('latex')
       setFormAnswers(imported.formAnswers)
       setNotice(''); setOptionsOpen(false)
     }).catch(reason => {
@@ -173,7 +183,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     // Restoring a draft is not an edit and must not extend its expiry window.
     if (skipHydrationSave.current) { skipHydrationSave.current = false; return }
     const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
-      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes, ...(formAnswers ? {form_answers:formAnswers} : {}) } : null
+      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes, ...(formAnswers ? {form_answers:formAnswers} : {}), ...(latexDocuments ? {latex_documents:latexDocuments} : {}) } : null
     // No original CV bytes are copied into browser storage. Drafts expire in a week.
     if (step === 'handoff' && !result && !response && !notes) return
     try {
@@ -182,7 +192,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       setDraftExpiresAt(savedAt + 7 * 86400000)
       setStorageError('')
     } catch { setStorageError('This browser cannot save your draft. Export your documents before closing the page.') }
-  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers])
+  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers, latexDocuments])
   useEffect(() => {
     if (!draftExpiresAt) return
     function expire() {
@@ -244,7 +254,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     const target = openChatGPT ? window.open(CHATGPT, '_blank') : null
     if (target) target.opener = null
     try {
-      setStep('response')
+      if (briefType === 'application') setStep('response')
       if (await copying) {
         if (openChatGPT && !target) setManual(true)
         setNotice(target || !openChatGPT ? 'Brief copied. Paste it in ChatGPT and send.' : 'Brief copied. Use Open ChatGPT to continue.')
@@ -265,10 +275,12 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       // Existing four-section replies remain importable from the manual field.
       const legacy = text.trim().replace(/^```(?:markdown|text)?\s*\n/, '').startsWith('<<<CV>>>')
       const parsed = legacy ? parseApplicationResponse(text) : null
-      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined }
+      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined, latexDocuments: undefined }
         : parseApplicationPackage(text, context, template?.paragraphs, form)
       if (template) assertFinishedText(template.paragraphs.map(row => imported.changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit')
+      setLatexDocuments(imported.latexDocuments)
+      if (imported.latexDocuments) setDocumentLayout('latex')
       setFormAnswers(imported.formAnswers)
       setNotice(''); setOptionsOpen(false)
     }
@@ -298,16 +310,17 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     try { localStorage.removeItem(draftKey); setStorageError('') }
     catch { setStorageError('This browser could not remove the saved draft. Clear this site’s browser storage to remove it.') }
     setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes(''); setFormAnswers(undefined)
+    setLatexDocuments(undefined)
     setLanguage('the language of the job posting'); setDraftExpiresAt(0)
     setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
   }
 
-  async function downloadDocument(format: 'docx' | 'pdf') {
+  async function downloadDocument(format: DocumentFormat) {
     setBusy(true); setError('')
     try {
       const kind = selected === 'cv' ? 'cv' : 'cover_letter'
       assertFinishedText(selected === 'cv' ? finalCVText : text)
-      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format))
+      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format === 'latex_pdf' ? 'pdf' : format))
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export this document.') }
     finally { setBusy(false) }
   }
@@ -342,10 +355,15 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>
     <section className="application-finish-card">
       {step === 'handoff' && <>
-        <h2>Tailor this application.</h2>
-        <p>Paste the brief in ChatGPT, then click its return link.</p>
+        <h2>{briefType === 'fit' ? 'Is this role worth applying for?' : 'Tailor this application.'}</h2>
+        <label>Brief type<select aria-label="Brief type" value={briefType} onChange={event => { setBriefType(event.target.value as 'application' | 'fit'); setNotice(''); setError('') }}>
+          <option value="application">Prepare application documents</option><option value="fit">Assess job fit</option>
+        </select></label>
+        <p>{briefType === 'fit' ? 'Compare the role with your evidence, career goals and working preferences in ChatGPT. The assessment stays in that conversation.' : 'Paste the brief in ChatGPT. It saves your LaTeX in code Canvases, then creates a return link containing that source.'}</p>
+        <p className="finish-help"><a href={editHref.replace('#profile-cv', '#profile-personalization')}>Edit career evidence and writing voice</a></p>
         {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
-        <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : 'Copy brief & open ChatGPT ↗'}</button>
+        <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : briefType === 'fit' ? 'Assess fit in ChatGPT ↗' : 'Copy brief & open ChatGPT ↗'}</button>
+        {briefType === 'fit' && manual && <a className="page-link" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a>}
       </>}
       {step === 'response' && <>
         <h2>Finish in ChatGPT.</h2>
@@ -365,9 +383,16 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         <h2>Your documents are ready.</h2>
         <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
         {selected === 'cv' && !template && <p className="preparation-warning">Text-only CV. <a href={editHref}>Attach a DOCX</a> to keep your original layout.</p>}
+        {(selected === 'cv' || selected === 'coverLetter') && <>
+          <label>PDF layout<select aria-label="PDF layout" value={documentLayout} onChange={event => setDocumentLayout(event.target.value as 'original' | 'latex')}>
+            <option value="original">{selected === 'cv' && template ? 'Original DOCX layout' : 'Standard layout'}</option><option value="latex">LaTeX · single column</option>
+          </select></label>
+          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.[selected === 'cv' ? 'cv' : 'cover_letter'] ? 'Downloads use the LaTeX source returned from ChatGPT. The link captures a snapshot; regenerate it after editing a Canvas.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
+        </>}
         <div className="finish-actions finish-download-actions">{(selected === 'cv' || selected === 'coverLetter') ? <>
-          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument('pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
+          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument(documentLayout === 'latex' ? 'latex_pdf' : 'pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
           <button disabled={busy} onClick={() => void downloadDocument('docx')}>Download editable DOCX</button>
+          {documentLayout === 'latex' && <button disabled={busy} onClick={() => void downloadDocument('tex')}>Download LaTeX source</button>}
         </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>Print / save PDF</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
         {selected === 'answers' && formAnswers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== formAnswers.form_id && <p className="finish-help">These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{formAnswers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === formAnswers.form_id ? form.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}<p className="finish-help">These answers fill only the unchanged captured form. Editing the reference text clears them.</p></section>}
         <div className="finish-download-preview">{selected === 'cv' && template ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
@@ -376,11 +401,11 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         <details className="finish-options"><summary>Edit document text</summary>
           {selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
             {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000}
-              value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => setChanges(current => {
+              value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => { setLatexDocuments(current => current ? { ...current, cv: undefined } : undefined); setChanges(current => {
                 const next = current.filter(change => change.id !== row.id)
                 return event.target.value === row.text ? next : [...next, { id: row.id, text: event.target.value }]
-              })} /></label>)}</div>
-            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined) }} /></label>}
+              }) }} /></label>)}</div>
+            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined); if (selected === 'cv' || selected === 'coverLetter') setLatexDocuments(current => current ? { ...current, [selected === 'cv' ? 'cv' : 'cover_letter']: undefined } : undefined) }} /></label>}
         </details>
       </>}
       <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>

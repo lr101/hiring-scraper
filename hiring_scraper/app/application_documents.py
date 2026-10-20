@@ -27,12 +27,19 @@ _UNFINISHED = re.compile(
 )
 
 
+class LatexDocuments(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+    cv: str | None = Field(default=None, min_length=1, max_length=100000)
+    cover_letter: str | None = Field(default=None, min_length=1, max_length=100000)
+
+
 class ApplicationDocumentRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     job_id: int = Field(gt=0)
     cv_updated_at: str = Field(min_length=1, max_length=200)
     cv: Annotated[str, Field(max_length=100000)] | Annotated[list[TemplateChange], Field(max_length=1000)]
     cover_letter: str = Field(max_length=100000)
+    latex_documents: LatexDocuments | None = None
 
     @field_validator('cv_updated_at')
     @classmethod
@@ -107,7 +114,7 @@ def _text_docx(text):
 @router.post('/{profile_id}/application-document')
 def application_document(profile_id: int, request: ApplicationDocumentRequest,
                          kind: Literal['cv', 'cover_letter'] = 'cv',
-                         format: Literal['pdf', 'docx'] = 'pdf',
+                         format: Literal['pdf', 'docx', 'tex', 'latex_pdf'] = 'pdf',
                          session: Session = Depends(get_session)):
     require_profile(profile_id, session)
     if session.get(Job, request.job_id) is None:
@@ -126,14 +133,25 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
             for row in changes:
                 _finished_text(row.text, allow_empty=True)
             output = cv_templates.edit_template(source, [row.model_dump() for row in changes])
-            _finished_text('\n'.join(row['text'] for row in cv_templates.template_paragraphs(output)))
+            text = '\n'.join(row['text'] for row in cv_templates.template_paragraphs(output))
+            _finished_text(text)
         else:
             text = request.cv if kind == 'cv' else request.cover_letter
             _finished_text(text)
             output = _text_docx(text)
         if len(output) > MAX_BYTES:
             raise HTTPException(413, 'This document exceeds 5 MiB. Use a smaller document or DOCX template.')
-        if format == 'pdf':
+        if format in {'tex', 'latex_pdf'}:
+            from hiring_scraper.app.latex_documents import docx_text, latex_source, render_latex_pdf, validate_latex_source
+            if changes is not None:
+                text = docx_text(output)
+                _finished_text(text)
+            returned_source = getattr(request.latex_documents, kind, None)
+            if returned_source is not None:
+                _finished_text(returned_source)
+                validate_latex_source(returned_source)
+            output = (returned_source or latex_source(text)).encode('utf-8') if format == 'tex' else render_latex_pdf(text, source=returned_source)
+        elif format == 'pdf':
             output = cv_templates.render_pdf(output)
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
@@ -141,8 +159,10 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
         raise HTTPException(503, str(error)) from None
     if len(output) > MAX_BYTES:
         raise HTTPException(413, 'This document exceeds 5 MiB. Try downloading the DOCX instead.')
-    filename = f'{"tailored-cv" if kind == "cv" else "cover-letter"}-{request.job_id}.{format}'
-    return Response(output, media_type='application/pdf' if format == 'pdf' else TYPES['.docx'], headers={
+    extension = 'pdf' if format == 'latex_pdf' else format
+    filename = f'{"tailored-cv" if kind == "cv" else "cover-letter"}-{request.job_id}.{extension}'
+    media_type = 'application/pdf' if extension == 'pdf' else 'text/plain; charset=utf-8' if format == 'tex' else TYPES['.docx']
+    return Response(output, media_type=media_type, headers={
         'Content-Disposition': f'attachment; filename="{filename}"',
         'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
     })
