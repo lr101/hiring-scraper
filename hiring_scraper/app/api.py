@@ -2575,7 +2575,9 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
     if session.get_bind().dialect.name == 'sqlite':
         session.execute(update(Job).where(Job.id == job_id).values(
             is_active=Job.is_active).execution_options(synchronize_session=False))
-    job = session.scalar(select(Job).where(Job.id == job_id).with_for_update()
+    # Only application state changes; NO KEY UPDATE serializes source closure
+    # and allows a concurrent match-index foreign-key check to finish.
+    job = session.scalar(select(Job).where(Job.id == job_id).with_for_update(key_share=True)
                          .execution_options(populate_existing=True))
     if job is None:
         raise HTTPException(status_code=404, detail='Job not found')
@@ -3037,14 +3039,12 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         feed.status = "source_replaced"
         feed.next_scan_at = None
         feed.lease_until = None
-        # Match rebuilds lock profiles before writing rows that reference jobs.
-        # Use the same order here before taking job row locks, so a concurrent
-        # rebuild cannot wait on a retiring job while this transaction waits
-        # for that rebuild's profile lock.
-        session.scalars(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
+        # These updates do not change job keys. NO KEY UPDATE remains compatible
+        # with the KEY SHARE locks a concurrent match-index insert takes for its
+        # job foreign key, avoiding a job/profile lock cycle during retirement.
         retiring_jobs = session.scalars(select(Job).where(
             Job.feed_id == feed.id, Job.is_active.is_(True)).order_by(Job.id)
-            .with_for_update().execution_options(populate_existing=True)).all()
+            .with_for_update(key_share=True).execution_options(populate_existing=True)).all()
         for job in retiring_jobs:
             job.is_active = False
             job.closed_at = now

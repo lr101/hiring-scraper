@@ -15,7 +15,7 @@ import time
 from sqlalchemy import select
 
 from hiring_scraper.app.database import SessionLocal
-from hiring_scraper.app.models import Job, UserProfile, utcnow
+from hiring_scraper.app.models import Job, utcnow
 from hiring_scraper.http import Client
 from hiring_scraper.crawl_policy import ORIGIN_PACER
 from hiring_scraper.matching import VERSION, detail_updates, enrich_job
@@ -42,12 +42,6 @@ def current_enrichment(job: Job) -> dict:
 
 def refresh_enrichment(job: Job) -> None:
     job.enrichment = current_enrichment(job)
-
-
-def _lock_profiles_before_job_updates(session) -> None:
-    """Use the same profile -> job lock order as managed-feed retirement."""
-    session.scalars(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
-
 
 
 def preserve_verified_detail(job: Job, incoming: dict) -> dict:
@@ -80,12 +74,12 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
     changed_job_ids = set()
     with SessionLocal() as session:
         jobs = session.scalars(select(Job).where(Job.is_active.is_(True)).order_by(Job.id)).all()
-        pending_enrichment = {}
         for job in jobs:
             signals = current_enrichment(job)
             if signals != job.enrichment:
-                pending_enrichment[job.id] = signals
+                job.enrichment = signals
                 counts['updated'] += 1
+                changed_job_ids.add(job.id)
             counts['checked'] += 1
             detail_source = (job.raw_metadata or {}).get('description_method') in {'verified_detail_jsonld','verified_detail_html'}
             if not fetch_details or len(candidates) >= limit or signals['quality'] != 'limited' and not detail_source:
@@ -98,14 +92,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
             except (KeyError, ValueError, TypeError):
                 pass
             candidates.append(job.id)
-        if pending_enrichment:
-            # The refresh locks profiles before writing derived matches. Do not
-            # first flush job rows, since source retirement locks in that order.
-            _lock_profiles_before_job_updates(session)
-            for job in jobs:
-                if job.id in pending_enrichment:
-                    job.enrichment = pending_enrichment[job.id]
-                    changed_job_ids.add(job.id)
+        if changed_job_ids:
             session.flush()
             from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
             refresh_application_matches_for_jobs(session, changed_job_ids)
@@ -128,10 +115,9 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
             metadata, updates = {'state': 'detail_error', 'error_type': type(error).__name__}, {}
         counts['details_attempted'] += 1
         with SessionLocal.begin() as session:
-            # Detail enrichment otherwise holds a job row while refreshing
-            # profile matches, opposite feed retirement's profile -> job order.
-            _lock_profiles_before_job_updates(session)
-            job = session.scalar(select(Job).where(Job.id == job_id).with_for_update())
+            # Only non-key fields are updated. NO KEY UPDATE still serializes
+            # source retirement while remaining compatible with match-index FK checks.
+            job = session.scalar(select(Job).where(Job.id == job_id).with_for_update(key_share=True))
             if job is None or not job.is_active or job_input(job) != source:
                 continue
             raw = dict(job.raw_metadata or {})
