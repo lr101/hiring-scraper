@@ -109,24 +109,25 @@ class ExtensionHarness(unittest.TestCase):
 class ExtensionBrowserTests(ExtensionHarness):
 
     def test_editor_saves_reloads_and_validates_dates(self):
+        if __package__:
+            from .test_tex_extension import tex_source
+        else:
+            from test_tex_extension import tex_source
         options = self.context.new_page()
         options.goto(f"chrome-extension://{self.extension_id}/options.html")
         options.get_by_role("button", name="Load fictional example").click()
-        expect(options.locator("#experiences fieldset")).to_have_count(3)
+        options.locator('#cv_text').fill(tex_source())
         options.get_by_role("button", name="Save profile", exact=True).click()
         expect(options.locator("#status")).to_have_text("Profile saved in this browser.")
         options.reload()
         expect(options.locator("#first_name")).to_have_value("Alex")
-        expect(options.locator("#experiences fieldset")).to_have_count(3)
-        options.locator('[data-key="start"]').nth(1).fill("2025-01")
+        expect(options.locator('#cv_text')).to_have_value(tex_source())
+        expect(options.get_by_role('button', name='Add experience', exact=True)).to_have_count(0)
+        options.locator('#cv_text').fill(tex_source().replace('2021', '2021-14'))
         options.get_by_role("button", name="Save profile", exact=True).click()
-        expect(options.locator("#status")).to_contain_text("end precedes")
+        expect(options.locator("#status")).to_contain_text("markers")
         saved = options.evaluate("async () => (await chrome.storage.local.get('applicant')).applicant")
-        self.assertEqual(saved["experiences"][1]["start"], "2022-08")
-        options.get_by_role("button", name="Add experience", exact=True).click()
-        expect(options.locator("#experiences fieldset")).to_have_count(4)
-        options.get_by_role("button", name="Remove experience 4", exact=True).click()
-        expect(options.locator("#experiences fieldset")).to_have_count(3)
+        self.assertEqual(saved["experiences"][0]["start"], "2021")
 
     def test_import_export_and_delete_profile(self):
         options = self.context.new_page()

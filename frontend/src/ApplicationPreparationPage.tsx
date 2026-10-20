@@ -1,9 +1,9 @@
+import { selectCVLanguage } from '../../extensions/application-companion/tex-cv.js'
 import { downloadApplicationDocument } from './applicationDocumentExport'
 import type { DocumentFormat } from './applicationDocumentExport'
 import type { LatexDocuments } from './applicationLatex'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import PDFPreview from './PDFPreview'
-import BrowserApplicationPreparationPage from './BrowserApplicationPreparationPage'
 import type { Profile } from './profile'
 import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
@@ -52,7 +52,6 @@ export default function ApplicationPreparationPage({ jobId }: { jobId: number })
   const profile = profiles.find(item => String(item.id) === profileId)
   const href = applicationStartLink(jobId, profile?.id)
   const editHref = profile ? `/profile/${profile.id}/edit?return_to=${encodeURIComponent(href)}#profile-cv` : '/profile/new'
-  if (profile && !profile.cv) return <BrowserApplicationPreparationPage key={profile.id} jobId={jobId} attachHref={editHref} incoming={incoming} />
   return <div className="app-shell application-workspace"><main className="content application-finish-page">
     <a className="back-link" href={`/jobs/${jobId}${profileId ? `?profile_id=${profileId}` : ''}`}>← Back to job</a>
     {loading ? <div className="loading-state">Preparing your application…</div> : error ? <p className="error-banner" role="alert">{error}</p> : job && <>
@@ -76,7 +75,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [step, setStep] = useState<'handoff' | 'response' | 'edit'>('handoff')
   const [language, setLanguage] = useState('the language of the job posting')
   const [briefType, setBriefType] = useState<'application' | 'fit'>('application')
-  const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('original')
+  const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('latex')
   const [latexDocuments, setLatexDocuments] = useState<LatexDocuments>()
   const [notes, setNotes] = useState('')
   const [response, setResponse] = useState('')
@@ -110,28 +109,29 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const lastReturn = useRef<object | null>(null)
   const importVersion = useRef(0)
   const pdfURL = useRef('')
-  const isTemplate = profile.cv?.filename.toLowerCase().endsWith('.docx')
   const promptRef = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     const controller = new AbortController()
+    setLoading(true); setCVText(''); setError('')
     async function get(path: string) {
       const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/${path}`, { signal: controller.signal, cache: 'no-store' })
       const data = await result.json()
       if (!result.ok) throw new Error(data.detail ?? 'Could not read the saved CV.')
       return data
     }
-    Promise.all([get('text'), isTemplate ? get('template') : Promise.resolve(null)])
+    Promise.all([get(`text?language=${selectCVLanguage(language, job.description ?? '')}`), Promise.resolve(null)])
       .then(([data, layout]) => { setCVText(data.text); setTemplate(layout) })
       .catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [profile.id, isTemplate])
+  }, [profile.id, language, job.description])
   const context = useMemo(() => ({ job_id: job.id, profile_id: profile.id!, cv_updated_at: profile.cv!.updated_at }), [job.id, profile.id, profile.cv?.updated_at])
+  const applicationLanguage = selectCVLanguage(language, job.description ?? '') === 'de' ? 'German' : 'English'
   const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
   const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
-  const prompt = useMemo(() => briefType === 'fit' ? buildFitAssessmentPrompt({ job, profile, language, cvText })
-    : buildApplicationPrompt({ job, profile, language, cvText, notes, templateParagraphs: template?.paragraphs,
-      handoff: { ...context, return_url: returnURL }, form }), [briefType, job, profile, language, cvText, notes, template, context, returnURL, form])
+  const prompt = useMemo(() => briefType === 'fit' ? buildFitAssessmentPrompt({ job, profile, language: applicationLanguage, cvText })
+    : buildApplicationPrompt({ job, profile, language: applicationLanguage, cvText, notes, templateParagraphs: template?.paragraphs,
+      handoff: { ...context, return_url: returnURL }, form }), [briefType, job, profile, applicationLanguage, cvText, notes, template, context, returnURL, form])
   useEffect(() => {
     if (loading || !cvText || restored.current) return
     restored.current = true
@@ -140,7 +140,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       const saved = raw && raw.length <= 450000 ? JSON.parse(raw) : null
       if (saved && Date.now() - saved.saved_at < 7 * 86400000 && saved.saved_at <= Date.now() && JSON.stringify(saved.context) === JSON.stringify(context)) {
         if (saved.package) {
-          const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs)
+          const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs, undefined, cvText)
           setDocuments(imported.documents); setChanges(imported.changes)
           setLatexDocuments(imported.latexDocuments)
           if (imported.latexDocuments) setDocumentLayout('latex')
@@ -166,7 +166,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     void readApplicationReturn(incoming.hash).then(text => {
       if (cancelled || version !== importVersion.current) return
       lastReturn.current = incoming
-      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs, form)
+      const imported = parseApplicationPackage(text ?? '', context, template?.paragraphs, form, cvText)
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit'); setError('')
       setLatexDocuments(imported.latexDocuments)
       if (imported.latexDocuments) setDocumentLayout('latex')
@@ -205,13 +205,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     window.addEventListener('focus', expire)
     return () => { clearTimeout(timer); window.removeEventListener('focus', expire) }
   }, [draftExpiresAt])
-  const exportBody = JSON.stringify({ source_sha256: template?.source_sha256, changes })
+  const exportBody = JSON.stringify(template ? { source_sha256: template.source_sha256, changes } : { job_id: context.job_id, cv_updated_at: context.cv_updated_at, cv: documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments })
   useEffect(() => {
-    if (step !== 'edit' || selected !== 'cv' || !template) return
+    if (step !== 'edit' || selected !== 'cv' || (!template && !latexDocuments?.cv)) return
     const controller = new AbortController()
     setPreviewBusy(true); setPreviewError('')
     const timer = setTimeout(() => {
-      fetch(`${API}/api/v1/profiles/${profile.id}/cv/export?format=pdf&preview=true`, {
+      fetch(`${API}/api/v1/profiles/${profile.id}/${template ? 'cv/export?format=pdf&preview=true' : 'application-document?kind=cv&format=latex_pdf'}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: exportBody, signal: controller.signal,
       }).then(async result => {
         if (!result.ok) { const data = await result.json(); throw new Error(data.detail ?? 'Could not preview the template.') }
@@ -224,7 +224,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         .finally(() => { if (!controller.signal.aborted) setPreviewBusy(false) })
     }, 1000)
     return () => { clearTimeout(timer); controller.abort() }
-  }, [step, selected, template, profile.id, exportBody])
+  }, [step, selected, template, profile.id, exportBody, latexDocuments?.cv])
   useEffect(() => () => { if (pdfURL.current) URL.revokeObjectURL(pdfURL.current) }, [])
   const section = documentSections.find(item => item.key === selected)!
   const text = documents[selected]
@@ -276,8 +276,8 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       // Existing four-section replies remain importable from the manual field.
       const legacy = text.trim().replace(/^```(?:markdown|text)?\s*\n/, '').startsWith('<<<CV>>>')
       const parsed = legacy ? parseApplicationResponse(text) : null
-      const imported = parsed ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined, latexDocuments: undefined }
-        : parseApplicationPackage(text, context, template?.paragraphs, form)
+      const imported = parsed && !cvText.includes('% radius:entry ') ? { documents: parsed, changes: template ? parseTemplateChanges(parsed.cv, template.paragraphs) : [], formAnswers: undefined, latexDocuments: undefined }
+        : parseApplicationPackage(text, context, template?.paragraphs, form, cvText)
       if (template) assertFinishedText(template.paragraphs.map(row => imported.changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
       setDocuments(imported.documents); setChanges(imported.changes); setSelected('cv'); setStep('edit')
       setLatexDocuments(imported.latexDocuments)
@@ -351,7 +351,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
 
   return <>
     {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
-    {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
+    {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.languages?.[applicationLanguage === 'German' ? 'de' : 'en']?.filename ?? profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
     {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
     <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>
     <section className="application-finish-card">
@@ -383,24 +383,24 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       {step === 'edit' && <>
         <h2>Your documents are ready.</h2>
         <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
-        {selected === 'cv' && !template && <p className="preparation-warning">Text-only CV. <a href={editHref}>Attach a DOCX</a> to keep your original layout.</p>}
-        {(selected === 'cv' || selected === 'coverLetter') && <>
+        {selected === 'cv' && <p className="finish-help">CV downloads use LaTeX rendering. <a href={editHref}>Manage English and German base CVs</a>.</p>}
+        {selected === 'coverLetter' && <>
           <label>PDF layout<select aria-label="PDF layout" value={documentLayout} onChange={event => setDocumentLayout(event.target.value as 'original' | 'latex')}>
-            <option value="original">{selected === 'cv' && template ? 'Original DOCX layout' : 'Standard layout'}</option><option value="latex">LaTeX · single column</option>
+            <option value="original">Standard layout</option><option value="latex">LaTeX · single column</option>
           </select></label>
-          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.[selected === 'cv' ? 'cv' : 'cover_letter'] ? 'Downloads use the LaTeX source returned from ChatGPT. The link captures a snapshot; regenerate it after editing a Canvas.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
+          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.cover_letter ? 'Downloads use the LaTeX source returned from ChatGPT. The link captures a snapshot; regenerate it after editing a Canvas.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
         </>}
         <div className="finish-actions finish-download-actions">{(selected === 'cv' || selected === 'coverLetter') ? <>
-          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument(documentLayout === 'latex' ? 'latex_pdf' : 'pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
-          <button disabled={busy} onClick={() => void downloadDocument('docx')}>Download editable DOCX</button>
-          {documentLayout === 'latex' && <button disabled={busy} onClick={() => void downloadDocument('tex')}>Download LaTeX source</button>}
+          <button className="primary-button" disabled={busy} onClick={() => void downloadDocument(selected === 'cv' || documentLayout === 'latex' ? 'latex_pdf' : 'pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
+          {selected !== 'cv' && <button disabled={busy} onClick={() => void downloadDocument('docx')}>Download editable DOCX</button>}
+          {(selected === 'cv' || documentLayout === 'latex') && <button disabled={busy} onClick={() => void downloadDocument('tex')}>Download LaTeX source</button>}
         </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>Print / save PDF</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
         {selected === 'answers' && formAnswers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== formAnswers.form_id && <p className="finish-help">These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{formAnswers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === formAnswers.form_id ? form.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}<p className="finish-help">These answers fill only the unchanged captured form. Editing the reference text clears them.</p></section>}
-        <div className="finish-download-preview">{selected === 'cv' && template ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
+        <div className="finish-download-preview">{selected === 'cv' ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
           {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
           : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>
-        <details className="finish-options"><summary>Edit document text</summary>
-          {selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
+        <details className="finish-options"><summary>{selected === 'cv' ? 'Edit LaTeX source' : 'Edit document text'}</summary>
+          {selected === 'cv' && !template ? <label>CV LaTeX source<textarea aria-label="CV LaTeX source" rows={18} maxLength={100000} value={latexDocuments?.cv ?? ''} onChange={event => setLatexDocuments(current => ({ ...current, cv: event.target.value }))} /><span>Keep the marked history and verified metadata intact. The PDF preview updates after edits.</span></label> : selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
             {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000}
               value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => { setLatexDocuments(current => current ? { ...current, cv: undefined } : undefined); setChanges(current => {
                 const next = current.filter(change => change.id !== row.id)
@@ -412,9 +412,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>
         {step === 'handoff' && <>
           <label>Document language<select aria-label="Document language" value={language} onChange={event => setLanguage(event.target.value)}>
-            <option value="the language of the job posting">Match the job posting</option><option>English</option><option>German</option><option>Spanish</option><option>French</option>
+            <option value="the language of the job posting">Match the job posting</option><option>English</option><option>German</option>
           </select></label>
-          <p className="finish-help">A language selection overrides your saved instructions.</p>
+          <p className="finish-help">Selected base CV: {applicationLanguage}. An explicit language selection overrides automatic detection.</p>
           <label>Additional instructions<textarea value={notes} maxLength={5000} rows={3} onChange={event => setNotes(event.target.value)} placeholder="Optional instructions for this application" /></label>
           {profile.custom_instructions?.trim() && <a className="finish-help" href={editHref.replace('#profile-cv', '#profile-custom-instructions')}>Edit profile instructions</a>}
           <button disabled={loading || !draftReady} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>

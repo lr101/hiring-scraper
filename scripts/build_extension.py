@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'extensions' / 'application-companion'
 RUNTIME_FILES = (
     'manifest.json', 'page-context.js', 'background.js', 'content.js', 'profile.js', 'best-effort.js',
-    'sources.js', 'radius.js', 'history.js', 'popup.html', 'popup.js', 'options.html',
+    'sources.js', 'tex-cv.js', 'tex-cv-prompt.js', 'current-job.js', 'latex-workflow.js', 'document-template.js', 'radius.js', 'history.js', 'popup.html', 'popup.js', 'options.html',
     'options.js', 'ui.css', 'application-state.js', 'vault.js', 'radius-client.js',
     'bridge.js', 'apply-watch.js', 'connection.js', 'appearance.js',
     'example.json', 'structured-example.json', 'dummy-cv.json', 'dummy-package.json',

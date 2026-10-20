@@ -120,8 +120,24 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
     if session.get(Job, request.job_id) is None:
         raise HTTPException(404, 'Job not found.')
     cv = session.get(ProfileCV, profile_id)
+    # Preserve old API exports for existing DOCX/browser drafts during migration.
+    # All new base CVs and the current companion UI use LaTeX exclusively.
+    if kind == 'cv' and cv is not None and (cv.variants or cv.filename.lower().endswith('.tex')) and format not in {'tex', 'latex_pdf'}:
+        raise HTTPException(422, 'CVs use LaTeX rendering. Download LaTeX PDF or .tex source.')
     if cv is not None and cv_metadata(cv)['updated_at'] != request.cv_updated_at:
         raise HTTPException(409, 'Your saved CV changed. Reload this application package before exporting.')
+    if kind == 'cv' and cv is not None and cv.variants:
+        from hiring_scraper.app.tex_cv import parse_tex_cv, history_facts
+        try:
+            returned = request.latex_documents.cv if request.latex_documents else None
+            if not returned:
+                raise ValueError('Return the full marked LaTeX CV in latex_documents.cv.')
+            history = parse_tex_cv(returned)
+            original = parse_tex_cv(next(iter(cv.variants.values()))['text'])
+            if history_facts(original) != history_facts(history):
+                raise ValueError('Returned CV changed work/study facts or dates. Keep all original history IDs, employers and dates.')
+        except ValueError as error:
+            raise HTTPException(422, str(error)) from None
     changes = request.cv if kind == 'cv' and isinstance(request.cv, list) else None
     if isinstance(request.cv, list) and (cv is None or not cv.filename.lower().endswith('.docx')):
         raise HTTPException(422, 'Attach a DOCX to export paragraph edits with your original CV layout.')

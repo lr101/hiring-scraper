@@ -29,17 +29,17 @@ class JourneyBrowserTests(ExtensionHarness):
             if text==want:return
             self.page.wait_for_timeout(40)
         self.assertEqual(text,want)
-    def test_discovered_job_is_grey_and_opens_its_radius_preparation(self):
+    def link_current_page(self, popup):
+        popup.get_by_text('Link this page to a job', exact=True).click()
+        popup.locator('#job-query').fill('Research project manager')
+        popup.locator('#job-search-results [data-job-id="1574"]').get_by_role('button', name='Use on this page', exact=True).click()
+
+    def test_discovered_job_is_grey_and_offers_direct_preparation(self):
         self.seed();self.page.goto(LISTING);self.badge(LISTING,'•');popup=self.popup()
         expect(popup.locator('#job-entries')).to_contain_text('Research project manager')
         expect(popup.locator('#job-entries .job-entry')).to_have_class(__import__('re').compile('.*discovered.*'))
-        popup.get_by_role('button',name='Prepare with ChatGPT',exact=True).click()
-        end=time.monotonic()+5
-        while time.monotonic()<end:
-            urls=self.worker.evaluate('async ()=>(await chrome.tabs.query({})).map(t=>t.url)')
-            if 'https://radius.example/jobs/1574/apply?profile_id=1' in urls:break
-            self.page.wait_for_timeout(40)
-        self.assertIn('https://radius.example/jobs/1574/apply?profile_id=1',urls)
+        expect(popup.get_by_role('button',name='Prepare with ChatGPT',exact=True)).to_be_enabled()
+
     def test_prepared_badge_is_exact_and_apply_new_tab_keeps_the_job_package(self):
         self.seed(True);self.page.goto(LISTING);self.badge(LISTING,'1');popup=self.popup()
         expect(popup.locator('#job-entries')).to_contain_text('CV prepared')
@@ -74,19 +74,20 @@ class JourneyBrowserTests(ExtensionHarness):
         self.seed(True);self.page.goto(LISTING);popup=self.popup();popup.get_by_role('button',name='View documents',exact=True).click()
         self.context.route('https://other-application.example/role/7',lambda r:r.fulfill(content_type='text/html',body=FORM))
         popup.close();self.page.goto('https://other-application.example/role/7');popup=self.popup()
-        popup.locator('#continue-entry').get_by_role('button',name='Use on this page',exact=True).click()
+        self.link_current_page(popup)
         expect(self.page.locator('#letter')).to_have_value('Prepared letter for this role.')
         self.badge('https://other-application.example/role/7','1')
     def test_shared_url_requires_explicit_job_selection(self):
         self.seed(True)
         self.worker.evaluate('''async url=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');const first=v.packages['1574:1'];v.packages['2000:1']={...first,job_id:2000,package:{...first.package,job_id:2000,cover_letter:'Letter for the second role.'}};v.bindings=[{job_id:1574,url,kind:'confirmed'},{job_id:2000,url,kind:'confirmed'}];await chrome.storage.local.set({radiusVault:v});}''',ATS)
         self.page.goto(ATS);self.badge(ATS,'2');popup=self.popup();expect(popup.locator('#fill')).to_be_disabled()
-        popup.locator('[data-job-id="2000"]').get_by_role('button',name='Fill this application',exact=True).click()
+        popup.get_by_label('Choose the current job', exact=True).select_option('2000')
+        self.fill(popup)
         expect(self.page.locator('#letter')).to_have_value('Letter for the second role.')
     def test_generic_same_url_form_requires_new_confirmation_after_fill(self):
         self.seed(True);self.page.goto(LISTING);popup=self.popup();popup.get_by_role('button',name='View documents',exact=True).click();popup.close()
         self.page.goto('https://ats.example/apply');popup=self.popup()
-        popup.locator('#continue-entry').get_by_role('button',name='Use on this page',exact=True).click()
+        self.link_current_page(popup)
         expect(self.page.locator('#letter')).to_have_value('Prepared letter for this role.')
         self.page.evaluate("document.title='Different requisition';document.querySelector('#letter').value='';document.querySelector('#why').value='';")
         popup.locator('#fill').click();expect(popup.locator('#status')).not_to_have_text('Filling known details…')
@@ -105,7 +106,7 @@ class JourneyBrowserTests(ExtensionHarness):
             return execute(details);
           };
         }''')
-        popup.locator('#continue-entry').get_by_role('button',name='Use on this page',exact=True).click()
+        self.link_current_page(popup)
         expect(popup.locator('#result-summary')).to_be_visible()
         self.assertEqual(self.page.locator('#letter').input_value(),'')
         self.assertEqual(self.page.locator('#why').input_value(),'')
@@ -149,7 +150,7 @@ class JourneyBrowserTests(ExtensionHarness):
         url='https://job-boards.greenhouse.io/acme/jobs/1574'
         self.context.route(url,lambda route:route.fulfill(content_type='text/html',body='<title>Application questions</title><form><h1>Your application</h1><label>Why this role?<textarea id=why></textarea></label></form>'))
         self.page.goto(url);popup=self.popup()
-        popup.locator('#continue-entry').get_by_role('button',name='Use on this page',exact=True).click()
+        self.link_current_page(popup)
         expect(self.page.locator('#why')).to_have_value('I coordinate research projects.')
 
     def test_navigation_during_inspection_cannot_fill_a_different_requisition(self):

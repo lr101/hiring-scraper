@@ -1,3 +1,4 @@
+import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
 import {
   validateProfile,
   validateBullets,
@@ -100,7 +101,21 @@ export function connectSources(
   const next = validateProfile(base);
   if (cvText.length > 100000)
     throw new Error("Use CV text under 100,000 characters.");
+  if (applicationPackage && cvText.includes("% radius:entry ")) {
+    const history = validateTailoredCV(
+      cvText,
+      applicationPackage.latex_documents?.cv,
+    );
+    next.experiences = history.experiences;
+    next.education = history.education;
+    cvText = applicationPackage.latex_documents.cv;
+  }
   next.cv_text = cvText.trim();
+  if (next.cv_text.includes("\\begin{document}")) {
+    const history = parseTexCV(next.cv_text);
+    next.experiences = history.experiences;
+    next.education = history.education;
+  }
   const email = cvText.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
   const notes = [];
   if (email && !next.email) next.email = email;

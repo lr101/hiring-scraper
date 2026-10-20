@@ -11,15 +11,25 @@ export function cancelRadiusRequests() {
 export async function radiusRequest(
   settings,
   path,
-  { method = "GET", body, signal, responseType = "json" } = {},
+  {
+    method = "GET",
+    body,
+    signal,
+    responseType = "json",
+    contentType = "application/json",
+  } = {},
 ) {
   const origin = validateSettings(settings).api_origin;
-  const headers =
-    body === undefined ? {} : { "Content-Type": "application/json" };
+  const headers = body === undefined ? {} : { "Content-Type": contentType };
   const response = await fetch(new URL(path, origin), {
     method,
     headers,
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    ...(body === undefined
+      ? {}
+      : {
+          body:
+            contentType === "application/json" ? JSON.stringify(body) : body,
+        }),
     credentials: "include",
     cache: "no-store",
     redirect: "error",
@@ -29,6 +39,7 @@ export async function radiusRequest(
       ...(signal ? [signal] : []),
     ]),
   });
+  if (response.ok && response.status === 204) return null;
   const reader = response.body.getReader();
   const chunks = [];
   let size = 0;
@@ -62,6 +73,8 @@ export async function radiusRequest(
     if (!bytes.length) throw new Error("Radius returned an empty document.");
     return { bytes, type };
   }
+  if (response.ok && responseType === "text")
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   let result;
   try {
     result = JSON.parse(
@@ -173,18 +186,25 @@ export async function syncRadius(settings, signal) {
     : "";
   if (profile) profile.has_cv = !!selectedSettings.cv_updated_at;
   const source = profilesResult.items.find((p) => p.id === profile?.id);
+  const cvData =
+    profile && source?.cv
+      ? await radiusJSON(
+          settings,
+          `/api/v1/profiles/${profile.id}/cv/text`,
+          signal,
+        )
+      : null;
   const applicant = profile
     ? validateProfile({
         ...(source?.application_details || {}),
-        cv_text: source?.cv
-          ? (
-              await radiusJSON(
-                settings,
-                `/api/v1/profiles/${profile.id}/cv/text`,
-                signal,
-              )
-            ).text
-          : (await localCVData(selectedSettings))?.text || "",
+        cv_text:
+          cvData?.text ?? (await localCVData(selectedSettings))?.text ?? "",
+        base_cvs: Object.fromEntries(
+          Object.entries(cvData?.variants ?? {}).map(([language, cv]) => [
+            language,
+            cv.text,
+          ]),
+        ),
       })
     : null;
   const jobs = [];

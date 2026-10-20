@@ -1,3 +1,4 @@
+import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
 // Shared by the editor and service worker. No inferred dates or answers.
 const contacts = [
   "first_name",
@@ -32,6 +33,8 @@ export function validateProfile(input) {
     ...contacts,
     "experiences",
     "cv_text",
+    "base_cvs",
+    "education",
     "application",
     "source_notes",
     "preferences",
@@ -60,7 +63,20 @@ export function validateProfile(input) {
       if (url.protocol !== "https:" || url.username || url.password)
         fail("Enter a complete HTTPS website URL.");
     }
-  const entries = input.experiences ?? [];
+  profile.base_cvs = {};
+  for (const [language, source] of Object.entries(input.base_cvs ?? {})) {
+    if (!["en", "de"].includes(language))
+      fail("Use English and German base CVs.");
+    parseTexCV(source);
+    profile.base_cvs[language] = source;
+  }
+  if (profile.base_cvs.en && profile.base_cvs.de)
+    validateTailoredCV(profile.base_cvs.en, profile.base_cvs.de);
+  const history = input.cv_text?.includes("\\begin{document}")
+    ? parseTexCV(input.cv_text)
+    : null;
+  profile.education = history?.education ?? [];
+  const entries = history?.experiences ?? input.experiences ?? [];
   if (!Array.isArray(entries) || entries.length > 20)
     fail("Use at most 20 work experiences.");
   const date = (value, label) => {

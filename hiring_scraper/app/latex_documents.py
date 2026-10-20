@@ -33,6 +33,12 @@ def validate_latex_source(source):
     body = source[len(_TEMPLATE['preamble']):-len(_TEMPLATE['ending'])]
     if not body.strip() or re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]', body):
         raise ValueError('LaTeX needs complete document text without unsupported control characters.')
+    if re.search(r'^\s*% radius:', body, re.M):
+        from hiring_scraper.app.tex_cv import parse_tex_cv
+        parse_tex_cv(source)
+        if '^^' in body:
+            raise ValueError('LaTeX character-code escapes are not supported.')
+        body = re.sub(r'^\s*% radius:[^\n]*', '', body, flags=re.M)
     position, groups, lists = 0, 0, 0
     while position < len(body):
         char = body[position]
