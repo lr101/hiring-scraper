@@ -1,0 +1,685 @@
+{
+  "profile": {
+    "first_name": "Mara",
+    "last_name": "Neumann",
+    "email": "mara@example.invalid",
+    "phone": "+49301234567",
+    "city": "Karlsruhe",
+    "country": "Germany",
+    "postal_code": "76131",
+    "street": "Example Street 4",
+    "linkedin": "https://www.linkedin.com/in/mara-example",
+    "github": "https://github.com/mara-example",
+    "website": "https://mara.example.invalid",
+    "portfolio": "https://portfolio.example.invalid",
+    "experiences": [
+      {
+        "id": "north-engineer",
+        "company": "North Lab",
+        "title": "Engineer",
+        "location": "Berlin",
+        "description": "Built reporting tools.",
+        "start": "2021-03",
+        "end": null,
+        "current": true
+      },
+      {
+        "id": "south-analyst",
+        "company": "South Works",
+        "title": "Analyst",
+        "location": "Munich",
+        "description": "Analyzed delivery data.",
+        "start": "2018",
+        "end": "2020",
+        "current": false
+      },
+      {
+        "id": "north-manager",
+        "company": "North Lab",
+        "title": "Manager",
+        "location": "Bonn",
+        "description": "Managed projects.",
+        "start": "2016",
+        "end": "2018",
+        "current": false
+      },
+      {
+        "id": "north-earlier",
+        "company": "North Lab",
+        "title": "Engineer",
+        "location": "Berlin",
+        "description": "Maintained tools.",
+        "start": "2010",
+        "end": "2014",
+        "current": false
+      }
+    ],
+    "preferences": {
+      "available_from": "2026-12-01",
+      "weekly_hours": "32",
+      "willing_to_work_onsite": true,
+      "employment_type": "Part-time"
+    }
+  },
+  "forms": {
+    "ammerlaender": {
+      "6": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "7": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "10": {
+        "rule": "equals",
+        "values": [
+          "76131"
+        ],
+        "category": "contact"
+      },
+      "11": {
+        "rule": "equals",
+        "values": [
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "14": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "15": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "22": {
+        "rule": "equals",
+        "values": [
+          "North Lab"
+        ],
+        "category": "experience"
+      },
+      "23": {
+        "rule": "equals",
+        "values": [
+          "Berlin"
+        ],
+        "category": "experience"
+      },
+      "24": {
+        "rule": "equals",
+        "values": [
+          "Engineer"
+        ],
+        "category": "experience"
+      },
+      "28": {
+        "rule": "equals",
+        "values": [
+          "2026-12-01"
+        ],
+        "category": "contact"
+      }
+    },
+    "compact": {
+      "3": {
+        "rule": "equals",
+        "values": [
+          "Neumann, Mara",
+          "Neumann Mara"
+        ],
+        "category": "contact"
+      },
+      "8": {
+        "rule": "equals",
+        "values": [
+          "Engineer"
+        ],
+        "category": "experience"
+      },
+      "11": {
+        "rule": "equals",
+        "values": [
+          "Example Street 4"
+        ],
+        "category": "contact"
+      },
+      "12": {
+        "rule": "contains_all",
+        "parts": [
+          "76131",
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "13": {
+        "rule": "equals",
+        "values": [
+          "DEU"
+        ],
+        "category": "contact"
+      },
+      "14": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "15": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "16": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "35": {
+        "rule": "equals",
+        "values": [
+          "North Lab"
+        ],
+        "category": "experience"
+      },
+      "36": {
+        "rule": "equals",
+        "values": [
+          "Engineer"
+        ],
+        "category": "experience"
+      },
+      "38": {
+        "rule": "equals",
+        "values": [
+          "South Works"
+        ],
+        "category": "experience"
+      },
+      "39": {
+        "rule": "equals",
+        "values": [
+          "Analyst"
+        ],
+        "category": "experience"
+      },
+      "41": {
+        "rule": "equals",
+        "values": [
+          "North Lab"
+        ],
+        "category": "experience"
+      },
+      "42": {
+        "rule": "equals",
+        "values": [
+          "Manager"
+        ],
+        "category": "experience"
+      },
+      "47": {
+        "rule": "equals",
+        "values": [
+          "2026-12-01",
+          "01.12.2026"
+        ],
+        "category": "contact"
+      }
+    },
+    "arge-gruen": {
+      "0": {
+        "rule": "equals",
+        "values": [
+          "Mara Neumann"
+        ],
+        "category": "contact"
+      },
+      "1": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "2": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "11": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer",
+          "2021-03"
+        ],
+        "category": "experience"
+      },
+      "12": {
+        "rule": "contains_all",
+        "parts": [
+          "South Works",
+          "Analyst",
+          "2018",
+          "2020"
+        ],
+        "category": "experience"
+      },
+      "13": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Manager",
+          "2016",
+          "2018"
+        ],
+        "category": "experience"
+      },
+      "14": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer",
+          "2010",
+          "2014"
+        ],
+        "category": "experience"
+      }
+    },
+    "peterhoff": {
+      "9": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "10": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "11": {
+        "rule": "equals",
+        "values": [
+          "Example Street 4"
+        ],
+        "category": "contact"
+      },
+      "12": {
+        "rule": "equals",
+        "values": [
+          "76131"
+        ],
+        "category": "contact"
+      },
+      "13": {
+        "rule": "equals",
+        "values": [
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "14": {
+        "rule": "equals",
+        "values": [
+          "Germany",
+          "Deutschland"
+        ],
+        "category": "contact"
+      },
+      "17": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "18": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "22": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer",
+          "2021-03",
+          "South Works",
+          "Analyst",
+          "2018",
+          "2020",
+          "North Lab",
+          "Manager",
+          "2016",
+          "2018",
+          "North Lab",
+          "Engineer",
+          "2010",
+          "2014"
+        ],
+        "category": "experience"
+      }
+    },
+    "e-unit": {
+      "5": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "6": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "7": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "8": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "9": {
+        "rule": "equals",
+        "values": [
+          "Example Street 4"
+        ],
+        "category": "contact"
+      },
+      "10": {
+        "rule": "contains_all",
+        "parts": [
+          "76131",
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "14": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer",
+          "2021-03",
+          "South Works",
+          "Analyst",
+          "2018",
+          "2020",
+          "North Lab",
+          "Manager",
+          "2016",
+          "2018",
+          "North Lab",
+          "Engineer",
+          "2010",
+          "2014"
+        ],
+        "category": "experience"
+      }
+    },
+    "wuetschner": {
+      "10": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "11": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "12": {
+        "rule": "equals",
+        "values": [
+          "Example Street 4"
+        ],
+        "category": "contact"
+      },
+      "13": {
+        "rule": "contains_all",
+        "parts": [
+          "76131",
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "14": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "15": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "16": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "20": {
+        "rule": "contains_all",
+        "parts": [
+          "2021-03"
+        ],
+        "category": "experience"
+      },
+      "22": {
+        "rule": "contains_all",
+        "parts": [
+          "2018",
+          "2020"
+        ],
+        "category": "experience"
+      },
+      "24": {
+        "rule": "contains_all",
+        "parts": [
+          "2016",
+          "2018"
+        ],
+        "category": "experience"
+      },
+      "26": {
+        "rule": "contains_all",
+        "parts": [
+          "2010",
+          "2014"
+        ],
+        "category": "experience"
+      },
+      "21": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer"
+        ],
+        "category": "experience"
+      },
+      "23": {
+        "rule": "contains_all",
+        "parts": [
+          "South Works",
+          "Analyst"
+        ],
+        "category": "experience"
+      },
+      "25": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Manager"
+        ],
+        "category": "experience"
+      },
+      "27": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer"
+        ],
+        "category": "experience"
+      },
+      "29": {
+        "rule": "equals",
+        "values": [
+          "2026-12-01"
+        ],
+        "category": "contact"
+      }
+    },
+    "grasenhiller": {
+      "5": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "6": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "9": {
+        "rule": "contains_all",
+        "parts": [
+          "Example Street 4",
+          "76131",
+          "Karlsruhe"
+        ],
+        "category": "contact"
+      },
+      "10": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "11": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "16": {
+        "rule": "equals",
+        "values": [
+          "2026-12-01",
+          "01.12.2026"
+        ],
+        "category": "contact"
+      }
+    },
+    "szm": {
+      "5": {
+        "rule": "equals",
+        "values": [
+          "Mara"
+        ],
+        "category": "contact"
+      },
+      "6": {
+        "rule": "equals",
+        "values": [
+          "Neumann"
+        ],
+        "category": "contact"
+      },
+      "9": {
+        "rule": "equals",
+        "values": [
+          "+49301234567"
+        ],
+        "category": "contact"
+      },
+      "10": {
+        "rule": "equals",
+        "values": [
+          "mara@example.invalid"
+        ],
+        "category": "contact"
+      },
+      "12": {
+        "rule": "equals",
+        "values": [
+          "North Lab"
+        ],
+        "category": "experience"
+      },
+      "13": {
+        "rule": "contains_all",
+        "parts": [
+          "North Lab",
+          "Engineer",
+          "2021-03",
+          "South Works",
+          "Analyst",
+          "2018",
+          "2020",
+          "North Lab",
+          "Manager",
+          "2016",
+          "2018",
+          "North Lab",
+          "Engineer",
+          "2010",
+          "2014"
+        ],
+        "category": "experience"
+      }
+    }
+  },
+  "preserve_default": "All unlisted controls must retain their initial values. No consent, captcha, file selection, unknown fact or unsupported day precision may be invented.",
+  "record_order": "Newest first; static rows in DOM order. Free-text history accepts any formatting containing the specified source facts."
+}

@@ -125,3 +125,35 @@ class ProfileIntegrationTests(unittest.TestCase):
         self.assertEqual(len(profiles.ProfileRequest(name='Writer', custom_instructions='x' * 5000).custom_instructions), 5000)
         with self.assertRaises(ValidationError):
             profiles.ProfileRequest(name='Writer', custom_instructions='x' * 5001)
+
+    def test_saved_application_preferences_preserve_explicit_onsite_answer(self):
+        profiles = self.profile_api()
+        with Session(self.engine) as session:
+            for answer in [True, False, None]:
+                profile = profiles.create_profile(profiles.ProfileRequest(name='Applicant',
+                    application_details={'preferences': {'willing_to_work_onsite': answer}}), session)
+                self.assertIs(profile['application_details']['preferences']['willing_to_work_onsite'], answer)
+
+    def test_application_work_history_is_saved_once_and_returned_with_the_profile(self):
+        profiles = self.profile_api()
+        entries = [{'id':'role-1','company':'Example GmbH','title':'Engineer','location':'Berlin',
+                    'description':'Built reporting tools.','start':'2021','current':True,'end':None,'cv_bullet_ids':[]}]
+        with Session(self.engine) as session:
+            created = profiles.create_profile(profiles.ProfileRequest(name='Engineer', application_details={'experiences':entries}), session)
+            self.assertEqual(created['application_details']['experiences'], entries)
+            session.expire_all()
+            saved = profiles.list_profiles(session)['items'][0]
+            self.assertEqual(saved['application_details']['experiences'], entries)
+            updated = profiles.update_profile(created['id'], profiles.ProfileRequest(name='Engineer', application_details={'experiences':[]}), session)
+            self.assertEqual(updated['application_details']['experiences'], [])
+
+    def test_application_work_history_rejects_invalid_dates_and_duplicate_ids(self):
+        from pydantic import ValidationError
+        profiles = self.profile_api()
+        valid={'id':'role-1','company':'Example','title':'Engineer','start':'2021-03','end':'2022','current':False}
+        # A valid control prevents unsupported-field rejection from masking the date assertions.
+        profiles.ProfileRequest(name='Engineer', application_details={'experiences':[valid]})
+        for entries in [[{**valid,'start':'2021-13'}], [{**valid,'end':'2020'}],
+                        [{**valid,'current':True}], [valid,valid], [valid,{**valid,'id':'role-2'}]]:
+            with self.subTest(entries=entries), self.assertRaises(ValidationError):
+                profiles.ProfileRequest(name='Engineer', application_details={'experiences':entries})

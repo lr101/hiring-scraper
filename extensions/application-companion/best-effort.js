@@ -8,6 +8,7 @@
     "A choice may change later questions asynchronously. Let the page finish updating, then use Prepare from these questions before filling again.";
   const normalize = (text) =>
     text
+      .replace(/ß/g, "ss")
       .normalize("NFKD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
@@ -17,12 +18,50 @@
     el.getClientRects().length &&
     !el.closest('[hidden],[aria-hidden="true"]') &&
     getComputedStyle(el).visibility !== "hidden";
+  // A semantic wrapper may contain just one question. Look for related
+  // questions in enclosing groups, without crossing this control's form.
+  function* relatedScopes(el) {
+    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+      if (parent.matches('fieldset,section,[role="group"],form')) yield parent;
+      if (parent === el.form) return;
+    }
+    yield document;
+  }
   const read = (el) =>
     el instanceof HTMLInputElement ||
     el instanceof HTMLTextAreaElement ||
     el instanceof HTMLSelectElement
       ? el.value
       : el.textContent.trim();
+  const labelsFor = (el) => {
+    const associated = [...(el.labels || [])];
+    if (associated.length) return associated;
+    const sibling = el.previousElementSibling;
+    // Some ATS templates omit label[for]. Only infer a direct preceding
+    // label in a container with one control, never a neighboring question.
+    const adjacent =
+      sibling?.matches("label") &&
+      (!sibling.htmlFor || !document.getElementById(sibling.htmlFor)) &&
+      visible(sibling) &&
+      el.parentElement.querySelectorAll("input,select,textarea,[role=combobox]")
+        .length === 1
+        ? [sibling]
+        : [];
+    if (adjacent.length) return adjacent;
+    const paragraph = el.closest("p");
+    if (
+      paragraph &&
+      [...paragraph.querySelectorAll("label[for]")].some((label) => {
+        const target = document.getElementById(label.htmlFor);
+        return target && target !== el;
+      })
+    )
+      return [];
+    return paragraph &&
+      paragraph.querySelectorAll("input,select,textarea").length === 1
+      ? [paragraph]
+      : [];
+  };
   const label = (el) => {
     const clean = (node) => {
       const clone = node.cloneNode(true);
@@ -39,7 +78,7 @@
     const name = (
       el.getAttribute("aria-label") ||
       labelled ||
-      [...(el.labels || [])].map(clean).join(" ") ||
+      labelsFor(el).map(clean).join(" ") ||
       el.getAttribute("placeholder") ||
       el.name ||
       el.id ||
@@ -57,9 +96,15 @@
     ).slice(0, 180);
   };
   const aliases = {
-    first_name: ["first name", "given name", "vorname"],
-    last_name: ["last name", "surname", "family name", "nachname"],
-    full_name: ["full name", "name", "vollstandiger name", "voller name"],
+    first_name: ["first", "first name", "given name", "forename", "vorname"],
+    last_name: ["last", "last name", "surname", "family name", "nachname"],
+    full_name: [
+      "full name",
+      "complete name",
+      "name",
+      "vollstandiger name",
+      "voller name",
+    ],
     email: [
       "email",
       "e mail",
@@ -67,6 +112,7 @@
       "e mail address",
       "e mail adresse",
       "email adresse",
+      "contact email address",
     ],
     phone: [
       "phone",
@@ -76,6 +122,8 @@
       "telefon",
       "telefonnummer",
       "mobile phone",
+      "mobile cell phone",
+      "phone including country code",
     ],
     city: [
       "city",
@@ -84,6 +132,11 @@
       "ort",
       "current location",
       "where are you based",
+      "city town",
+      "town or city",
+      "home town",
+      "current city of residence",
+      "wohnsitz stadt",
     ],
     country: ["country", "land", "country of residence", "wohnland"],
     street: [
@@ -92,17 +145,39 @@
       "strasse",
       "adresse",
       "address line 1",
+      "strasse hausnummer",
     ],
-    postal_code: ["postal code", "zip code", "postcode", "postleitzahl", "plz"],
+    postal_city: [
+      "plz ort",
+      "plz wohnort",
+      "postleitzahl und wohnort",
+      "postal code and city",
+    ],
+    postal_address: [
+      "full postal address",
+      "full address",
+      "vollstandige anschrift",
+      "vollstandige adresse",
+    ],
+    house_number: ["house number", "hausnummer"],
+    postal_code: [
+      "postal code",
+      "zip code",
+      "postcode",
+      "post code",
+      "postleitzahl",
+      "plz",
+    ],
     linkedin: [
       "linkedin",
       "linkedin profile",
       "linkedin url",
       "linkedin profile url",
+      "link to your linkedin profile",
     ],
     website: ["website", "personal website", "webseite"],
-    portfolio: ["portfolio", "portfolio url"],
-    github: ["github", "github url"],
+    portfolio: ["portfolio", "portfolio url", "portfolio link"],
+    github: ["github", "github url", "github profile"],
     "pref:available_from": [
       "available from",
       "earliest start date",
@@ -147,49 +222,281 @@
     "country-name": "country",
     "postal-code": "postal_code",
     "address-line1": "street",
+    "street-address": "street",
   };
-  function key(el) {
-    const history = globalThis.applicationHistory?.describe(el);
-    if (history?.key) return "experience:" + history.key;
-    const question =
-      el.type === "radio"
-        ? el.closest("fieldset")?.querySelector(":scope > legend")?.textContent
-        : null;
-    const name = normalize(question || label(el)).replace(
-      /\s+(required|optional|erforderlich|pflichtfeld)$/,
-      "",
+  const referencedText = (el) =>
+    (el?.getAttribute("aria-labelledby") || "")
+      .split(/\s+/)
+      .map((id) => document.getElementById(id)?.textContent || "")
+      .join(" ")
+      .trim();
+  const sectionContext = (el) => {
+    const names = [];
+    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+      if (
+        !parent.matches('fieldset,section,[role="group"],[role="region"]') &&
+        !(
+          parent.matches("div") &&
+          parent.querySelector(":scope > h2,:scope > h3,:scope > h4")
+        )
+      )
+        continue;
+      names.push(
+        parent.getAttribute("aria-label") ||
+          referencedText(parent) ||
+          parent.querySelector(
+            ":scope > legend,:scope > h2,:scope > h3,:scope > h4",
+          )?.textContent ||
+          "",
+      );
+    }
+    return names.map(normalize);
+  };
+  const choiceGroup = (el) =>
+    el.closest('fieldset,[role="radiogroup"],.application-question');
+  const questionLabel = (el) => {
+    const group = choiceGroup(el);
+    return (
+      group &&
+      (group.getAttribute("aria-label") ||
+        referencedText(group) ||
+        group.querySelector(":scope > legend,.application-label")?.textContent)
     );
+  };
+  const radioOptions = (el) =>
+    [...(el.form || document).querySelectorAll('input[type="radio"]')].filter(
+      (r) =>
+        (el.name ? r.name === el.name : r === el) &&
+        r.form === el.form &&
+        visible(r),
+    );
+  const cleanHint = (text) =>
+    normalize(text.replace(/([a-z])([A-Z])/g, "$1 $2"))
+      .replace(/\blinked in\b/g, "linkedin")
+      .replace(/\bgit hub\b/g, "github")
+      .replace(/^(?:(?:required|optional|erforderlich|pflichtfeld)\s+)+/, "")
+      .replace(/(?:\s+(?:required|optional|erforderlich|pflichtfeld))+$/, "")
+      .replace(
+        /^(?:what is |please (?:enter|provide) |enter |bitte geben sie |geben sie )/,
+        "",
+      )
+      .replace(/^(?:your |ihren? |ihre )/, "")
+      .replace(/ ein$/, "");
+  function confirmationFact(name) {
+    const match = name.match(
+      /^(?:confirm|re enter|repeat) (?:your )?(.+)$|^(.+?) (?:confirmation|bestatigen|wiederholen)$/,
+    );
+    if (!match) return null;
+    const base = match[1] || match[2];
+    if (/^(?:e mail|email)(?: address| adresse)?$/.test(base)) return "email";
     if (
-      /^(are you (legally )?authori[sz]ed to work in |work authori[sz]ation |durfen sie in .+ arbeiten)/.test(
-        name,
+      /^(?:phone(?: number)?|mobile phone(?: number)?|telephone(?: number)?|telefonnummer)$/.test(
+        base,
       )
     )
-      return "pref:authorized_to_work";
-    if (
-      /^(expected |desired |salary expectation|gehaltsvorstellung)/.test(
-        name,
-      ) &&
-      /(salary|gehalt)/.test(name)
-    )
-      return "pref:salary_amount";
-    const field = el.getAttribute("autocomplete")?.split(/\s+/).at(-1);
-    if (auto[field]) return auto[field];
+      return "phone";
+    return null;
+  }
+  function matchHint(name) {
+    const confirmation = confirmationFact(name);
+    if (confirmation) return confirmation;
     for (const [key, values] of Object.entries(aliases))
       if (values.includes(name)) return key;
-    const canonical = normalize(
-      (el.name || "").replace(/([a-z])([A-Z])/g, "$1 $2"),
-    );
-    for (const candidate of [
-      "first_name",
-      "last_name",
-      "email",
-      "phone",
-      "linkedin",
-    ])
-      if (aliases[candidate].includes(canonical)) return candidate;
-    if (el.type === "email") return "email";
-    if (el.type === "tel") return "phone";
+    const patterns = {
+      full_name:
+        /^(?:first and last name|vor und nachname|vollstaendiger name)$/,
+      first_name: /^(?:first names?|given names?|vorname[n]?)$/,
+      last_name:
+        /^(?:last names?|family names?|surnames?|familienname[n]?|nachname[n]?)$/,
+      city: /^(?:where (?:do you (?:currently )?live|are you (?:currently )?(?:based|located))|(?:which|what) city (?:do you (?:currently )?live in|are you (?:currently )?based in)|(?:in welcher stadt|wo) (?:wohnen|leben) sie(?: aktuell)?|city of residence|residence city|stadt|stadt des wohnsitzes)$/,
+      phone:
+        /^(?:mobile(?: phone)?(?: number)?|cell(?: phone)?(?: number)?|contact (?:phone )?number|handy(?:nummer)?|mobil(?:telefon)?nummer|telefon mobil)$/,
+      street:
+        /^(?:street and (?:house )?number|strasse und hausnummer|street address|anschrift|address)$/,
+      postal_code: /^(?:zip|zip postal code|postal zip code|postal code zip)$/,
+      "pref:weekly_hours":
+        /^(?:how many hours per week (?:would you like to|can you) work|gewunschte wochenstunden)$/,
+      "pref:available_from":
+        /^(?:when (?:can|could) you start|when are you available(?: to start)?|start date|earliest (?:possible )?start date|ab wann (?:sind sie verfugbar|konnen sie (?:anfangen|beginnen))|eintrittstermin|fruhestmoglicher eintrittstermin|fruhestmoglicher beginn|gewunschtes eintrittsdatum|moglicher eintrittstermin kundigungsfrist)$/,
+      "pref:willing_to_work_onsite":
+        /^(?:(?:are you (?:willing|able|available) to |are you (?:comfortable |open to )|can you |would you (?:be willing to )?)?work(?:ing)? (?:on site|onsite|(?:in|from) (?:the |our )?office)|(?:sind sie bereit |konnen sie )?vor ort (?:zu )?arbeiten|bereitschaft zur arbeit vor ort)$/,
+      "pref:authorized_to_work":
+        /^(?:are you (?:legally )?authori[sz]ed to work in |work authori[sz]ation |durfen sie in .+ arbeiten)/,
+      "pref:salary_amount":
+        /^(?:expected |desired |salary expectation|gehaltsvorstellung)/,
+    };
+    for (const [key, pattern] of Object.entries(patterns))
+      if (
+        pattern.test(name) &&
+        (key !== "pref:salary_amount" || /salary|gehalt/.test(name))
+      )
+        return key;
     return null;
+  }
+  function equivalentChoice(value, text, key) {
+    const normalized = normalize(text);
+    if (typeof value === "boolean")
+      return (
+        value
+          ? ["yes", "ja", "true", "yes i am", "yes i do", "ja gerne"]
+          : ["no", "nein", "false", "no i am not", "no i do not"]
+      ).includes(normalized);
+    if (normalize(value) === normalized) return true;
+    const terms =
+      key === "pref:employment_type"
+        ? [
+            ["part time", "teilzeit"],
+            ["full time", "vollzeit"],
+            ["internship", "praktikum"],
+            ["working student", "werkstudent", "werkstudententatigkeit"],
+          ]
+        : key === "country"
+          ? [["germany", "deutschland", "de", "ger"]]
+          : [];
+    return terms.some(
+      (group) => group.includes(normalize(value)) && group.includes(normalized),
+    );
+  }
+  const foreignPersonScope = (section) =>
+    section.some((name) =>
+      /\b(references?|referees?|emergency contacts?|referenz(?:en|person(?:en)?)?|notfallkontakt(?:e)?)\b/.test(
+        name,
+      ),
+    );
+  const historyScope = (section) =>
+    section.some(
+      (name) =>
+        !/\b(?:education|employment|academic) application\b/.test(name) &&
+        /\b(work experience|professional experience|employment history|previous employment|employment experience|work history|education|academic history|academic qualifications|berufserfahrung|beruflicher werdegang|ausbildung|bildung|studium)\b|^employment(?: \d+)?$/.test(
+          name,
+        ),
+    );
+  function key(el) {
+    const section = sectionContext(el);
+    if (foreignPersonScope(section)) return null;
+    const history = globalThis.applicationHistory?.describe(el);
+    if (history?.key) return "experience:" + history.key;
+    const presentation = globalThis.applicationHistory?.presentationKey(el);
+    if (presentation) return "history:" + presentation;
+    // "Name", "Email" and "City" also occur in other people's contact
+    // cards, schools and employers. Only a structured adapter can establish
+    // the identity of a history row; applicant contacts are not a fallback.
+    if (historyScope(section)) return null;
+    // Read independent signals; a misleading attribute must not override a
+    // contradictory label. Never use a whole container's text as a field hint.
+    const question = el.type === "radio" ? questionLabel(el) : null;
+    const labels = labelsFor(el).map((node) => {
+      const clone = node.cloneNode(true);
+      clone
+        .querySelectorAll("input,textarea,select,button")
+        .forEach((n) => n.remove());
+      return clone.textContent;
+    });
+    const semantic = question
+      ? [question]
+      : [el.getAttribute("aria-label") || "", referencedText(el), ...labels];
+    const metadata = [el.name || "", el.id || ""].map((text) =>
+      cleanHint(text).replace(
+        /^(?:(?:applicant|candidate|application|contact|personal|address) )+/,
+        "",
+      ),
+    );
+    const hints = [
+      ...semantic.map(cleanHint),
+      ...metadata,
+      cleanHint(el.getAttribute("placeholder") || ""),
+    ];
+    if (
+      hints.some((hint) =>
+        /\b(company|employer|reference|referee|emergency|signature|consent|privacy|unternehmen|arbeitgeber|referenz|datenschutz|unterschrift)\b/.test(
+          hint,
+        ),
+      )
+    )
+      return null;
+    const meaningfulLabels = semantic
+      .map(cleanHint)
+      .filter(
+        (hint) =>
+          hint &&
+          !/^(?:answer|response|value|text|antwort|eingabe)$/.test(hint),
+      );
+    // A real question such as "Location" is not explained by an unrelated
+    // legacy ID like "website". Attribute fallback is for unlabeled controls
+    // or generic answer prompts, not a license to disregard the question.
+    if (meaningfulLabels.length && !meaningfulLabels.some(matchHint))
+      return el.type === "email" ? "email" : el.type === "tel" ? "phone" : null;
+    const matches = new Set(hints.map(matchHint).filter(Boolean));
+    const autocomplete = el.getAttribute("autocomplete")?.split(/\s+/).at(-1);
+    if (auto[autocomplete]) matches.add(auto[autocomplete]);
+    // HTML input types are a fallback, not evidence against a specific label.
+    if (!matches.size && el.type === "email") matches.add("email");
+    if (!matches.size && el.type === "tel") matches.add("phone");
+    const bareSurnameConflict =
+      matches.size === 2 &&
+      matches.has("full_name") &&
+      matches.has("last_name");
+    if (matches.size !== 1 && !bareSurnameConflict) return null;
+    const result = matches.has("full_name") ? "full_name" : [...matches][0];
+    if (
+      result === "street" &&
+      /^(adresse|address)$/.test(cleanHint(label(el))) &&
+      /\b\d{5}\s+[A-Za-zÄÖÜäöü]/.test(el.getAttribute("placeholder") || "")
+    )
+      return "postal_address";
+    // Bare German Name next to one unambiguous Vorname is a surname prompt.
+    // Explicit full-name labels and autocomplete=name retain their meaning.
+    if (
+      result === "full_name" &&
+      hints.includes("name") &&
+      !hints.some((hint) =>
+        /^(full name|complete name|vollstandiger name|voller name)$/.test(hint),
+      ) &&
+      meaningfulLabels.every((hint) => hint === "name") &&
+      autocomplete !== "name"
+    ) {
+      for (const scope of relatedScopes(el)) {
+        const given = [...scope.querySelectorAll("input")].filter((other) => {
+          if (other === el || !visible(other)) return false;
+          const context = sectionContext(other);
+          if (foreignPersonScope(context) || historyScope(context))
+            return false;
+          const meaningful = [
+            other.getAttribute("aria-label") || "",
+            referencedText(other),
+            ...labelsFor(other).map((node) => node.textContent),
+          ]
+            .map(cleanHint)
+            .filter(Boolean);
+          if (
+            meaningful.length &&
+            !meaningful.some((hint) => matchHint(hint) === "first_name")
+          )
+            return false;
+          const signals = [
+            other.getAttribute("aria-label") || "",
+            referencedText(other),
+            ...labelsFor(other).map((node) => node.textContent),
+            other.name || "",
+          ];
+          const found = new Set(
+            signals.map(cleanHint).map(matchHint).filter(Boolean),
+          );
+          return found.size === 1 && found.has("first_name");
+        });
+        if (given.length === 1) return "last_name";
+        if (given.length > 1) break;
+      }
+    }
+    return matches.size === 1 ? result : null;
+  }
+  function relatedHouseNumber(el) {
+    return [...relatedScopes(el)].some((scope) =>
+      [...scope.querySelectorAll("input")].some(
+        (other) =>
+          other !== el && visible(other) && key(other) === "house_number",
+      ),
+    );
   }
   const controls = (root) =>
     [
@@ -257,19 +564,13 @@
               (field) =>
                 field.el.type === "radio" &&
                 field.el.name === el.name &&
-                field.el.form === el.form,
+                field.el.form === el.form &&
+                choiceGroup(field.el) === choiceGroup(el),
             )
           )
             continue;
           let name = label(el);
-          if (el.type === "radio")
-            name =
-              el.closest("fieldset")?.querySelector("legend")?.textContent ||
-              el
-                .closest(".application-question")
-                ?.querySelector(".application-label")?.textContent ||
-              el.name ||
-              name;
+          if (el.type === "radio") name = questionLabel(el) || el.name || name;
           result.push({
             el,
             label: name.replace(/\s+/g, " ").trim().slice(0, 180),
@@ -389,6 +690,7 @@
           "authorized_to_work",
           "sponsorship_required",
           "willing_to_relocate",
+          "willing_to_work_onsite",
           "salary_amount",
         ].includes(property) &&
         scoped &&
@@ -402,11 +704,14 @@
         value: value ?? "",
         source: "User-provided common answer",
         reason,
-        choice: [
-          "authorized_to_work",
-          "sponsorship_required",
-          "willing_to_relocate",
-        ].includes(property),
+        choice:
+          (el.type === "radio" && typeof value === "string" && !!value) ||
+          [
+            "authorized_to_work",
+            "sponsorship_required",
+            "willing_to_relocate",
+            "willing_to_work_onsite",
+          ].includes(property),
       };
     }
     const row = el.closest("[data-experience]");
@@ -453,6 +758,32 @@
           ? "No cover letter supplied."
           : "Link the ChatGPT package to this exact application URL.",
       };
+    if (key === "postal_city" || key === "postal_address") {
+      const complete =
+        profile.postal_code &&
+        profile.city &&
+        (key !== "postal_address" || profile.street);
+      return {
+        value: complete
+          ? (key === "postal_address" ? profile.street + ", " : "") +
+            profile.postal_code +
+            " " +
+            profile.city
+          : "",
+        source: "Saved profile",
+        reason:
+          "The full address requires each component to be supplied in your profile.",
+      };
+    }
+    if (key === "street") {
+      if (relatedHouseNumber(el))
+        return {
+          value: "",
+          source: "Saved profile",
+          reason:
+            "This form separates street and house number; the profile contains a combined address line. Review both fields manually.",
+        };
+    }
     if (key)
       return {
         value:
@@ -638,6 +969,18 @@
         !globalThis.applicationHistory?.describe(field.el)
       )
         keyCounts.set(field.key, (keyCounts.get(field.key) || 0) + 1);
+    const reusableContacts = new Set();
+    for (const contact of ["email", "phone"]) {
+      const matches = fields.filter((field) => field.key === contact);
+      // One primary plus explicit confirmation fields may reuse a fact.
+      // Two independent primary fields remain ambiguous.
+      if (
+        matches.filter(
+          (field) => confirmationFact(cleanHint(label(field.el))) !== contact,
+        ).length === 1
+      )
+        reusableContacts.add(contact);
+    }
     for (const [index, field] of fields.entries()) {
       formStillMatches();
       const { el } = field;
@@ -668,6 +1011,24 @@
         stop("not_attempted", halted);
         continue;
       }
+      const liveLabel = (
+        el.type === "radio"
+          ? questionLabel(el) || el.name || label(el)
+          : label(el)
+      )
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 180);
+      if (
+        !el.isConnected ||
+        key(el) !== field.key ||
+        liveLabel !== field.label
+      ) {
+        halted =
+          "A question changed while filling. Review the page before filling again.";
+        stop("changed", halted);
+        continue;
+      }
       if (mapped.status) {
         stop(mapped.status, mapped.reason);
         continue;
@@ -694,10 +1055,12 @@
         continue;
       }
       if (
-        typeof value === "boolean" &&
+        (typeof value === "boolean" ||
+          (el.type === "radio" && typeof value === "string" && !!value)) &&
         field.key &&
         !globalThis.applicationHistory?.describe(el) &&
-        keyCounts.get(field.key) > 1
+        keyCounts.get(field.key) > 1 &&
+        !reusableContacts.has(field.key)
       ) {
         stop(
           "ambiguous",
@@ -709,7 +1072,8 @@
         globalThis.applicationHistory?.describe(el)?.key === "current";
       if (
         ["checkbox", "radio"].includes(el.type) &&
-        typeof value === "boolean" &&
+        (typeof value === "boolean" ||
+          (el.type === "radio" && typeof value === "string" && !!value)) &&
         (mapped.choice || historyChoice)
       ) {
         if (!fill) {
@@ -719,36 +1083,32 @@
           );
           continue;
         }
-        const boolText = (text) =>
-          ({
-            yes: true,
-            ja: true,
-            true: true,
-            no: false,
-            nein: false,
-            false: false,
-          })[normalize(text)];
         if (el.type === "radio") {
-          const radios = [
-            ...(el.form || document).querySelectorAll("input[type=radio]"),
-          ].filter(
-            (r) =>
-              r.name === el.name &&
-              r.form === el.form &&
-              r.closest("fieldset") === el.closest("fieldset") &&
-              visible(r),
-          );
-          const options = radios.filter(
-            (r) =>
-              boolText(
-                [...(r.labels || [])].map((l) => l.textContent).join(" "),
-              ) === value,
-          );
+          const radios = radioOptions(el);
+          if (radios.some((r) => choiceGroup(r) !== choiceGroup(el))) {
+            stop(
+              "ambiguous",
+              "The same native radio group spans multiple question containers.",
+            );
+            continue;
+          }
+          const options = radios.filter((r) => {
+            const optionLabel =
+              r.getAttribute("aria-label") ||
+              referencedText(r) ||
+              [...(r.labels || [])]
+                .map((l) => l.textContent)
+                .join(" ")
+                .trim();
+            // The visible option is authoritative; opaque values such as 0/1
+            // have no reliable Yes/No meaning across applicant systems.
+            return equivalentChoice(value, optionLabel || r.value, field.key);
+          });
           const selected = radios.find((r) => r.checked);
           if (options.length !== 1) {
             stop(
               "unsupported",
-              "No unique explicit Yes/No option matches the saved answer.",
+              "No unique explicit option matches the saved answer.",
             );
             continue;
           }
@@ -836,7 +1196,8 @@
       if (
         field.key &&
         !globalThis.applicationHistory?.describe(el) &&
-        keyCounts.get(field.key) > 1
+        keyCounts.get(field.key) > 1 &&
+        !reusableContacts.has(field.key)
       ) {
         stop(
           "ambiguous",
@@ -868,10 +1229,6 @@
       if (el instanceof HTMLSelectElement) {
         const equivalent = (text) => {
           const normalized = normalize(text);
-          if (typeof value === "boolean")
-            return (
-              value ? ["yes", "ja", "true"] : ["no", "nein", "false"]
-            ).includes(normalized);
           if (
             globalThis.applicationHistory?.describe(el)?.key?.endsWith("_month")
           ) {
@@ -895,14 +1252,7 @@
               monthNames[Number(expected) - 1]?.includes(normalized)
             );
           }
-          return (
-            normalize(expected) === normalized ||
-            (field.key === "country" &&
-              ["germany", "deutschland", "de", "ger"].includes(
-                normalize(expected),
-              ) &&
-              ["germany", "deutschland", "de", "ger"].includes(normalized))
-          );
+          return equivalentChoice(value, text, field.key);
         };
         const options = [...el.options].filter(
           (option) =>

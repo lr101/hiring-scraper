@@ -159,6 +159,7 @@ export function validateProfile(input) {
     "authorized_to_work",
     "sponsorship_required",
     "willing_to_relocate",
+    "willing_to_work_onsite",
   ];
   if (
     Object.keys(prefs).some(

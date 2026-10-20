@@ -1,0 +1,1666 @@
+{
+  "note": "Measured before adding section-context exclusions. Original techniques and fixtures are in experiments/autofill_lab.py.",
+  "matching": {
+    "field_count": 33,
+    "techniques": {
+      "current_extension": {
+        "counts": {
+          "correct": 12,
+          "wrong": 6,
+          "safe_skip": 7,
+          "miss": 8,
+          "precision": 0.667,
+          "coverage": 0.545
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": "full_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": "last_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": "country",
+            "outcome": "correct"
+          }
+        ]
+      },
+      "fuzzy_only": {
+        "counts": {
+          "correct": 13,
+          "wrong": 8,
+          "safe_skip": 6,
+          "miss": 6,
+          "precision": 0.619,
+          "coverage": 0.591
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": "full_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": "last_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": "title",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": "city",
+            "outcome": "wrong"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": "degree",
+            "outcome": "correct"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": "last_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": "country",
+            "outcome": "correct"
+          }
+        ]
+      },
+      "section_and_margin": {
+        "counts": {
+          "correct": 19,
+          "wrong": 0,
+          "safe_skip": 11,
+          "miss": 3,
+          "precision": 1.0,
+          "coverage": 0.864
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": "full_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": "last_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": "title",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": "work_location",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": "school",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": "degree",
+            "outcome": "correct"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": "country",
+            "outcome": "correct"
+          }
+        ]
+      },
+      "global_one_to_one": {
+        "counts": {
+          "correct": 17,
+          "wrong": 0,
+          "safe_skip": 11,
+          "miss": 5,
+          "precision": 1.0,
+          "coverage": 0.773
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": "full_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": "last_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": "title",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": "work_location",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": "school",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": "degree",
+            "outcome": "correct"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": "country",
+            "outcome": "correct"
+          }
+        ]
+      },
+      "embedding_only": {
+        "counts": {
+          "correct": 19,
+          "wrong": 14,
+          "safe_skip": 0,
+          "miss": 0,
+          "precision": 0.576,
+          "coverage": 0.864
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": "full_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": "first_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": "first_name",
+            "outcome": "correct"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": "first_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": "title",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": "work_location",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": "school",
+            "outcome": "correct"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": "degree",
+            "outcome": "correct"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": "first_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": "email",
+            "outcome": "wrong"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": "first_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": "country",
+            "outcome": "wrong"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": "full_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": "last_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": "work_location",
+            "outcome": "wrong"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": "work_location",
+            "outcome": "wrong"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": "first_name",
+            "outcome": "wrong"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": "city",
+            "outcome": "correct"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": "country",
+            "outcome": "correct"
+          }
+        ]
+      },
+      "embedding_guarded": {
+        "counts": {
+          "correct": 3,
+          "wrong": 0,
+          "safe_skip": 11,
+          "miss": 19,
+          "precision": 1.0,
+          "coverage": 0.136
+        },
+        "fields": [
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Full name",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "ordinary_contact",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "How should we address you?",
+            "expected": "full_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Your home town",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "paraphrases",
+            "section": "Personal details",
+            "label": "Email address",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Vorname",
+            "expected": "first_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Nachname",
+            "expected": "last_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "german",
+            "section": "Personal details",
+            "label": "Wohnort",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "first_name",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "opaque_ids",
+            "section": "Personal details",
+            "label": "Your answer",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Name",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Position",
+            "expected": "title",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_card",
+            "section": "Work experience",
+            "label": "Location",
+            "expected": "work_location",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Name",
+            "expected": "school",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "education_card",
+            "section": "Education",
+            "label": "Qualification",
+            "expected": "degree",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "reference_card",
+            "section": "Reference",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "emergency_card",
+            "section": "Emergency contact",
+            "label": "Email",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Gender",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Nationality",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "sensitive",
+            "section": "Personal details",
+            "label": "Signature",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Email",
+            "expected": "email",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "confirmation",
+            "section": "Personal details",
+            "label": "Confirm email",
+            "expected": "email",
+            "actual": "email",
+            "outcome": "correct"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Company",
+            "expected": "company",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "work_repeated",
+            "section": "Work experience",
+            "label": "Confirm company name",
+            "expected": "company",
+            "actual": "company",
+            "outcome": "correct"
+          },
+          {
+            "form": "contradiction",
+            "section": "Personal details",
+            "label": "Last name",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Favorite city",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Preferred interview location",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "unrelated",
+            "section": "Personal details",
+            "label": "Name of your pet",
+            "expected": null,
+            "actual": null,
+            "outcome": "safe_skip"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "City",
+            "expected": "city",
+            "actual": null,
+            "outcome": "miss"
+          },
+          {
+            "form": "international",
+            "section": "Personal details",
+            "label": "Country",
+            "expected": "country",
+            "actual": null,
+            "outcome": "miss"
+          }
+        ]
+      }
+    },
+    "embedding_model": "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3",
+    "embedding_load_and_batch_seconds": 15.76
+  }
+}
