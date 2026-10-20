@@ -89,6 +89,7 @@ class ApplicationPreferences(BaseModel):
     authorized_to_work: bool | None = None
     sponsorship_required: bool | None = None
     willing_to_relocate: bool | None = None
+    willing_to_work_onsite: bool | None = None
 
     @model_validator(mode='after')
     def validate_answers(self):
@@ -107,6 +108,35 @@ class ApplicationPreferences(BaseModel):
         return self
 
 
+class ApplicationExperience(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    id: str = Field(min_length=1, max_length=100, pattern=r'^[a-zA-Z0-9_-]+$')
+    company: str = Field(min_length=1, max_length=300)
+    title: str = Field(min_length=1, max_length=300)
+    location: str = Field(default='', max_length=300)
+    description: str = Field(default='', max_length=10000)
+    start: str = Field(min_length=4, max_length=7)
+    end: str | None = Field(default=None, max_length=7)
+    current: bool = Field(default=False, strict=True)
+    cv_bullet_ids: list[Annotated[int, Field(ge=0, strict=True)]] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode='after')
+    def validate_history(self):
+        for value in (self.start, self.end):
+            if value is not None and not re.fullmatch(r'[1-9][0-9]{3}(?:-(?:0[1-9]|1[0-2]))?', value):
+                raise ValueError('Work dates must be a known year or month (YYYY or YYYY-MM)')
+        if self.current and self.end:
+            raise ValueError('A current role cannot have an end date')
+        if not self.current and not self.end:
+            raise ValueError('A previous role needs an end year or month')
+        if self.end and (self.end[:4] < self.start[:4] or
+                         (len(self.end) == len(self.start) == 7 and self.end < self.start)):
+            raise ValueError('The end of a role cannot precede its start')
+        if len(set(self.cv_bullet_ids)) != len(self.cv_bullet_ids):
+            raise ValueError('Use unique CV bullet paragraph IDs')
+        return self
+
+
 class ApplicationDetails(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
     first_name: str = Field(default='', max_length=300)
@@ -121,10 +151,19 @@ class ApplicationDetails(BaseModel):
     website: str = Field(default='', max_length=300)
     portfolio: str = Field(default='', max_length=300)
     github: str = Field(default='', max_length=300)
+    experiences: list[ApplicationExperience] = Field(default_factory=list, max_length=20)
     preferences: ApplicationPreferences = Field(default_factory=ApplicationPreferences)
 
     @model_validator(mode='after')
     def validate_contacts(self):
+        identities = [(entry.company.lower(), entry.title.lower(), entry.start) for entry in self.experiences]
+        if len(set(identities)) != len(identities):
+            raise ValueError('Remove duplicate work experiences')
+        if len({entry.id for entry in self.experiences}) != len(self.experiences):
+            raise ValueError('Use unique work experience IDs')
+        bullet_ids = [bullet for entry in self.experiences for bullet in entry.cv_bullet_ids]
+        if len(set(bullet_ids)) != len(bullet_ids):
+            raise ValueError('Assign each CV bullet paragraph to only one role')
         if self.email and not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', self.email):
             raise ValueError('Enter a valid email address')
         for value in (self.linkedin, self.website, self.portfolio, self.github):

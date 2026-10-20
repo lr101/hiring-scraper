@@ -44,7 +44,6 @@ def refresh_enrichment(job: Job) -> None:
     job.enrichment = current_enrichment(job)
 
 
-
 def preserve_verified_detail(job: Job, incoming: dict) -> dict:
     """Keep details across unchanged summaries; a newly supplied description wins."""
     if job.title != incoming.get('title') or job.url != incoming.get('url'):
@@ -116,7 +115,9 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
             metadata, updates = {'state': 'detail_error', 'error_type': type(error).__name__}, {}
         counts['details_attempted'] += 1
         with SessionLocal.begin() as session:
-            job = session.scalar(select(Job).where(Job.id == job_id).with_for_update())
+            # Only non-key fields are updated. NO KEY UPDATE still serializes
+            # source retirement while remaining compatible with match-index FK checks.
+            job = session.scalar(select(Job).where(Job.id == job_id).with_for_update(key_share=True))
             if job is None or not job.is_active or job_input(job) != source:
                 continue
             raw = dict(job.raw_metadata or {})

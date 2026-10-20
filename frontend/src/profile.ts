@@ -8,15 +8,20 @@ export type SearchArea = {
   label: string; city?: string | null; latitude: number | null; longitude: number | null
   radius_km: number; country_code?: string | null; city_election_result?: CityElectionResult | null
 }
+export type ApplicationExperience = {
+  id: string; company: string; title: string; location: string; description: string
+  start: string; end: string | null; current: boolean; cv_bullet_ids?: number[]
+}
 export type ApplicationDetails = {
   first_name?: string; last_name?: string; email?: string; phone?: string; linkedin?: string
   city?: string; country?: string; street?: string; postal_code?: string
   website?: string; portfolio?: string; github?: string
+  experiences?: ApplicationExperience[]
   preferences?: {
     available_from?: string; notice_period?: string; salary_amount?: string
     salary_currency?: string; salary_period?: string; authorization_country?: string
     employment_type?: string; weekly_hours?: string
-    authorized_to_work?: boolean | null; sponsorship_required?: boolean | null; willing_to_relocate?: boolean | null
+    authorized_to_work?: boolean | null; sponsorship_required?: boolean | null; willing_to_relocate?: boolean | null; willing_to_work_onsite?: boolean | null
   }
 }
 export type Profile = {

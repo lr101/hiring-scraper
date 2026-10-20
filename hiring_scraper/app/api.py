@@ -54,7 +54,7 @@ from hiring_scraper.app.profiles import router as profiles_router, require_profi
 from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
                                             ApplicationStatus, application_json, close_job_applications)
 from hiring_scraper.app.job_search import (
-    ProfileIndexChanged, ensure_profile_match_indexes,
+    ProfileIndexChanged, ensure_profile_match_indexes, refresh_application_matches_for_jobs,
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
 from hiring_scraper.app.board_scope import (
@@ -2575,10 +2575,16 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
     if session.get_bind().dialect.name == 'sqlite':
         session.execute(update(Job).where(Job.id == job_id).values(
             is_active=Job.is_active).execution_options(synchronize_session=False))
-    job = session.scalar(select(Job).where(Job.id == job_id).with_for_update()
+    # Only application state changes; NO KEY UPDATE serializes source closure
+    # and allows a concurrent match-index foreign-key check to finish.
+    job = session.scalar(select(Job).where(Job.id == job_id).with_for_update(key_share=True)
                          .execution_options(populate_existing=True))
     if job is None:
         raise HTTPException(status_code=404, detail='Job not found')
+    locked_profile_id = session.scalar(select(UserProfile.id).where(
+        UserProfile.id == profile_id).with_for_update())
+    if locked_profile_id is None:
+        raise HTTPException(status_code=404, detail='Profile not found')
     previous_status = session.scalar(select(JobApplication.status).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
     requested_status = request.status
@@ -2688,7 +2694,8 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     try:
         index_rebuilt = ensure_profile_match_indexes(session, profiles)
     except ProfileIndexChanged as error:
-        raise HTTPException(status_code=409, detail='Profile changed during search; retry the request') from error
+        raise HTTPException(status_code=409,
+                            detail='Profile or job inventory changed during search; retry the request') from error
     if index_rebuilt:
         session.commit()
 
@@ -3036,14 +3043,23 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
         feed.status = "source_replaced"
         feed.next_scan_at = None
         feed.lease_until = None
+        # These updates do not change job keys. NO KEY UPDATE remains compatible
+        # with the KEY SHARE locks a concurrent match-index insert takes for its
+        # job foreign key, avoiding a job/profile lock cycle during retirement.
         retiring_jobs = session.scalars(select(Job).where(
             Job.feed_id == feed.id, Job.is_active.is_(True)).order_by(Job.id)
-            .with_for_update().execution_options(populate_existing=True)).all()
+            .with_for_update(key_share=True).execution_options(populate_existing=True)).all()
         for job in retiring_jobs:
             job.is_active = False
             job.closed_at = now
         session.flush()
-        close_job_applications(session, [job.id for job in retiring_jobs], now)
+        if retiring_jobs:
+            retiring_job_ids = [job.id for job in retiring_jobs]
+            refresh_application_matches_for_jobs(
+                session, retiring_job_ids,
+                before_publish=lambda publish_session: close_job_applications(
+                    publish_session, retiring_job_ids, now),
+            )
         if (feed.company.source == "managed_feed" and not career_page_supplied and
                 not feed.company.career_url_manual):
             feed.company.career_url = new_board_url

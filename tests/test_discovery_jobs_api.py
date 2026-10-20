@@ -11,7 +11,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from hiring_scraper.app import api
 from hiring_scraper.app.models import (Base, Company, DiscoveryJob, DiscoveryJobCompany, Job,
-                                       JobApplication, JobFeed, JobLocation, ScanRun, UserProfile, utcnow)
+                                       JobApplication, JobFeed, JobLocation, ProfileJobMatch, ScanRun,
+                                       UserProfile, utcnow)
 
 
 class DiscoveryJobsApiTests(unittest.TestCase):
@@ -251,6 +252,41 @@ class DiscoveryJobsApiTests(unittest.TestCase):
             closed = api.list_jobs(49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
                                    posting_status='closed', session=session)
             self.assertEqual([item['id'] for item in closed['items']], [job_id])
+
+    def test_managed_feed_source_replacement_retracts_retired_job_matches(self):
+        with self.factory.begin() as session:
+            company = Company(source="managed_feed", source_id="managed-match", name="Acme Careers",
+                              website_url="https://acme.example", domain="acme.example")
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider="external_html", feed_url="https://acme.example/jobs",
+                           board_url="https://acme.example/jobs", status="parsed", enabled=True,
+                           source_revision=1)
+            profile = UserProfile(name="Developer", preferences={})
+            session.add_all([feed, profile])
+            session.flush()
+            job = Job(feed_id=feed.id, external_id="role-match", title="Engineer",
+                      url="https://acme.example/jobs/engineer", is_active=True)
+            session.add(job)
+            session.flush()
+            feed_id, profile_id, job_id = feed.id, profile.id, job.id
+            session.add_all([
+                ProfileJobMatch(profile_id=profile_id, job_id=job_id, match_score=70,
+                                match_tier="recommended", match_uncertain=False),
+                JobApplication(profile_id=profile_id, job_id=job_id, status="new",
+                               auto_created=True),
+            ])
+
+        with self.factory() as session:
+            api.update_managed_feed(
+                feed_id, SimpleNamespace(feed_url="https://acme.example/jobs.xml", provider="rss", enabled=None),
+                session)
+
+        with self.factory() as session:
+            self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))
+            application = session.scalar(select(JobApplication).where(
+                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
+            self.assertEqual(application.status, "closed")
 
     def test_managed_ats_page_is_resolved_to_its_public_provider_feed(self):
         board = "https://careers.smartrecruiters.com/RheindataGmbH"

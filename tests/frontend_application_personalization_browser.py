@@ -23,7 +23,10 @@ with sync_playwright() as pw:
     context = browser.new_context(viewport={'width': 1440, 'height': 1000},
                                   permissions=['clipboard-read', 'clipboard-write'])
     context.route('https://chatgpt.com/**', lambda route: route.fulfill(body='<h1>Simulated ChatGPT</h1>'))
-    profile = context.request.post(f'{api}/api/v1/profiles', data={'name': 'Personalization LaTeX trial'}).json()
+    history = [{'id': 'role-1', 'company': 'Example GmbH', 'title': 'Engineer', 'location': 'Berlin',
+                'description': 'Built reporting tools.', 'start': '2021', 'end': None, 'current': True, 'cv_bullet_ids': []}]
+    profile = context.request.post(f'{api}/api/v1/profiles', data={'name': 'Personalization LaTeX trial',
+        'application_details': {'experiences': history, 'preferences': {'willing_to_work_onsite': False}}}).json()
     pid = profile['id']
     try:
         page = context.new_page()
@@ -38,6 +41,9 @@ with sync_playwright() as pw:
         page.reload()
         for label, value in fields.items():
             expect(page.get_by_role('textbox', name=label)).to_have_value(value)
+        saved_profile = next(item for item in context.request.get(f'{api}/api/v1/profiles').json()['items'] if item['id'] == pid)
+        assert saved_profile['application_details']['experiences'] == history
+        assert saved_profile['application_details']['preferences']['willing_to_work_onsite'] is False
         original_tex = '\\documentclass{moderncv}\n\\name{José}{Müller}\n\\begin{document}\nResearch in Genève 2021-2024.\n\\end{document}\n'
         upload = page.get_by_label('Attach CV', exact=True)
         assert '.tex' in upload.get_attribute('accept').split(',')
@@ -73,7 +79,9 @@ with sync_playwright() as pw:
         expect(page.get_by_role('heading', name='Finish in ChatGPT.')).to_be_visible()
         clipboard = page.evaluate('navigator.clipboard.readText()')
         assert evidence in clipboard and 'radius-application-v1' in clipboard
-        assert json.loads(clipboard.split('SOURCE PAYLOAD (quoted data):\n')[-1])['original_cv_text'] == original_tex.strip()
+        brief_payload = json.loads(clipboard.split('SOURCE PAYLOAD (quoted data):\n')[-1])
+        assert brief_payload['original_cv_text'] == original_tex.strip()
+        assert brief_payload['supporting_profile']['application_details']['experiences'] == history
         pack = {'format': 'radius-application-v1', 'job_id': job['id'], 'profile_id': pid,
                 'cv_updated_at': revision, 'cv': '# José Müller\n## Experience\n- R&D in Genève 2021-2024: 20% faster',
                 'cover_letter': 'Dear hiring team,\nI coordinated research in Genève.\nJosé Müller',

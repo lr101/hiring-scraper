@@ -145,6 +145,56 @@ class ProductionPreparationTests(ExtensionHarness):
         expect(popup.locator('#site-status')).to_contain_text('1 jobs')
         expect(popup.locator('#site-status a')).to_have_attribute('href', 'https://employer.example/jobs')
 
+    def test_saved_work_history_editor_syncs_without_a_cv(self):
+        self.page.goto(self.origin + '/profile/1/edit')
+        self.page.get_by_role('button',name='Add work experience',exact=True).click()
+        row=self.page.get_by_role('group',name='Work experience 1',exact=True)
+        row.get_by_label('Company',exact=True).fill('Example Systems')
+        row.get_by_label('Job title',exact=True).fill('Engineer')
+        row.get_by_label('Location',exact=True).fill('Berlin')
+        row.get_by_label('Responsibilities',exact=True).fill('Built reporting tools.')
+        row.get_by_label('Start year or month',exact=True).fill('2021')
+        row.get_by_label('I currently work here',exact=True).check()
+        self.page.get_by_role('button',name='Save profile',exact=True).click()
+        expect(self.page.get_by_role('status')).to_contain_text('Profile saved')
+        self.page.reload()
+        row=self.page.get_by_role('group',name='Work experience 1',exact=True)
+        expect(row.get_by_label('Company',exact=True)).to_have_value('Example Systems')
+        expect(row.get_by_label('I currently work here',exact=True)).to_be_checked()
+        options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
+        options.locator('#radius-origin').fill(self.origin);options.locator('#radius-connect').click()
+        expect(options.locator('#radius-status')).to_contain_text('1 jobs cached')
+        applicant=self.worker.evaluate("async () => (await chrome.storage.local.get('applicant')).applicant")
+        self.assertEqual(len(applicant['experiences']),1)
+        self.assertEqual(applicant['experiences'][0]['company'],'Example Systems')
+        self.assertEqual(applicant['experiences'][0]['start'],'2021')
+        self.assertIsNone(applicant['experiences'][0]['end'])
+        self.assertEqual(applicant['cv_text'],'')
+
+    def test_question_capture_arriving_during_subscription_is_not_lost(self):
+        uploaded=self.context.request.put(self.origin+'/api/v1/profiles/1/cv?filename=original.txt',
+            data=b'Alex Example. Coordinated research teams.',headers={'Content-Type':'application/octet-stream'})
+        self.assertTrue(uploaded.ok,uploaded.text())
+        self.page.add_init_script('''(() => {
+          const original=document.addEventListener.bind(document);
+          document.addEventListener=(type,listener,options)=>{
+            if(type==='radius-form-updated'&&!window.captureRaceTriggered){
+              window.captureRaceTriggered=true;
+              localStorage.setItem('radius:application-form:v1:1574:1',JSON.stringify({
+                format:'radius-form-v1',job_id:1574,profile_id:1,form_id:'1'.repeat(64),
+                url:'https://ats.example/jobs/1574',captured_at:Date.now(),
+                fields:[{id:'q0',label:'What is your current city?',type:'text',required:true,
+                  manual:false,accept:'',max_length:100,options:[]}]
+              }));
+              document.dispatchEvent(new Event('radius-form-updated'));
+            }
+            return original(type,listener,options);
+          };
+        })()''')
+        self.page.goto(self.origin+'/jobs/1574/apply?profile_id=1')
+        expect(self.page.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
+        self.assertTrue(self.page.evaluate('window.captureRaceTriggered'))
+
     def test_production_cv_return_badge_apply_alias_and_fill(self):
         self.check_prepared_package_fill()
 

@@ -6,6 +6,70 @@ from .structured_cases import CASES
 
 BASE='https://structured.example/'
 class StructuredBrowserTests(ExtensionHarness):
+    def check_record_case(self,name):
+        from experiments.autofill_corpus import cases
+        case=next(case for case in cases() if case.name==name)
+        self.applicant=case.profile
+        self.context.route(BASE+'expanded',lambda route:route.fulfill(content_type='text/html',body=case.html))
+        self.save_example();self.page.goto(BASE+'expanded');popup=self.popup();self.fill(popup)
+        for identifier,value in case.expected.items():
+            self.assertEqual(self.page.locator('#'+identifier).input_value(),value,(name,identifier))
+        self.fill(popup)
+        for identifier,value in case.expected.items():
+            self.assertEqual(self.page.locator('#'+identifier).input_value(),value,(name,identifier,'repeat'))
+        popup.close()
+
+    def test_existing_identity_fields_assign_reordered_rows_to_the_saved_jobs(self):
+        for scenario in ['reverse-company','reverse-both','reverse-title','global-resolution','date-disambiguates','three-record-cycle','normalized-identity']:
+            with self.subTest(scenario=scenario):self.check_record_case(f'record-{scenario}-nested')
+
+    def test_ambiguous_saved_job_identity_does_not_invent_a_record_assignment(self):
+        for scenario in ['duplicate-company-ambiguous','duplicate-role-ambiguous']:
+            with self.subTest(scenario=scenario):self.check_record_case(f'record-{scenario}-aria')
+
+    def test_known_dates_and_checked_current_role_identify_reordered_jobs(self):
+        from copy import deepcopy
+        from experiments.autofill_corpus import PROFILE,JOBS
+        for anchor in ['date','current']:
+            with self.subTest(anchor=anchor):
+                self.applicant=deepcopy(PROFILE);self.applicant['experiences']=deepcopy(JOBS[:2])
+                rows=[]
+                for index in range(2):
+                    value='2018' if anchor=='date' and index==0 else ''
+                    checked='checked' if anchor=='current' and index==1 else ''
+                    rows.append(f'''<fieldset><legend>Employment {index+1}</legend><label>Employer<input class=company></label>
+                      <label>Job title<input class=title></label><label>Start date<input class=start value="{value}"></label>
+                      <label>End date<input class=end></label><label><input type=checkbox {checked}>I currently work here</label></fieldset>''')
+                markup='<form><label>Email<input type=email></label><section aria-label="Work experience">'+''.join(rows)+'</section></form>'
+                self.context.route(BASE+'identity-anchor',lambda route:route.fulfill(content_type='text/html',body=markup))
+                self.save_example();self.page.goto(BASE+'identity-anchor');popup=self.popup();self.fill(popup)
+                self.assertEqual(self.page.locator('.company').nth(0).input_value(),'South Works')
+                self.assertEqual(self.page.locator('.company').nth(1).input_value(),'North Lab')
+                self.assertEqual(self.page.locator('.title').nth(0).input_value(),'Analyst')
+                self.assertEqual(self.page.locator('.start').nth(1).input_value(),'2021-03')
+                popup.close()
+
+    def test_saved_profile_formats_combined_history_through_real_extension(self):
+        from copy import deepcopy
+        from experiments.autofill_corpus import PROFILE, JOBS
+        self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
+        markup = '<form><label>Email<input type=email></label><label>First name<input></label><fieldset><legend>Beruflicher Werdegang</legend><label>von - bis<input id=period></label><label>Arbeitgeber / Tätigkeiten<textarea id=duties></textarea></label></fieldset></form>'
+        self.context.route(BASE+'combined-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))
+        self.save_example();self.page.goto(BASE+'combined-history');popup=self.popup();self.fill(popup)
+        self.assertEqual(self.page.locator('#period').input_value(),'2021-03 – Present')
+        self.assertEqual(self.page.locator('#duties').input_value(),'North Lab | Engineer. Built reporting tools.')
+        self.fill(popup)
+        self.assertEqual(self.page.locator('#duties').input_value(),'North Lab | Engineer. Built reporting tools.')
+
+    def test_saved_profile_formats_full_history_in_unlabelled_paragraph(self):
+        from copy import deepcopy
+        from experiments.autofill_corpus import PROFILE, JOBS
+        self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
+        markup = '<form><label>Email<input type=email></label><label>First name<input></label><p>Beruflicher Werdegang und Tätigkeiten (Stichpunkte):*</p><p><span><textarea id=history></textarea></span></p></form>'
+        self.context.route(BASE+'text-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))
+        self.save_example();self.page.goto(BASE+'text-history');popup=self.popup();self.fill(popup)
+        self.assertEqual(self.page.locator('#history').input_value(),'2021-03 – Present: North Lab | Engineer | Berlin. Built reporting tools.\n2018 – 2020: South Works | Analyst | Munich. Analyzed delivery data.')
+
     def route(self,route):
         if route.request.url.startswith(BASE):route.fulfill(content_type='text/html',body=CASES[urlsplit(route.request.url).path.strip('/')])
         else:super().route(route)
@@ -14,6 +78,22 @@ class StructuredBrowserTests(ExtensionHarness):
         self.applicant.update(website='https://example.invalid',preferences={'available_from':'2026-12-01','notice_period':'One month','salary_amount':'65000','salary_currency':'EUR','salary_period':'year','authorization_country':'Germany','authorized_to_work':True,'sponsorship_required':False,'willing_to_relocate':False,'weekly_hours':'20','employment_type':'Part-time'})
         for i,e in enumerate(self.applicant['experiences']):e.update(id=f'job-{i+1}',location=['Heidelberg, Germany','Berlin, Germany','Remote'][i])
     def open_case(self,name):self.page.goto(BASE+name);return self.popup()
+    def test_semantic_div_cards_map_generic_names_to_saved_work_records(self):
+        self.applicant['experiences']=self.applicant['experiences'][:2]
+        cards=''.join(f'''<div role=group aria-label="Work experience {i+1}">
+          <label>Name<input class=company></label><label>Position<input class=title></label>
+          <label>Location<input class=location></label><label>Start date<input class=start></label>
+          <label>End date<input class=end></label><label><input class=current type=checkbox>I currently work here</label></div>'''
+          for i in range(2))
+        self.context.route(BASE+'cards',lambda route:route.fulfill(content_type='text/html',body='<form><label>First name<input id=first></label><label>Email<input type=email></label>'+cards+'</form>'))
+        self.save_example();self.page.goto(BASE+'cards');popup=self.popup();self.fill(popup)
+        for i,entry in enumerate(self.applicant['experiences']):
+            self.assertEqual(self.page.locator('.company').nth(i).input_value(),entry['company'])
+            self.assertEqual(self.page.locator('.title').nth(i).input_value(),entry['title'])
+            self.assertEqual(self.page.locator('.location').nth(i).input_value(),entry['location'])
+            self.assertEqual(self.page.locator('.start').nth(i).input_value(),entry['start'])
+        self.assertEqual(self.page.locator('#first').input_value(),self.applicant['first_name'])
+        self.fill(popup);self.assertEqual(self.report()['filled'],0)
     def test_explicit_common_answers_fill_text_select_and_radio_without_consent(self):
         self.save_example();popup=self.open_case('common');self.fill(popup)
         self.assertEqual(self.page.locator('#salary').input_value(),'65000')
@@ -26,6 +106,47 @@ class StructuredBrowserTests(ExtensionHarness):
         self.assertEqual({f['label'] for f in self.report()['unresolved']},{'Resume','I accept the privacy policy'})
         self.assertEqual(self.page.evaluate('window.draft.submissions'),0)
         self.fill(popup);self.assertEqual(self.report()['filled'],0)
+
+    def test_nested_plain_work_cards_do_not_collapse_into_one_record(self):
+        self.applicant['experiences']=self.applicant['experiences'][:2]
+        cards=''.join('<div class=card><div><label>Employer<input class=company></label></div><div><label>Position<input class=title></label></div></div>' for _ in range(2))
+        self.context.route(BASE+'nested-cards',lambda route:route.fulfill(content_type='text/html',body='<form><label>First name<input></label><label>Email<input type=email></label><section aria-label="Work experience"><div class=list>'+cards+'</div></section></form>'))
+        self.save_example();self.page.goto(BASE+'nested-cards');popup=self.popup();self.fill(popup)
+        for i,entry in enumerate(self.applicant['experiences']):
+            self.assertEqual(self.page.locator('.company').nth(i).input_value(),entry['company'])
+            self.assertEqual(self.page.locator('.title').nth(i).input_value(),entry['title'])
+
+    def test_reference_card_inside_work_section_is_not_a_saved_job(self):
+        self.applicant['experiences']=self.applicant['experiences'][:1]
+        self.context.route(BASE+'reference-card',lambda route:route.fulfill(content_type='text/html',body='''<form>
+          <label>First name<input id=first></label><label>Email<input type=email></label>
+          <section aria-label="Work experience"><div class=list><section aria-label=Reference><div>
+          <label>Employer<input class=company></label><label>Position<input class=title></label></div></section></div></section></form>'''))
+        self.save_example();self.page.goto(BASE+'reference-card');popup=self.popup();self.fill(popup)
+        self.assertEqual(self.page.locator('.company').input_value(),'')
+        self.assertEqual(self.page.locator('.title').input_value(),'')
+        self.assertEqual(self.page.locator('#first').input_value(),self.applicant['first_name'])
+
+    def test_generic_employment_name_and_position_need_more_record_evidence(self):
+        self.context.route(BASE+'ambiguous-employment',lambda route:route.fulfill(content_type='text/html',body='''<form>
+          <label>First name<input id=first></label><label>Email<input type=email></label>
+          <section><h2>Employment</h2><label>Name<input id=name></label><label>Position<input id=position></label></section></form>'''))
+        self.save_example();self.page.goto(BASE+'ambiguous-employment');popup=self.popup();self.fill(popup)
+        self.assertEqual(self.page.locator('#name').input_value(),'')
+        self.assertEqual(self.page.locator('#position').input_value(),'')
+        self.assertEqual(self.page.locator('#first').input_value(),self.applicant['first_name'])
+
+    def test_work_card_reclassified_as_reference_is_rediscovered_before_repeat_fill(self):
+        self.applicant['experiences']=self.applicant['experiences'][:1]
+        self.context.route(BASE+'changing-card',lambda route:route.fulfill(content_type='text/html',body='''<form>
+          <label>First name<input></label><label>Email<input type=email></label><section id=card aria-label="Work experience">
+          <label>Employer<input class=company></label><label>Job title<input class=title></label></section></form>'''))
+        self.save_example();self.page.goto(BASE+'changing-card');popup=self.popup();self.fill(popup)
+        self.assertEqual(self.page.locator('.company').input_value(),self.applicant['experiences'][0]['company'])
+        self.page.evaluate("""() => {const card=document.querySelector('#card');card.setAttribute('aria-label','Reference');card.querySelectorAll('input').forEach(el=>{el.value='';});}""")
+        self.fill(popup)
+        self.assertEqual(self.page.locator('.company').input_value(),'')
+        self.assertEqual(self.page.locator('.title').input_value(),'')
     def test_repeated_jobs_locations_dates_and_scoped_chatgpt_bullets(self):
         self.applicant['application']={'url':BASE+'history-month','experience_bullets':[{'experience_id':'job-1','bullets':['Coordinated three teams.','Reduced overdue work.']}]}
         self.save_example();popup=self.open_case('history-month');self.fill(popup)

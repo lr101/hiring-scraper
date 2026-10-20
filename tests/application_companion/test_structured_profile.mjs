@@ -29,3 +29,9 @@ test('accepts explicit ChatGPT job IDs and rejects unknown or duplicate job bind
  assert.throws(()=>connectSources(base,'',{...explicit,experience_bullets:[{experience_id:'unknown',bullets:['Wrong job.']}]},''),/unknown/i);
  await assert.rejects(()=>readPackage(JSON.stringify({...explicit,experience_bullets:[explicit.experience_bullets[0],explicit.experience_bullets[0]]})),/duplicate/i);
 });
+test('preserves explicit on-site availability and leaves unknown availability unset',()=>{
+ assert.equal(validateProfile({preferences:{willing_to_work_onsite:true}}).preferences.willing_to_work_onsite,true);
+ assert.equal(validateProfile({preferences:{willing_to_work_onsite:false}}).preferences.willing_to_work_onsite,false);
+ assert.equal(validateProfile({}).preferences.willing_to_work_onsite,null);
+ assert.throws(()=>validateProfile({preferences:{willing_to_work_onsite:'yes'}}));
+});

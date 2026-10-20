@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
+import ApplicationWorkHistory from './ApplicationWorkHistory'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
@@ -196,11 +197,13 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           {([['salary_amount', 'Expected salary'], ['salary_currency', 'Salary currency (e.g. EUR)'], ['salary_period', 'Salary period (e.g. year)'], ['available_from', 'Available from'], ['notice_period', 'Notice period'], ['weekly_hours', 'Weekly hours'], ['employment_type', 'Employment type'], ['authorization_country', 'Work authorization country']] as const).map(([key, label]) =>
             <label key={key}>{label}<input maxLength={300} value={form.application_details?.preferences?.[key] ?? ''}
               onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
-          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate']] as const).map(([key, label]) =>
+          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate'], ['willing_to_work_onsite', 'Willing to work on site']] as const).map(([key, label]) =>
             <label key={key}>{label}<select value={form.application_details?.preferences?.[key] == null ? '' : String(form.application_details.preferences[key])}
               onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
               <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
         </fieldset>
+        <ApplicationWorkHistory entries={form.application_details?.experiences ?? []}
+          onChange={experiences => setForm({ ...form, application_details: { ...form.application_details, experiences } })} />
         <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Your CV</legend>
           <p>Attach it once. We’ll reuse its text when you start an application.</p>
           {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>

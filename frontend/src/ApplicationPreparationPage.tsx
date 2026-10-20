@@ -86,6 +86,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   useEffect(() => {
     const update = () => setForm(readApplicationForm(job.id, profile.id!))
     document.addEventListener('radius-form-updated', update); window.addEventListener('storage', update)
+    // A capture may arrive after the initial render but before we subscribe.
     update()
     return () => { document.removeEventListener('radius-form-updated', update); window.removeEventListener('storage', update) }
   }, [job.id, profile.id])

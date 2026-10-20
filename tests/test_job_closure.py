@@ -7,6 +7,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker, worker
+from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.models import Base, Company, Job, JobApplication, JobFeed, ScanRun, UserProfile, utcnow
 
 
@@ -32,8 +33,15 @@ class JobClosureTests(unittest.TestCase):
     def scan(self, path, jobs, *, complete=True, state='ok', status=200, body=None):
         if path == 'discovery':
             with self.factory.begin() as session:
-                return discovery_worker._upsert_jobs(
-                    session, session.get(JobFeed, self.feed_id), jobs, complete, self.now)[1]
+                _, touched_job_ids, closed_job_ids = discovery_worker._upsert_jobs(
+                    session, session.get(JobFeed, self.feed_id), jobs, complete, self.now)
+                if touched_job_ids:
+                    discovery_worker.refresh_application_matches_for_jobs(
+                        session, touched_job_ids,
+                        before_publish=(lambda publish_session: close_job_applications(
+                            publish_session, closed_job_ids, self.now)) if closed_job_ids else None,
+                    )
+                return touched_job_ids
         with self.factory.begin() as session:
             run = ScanRun(feed_id=self.feed_id, status='running')
             session.add(run)
