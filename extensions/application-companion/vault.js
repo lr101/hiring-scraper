@@ -189,7 +189,7 @@ export async function profileStamp(input) {
   delete profile.source_notes;
   const bytes = await crypto.subtle.digest(
     "SHA-256",
-    new TextEncoder().encode(JSON.stringify(profile)),
+    new TextEncoder().encode(stableJSON(profile)),
   );
   return [...new Uint8Array(bytes)]
     .map((b) => b.toString(16).padStart(2, "0"))

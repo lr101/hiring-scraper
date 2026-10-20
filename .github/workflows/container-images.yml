@@ -97,8 +97,9 @@ jobs:
       - name: Install PDF export runtime
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation
+          sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended
           libreoffice --version
+          lualatex --version
 
       - name: Check extension and build production frontend
         run: |

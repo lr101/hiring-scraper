@@ -80,11 +80,11 @@
         </header>
         <p class="notice">
           Connected profiles are synced from Radius, including contact details,
-          salary preferences and CV text. Edit your profile in Radius, then use
-          Sync here. The editor below is available for standalone use; connected
-          sync replaces these local values. When you choose Fill known details,
-          the selected application site receives those values. Review the draft
-          before submitting.
+          salary preferences and CV text. Edit and save your details and base
+          CVs here; connected saves also update Radius. The editor below is
+          available for standalone use; background sync keeps the saved profile
+          current. When you choose Fill known details, the selected application
+          site receives those values. Review the draft before submitting.
         </p>
         <p class="status" id="status" role="status" aria-live="polite"></p>
         <section class="section" aria-labelledby="contact-heading">
@@ -145,16 +145,6 @@
               >Postal code<input id="postal_code" autocomplete="postal-code"
             /></label>
           </div>
-        </section>
-        <section class="section" aria-labelledby="work-heading">
-          <h2 id="work-heading">Work experience</h2>
-          <p class="muted">
-            Keep employers, job titles, locations and original responsibilities
-            here. Enter known dates as YYYY or YYYY-MM. Tailored bullets are
-            connected separately for each application.
-          </p>
-          <div id="experiences"></div>
-          <button id="add" type="button">Add experience</button>
         </section>
         <section class="section" aria-labelledby="common-heading">
           <h2 id="common-heading">Common application answers</h2>
@@ -237,18 +227,54 @@
           </div>
         </section>
         <section class="section" aria-labelledby="sources-heading">
+          <button id="remove-base-cvs" type="button">
+            Remove saved base CVs
+          </button>
           <h2 id="sources-heading">Connect CV and ChatGPT result</h2>
           <p class="muted">
-            Paste extracted original CV text and the package or return link
+            Paste your marked base LaTeX CVs and the package or return link
             copied from the application-preparation workflow. No ChatGPT login
             is needed.
           </p>
           <label
-            >Original CV text<textarea
+            >Import English .tex file<input
+              id="cv-file-en"
+              type="file"
+              accept=".tex"
+          /></label>
+          <label
+            >Import German .tex file<input
+              id="cv-file-de"
+              type="file"
+              accept=".tex"
+          /></label>
+          <label
+            >English base LaTeX CV (.tex source)<textarea
               id="cv_text"
               maxlength="100000"
             ></textarea>
           </label>
+          <label
+            >German base LaTeX CV (.tex source)<textarea
+              id="cv-de"
+              maxlength="100000"
+            ></textarea>
+          </label>
+          <p class="muted">
+            Work and study history and responsibilities are extracted
+            automatically from the CV markers. Save both languages for automatic
+            selection.
+          </p>
+          <details>
+            <summary>Format my existing LaTeX CV with ChatGPT</summary>
+            <label
+              >Prompt to copy<textarea
+                id="cv-format-prompt"
+                readonly
+                rows="12"
+              ></textarea>
+            </label>
+          </details>
           <label
             >ChatGPT package or Radius return link<textarea
               id="package-input"

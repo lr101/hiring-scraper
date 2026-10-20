@@ -77,3 +77,18 @@ test('browser-local application CV text is imported from the connected Radius or
  try{const synced=await syncRadius({origin,profile_id:1});assert.equal(synced.applicant.cv_text,'Saved browser CV');assert.equal(synced.settings.cv_updated_at,'local-v1');}
  finally{delete globalThis.chrome;server.closeAllConnections();await new Promise(r=>server.close(r));}
 });
+
+test('LaTeX uploads send raw UTF-8 source rather than JSON-quoted text', async () => {
+ const source='\\documentclass{article}\nJosé & research'; let received=''; let type='';
+ const server=createServer(async (req,res)=>{for await(const part of req)received+=part;type=req.headers['content-type'];res.setHeader('Content-Type','application/json');res.end('{"saved":true}');});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ try{const {radiusRequest}=await import('../../extensions/application-companion/radius-client.js');await radiusRequest({origin:`http://127.0.0.1:${server.address().port}`},'/cv',{method:'PUT',body:source,contentType:'application/x-tex'});assert.equal(received,source);assert.equal(type,'application/x-tex');}
+ finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
+});
+
+test('document validation can read bounded TeX and handle empty successful deletion responses', async () => {
+ const server=createServer((req,res)=>{if(req.method==='DELETE'){res.writeHead(204);res.end();}else{res.setHeader('Content-Type','text/plain');res.end('\\begin{document}José\\end{document}');}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));
+ try{const {radiusRequest}=await import('../../extensions/application-companion/radius-client.js');const settings={origin:`http://127.0.0.1:${server.address().port}`};assert.equal(await radiusRequest(settings,'/tex',{responseType:'text'}),'\\begin{document}José\\end{document}');assert.equal(await radiusRequest(settings,'/cv',{method:'DELETE'}),null);}
+ finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
+});

@@ -258,6 +258,8 @@ def _save(profile, request, session):
     for key in NEW_PREFERENCES - request.model_fields_set:
         if key in previous:
             data[key] = previous[key]
+    if not data.get('application_details', {}).get('experiences'):
+        data.get('application_details', {}).pop('experiences', None)
     profile.preferences = data
     profile.updated_at = utcnow()
     preferences_changed = data != previous or profile.low_afd_vote_share_weight != previous_weight
@@ -292,13 +294,14 @@ def delete_profile(profile_id: int, session: Session = Depends(get_session)):
 
 def cv_metadata(cv):
     return None if cv is None else {'filename': cv.filename, 'content_type': cv.content_type,
-                                   'size_bytes': cv.size_bytes, 'updated_at': cv.updated_at.isoformat()}
+                                   'size_bytes': cv.size_bytes, 'updated_at': cv.updated_at.isoformat(),
+                                   'languages': {key: {'filename': value['filename']} for key, value in (cv.variants or {}).items()}}
 
 
-def store_profile_cv(session, profile_id, filename, data):
+def store_profile_cv(session, profile_id, filename, data, language='en'):
     extension = Path(filename).suffix.lower()
-    if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or extension not in TYPES:
-        raise HTTPException(422, 'Choose a PDF, DOCX, TXT or TEX file with a simple filename.')
+    if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or extension != '.tex' or language not in {'en', 'de'}:
+        raise HTTPException(422, 'Choose a LaTeX .tex CV with a simple filename and English or German language.')
     if len(data) > MAX_BYTES:
         raise HTTPException(413, 'CV files must be 5 MB or smaller.')
     if not data:
@@ -312,8 +315,17 @@ def store_profile_cv(session, profile_id, filename, data):
         raise HTTPException(422, 'Could not read this CV within the limit. Try a simpler PDF, DOCX, TXT or TEX.') from None
     if result.returncode or not parsed.get('text'):
         raise HTTPException(422, parsed.get('error') or 'Could not read this CV.')
+    from hiring_scraper.app.tex_cv import parse_tex_cv, history_facts
+    try:
+        history = parse_tex_cv(parsed['text'])
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from None
     profile = require_profile(profile_id, session)
     cv = profile.cv or ProfileCV(profile=profile)
+    for other_language, variant in (cv.variants or {}).items():
+        if other_language != language and history_facts(history) != history_facts(parse_tex_cv(variant['text'])):
+            raise HTTPException(422, 'English and German CVs must use the same history IDs, employers and dates. To change history facts, remove both base CVs and upload the updated pair.')
+    cv.variants = {**(cv.variants or {}), language: {'filename': filename, 'text': parsed['text']}}
     cv.filename, cv.content_type, cv.size_bytes = filename, TYPES[extension], len(data)
     cv.data, cv.extracted_text, cv.updated_at = data, parsed['text'], utcnow()
     session.add(cv)
@@ -323,13 +335,13 @@ def store_profile_cv(session, profile_id, filename, data):
 
 @router.put('/{profile_id}/cv')
 async def upload_cv(profile_id: int, request: Request, filename: str = Query(..., min_length=1, max_length=200),
-                    session: Session = Depends(get_session)):
+                    session: Session = Depends(get_session), language: Literal['en', 'de'] = 'en'):
     data = bytearray()
     async for chunk in request.stream():
         if len(data) + len(chunk) > MAX_BYTES:
             raise HTTPException(413, 'CV files must be 5 MB or smaller.')
         data.extend(chunk)
-    return await run_in_threadpool(store_profile_cv, session, profile_id, filename, bytes(data))
+    return await run_in_threadpool(store_profile_cv, session, profile_id, filename, bytes(data), language)
 
 
 def require_cv(profile_id, session):
@@ -341,14 +353,29 @@ def require_cv(profile_id, session):
 
 
 @router.get('/{profile_id}/cv/text')
-def cv_text(profile_id: int, session: Session = Depends(get_session)):
+def cv_text(profile_id: int, session: Session = Depends(get_session), language: Literal['en', 'de'] | None = None):
     cv = require_cv(profile_id, session)
-    return JSONResponse({'text': cv.extracted_text, 'filename': cv.filename}, headers={'Cache-Control': 'no-store'})
+    variants = cv.variants or {}
+    if language and language not in variants:
+        raise HTTPException(422, f'Attach the {"English" if language == "en" else "German"} base LaTeX CV first.')
+    selected = variants.get(language) if language else variants.get('en') or variants.get('de')
+    text = selected['text'] if selected else cv.extracted_text
+    from hiring_scraper.app.tex_cv import parse_tex_cv
+    history = parse_tex_cv(text) if selected else {'experiences': [], 'education': []}
+    return JSONResponse({'text': text, 'filename': selected['filename'] if selected else cv.filename,
+                         'variants': variants, **history}, headers={'Cache-Control': 'no-store'})
 
 
 @router.get('/{profile_id}/cv')
-def download_cv(profile_id: int, session: Session = Depends(get_session)):
+def download_cv(profile_id: int, session: Session = Depends(get_session), language: Literal['en', 'de'] | None = None):
     cv = require_cv(profile_id, session)
+    if language:
+        selected = (cv.variants or {}).get(language)
+        if not selected:
+            raise HTTPException(422, 'Attach the requested base LaTeX CV first.')
+        return Response(selected['text'].encode('utf-8'), media_type='application/x-tex', headers={
+            'Content-Disposition': f'attachment; filename="cv-{language}.tex"', 'Cache-Control': 'no-store',
+            'X-Content-Type-Options': 'nosniff'})
     return Response(cv.data, media_type=cv.content_type, headers={
         'Content-Disposition': f"attachment; filename=\"cv{Path(cv.filename).suffix.lower()}\"; filename*=UTF-8''{quote(cv.filename, safe='')}",
         'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})

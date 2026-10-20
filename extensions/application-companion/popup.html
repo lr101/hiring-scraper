@@ -29,12 +29,76 @@
         <span class="profile-dot" aria-hidden="true"></span>
       </div>
       <p id="site-status" class="notice" hidden></p>
+      <div class="page-context">
+        <p id="page-name">Checking this page…</p>
+        <small id="scope"></small>
+      </div>
+      <button id="fill" class="primary" type="button" disabled>
+        Fill known details
+      </button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <section id="result" hidden aria-label="Fill result">
+        <strong id="result-summary"></strong>
+        <p id="result-error" class="status error"></p>
+        <h2>Could not fill</h2>
+        <ul id="remaining"></ul>
+        <details>
+          <summary>All detected fields</summary>
+          <ul id="field-results"></ul>
+        </details>
+      </section>
       <section id="jobs-section" hidden aria-labelledby="jobs-heading">
         <div class="section-heading">
-          <h1 id="jobs-heading">On this page</h1>
+          <h1 id="jobs-heading">Your current job</h1>
           <small id="jobs-caption"></small>
         </div>
+        <select
+          id="current-job-picker"
+          aria-label="Choose the current job"
+          hidden
+        ></select>
         <div id="job-entries"></div>
+      </section>
+      <section id="application-tools" hidden aria-label="Application tools">
+        <label
+          >Application language<select id="brief-language">
+            <option value="auto">Match the job</option>
+            <option value="en">English</option>
+            <option value="de">German</option>
+          </select></label
+        >
+        <details id="prepare-details" hidden>
+          <summary>Application brief</summary>
+          <textarea
+            id="prepared-prompt"
+            aria-label="Prepared application prompt"
+            readonly
+            rows="6"
+          ></textarea
+          ><button type="button" id="copy-brief">Copy brief</button
+          ><a
+            href="https://chatgpt.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Open ChatGPT</a
+          >
+        </details>
+        <details>
+          <summary>Import ChatGPT result</summary>
+          <label
+            >Import result file<input
+              id="result-file"
+              type="file"
+              accept=".json,application/json" /></label
+          ><label
+            >Or paste the package or return link<textarea
+              id="result-input"
+              maxlength="300000"
+              rows="4"
+            ></textarea></label
+          ><button id="use-result" type="button">Use returned result</button>
+        </details>
+        <div id="download-actions" class="entry-links" hidden></div>
       </section>
       <section
         id="continue-section"
@@ -45,7 +109,7 @@
         <div id="continue-entry"></div>
       </section>
       <details id="job-search" hidden>
-        <summary>Link a discovered job</summary>
+        <summary>Link this page to a job</summary>
         <label
           >Find your role<input
             id="job-query"
@@ -117,24 +181,6 @@
           Connect once to see discovered roles and prepared CVs as you browse.
         </p>
       </div>
-      <div class="page-context">
-        <p id="page-name">Checking this page…</p>
-        <small id="scope"></small>
-      </div>
-      <button id="fill" class="primary" type="button" disabled>
-        Fill known details
-      </button>
-      <p class="status" id="status" role="status" aria-live="polite"></p>
-      <section id="result" hidden aria-label="Fill result">
-        <strong id="result-summary"></strong>
-        <p id="result-error" class="status error"></p>
-        <h2>Could not fill</h2>
-        <ul id="remaining"></ul>
-        <details>
-          <summary>All detected fields</summary>
-          <ul id="field-results"></ul>
-        </details>
-      </section>
       <footer class="actions">
         <button id="edit" class="text-button" type="button">Edit profile</button
         ><small>Review before submitting</small>

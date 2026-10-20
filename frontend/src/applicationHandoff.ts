@@ -1,3 +1,4 @@
+import { parseTexCV, validateTailoredCV } from '../../extensions/application-companion/tex-cv.js'
 import type { Profile } from './profile'
 import { applicationReturnInstructions } from './applicationReturnPrompt.ts'
 import { validateFormAnswers } from './applicationForm.ts'
@@ -26,7 +27,7 @@ export function assertFinishedText(text: string) {
   }
 }
 
-export function parseApplicationPackage(input: string, context: ApplicationContext, paragraphs?: TemplateParagraph[], form?: ApplicationForm) {
+export function parseApplicationPackage(input: string, context: ApplicationContext, paragraphs?: TemplateParagraph[], form?: ApplicationForm, originalCV?: string) {
   if (input.length > 200000) throw new Error('This application package is too large. Import a result under 200 KB.')
   let text = input.replace(/^\uFEFF/, '').trim()
   const blocks = [...text.matchAll(/^```json\s*\n([\s\S]*?)\n```\s*$/gm)]
@@ -48,6 +49,7 @@ export function parseApplicationPackage(input: string, context: ApplicationConte
   if (paragraphs) assertFinishedText(paragraphs.map(row => changes.find(change => change.id === row.id)?.text ?? row.text).join('\n'))
   const formAnswers = validateFormAnswers(result.form_answers, form)
   const latexDocuments = validateLatexDocuments(result.latex_documents)
+  if (originalCV?.includes('% radius:entry ')) validateTailoredCV(originalCV, latexDocuments?.cv)
   if (latexDocuments) Object.values(latexDocuments).forEach(assertFinishedText)
   if (formAnswers) formAnswers.answers.forEach(answer => assertFinishedText(answer.value))
   return { documents, changes, ...(formAnswers ? { formAnswers } : {}), ...(latexDocuments ? { latexDocuments } : {}) }
@@ -168,7 +170,7 @@ export function applicationProfileContext(profile?: Partial<Profile> | null) {
     experience_years: profile.experience_years, desired_roles: profile.desired_roles, secondary_roles: profile.secondary_roles,
     work_styles: profile.work_styles, employment_types: profile.employment_types,
     search_area: profile.search_area, excluded_terms: profile.excluded_terms,
-    application_details: profile.application_details, application_personalization: profile.application_personalization,
+    application_details: profile.application_details ? { ...profile.application_details, experiences: undefined } : undefined, application_personalization: profile.application_personalization,
   } : null
 }
 
@@ -257,6 +259,7 @@ ${JSON.stringify({
       active: job.is_active, expired: job.expired, closing_date: job.valid_through,
       description: job.description ? jobText(job.description) : 'Job description is not available. Check the job URL if possible; otherwise tailor from the available role and employer details without follow-up questions.' },
     supporting_profile: context, original_cv_text: cvText.trim() || null,
+    ...(cvText.includes('% radius:entry ') ? { cv_history: parseTexCV(cvText) } : {}),
     ...(form ? {application_form:form} : {}),
     cv_template_paragraphs: templateParagraphs?.map(row => ({ ...row, max_characters: Math.max(row.text.length, 60) })),
   }, null, 2)}`

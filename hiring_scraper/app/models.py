@@ -312,6 +312,7 @@ class ProfileCV(Base):
     content_type: Mapped[str] = mapped_column(String(100), nullable=False)
     size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
     data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    variants: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict, server_default=text("'{}'"))
     extracted_text: Mapped[str] = mapped_column(Text, nullable=False, deferred=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     profile: Mapped[UserProfile] = relationship(back_populates="cv")

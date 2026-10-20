@@ -1,3 +1,4 @@
+import { currentJob } from "./current-job.js";
 import { validateProfile } from "./profile.js";
 import { transientURL, urlKey } from "./vault.js";
 const button = document.querySelector("#fill"),
@@ -103,7 +104,9 @@ function entry(item, continuation = false) {
   links.className = "entry-links";
   const prepare = async () => {
     if (!exact) await request("use-page", { jobId: job.id });
-    await request("prepare-job", { jobId: job.id });
+    selectedJob = job.id;
+    await refreshCurrent();
+    await prepareInline(job.id);
   };
   const use = async () => {
     await request("use-page", { jobId: job.id });
@@ -165,9 +168,11 @@ function entry(item, continuation = false) {
       );
     if (ready)
       links.append(
-        action("View documents", () =>
-          request("prepare-job", { jobId: job.id }),
-        ),
+        action("View documents", async () => {
+          selectedJob = job.id;
+          document.querySelector("#application-tools").hidden = false;
+          document.querySelector("#download-actions").hidden = false;
+        }),
       );
     if (
       exact &&
@@ -176,8 +181,12 @@ function entry(item, continuation = false) {
     )
       links.append(
         action("Prepare from these questions", async () => {
-          const result = await request("scan-form", { jobId: job.id });
+          const result = await request("scan-form", {
+            jobId: job.id,
+            openRadius: false,
+          });
           status.textContent = result.message;
+          await prepareInline(job.id);
         }),
       );
     if (exact && ready && info.supported)
@@ -221,14 +230,8 @@ async function fill() {
   }
 }
 button.onclick = fill;
-document.querySelector("#edit").onclick = async () => {
-  const catalog = await request("overview");
-  if (catalog.settings?.profile_id) {
-    await chrome.tabs.create({
-      url: `${catalog.settings.origin}/profile/${catalog.settings.profile_id}/edit`,
-    });
-  } else chrome.runtime.openOptionsPage();
-};
+document.querySelector("#edit").onclick = () =>
+  chrome.runtime.openOptionsPage();
 document.querySelector("#connection").onclick = () =>
   chrome.tabs.create({
     url: chrome.runtime.getURL("options.html#radius-connection"),
@@ -306,6 +309,131 @@ addForm.onsubmit = async (event) => {
     addSubmit.disabled = false;
   }
 };
+function renderCurrentJob() {
+  const catalog = info?.catalog;
+  const item = currentJob(catalog, selectedJob);
+  const exact = (catalog?.items || []).filter((item) => item.exact);
+  const picker = document.querySelector("#current-job-picker");
+  picker.hidden = exact.length < 2;
+  picker.replaceChildren(
+    new Option("Choose the current role", ""),
+    ...exact.map((item) => new Option(item.job.title, String(item.job.id))),
+  );
+  picker.value = item ? String(item.job.id) : "";
+  document.querySelector("#jobs-section").hidden = !item && exact.length < 2;
+  document.querySelector("#jobs-caption").textContent = item
+    ? "Current job"
+    : "Choose the intended role";
+  document
+    .querySelector("#job-entries")
+    .replaceChildren(...(item ? [entry(item)] : []));
+  document.querySelector("#application-tools").hidden = !item;
+  document.querySelector("#download-actions").hidden = !item?.ready;
+  document.querySelector("#job-search").hidden = !catalog?.connected || !!item;
+  document.querySelector("#add-to-radius").hidden =
+    !catalog?.connected || !!item;
+  const brief = info?.brief?.job_id === item?.job.id ? info.brief : null;
+  document.querySelector("#prepared-prompt").value = brief?.prompt ?? "";
+  document.querySelector("#prepare-details").hidden = !brief;
+  if (brief) document.querySelector("#brief-language").value = brief.language;
+  if (item) selectedJob = item.job.id;
+}
+async function refreshCurrent() {
+  info = await request("inspect");
+  renderCurrentJob();
+}
+async function copyBrief() {
+  const field = document.querySelector("#prepared-prompt");
+  try {
+    await navigator.clipboard.writeText(field.value);
+    return true;
+  } catch {
+    field.focus();
+    field.select();
+    try {
+      return document.execCommand("copy");
+    } catch {
+      return false;
+    }
+  }
+}
+async function prepareInline(jobId) {
+  status.classList.remove("error");
+  status.textContent = "Preparing the current job brief…";
+  const result = await request("prepare-current-job", {
+    jobId,
+    language: document.querySelector("#brief-language").value,
+  });
+  document.querySelector("#prepared-prompt").value = result.prompt;
+  document.querySelector("#prepare-details").hidden = false;
+  const copied = await copyBrief();
+  await chrome.tabs.create({ url: result.chatgpt_url });
+  status.textContent = copied
+    ? "Brief copied. Paste it into ChatGPT, then import its result here."
+    : "ChatGPT opened. Copy the brief below manually, then paste it there.";
+  if (!copied) document.querySelector("#prepare-details").open = true;
+}
+document.querySelector("#current-job-picker").onchange = (event) => {
+  selectedJob = Number(event.target.value) || null;
+  renderCurrentJob();
+  button.disabled = !selectedJob || !info.supported;
+};
+document.querySelector("#copy-brief").onclick = async () => {
+  status.textContent = (await copyBrief())
+    ? "Brief copied."
+    : "Select and copy the brief manually.";
+};
+async function importResult(input) {
+  status.classList.remove("error");
+  status.textContent = "Connecting the returned documents…";
+  try {
+    const result = await request("import-current-result", {
+      jobId: selectedJob,
+      input,
+    });
+    await refreshCurrent();
+    status.textContent = result.message;
+  } catch (error) {
+    message(error);
+  }
+}
+document.querySelector("#use-result").onclick = () =>
+  importResult(document.querySelector("#result-input").value);
+document.querySelector("#result-file").onchange = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 300000) {
+    message(new Error("Choose an application package under 300 KB."));
+    return;
+  }
+  await importResult(await file.text());
+  event.target.value = "";
+};
+for (const kind of ["cv", "cover_letter"])
+  for (const format of ["latex_pdf", "tex"]) {
+    const label = `Download ${kind === "cv" ? "CV" : "letter"} ${format === "tex" ? "source" : "PDF"}`;
+    document.querySelector("#download-actions").append(
+      action(label, async () => {
+        const result = await request("download-current-document", {
+          jobId: selectedJob,
+          kind,
+          format,
+        });
+        const content =
+          result.source ??
+          Uint8Array.from(atob(result.base64), (char) => char.charCodeAt(0));
+        const url = URL.createObjectURL(
+          new Blob([content], { type: result.type }),
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = result.filename;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      }),
+    );
+  }
+
 try {
   const { applicant } = await chrome.storage.local.get("applicant"),
     profile = applicant ? validateProfile(applicant) : null;
@@ -326,10 +454,10 @@ try {
     ? "Connection"
     : "Connect Radius";
   document.querySelector("#not-connected").hidden = !!catalog?.connected;
-  document.querySelector("#job-search").hidden = !catalog?.connected;
+  document.querySelector("#job-search").hidden =
+    !catalog?.connected || !!currentJob(catalog);
   document.querySelector("#add-to-radius").hidden = !catalog?.connected;
-  document.querySelector("#add-to-radius").open =
-    !!catalog?.connected && !catalog?.items?.length;
+  document.querySelector("#add-to-radius").open = false;
   const profilePicker = document.querySelector("#add-job-profile"),
     profilePlaceholder = document.createElement("option");
   profilePlaceholder.value = "";
@@ -375,43 +503,9 @@ try {
       }
     }, 200);
   };
-  const siteStatus = document.querySelector("#site-status");
-  if (catalog?.site) {
-    siteStatus.hidden = false;
-    siteStatus.textContent = `${catalog.site.job_count} jobs · ${catalog.site.feeds.length} career feeds found for this company`;
-    for (const feed of catalog.site.feeds) {
-      try {
-        const url = new URL(feed.url);
-        if (!["https:", "http:"].includes(url.protocol)) continue;
-        const link = document.createElement("a");
-        link.href = url.href;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = `Career feed · ${feed.status}`;
-        siteStatus.append(document.createElement("br"), link);
-      } catch {
-        /* Ignore malformed feed links. */
-      }
-    }
-  }
-  const items = catalog?.items || [];
-  if (items.length) {
-    document.querySelector("#jobs-section").hidden = false;
-    document.querySelector("#jobs-caption").textContent = items.some(
-      (i) => i.exact,
-    )
-      ? `${items.length} matching ${items.length === 1 ? "role" : "roles"}`
-      : "Other roles on this site";
-    document
-      .querySelector("#job-entries")
-      .replaceChildren(...items.map((i) => entry(i)));
-  }
-  if (catalog?.continuation) {
-    document.querySelector("#continue-section").hidden = false;
-    document
-      .querySelector("#continue-entry")
-      .replaceChildren(entry(catalog.continuation, true));
-  }
+  selectedJob = currentJob(catalog)?.job.id ?? null;
+  renderCurrentJob();
+  const items = (catalog?.items || []).filter((item) => item.exact);
   button.textContent =
     mode === "import"
       ? "Connect ChatGPT result"
@@ -428,9 +522,20 @@ try {
     !info.supported && items.some((i) => i.exact)
       ? items.some((i) => i.exact && i.ready)
         ? "Your CV is ready. Open the employer application to fill your details."
-        : "Prepare your application with the original CV saved in Radius."
+        : "Prepare directly with ChatGPT using your saved base CV."
       : info.scope || info.reason;
   if (info.lastReport) showReport(info.lastReport);
+  if (
+    catalog?.connected &&
+    Date.now() - (catalog.synced_at || 0) > 10 * 60000
+  ) {
+    void request("refresh-radius")
+      .then(() => refreshCurrent())
+      .catch(() => {
+        document.querySelector("#connection").textContent =
+          "Offline · settings";
+      });
+  }
   if (!profile) status.textContent = "Choose Edit profile to add your details.";
   else if (catalog?.connected && !catalog.settings?.profile_id)
     status.textContent =

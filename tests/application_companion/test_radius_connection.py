@@ -34,14 +34,12 @@ class RadiusConnectionTests(ExtensionHarness):
    if text==want:return
    self.page.wait_for_timeout(40)
   self.assertEqual(text,want)
- def test_real_http_connection_and_automatic_return_to_apply_round_trip(self):
-  self.connect();self.page.goto(LISTING);self.badge(LISTING,'•');popup=self.popup();popup.get_by_role('button',name='Prepare with ChatGPT',exact=True).click()
-  end=time.monotonic()+5;preparation=None
-  while time.monotonic()<end:
-   preparation=next((p for p in self.context.pages if p.url.startswith(self.origin+'/jobs/1574/apply')),None)
-   if preparation:break
-   self.page.wait_for_timeout(40)
-  self.assertIsNotNone(preparation);preparation.get_by_role('button',name='Use simulated ChatGPT return').click()
+ def test_legacy_http_connection_and_automatic_return_to_apply_round_trip(self):
+  # Existing stored DOCX CVs still support the Radius draft/return bridge. The
+  # production current-job tests cover new direct ChatGPT preparation with TeX.
+  self.connect();self.page.goto(LISTING);self.badge(LISTING,'•');popup=self.popup()
+  preparation=self.context.new_page();preparation.goto(self.origin+'/jobs/1574/apply?profile_id=1')
+  preparation.get_by_role('button',name='Use simulated ChatGPT return').click()
   self.badge(LISTING,'1')
   popup.close();self.page.bring_to_front();popup=self.popup();expect(popup.locator('#job-entries')).to_contain_text('CV prepared')
   with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
@@ -67,7 +65,7 @@ class RadiusConnectionTests(ExtensionHarness):
   self.connect();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
   options.locator('#package-input').fill(json.dumps(package(1574,'cv1')));options.locator('#application_url').fill(ATS)
   options.get_by_role('button',name='Connect sources',exact=True).click();expect(options.locator('#source-notes')).to_contain_text('Radius job 1574')
-  options.get_by_role('button',name='Save profile',exact=True).click();expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
+  options.get_by_role('button',name='Save profile',exact=True).click();expect(options.locator('#status')).to_have_text('Profile saved and synced with Radius.')
   self.page.goto(ATS);self.badge(ATS,'1')
  def test_capture_cannot_roll_back_a_concurrently_updated_cv_version(self):
   from threading import Event

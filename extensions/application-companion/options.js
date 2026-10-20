@@ -1,3 +1,5 @@
+import { parseTexCV } from "./tex-cv.js";
+import { cvFormattingPrompt } from "./tex-cv-prompt.js";
 import { emptyProfile, validateProfile } from "./profile.js";
 import { readPackage, connectSources, bulletPrompt } from "./sources.js";
 
@@ -33,64 +35,13 @@ const preferenceBool = [
 ];
 let pendingPackage = null;
 let linked = validateProfile(emptyProfile());
-const container = document.querySelector("#experiences");
+document.querySelector("#cv-format-prompt").value = cvFormattingPrompt;
 const status = (message, error = false, target = "status") => {
   const el = document.getElementById(target);
   el.textContent = message;
   el.classList.toggle("error", error);
 };
 
-function addExperience(entry = {}) {
-  if (container.children.length >= 20) {
-    status("Use at most 20 work experiences.", true);
-    return;
-  }
-  const row = document.createElement("fieldset");
-  row.dataset.id = entry.id || crypto.randomUUID();
-  // Only fixed markup is parsed. Applicant values are assigned through .value.
-  row.innerHTML = `<legend></legend><div class="grid">
-    <label>Company<input data-key="company" required maxlength="300"></label>
-    <label>Job title<input data-key="title" required maxlength="300"></label>
-    <label class="wide">Location<input data-key="location" maxlength="300" placeholder="City, country or Remote"></label>
-    <label class="wide">Original responsibilities<textarea data-key="description" maxlength="10000"></textarea></label>
-    <label>Start year or month<input data-key="start" required pattern="[1-9][0-9]{3}(-[0-9]{2})?" placeholder="YYYY or YYYY-MM"></label>
-    <label>End year or month<input data-key="end" required pattern="[1-9][0-9]{3}(-[0-9]{2})?" placeholder="YYYY or YYYY-MM"></label>
-    <label class="wide">CV bullet paragraph IDs (optional)<input data-key="cv_bullet_ids" placeholder="For existing CV edits, e.g. 12, 13, 14"></label></div><label class="check"><input data-key="current" type="checkbox">I currently work here</label><button class="remove" type="button">Remove experience</button>`;
-  for (const key of [
-    "company",
-    "title",
-    "location",
-    "description",
-    "start",
-    "end",
-  ])
-    row.querySelector(`[data-key="${key}"]`).value = entry[key] || "";
-  row.querySelector("[data-key=cv_bullet_ids]").value = (
-    entry.cv_bullet_ids || []
-  ).join(", ");
-  const current = row.querySelector('[data-key="current"]');
-  current.checked = entry.current || false;
-  const toggle = () => {
-    row.querySelector('[data-key="end"]').disabled = current.checked;
-  };
-  current.addEventListener("change", toggle);
-  toggle();
-  row.querySelector(".remove").onclick = () => {
-    row.remove();
-    renumber();
-    status("Experience removed from editor. Save to keep the change.");
-  };
-  container.append(row);
-  renumber();
-}
-function renumber() {
-  [...container.children].forEach((row, index) => {
-    row.querySelector("legend").textContent = `Experience ${index + 1}`;
-    row
-      .querySelector(".remove")
-      .setAttribute("aria-label", `Remove experience ${index + 1}`);
-  });
-}
 function render(profile, keepPackage = false) {
   if (!keepPackage) pendingPackage = null;
   linked = validateProfile(profile);
@@ -107,9 +58,14 @@ function render(profile, keepPackage = false) {
           ? ""
           : String(linked.preferences[key])),
   );
-  container.replaceChildren();
-  linked.experiences.forEach(addExperience);
-  document.querySelector("#cv_text").value = linked.cv_text;
+
+  document.querySelector("#cv_text").value =
+    linked.base_cvs.en ||
+    (Object.keys(linked.base_cvs).length ||
+    !linked.cv_text.includes("% radius:entry ")
+      ? ""
+      : linked.cv_text);
+  document.querySelector("#cv-de").value = linked.base_cvs.de || "";
   document.querySelector("#application_url").value = linked.application.url;
   document.querySelector("#application_answers").value =
     linked.application.application_answers;
@@ -141,21 +97,13 @@ function readEditor() {
   const data = Object.fromEntries(
     keys.map((key) => [key, document.getElementById(key).value]),
   );
-  data.experiences = [...container.children].map((row) => {
-    const entry = Object.fromEntries(
-      ["company", "title", "location", "description", "start", "end"].map(
-        (key) => [key, row.querySelector(`[data-key="${key}"]`).value],
-      ),
-    );
-    entry.id = row.dataset.id;
-    const ids = row.querySelector("[data-key=cv_bullet_ids]").value.trim();
-    if (ids && !/^\d+(?:\s*,\s*\d+)*$/.test(ids))
-      throw new Error("Use comma-separated numeric CV bullet paragraph IDs.");
-    entry.cv_bullet_ids = ids ? ids.split(",").map(Number) : [];
-    entry.current = row.querySelector('[data-key="current"]').checked;
-    if (entry.current) entry.end = null;
-    return entry;
-  });
+  const english = document.querySelector("#cv_text").value.trim();
+  const german = document.querySelector("#cv-de").value.trim();
+  data.base_cvs = {
+    ...(english ? { en: english } : {}),
+    ...(german ? { de: german } : {}),
+  };
+  data.experiences = linked.experiences;
   data.preferences = Object.fromEntries(
     preferenceText.map((key) => [key, document.getElementById(key).value]),
   );
@@ -166,7 +114,7 @@ function readEditor() {
   const next = validateProfile({
     ...linked,
     ...data,
-    cv_text: document.querySelector("#cv_text").value,
+    cv_text: english || german || linked.cv_text,
     application: {
       ...linked.application,
       url: document.querySelector("#application_url").value,
@@ -185,6 +133,7 @@ function readEditor() {
       profile.preferences,
       profile.experiences,
       profile.cv_text,
+      profile.base_cvs,
     ]);
   if (
     (linked.application.url &&
@@ -252,12 +201,24 @@ document.querySelector("#profile-form").onsubmit = async (event) => {
     // Connected mode keeps application documents only in the validated per-job
     // vault. Reusable facts are saved even if an import fails; stale documents
     // never enter the standalone profile as a side effect of a failed import.
-    const saved = state?.result?.connected
-      ? validateProfile({ ...applicant, application: {} })
-      : applicant;
-    await chrome.storage.local.set({ applicant: saved });
-    render(saved);
-    status("Profile saved in this browser.");
+    let saved = applicant;
+    if (state?.result?.connected) {
+      const response = await chrome.runtime.sendMessage({
+        type: "save-connected-applicant",
+        applicant,
+      });
+      if (!response?.ok)
+        throw new Error(
+          response?.error || "Could not save the connected profile.",
+        );
+      saved = response.result.applicant;
+      render(saved);
+      status("Profile saved and synced with Radius.");
+    } else {
+      await chrome.storage.local.set({ applicant: saved });
+      render(saved);
+      status("Profile saved in this browser.");
+    }
     if (pack && state?.result?.connected) {
       const response = await chrome.runtime.sendMessage({
         type: "import-package",
@@ -277,10 +238,6 @@ document.querySelector("#profile-form").onsubmit = async (event) => {
   } catch (error) {
     status(error.message, true);
   }
-};
-document.querySelector("#add").onclick = () => {
-  addExperience();
-  container.lastElementChild?.querySelector("input").focus();
 };
 document.querySelector("#example").onclick = async () => {
   try {
@@ -396,3 +353,53 @@ try {
     true,
   );
 }
+
+for (const [language, target] of [
+  ["en", "#cv_text"],
+  ["de", "#cv-de"],
+]) {
+  document.querySelector(`#cv-file-${language}`).onchange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    try {
+      if (!/\.tex$/i.test(file.name) || file.size > 100000)
+        throw new Error("Choose a .tex CV under 100,000 bytes.");
+      const source = await file.text();
+      parseTexCV(source);
+      document.querySelector(target).value = source;
+      status("LaTeX source loaded. Save profile to use it.");
+    } catch (error) {
+      status(error.message, true);
+    }
+    event.target.value = "";
+  };
+}
+
+document.querySelector("#remove-base-cvs").onclick = async () => {
+  if (!confirm("Remove both saved English and German base CVs?")) return;
+  try {
+    const state = await chrome.runtime.sendMessage({ type: "overview" });
+    if (state?.result?.connected) {
+      const response = await chrome.runtime.sendMessage({
+        type: "remove-connected-cvs",
+      });
+      if (!response?.ok)
+        throw new Error(response?.error || "Could not remove the base CVs.");
+      render(response.result.applicant);
+    } else {
+      const next = validateProfile({
+        ...linked,
+        base_cvs: {},
+        cv_text: "",
+        experiences: [],
+        education: [],
+        application: {},
+      });
+      await chrome.storage.local.set({ applicant: next });
+      render(next);
+    }
+    status("Base CVs removed. Other saved profile details were preserved.");
+  } catch (error) {
+    status(error.message, true);
+  }
+};

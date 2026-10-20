@@ -12,6 +12,9 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- English and German LaTeX base CVs with marked work and study history extraction, starter templates, and automatic application-language selection. New CV uploads require `.tex`; PostgreSQL deployments apply migration `0031_cv_languages` during startup.
+- Current-job application preparation in the extension: fill details first, open ChatGPT with a copied brief, import results, and download validated LaTeX/PDF documents while Radius syncs in the background.
+
 - Reusable career evidence, writing samples, goals and working preferences, with a separate ChatGPT job-fit brief.
 - LaTeX CV uploads and Canvas source return links, with editable `.tex` and LuaLaTeX PDF downloads for application documents.
 - Agentur für Arbeit scheduled scans in the current and upcoming search lists, with Germany ranked-check cadence, due, overdue, and unscheduled counts.

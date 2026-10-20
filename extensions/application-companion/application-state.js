@@ -1,3 +1,5 @@
+import { currentJob, buildCurrentJobPrompt } from "./current-job.js";
+import { selectCVLanguage } from "./tex-cv.js";
 import {
   emptyVault,
   normalizeJob,
@@ -468,7 +470,12 @@ export async function prepareJob(jobId) {
   await chrome.tabs.create({ url: applicationURL(vault, jobId) });
 }
 
-export async function captureQuestions(tabId, requestedJobId, documentId) {
+export async function captureQuestions(
+  tabId,
+  requestedJobId,
+  documentId,
+  openRadius = true,
+) {
   const tab = await chrome.tabs.get(tabId),
     state = await pageState(tabId, tab.url);
   const exact = state.items.filter(
@@ -517,7 +524,7 @@ export async function captureQuestions(tabId, requestedJobId, documentId) {
     for (const key of keys.slice(20)) delete forms[key];
     return { ...current, forms };
   });
-  await prepareJob(form.job_id);
+  if (openRadius) await prepareJob(form.job_id);
   return {
     message: `${form.fields.length} questions captured. Your Radius brief will include this application step.`,
   };
@@ -581,12 +588,9 @@ export async function fillProfile(tabId, url, jobId, base) {
         experience_bullets: [],
       },
     };
-  if (
-    vault.settings?.cv_storage === "browser" &&
-    (await currentCV(vault.settings)) !== saved.cv_updated_at
-  ) {
+  if ((await currentCV(vault.settings)) !== saved.cv_updated_at) {
     throw new Error(
-      "The original CV changed or its Radius tab is closed. Open Radius and prepare a current package.",
+      "The original CV changed or is unavailable. Prepare a current package before filling tailored details.",
     );
   }
   const guard = !persistableURL(url) ? await sessionGet(`page:${tabId}`) : null;
@@ -647,7 +651,7 @@ export async function attachPreparedDocuments(tabId, documentId, jobId) {
       .split(",")
       .map((value) => value.trim())
       .filter(Boolean);
-    const format = ["pdf", "docx"].find(
+    const format = (kind === "cv" ? ["pdf"] : ["pdf", "docx"]).find(
       (format) =>
         !accepts.length ||
         accepts.some((value) =>
@@ -657,7 +661,7 @@ export async function attachPreparedDocuments(tabId, documentId, jobId) {
     if (!format) continue;
     const document = await radiusRequest(
       vault.settings,
-      `/api/v1/profiles/${saved.profile_id}/application-document?kind=${kind}&format=${format}`,
+      `/api/v1/profiles/${saved.profile_id}/application-document?kind=${kind}&format=${kind === "cv" ? "latex_pdf" : format}`,
       {
         method: "POST",
         responseType: "bytes",
@@ -666,6 +670,9 @@ export async function attachPreparedDocuments(tabId, documentId, jobId) {
           cv_updated_at: saved.cv_updated_at,
           cv: saved.package.cv,
           cover_letter: saved.package.cover_letter,
+          ...(saved.package.latex_documents
+            ? { latex_documents: saved.package.latex_documents }
+            : {}),
         },
       },
     );
@@ -797,6 +804,41 @@ async function storePreparedPackage(pack, cvText, url = "") {
     pack,
     "",
   );
+  if (pack.latex_documents !== undefined) {
+    const sources = pack.latex_documents;
+    if (
+      !sources ||
+      typeof sources !== "object" ||
+      Array.isArray(sources) ||
+      Object.entries(sources).some(
+        ([key, value]) =>
+          !["cv", "cover_letter"].includes(key) ||
+          typeof value !== "string" ||
+          !value.trim() ||
+          value.length > 100000,
+      )
+    )
+      throw new Error("Invalid LaTeX documents in the returned package.");
+    await Promise.all(
+      Object.keys(sources).map((kind) =>
+        radiusRequest(
+          settings,
+          `/api/v1/profiles/${pack.profile_id}/application-document?kind=${kind}&format=tex`,
+          {
+            method: "POST",
+            responseType: "text",
+            body: {
+              job_id: pack.job_id,
+              cv_updated_at: pack.cv_updated_at,
+              cv: pack.cv,
+              cover_letter: pack.cover_letter,
+              latex_documents: sources,
+            },
+          },
+        ),
+      ),
+    );
+  }
   const stamp = await profileStamp(base);
   const previous = vault.packages?.[`${pack.job_id}:${pack.profile_id}`];
   if (
@@ -1240,6 +1282,7 @@ export function installNavigation() {
       `page:${id}`,
       journeyKey(id),
       `report:${id}`,
+      `brief:${id}`,
     ]);
   });
   chrome.storage.onChanged.addListener((changes, area) => {
@@ -1251,4 +1294,220 @@ export function installNavigation() {
   });
   void refreshAllBadges();
   void attachRadiusTabs();
+}
+
+// Extension-owned preparation keeps the employer tab in place.
+export async function prepareCurrentJob(
+  tabId,
+  jobId,
+  requestedLanguage = "auto",
+  refreshed = false,
+) {
+  const tab = await chrome.tabs.get(tabId);
+  const state = await pageState(tabId, tab.url);
+  const item = currentJob(state, jobId);
+  if (!item)
+    throw new Error(
+      "Link this page to exactly one current job before preparing.",
+    );
+  if (!state.settings?.profile_id)
+    throw new Error("Choose your Radius profile in extension settings.");
+  if (item.job.active === false) throw new Error("This job is closed.");
+  const revision = connectionRevision;
+  const settings = state.settings;
+  const [job, profiles] = await Promise.all([
+    radiusJSON(settings, `/api/v1/jobs/${item.job.id}`),
+    radiusJSON(settings, "/api/v1/profiles"),
+  ]);
+  const profile = profiles.items?.find(
+    (profile) => profile.id === settings.profile_id,
+  );
+  if (!profile?.cv)
+    throw new Error("Save your base LaTeX CV in the extension profile first.");
+  if (settings.cv_updated_at !== profile.cv.updated_at) {
+    if (refreshed)
+      throw new Error(
+        "Your CV is changing. Finish saving it, then prepare again.",
+      );
+    await refreshRadius();
+    return prepareCurrentJob(tabId, jobId, requestedLanguage, true);
+  }
+  const language = selectCVLanguage(
+    requestedLanguage,
+    `${job.title}\n${job.description || ""}`,
+  );
+  const cv = await radiusJSON(
+    settings,
+    `/api/v1/profiles/${profile.id}/cv/text?language=${language}`,
+  );
+  const vault = await loadVault();
+  if (
+    revision !== connectionRevision ||
+    !sameConnection(vault.settings, settings) ||
+    (await chrome.tabs.get(tabId)).url !== tab.url
+  )
+    throw new Error(
+      "The current job or Radius connection changed during preparation.",
+    );
+  const { applicant } = await chrome.storage.local.get("applicant");
+  if (!applicant || (await currentCV(settings)) !== profile.cv.updated_at)
+    throw new Error("Your saved CV changed. Sync your profile and try again.");
+  const form = vault.forms?.[`${job.id}:${profile.id}`];
+  const prompt = buildCurrentJobPrompt({
+    job,
+    profile,
+    cv: { text: cv.text, updated_at: profile.cv.updated_at },
+    language,
+    form,
+  });
+  await sessionPut(`brief:${tabId}`, {
+    job_id: job.id,
+    profile_id: profile.id,
+    cv_updated_at: profile.cv.updated_at,
+    profile_stamp: await profileStamp(applicant),
+    prompt,
+    language,
+    expires: Date.now() + 30 * 60000,
+  });
+  return {
+    prompt,
+    language,
+    job_id: job.id,
+    chatgpt_url: "https://chatgpt.com/",
+  };
+}
+
+export async function importCurrentResult(tabId, jobId, input) {
+  const tab = await chrome.tabs.get(tabId);
+  const state = await pageState(tabId, tab.url);
+  const item = currentJob(state, jobId);
+  const pack = await readPackage(input);
+  if (!item || pack.job_id !== item.job.id)
+    throw new Error("This result does not belong to the current job.");
+  if ((await chrome.tabs.get(tabId)).url !== tab.url)
+    throw new Error("The current job page changed.");
+  await storePreparedPackage(pack, "", "");
+  return { message: "Application documents connected to the current job." };
+}
+
+export async function downloadCurrentDocument(tabId, jobId, kind, format) {
+  if (
+    !["cv", "cover_letter"].includes(kind) ||
+    !["tex", "latex_pdf"].includes(format)
+  )
+    throw new Error("Choose a LaTeX PDF or source.");
+  const tab = await chrome.tabs.get(tabId);
+  const state = await pageState(tabId, tab.url);
+  const item = currentJob(state, jobId);
+  const { applicant } = await chrome.storage.local.get("applicant");
+  const vault = await loadVault();
+  const saved =
+    item && readyPackage(vault, item.job.id, await profileStamp(applicant));
+  if (!saved)
+    throw new Error("Import a current application package for this job first.");
+  if ((await currentCV(vault.settings)) !== saved.cv_updated_at)
+    throw new Error("Your saved CV changed. Prepare a fresh package.");
+  const revision = connectionRevision;
+  const filename = `${kind === "cv" ? "CV" : "Cover-letter"}-${jobId}.${format === "tex" ? "tex" : "pdf"}`;
+  const result = await radiusRequest(
+    vault.settings,
+    `/api/v1/profiles/${saved.profile_id}/application-document?kind=${kind}&format=${format}`,
+    {
+      method: "POST",
+      responseType: format === "tex" ? "text" : "bytes",
+      body: {
+        job_id: jobId,
+        cv_updated_at: saved.cv_updated_at,
+        cv: saved.package.cv,
+        cover_letter: saved.package.cover_letter,
+        latex_documents: saved.package.latex_documents,
+      },
+    },
+  );
+  if (
+    revision !== connectionRevision ||
+    (await chrome.tabs.get(tabId)).url !== tab.url
+  )
+    throw new Error("The current job or connection changed during export.");
+  if (format === "tex")
+    return { filename, source: result, type: "application/x-tex" };
+  let binary = "";
+  for (let i = 0; i < result.bytes.length; i += 32768)
+    binary += String.fromCharCode(...result.bytes.subarray(i, i + 32768));
+  return { filename, type: result.type, base64: btoa(binary) };
+}
+
+export async function saveConnectedApplicant(input) {
+  const applicant = validateProfile(input);
+  const vault = await loadVault();
+  const settings = vault.settings;
+  if (!settings?.profile_id || !(await permission(settings)))
+    throw new Error("Reconnect Radius before saving your profile.");
+  const revision = connectionRevision;
+  const result = await radiusJSON(settings, "/api/v1/profiles");
+  const profile = result.items?.find(
+    (profile) => profile.id === settings.profile_id,
+  );
+  if (!profile) throw new Error("The selected profile no longer exists.");
+  const { id, cv, updated_at, ...payload } = profile;
+  const {
+    application,
+    cv_text,
+    base_cvs,
+    education,
+    experiences,
+    source_notes,
+    ...details
+  } = applicant;
+  payload.application_details = {
+    ...details,
+    ...(profile.application_details?.experiences
+      ? { experiences: profile.application_details.experiences }
+      : {}),
+  };
+  const previous = cv
+    ? await radiusJSON(settings, `/api/v1/profiles/${id}/cv/text`)
+    : { variants: {} };
+  if (
+    Object.keys(previous.variants ?? {}).some((language) => !base_cvs[language])
+  )
+    throw new Error(
+      "Use Remove saved base CVs to delete saved sources; blank fields do not delete them.",
+    );
+  if (revision !== connectionRevision)
+    throw new Error("The connection changed while saving.");
+  await radiusRequest(settings, `/api/v1/profiles/${id}`, {
+    method: "PUT",
+    body: payload,
+  });
+  for (const [language, source] of Object.entries(base_cvs)) {
+    if (source.trim() === previous.variants?.[language]?.text?.trim()) continue;
+    if (revision !== connectionRevision)
+      throw new Error("The connection changed while saving.");
+    await radiusRequest(
+      settings,
+      `/api/v1/profiles/${id}/cv?filename=base-cv-${language}.tex&language=${language}`,
+      { method: "PUT", body: source, contentType: "application/x-tex" },
+    );
+  }
+  if (revision !== connectionRevision)
+    throw new Error("The connection changed while saving.");
+  await refreshRadius();
+  return { applicant: (await chrome.storage.local.get("applicant")).applicant };
+}
+
+export async function removeConnectedCVs() {
+  const vault = await loadVault();
+  if (!vault.settings?.profile_id || !(await permission(vault.settings)))
+    throw new Error("Reconnect Radius first.");
+  const revision = connectionRevision;
+  await radiusRequest(
+    vault.settings,
+    `/api/v1/profiles/${vault.settings.profile_id}/cv`,
+    { method: "DELETE" },
+  );
+  if (revision !== connectionRevision)
+    throw new Error("The connection changed while removing CVs.");
+  await refreshRadius();
+  return { applicant: (await chrome.storage.local.get("applicant")).applicant };
 }

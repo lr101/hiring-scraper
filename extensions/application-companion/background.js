@@ -1,3 +1,5 @@
+import { profileStamp } from "./vault.js";
+import { withCVLanguage } from "./tex-cv.js";
 import {
   pageState,
   searchJobs,
@@ -21,6 +23,11 @@ import {
   lookupPage,
   captureQuestions,
   attachPreparedDocuments,
+  prepareCurrentJob,
+  importCurrentResult,
+  downloadCurrentDocument,
+  saveConnectedApplicant,
+  removeConnectedCVs,
 } from "./application-state.js";
 import { validateProfile } from "./profile.js";
 import { readPackage, connectSources } from "./sources.js";
@@ -49,7 +56,10 @@ async function inspect(tabId, linkedApplication = false) {
     throw new UserError("Open an application page and try again.");
   const [result] = await chrome.scripting.executeScript({
     target: { tabId, documentIds: [documentId] },
-    func: (linked) => globalThis.applicationCompanion.inspect(linked),
+    func: (linked) => ({
+      ...globalThis.applicationCompanion.inspect(linked),
+      language: document.documentElement.lang,
+    }),
     args: [linkedApplication],
   });
   return { ...result.result, documentId };
@@ -62,6 +72,9 @@ async function handle(message) {
   if (message.type === "search-jobs") return searchJobs(message.query);
   if (message.type === "import-package")
     return importReturnedPackage(message.input, message.url);
+  if (message.type === "remove-connected-cvs") return removeConnectedCVs();
+  if (message.type === "save-connected-applicant")
+    return saveConnectedApplicant(message.applicant);
   if (message.type === "overview") return overview();
   if (message.type === "connect-radius") return connectRadius(message.settings);
   if (message.type === "refresh-radius") return refreshRadius();
@@ -78,6 +91,17 @@ async function handle(message) {
   const tabId = message.tabId;
   if (!Number.isInteger(tabId))
     throw new UserError("Select an application tab first.");
+  if (message.type === "prepare-current-job")
+    return prepareCurrentJob(tabId, message.jobId, message.language);
+  if (message.type === "import-current-result")
+    return importCurrentResult(tabId, message.jobId, message.input);
+  if (message.type === "download-current-document")
+    return downloadCurrentDocument(
+      tabId,
+      message.jobId,
+      message.kind,
+      message.format,
+    );
   if (message.type === "inspect") {
     const tab = await chrome.tabs.get(tabId);
     const lookupError = await lookupPage(tab.url);
@@ -99,8 +123,22 @@ async function handle(message) {
     const saved = (await chrome.storage.session.get(`report:${tabId}`))[
       `report:${tabId}`
     ];
+    const brief = (await chrome.storage.session.get(`brief:${tabId}`))[
+      `brief:${tabId}`
+    ];
+    const { applicant } = await chrome.storage.local.get("applicant");
+    const currentBrief =
+      brief &&
+      brief.expires > Date.now() &&
+      brief.profile_id === catalog.settings?.profile_id &&
+      brief.cv_updated_at === catalog.settings?.cv_updated_at &&
+      brief.profile_stamp === (await profileStamp(applicant)) &&
+      catalog.items.some((item) => item.exact && item.job.id === brief.job_id)
+        ? brief
+        : null;
     return {
       ...info,
+      brief: currentBrief,
       catalog,
       lastReport: saved?.documentId === info.documentId ? saved.report : null,
     };
@@ -112,7 +150,12 @@ async function handle(message) {
   }
   if (message.type === "scan-form") {
     const info = await inspect(tabId, true);
-    return captureQuestions(tabId, message.jobId, info.documentId);
+    return captureQuestions(
+      tabId,
+      message.jobId,
+      info.documentId,
+      message.openRadius !== false,
+    );
   }
   if (message.type === "attach-documents") {
     if (running.has(tabId))
@@ -207,6 +250,8 @@ async function handle(message) {
     }
     try {
       profile = await fillProfile(tabId, tab.url, message.jobId, profile);
+      if (!profile.application?.job_id)
+        profile = withCVLanguage(profile, info.language);
     } catch (error) {
       throw new UserError(error.message);
     }
@@ -214,7 +259,15 @@ async function handle(message) {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId, documentIds: [info.documentId] },
       func: (data) => globalThis.applicationCompanion.run(data),
-      args: [{ ...profile, page_url: tab.url, cv_text: "", source_notes: "" }],
+      args: [
+        {
+          ...profile,
+          page_url: tab.url,
+          cv_text: "",
+          base_cvs: {},
+          source_notes: "",
+        },
+      ],
     });
     if (!result?.result)
       throw new UserError(
@@ -272,6 +325,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "open-application",
       "scan-form",
       "attach-documents",
+      "prepare-current-job",
+      "import-current-result",
+      "save-connected-applicant",
+      "remove-connected-cvs",
+      "download-current-document",
     ].includes(message?.type)
   )
     return false;
@@ -294,6 +352,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "open-application",
             "scan-form",
             "attach-documents",
+            "prepare-current-job",
+            "import-current-result",
+            "save-connected-applicant",
+            "remove-connected-cvs",
+            "download-current-document",
           ].includes(message.type)
             ? error.message
             : "Could not complete this action. Open the application tab and click the extension toolbar icon again. Chrome pages cannot be filled; file pages require Allow access to file URLs. If filling had started, inspect the draft before retrying.",

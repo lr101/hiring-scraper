@@ -18,10 +18,17 @@ class FormPreparationTests(ExtensionHarness):
     def route(self,route):
         url=route.request.url
         if url in [LISTING,journey.OTHER]:route.fulfill(content_type='text/html',body=f'<h1>Research project manager</h1><a href="{ATS}" target=_blank>Apply now</a>')
+        elif url=='https://radius.example/api/v1/profiles':route.fulfill(json={'items':[{'id':1,'cv':{'updated_at':'cv1'}}]})
         elif url.startswith('https://radius.example/'):route.fulfill(content_type='text/html',body='<title>Radius preparation</title>')
         elif url.startswith('https://ats.example/'):route.fulfill(content_type='text/html',body=QUESTIONS)
         else:super().route(route)
-    def test_scan_captures_constraints_without_applicant_values_and_opens_radius(self):
+    def capture_questions(self,popup):
+        tab_id=self.worker.evaluate("async url=>(await chrome.tabs.query({})).find(tab=>tab.url===url).id",self.page.url)
+        response=popup.evaluate("async tabId=>chrome.runtime.sendMessage({type:'scan-form',tabId,jobId:1574,openRadius:false})",tab_id)
+        self.assertTrue(response['ok'],response)
+        self.assertIn('questions captured',response['result']['message'])
+
+    def test_scan_captures_constraints_without_applicant_values_or_opening_radius(self):
         self.seed(True)
         self.page.goto(LISTING);popup=self.popup()
         with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
@@ -29,8 +36,7 @@ class FormPreparationTests(ExtensionHarness):
         self.page.set_content(QUESTIONS)
         popup=self.popup()
         expect(popup.get_by_role('button',name='Prepare from these questions',exact=True)).to_be_visible()
-        popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('questions captured')
+        self.capture_questions(popup)
         saved=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
         self.assertNotIn('Private existing answer',json.dumps(saved))
         why=next(field for field in saved['fields'] if field['label']=='Why this role?')
@@ -46,8 +52,7 @@ class FormPreparationTests(ExtensionHarness):
         with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
         popup.close();self.page=event.value;self.page.wait_for_url(ATS)
         self.page.locator('#why').fill('');popup=self.popup()
-        popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('questions captured')
+        self.capture_questions(popup)
         self.worker.evaluate("""async()=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.packages['1574:1'].package.application_answers='';v.packages['1574:1'].package.form_answers={form_id:v.forms['1574:1'].form_id,answers:[{id:'q0',value:'A concise structured answer.'},{id:'q1',value:'research'}]};await chrome.storage.local.set({radiusVault:v});}""")
         self.fill(popup)
         expect(self.page.locator('#why')).to_have_value('A concise structured answer.')
@@ -62,8 +67,7 @@ class FormPreparationTests(ExtensionHarness):
     def capture_bound_questions(self, markup):
         self.seed(True);self.page.goto(ATS);self.page.set_content(markup)
         self.worker.evaluate("async url=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.bindings=[{job_id:1574,url,kind:'confirmed'}];await chrome.storage.local.set({radiusVault:v});}",ATS)
-        popup=self.popup();popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('questions captured')
+        popup=self.popup();self.capture_questions(popup)
         return popup
 
     def save_form_answers(self, answers, legacy='', matching=True):
@@ -125,8 +129,7 @@ class FormPreparationTests(ExtensionHarness):
         expect(self.page.locator('#why')).to_have_value('')
         self.fill(popup)
         self.assertEqual(self.page.locator('#why').input_value(),'')
-        popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('questions captured')
+        self.capture_questions(popup)
         self.fill(popup)
         expect(self.page.locator('#why')).to_have_value('My research experience.')
 
@@ -187,8 +190,7 @@ class FormPreparationTests(ExtensionHarness):
         self.seed(True);self.page.goto(ATS)
         self.page.set_content('''<form><label>Email<input type=email></label><label>Phone<input></label><label>Attach<input id=resume type=file></label><label>Attach<input id=cover_letter type=file></label><label>Attach<input id=question_123 type=file></label><label>Expected salary* (required)<input></label></form>''')
         self.worker.evaluate("async url=>{const {radiusVault:v}=await chrome.storage.local.get('radiusVault');v.bindings=[{job_id:1574,url,kind:'confirmed'}];await chrome.storage.local.set({radiusVault:v});}",ATS)
-        popup=self.popup();popup.get_by_role('button',name='Prepare from these questions',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('questions captured')
+        popup=self.popup();self.capture_questions(popup)
         saved=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
         self.assertEqual([field.get('document_kind') for field in saved['fields'] if field['type']=='file'],['cv','cover_letter',''])
         self.assertTrue(saved['fields'][-1]['required'])

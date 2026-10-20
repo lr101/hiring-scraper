@@ -33,6 +33,7 @@ class CompanyCaptureBrowserTests(ExtensionHarness):
 
     def test_default_action_tracks_current_company_without_job_or_profile_fields(self):
         popup = self.popup()
+        popup.get_by_text('Track this company or save a job', exact=True).click()
         expect(popup.locator('#add-kind')).to_have_value('feed')
         expect(popup.locator('#add-feed-url')).to_be_visible()
         expect(popup.locator('#add-job-profile')).to_be_hidden()
@@ -46,6 +47,7 @@ class CompanyCaptureBrowserTests(ExtensionHarness):
 
     def test_single_job_uses_chosen_profile_and_explicit_employer_website(self):
         popup = self.popup()
+        popup.get_by_text('Track this company or save a job', exact=True).click()
         popup.locator('#add-kind').select_option('job')
         popup.locator('#add-company-website').fill('https://acme.example/')
         popup.locator('#add-job-title').fill('Product designer')

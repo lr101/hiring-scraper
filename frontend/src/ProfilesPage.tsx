@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
-import ApplicationWorkHistory from './ApplicationWorkHistory'
+import { cvFormattingPrompt } from '../../extensions/application-companion/tex-cv-prompt.js'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
@@ -76,7 +76,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   const [areaQuery, setAreaQuery] = useState('')
   const [areaChoices, setAreaChoices] = useState<SearchArea[]>([])
   const [cv, setCV] = useState('')
-  const [pendingCV, setPendingCV] = useState<File | null>(null)
+  const [pendingCVs, setPendingCVs] = useState<Partial<Record<'en' | 'de', File>>>({})
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -109,13 +109,13 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       setForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
       if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit${returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : ''}`)
-      if (pendingCV) {
-        const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}`,
+      for (const [language, pendingCV] of Object.entries(pendingCVs)) {
+        const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}&language=${language}`,
           { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pendingCV })
         const metadata = await uploaded.json()
         if (!uploaded.ok) throw new Error(typeof metadata.detail === 'string' ? metadata.detail : 'Could not attach this CV.')
         saved.cv = metadata
-        setPendingCV(null)
+        setPendingCVs({})
       }
       edit(saved); setNotice(returnTo && !saved.cv ? 'Profile saved. Attach your CV above to continue.' : 'Profile saved. Its search area is available on the jobs page.')
       if (returnTo && saved.cv) {
@@ -132,7 +132,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     try {
       const response = await fetch(`${API}/api/v1/profiles/${form.id}/cv`, { method: 'DELETE' })
       if (!response.ok) throw new Error('Could not remove the CV. Try again.')
-      setForm(current => ({ ...current, cv: null })); setPendingCV(null); setNotice('CV removed from this profile.')
+      setForm(current => ({ ...current, cv: null })); setPendingCVs({}); setNotice('CV removed from this profile.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not remove the CV.') }
     finally { setBusy(false) }
   }
@@ -202,17 +202,18 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
               onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
               <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
         </fieldset>
-        <ApplicationWorkHistory entries={form.application_details?.experiences ?? []}
-          onChange={experiences => setForm({ ...form, application_details: { ...form.application_details, experiences } })} />
-        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Your CV</legend>
-          <p>Attach it once. We’ll reuse its text when you start an application.</p>
-          {form.cv && <div className="profile-cv-saved"><strong>{form.cv.filename}</strong><span>Saved with this profile</span>
-            <a href={`${API}/api/v1/profiles/${form.id}/cv`}>Download CV</a>
-            <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove CV</button></div>}
-          <label>{form.cv ? 'Replace CV' : 'Attach CV'}<input type="file" accept=".pdf,.docx,.txt,.tex" disabled={busy}
-            onChange={event => { const file = event.target.files?.[0] ?? null; if (file && file.size > 5 * 1024 * 1024) { setError('CV files must be 5 MB or smaller.'); event.target.value = ''; setPendingCV(null) } else { setPendingCV(file); setError('') } }} /></label>
-          <small>PDF, DOCX, TXT or LaTeX (.tex) · up to 5 MB. Choose DOCX to keep your original Word layout. LaTeX source is read without compiling and reused in your ChatGPT brief. Saved with your profile.</small>
-          {pendingCV && <p role="status">{pendingCV.name} · ready to save</p>}
+        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Base LaTeX CVs</legend>
+          <p><a href="/cv-templates/cv-en.tex" download>English starter</a> · <a href="/cv-templates/cv-de.tex" download>German starter</a>. Replace all placeholders with verified facts before uploading.</p>
+          <p>Save an English and a German .tex CV. Applications automatically select the matching language. Work and study history, including responsibilities, comes directly from the marked CV.</p>
+          {(['en', 'de'] as const).map(language => <div key={language}>
+            <label>{language === 'en' ? 'English' : 'German'} base CV<input type="file" accept=".tex" disabled={busy}
+              onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (!/\.tex$/i.test(file.name) || file.size > 5 * 1024 * 1024) { setError('Choose a LaTeX .tex CV up to 5 MB.'); event.target.value = ''; return } setPendingCVs(current => ({ ...current, [language]: file })); setError('') }} /></label>
+            {form.cv?.languages?.[language] && <a href={`${API}/api/v1/profiles/${form.id}/cv?language=${language}`}>Download {form.cv.languages[language].filename}</a>}
+            {pendingCVs[language] && <p role="status">{pendingCVs[language]!.name} · ready to save</p>}
+          </div>)}
+          {form.cv && !Object.keys(form.cv.languages ?? {}).length && <p>Replace the previous CV ({form.cv.filename}) with marked LaTeX sources.</p>}
+          {form.cv && <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove all base CVs</button>}
+          <details><summary>Prompt for formatting my existing LaTeX CV</summary><p>Paste this into ChatGPT with your original CV. Review the facts before uploading both files.</p><textarea aria-label="CV formatting prompt" readOnly rows={12} value={cvFormattingPrompt} /></details>
         </fieldset>
         <fieldset className="profile-section" id="profile-personalization"><legend>About me for applications</legend>
           <p className="muted">Add confirmed examples and preferences once. They’re included when you copy an application or fit brief to ChatGPT. You can draft these in your usual ChatGPT conversation using the context it already has, then check the facts before saving here.</p>

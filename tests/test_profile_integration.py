@@ -14,7 +14,8 @@ class ProfileIntegrationTests(unittest.TestCase):
         profiles = self.profile_api()
         history = [{'id': 'role-1', 'company': 'Example GmbH', 'title': 'Engineer',
                     'start': '2021', 'current': True, 'description': 'Built reporting tools.'}]
-        source = b'\\documentclass{article}\n\\begin{document}Known experience\\end{document}'
+        from test_tex_cv import source as marked_source
+        source = marked_source().encode()
         with Session(self.engine) as session:
             created = profiles.create_profile(profiles.ProfileRequest(name='Engineer',
                 application_details={'experiences': history, 'preferences': {'willing_to_work_onsite': False}}), session)
@@ -188,7 +189,7 @@ class ProfileIntegrationTests(unittest.TestCase):
             saved = profiles.list_profiles(session)['items'][0]
             self.assertEqual(saved['application_details']['experiences'], entries)
             updated = profiles.update_profile(created['id'], profiles.ProfileRequest(name='Engineer', application_details={'experiences':[]}), session)
-            self.assertEqual(updated['application_details']['experiences'], [])
+            self.assertEqual(updated['application_details'].get('experiences', []), [])
 
     def test_application_work_history_rejects_invalid_dates_and_duplicate_ids(self):
         from pydantic import ValidationError
