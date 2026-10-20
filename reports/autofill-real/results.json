@@ -1,0 +1,5279 @@
+{
+  "scope": "Real initial-HTML DOM snapshots; original inline CSS retained; site scripts and external CSS absent. Not live ATS end-to-end testing.",
+  "isolation_self_check": {
+    "guarded_transports": 5,
+    "guarded_submissions": 2,
+    "browser_route_abort_verified": true,
+    "allowed_requests": 0
+  },
+  "forms": 8,
+  "inspected_fields": 218,
+  "scored_fields": 161,
+  "fillable_fields": 59,
+  "outcomes": {
+    "preserved": 101,
+    "filled": 28,
+    "wrong": 3,
+    "missed": 29,
+    "unrendered": 55,
+    "not_visible": 2
+  },
+  "by_category": {
+    "contact": {
+      "filled": 28,
+      "missed": 11,
+      "unrendered": 8,
+      "wrong": 2,
+      "not_visible": 1
+    },
+    "experience": {
+      "missed": 18,
+      "unrendered": 7,
+      "not_visible": 1
+    }
+  },
+  "unstable_repeats": 0,
+  "submit_attempts": 0,
+  "transport_attempts": 0,
+  "blocked_browser_requests": 0,
+  "allowed_browser_requests": 0,
+  "runtime_sha256": {
+    "history.js": "9ad40fad7d0bbe2336f078aab932d64982b79e1937e2c526184f97412c14b1fe",
+    "best-effort.js": "36774d97ec5ffb94076bcc0f8e49aff5f7accdbf80468e2e7deb03959a10ef82"
+  },
+  "expectations_sha256": "f6c32342989113220a1dc96bb023d9d717865ac9ab5d6a997377379f8d0c9408",
+  "sources_sha256": "12f396b92c86d5e81422c627e0357b58831d7f11bdaad525819a50b15bf80a68",
+  "results": [
+    {
+      "company_id": "ammerlaender",
+      "company": "Ammerländer Versicherung",
+      "url": "https://www.ammerlaender-versicherung.de/bewerbung",
+      "fields": [
+        {
+          "index": 0,
+          "tag": "input",
+          "type": "text",
+          "name": "txtJobbezeichnung",
+          "id": "txtJobbezeichnung",
+          "label": "Bewerbung für den Bereich:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "text",
+          "name": "txtVorname",
+          "id": "txtVorname",
+          "label": "Vorname:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Mara",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "text",
+          "name": "txtName",
+          "id": "txtName",
+          "label": "Nachname:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 8,
+          "tag": "select",
+          "type": "submit",
+          "name": "ddlStaatsangehoerigkeit",
+          "id": "ddlStaatsangehoerigkeit",
+          "label": "Staatsangehörigkeit:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "date",
+          "name": "dpGeburtsdatum",
+          "id": "dpGeburtsdatum",
+          "label": "Geburtsdatum:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "text",
+          "name": "txtPLZ",
+          "id": "txtPLZ",
+          "label": "Postleitzahl:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "76131",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "76131"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "txtOrt",
+          "id": "txtOrt",
+          "label": "Ort:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Karlsruhe",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "txtStr",
+          "id": "txtStr",
+          "label": "Straße:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Example Street 4",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "wrong"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "text",
+          "name": "txtAHNr",
+          "id": "txtAHNr",
+          "label": "Hausnummer:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "text",
+          "name": "txtTelefonummer",
+          "id": "txtTelefonummer",
+          "label": "Telefonnummer:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "text",
+          "name": "txtEMail",
+          "id": "txtEMail",
+          "label": "E-Mail:*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 16,
+          "tag": "textarea",
+          "type": "",
+          "name": "txtKontaktzeiten",
+          "id": "txtKontaktzeiten",
+          "label": "Wann können wir Sie am besten erreichen?",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 17,
+          "tag": "input",
+          "type": "radio",
+          "name": "rblBereitsAvGearbeitet",
+          "id": "rblBereitsAvGearbeitet_0",
+          "label": "Ja",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "radio",
+          "name": "rblBereitsAvGearbeitet",
+          "id": "rblBereitsAvGearbeitet_1",
+          "label": "Nein",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 19,
+          "tag": "select",
+          "type": "submit",
+          "name": "ddlAbschluss",
+          "id": "ddlAbschluss",
+          "label": "Nennen Sie uns Ihren höchsten Abschluss.*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 20,
+          "tag": "input",
+          "type": "date",
+          "name": "dpStart",
+          "id": "",
+          "label": "Beginn:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 21,
+          "tag": "input",
+          "type": "date",
+          "name": "dpEnde",
+          "id": "",
+          "label": "Ende:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 22,
+          "tag": "input",
+          "type": "text",
+          "name": "txtUnternehmen",
+          "id": "",
+          "label": "Unternehmen:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "North Lab"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 23,
+          "tag": "input",
+          "type": "text",
+          "name": "txtStandort",
+          "id": "",
+          "label": "Standort:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Berlin"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 24,
+          "tag": "input",
+          "type": "text",
+          "name": "txtTaetigkeit",
+          "id": "",
+          "label": "Tätigkeitsbezeichnung:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Engineer"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 28,
+          "tag": "input",
+          "type": "date",
+          "name": "dpFruehsterEintrittstermin",
+          "id": "dpFruehsterEintrittstermin",
+          "label": "Frühestmöglicher Beginn:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "2026-12-01"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 29,
+          "tag": "input",
+          "type": "text",
+          "name": "txtGehaltsvorstellung",
+          "id": "txtGehaltsvorstellung",
+          "label": "Gehaltsvorstellung:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 30,
+          "tag": "select",
+          "type": "submit",
+          "name": "ddlAufmerksamGeworden",
+          "id": "ddlAufmerksamGeworden",
+          "label": "Wie sind Sie auf die Stelle aufmerksam geworden?* Bitte auswählen Homepage Mitarbeitende Facebook Instagram LinkedIn Indeed Jobware Xing Bundesagentur für Arbei",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 31,
+          "tag": "input",
+          "type": "text",
+          "name": "txtAufmerksamGeworden",
+          "id": "txtAufmerksamGeworden",
+          "label": "Wie sind Sie auf die Stelle aufmerksam geworden?*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 32,
+          "tag": "textarea",
+          "type": "",
+          "name": "txtSonstiges",
+          "id": "txtSonstiges",
+          "label": "Bemerkung:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 33,
+          "tag": "input",
+          "type": "file",
+          "name": "anschreiben",
+          "id": "filAnschreiben",
+          "label": "Anschreiben per Drag & Drop hierher ziehenoder Anschreiben hochladen...",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 34,
+          "tag": "input",
+          "type": "file",
+          "name": "lebenslauf",
+          "id": "lebenslauf",
+          "label": "Lebenslauf per Drag & Drop hierher ziehenoder Lebenslauf hochladen...",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 35,
+          "tag": "input",
+          "type": "file",
+          "name": "zeugnisse",
+          "id": "zeugnisse",
+          "label": "Zeugnissse per Drag & Drop hierher ziehenoder Zeugnisse hochladen...",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 36,
+          "tag": "input",
+          "type": "file",
+          "name": "sonstiges",
+          "id": "sonstiges",
+          "label": "Sonstige Dateien per Drag & Drop hierher ziehenoder Sonstiges hochladen...",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 37,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "chkDatenschutz",
+          "id": "chkDatenschutz",
+          "label": "Datenschutzerklärung:*",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 38,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "chkErweiterteVerwendung",
+          "id": "chkErweiterteVerwendung",
+          "label": "Einwilligung erweiterte Verwendung:",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 20,
+        "filled": 6,
+        "wrong": 1,
+        "missed": 4
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "txtJobbezeichnung",
+          "label": "Bewerbung für den Bereich:*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "txtVorname",
+          "label": "Vorname:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtName",
+          "label": "Nachname:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ddlStaatsangehoerigkeit",
+          "label": "Staatsangehörigkeit:*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "dpGeburtsdatum",
+          "label": "Geburtsdatum:*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "txtPLZ",
+          "label": "Postleitzahl:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtOrt",
+          "label": "Ort:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtStr",
+          "label": "Straße:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtAHNr",
+          "label": "Hausnummer:*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "txtTelefonummer",
+          "label": "Telefonnummer:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtEMail",
+          "label": "E-Mail:*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "txtKontaktzeiten",
+          "label": "Wann können wir Sie am besten erreichen?",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "rblBereitsAvGearbeitet_0",
+          "label": "rblBereitsAvGearbeitet",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "ddlAbschluss",
+          "label": "Nennen Sie uns Ihren höchsten Abschluss.*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-14",
+          "label": "dpStart",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-15",
+          "label": "dpEnde",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-16",
+          "label": "txtUnternehmen",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-17",
+          "label": "txtStandort",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-18",
+          "label": "txtTaetigkeit",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "dpFruehsterEintrittstermin",
+          "label": "Frühestmöglicher Beginn:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "txtGehaltsvorstellung",
+          "label": "Gehaltsvorstellung:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ddlAufmerksamGeworden",
+          "label": "ddlAufmerksamGeworden",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "txtSonstiges",
+          "label": "Bemerkung:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "filAnschreiben",
+          "label": "anschreiben",
+          "required": true,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "lebenslauf",
+          "label": "lebenslauf",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "zeugnisse",
+          "label": "zeugnisse",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "sonstiges",
+          "label": "sonstiges",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "chkDatenschutz",
+          "label": "Datenschutzerklärung:*",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "chkErweiterteVerwendung",
+          "label": "Einwilligung erweiterte Verwendung:",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "compact",
+      "company": "compact service",
+      "url": "https://compact-service.com/karriere/bewerbungsformular",
+      "fields": [
+        {
+          "index": 3,
+          "tag": "input",
+          "type": "text",
+          "name": "name",
+          "id": "application-form-form-name-field",
+          "label": "Name, Vorname *",
+          "placeholder": "Name, Vorname",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann, Mara",
+              "Neumann Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "type": "date",
+          "name": "date_of_birth",
+          "id": "application-form-form-date_of_birth-field",
+          "label": "Geburtsdatum *",
+          "placeholder": "Geburtsdatum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 5,
+          "tag": "select",
+          "type": "",
+          "name": "family_status",
+          "id": "application-form-form-family_status-field",
+          "label": "Familienstand * bitte auswählen ...ledigverheiratet",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "text",
+          "name": "citizenship",
+          "id": "application-form-form-citizenship-field",
+          "label": "Staatsangehörigkeit",
+          "placeholder": "Staatsangehörigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "text",
+          "name": "learned_job",
+          "id": "application-form-form-learned_job-field",
+          "label": "Erlernter Beruf",
+          "placeholder": "Erlernter Beruf",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "text",
+          "name": "employed_as",
+          "id": "application-form-form-employed_as-field",
+          "label": "Derzeit beschäftigt als",
+          "placeholder": "Derzeit beschäftigt als",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Engineer"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "radio",
+          "name": "concurrently_employed",
+          "id": "application-form-form-concurrently_employed-field-yes-option",
+          "label": "Ja",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "radio",
+          "name": "concurrently_employed",
+          "id": "application-form-form-concurrently_employed-field-no-option",
+          "label": "Nein",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "street",
+          "id": "application-form-form-street-field",
+          "label": "Straße, Hausnummer",
+          "placeholder": "Straße, Hausnummer",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Example Street 4"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "place",
+          "id": "application-form-form-place-field",
+          "label": "Postleitzahl und Wohnort",
+          "placeholder": "Postleitzahl und Wohnort",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "76131",
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 13,
+          "tag": "select",
+          "type": "",
+          "name": "country",
+          "id": "application-form-form-country-field",
+          "label": "Land * bitte auswählen ...🇦🇫 Afghanistan🇦🇽 Aland-Inseln🇦🇱 Albanien🇩🇿 Algerien🇦🇸 Amerikanisch-Samoa🇦🇩 Andorra🇦🇴 Angola🇦🇮 Anguilla🇦🇶 Antarktis🇦🇬 Antigua und Barbu",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "DEU"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "text",
+          "name": "mail",
+          "id": "application-form-form-mail-field",
+          "label": "E-Mail-Adresse *",
+          "placeholder": "E-Mail-Adresse",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "text",
+          "name": "phone",
+          "id": "application-form-form-phone-field",
+          "label": "Telefon",
+          "placeholder": "Telefon",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 16,
+          "tag": "input",
+          "type": "text",
+          "name": "mobile_phone",
+          "id": "application-form-form-mobile_phone-field",
+          "label": "Handynummer",
+          "placeholder": "Handynummer",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 17,
+          "tag": "input",
+          "type": "number",
+          "name": "children_count",
+          "id": "application-form-form-children_count-field",
+          "label": "Anzahl der unterhaltpflichtigen Kinder",
+          "placeholder": "Anzahl der Kinder",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "text",
+          "name": "parent_street",
+          "id": "application-form-form-parent_street-field",
+          "label": "Straße, Hausnummer",
+          "placeholder": "Straße, Hausnummer",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 19,
+          "tag": "input",
+          "type": "text",
+          "name": "parent_place",
+          "id": "application-form-form-parent_place-field",
+          "label": "Postleitzahl, Wohnort",
+          "placeholder": "Postleitzahl, Wohnort",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 20,
+          "tag": "input",
+          "type": "text",
+          "name": "parent_phone",
+          "id": "application-form-form-parent_phone-field",
+          "label": "Telefon",
+          "placeholder": "Telefon",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 21,
+          "tag": "input",
+          "type": "radio",
+          "name": "health_certificate",
+          "id": "application-form-form-health_certificate-field-yes-option",
+          "label": "Ja",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 22,
+          "tag": "input",
+          "type": "radio",
+          "name": "health_certificate",
+          "id": "application-form-form-health_certificate-field-no-option",
+          "label": "Nein",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 23,
+          "tag": "input",
+          "type": "text",
+          "name": "health_certificate_year",
+          "id": "application-form-form-health_certificate_year-field",
+          "label": "Wenn ja, welches Jahr? *",
+          "placeholder": "Ausstellungsjahr des Gesundheitszeugnisses",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 24,
+          "tag": "input",
+          "type": "text",
+          "name": "first_school_time",
+          "id": "application-form-form-first_school_time-field",
+          "label": "Von – Bis *",
+          "placeholder": "Erste/r Lehrzeit/Schulbesuch Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 25,
+          "tag": "input",
+          "type": "text",
+          "name": "first_school_name",
+          "id": "application-form-form-first_school_name-field",
+          "label": "Art/Name der Schule/Firma *",
+          "placeholder": "Art/Name der Schule/Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 26,
+          "tag": "input",
+          "type": "text",
+          "name": "first_school_final_test",
+          "id": "application-form-form-first_school_final_test-field",
+          "label": "Abgelegte Prüfung *",
+          "placeholder": "Abgelegte Prüfung",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 27,
+          "tag": "input",
+          "type": "text",
+          "name": "second_school_time",
+          "id": "application-form-form-second_school_time-field",
+          "label": "Von – Bis",
+          "placeholder": "Zweite/r Lehrzeit/Schulbesuch Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 28,
+          "tag": "input",
+          "type": "text",
+          "name": "second_school_name",
+          "id": "application-form-form-second_school_name-field",
+          "label": "Art/Name der Schule/Firma",
+          "placeholder": "Art/Name der Schule/Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 29,
+          "tag": "input",
+          "type": "text",
+          "name": "second_school_final_test",
+          "id": "application-form-form-second_school_final_test-field",
+          "label": "Abgelegte Prüfung",
+          "placeholder": "Abgelegte Prüfung",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 30,
+          "tag": "input",
+          "type": "text",
+          "name": "third_school_time",
+          "id": "application-form-form-third_school_time-field",
+          "label": "Von – Bis",
+          "placeholder": "Dritte/r Lehrzeit/Schulbesuch Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 31,
+          "tag": "input",
+          "type": "text",
+          "name": "third_school_name",
+          "id": "application-form-form-third_school_name-field",
+          "label": "Art/Name der Schule/Firma",
+          "placeholder": "Art/Name der Schule/Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 32,
+          "tag": "input",
+          "type": "text",
+          "name": "third_school_final_test",
+          "id": "application-form-form-third_school_final_test-field",
+          "label": "Abgelegte Prüfung",
+          "placeholder": "Abgelegte Prüfung",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 33,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "no_school",
+          "id": "application-form-form-no_school-field",
+          "label": "Kein Schulabschluss?",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 34,
+          "tag": "input",
+          "type": "text",
+          "name": "first_job_time",
+          "id": "application-form-form-first_job_time-field",
+          "label": "Von – Bis *",
+          "placeholder": "Erste Stelle Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 35,
+          "tag": "input",
+          "type": "text",
+          "name": "first_job_name",
+          "id": "application-form-form-first_job_name-field",
+          "label": "Art/Name der Firma *",
+          "placeholder": "Art/Name der Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "North Lab"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 36,
+          "tag": "input",
+          "type": "text",
+          "name": "first_job_position",
+          "id": "application-form-form-first_job_position-field",
+          "label": "Tätigkeit *",
+          "placeholder": "Tätigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Engineer"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 37,
+          "tag": "input",
+          "type": "text",
+          "name": "second_job_time",
+          "id": "application-form-form-second_job_time-field",
+          "label": "Von – Bis",
+          "placeholder": "Zweite Stelle Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 38,
+          "tag": "input",
+          "type": "text",
+          "name": "second_job_name",
+          "id": "application-form-form-second_job_name-field",
+          "label": "Art/Name der Firma",
+          "placeholder": "Art/Name der Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "South Works"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 39,
+          "tag": "input",
+          "type": "text",
+          "name": "second_job_position",
+          "id": "application-form-form-second_job_position-field",
+          "label": "Tätigkeit",
+          "placeholder": "Tätigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Analyst"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 40,
+          "tag": "input",
+          "type": "text",
+          "name": "third_job_time",
+          "id": "application-form-form-third_job_time-field",
+          "label": "Von – Bis",
+          "placeholder": "Dritte Stelle Zeitraum",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 41,
+          "tag": "input",
+          "type": "text",
+          "name": "third_job_name",
+          "id": "application-form-form-third_job_name-field",
+          "label": "Art/Name der Firma",
+          "placeholder": "Art/Name der Firma",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "North Lab"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 42,
+          "tag": "input",
+          "type": "text",
+          "name": "third_job_position",
+          "id": "application-form-form-third_job_position-field",
+          "label": "Tätigkeit",
+          "placeholder": "Tätigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Manager"
+            ],
+            "category": "experience"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 43,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "no_previous_job",
+          "id": "application-form-form-no_previous_job-field",
+          "label": "Haben Sie bisher keine Berufstätigkeit ausgeübt?",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 44,
+          "tag": "input",
+          "type": "radio",
+          "name": "shifts",
+          "id": "application-form-form-shifts-field-yes-option",
+          "label": "Ja",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 45,
+          "tag": "input",
+          "type": "radio",
+          "name": "shifts",
+          "id": "application-form-form-shifts-field-no-option",
+          "label": "Nein",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 46,
+          "tag": "input",
+          "type": "text",
+          "name": "special_work",
+          "id": "application-form-form-special_work-field",
+          "label": "Welche Spezialarbeiten können Sie verrichten?",
+          "placeholder": "Spezialarbeiten",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 47,
+          "tag": "input",
+          "type": "text",
+          "name": "first_start_date",
+          "id": "application-form-form-first_start_date-field",
+          "label": "Frühester Eintrittstermin?",
+          "placeholder": "Eintrittstermin",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "2026-12-01",
+              "01.12.2026"
+            ],
+            "category": "contact"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 48,
+          "tag": "select",
+          "type": "",
+          "name": "licence",
+          "id": "application-form-form-licence-field",
+          "label": "Welche(n) Führerschein(e) besitzen Sie? bitte auswählen ...KeinenABCCESpezial Fahrzeuge",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 49,
+          "tag": "input",
+          "type": "radio",
+          "name": "owns_a_car",
+          "id": "application-form-form-owns_a_car-field-yes-option",
+          "label": "Ja",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 50,
+          "tag": "input",
+          "type": "radio",
+          "name": "owns_a_car",
+          "id": "application-form-form-owns_a_car-field-no-option",
+          "label": "Nein",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 51,
+          "tag": "input",
+          "type": "date",
+          "name": "work_permit",
+          "id": "application-form-form-work_permit-field",
+          "label": "Arbeitserlaubnis / bis wann?",
+          "placeholder": "Arbeitserlaubnis",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 52,
+          "tag": "input",
+          "type": "date",
+          "name": "residence_permit",
+          "id": "application-form-form-residence_permit-field",
+          "label": "Aufenthaltsgenehmigung / bis wann?",
+          "placeholder": "Aufenthaltsgenehmigung",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 53,
+          "tag": "input",
+          "type": "date",
+          "name": "validity_passport",
+          "id": "application-form-form-validity_passport-field",
+          "label": "Passgültigkeit / bis wann?",
+          "placeholder": "Passgültigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 54,
+          "tag": "textarea",
+          "type": "",
+          "name": "position",
+          "id": "application-form-form-position-field",
+          "label": "Um welche Tätigkeit bewerben Sie sich?",
+          "placeholder": "Tätigkeit",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 55,
+          "tag": "textarea",
+          "type": "",
+          "name": "work_hours",
+          "id": "application-form-form-work_hours-field",
+          "label": "Arbeitszeiten",
+          "placeholder": "Arbeitszeiten",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 56,
+          "tag": "textarea",
+          "type": "",
+          "name": "reason_of_application",
+          "id": "application-form-form-reason_of_application-field",
+          "label": "Wodurch bzw. von wem wurden Sie zur Bewerbung bei uns veranlasst?",
+          "placeholder": "Grund der Bewerbung",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 57,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "consent_privacy_policy",
+          "id": "application-form-form-consent_privacy_policy-field",
+          "label": "Zustimmung Privatsphäre-Erklärung * Ich versichere, dass die vorstehenden Angaben richtig und vollständig sind. Mir ist bekannt, dass unrichtige Angaben die Lös",
+          "placeholder": "",
+          "initial": null,
+          "actual": null,
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "unrendered"
+        },
+        {
+          "index": 58,
+          "tag": "input",
+          "type": "text",
+          "name": "subject",
+          "id": "",
+          "label": "Angaben zur Person Allgemeine Angaben Name, Vorname * Geburtsdatum * Familienstand * bitte auswählen ...ledigverheiratet Staatsangehörigkeit Berufliche Angaben ",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "unrendered": 55,
+        "preserved": 1
+      },
+      "repeat_stable": true,
+      "runtime_report": [],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "arge-gruen",
+      "company": "ARGE GRÜN",
+      "url": "https://www.arge-gruen.de/bewerbung",
+      "fields": [
+        {
+          "index": 0,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[name]",
+          "id": "form2_name",
+          "label": "Vor- und Nachname *",
+          "placeholder": "Bitte den kompletten Namen eingeben",
+          "initial": "",
+          "actual": "Mara Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 1,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[telefon]",
+          "id": "form2_telefon",
+          "label": "Telefon *",
+          "placeholder": "Bitte Telefon Nummer eingeben",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "type": "email",
+          "name": "cf[email]",
+          "id": "form2_email",
+          "label": "E-Mail *",
+          "placeholder": "Bitte E-Mail Adresse eingeben",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 3,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[geburtsdatum]",
+          "id": "form2_geburtsdatum",
+          "label": "Geburtsdatum *",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 4,
+          "tag": "select",
+          "type": "",
+          "name": "cf[bewerbung_als]",
+          "id": "form2_bewerbungals",
+          "label": "Bewerbung als",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_0",
+          "label": "Baumpfleger",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_1",
+          "label": "Baumkletterer",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_2",
+          "label": "Garten- Landschaftsbauer",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_3",
+          "label": "Quereinsteiger",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_4",
+          "label": "Auszubildender",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[alternative_jobs][]",
+          "id": "form2_alternativejobs_5",
+          "label": "Studentenjobs",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[werdegang_1]",
+          "id": "form2_werdegang1",
+          "label": "Beruflicher Werdegang 1:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer",
+              "2021-03"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[werdegang_2]",
+          "id": "form2_werdegang2",
+          "label": "Beruflicher Werdegang 2:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "South Works",
+              "Analyst",
+              "2018",
+              "2020"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[werdegang_3]",
+          "id": "form2_werdegang3",
+          "label": "Beruflicher Werdegang 3:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Manager",
+              "2016",
+              "2018"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[werdegang_4]",
+          "id": "form2_werdegang4",
+          "label": "Beruflicher Werdegang 4:",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer",
+              "2010",
+              "2014"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[bildungsstatus]",
+          "id": "form2_bildungsstatus",
+          "label": "Bildungsstatus *",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 16,
+          "tag": "textarea",
+          "type": "",
+          "name": "cf[qualifikationen]",
+          "id": "form2_qualifikationen",
+          "label": "Qualifikationen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 17,
+          "tag": "textarea",
+          "type": "",
+          "name": "cf[anschreiben]",
+          "id": "form2_anschreiben",
+          "label": "Bewerbungsanschreiben",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "cf[datenschutz]",
+          "id": "form2_datenschutz",
+          "label": "Ja, ich habe die Datenschutzerklärung gelesen und willige ein das meine Daten aus diesem Kontaktformular entsprechend gespeichert und genutzt werden dürfen.",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 19,
+          "tag": "input",
+          "type": "text",
+          "name": "captcha_35",
+          "id": "form2_captcha35",
+          "label": "Anti-Spam Aufgabe: *",
+          "placeholder": "Bitte das Ergebnis hier eintragen",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 23,
+          "tag": "input",
+          "type": "text",
+          "name": "cf[hnpt]",
+          "id": "cf-field-6ad710ce49e99",
+          "label": "Last Name",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "filled": 3,
+        "preserved": 14,
+        "missed": 4
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "form2_name",
+          "label": "Vor- und Nachname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form2_telefon",
+          "label": "Telefon",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form2_email",
+          "label": "E-Mail",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form2_geburtsdatum",
+          "label": "Geburtsdatum",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_bewerbungals",
+          "label": "Bewerbung als",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_0",
+          "label": "Baumpfleger",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_1",
+          "label": "Baumkletterer",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_2",
+          "label": "Garten- Landschaftsbauer",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_3",
+          "label": "Quereinsteiger",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_4",
+          "label": "Auszubildender",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_alternativejobs_5",
+          "label": "Studentenjobs",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_werdegang1",
+          "label": "Beruflicher Werdegang 1:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_werdegang2",
+          "label": "Beruflicher Werdegang 2:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_werdegang3",
+          "label": "Beruflicher Werdegang 3:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_werdegang4",
+          "label": "Beruflicher Werdegang 4:",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_bildungsstatus",
+          "label": "Bildungsstatus",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_qualifikationen",
+          "label": "Qualifikationen",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_anschreiben",
+          "label": "Bewerbungsanschreiben",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form2_datenschutz",
+          "label": "Ja, ich habe die Datenschutzerklärung gelesen und willige ein das meine Daten aus diesem Kontaktformular entsprechend gespeichert und genutzt werden dürfen.",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form2_captcha35",
+          "label": "Anti-Spam Aufgabe:",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "peterhoff",
+      "company": "Peterhoff-Gruppe",
+      "url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+      "fields": [
+        {
+          "index": 6,
+          "tag": "select",
+          "type": "",
+          "name": "lstdate",
+          "id": "jobs",
+          "label": "Bewerbung auf eine unserer offenen Stellen: Bitte wählen Sie aus …Regionalleitung (m/w/d) im Großraum Baden-Württemberg Leitung Vertriebsinnendienst Objektleite",
+          "placeholder": "",
+          "initial": "Bitte wählen Sie aus …",
+          "actual": "Bitte wählen Sie aus …",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "text",
+          "name": "Bewerbung",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "text",
+          "name": "Standort",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "text",
+          "name": "Name",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Mara Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "wrong"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "text",
+          "name": "Vorname",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Mara",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "StraeNr",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Example Street 4"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "PLZ",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "76131",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "76131"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "text",
+          "name": "Ort",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Karlsruhe",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "text",
+          "name": "Land",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Germany",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Germany",
+              "Deutschland"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "text",
+          "name": "Geburtsdatum",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 16,
+          "tag": "input",
+          "type": "text",
+          "name": "Staatsangehoerigkeit",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 17,
+          "tag": "input",
+          "type": "tel",
+          "name": "Telefon",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "email",
+          "name": "EMailAdresse",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 19,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Arbeitszeitmodell[]",
+          "id": "",
+          "label": "Vollzeit",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 20,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Arbeitszeitmodell[]",
+          "id": "",
+          "label": "Teilzeit",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 21,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Arbeitszeitmodell[]",
+          "id": "",
+          "label": "flexibel",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 22,
+          "tag": "textarea",
+          "type": "",
+          "name": "Werdegang",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer",
+              "2021-03",
+              "South Works",
+              "Analyst",
+              "2018",
+              "2020",
+              "North Lab",
+              "Manager",
+              "2016",
+              "2018",
+              "North Lab",
+              "Engineer",
+              "2010",
+              "2014"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 23,
+          "tag": "input",
+          "type": "file",
+          "name": "file-175",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 24,
+          "tag": "input",
+          "type": "file",
+          "name": "file-176",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 25,
+          "tag": "input",
+          "type": "file",
+          "name": "file-177",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 26,
+          "tag": "input",
+          "type": "text",
+          "name": "quiz-436",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 28,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "acceptance-743",
+          "id": "",
+          "label": "",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 29,
+          "tag": "input",
+          "type": "text",
+          "name": "first-name",
+          "id": "wpcf7-6ad710cf36a2e-field",
+          "label": "Bitte lasse dieses Feld leer.",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 30,
+          "tag": "input",
+          "type": "text",
+          "name": "last-name",
+          "id": "wpcf7-6ad710cf36ab0-field",
+          "label": "Bitte lasse dieses Feld leer.",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 15,
+        "wrong": 1,
+        "filled": 6,
+        "missed": 2
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "jobs",
+          "label": "lstdate",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-1",
+          "label": "Bewerbung",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-2",
+          "label": "Standort",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-3",
+          "label": "Name",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-4",
+          "label": "Vorname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-5",
+          "label": "StraeNr",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-6",
+          "label": "PLZ",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-7",
+          "label": "Ort",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-8",
+          "label": "Land",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-9",
+          "label": "Geburtsdatum",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-10",
+          "label": "Staatsangehoerigkeit",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-11",
+          "label": "Telefon",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-12",
+          "label": "EMailAdresse",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "field-13",
+          "label": "Vollzeit",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "field-14",
+          "label": "Teilzeit",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "field-15",
+          "label": "flexibel",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "field-16",
+          "label": "Werdegang",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-17",
+          "label": "file-175",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "field-18",
+          "label": "file-176",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "field-19",
+          "label": "file-177",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        },
+        {
+          "id": "field-20",
+          "label": "",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-21",
+          "label": "acceptance-743",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "wpcf7-6ad710cf36a2e-field",
+          "label": "Bitte lasse dieses Feld leer.",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "wpcf7-6ad710cf36ab0-field",
+          "label": "Bitte lasse dieses Feld leer.",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "e-unit",
+      "company": "e-unit",
+      "url": "https://jobs.e-unit.de/bewerbungsformular/",
+      "fields": [
+        {
+          "index": 4,
+          "tag": "input",
+          "type": "text",
+          "name": "input_text",
+          "id": "ff_5_input_text",
+          "label": "Initiativbewerbung als",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "type": "text",
+          "name": "names[first_name]",
+          "id": "ff_5_names_first_name_",
+          "label": "Vorname",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Mara",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "text",
+          "name": "names[last_name]",
+          "id": "ff_5_names_last_name_",
+          "label": "Nachname",
+          "placeholder": "",
+          "initial": "",
+          "actual": "Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "tel",
+          "name": "phone",
+          "id": "ff_5_phone",
+          "label": "Telefonummer",
+          "placeholder": "Telefonummer",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "email",
+          "name": "email",
+          "id": "ff_5_email",
+          "label": "E-Mail",
+          "placeholder": "Email Addresse",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "text",
+          "name": "input_text_2",
+          "id": "ff_5_input_text_2",
+          "label": "Straße, Hausnr",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Example Street 4"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "text",
+          "name": "input_text_3",
+          "id": "ff_5_input_text_3",
+          "label": "PLZ, Ort",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "76131",
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "datetime",
+          "id": "ff_5_datetime",
+          "label": "Geburtsdatum",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "file",
+          "name": "file-upload",
+          "id": "ff_5_file-upload_1",
+          "label": "Lebenslauf Datei wählen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "file",
+          "name": "file-upload_1",
+          "id": "ff_5_file-upload_1_1",
+          "label": "Zusätzliche Dateien Dateien wählen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 14,
+          "tag": "textarea",
+          "type": "",
+          "name": "description_1",
+          "id": "ff_5_description_1",
+          "label": "Beruflicher Werdegang",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer",
+              "2021-03",
+              "South Works",
+              "Analyst",
+              "2018",
+              "2020",
+              "North Lab",
+              "Manager",
+              "2016",
+              "2018",
+              "North Lab",
+              "Engineer",
+              "2010",
+              "2014"
+            ],
+            "category": "experience"
+          },
+          "outcome": "not_visible"
+        },
+        {
+          "index": 15,
+          "tag": "textarea",
+          "type": "",
+          "name": "description_2",
+          "id": "ff_5_description_2",
+          "label": "Vorbildungen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 16,
+          "tag": "textarea",
+          "type": "",
+          "name": "description_3",
+          "id": "ff_5_description_3",
+          "label": "Besondere Kenntnisse",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 17,
+          "tag": "textarea",
+          "type": "",
+          "name": "description_4",
+          "id": "ff_5_description_4",
+          "label": "Deine persönliche Bewerbung",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "textarea",
+          "type": "",
+          "name": "description_5",
+          "id": "ff_5_description_5",
+          "label": "Warum bist du der/die Richtige für den Beruf?",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 8,
+        "filled": 4,
+        "missed": 2,
+        "not_visible": 1
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "ff_5_input_text",
+          "label": "Initiativbewerbung als",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ff_5_names_first_name_",
+          "label": "Vorname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ff_5_names_last_name_",
+          "label": "Nachname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ff_5_phone",
+          "label": "Telefonummer",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ff_5_email",
+          "label": "E-Mail",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ff_5_input_text_2",
+          "label": "Straße, Hausnr",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ff_5_input_text_3",
+          "label": "PLZ, Ort",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ff_5_datetime",
+          "label": "Geburtsdatum Use arrow keys to navigate dates. Press enter to select a date.",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "wuetschner",
+      "company": "Wütschner Fahrzeugteile",
+      "url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+      "fields": [
+        {
+          "index": 4,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "bewerbung_als[]",
+          "id": "opt_37_0",
+          "label": "Vertriebsmitarbeiter im Innendienst (m/w/d)",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "bewerbung_als[]",
+          "id": "opt_37_1",
+          "label": "Vertriebsmitarbeiter im Aussendienst (m/w/d)",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "bewerbung_als[]",
+          "id": "opt_37_2",
+          "label": "Lagermitarbeiter (m/w/d)",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "bewerbung_als[]",
+          "id": "opt_37_3",
+          "label": "Ausbildung Kaufmann für Groß- und Außenhandelsmanagement (m/w/d)",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "bewerbung_als[]",
+          "id": "opt_37_4",
+          "label": "Ausbildung Fachkraft für Lagerlogistik (m/w/d)",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "select",
+          "type": "",
+          "name": "Wunsch-Filiale",
+          "id": "ctrl_38",
+          "label": "Ihre Wütschner-Wunschfiliale -WÜTSCHNER AschaffenburgWÜTSCHNER FreibergWÜTSCHNER GladenbachWÜTSCHNER LudwigshafenWÜTSCHNER MainzWÜTSCHNER PetersbergWÜTSCHNER Sc",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "text",
+          "name": "nachname",
+          "id": "ctrl_41",
+          "label": "Pflichtfeld Nachname*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "vorname",
+          "id": "ctrl_42",
+          "label": "Pflichtfeld Vorname*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "strasse",
+          "id": "ctrl_43",
+          "label": "Pflichtfeld Straße / Hausnummer*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Example Street 4"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "text",
+          "name": "plz_ort",
+          "id": "ctrl_44",
+          "label": "Pflichtfeld PLZ / Ort*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "76131",
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "tel",
+          "name": "telefon",
+          "id": "ctrl_45",
+          "label": "Telefon",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "tel",
+          "name": "mobil",
+          "id": "ctrl_46",
+          "label": "Mobil",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 16,
+          "tag": "input",
+          "type": "email",
+          "name": "mail",
+          "id": "ctrl_47",
+          "label": "Pflichtfeld Mail*",
+          "placeholder": "",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 17,
+          "tag": "input",
+          "type": "radio",
+          "name": "ausbildung",
+          "id": "opt_50_0",
+          "label": "ja",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "radio",
+          "name": "ausbildung",
+          "id": "opt_50_1",
+          "label": "nein",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 19,
+          "tag": "input",
+          "type": "text",
+          "name": "ausbildungsbezeichnung",
+          "id": "ctrl_51",
+          "label": "Ausbildungsbezeichnung",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 20,
+          "tag": "input",
+          "type": "text",
+          "name": "zeitraum_1",
+          "id": "ctrl_55",
+          "label": "von - bis",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "2021-03"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 21,
+          "tag": "textarea",
+          "type": "",
+          "name": "arbeitgeber_taetigkeiten_1",
+          "id": "ctrl_56",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 22,
+          "tag": "input",
+          "type": "text",
+          "name": "zeitraum_2",
+          "id": "ctrl_59",
+          "label": "von - bis",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "2018",
+              "2020"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 23,
+          "tag": "textarea",
+          "type": "",
+          "name": "arbeitgeber_taetigkeiten_2",
+          "id": "ctrl_60",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "South Works",
+              "Analyst"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 24,
+          "tag": "input",
+          "type": "text",
+          "name": "zeitraum_3",
+          "id": "ctrl_63",
+          "label": "von - bis",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "2016",
+              "2018"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 25,
+          "tag": "textarea",
+          "type": "",
+          "name": "arbeitgeber_taetigkeiten_3",
+          "id": "ctrl_64",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Manager"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 26,
+          "tag": "input",
+          "type": "text",
+          "name": "zeitraum_4",
+          "id": "ctrl_67",
+          "label": "von - bis",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "2010",
+              "2014"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 27,
+          "tag": "textarea",
+          "type": "",
+          "name": "arbeitgeber_taetigkeiten_4",
+          "id": "ctrl_68",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 28,
+          "tag": "textarea",
+          "type": "",
+          "name": "kenntnisse",
+          "id": "ctrl_72",
+          "label": "Besondere Kenntnisse, Zusatzausbildungen, Weiterbildungen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 29,
+          "tag": "input",
+          "type": "date",
+          "name": "eintrittstermin",
+          "id": "ctrl_73",
+          "label": "Möglicher Eintrittstermin/Kündigungsfrist",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "2026-12-01"
+            ],
+            "category": "contact"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 30,
+          "tag": "input",
+          "type": "file",
+          "name": "Bewerbungsunterlagen",
+          "id": "ctrl_71",
+          "label": "Bewerbungsunterlagen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 11,
+        "missed": 15,
+        "filled": 1
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "opt_37_0",
+          "label": "Vertriebsmitarbeiter im Innendienst (m/w/d)",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "opt_37_1",
+          "label": "Vertriebsmitarbeiter im Aussendienst (m/w/d)",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "opt_37_2",
+          "label": "Lagermitarbeiter (m/w/d)",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "opt_37_3",
+          "label": "Ausbildung Kaufmann für Groß- und Außenhandelsmanagement (m/w/d)",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "opt_37_4",
+          "label": "Ausbildung Fachkraft für Lagerlogistik (m/w/d)",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_38",
+          "label": "Wunsch-Filiale",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_41",
+          "label": "Pflichtfeld Nachname*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_42",
+          "label": "Pflichtfeld Vorname*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_43",
+          "label": "Pflichtfeld Straße / Hausnummer*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_44",
+          "label": "Pflichtfeld PLZ / Ort*",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_45",
+          "label": "Telefon",
+          "required": false,
+          "status": "ambiguous",
+          "reason": "Multiple fields match this fact; choose the correct field.",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ctrl_46",
+          "label": "Mobil",
+          "required": false,
+          "status": "ambiguous",
+          "reason": "Multiple fields match this fact; choose the correct field.",
+          "source": "CV/profile"
+        },
+        {
+          "id": "ctrl_47",
+          "label": "Pflichtfeld Mail*",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "opt_50_0",
+          "label": "Haben Sie eine abgeschlossene Ausbildung?",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_51",
+          "label": "Ausbildungsbezeichnung",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_55",
+          "label": "von - bis",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_56",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_59",
+          "label": "von - bis",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_60",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_63",
+          "label": "von - bis",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_64",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_67",
+          "label": "von - bis",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_68",
+          "label": "Arbeitgeber / Tätigkeiten",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_72",
+          "label": "Besondere Kenntnisse, Zusatzausbildungen, Weiterbildungen",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_73",
+          "label": "Möglicher Eintrittstermin/Kündigungsfrist",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "ctrl_71",
+          "label": "Bewerbungsunterlagen",
+          "required": false,
+          "status": "manual",
+          "reason": "Choose the required file yourself.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "grasenhiller",
+      "company": "Grasenhiller",
+      "url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+      "fields": [
+        {
+          "index": 0,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Art der Bewerbung",
+          "id": "checkbox-16331",
+          "label": "Praktikum / Werkstudium",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 1,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Art der Bewerbung",
+          "id": "checkbox-16334",
+          "label": "Ausbildung",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Art der Bewerbung",
+          "id": "checkbox-16337",
+          "label": "Berufseinsteiger",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 3,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Art der Bewerbung",
+          "id": "checkbox-16340",
+          "label": "Berufserfahrung",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-a4347ba8-b520-4400-b354-45e7718638d3-comp-m6jgatc9-",
+          "label": "Bewerbung als*",
+          "placeholder": "z. B. Bürokauffrau",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-2e07b703-2e53-43cb-9d4e-892f52c43084-comp-m6jgatc9-",
+          "label": "Vorname*",
+          "placeholder": "Max",
+          "initial": "",
+          "actual": "Mara",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-5d46c2a3-d9f4-45d2-b429-2f0086b1e5e6-comp-m6jgatc9-",
+          "label": "Nachname*",
+          "placeholder": "Mustermann",
+          "initial": "",
+          "actual": "Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "label-for-id-16350",
+          "label": "",
+          "placeholder": "Tag",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "label-for-id-16356",
+          "label": "",
+          "placeholder": "Jahr",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-973445a1-a3e9-416f-bde3-59a5e4b80bd2-comp-m6jgatc9-",
+          "label": "Adresse*",
+          "placeholder": "Musterstraße, 5 92318 Neumarkt",
+          "initial": "",
+          "actual": "Example Street 4",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "Example Street 4",
+              "76131",
+              "Karlsruhe"
+            ],
+            "category": "contact"
+          },
+          "outcome": "wrong"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-48c4fcca-b4d2-4ac4-4def-96187695fd40-comp-m6jgatc9-",
+          "label": "Telefonnummer*",
+          "placeholder": "09181 5555",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "email",
+          "name": "",
+          "id": "form-field-input-94653d1e-4c4a-4500-5594-bc0daf7c79bf-comp-m6jgatc9-",
+          "label": "E-Mail-Adresse*",
+          "placeholder": "max@mustermann.de",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-314852a3-d4e6-4f66-5a5b-cefae2f73a3f-comp-m6jgatc9-",
+          "label": "Höchster Bildungsabschluss*",
+          "placeholder": "Mittlere Reife",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 13,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-f3877948-45f4-40c2-ad47-3d19a12b7abc-comp-m6jgatc9-",
+          "label": "Letzter Arbeitgeber / Schule*",
+          "placeholder": "Musterfirma",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-9fdfb1bf-9069-4e15-ba9a-f9fb8bb9084d-comp-m6jgatc9-",
+          "label": "Beschäftigungszeitraum letzter Arbeitgeber*",
+          "placeholder": "von",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-ac4c462f-4c05-4848-d494-a2b22294ae21-comp-m6jgatc9-",
+          "label": "*",
+          "placeholder": "bis",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 16,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-ab14c1da-c293-4146-b83a-d7ab7c4bc2cd-comp-m6jgatc9-",
+          "label": "Gewünschtes Eintrittsdatum*",
+          "placeholder": "01.01.2025",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "2026-12-01",
+              "01.12.2026"
+            ],
+            "category": "contact"
+          },
+          "outcome": "not_visible"
+        },
+        {
+          "index": 17,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-f14e983e-a69d-4747-04d4-ca4e7c7d171c-comp-m6jgatc9-",
+          "label": "Gehaltsvorstellung",
+          "placeholder": "Dein Wunschgehalt",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "file",
+          "name": "",
+          "id": "",
+          "label": "Dateien hochladen",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 19,
+          "tag": "textarea",
+          "type": "",
+          "name": "",
+          "id": "form-field-input-286337fb-3689-4659-43c2-9da400f6ca30-comp-m6jgatc9-",
+          "label": "Deine Nachricht",
+          "placeholder": "Berichte uns was über dich.",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 20,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+          "id": "checkbox-16381",
+          "label": "Website",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 21,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+          "id": "checkbox-16384",
+          "label": "Instagram",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 22,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+          "id": "checkbox-16387",
+          "label": "LinkedIn",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 23,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+          "id": "checkbox-16390",
+          "label": "Sonstiges",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 24,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "",
+          "id": "checkbox-16393",
+          "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 19,
+        "filled": 4,
+        "wrong": 1,
+        "not_visible": 1
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "checkbox-16331",
+          "label": "Praktikum / Werkstudium",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16334",
+          "label": "Ausbildung",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16337",
+          "label": "Berufseinsteiger",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16340",
+          "label": "Berufserfahrung",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-a4347ba8-b520-4400-b354-45e7718638d3-comp-m6jgatc9-",
+          "label": "Bewerbung als",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "label-for-id_-16344",
+          "label": "Bevorzugter Standort",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-2e07b703-2e53-43cb-9d4e-892f52c43084-comp-m6jgatc9-",
+          "label": "Vorname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-5d46c2a3-d9f4-45d2-b429-2f0086b1e5e6-comp-m6jgatc9-",
+          "label": "Nachname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "label-for-id-16350",
+          "label": "Tag",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "label-for-id_-16354",
+          "label": "Monat",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "label-for-id-16356",
+          "label": "Jahr",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-973445a1-a3e9-416f-bde3-59a5e4b80bd2-comp-m6jgatc9-",
+          "label": "Adresse",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-48c4fcca-b4d2-4ac4-4def-96187695fd40-comp-m6jgatc9-",
+          "label": "Telefonnummer",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-94653d1e-4c4a-4500-5594-bc0daf7c79bf-comp-m6jgatc9-",
+          "label": "E-Mail-Adresse",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-314852a3-d4e6-4f66-5a5b-cefae2f73a3f-comp-m6jgatc9-",
+          "label": "Höchster Bildungsabschluss",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-f3877948-45f4-40c2-ad47-3d19a12b7abc-comp-m6jgatc9-",
+          "label": "Letzter Arbeitgeber / Schule",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-f14e983e-a69d-4747-04d4-ca4e7c7d171c-comp-m6jgatc9-",
+          "label": "Gehaltsvorstellung",
+          "required": false,
+          "status": "missing",
+          "reason": "Salary needs an amount, currency and pay period in the profile.",
+          "source": "User-provided common answer"
+        },
+        {
+          "id": "form-field-input-286337fb-3689-4659-43c2-9da400f6ca30-comp-m6jgatc9-",
+          "label": "Deine Nachricht",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16381",
+          "label": "Website",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": "CV/profile"
+        },
+        {
+          "id": "checkbox-16384",
+          "label": "Instagram",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16387",
+          "label": "LinkedIn",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": "CV/profile"
+        },
+        {
+          "id": "checkbox-16390",
+          "label": "Sonstiges",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-16393",
+          "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    },
+    {
+      "company_id": "szm",
+      "company": "SZM Moosburger",
+      "url": "https://www.sz-moosburger.de/karriere",
+      "fields": [
+        {
+          "index": 0,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-7c889d82-8429-4901-fd23-32f04840ec67-comp-m85v9v3p-",
+          "label": "Beruf*",
+          "placeholder": "Beruf",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 1,
+          "tag": "input",
+          "type": "radio",
+          "name": "art_der_bewerbung",
+          "id": "",
+          "label": "Ausbildung",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 2,
+          "tag": "input",
+          "type": "radio",
+          "name": "art_der_bewerbung",
+          "id": "",
+          "label": "Fachkraft",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 3,
+          "tag": "input",
+          "type": "radio",
+          "name": "art_der_bewerbung",
+          "id": "",
+          "label": "Quereinstieg",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 4,
+          "tag": "input",
+          "type": "radio",
+          "name": "art_der_bewerbung",
+          "id": "",
+          "label": "Umschulung",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 5,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-cbb7a92c-2862-4289-64ad-4e71436d55c0-comp-m85v9v3p-",
+          "label": "Vorname*",
+          "placeholder": "Max",
+          "initial": "",
+          "actual": "Mara",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Mara"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 6,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-402544aa-9197-446e-48b4-a37d83483ba2-comp-m85v9v3p-",
+          "label": "Nachname*",
+          "placeholder": "Mustermann",
+          "initial": "",
+          "actual": "Neumann",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "Neumann"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 7,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "label-for-id-29102",
+          "label": "",
+          "placeholder": "Tag",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 8,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "label-for-id-29108",
+          "label": "",
+          "placeholder": "Jahr",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 9,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-cec29d86-c13c-4a0f-0e66-e0923aea171d-comp-m85v9v3p-",
+          "label": "Telefonnummer*",
+          "placeholder": "0123456789",
+          "initial": "",
+          "actual": "+49301234567",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "+49301234567"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 10,
+          "tag": "input",
+          "type": "email",
+          "name": "",
+          "id": "form-field-input-5252615a-9105-459b-b7f1-97c416883050-comp-m85v9v3p-",
+          "label": "E-Mail-Adresse*",
+          "placeholder": "max@mustermann.de",
+          "initial": "",
+          "actual": "mara@example.invalid",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "mara@example.invalid"
+            ],
+            "category": "contact"
+          },
+          "outcome": "filled"
+        },
+        {
+          "index": 11,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-2da91441-a756-4215-6b47-1a67fbd8e3f1-comp-m85v9v3p-",
+          "label": "Höchster Bildungsabschluss*",
+          "placeholder": "Realschule",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 12,
+          "tag": "input",
+          "type": "text",
+          "name": "",
+          "id": "form-field-input-957be4b0-7447-45d8-c06b-f26db4840528-comp-m85v9v3p-",
+          "label": "Letzter Arbeitgeber*",
+          "placeholder": "Musterfirma",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "equals",
+            "values": [
+              "North Lab"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 13,
+          "tag": "textarea",
+          "type": "",
+          "name": "",
+          "id": "form-field-input-590870fc-3f9b-468c-3205-6b881e7e4088-comp-m85v9v3p-",
+          "label": "Beruflicher Werdegang*",
+          "placeholder": "Realschule, Ausbildung zum xx, ...",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "contains_all",
+            "parts": [
+              "North Lab",
+              "Engineer",
+              "2021-03",
+              "South Works",
+              "Analyst",
+              "2018",
+              "2020",
+              "North Lab",
+              "Manager",
+              "2016",
+              "2018",
+              "North Lab",
+              "Engineer",
+              "2010",
+              "2014"
+            ],
+            "category": "experience"
+          },
+          "outcome": "missed"
+        },
+        {
+          "index": 14,
+          "tag": "input",
+          "type": "radio",
+          "name": "fuehrerschein_vorhanden",
+          "id": "",
+          "label": "ja",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 15,
+          "tag": "input",
+          "type": "radio",
+          "name": "fuehrerschein_vorhanden",
+          "id": "",
+          "label": "nein",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 16,
+          "tag": "input",
+          "type": "file",
+          "name": "",
+          "id": "",
+          "label": "Upload",
+          "placeholder": "",
+          "initial": "",
+          "actual": "",
+          "visible": false,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 17,
+          "tag": "textarea",
+          "type": "",
+          "name": "",
+          "id": "form-field-input-c25fba07-f44e-4b50-c08e-c1658914e9c8-comp-m85v9v3p-",
+          "label": "Ihre Nachricht an uns",
+          "placeholder": "Erzählen Sie was über sich",
+          "initial": "",
+          "actual": "",
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        },
+        {
+          "index": 18,
+          "tag": "input",
+          "type": "checkbox",
+          "name": "",
+          "id": "checkbox-29129",
+          "label": "Hiermit stimme ich der Datenschutzerklärung zu.",
+          "placeholder": "",
+          "initial": false,
+          "actual": false,
+          "visible": true,
+          "expectation": {
+            "rule": "preserve"
+          },
+          "outcome": "preserved"
+        }
+      ],
+      "outcomes": {
+        "preserved": 13,
+        "filled": 4,
+        "missed": 2
+      },
+      "repeat_stable": true,
+      "runtime_report": [
+        {
+          "id": "form-field-input-7c889d82-8429-4901-fd23-32f04840ec67-comp-m85v9v3p-",
+          "label": "Beruf",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-1",
+          "label": "Art der Bewerbung*",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-cbb7a92c-2862-4289-64ad-4e71436d55c0-comp-m85v9v3p-",
+          "label": "Vorname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-402544aa-9197-446e-48b4-a37d83483ba2-comp-m85v9v3p-",
+          "label": "Nachname",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "label-for-id-29102",
+          "label": "Tag",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "label-for-id_-29106",
+          "label": "Monat",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "label-for-id-29108",
+          "label": "Jahr",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-cec29d86-c13c-4a0f-0e66-e0923aea171d-comp-m85v9v3p-",
+          "label": "Telefonnummer",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-5252615a-9105-459b-b7f1-97c416883050-comp-m85v9v3p-",
+          "label": "E-Mail-Adresse",
+          "required": true,
+          "status": "filled",
+          "reason": "",
+          "source": "CV/profile"
+        },
+        {
+          "id": "form-field-input-2da91441-a756-4215-6b47-1a67fbd8e3f1-comp-m85v9v3p-",
+          "label": "Höchster Bildungsabschluss",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-957be4b0-7447-45d8-c06b-f26db4840528-comp-m85v9v3p-",
+          "label": "Letzter Arbeitgeber",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-590870fc-3f9b-468c-3205-6b881e7e4088-comp-m85v9v3p-",
+          "label": "Beruflicher Werdegang",
+          "required": true,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "field-12",
+          "label": "Führerschein vorhanden*",
+          "required": true,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        },
+        {
+          "id": "form-field-input-c25fba07-f44e-4b50-c08e-c1658914e9c8-comp-m85v9v3p-",
+          "label": "Ihre Nachricht an uns",
+          "required": false,
+          "status": "missing",
+          "reason": "No exact known fact or answer matches this field.",
+          "source": ""
+        },
+        {
+          "id": "checkbox-29129",
+          "label": "Hiermit stimme ich der Datenschutzerklärung zu.",
+          "required": false,
+          "status": "manual",
+          "reason": "Make this choice yourself; the extension does not infer consent or legal declarations.",
+          "source": ""
+        }
+      ],
+      "prepare": {
+        "added": 0,
+        "mutated": false
+      },
+      "audit": {
+        "submitAttempts": 0,
+        "transportAttempts": [],
+        "blockedBrowserRequests": [],
+        "allowedBrowserRequests": 0
+      },
+      "page_errors": []
+    }
+  ]
+}

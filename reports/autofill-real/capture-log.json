@@ -1,0 +1,146 @@
+[
+  {
+    "company_id": "ammerlaender",
+    "url": "https://www.ammerlaender-versicherung.de/bewerbung",
+    "captured_at": "2026-10-20T06:57:17.421125+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.ammerlaender-versicherung.de/bewerbung",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.ammerlaender-versicherung.de/bewerbung",
+    "status": 200,
+    "bytes": 123433,
+    "sha256": "f9cd6759a21a6d30813f469af03bea33411bc8c33423572d2d59fb329ed987d9"
+  },
+  {
+    "company_id": "arge-gruen",
+    "url": "https://www.arge-gruen.de/bewerbung",
+    "captured_at": "2026-10-20T06:57:17.422338+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.arge-gruen.de/bewerbung",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.arge-gruen.de/bewerbung",
+    "status": 200,
+    "bytes": 65675,
+    "sha256": "0d0bace0eb3079965b2775eda2a4dc7ba893a23387cd46bc683e792c7f68cc85"
+  },
+  {
+    "company_id": "compact",
+    "url": "https://compact-service.com/karriere/bewerbungsformular",
+    "captured_at": "2026-10-20T06:57:17.421837+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://compact-service.com/karriere/bewerbungsformular",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://compact-service.com/karriere/bewerbungsformular",
+    "status": 200,
+    "bytes": 193323,
+    "sha256": "e6e547e38c8f11673d552b34323e4255e5dfda510a81a03514f9fb7224f0e9c9"
+  },
+  {
+    "company_id": "e-unit",
+    "url": "https://jobs.e-unit.de/bewerbungsformular/",
+    "captured_at": "2026-10-20T06:57:18.463913+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://jobs.e-unit.de/bewerbungsformular/",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://jobs.e-unit.de/bewerbungsformular/",
+    "status": 200,
+    "bytes": 63652,
+    "sha256": "81c3bdc8c2a52ae5a0705aac97e64241af203604c12e4476866e5961e67fcd1f"
+  },
+  {
+    "company_id": "grasenhiller",
+    "url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+    "captured_at": "2026-10-20T06:57:19.456114+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+    "status": 200,
+    "bytes": 1516656,
+    "sha256": "cfb8b175b4e160ec21b1b1078f065580b0292568d03fd9e54f96892e374c1019"
+  },
+  {
+    "company_id": "lilli",
+    "url": "https://www.lms-gmbh.de/bewerbungsformular/",
+    "captured_at": "2026-10-20T06:57:18.883646+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.lms-gmbh.de/bewerbungsformular/",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.lms-gmbh.de/bewerbungsformular/",
+    "status": 200,
+    "bytes": 226101,
+    "sha256": "f4dec75d2c37f421e7864be1006d59359b646a175c4a3271cc9f4e52853dc201"
+  },
+  {
+    "company_id": "peterhoff",
+    "url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+    "captured_at": "2026-10-20T06:57:17.866711+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+    "status": 200,
+    "bytes": 95145,
+    "sha256": "9db4312ad0e70417b21dfc101a8b3ddc7a3e38d75bfa624e0962fe8246dd0d81"
+  },
+  {
+    "company_id": "szm",
+    "url": "https://www.sz-moosburger.de/karriere",
+    "captured_at": "2026-10-20T06:57:19.870523+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.sz-moosburger.de/karriere",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.sz-moosburger.de/karriere",
+    "status": 200,
+    "bytes": 1404478,
+    "sha256": "26018a0e2473e8ec7e982bf4c6a78f0deec532c96d9447f6ec0f55e5d6c16f84"
+  },
+  {
+    "company_id": "wuetschner",
+    "url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+    "captured_at": "2026-10-20T06:57:18.809281+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+    "status": 200,
+    "bytes": 36043,
+    "sha256": "4d96bec5685d3c33ae584f37dd63cc8654ef3b6392d5f9556d821fb90bcd6b72"
+  }
+]

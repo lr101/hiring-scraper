@@ -1,0 +1,2429 @@
+[
+  {
+    "company_id": "ammerlaender",
+    "url": "https://www.ammerlaender-versicherung.de/bewerbung",
+    "captured_at": "2026-10-20T06:57:17.421125+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.ammerlaender-versicherung.de/bewerbung",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.ammerlaender-versicherung.de/bewerbung",
+    "status": 200,
+    "bytes": 123433,
+    "sha256": "f9cd6759a21a6d30813f469af03bea33411bc8c33423572d2d59fb329ed987d9",
+    "company": "Ammerländer Versicherung",
+    "snapshot": "forms/ammerlaender.html.gz",
+    "snapshot_sha256": "78bcfbd9e8081744a1e00ca244601ac918855b60808c90748936b0ed6dd19ce3",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "text",
+        "name": "txtJobbezeichnung",
+        "id": "txtJobbezeichnung",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "hidden",
+        "name": "stellenID",
+        "id": "stellenID",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "hidden",
+        "name": "initiativ",
+        "id": "initiativ",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "hidden",
+        "name": "ausbildung",
+        "id": "ausbildung",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "hidden",
+        "name": "bewerbungsfrist",
+        "id": "bewerbungsfrist",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "hidden",
+        "name": "intern",
+        "id": "intern",
+        "label": "Bewerbung für den Bereich:*",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "text",
+        "name": "txtVorname",
+        "id": "txtVorname",
+        "label": "Vorname:*",
+        "placeholder": ""
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "text",
+        "name": "txtName",
+        "id": "txtName",
+        "label": "Nachname:*",
+        "placeholder": ""
+      },
+      {
+        "index": 8,
+        "tag": "select",
+        "type": "submit",
+        "name": "ddlStaatsangehoerigkeit",
+        "id": "ddlStaatsangehoerigkeit",
+        "label": "Staatsangehörigkeit:*",
+        "placeholder": ""
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "date",
+        "name": "dpGeburtsdatum",
+        "id": "dpGeburtsdatum",
+        "label": "Geburtsdatum:*",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "text",
+        "name": "txtPLZ",
+        "id": "txtPLZ",
+        "label": "Postleitzahl:*",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "txtOrt",
+        "id": "txtOrt",
+        "label": "Ort:*",
+        "placeholder": ""
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "txtStr",
+        "id": "txtStr",
+        "label": "Straße:*",
+        "placeholder": ""
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "text",
+        "name": "txtAHNr",
+        "id": "txtAHNr",
+        "label": "Hausnummer:*",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "text",
+        "name": "txtTelefonummer",
+        "id": "txtTelefonummer",
+        "label": "Telefonnummer:*",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "text",
+        "name": "txtEMail",
+        "id": "txtEMail",
+        "label": "E-Mail:*",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "textarea",
+        "type": "",
+        "name": "txtKontaktzeiten",
+        "id": "txtKontaktzeiten",
+        "label": "Wann können wir Sie am besten erreichen?",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "input",
+        "type": "radio",
+        "name": "rblBereitsAvGearbeitet",
+        "id": "rblBereitsAvGearbeitet_0",
+        "label": "Ja",
+        "placeholder": ""
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "radio",
+        "name": "rblBereitsAvGearbeitet",
+        "id": "rblBereitsAvGearbeitet_1",
+        "label": "Nein",
+        "placeholder": ""
+      },
+      {
+        "index": 19,
+        "tag": "select",
+        "type": "submit",
+        "name": "ddlAbschluss",
+        "id": "ddlAbschluss",
+        "label": "Nennen Sie uns Ihren höchsten Abschluss.*",
+        "placeholder": ""
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "date",
+        "name": "dpStart",
+        "id": "",
+        "label": "Beginn:",
+        "placeholder": ""
+      },
+      {
+        "index": 21,
+        "tag": "input",
+        "type": "date",
+        "name": "dpEnde",
+        "id": "",
+        "label": "Ende:",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "input",
+        "type": "text",
+        "name": "txtUnternehmen",
+        "id": "",
+        "label": "Unternehmen:",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "input",
+        "type": "text",
+        "name": "txtStandort",
+        "id": "",
+        "label": "Standort:",
+        "placeholder": ""
+      },
+      {
+        "index": 24,
+        "tag": "input",
+        "type": "text",
+        "name": "txtTaetigkeit",
+        "id": "",
+        "label": "Tätigkeitsbezeichnung:",
+        "placeholder": ""
+      },
+      {
+        "index": 25,
+        "tag": "input",
+        "type": "button",
+        "name": "",
+        "id": "duplicateButton",
+        "label": "Ihr beruflicher Werdegang Hier können Sie Ihre beruflichen Station eintragen. Beginn: Ende: Unternehmen: Standort: Tätigkeitsbezeichnung: Bitte füllen Sie alle ",
+        "placeholder": ""
+      },
+      {
+        "index": 26,
+        "tag": "input",
+        "type": "button",
+        "name": "",
+        "id": "editButton",
+        "label": "Ihr beruflicher Werdegang Hier können Sie Ihre beruflichen Station eintragen. Beginn: Ende: Unternehmen: Standort: Tätigkeitsbezeichnung: Bitte füllen Sie alle ",
+        "placeholder": ""
+      },
+      {
+        "index": 27,
+        "tag": "input",
+        "type": "hidden",
+        "name": "werdegangInput",
+        "id": "werdegangInput",
+        "label": "Angabe zu Ihrer Berufserfahrung Haben Sie bereits bei der Ammerländer Versicherung gearbeitet?* Ja Nein function validRadioButtons(formElement){ var form = docu",
+        "placeholder": ""
+      },
+      {
+        "index": 28,
+        "tag": "input",
+        "type": "date",
+        "name": "dpFruehsterEintrittstermin",
+        "id": "dpFruehsterEintrittstermin",
+        "label": "Frühestmöglicher Beginn:",
+        "placeholder": ""
+      },
+      {
+        "index": 29,
+        "tag": "input",
+        "type": "text",
+        "name": "txtGehaltsvorstellung",
+        "id": "txtGehaltsvorstellung",
+        "label": "Gehaltsvorstellung:",
+        "placeholder": ""
+      },
+      {
+        "index": 30,
+        "tag": "select",
+        "type": "submit",
+        "name": "ddlAufmerksamGeworden",
+        "id": "ddlAufmerksamGeworden",
+        "label": "Wie sind Sie auf die Stelle aufmerksam geworden?* Bitte auswählen Homepage Mitarbeitende Facebook Instagram LinkedIn Indeed Jobware Xing Bundesagentur für Arbei",
+        "placeholder": ""
+      },
+      {
+        "index": 31,
+        "tag": "input",
+        "type": "text",
+        "name": "txtAufmerksamGeworden",
+        "id": "txtAufmerksamGeworden",
+        "label": "Wie sind Sie auf die Stelle aufmerksam geworden?*",
+        "placeholder": ""
+      },
+      {
+        "index": 32,
+        "tag": "textarea",
+        "type": "",
+        "name": "txtSonstiges",
+        "id": "txtSonstiges",
+        "label": "Bemerkung:",
+        "placeholder": ""
+      },
+      {
+        "index": 33,
+        "tag": "input",
+        "type": "file",
+        "name": "anschreiben",
+        "id": "filAnschreiben",
+        "label": "Anschreiben per Drag & Drop hierher ziehenoder Anschreiben hochladen...",
+        "placeholder": ""
+      },
+      {
+        "index": 34,
+        "tag": "input",
+        "type": "file",
+        "name": "lebenslauf",
+        "id": "lebenslauf",
+        "label": "Lebenslauf per Drag & Drop hierher ziehenoder Lebenslauf hochladen...",
+        "placeholder": ""
+      },
+      {
+        "index": 35,
+        "tag": "input",
+        "type": "file",
+        "name": "zeugnisse",
+        "id": "zeugnisse",
+        "label": "Zeugnissse per Drag & Drop hierher ziehenoder Zeugnisse hochladen...",
+        "placeholder": ""
+      },
+      {
+        "index": 36,
+        "tag": "input",
+        "type": "file",
+        "name": "sonstiges",
+        "id": "sonstiges",
+        "label": "Sonstige Dateien per Drag & Drop hierher ziehenoder Sonstiges hochladen...",
+        "placeholder": ""
+      },
+      {
+        "index": 37,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "chkDatenschutz",
+        "id": "chkDatenschutz",
+        "label": "Datenschutzerklärung:*",
+        "placeholder": ""
+      },
+      {
+        "index": 38,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "chkErweiterteVerwendung",
+        "id": "chkErweiterteVerwendung",
+        "label": "Einwilligung erweiterte Verwendung:",
+        "placeholder": ""
+      },
+      {
+        "index": 39,
+        "tag": "input",
+        "type": "hidden",
+        "name": "__RequestVerificationToken",
+        "id": "",
+        "label": "Angabe zu Ihrer Berufserfahrung Haben Sie bereits bei der Ammerländer Versicherung gearbeitet?* Ja Nein function validRadioButtons(formElement){ var form = docu",
+        "placeholder": ""
+      },
+      {
+        "index": 40,
+        "tag": "input",
+        "type": "hidden",
+        "name": "datenschutz",
+        "id": "",
+        "label": "Angabe zu Ihrer Berufserfahrung Haben Sie bereits bei der Ammerländer Versicherung gearbeitet?* Ja Nein function validRadioButtons(formElement){ var form = docu",
+        "placeholder": ""
+      },
+      {
+        "index": 41,
+        "tag": "input",
+        "type": "hidden",
+        "name": "erweiterVerwendung",
+        "id": "",
+        "label": "Angabe zu Ihrer Berufserfahrung Haben Sie bereits bei der Ammerländer Versicherung gearbeitet?* Ja Nein function validRadioButtons(formElement){ var form = docu",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "compact",
+    "url": "https://compact-service.com/karriere/bewerbungsformular",
+    "captured_at": "2026-10-20T06:57:17.421837+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://compact-service.com/karriere/bewerbungsformular",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://compact-service.com/karriere/bewerbungsformular",
+    "status": 200,
+    "bytes": 193323,
+    "sha256": "e6e547e38c8f11673d552b34323e4255e5dfda510a81a03514f9fb7224f0e9c9",
+    "company": "compact service",
+    "snapshot": "forms/compact.html.gz",
+    "snapshot_sha256": "f6a86ac18fea849f84d9e80d0ea0bc2c55d281efa3f395dff4f11bcf47d2698f",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_token",
+        "id": "",
+        "label": "Angaben zur Person Allgemeine Angaben Name, Vorname * Geburtsdatum * Familienstand * bitte auswählen ...ledigverheiratet Staatsangehörigkeit Berufliche Angaben ",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_redirect",
+        "id": "",
+        "label": "Angaben zur Person Allgemeine Angaben Name, Vorname * Geburtsdatum * Familienstand * bitte auswählen ...ledigverheiratet Staatsangehörigkeit Berufliche Angaben ",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_error_redirect",
+        "id": "",
+        "label": "Angaben zur Person Allgemeine Angaben Name, Vorname * Geburtsdatum * Familienstand * bitte auswählen ...ledigverheiratet Staatsangehörigkeit Berufliche Angaben ",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "text",
+        "name": "name",
+        "id": "application-form-form-name-field",
+        "label": "Name, Vorname *",
+        "placeholder": "Name, Vorname"
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "date",
+        "name": "date_of_birth",
+        "id": "application-form-form-date_of_birth-field",
+        "label": "Geburtsdatum *",
+        "placeholder": "Geburtsdatum"
+      },
+      {
+        "index": 5,
+        "tag": "select",
+        "type": "",
+        "name": "family_status",
+        "id": "application-form-form-family_status-field",
+        "label": "Familienstand * bitte auswählen ...ledigverheiratet",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "text",
+        "name": "citizenship",
+        "id": "application-form-form-citizenship-field",
+        "label": "Staatsangehörigkeit",
+        "placeholder": "Staatsangehörigkeit"
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "text",
+        "name": "learned_job",
+        "id": "application-form-form-learned_job-field",
+        "label": "Erlernter Beruf",
+        "placeholder": "Erlernter Beruf"
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "text",
+        "name": "employed_as",
+        "id": "application-form-form-employed_as-field",
+        "label": "Derzeit beschäftigt als",
+        "placeholder": "Derzeit beschäftigt als"
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "radio",
+        "name": "concurrently_employed",
+        "id": "application-form-form-concurrently_employed-field-yes-option",
+        "label": "Ja",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "radio",
+        "name": "concurrently_employed",
+        "id": "application-form-form-concurrently_employed-field-no-option",
+        "label": "Nein",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "street",
+        "id": "application-form-form-street-field",
+        "label": "Straße, Hausnummer",
+        "placeholder": "Straße, Hausnummer"
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "place",
+        "id": "application-form-form-place-field",
+        "label": "Postleitzahl und Wohnort",
+        "placeholder": "Postleitzahl und Wohnort"
+      },
+      {
+        "index": 13,
+        "tag": "select",
+        "type": "",
+        "name": "country",
+        "id": "application-form-form-country-field",
+        "label": "Land * bitte auswählen ...🇦🇫 Afghanistan🇦🇽 Aland-Inseln🇦🇱 Albanien🇩🇿 Algerien🇦🇸 Amerikanisch-Samoa🇦🇩 Andorra🇦🇴 Angola🇦🇮 Anguilla🇦🇶 Antarktis🇦🇬 Antigua und Barbu",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "text",
+        "name": "mail",
+        "id": "application-form-form-mail-field",
+        "label": "E-Mail-Adresse *",
+        "placeholder": "E-Mail-Adresse"
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "text",
+        "name": "phone",
+        "id": "application-form-form-phone-field",
+        "label": "Telefon",
+        "placeholder": "Telefon"
+      },
+      {
+        "index": 16,
+        "tag": "input",
+        "type": "text",
+        "name": "mobile_phone",
+        "id": "application-form-form-mobile_phone-field",
+        "label": "Handynummer",
+        "placeholder": "Handynummer"
+      },
+      {
+        "index": 17,
+        "tag": "input",
+        "type": "number",
+        "name": "children_count",
+        "id": "application-form-form-children_count-field",
+        "label": "Anzahl der unterhaltpflichtigen Kinder",
+        "placeholder": "Anzahl der Kinder"
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "text",
+        "name": "parent_street",
+        "id": "application-form-form-parent_street-field",
+        "label": "Straße, Hausnummer",
+        "placeholder": "Straße, Hausnummer"
+      },
+      {
+        "index": 19,
+        "tag": "input",
+        "type": "text",
+        "name": "parent_place",
+        "id": "application-form-form-parent_place-field",
+        "label": "Postleitzahl, Wohnort",
+        "placeholder": "Postleitzahl, Wohnort"
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "text",
+        "name": "parent_phone",
+        "id": "application-form-form-parent_phone-field",
+        "label": "Telefon",
+        "placeholder": "Telefon"
+      },
+      {
+        "index": 21,
+        "tag": "input",
+        "type": "radio",
+        "name": "health_certificate",
+        "id": "application-form-form-health_certificate-field-yes-option",
+        "label": "Ja",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "input",
+        "type": "radio",
+        "name": "health_certificate",
+        "id": "application-form-form-health_certificate-field-no-option",
+        "label": "Nein",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "input",
+        "type": "text",
+        "name": "health_certificate_year",
+        "id": "application-form-form-health_certificate_year-field",
+        "label": "Wenn ja, welches Jahr? *",
+        "placeholder": "Ausstellungsjahr des Gesundheitszeugnisses"
+      },
+      {
+        "index": 24,
+        "tag": "input",
+        "type": "text",
+        "name": "first_school_time",
+        "id": "application-form-form-first_school_time-field",
+        "label": "Von – Bis *",
+        "placeholder": "Erste/r Lehrzeit/Schulbesuch Zeitraum"
+      },
+      {
+        "index": 25,
+        "tag": "input",
+        "type": "text",
+        "name": "first_school_name",
+        "id": "application-form-form-first_school_name-field",
+        "label": "Art/Name der Schule/Firma *",
+        "placeholder": "Art/Name der Schule/Firma"
+      },
+      {
+        "index": 26,
+        "tag": "input",
+        "type": "text",
+        "name": "first_school_final_test",
+        "id": "application-form-form-first_school_final_test-field",
+        "label": "Abgelegte Prüfung *",
+        "placeholder": "Abgelegte Prüfung"
+      },
+      {
+        "index": 27,
+        "tag": "input",
+        "type": "text",
+        "name": "second_school_time",
+        "id": "application-form-form-second_school_time-field",
+        "label": "Von – Bis",
+        "placeholder": "Zweite/r Lehrzeit/Schulbesuch Zeitraum"
+      },
+      {
+        "index": 28,
+        "tag": "input",
+        "type": "text",
+        "name": "second_school_name",
+        "id": "application-form-form-second_school_name-field",
+        "label": "Art/Name der Schule/Firma",
+        "placeholder": "Art/Name der Schule/Firma"
+      },
+      {
+        "index": 29,
+        "tag": "input",
+        "type": "text",
+        "name": "second_school_final_test",
+        "id": "application-form-form-second_school_final_test-field",
+        "label": "Abgelegte Prüfung",
+        "placeholder": "Abgelegte Prüfung"
+      },
+      {
+        "index": 30,
+        "tag": "input",
+        "type": "text",
+        "name": "third_school_time",
+        "id": "application-form-form-third_school_time-field",
+        "label": "Von – Bis",
+        "placeholder": "Dritte/r Lehrzeit/Schulbesuch Zeitraum"
+      },
+      {
+        "index": 31,
+        "tag": "input",
+        "type": "text",
+        "name": "third_school_name",
+        "id": "application-form-form-third_school_name-field",
+        "label": "Art/Name der Schule/Firma",
+        "placeholder": "Art/Name der Schule/Firma"
+      },
+      {
+        "index": 32,
+        "tag": "input",
+        "type": "text",
+        "name": "third_school_final_test",
+        "id": "application-form-form-third_school_final_test-field",
+        "label": "Abgelegte Prüfung",
+        "placeholder": "Abgelegte Prüfung"
+      },
+      {
+        "index": 33,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "no_school",
+        "id": "application-form-form-no_school-field",
+        "label": "Kein Schulabschluss?",
+        "placeholder": ""
+      },
+      {
+        "index": 34,
+        "tag": "input",
+        "type": "text",
+        "name": "first_job_time",
+        "id": "application-form-form-first_job_time-field",
+        "label": "Von – Bis *",
+        "placeholder": "Erste Stelle Zeitraum"
+      },
+      {
+        "index": 35,
+        "tag": "input",
+        "type": "text",
+        "name": "first_job_name",
+        "id": "application-form-form-first_job_name-field",
+        "label": "Art/Name der Firma *",
+        "placeholder": "Art/Name der Firma"
+      },
+      {
+        "index": 36,
+        "tag": "input",
+        "type": "text",
+        "name": "first_job_position",
+        "id": "application-form-form-first_job_position-field",
+        "label": "Tätigkeit *",
+        "placeholder": "Tätigkeit"
+      },
+      {
+        "index": 37,
+        "tag": "input",
+        "type": "text",
+        "name": "second_job_time",
+        "id": "application-form-form-second_job_time-field",
+        "label": "Von – Bis",
+        "placeholder": "Zweite Stelle Zeitraum"
+      },
+      {
+        "index": 38,
+        "tag": "input",
+        "type": "text",
+        "name": "second_job_name",
+        "id": "application-form-form-second_job_name-field",
+        "label": "Art/Name der Firma",
+        "placeholder": "Art/Name der Firma"
+      },
+      {
+        "index": 39,
+        "tag": "input",
+        "type": "text",
+        "name": "second_job_position",
+        "id": "application-form-form-second_job_position-field",
+        "label": "Tätigkeit",
+        "placeholder": "Tätigkeit"
+      },
+      {
+        "index": 40,
+        "tag": "input",
+        "type": "text",
+        "name": "third_job_time",
+        "id": "application-form-form-third_job_time-field",
+        "label": "Von – Bis",
+        "placeholder": "Dritte Stelle Zeitraum"
+      },
+      {
+        "index": 41,
+        "tag": "input",
+        "type": "text",
+        "name": "third_job_name",
+        "id": "application-form-form-third_job_name-field",
+        "label": "Art/Name der Firma",
+        "placeholder": "Art/Name der Firma"
+      },
+      {
+        "index": 42,
+        "tag": "input",
+        "type": "text",
+        "name": "third_job_position",
+        "id": "application-form-form-third_job_position-field",
+        "label": "Tätigkeit",
+        "placeholder": "Tätigkeit"
+      },
+      {
+        "index": 43,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "no_previous_job",
+        "id": "application-form-form-no_previous_job-field",
+        "label": "Haben Sie bisher keine Berufstätigkeit ausgeübt?",
+        "placeholder": ""
+      },
+      {
+        "index": 44,
+        "tag": "input",
+        "type": "radio",
+        "name": "shifts",
+        "id": "application-form-form-shifts-field-yes-option",
+        "label": "Ja",
+        "placeholder": ""
+      },
+      {
+        "index": 45,
+        "tag": "input",
+        "type": "radio",
+        "name": "shifts",
+        "id": "application-form-form-shifts-field-no-option",
+        "label": "Nein",
+        "placeholder": ""
+      },
+      {
+        "index": 46,
+        "tag": "input",
+        "type": "text",
+        "name": "special_work",
+        "id": "application-form-form-special_work-field",
+        "label": "Welche Spezialarbeiten können Sie verrichten?",
+        "placeholder": "Spezialarbeiten"
+      },
+      {
+        "index": 47,
+        "tag": "input",
+        "type": "text",
+        "name": "first_start_date",
+        "id": "application-form-form-first_start_date-field",
+        "label": "Frühester Eintrittstermin?",
+        "placeholder": "Eintrittstermin"
+      },
+      {
+        "index": 48,
+        "tag": "select",
+        "type": "",
+        "name": "licence",
+        "id": "application-form-form-licence-field",
+        "label": "Welche(n) Führerschein(e) besitzen Sie? bitte auswählen ...KeinenABCCESpezial Fahrzeuge",
+        "placeholder": ""
+      },
+      {
+        "index": 49,
+        "tag": "input",
+        "type": "radio",
+        "name": "owns_a_car",
+        "id": "application-form-form-owns_a_car-field-yes-option",
+        "label": "Ja",
+        "placeholder": ""
+      },
+      {
+        "index": 50,
+        "tag": "input",
+        "type": "radio",
+        "name": "owns_a_car",
+        "id": "application-form-form-owns_a_car-field-no-option",
+        "label": "Nein",
+        "placeholder": ""
+      },
+      {
+        "index": 51,
+        "tag": "input",
+        "type": "date",
+        "name": "work_permit",
+        "id": "application-form-form-work_permit-field",
+        "label": "Arbeitserlaubnis / bis wann?",
+        "placeholder": "Arbeitserlaubnis"
+      },
+      {
+        "index": 52,
+        "tag": "input",
+        "type": "date",
+        "name": "residence_permit",
+        "id": "application-form-form-residence_permit-field",
+        "label": "Aufenthaltsgenehmigung / bis wann?",
+        "placeholder": "Aufenthaltsgenehmigung"
+      },
+      {
+        "index": 53,
+        "tag": "input",
+        "type": "date",
+        "name": "validity_passport",
+        "id": "application-form-form-validity_passport-field",
+        "label": "Passgültigkeit / bis wann?",
+        "placeholder": "Passgültigkeit"
+      },
+      {
+        "index": 54,
+        "tag": "textarea",
+        "type": "",
+        "name": "position",
+        "id": "application-form-form-position-field",
+        "label": "Um welche Tätigkeit bewerben Sie sich?",
+        "placeholder": "Tätigkeit"
+      },
+      {
+        "index": 55,
+        "tag": "textarea",
+        "type": "",
+        "name": "work_hours",
+        "id": "application-form-form-work_hours-field",
+        "label": "Arbeitszeiten",
+        "placeholder": "Arbeitszeiten"
+      },
+      {
+        "index": 56,
+        "tag": "textarea",
+        "type": "",
+        "name": "reason_of_application",
+        "id": "application-form-form-reason_of_application-field",
+        "label": "Wodurch bzw. von wem wurden Sie zur Bewerbung bei uns veranlasst?",
+        "placeholder": "Grund der Bewerbung"
+      },
+      {
+        "index": 57,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "consent_privacy_policy",
+        "id": "application-form-form-consent_privacy_policy-field",
+        "label": "Zustimmung Privatsphäre-Erklärung * Ich versichere, dass die vorstehenden Angaben richtig und vollständig sind. Mir ist bekannt, dass unrichtige Angaben die Lös",
+        "placeholder": ""
+      },
+      {
+        "index": 58,
+        "tag": "input",
+        "type": "text",
+        "name": "subject",
+        "id": "",
+        "label": "Angaben zur Person Allgemeine Angaben Name, Vorname * Geburtsdatum * Familienstand * bitte auswählen ...ledigverheiratet Staatsangehörigkeit Berufliche Angaben ",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "arge-gruen",
+    "url": "https://www.arge-gruen.de/bewerbung",
+    "captured_at": "2026-10-20T06:57:17.422338+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.arge-gruen.de/bewerbung",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.arge-gruen.de/bewerbung",
+    "status": 200,
+    "bytes": 65675,
+    "sha256": "0d0bace0eb3079965b2775eda2a4dc7ba893a23387cd46bc683e792c7f68cc85",
+    "company": "ARGE GRÜN",
+    "snapshot": "forms/arge-gruen.html.gz",
+    "snapshot_sha256": "d6187b4dd4ad2eed864045644dfc31345ff1dfe82226943b9327b833d5a415ea",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[name]",
+        "id": "form2_name",
+        "label": "Vor- und Nachname *",
+        "placeholder": "Bitte den kompletten Namen eingeben"
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[telefon]",
+        "id": "form2_telefon",
+        "label": "Telefon *",
+        "placeholder": "Bitte Telefon Nummer eingeben"
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "email",
+        "name": "cf[email]",
+        "id": "form2_email",
+        "label": "E-Mail *",
+        "placeholder": "Bitte E-Mail Adresse eingeben"
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[geburtsdatum]",
+        "id": "form2_geburtsdatum",
+        "label": "Geburtsdatum *",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "select",
+        "type": "",
+        "name": "cf[bewerbung_als]",
+        "id": "form2_bewerbungals",
+        "label": "Bewerbung als",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_0",
+        "label": "Baumpfleger",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_1",
+        "label": "Baumkletterer",
+        "placeholder": ""
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_2",
+        "label": "Garten- Landschaftsbauer",
+        "placeholder": ""
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_3",
+        "label": "Quereinsteiger",
+        "placeholder": ""
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_4",
+        "label": "Auszubildender",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[alternative_jobs][]",
+        "id": "form2_alternativejobs_5",
+        "label": "Studentenjobs",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[werdegang_1]",
+        "id": "form2_werdegang1",
+        "label": "Beruflicher Werdegang 1:",
+        "placeholder": ""
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[werdegang_2]",
+        "id": "form2_werdegang2",
+        "label": "Beruflicher Werdegang 2:",
+        "placeholder": ""
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[werdegang_3]",
+        "id": "form2_werdegang3",
+        "label": "Beruflicher Werdegang 3:",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[werdegang_4]",
+        "id": "form2_werdegang4",
+        "label": "Beruflicher Werdegang 4:",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[bildungsstatus]",
+        "id": "form2_bildungsstatus",
+        "label": "Bildungsstatus *",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "textarea",
+        "type": "",
+        "name": "cf[qualifikationen]",
+        "id": "form2_qualifikationen",
+        "label": "Qualifikationen",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "textarea",
+        "type": "",
+        "name": "cf[anschreiben]",
+        "id": "form2_anschreiben",
+        "label": "Bewerbungsanschreiben",
+        "placeholder": ""
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "cf[datenschutz]",
+        "id": "form2_datenschutz",
+        "label": "Ja, ich habe die Datenschutzerklärung gelesen und willige ein das meine Daten aus diesem Kontaktformular entsprechend gespeichert und genutzt werden dürfen.",
+        "placeholder": ""
+      },
+      {
+        "index": 19,
+        "tag": "input",
+        "type": "text",
+        "name": "captcha_35",
+        "id": "form2_captcha35",
+        "label": "Anti-Spam Aufgabe: *",
+        "placeholder": "Bitte das Ergebnis hier eintragen"
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "hidden",
+        "name": "1c383cd30b7c298ab50293adfecb7b18",
+        "id": "",
+        "label": "6 + 3 =",
+        "placeholder": ""
+      },
+      {
+        "index": 21,
+        "tag": "input",
+        "type": "hidden",
+        "name": "cf[form_id]",
+        "id": "",
+        "label": "Ihre Bewerbung - online - schnell und einfach! Füllen Sie bitte dieses Bewerbungsformular aus - Felder die mit einem roten Stern gekennzeichnet sind müssen ausg",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "input",
+        "type": "hidden",
+        "name": "8a14fb53095ece5e8dfccbea80d225e4",
+        "id": "",
+        "label": "Ihre Bewerbung - online - schnell und einfach! Füllen Sie bitte dieses Bewerbungsformular aus - Felder die mit einem roten Stern gekennzeichnet sind müssen ausg",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "input",
+        "type": "text",
+        "name": "cf[hnpt]",
+        "id": "cf-field-6ad710ce49e99",
+        "label": "Last Name",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "peterhoff",
+    "url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+    "captured_at": "2026-10-20T06:57:17.866711+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.peterhoff.de/karriere/online-bewerbung/",
+    "status": 200,
+    "bytes": 95145,
+    "sha256": "9db4312ad0e70417b21dfc101a8b3ddc7a3e38d75bfa624e0962fe8246dd0d81",
+    "company": "Peterhoff-Gruppe",
+    "snapshot": "forms/peterhoff.html.gz",
+    "snapshot_sha256": "8ab521df490da6bd44a68b5934e8b2d7ead006192935345d3f4e13606d04f3ea",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_version",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_locale",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_unit_tag",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_container_post",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_posted_data_hash",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "select",
+        "type": "",
+        "name": "lstdate",
+        "id": "jobs",
+        "label": "Bewerbung auf eine unserer offenen Stellen: Bitte wählen Sie aus …Regionalleitung (m/w/d) im Großraum Baden-Württemberg Leitung Vertriebsinnendienst Objektleite",
+        "placeholder": ""
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "text",
+        "name": "Bewerbung",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "text",
+        "name": "Standort",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "text",
+        "name": "Name",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "text",
+        "name": "Vorname",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "StraeNr",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "PLZ",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "text",
+        "name": "Ort",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "text",
+        "name": "Land",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "text",
+        "name": "Geburtsdatum",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "input",
+        "type": "text",
+        "name": "Staatsangehoerigkeit",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "input",
+        "type": "tel",
+        "name": "Telefon",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "email",
+        "name": "EMailAdresse",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 19,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Arbeitszeitmodell[]",
+        "id": "",
+        "label": "Vollzeit",
+        "placeholder": ""
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Arbeitszeitmodell[]",
+        "id": "",
+        "label": "Teilzeit",
+        "placeholder": ""
+      },
+      {
+        "index": 21,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Arbeitszeitmodell[]",
+        "id": "",
+        "label": "flexibel",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "textarea",
+        "type": "",
+        "name": "Werdegang",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "input",
+        "type": "file",
+        "name": "file-175",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 24,
+        "tag": "input",
+        "type": "file",
+        "name": "file-176",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 25,
+        "tag": "input",
+        "type": "file",
+        "name": "file-177",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 26,
+        "tag": "input",
+        "type": "text",
+        "name": "quiz-436",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 27,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wpcf7_quiz_answer_quiz-436",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 28,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "acceptance-743",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      },
+      {
+        "index": 29,
+        "tag": "input",
+        "type": "text",
+        "name": "first-name",
+        "id": "wpcf7-6ad710cf36a2e-field",
+        "label": "Bitte lasse dieses Feld leer.",
+        "placeholder": ""
+      },
+      {
+        "index": 30,
+        "tag": "input",
+        "type": "text",
+        "name": "last-name",
+        "id": "wpcf7-6ad710cf36ab0-field",
+        "label": "Bitte lasse dieses Feld leer.",
+        "placeholder": ""
+      },
+      {
+        "index": 31,
+        "tag": "input",
+        "type": "submit",
+        "name": "",
+        "id": "",
+        "label": "",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "e-unit",
+    "url": "https://jobs.e-unit.de/bewerbungsformular/",
+    "captured_at": "2026-10-20T06:57:18.463913+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://jobs.e-unit.de/bewerbungsformular/",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://jobs.e-unit.de/bewerbungsformular/",
+    "status": 200,
+    "bytes": 63652,
+    "sha256": "81c3bdc8c2a52ae5a0705aac97e64241af203604c12e4476866e5961e67fcd1f",
+    "company": "e-unit",
+    "snapshot": "forms/e-unit.html.gz",
+    "snapshot_sha256": "0a0d94a7d760a96ba783fed18a1877e594011ca7fa43bf3da46a9f21eecb646c",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "hidden",
+        "name": "__fluent_form_embded_post_id",
+        "id": "",
+        "label": "InitiativbewerbungKontaktdatenLebenslaufZusätzliche DatenInitiativbewerbung alsWie lauten deine Kontaktdaten?VornameNachnameTelefonummerE-MailStraße, HausnrPLZ,",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_fluentform_5_fluentformnonce",
+        "id": "_fluentform_5_fluentformnonce",
+        "label": "InitiativbewerbungKontaktdatenLebenslaufZusätzliche DatenInitiativbewerbung alsWie lauten deine Kontaktdaten?VornameNachnameTelefonummerE-MailStraße, HausnrPLZ,",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "hidden",
+        "name": "_wp_http_referer",
+        "id": "",
+        "label": "InitiativbewerbungKontaktdatenLebenslaufZusätzliche DatenInitiativbewerbung alsWie lauten deine Kontaktdaten?VornameNachnameTelefonummerE-MailStraße, HausnrPLZ,",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "hidden",
+        "name": "hidden",
+        "id": "",
+        "label": "Initiativbewerbung alsWie lauten deine Kontaktdaten?VornameNachnameTelefonummerE-MailStraße, HausnrPLZ, OrtGeburtsdatumVorherigeWeiter",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "text",
+        "name": "input_text",
+        "id": "ff_5_input_text",
+        "label": "Initiativbewerbung als",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "text",
+        "name": "names[first_name]",
+        "id": "ff_5_names_first_name_",
+        "label": "Vorname",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "text",
+        "name": "names[last_name]",
+        "id": "ff_5_names_last_name_",
+        "label": "Nachname",
+        "placeholder": ""
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "tel",
+        "name": "phone",
+        "id": "ff_5_phone",
+        "label": "Telefonummer",
+        "placeholder": "Telefonummer"
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "email",
+        "name": "email",
+        "id": "ff_5_email",
+        "label": "E-Mail",
+        "placeholder": "Email Addresse"
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "text",
+        "name": "input_text_2",
+        "id": "ff_5_input_text_2",
+        "label": "Straße, Hausnr",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "text",
+        "name": "input_text_3",
+        "id": "ff_5_input_text_3",
+        "label": "PLZ, Ort",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "datetime",
+        "id": "ff_5_datetime",
+        "label": "Geburtsdatum",
+        "placeholder": ""
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "file",
+        "name": "file-upload",
+        "id": "ff_5_file-upload_1",
+        "label": "Lebenslauf Datei wählen",
+        "placeholder": ""
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "file",
+        "name": "file-upload_1",
+        "id": "ff_5_file-upload_1_1",
+        "label": "Zusätzliche Dateien Dateien wählen",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "textarea",
+        "type": "",
+        "name": "description_1",
+        "id": "ff_5_description_1",
+        "label": "Beruflicher Werdegang",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "textarea",
+        "type": "",
+        "name": "description_2",
+        "id": "ff_5_description_2",
+        "label": "Vorbildungen",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "textarea",
+        "type": "",
+        "name": "description_3",
+        "id": "ff_5_description_3",
+        "label": "Besondere Kenntnisse",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "textarea",
+        "type": "",
+        "name": "description_4",
+        "id": "ff_5_description_4",
+        "label": "Deine persönliche Bewerbung",
+        "placeholder": ""
+      },
+      {
+        "index": 18,
+        "tag": "textarea",
+        "type": "",
+        "name": "description_5",
+        "id": "ff_5_description_5",
+        "label": "Warum bist du der/die Richtige für den Beruf?",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "wuetschner",
+    "url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+    "captured_at": "2026-10-20T06:57:18.809281+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.wuetschner.com/unternehmen/karriere/bewerbung.html",
+    "status": 200,
+    "bytes": 36043,
+    "sha256": "4d96bec5685d3c33ae584f37dd63cc8654ef3b6392d5f9556d821fb90bcd6b72",
+    "company": "Wütschner Fahrzeugteile",
+    "snapshot": "forms/wuetschner.html.gz",
+    "snapshot_sha256": "87b87ac0b8a02f394e839fb7253747f60fdc39cc90549db1a750b46a8d038895",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "hidden",
+        "name": "FORM_SUBMIT",
+        "id": "",
+        "label": "Pflichtfeld Bewerbung als* Vertriebsmitarbeiter im Innendienst (m/w/d) Vertriebsmitarbeiter im Aussendienst (m/w/d) Lagermitarbeiter (m/w/d) Ausbildung Kaufmann",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "hidden",
+        "name": "REQUEST_TOKEN",
+        "id": "",
+        "label": "Pflichtfeld Bewerbung als* Vertriebsmitarbeiter im Innendienst (m/w/d) Vertriebsmitarbeiter im Aussendienst (m/w/d) Lagermitarbeiter (m/w/d) Ausbildung Kaufmann",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "hidden",
+        "name": "MAX_FILE_SIZE",
+        "id": "",
+        "label": "Pflichtfeld Bewerbung als* Vertriebsmitarbeiter im Innendienst (m/w/d) Vertriebsmitarbeiter im Aussendienst (m/w/d) Lagermitarbeiter (m/w/d) Ausbildung Kaufmann",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "hidden",
+        "name": "bewerbung_als",
+        "id": "",
+        "label": "Pflichtfeld Bewerbung als* Vertriebsmitarbeiter im Innendienst (m/w/d) Vertriebsmitarbeiter im Aussendienst (m/w/d) Lagermitarbeiter (m/w/d) Ausbildung Kaufmann",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "bewerbung_als[]",
+        "id": "opt_37_0",
+        "label": "Vertriebsmitarbeiter im Innendienst (m/w/d)",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "bewerbung_als[]",
+        "id": "opt_37_1",
+        "label": "Vertriebsmitarbeiter im Aussendienst (m/w/d)",
+        "placeholder": ""
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "bewerbung_als[]",
+        "id": "opt_37_2",
+        "label": "Lagermitarbeiter (m/w/d)",
+        "placeholder": ""
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "bewerbung_als[]",
+        "id": "opt_37_3",
+        "label": "Ausbildung Kaufmann für Groß- und Außenhandelsmanagement (m/w/d)",
+        "placeholder": ""
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "bewerbung_als[]",
+        "id": "opt_37_4",
+        "label": "Ausbildung Fachkraft für Lagerlogistik (m/w/d)",
+        "placeholder": ""
+      },
+      {
+        "index": 9,
+        "tag": "select",
+        "type": "",
+        "name": "Wunsch-Filiale",
+        "id": "ctrl_38",
+        "label": "Ihre Wütschner-Wunschfiliale -WÜTSCHNER AschaffenburgWÜTSCHNER FreibergWÜTSCHNER GladenbachWÜTSCHNER LudwigshafenWÜTSCHNER MainzWÜTSCHNER PetersbergWÜTSCHNER Sc",
+        "placeholder": ""
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "text",
+        "name": "nachname",
+        "id": "ctrl_41",
+        "label": "Pflichtfeld Nachname*",
+        "placeholder": ""
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "vorname",
+        "id": "ctrl_42",
+        "label": "Pflichtfeld Vorname*",
+        "placeholder": ""
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "strasse",
+        "id": "ctrl_43",
+        "label": "Pflichtfeld Straße / Hausnummer*",
+        "placeholder": ""
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "text",
+        "name": "plz_ort",
+        "id": "ctrl_44",
+        "label": "Pflichtfeld PLZ / Ort*",
+        "placeholder": ""
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "tel",
+        "name": "telefon",
+        "id": "ctrl_45",
+        "label": "Telefon",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "tel",
+        "name": "mobil",
+        "id": "ctrl_46",
+        "label": "Mobil",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "input",
+        "type": "email",
+        "name": "mail",
+        "id": "ctrl_47",
+        "label": "Pflichtfeld Mail*",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "input",
+        "type": "radio",
+        "name": "ausbildung",
+        "id": "opt_50_0",
+        "label": "ja",
+        "placeholder": ""
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "radio",
+        "name": "ausbildung",
+        "id": "opt_50_1",
+        "label": "nein",
+        "placeholder": ""
+      },
+      {
+        "index": 19,
+        "tag": "input",
+        "type": "text",
+        "name": "ausbildungsbezeichnung",
+        "id": "ctrl_51",
+        "label": "Ausbildungsbezeichnung",
+        "placeholder": ""
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "text",
+        "name": "zeitraum_1",
+        "id": "ctrl_55",
+        "label": "von - bis",
+        "placeholder": ""
+      },
+      {
+        "index": 21,
+        "tag": "textarea",
+        "type": "",
+        "name": "arbeitgeber_taetigkeiten_1",
+        "id": "ctrl_56",
+        "label": "Arbeitgeber / Tätigkeiten",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "input",
+        "type": "text",
+        "name": "zeitraum_2",
+        "id": "ctrl_59",
+        "label": "von - bis",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "textarea",
+        "type": "",
+        "name": "arbeitgeber_taetigkeiten_2",
+        "id": "ctrl_60",
+        "label": "Arbeitgeber / Tätigkeiten",
+        "placeholder": ""
+      },
+      {
+        "index": 24,
+        "tag": "input",
+        "type": "text",
+        "name": "zeitraum_3",
+        "id": "ctrl_63",
+        "label": "von - bis",
+        "placeholder": ""
+      },
+      {
+        "index": 25,
+        "tag": "textarea",
+        "type": "",
+        "name": "arbeitgeber_taetigkeiten_3",
+        "id": "ctrl_64",
+        "label": "Arbeitgeber / Tätigkeiten",
+        "placeholder": ""
+      },
+      {
+        "index": 26,
+        "tag": "input",
+        "type": "text",
+        "name": "zeitraum_4",
+        "id": "ctrl_67",
+        "label": "von - bis",
+        "placeholder": ""
+      },
+      {
+        "index": 27,
+        "tag": "textarea",
+        "type": "",
+        "name": "arbeitgeber_taetigkeiten_4",
+        "id": "ctrl_68",
+        "label": "Arbeitgeber / Tätigkeiten",
+        "placeholder": ""
+      },
+      {
+        "index": 28,
+        "tag": "textarea",
+        "type": "",
+        "name": "kenntnisse",
+        "id": "ctrl_72",
+        "label": "Besondere Kenntnisse, Zusatzausbildungen, Weiterbildungen",
+        "placeholder": ""
+      },
+      {
+        "index": 29,
+        "tag": "input",
+        "type": "date",
+        "name": "eintrittstermin",
+        "id": "ctrl_73",
+        "label": "Möglicher Eintrittstermin/Kündigungsfrist",
+        "placeholder": ""
+      },
+      {
+        "index": 30,
+        "tag": "input",
+        "type": "file",
+        "name": "Bewerbungsunterlagen",
+        "id": "ctrl_71",
+        "label": "Bewerbungsunterlagen",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "grasenhiller",
+    "url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+    "captured_at": "2026-10-20T06:57:19.456114+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.karriere-grasenhiller.de/bewerbungsformular",
+    "status": 200,
+    "bytes": 1516656,
+    "sha256": "cfb8b175b4e160ec21b1b1078f065580b0292568d03fd9e54f96892e374c1019",
+    "company": "Grasenhiller",
+    "snapshot": "forms/grasenhiller.html.gz",
+    "snapshot_sha256": "e845e2b380784d4e482cd96af89ffd6c7a542d18bb8f227644270ed3a73ffb32",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Art der Bewerbung",
+        "id": "checkbox-16331",
+        "label": "Praktikum / Werkstudium",
+        "placeholder": ""
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Art der Bewerbung",
+        "id": "checkbox-16334",
+        "label": "Ausbildung",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Art der Bewerbung",
+        "id": "checkbox-16337",
+        "label": "Berufseinsteiger",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Art der Bewerbung",
+        "id": "checkbox-16340",
+        "label": "Berufserfahrung",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-a4347ba8-b520-4400-b354-45e7718638d3-comp-m6jgatc9-",
+        "label": "Bewerbung als*",
+        "placeholder": "z. B. Bürokauffrau"
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-2e07b703-2e53-43cb-9d4e-892f52c43084-comp-m6jgatc9-",
+        "label": "Vorname*",
+        "placeholder": "Max"
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-5d46c2a3-d9f4-45d2-b429-2f0086b1e5e6-comp-m6jgatc9-",
+        "label": "Nachname*",
+        "placeholder": "Mustermann"
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "label-for-id-16350",
+        "label": "",
+        "placeholder": "Tag"
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "label-for-id-16356",
+        "label": "",
+        "placeholder": "Jahr"
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-973445a1-a3e9-416f-bde3-59a5e4b80bd2-comp-m6jgatc9-",
+        "label": "Adresse*",
+        "placeholder": "Musterstraße, 5 92318 Neumarkt"
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-48c4fcca-b4d2-4ac4-4def-96187695fd40-comp-m6jgatc9-",
+        "label": "Telefonnummer*",
+        "placeholder": "09181 5555"
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "email",
+        "name": "",
+        "id": "form-field-input-94653d1e-4c4a-4500-5594-bc0daf7c79bf-comp-m6jgatc9-",
+        "label": "E-Mail-Adresse*",
+        "placeholder": "max@mustermann.de"
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-314852a3-d4e6-4f66-5a5b-cefae2f73a3f-comp-m6jgatc9-",
+        "label": "Höchster Bildungsabschluss*",
+        "placeholder": "Mittlere Reife"
+      },
+      {
+        "index": 13,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-f3877948-45f4-40c2-ad47-3d19a12b7abc-comp-m6jgatc9-",
+        "label": "Letzter Arbeitgeber / Schule*",
+        "placeholder": "Musterfirma"
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-9fdfb1bf-9069-4e15-ba9a-f9fb8bb9084d-comp-m6jgatc9-",
+        "label": "Beschäftigungszeitraum letzter Arbeitgeber*",
+        "placeholder": "von"
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-ac4c462f-4c05-4848-d494-a2b22294ae21-comp-m6jgatc9-",
+        "label": "*",
+        "placeholder": "bis"
+      },
+      {
+        "index": 16,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-ab14c1da-c293-4146-b83a-d7ab7c4bc2cd-comp-m6jgatc9-",
+        "label": "Gewünschtes Eintrittsdatum*",
+        "placeholder": "01.01.2025"
+      },
+      {
+        "index": 17,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-f14e983e-a69d-4747-04d4-ca4e7c7d171c-comp-m6jgatc9-",
+        "label": "Gehaltsvorstellung",
+        "placeholder": "Dein Wunschgehalt"
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "file",
+        "name": "",
+        "id": "",
+        "label": "Dateien hochladen",
+        "placeholder": ""
+      },
+      {
+        "index": 19,
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "id": "form-field-input-286337fb-3689-4659-43c2-9da400f6ca30-comp-m6jgatc9-",
+        "label": "Deine Nachricht",
+        "placeholder": "Berichte uns was über dich."
+      },
+      {
+        "index": 20,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+        "id": "checkbox-16381",
+        "label": "Website",
+        "placeholder": ""
+      },
+      {
+        "index": 21,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+        "id": "checkbox-16384",
+        "label": "Instagram",
+        "placeholder": ""
+      },
+      {
+        "index": 22,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+        "id": "checkbox-16387",
+        "label": "LinkedIn",
+        "placeholder": ""
+      },
+      {
+        "index": 23,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "Wie bist du auf die Stelle aufmerksam geworden?",
+        "id": "checkbox-16390",
+        "label": "Sonstiges",
+        "placeholder": ""
+      },
+      {
+        "index": 24,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "id": "checkbox-16393",
+        "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+        "placeholder": ""
+      }
+    ]
+  },
+  {
+    "company_id": "szm",
+    "url": "https://www.sz-moosburger.de/karriere",
+    "captured_at": "2026-10-20T06:57:19.870523+00:00",
+    "requests": [
+      {
+        "method": "GET",
+        "url": "https://www.sz-moosburger.de/karriere",
+        "reason": "initial page load"
+      }
+    ],
+    "final_url": "https://www.sz-moosburger.de/karriere",
+    "status": 200,
+    "bytes": 1404478,
+    "sha256": "26018a0e2473e8ec7e982bf4c6a78f0deec532c96d9447f6ec0f55e5d6c16f84",
+    "company": "SZM Moosburger",
+    "snapshot": "forms/szm.html.gz",
+    "snapshot_sha256": "5ad04ce53f6d750d3ad339ab507a5f93955842e80bc952f1483ea4cdcc632117",
+    "controls": [
+      {
+        "index": 0,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-7c889d82-8429-4901-fd23-32f04840ec67-comp-m85v9v3p-",
+        "label": "Beruf*",
+        "placeholder": "Beruf"
+      },
+      {
+        "index": 1,
+        "tag": "input",
+        "type": "radio",
+        "name": "art_der_bewerbung",
+        "id": "",
+        "label": "Ausbildung",
+        "placeholder": ""
+      },
+      {
+        "index": 2,
+        "tag": "input",
+        "type": "radio",
+        "name": "art_der_bewerbung",
+        "id": "",
+        "label": "Fachkraft",
+        "placeholder": ""
+      },
+      {
+        "index": 3,
+        "tag": "input",
+        "type": "radio",
+        "name": "art_der_bewerbung",
+        "id": "",
+        "label": "Quereinstieg",
+        "placeholder": ""
+      },
+      {
+        "index": 4,
+        "tag": "input",
+        "type": "radio",
+        "name": "art_der_bewerbung",
+        "id": "",
+        "label": "Umschulung",
+        "placeholder": ""
+      },
+      {
+        "index": 5,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-cbb7a92c-2862-4289-64ad-4e71436d55c0-comp-m85v9v3p-",
+        "label": "Vorname*",
+        "placeholder": "Max"
+      },
+      {
+        "index": 6,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-402544aa-9197-446e-48b4-a37d83483ba2-comp-m85v9v3p-",
+        "label": "Nachname*",
+        "placeholder": "Mustermann"
+      },
+      {
+        "index": 7,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "label-for-id-29102",
+        "label": "",
+        "placeholder": "Tag"
+      },
+      {
+        "index": 8,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "label-for-id-29108",
+        "label": "",
+        "placeholder": "Jahr"
+      },
+      {
+        "index": 9,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-cec29d86-c13c-4a0f-0e66-e0923aea171d-comp-m85v9v3p-",
+        "label": "Telefonnummer*",
+        "placeholder": "0123456789"
+      },
+      {
+        "index": 10,
+        "tag": "input",
+        "type": "email",
+        "name": "",
+        "id": "form-field-input-5252615a-9105-459b-b7f1-97c416883050-comp-m85v9v3p-",
+        "label": "E-Mail-Adresse*",
+        "placeholder": "max@mustermann.de"
+      },
+      {
+        "index": 11,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-2da91441-a756-4215-6b47-1a67fbd8e3f1-comp-m85v9v3p-",
+        "label": "Höchster Bildungsabschluss*",
+        "placeholder": "Realschule"
+      },
+      {
+        "index": 12,
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "id": "form-field-input-957be4b0-7447-45d8-c06b-f26db4840528-comp-m85v9v3p-",
+        "label": "Letzter Arbeitgeber*",
+        "placeholder": "Musterfirma"
+      },
+      {
+        "index": 13,
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "id": "form-field-input-590870fc-3f9b-468c-3205-6b881e7e4088-comp-m85v9v3p-",
+        "label": "Beruflicher Werdegang*",
+        "placeholder": "Realschule, Ausbildung zum xx, ..."
+      },
+      {
+        "index": 14,
+        "tag": "input",
+        "type": "radio",
+        "name": "fuehrerschein_vorhanden",
+        "id": "",
+        "label": "ja",
+        "placeholder": ""
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "type": "radio",
+        "name": "fuehrerschein_vorhanden",
+        "id": "",
+        "label": "nein",
+        "placeholder": ""
+      },
+      {
+        "index": 16,
+        "tag": "input",
+        "type": "file",
+        "name": "",
+        "id": "",
+        "label": "Upload",
+        "placeholder": ""
+      },
+      {
+        "index": 17,
+        "tag": "textarea",
+        "type": "",
+        "name": "",
+        "id": "form-field-input-c25fba07-f44e-4b50-c08e-c1658914e9c8-comp-m85v9v3p-",
+        "label": "Ihre Nachricht an uns",
+        "placeholder": "Erzählen Sie was über sich"
+      },
+      {
+        "index": 18,
+        "tag": "input",
+        "type": "checkbox",
+        "name": "",
+        "id": "checkbox-29129",
+        "label": "Hiermit stimme ich der Datenschutzerklärung zu.",
+        "placeholder": ""
+      }
+    ]
+  }
+]

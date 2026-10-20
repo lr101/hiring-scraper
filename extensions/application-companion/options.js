@@ -29,6 +29,7 @@ const preferenceBool = [
   "authorized_to_work",
   "sponsorship_required",
   "willing_to_relocate",
+  "willing_to_work_onsite",
 ];
 let pendingPackage = null;
 let linked = validateProfile(emptyProfile());

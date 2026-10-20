@@ -46,7 +46,7 @@ class ExtensionHarness(unittest.TestCase):
         self.external_requests = []
         self.context.on("page", lambda page: page.on("pageerror", lambda error: self.errors.append(str(error))))
         self.context.route("**/*", self.route)
-        self.worker = self.context.service_workers[0] if self.context.service_workers else self.context.wait_for_event("serviceworker")
+        self.worker = self.context.service_workers[0] if self.context.service_workers else self.context.wait_for_event("serviceworker", timeout=30000)
         self.extension_id = self.worker.url.split("/")[2]
         self.cdp = self.context.browser.new_browser_cdp_session()
         self.applicant = json.loads((ROOT / "profile.example.json").read_text())

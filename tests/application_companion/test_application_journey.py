@@ -161,7 +161,9 @@ class JourneyBrowserTests(ExtensionHarness):
           const original=chrome.scripting.executeScript.bind(chrome.scripting);
           chrome.scripting.executeScript=async details=>{
             if(details.func?.toString().includes('applicationCompanion.inspect'))
-              await original({target:details.target,func:()=>history.replaceState({},'',location.href.replace('1574','2000'))});
+              // Popup refreshes may inspect before the fill message. Toggle so
+              // every intercepted inspection really changes the requisition.
+              await original({target:details.target,func:()=>history.replaceState({},'',location.href.replace(/1574|2000/,id=>id==='1574'?'2000':'1574'))});
             return original(details);
           };
         }''')
