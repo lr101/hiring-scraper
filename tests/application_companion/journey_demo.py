@@ -13,13 +13,20 @@ def package(job_id,cv_version):
 
 class Handler(BaseHTTPRequestHandler):
  def log_message(self,*args):pass
+ def do_PUT(self):
+  # Connected settings now persist reusable facts to Radius. Keep this legacy
+  # handoff simulator's stored DOCX revision while saving those profile details.
+  if self.path!='/api/v1/profiles/1':return self.respond({'detail':'Not found'},404)
+  payload=json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+  self.server.state['application_details']=payload['application_details']
+  return self.respond({'id':1,**payload})
  def do_GET(self):
   state=self.server.state;port=self.server.server_port;origin=f'http://127.0.0.1:{port}'
   source=state.get('employer_origin',f'http://localhost:{port}')
   jobs=[{'id':1574,'title':'Research project manager','company_name':'Research Labs','url':source+'/jobs/1574','is_active':True},{'id':2000,'title':'Engineering coordinator','company_name':'Research Labs','url':source+'/jobs/2000','is_active':True}]
   parsed=urlsplit(self.path);path=parsed.path
   if path=='/api/v1/profiles':
-   result={'items':state.get('profiles',[{'id':1,'name':'Research profile','application_details':json.loads((Path(__file__).parent / 'profile.example.json').read_text()),'cv':{'filename':'example-cv.docx','updated_at':state.get('cv_version','cv1')}}])}
+   result={'items':state.get('profiles',[{'id':1,'name':'Research profile','application_details':state.get('application_details',json.loads((Path(__file__).parent / 'profile.example.json').read_text())),'cv':{'filename':'example-cv.docx','updated_at':state.get('cv_version','cv1')}}])}
    hold=state.pop('hold_profiles',None)
    if hold:hold[0].set();hold[1].wait(5)
    return self.respond(result)

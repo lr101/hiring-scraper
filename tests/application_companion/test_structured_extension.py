@@ -186,10 +186,23 @@ class StructuredBrowserTests(ExtensionHarness):
         self.assertEqual(self.page.locator('#work > fieldset').count(),1)
         self.assertTrue(any('inline' in f['reason'] for f in self.report()['unresolved']))
         self.assertEqual(self.page.evaluate('window.draft.submissions'),0)
+    def history_source(self, location):
+        entries=[]
+        for index,experience in enumerate(self.applicant['experiences']):
+            metadata={key:experience.get(key,'') for key in ('id','company','title','location','start','end','current')}
+            metadata.update(kind='work')
+            if index==0:metadata['location']=location
+            entries.extend(['% radius:entry '+json.dumps(metadata),
+                            r'\subsection*{'+experience['title']+'}',
+                            '% radius:responsibilities',experience['description'],
+                            '% radius:end'])
+        return '\\documentclass{article}\n\\begin{document}\n'+'\n'.join(entries)+'\n\\end{document}'
+
     def test_editor_preserves_facts_and_generates_id_based_bullet_request(self):
         self.save_example();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
         expect(options.locator('#available_from')).to_have_value('2026-12-01')
-        options.locator('[data-key=location]').first.fill('Karlsruhe, Germany')
+        source=self.history_source('Karlsruhe, Germany')
+        options.locator('#cv_text').fill(source)
         options.locator('#sponsorship_required').select_option('false')
         options.get_by_text('Ask ChatGPT for tailored work bullets',exact=True).click()
         options.get_by_role('button',name='Prepare bullet-point request',exact=True).click()
@@ -197,7 +210,9 @@ class StructuredBrowserTests(ExtensionHarness):
         self.assertIn('Karlsruhe, Germany',options.locator('#bullet-prompt').input_value())
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
-        options.reload();expect(options.locator('[data-key=location]').first).to_have_value('Karlsruhe, Germany')
+        options.reload();expect(options.locator('#cv_text')).to_have_value(source)
+        saved=self.worker.evaluate("async ()=>(await chrome.storage.local.get('applicant')).applicant")
+        self.assertEqual(saved['experiences'][0]['location'],'Karlsruhe, Germany')
         expect(options.locator('#sponsorship_required')).to_have_value('false')
     def test_unknown_answers_and_multiple_country_questions_are_not_guessed(self):
         self.applicant['preferences']['sponsorship_required']=None
@@ -220,7 +235,7 @@ class StructuredBrowserTests(ExtensionHarness):
         for change in ('url','location'):
             self.save_example();options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
             if change=='url':options.locator('#application_url').fill(BASE+'history-split')
-            else:options.locator('[data-key=location]').first.fill('New location')
+            else:options.locator('#cv_text').fill(self.history_source('New location'))
             options.get_by_role('button',name='Save profile',exact=True).click()
             expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
             saved=self.worker.evaluate("async ()=>(await chrome.storage.local.get('applicant')).applicant")
@@ -249,8 +264,10 @@ class StructuredBrowserTests(ExtensionHarness):
         expect(options.locator('#status')).to_have_text('Profile saved in this browser.')
         saved=self.worker.evaluate("async ()=>(await chrome.storage.local.get('applicant')).applicant")
         self.assertEqual(saved['application']['experience_bullets'][0]['bullets'],['First valid bullet.'])
-        options.locator('[data-key=location]').first.fill('Updated city')
+        source=self.history_source('Updated city')
+        options.locator('#cv_text').fill(source)
         replacement={'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':'v2','cv':[],'cover_letter':'Fresh letter','application_answers':'','experience_bullets':[{'experience_id':'job-1','bullets':['Freshly prepared bullet.']}]}
+        replacement['latex_documents']={'cv':source}
         options.locator('#package-input').fill(json.dumps(replacement))
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#source-notes')).to_contain_text('Radius job 1574')
