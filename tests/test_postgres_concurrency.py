@@ -12,7 +12,7 @@ from sqlalchemy.exc import OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import sessionmaker
 from psycopg.errors import LockNotAvailable
 
-from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, job_search
+from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, enrichment, job_search
 from hiring_scraper.app import worker
 from hiring_scraper.app.models import (
     Base, Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed,
@@ -34,7 +34,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                                                      if table.name != 'semantic_search_documents'])
         self.factory = sessionmaker(self.engine, autoflush=False, expire_on_commit=False)
         self.patches = [patch.object(module, 'SessionLocal', self.factory)
-                        for module in (worker, api, default_job_feeds, discovery_worker)]
+                        for module in (worker, api, default_job_feeds, discovery_worker, enrichment)]
         self.patches += [patch.object(worker, 'engine', self.engine),
                          patch.object(discovery_worker, 'engine', self.engine),
                          patch.object(default_job_feeds, 'IS_SQLITE', False)]
@@ -451,6 +451,125 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertIsNone(session.scalar(select(JobApplication).where(
                 JobApplication.profile_id == profile_id, JobApplication.job_id == job_id,
                 JobApplication.status == 'new')))
+
+    def test_detail_enrichment_and_feed_retirement_lock_profiles_before_jobs(self):
+        with self.factory.begin() as session:
+            company = Company(source='managed_feed', source_id='enrichment-lock-order', name='Employer')
+            session.add(company)
+            session.flush()
+            feed = JobFeed(company_id=company.id, provider='rss',
+                           feed_url='https://example.test/jobs.xml',
+                           board_url='https://example.test/jobs.xml', status='parsed', enabled=True,
+                           source_revision=1)
+            profile = UserProfile(name='Developer', preferences={})
+            job = Job(feed=feed, external_id='role', title='Developer',
+                      url='https://example.test/jobs/role', is_active=True)
+            session.add_all([feed, profile, job])
+            session.flush()
+            enrichment.refresh_enrichment(job)
+            feed_id, job_id = feed.id, job.id
+
+        enrichment_at_profile_lock = threading.Event()
+        release_enrichment = threading.Event()
+        retirement_at_job_lock = threading.Event()
+        retirement_done = threading.Event()
+        errors = []
+        lock_order = []
+
+        def coordinate(_conn, _cursor, statement, *_args):
+            normalized = ' '.join(statement.upper().split())
+            if 'FOR UPDATE' not in normalized:
+                return
+            if threading.current_thread().name == 'detail-enrichment':
+                if 'FROM USER_PROFILES' in normalized:
+                    lock_order.append('profiles')
+                    enrichment_at_profile_lock.set()
+                    if not release_enrichment.wait(6):
+                        raise AssertionError('detail enrichment did not resume')
+                elif 'FROM JOBS' in normalized:
+                    lock_order.append('jobs')
+            elif threading.current_thread().name == 'feed-retirement' and 'FROM JOBS' in normalized:
+                retirement_at_job_lock.set()
+
+        event.listen(self.engine, 'before_cursor_execute', coordinate)
+
+        class OfflineClient:
+            def get(self, _url):
+                return {'state': 'network_error'}, b''
+
+        def enrich_detail():
+            try:
+                enrichment.backfill(1, fetch_details=True, client=OfflineClient())
+            except Exception as error:
+                errors.append(error)
+
+        def retire_feed():
+            try:
+                with self.factory() as session:
+                    session.execute(text("SET lock_timeout = '8s'"))
+                    api.update_managed_feed(feed_id, api.ManagedFeedUpdate(
+                        feed_url='https://example.test/replacement.xml'), session)
+            except Exception as error:
+                errors.append(error)
+            finally:
+                retirement_done.set()
+
+        enrichment_thread = threading.Thread(target=enrich_detail, name='detail-enrichment')
+        retirement_thread = threading.Thread(target=retire_feed, name='feed-retirement')
+        try:
+            enrichment_thread.start()
+            self.assertTrue(enrichment_at_profile_lock.wait(3),
+                            'detail enrichment did not begin its match profile lock')
+            retirement_thread.start()
+            # If enrichment follows profiles -> job, retirement can finish while
+            # enrichment is paused before acquiring profiles. If it follows
+            # job -> profiles, retirement blocks on that job after taking profiles.
+            if not retirement_done.wait(2):
+                self.assertTrue(retirement_at_job_lock.wait(2),
+                                'feed retirement neither completed nor reached its job lock')
+            release_enrichment.set()
+            enrichment_thread.join(8)
+            retirement_thread.join(8)
+        finally:
+            release_enrichment.set()
+            enrichment_thread.join(8)
+            if retirement_thread.ident is not None:
+                retirement_thread.join(8)
+            event.remove(self.engine, 'before_cursor_execute', coordinate)
+
+        self.assertFalse(enrichment_thread.is_alive())
+        self.assertFalse(retirement_thread.is_alive())
+        self.assertEqual(errors, [])
+        self.assertLess(lock_order.index('profiles'), lock_order.index('jobs'))
+        with self.factory() as session:
+            self.assertFalse(session.get(Job, job_id).is_active)
+
+    def test_enrichment_backfill_locks_profiles_before_updating_job_rows(self):
+        with self.factory.begin() as session:
+            company = Company(source='managed_feed', source_id='enrichment-cache-lock-order', name='Employer')
+            feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml',
+                           board_url='https://example.test/jobs.xml', status='parsed', enabled=True)
+            session.add_all([feed, UserProfile(name='Developer', preferences={})])
+            session.flush()
+            session.add(Job(feed_id=feed.id, external_id='role', title='Developer',
+                            url='https://example.test/jobs/role', is_active=True))
+
+        lock_order = []
+
+        def record(_conn, _cursor, statement, *_args):
+            normalized = ' '.join(statement.upper().split())
+            if 'FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized:
+                lock_order.append('profiles')
+            elif normalized.startswith('UPDATE JOBS'):
+                lock_order.append('jobs')
+
+        event.listen(self.engine, 'before_cursor_execute', record)
+        try:
+            enrichment.backfill(1, fetch_details=False)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', record)
+
+        self.assertLess(lock_order.index('profiles'), lock_order.index('jobs'))
 
     def test_embedding_wait_releases_the_request_connection(self):
         with self.factory.begin() as session:
