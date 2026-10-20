@@ -11,11 +11,13 @@ class JourneyBrowserTests(ExtensionHarness):
     def route(self,route):
         url=route.request.url
         if url in [LISTING,OTHER]:route.fulfill(content_type='text/html',body=f'<title>Research project manager</title><h1>Research project manager</h1><a href="{ATS}" target=_blank rel=noopener>Apply now</a>')
+        elif url=='https://radius.example/api/v1/profiles':route.fulfill(json={'items':[{'id':1,'cv':{'updated_at':'cv1'}}]})
         elif url.startswith('https://radius.example/'):route.fulfill(content_type='text/html',body='<title>Radius preparation</title>')
         elif url.startswith('https://ats.example/'):route.fulfill(content_type='text/html',body=FORM)
         else:super().route(route)
     def seed(self,prepared=False):
         self.save_example()
+        self.worker.evaluate('''()=>{const original=globalThis.fetch;globalThis.fetch=(input,options)=>String(input)==='https://radius.example/api/v1/profiles'?Promise.resolve(new Response(JSON.stringify({items:[{id:1,cv:{updated_at:'cv1'}}]}),{headers:{'Content-Type':'application/json'}})):original(input,options);}''')
         options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
         options.evaluate('''async ({applicant,prepared,listing,other})=>{
           const {profileStamp}=await import('./vault.js');const stamp=await profileStamp(applicant);

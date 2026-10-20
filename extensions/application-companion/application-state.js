@@ -588,12 +588,9 @@ export async function fillProfile(tabId, url, jobId, base) {
         experience_bullets: [],
       },
     };
-  if (
-    vault.settings?.cv_storage === "browser" &&
-    (await currentCV(vault.settings)) !== saved.cv_updated_at
-  ) {
+  if ((await currentCV(vault.settings)) !== saved.cv_updated_at) {
     throw new Error(
-      "The original CV changed or its Radius tab is closed. Open Radius and prepare a current package.",
+      "The original CV changed or is unavailable. Prepare a current package before filling tailored details.",
     );
   }
   const guard = !persistableURL(url) ? await sessionGet(`page:${tabId}`) : null;
