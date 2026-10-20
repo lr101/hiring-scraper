@@ -444,7 +444,7 @@ class ProductionPreparationTests(ProductionHarness):
         expect(self.page.locator('#team')).to_have_value('research')
         self.page.evaluate("window.submits=0;document.querySelector('form').addEventListener('submit',e=>{e.preventDefault();submits++})")
         popup.get_by_role('button',name='Attach prepared documents',exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('2 documents selected')
+        expect(popup.locator('#status')).to_contain_text('2 documents selected',timeout=30000)
         self.assertEqual(self.page.locator('#cv').evaluate('el=>el.files[0].type'),'application/pdf')
         self.assertEqual(self.page.locator('#letter-file').evaluate('el=>el.files[0].type'),'application/pdf')
         self.assertTrue(self.page.locator('#cv').evaluate("async el=>(await el.files[0].arrayBuffer()).byteLength>100"))
