@@ -2581,6 +2581,10 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
                          .execution_options(populate_existing=True))
     if job is None:
         raise HTTPException(status_code=404, detail='Job not found')
+    locked_profile_id = session.scalar(select(UserProfile.id).where(
+        UserProfile.id == profile_id).with_for_update())
+    if locked_profile_id is None:
+        raise HTTPException(status_code=404, detail='Profile not found')
     previous_status = session.scalar(select(JobApplication.status).where(
         JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
     requested_status = request.status
@@ -3049,9 +3053,13 @@ def update_managed_feed(feed_id: int, request: ManagedFeedUpdate,
             job.is_active = False
             job.closed_at = now
         session.flush()
-        close_job_applications(session, [job.id for job in retiring_jobs], now)
         if retiring_jobs:
-            refresh_application_matches_for_jobs(session, [job.id for job in retiring_jobs])
+            retiring_job_ids = [job.id for job in retiring_jobs]
+            refresh_application_matches_for_jobs(
+                session, retiring_job_ids,
+                before_publish=lambda publish_session: close_job_applications(
+                    publish_session, retiring_job_ids, now),
+            )
         if (feed.company.source == "managed_feed" and not career_page_supplied and
                 not feed.company.career_url_manual):
             feed.company.career_url = new_board_url

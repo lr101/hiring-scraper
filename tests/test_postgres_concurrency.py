@@ -377,6 +377,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
                       url='https://example.test/jobs/role', is_active=True)
             session.add(job)
             session.flush()
+            session.add(JobApplication(profile_id=profile.id, job_id=job.id, status='new',
+                                        auto_created=True))
             feed_id, profile_id, job_id = feed.id, profile.id, job.id
 
         index_at_publish = threading.Event()
@@ -448,9 +450,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
         with self.factory() as session:
             self.assertFalse(session.get(Job, job_id).is_active)
             self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))
-            self.assertIsNone(session.scalar(select(JobApplication).where(
-                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id,
-                JobApplication.status == 'new')))
+            application = session.scalar(select(JobApplication).where(
+                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
+            self.assertEqual(application.status, 'closed')
+            self.assertEqual(application.previous_status, 'new')
 
     def test_inventory_writer_cannot_commit_between_index_check_and_publish(self):
         with self.factory.begin() as session:
@@ -764,7 +767,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
 
         index_at_publish = threading.Event()
         release_index = threading.Event()
-        application_at_insert = threading.Event()
+        application_waiting_for_profile = threading.Event()
         application_done = threading.Event()
         generation_reads = 0
         errors = []
@@ -781,8 +784,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
 
         def observe_application(_conn, _cursor, statement, *_args):
             if (threading.current_thread().name == 'application-save' and
-                    statement.upper().startswith('INSERT INTO JOB_APPLICATIONS')):
-                application_at_insert.set()
+                    'FROM USER_PROFILES' in statement.upper() and 'FOR UPDATE' in statement.upper()):
+                application_waiting_for_profile.set()
 
         event.listen(self.engine, 'after_cursor_execute', pause_index)
         event.listen(self.engine, 'before_cursor_execute', observe_application)
@@ -791,7 +794,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             try:
                 with patch.object(job_search, 'match_job', return_value={
                         'eligible': True, 'score': 70, 'fit_tier': 'recommended', 'uncertain': False}), \
-                        patch.object(job_search, 'application_match_allowed', return_value=False), \
+                        patch.object(job_search, 'application_match_allowed', return_value=True), \
                         self.factory.begin() as session:
                     profile = session.get(UserProfile, profile_id)
                     job_search.ensure_profile_match_indexes(session, [profile])
@@ -815,8 +818,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
             index_thread.start()
             self.assertTrue(index_at_publish.wait(3), 'profile index did not reach publication')
             application_thread.start()
-            progressed = (application_at_insert.wait(3) or application_done.wait(0.1))
-            self.assertTrue(progressed, 'application save did not reach its profile foreign key')
+            progressed = (application_waiting_for_profile.wait(3) or application_done.wait(0.1))
+            self.assertTrue(progressed, 'application save did not wait for its profile publication lock')
             self.assertFalse(application_done.wait(0.2),
                              'application save bypassed the profile lock held by index publication')
         finally:
@@ -831,8 +834,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
         self.assertFalse(application_thread.is_alive())
         self.assertEqual(errors, [])
         with self.factory() as session:
-            self.assertIsNotNone(session.scalar(select(JobApplication).where(
-                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)))
+            application = session.scalar(select(JobApplication).where(
+                JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
+            self.assertIsNotNone(application)
+            self.assertFalse(application.auto_created)
 
     def test_cached_enrichment_computation_does_not_hold_profile_locks(self):
         with self.factory.begin() as session:

@@ -5,6 +5,7 @@ import hashlib
 import json
 from datetime import datetime
 from tempfile import SpooledTemporaryFile
+from typing import Callable
 
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -305,7 +306,12 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         return bool(stable_ids)
 
 
-def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | list[int]) -> None:
+def refresh_application_matches_for_jobs(
+    session: Session,
+    job_ids: set[int] | list[int],
+    *,
+    before_publish: Callable[[Session], None] | None = None,
+) -> None:
     """Refresh derived matches and create New only for newly visible default-area matches."""
     ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
     if not ids:
@@ -316,6 +322,8 @@ def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | l
         select(UserProfile).order_by(UserProfile.id).execution_options(populate_existing=True)
     ).all()
     if not profiles:
+        if before_publish is not None:
+            before_publish(session)
         return
     profile_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
     now = utcnow()
@@ -375,6 +383,10 @@ def refresh_application_matches_for_jobs(session: Session, job_ids: set[int] | l
         current_profiles = session.scalars(select(UserProfile).where(
             UserProfile.id.in_(list(profile_versions))
         ).order_by(UserProfile.id).with_for_update().execution_options(populate_existing=True)).all()
+        if before_publish is not None:
+            # Source retirement must update application rows only after profile
+            # locks are held, and before stale automatic New rows are retracted.
+            before_publish(session)
         stable_profiles = [profile for profile in current_profiles
                            if _profile_index_version(profile) == profile_versions[profile.id]]
         stable_ids = {profile.id for profile in stable_profiles}

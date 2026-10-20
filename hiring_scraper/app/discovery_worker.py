@@ -301,7 +301,8 @@ def _lock_current_discovery_run(session, company_id: int, run_id: int) -> Discov
     return run if latest_id == run_id else None
 
 
-def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: datetime) -> tuple[set[int], set[int]]:
+def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
+                 now: datetime) -> tuple[set[int], set[int], set[int]]:
     existing = {job.external_id: job for job in session.scalars(
         select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
     seen: set[str] = set()
@@ -361,16 +362,13 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
                 closed_job_ids.add(job.id)
                 touched_job_ids.add(job.id)
 
-    if closed_job_ids:
-        session.flush()
-        close_job_applications(session, closed_job_ids, now)
     feed.job_count = len(seen)
     feed.status = "parsed" if complete and seen else "complete_empty" if complete else "incomplete"
     feed.last_checked_at = now
     feed.last_error = None if complete else "Discovery returned a partial job list; no jobs were closed."
     feed.next_scan_at = now + timedelta(hours=FEED_INTERVAL_HOURS)
     feed.attempt_count = 0
-    return seen_job_ids, touched_job_ids
+    return seen_job_ids, touched_job_ids, closed_job_ids
 
 
 def _campaign_attempt(session, item_id: int, run_id: int):
@@ -463,6 +461,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 feed_by_key[key] = feed
         observed_job_ids: set[int] = set()
         touched_job_ids: set[int] = set()
+        closed_job_ids: set[int] = set()
         updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
@@ -506,9 +505,10 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             else:
                 feed.tenant = board.get("tenant") or feed.tenant
                 feed.board_url = board.get("board_url") or feed.board_url
-            observed, touched = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
+            observed, touched, closed = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
             observed_job_ids.update(observed)
             touched_job_ids.update(touched)
+            closed_job_ids.update(closed)
             updated_feed_ids.add(feed.id)
 
         if updated_feed_ids:
@@ -522,7 +522,11 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     Job.feed_id == feed.id, Job.is_active.is_(True)))
 
         if touched_job_ids:
-            refresh_application_matches_for_jobs(session, touched_job_ids)
+            refresh_application_matches_for_jobs(
+                session, touched_job_ids,
+                before_publish=(lambda publish_session: close_job_applications(
+                    publish_session, closed_job_ids, now)) if closed_job_ids else None,
+            )
 
         run.finished_at = now
         run.status = result.get("status", "unresolved")
