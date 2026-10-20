@@ -730,9 +730,6 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                     closed_job_ids.add(job.id)
                     touched_job_ids.add(job.id)
 
-        if closed_job_ids:
-            session.flush()
-            close_job_applications(session, closed_job_ids, now)
         feed.job_count = len(incoming)
         feed.status = (("parsed" if incoming else "complete_empty") if complete else
                        ("windowed" if incoming else "windowed_empty") if windowed else "incomplete") if feed.enabled else "paused"
@@ -763,7 +760,11 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         run.error = feed.last_error
         if touched_job_ids:
             session.flush()
-            refresh_application_matches_for_jobs(session, touched_job_ids)
+            refresh_application_matches_for_jobs(
+                session, touched_job_ids,
+                before_publish=(lambda publish_session: close_job_applications(
+                    publish_session, closed_job_ids, now)) if closed_job_ids else None,
+            )
 
 
 def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,
