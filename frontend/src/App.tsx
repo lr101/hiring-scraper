@@ -88,6 +88,8 @@ type Job = {
   first_seen_at: string
   last_seen_at: string
   is_active: boolean
+  posting_status: 'open' | 'closed'
+  closed_at: string | null
   description_preview?: string
   description?: string | null
   raw_metadata: Record<string, unknown>
@@ -212,6 +214,8 @@ function DirectoryPage() {
     Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
   const [jobStatusFilter, setJobStatusFilter] = useState<ApplicationStatus | ''>(() =>
     applicationStatuses.find(item => item.value === params.get('job_status'))?.value ?? '')
+  const [postingStatus, setPostingStatus] = useState<'open' | 'closed' | 'all'>(() =>
+    params.get('posting_status') === 'closed' ? 'closed' : params.get('posting_status') === 'all' ? 'all' : 'open')
   const [tab, setTab] = useState<'companies' | 'jobs'>(params.get('view') === 'jobs' ? 'jobs' : 'companies')
   const [companies, setCompanies] = useState<Company[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
@@ -286,7 +290,7 @@ function DirectoryPage() {
     : new URLSearchParams(),
   [location, radius, params, selectedLocationKey, selectedProfile?.search_area?.country_code])
   const jobSnapshotCriteria = JSON.stringify([
-    requestQuery, locationParams.toString(), jobLocationScope, jobWorkStyle, jobSort,
+    requestQuery, locationParams.toString(), jobLocationScope, jobWorkStyle, jobSort, postingStatus,
   ])
   const companyRefreshCriteria = JSON.stringify([
     locationParams.toString(), requestOffset,
@@ -405,6 +409,7 @@ function DirectoryPage() {
     if (requestQuery) jobParams.set('query', requestQuery)
     if (profileId) jobParams.set('profile_id', profileId)
     if (profileId && jobStatusFilter) jobParams.set('job_status', jobStatusFilter)
+    if (postingStatus !== 'open') jobParams.set('posting_status', postingStatus)
     const cachedSnapshot = jobSnapshotRef.current
     if (cachedSnapshot?.criteria === jobSnapshotCriteria) jobParams.set('snapshot_id', cachedSnapshot.id)
     try {
@@ -463,7 +468,7 @@ function DirectoryPage() {
     } finally {
       if (!signal.aborted) setLoading(false)
     }
-  }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, jobSort, jobStatusFilter, locationParams,
+  }, [companyFilter, companySort, jobLocationScope, jobWorkStyle, jobSort, jobStatusFilter, postingStatus, locationParams,
     requestOffset, jobRequestOffset, requestQuery, jobSnapshotCriteria, tab, profileId,
     profilesReady, locationsReady, selectedLocationKey, jobReloadKey,
     companyRefreshCriteria])
@@ -530,8 +535,10 @@ function DirectoryPage() {
     url.searchParams.delete('include_unknown')
     if (jobStatusFilter) url.searchParams.set('job_status', jobStatusFilter)
     else url.searchParams.delete('job_status')
+    if (postingStatus !== 'open') url.searchParams.set('posting_status', postingStatus)
+    else url.searchParams.delete('posting_status')
     window.history.replaceState({}, '', url)
-  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, jobStatusFilter, profilesReady, locationsReady])
+  }, [companyFilter, companySort, jobSort, jobLocationScope, jobWorkStyle, location, locationParams, radius, query, selectedLocationKey, tab, profileId, jobStatusFilter, postingStatus, profilesReady, locationsReady])
 
   function applyProfile(profile: Profile, overrides = new URLSearchParams()) {
     if (profile.id == null) return
@@ -803,6 +810,15 @@ function DirectoryPage() {
                 </button>)}
               </div>
             </div>}
+            <div className="job-feed-filter-row" role="group" aria-label="Posting status">
+              <span className="job-feed-filter-label">Posting</span><div className="job-feed-chip-list">
+                {(['open', 'closed', 'all'] as const).map(value => <button type="button" key={value}
+                  className={`application-filter-chip ${postingStatus === value ? 'selected' : ''}`}
+                  aria-pressed={postingStatus === value} onClick={() => { setPostingStatus(value); setOffset(0) }}>
+                  {value === 'open' ? 'Open' : value === 'closed' ? 'Closed' : 'All'}
+                </button>)}
+              </div>
+            </div>
             <div className="job-feed-filter-row" role="group" aria-label="Filter by job location">
               <span className="job-feed-filter-label">Location</span><div className="job-feed-chip-list">
                 {([

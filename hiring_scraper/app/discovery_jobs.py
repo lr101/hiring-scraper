@@ -49,7 +49,7 @@ def _domain_key_expression():
 
 
 def canonical_company_map(session: Session, company_ids: list[int]) -> dict[int, int]:
-    """Map each selected office to the oldest company record for its website."""
+    """Map selected offices to the preferred eligible record for their website."""
     ids = list(dict.fromkeys(int(value) for value in company_ids))
     if not ids:
         return {}
@@ -60,7 +60,11 @@ def canonical_company_map(session: Session, company_ids: list[int]) -> dict[int,
         key = _domain_key_expression()
         matches = session.execute(select(Company.id, key).where(
             Company.website_url.is_not(None), Company.website_url != "",
-            Company.domain.is_not(None), key.in_(keys)).order_by(Company.id)).all()
+            Company.domain.is_not(None), Company.domain != "",
+            or_(Company.category.is_(None), Company.category != "job_board_source"),
+            key.in_(keys)).order_by(
+                case((german_company_filter(), 0), else_=1),
+                case((Company.crawl_paused.is_(False), 0), else_=1), Company.id)).all()
         for company_id, domain_key in matches:
             roots.setdefault(domain_key, int(company_id))
     by_id = {int(company_id): (str(domain).casefold().removeprefix("www.") if domain else None)

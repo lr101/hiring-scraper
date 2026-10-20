@@ -427,9 +427,9 @@ def remote_countries(job):
     return _remote_scope(job)[0]
 
 
-def geographic_scope(job, latitude, longitude, radius_km, place=None, country=None):
+def geographic_scope(job, latitude, longitude, radius_km, place=None, country=None, *, include_expired=False):
     country = country_code(country)
-    if expiry(job)['expired']:
+    if not include_expired and expiry(job)['expired']:
         return {'eligible': False, 'reason': 'expired', 'unknowns': [], 'match_kind': None}
     if fully_remote(job):
         countries, unresolved_restriction = _remote_scope(job)

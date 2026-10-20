@@ -70,6 +70,33 @@ class DiscoveryWorkerTests(unittest.TestCase):
                          "A more relevant branch must not create a second page crawl for the same domain")
         self.assertIsNone(worker._claim_due_company())
 
+    def test_due_company_uses_german_employer_instead_of_an_older_foreign_job_board(self):
+        due = utcnow() - timedelta(minutes=1)
+        board = self._company(source="imported", source_id="old-austrian-board", name="Austrian job board",
+                              country_code="AT", category="job_board_source", domain="shared-board.example",
+                              crawl_interval_days=1, next_discovery_at=due)
+        german = self._company(source_id="german-employer", name="German employer", country_code="DE",
+                               domain="www.shared-board.example", crawl_interval_days=7,
+                               next_discovery_at=due)
+
+        claim = worker._claim_due_company()
+
+        self.assertIsNotNone(claim)
+        self.assertEqual(claim[0], german)
+        self.assertNotEqual(claim[0], board)
+
+    def test_active_german_alias_is_claimed_when_an_older_alias_is_paused(self):
+        due = utcnow() - timedelta(minutes=1)
+        self._company(source_id="paused-german-alias", name="Paused alias", country_code="DE",
+                      domain="shared-paused.example", crawl_paused=True, next_discovery_at=due)
+        active = self._company(source_id="active-german-alias", name="Active alias", country_code="DE",
+                               domain="www.shared-paused.example", next_discovery_at=due)
+
+        claim = worker._claim_due_company()
+
+        self.assertIsNotNone(claim)
+        self.assertEqual(claim[0], active)
+
     def test_expired_company_lease_marks_the_old_attempt_failed_before_requeue(self):
         company_id = self._company(discovery_lease_until=utcnow() - timedelta(minutes=1))
         with self.factory.begin() as session:
@@ -475,6 +502,69 @@ class FeedWorkerSafetyTests(unittest.TestCase):
             self.assertTrue(old_job.is_active)
             self.assertEqual(old_job.missing_complete_scans, 2)
             self.assertEqual(run.status, "windowed")
+
+    def test_journey_save_racing_with_closure_cannot_restore_new_stage(self):
+        from hiring_scraper.app import api
+        from hiring_scraper.app.models import JobApplication, UserProfile
+        feed_id, run_id = self._feed_and_run()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Concurrent closure', preferences={})
+            job = Job(feed_id=feed_id, external_id='closing', title='Closing role', url='https://acme.example/jobs/closing')
+            session.add_all([profile, job])
+            session.flush()
+            profile_id, job_id = profile.id, job.id
+        reconciled = threading.Event()
+        tracking_write = threading.Event()
+        release = threading.Event()
+        errors = []
+
+        def before_sql(connection, cursor, statement, parameters, context, executemany):
+            if threading.current_thread().name == 'journey-save' and (
+                    statement.startswith('UPDATE jobs SET') or statement.startswith('INSERT INTO job_applications')):
+                tracking_write.set()
+
+        def after_sql(connection, cursor, statement, parameters, context, executemany):
+            if threading.current_thread().name == 'source-close' and statement.startswith('UPDATE job_applications SET'):
+                reconciled.set()
+                if not release.wait(10):
+                    raise TimeoutError('closure test was not released')
+
+        def close_source():
+            try:
+                feed_worker._persist_result(feed_id, run_id, {'state': 'ok', 'status': 200,
+                    'parsed_feed': {'jobs': [], 'complete': True}}, b'')
+            except Exception as error:
+                errors.append(error)
+
+        def track():
+            try:
+                with self.factory() as session:
+                    api.set_job_application(profile_id, job_id, api.ApplicationRequest(status='new'), session)
+            except Exception as error:
+                errors.append(error)
+
+        event.listen(self.engine, 'before_cursor_execute', before_sql)
+        event.listen(self.engine, 'after_cursor_execute', after_sql)
+        closer = threading.Thread(target=close_source, name='source-close')
+        tracker = threading.Thread(target=track, name='journey-save')
+        try:
+            closer.start()
+            self.assertTrue(reconciled.wait(10))
+            tracker.start()
+            self.assertTrue(tracking_write.wait(10))
+        finally:
+            release.set()
+            closer.join(10)
+            if tracker.ident:
+                tracker.join(10)
+            event.remove(self.engine, 'before_cursor_execute', before_sql)
+            event.remove(self.engine, 'after_cursor_execute', after_sql)
+        self.assertFalse(closer.is_alive())
+        self.assertFalse(tracker.is_alive())
+        self.assertEqual(errors, [])
+        with self.factory() as session:
+            self.assertFalse(session.get(Job, job_id).is_active)
+            self.assertEqual(session.scalar(select(JobApplication.status).where(JobApplication.job_id == job_id)), 'closed')
 
 
 if __name__ == "__main__":

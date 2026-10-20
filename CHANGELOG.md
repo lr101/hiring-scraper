@@ -12,6 +12,9 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Agentur für Arbeit scheduled scans in the current and upcoming search lists, with Germany ranked-check cadence, due, overdue, and unscheduled counts.
+- Open, Closed, and All posting filters, retained closure dates, and a Closed Journey outcome.
+
 - Form-aware application briefs and question answers bound to the captured step, plus explicit selection of current prepared PDF/DOCX documents in native employer upload fields.
 
 - On-demand posting lookup and server-backed extension search for jobs outside the bounded local catalog, with exact URL matching and bounded metadata caching.
@@ -51,6 +54,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Jobs missing from a successful complete source scan close immediately. In Journey, Waiting for reply and Automated application move to Rejected; Accepted and Rejected stay unchanged, and other stages move to Closed. Failed or partial scans preserve existing jobs, and reappearing postings reopen without resetting Journey outcomes.
+
 - ChatGPT application briefs use available personal context directly and request finished documents without confirmation placeholders. Returned applications show downloads first with optional editing; unfinished drafting text is blocked from export. A realistic two-page CV fixture exercises layout and overflow.
 
 - Application journey deployments advance the database migration history; rolling back requires a database rollback plan rather than reverting the application image alone.
@@ -60,6 +65,8 @@ no historical releases have been reconstructed.
 - Production career discovery defaults to 12 pages and 48 requests per company, skips robots.txt unless enabled, and shares per-origin pacing with Retry-After cooldowns. Public feed and HTML extraction now retain employer provenance and scoped posting evidence.
 
 ### Fixed
+
+- Captured application questions remain available when the extension delivers them while the saved-CV preparation page mounts.
 
 - Unchanged DOCX application packages remain prepared in the companion, and linked question-only wizard steps can reuse their exact application answers without requiring contact fields again.
 

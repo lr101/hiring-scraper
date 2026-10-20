@@ -364,6 +364,34 @@ class ProductionPreparationTests(ExtensionHarness):
     def test_captured_questions_return_documents_and_select_files_through_real_api(self):
         self.check_captured_question_and_document_flow(attached=True)
 
+    def test_captured_form_arriving_during_mount_is_read(self):
+        self.setup_preparation(attached=True)
+        # Deliver the bridge's storage write after the component's initial read
+        # but before its event listener is registered.
+        self.context.add_init_script("""(() => {
+          const add = document.addEventListener.bind(document);
+          let delivered = false;
+          document.addEventListener = (name, listener, ...options) => {
+            if (name === 'radius-form-updated' && !delivered) {
+              delivered = true;
+              localStorage.setItem('radius:application-form:v1:1574:1', JSON.stringify({
+                format: 'radius-form-v1', job_id: 1574, profile_id: 1,
+                form_id: 'a'.repeat(64), url: 'https://ats.example/apply',
+                captured_at: Date.now(), fields: [{id: 'q0', label: 'Why this role?',
+                  type: 'textarea', required: true, max_length: 200,
+                  options: [], accept: '', manual: false}]
+              }));
+              document.dispatchEvent(new CustomEvent('radius-form-updated'));
+            }
+            return add(name, listener, ...options);
+          };
+        })()""")
+        prepared = self.context.new_page()
+        prepared.goto(self.origin + '/jobs/1574/apply?profile_id=1')
+        expect(prepared.get_by_text(
+            'This application step’s questions and answer limits are included in your brief.',
+            exact=True)).to_be_visible()
+
     def test_browser_local_cv_captured_questions_and_document_exports(self):
         self.check_captured_question_and_document_flow(attached=False)
 

@@ -90,7 +90,9 @@ class ExtensionHarness(unittest.TestCase):
         popup = self.context.new_page()
         self.page.bring_to_front()
         popup.goto(f"chrome-extension://{self.extension_id}/popup.html")
-        expect(popup.locator("#page-name")).not_to_have_text("Checking this page…")
+        expect(popup.locator("#page-name")).not_to_have_text(
+            "Checking this page…", timeout=15_000
+        )
         return popup
 
     def fill(self, popup):

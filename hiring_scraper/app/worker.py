@@ -24,6 +24,7 @@ from hiring_scraper.app.database import SessionLocal, engine, is_transient_datab
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.models import (Company, ConfiguredLocation, Job, JobFeed, JobLocation,
                                       ScanRun, utcnow)
+from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
@@ -659,6 +660,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
         touched_job_ids: set[int] = set()
+        closed_job_ids: set[int] = set()
         for data in incoming:
             if (feed.provider == "rss" and not data.get("locations")
                     and feed.company.location_label):
@@ -720,12 +722,12 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 if external_id in seen:
                     continue
                 job.missing_complete_scans += 1
-                last_seen = job.last_seen_at
-                if last_seen.tzinfo is None:
-                    last_seen = last_seen.replace(tzinfo=timezone.utc)
-                if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
+                # A complete listing confirms removal immediately. Preserve the
+                # original closure time on subsequent scans of the same source.
+                if job.is_active:
                     job.is_active = False
                     job.closed_at = now
+                    closed_job_ids.add(job.id)
                     touched_job_ids.add(job.id)
 
         feed.job_count = len(incoming)
@@ -758,7 +760,11 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         run.error = feed.last_error
         if touched_job_ids:
             session.flush()
-            refresh_application_matches_for_jobs(session, touched_job_ids)
+            refresh_application_matches_for_jobs(
+                session, touched_job_ids,
+                before_publish=(lambda publish_session: close_job_applications(
+                    publish_session, closed_job_ids, now)) if closed_job_ids else None,
+            )
 
 
 def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,

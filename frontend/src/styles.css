@@ -27,7 +27,7 @@
 .application-open { --status-color: #719bb0; }
 .application-in_gots_hand { --status-color: #96744f; }
 .application-automated_application { --status-color: #427f7a; }
-.application-not_interested { --status-color: #949b95; }
+.application-not_interested, .application-closed { --status-color: #949b95; }
 .application-waiting_for_reply { --status-color: #b5995f; }
 .application-interview { --status-color: #9387b6; }
 .application-rejected { --status-color: #b98476; }
@@ -46,7 +46,7 @@
 .application-state-badge.application-automated_application { background: #e9f4f2; border-color: #c9e1dd; color: #376e68; }
 .application-state-badge.application-waiting_for_reply { background: #f7f2e8; border-color: #eae0c9; color: #806a3f; }
 .application-state-badge.application-interview { background: #f2eff8; border-color: #e0daed; color: #6a5b92; }
-.application-state-badge.application-not_interested, .application-state-badge.application-untracked { background: #f2f3f0; border-color: #e1e4de; color: #687169; }
+.application-state-badge.application-not_interested, .application-state-badge.application-closed, .application-state-badge.application-untracked { background: #f2f3f0; border-color: #e1e4de; color: #687169; }
 .application-state-badge.application-rejected { background: #faf0ed; border-color: #efd9d2; color: #925c4f; }
 .application-state-badge.application-accepted { background: #eaf3ec; border-color: #cfe2d4; color: #3c7051; }
 .application-job-list { display: grid; gap: 12px; padding: 0 12px 12px; }
@@ -473,6 +473,26 @@ tbody tr:last-child td { border-bottom: 0; }
 .scheduled-location small { margin-top: 4px; color: #929b94; font-size: 8px; }
 .scheduled-location time { color: #829084; font: 8px 'DM Mono',monospace; text-align: right; }
 .scheduled-location .cancel-search-button { justify-self: end; }
+.special-feed-row { grid-template-columns: 28px minmax(0,1fr) auto; }
+.special-feed-row .scheduled-icon { background: #eef3f7; color: #42677c; }
+.special-feed-row > a { color: #5b7483; font-size: 9px; font-weight: 600; text-decoration: none; }
+.special-feed-row > a:hover { text-decoration: underline; }
+.unscheduled-feed-heading { display: flex; justify-content: space-between; margin: 10px 0 4px; padding: 8px 10px 0; border-top: 1px solid #ecefea; color: #778379; font-size: 9px; }
+.unscheduled-feed-heading span { font: 9px 'DM Mono',monospace; }
+.ranked-health { margin-top: 12px; padding: 14px; border: 1px solid #e4e9e0; border-radius: 9px; background: #f8faf7; }
+.ranked-health.has-overdue { border-color: #ead7cb; background: #fff9f5; }
+.ranked-health-heading { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.ranked-health-heading h3 { margin: 0; color: #425448; font: 650 12px Manrope,sans-serif; }
+.ranked-health-heading p { margin: 5px 0 0; color: #738075; font-size: 9px; line-height: 1.45; }
+.ranked-health-heading > strong { padding: 5px 8px; border-radius: 5px; background: #eaf1e5; color: #527349; font-size: 9px; white-space: nowrap; }
+.ranked-health-heading > .health-late { background: #f7e8de; color: #a15b3d; }
+.ranked-health-metrics { display: grid; grid-template-columns: repeat(8,minmax(0,1fr)); gap: 8px; margin-top: 12px; }
+.ranked-health-metrics > div { padding: 8px; border-left: 2px solid #dfe8d9; }
+.ranked-health-metrics > .health-late { border-left-color: #d4a487; }
+.ranked-health-metrics strong, .ranked-health-metrics span { display: block; }
+.ranked-health-metrics strong { color: #3d5743; font: 600 14px 'DM Mono',monospace; }
+.ranked-health-metrics > .health-late strong { color: #a15b3d; }
+.ranked-health-metrics span { margin-top: 3px; color: #778379; font-size: 8px; }
 .recent-crawl-list { overflow: hidden; border: 1px solid #e7eae4; border-radius: 9px; background: #fff; }
 .recent-crawl-row { display: grid; grid-template-columns: minmax(160px,1.6fr) .7fr .8fr .7fr; gap: 12px; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eff1ed; color: #737f75; font-size: 9px; }
 .recent-crawl-row:last-child { border-bottom: 0; }
@@ -674,6 +694,7 @@ tbody tr:last-child td { border-bottom: 0; }
 .company-cell strong a { color: inherit; text-decoration: none; }
 .company-cell strong a:hover { text-decoration: underline; }
 @media (max-width: 800px) {
+  .ranked-health-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .app-shell { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   .topbar { height: 60px; padding: 0 18px; position: sticky; top: 0; z-index: 20; background: #fafbf8; }
   .primary-nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid #dfe4e6; box-shadow: 0 -4px 20px rgb(23 53 46 / 5%); }
@@ -1279,6 +1300,7 @@ html[data-theme="dark"] .application-state-badge.application-automated_applicati
 html[data-theme="dark"] .application-state-badge.application-waiting_for_reply { background: #3a3427; border-color: #625638; color: #e1cc91; }
 html[data-theme="dark"] .application-state-badge.application-interview { background: #322d40; border-color: #554b6b; color: #c9bbe9; }
 html[data-theme="dark"] .application-state-badge.application-not_interested,
+html[data-theme="dark"] .application-state-badge.application-closed,
 html[data-theme="dark"] .application-state-badge.application-untracked { background: #2a302b; border-color: #414941; color: #c1c9c1; }
 html[data-theme="dark"] .application-state-badge.application-rejected { background: #3e2f2c; border-color: #674640; color: #e5b6a9; }
 html[data-theme="dark"] .application-state-badge.application-accepted { background: #293a2e; border-color: #45614b; color: #b4d4bd; }
@@ -1528,6 +1550,11 @@ td { height: 68px; color: #4c5c51; font-size: 12px; }
 .job-results-link { min-height: 40px; align-items: center; font-size: 12px; }
 .scheduled-location strong { font-size: 12px; }
 .scheduled-location small { color: #69757b; font-size: 11px; }
+.special-feed-row > a { min-height: 40px; display: inline-flex; align-items: center; font-size: 12px; }
+.ranked-health-heading h3 { font-size: 14px; }
+.ranked-health-heading p { font-size: 12px; }
+.ranked-health-heading > strong { font-size: 11px; }
+.ranked-health-metrics span { color: #69757b; font-size: 11px; }
 .recent-crawl-row { color: #5f6f64; font-size: 12px; }
 .recent-crawl-row strong { font-size: 13px; }
 .recent-crawl-row small { color: #69757b; font-size: 11px; }

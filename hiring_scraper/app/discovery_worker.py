@@ -13,17 +13,18 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from sqlalchemy import case, func, or_, select
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.exc import DBAPIError, TimeoutError as DatabasePoolTimeout
-from sqlalchemy.orm import aliased, selectinload
+from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
+from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
     advance_location_schedule, canonical_company_ids, canonical_company_map,
-    company_ids_for_search, create_discovery_job,
+    company_ids_for_search, create_discovery_job, german_company_filter,
 )
 from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
@@ -83,23 +84,43 @@ _POSITIVE_CAREER_STATUSES = {"career_page_found", "jobs_feed_found", "jobs_extra
 def _claim_due_company() -> tuple[int, int] | None:
     now = utcnow()
     with SessionLocal.begin() as session:
-        earlier_domain_company = aliased(Company)
         company_domain = case(
             (func.lower(Company.domain).like("www.%"), func.substr(func.lower(Company.domain), 5)),
             else_=func.lower(Company.domain))
-        earlier_domain = case(
-            (func.lower(earlier_domain_company.domain).like("www.%"),
-             func.substr(func.lower(earlier_domain_company.domain), 5)),
-            else_=func.lower(earlier_domain_company.domain))
-        duplicate_domain = select(earlier_domain_company.id).where(
-            Company.domain.is_not(None), earlier_domain_company.domain.is_not(None),
-            earlier_domain_company.id < Company.id,
-            earlier_domain_company.website_url.is_not(None), earlier_domain_company.website_url != "",
-            earlier_domain == company_domain,
-        ).correlate(Company).exists()
+        german_priority = case((german_company_filter(), 0), else_=1)
+        pause_priority = case((Company.crawl_paused.is_(False), 0), else_=1)
+        eligible_domains = (select(Company.id.label("company_id"),
+                                   company_domain.label("domain_key"),
+                                   german_priority.label("german_priority"),
+                                   pause_priority.label("pause_priority"))
+                            .where(Company.domain.is_not(None), Company.domain != "",
+                                   Company.website_url.is_not(None), Company.website_url != "",
+                                   or_(Company.category.is_(None), Company.category != "job_board_source"))
+                            .subquery())
+        domain_roots = (select(
+            eligible_domains.c.domain_key,
+            func.coalesce(
+                func.min(case((and_(eligible_domains.c.german_priority == 0,
+                                    eligible_domains.c.pause_priority == 0),
+                              eligible_domains.c.company_id), else_=None)),
+                func.min(case((eligible_domains.c.german_priority == 0,
+                               eligible_domains.c.company_id), else_=None)),
+                func.min(case((and_(eligible_domains.c.german_priority == 1,
+                                    eligible_domains.c.pause_priority == 0),
+                              eligible_domains.c.company_id), else_=None)),
+                func.min(eligible_domains.c.company_id),
+            ).label("company_id"),
+        ).group_by(eligible_domains.c.domain_key).subquery())
+        canonical_roots = (select(domain_roots.c.company_id)
+                           .union_all(select(Company.id).where(
+                               or_(Company.domain.is_(None), Company.domain == ""),
+                               Company.website_url.is_not(None), Company.website_url != "",
+                               or_(Company.category.is_(None), Company.category != "job_board_source")))
+                           .subquery())
         statement = (select(Company)
-                     .where(Company.website_url.is_not(None), Company.website_url != "", Company.crawl_paused.is_(False),
-                            ~duplicate_domain,
+                     .where(Company.id.in_(select(canonical_roots.c.company_id)),
+                            Company.website_url.is_not(None), Company.website_url != "",
+                            Company.crawl_paused.is_(False),
                             ~Company.id.in_(select(DiscoveryJobCompany.company_id).join(DiscoveryJob).where(
                                 DiscoveryJobCompany.status.in_(("queued", "running")),
                                 DiscoveryJob.status.in_(("scheduled", "queued", "running")))),
@@ -280,12 +301,14 @@ def _lock_current_discovery_run(session, company_id: int, run_id: int) -> Discov
     return run if latest_id == run_id else None
 
 
-def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: datetime) -> tuple[set[int], set[int]]:
+def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
+                 now: datetime) -> tuple[set[int], set[int], set[int]]:
     existing = {job.external_id: job for job in session.scalars(
         select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
     seen: set[str] = set()
     seen_job_ids: set[int] = set()
     touched_job_ids: set[int] = set()
+    closed_job_ids: set[int] = set()
     for data in rows:
         external_id, title, url = data.get("id"), data.get("title"), data.get("url")
         if external_id in (None, "") or not title or not url:
@@ -331,12 +354,12 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
             if external_id in seen:
                 continue
             job.missing_complete_scans += 1
-            last_seen = job.last_seen_at
-            if last_seen.tzinfo is None:
-                last_seen = last_seen.replace(tzinfo=timezone.utc)
-            if job.missing_complete_scans >= 2 and now - last_seen >= timedelta(days=7):
+            # Only complete listings establish removal; partial discovery must
+            # leave existing jobs active. Keep the first closure timestamp.
+            if job.is_active:
                 job.is_active = False
                 job.closed_at = now
+                closed_job_ids.add(job.id)
                 touched_job_ids.add(job.id)
 
     feed.job_count = len(seen)
@@ -345,7 +368,7 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool, now: 
     feed.last_error = None if complete else "Discovery returned a partial job list; no jobs were closed."
     feed.next_scan_at = now + timedelta(hours=FEED_INTERVAL_HOURS)
     feed.attempt_count = 0
-    return seen_job_ids, touched_job_ids
+    return seen_job_ids, touched_job_ids, closed_job_ids
 
 
 def _campaign_attempt(session, item_id: int, run_id: int):
@@ -438,6 +461,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 feed_by_key[key] = feed
         observed_job_ids: set[int] = set()
         touched_job_ids: set[int] = set()
+        closed_job_ids: set[int] = set()
         updated_feed_ids = set()
         for board in parsed_boards:
             jobs = board.get("jobs", [])
@@ -481,9 +505,10 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             else:
                 feed.tenant = board.get("tenant") or feed.tenant
                 feed.board_url = board.get("board_url") or feed.board_url
-            observed, touched = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
+            observed, touched, closed = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
             observed_job_ids.update(observed)
             touched_job_ids.update(touched)
+            closed_job_ids.update(closed)
             updated_feed_ids.add(feed.id)
 
         if updated_feed_ids:
@@ -497,7 +522,11 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     Job.feed_id == feed.id, Job.is_active.is_(True)))
 
         if touched_job_ids:
-            refresh_application_matches_for_jobs(session, touched_job_ids)
+            refresh_application_matches_for_jobs(
+                session, touched_job_ids,
+                before_publish=(lambda publish_session: close_job_applications(
+                    publish_session, closed_job_ids, now)) if closed_job_ids else None,
+            )
 
         run.finished_at = now
         run.status = result.get("status", "unresolved")
