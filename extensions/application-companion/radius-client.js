@@ -1,3 +1,4 @@
+import { localizedKeys } from "./profile-language.js";
 import { validateProfile } from "./profile.js";
 import { normalizeJob, validateSettings } from "./vault.js";
 
@@ -197,6 +198,10 @@ export async function syncRadius(settings, signal) {
   const applicant = profile
     ? validateProfile({
         ...(source?.application_details || {}),
+        localized_content: {
+          en: { ...Object.fromEntries(localizedKeys.filter(key => source?.[key] !== undefined).map(key => [key, source[key]])), application_preferences: Object.fromEntries(['notice_period', 'employment_type'].map(key => [key, source?.application_details?.preferences?.[key] ?? ''])) },
+          ...source?.localized_content,
+        },
         cv_text:
           cvData?.text ?? (await localCVData(selectedSettings))?.text ?? "",
         base_cvs: Object.fromEntries(

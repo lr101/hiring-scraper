@@ -11,7 +11,7 @@ const profile = { name: 'Career profile', summary: 'Product coordination', skill
   language_levels: { German: 'B2' }, education: [], certifications: [] }
 
 // Losing the posting, evidence context, or response contract breaks a usable round trip.
-const prompt = buildApplicationPrompt({ job, profile, language: 'German', cvText: 'My original CV', notes: 'Part-time preferred' })
+const prompt = buildApplicationPrompt({ job, profile, language: 'English', cvText: 'My original CV', notes: 'Part-time preferred' })
 assert.doesNotMatch(prompt, /\[CONFIRM:|only when I confirm|requiring confirmation/i,
   'A finished personalized application must not require another confirmation or contain confirmation placeholders')
 for (const value of ['https://example.org/jobs/42', 'Example GmbH', 'https://example.org', 'Coordinate & plan projects.',
@@ -119,7 +119,7 @@ for (const invalid of ['#applicationz=broken', '#applicationz=+not_base64', comp
 }
 // Execute the actual handoff recipe, catching Python/JS encoding mismatches and long-link fallback.
 const { execFileSync } = await import('node:child_process')
-const linkPrompt = buildApplicationPrompt({ job, language: 'German', templateParagraphs: template, handoff: { ...context, return_url: base } })
+const linkPrompt = buildApplicationPrompt({ job, language: 'English', templateParagraphs: template, handoff: { ...context, return_url: base } })
 const recipe = linkPrompt.match(/RETURN_LINK_RECIPE_BEGIN\n([\s\S]*?)\nRETURN_LINK_RECIPE_END/)[1]
 const generated = execFileSync('python3', ['-c', 'import json\napplication_package = json.loads(' + JSON.stringify(JSON.stringify(applicationPackage)) + ')\n' + recipe], { encoding: 'utf8' }).trim()
 const generatedURL = generated.match(/^\[Return to Radius with my documents\]\((.*)\)$/)?.[1]

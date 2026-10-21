@@ -1,5 +1,6 @@
+import { localizedPreferenceKeys } from "./profile-language.js";
 import { parseTexCV } from "./tex-cv.js";
-import { cvFormattingPrompt } from "./tex-cv-prompt.js";
+import { cvFormattingPrompt, cvFormattingPromptDe } from "./tex-cv-prompt.js";
 import { emptyProfile, validateProfile } from "./profile.js";
 import { readPackage, connectSources, bulletPrompt } from "./sources.js";
 
@@ -35,6 +36,60 @@ const preferenceBool = [
 ];
 let pendingPackage = null;
 let linked = validateProfile(emptyProfile());
+let contentLanguage = 'en';
+const localizedFields = [
+  ['summary', 'Profile summary', 'Profilzusammenfassung', 5000],
+  ['custom_instructions', 'Custom application instructions', 'Eigene Bewerbungsanweisungen', 5000],
+  ['skills', 'Skills (comma separated)', 'Fähigkeiten (kommagetrennt)', 8000],
+  ['desired_roles', 'Desired roles (comma separated)', 'Gewünschte Positionen (kommagetrennt)', 1600],
+  ['secondary_roles', 'Adjacent roles (comma separated)', 'Weitere Positionen (kommagetrennt)', 1600],
+  ['certifications', 'Certifications (comma separated)', 'Zertifikate (kommagetrennt)', 4000],
+  ['career_evidence', 'Career evidence bank', 'Berufliche Beispiele und Belege', 12000],
+  ['writing_samples', 'Writing samples', 'Eigene Textbeispiele', 12000],
+  ['wording_to_avoid', 'Wording to avoid', 'Zu vermeidende Formulierungen', 3000],
+  ['career_goals', 'Career goals', 'Berufliche Ziele', 5000],
+  ['work_preferences', 'Working preferences and dealbreakers', 'Arbeitswünsche und Ausschlusskriterien', 5000],
+];
+const listKeys = ['skills', 'desired_roles', 'secondary_roles', 'certifications'];
+const personalKeys = ['career_evidence', 'writing_samples', 'wording_to_avoid', 'career_goals', 'work_preferences'];
+for (const [key, label, , limit] of localizedFields) {
+  const wrapper = document.createElement('label');
+  const caption = document.createElement('span'); caption.id = `caption-${key}`; caption.textContent = label;
+  const input = document.createElement('textarea'); input.id = `localized-${key}`; input.maxLength = limit; input.rows = 3;
+  wrapper.append(caption, input); document.querySelector('#localized-fields').append(wrapper);
+}
+for (const key of localizedPreferenceKeys) document.querySelector('#localized-preferences').append(document.getElementById(key).closest('label'));
+for (const id of ['cv-file-en', 'cv_text', 'cv-file-de', 'cv-de']) document.querySelector('#localized-cv').append(document.getElementById(id).closest('label'));
+document.querySelector('#localized-cv').append(document.querySelector('#cv-format-prompt').closest('details'));
+function captureLanguage() {
+  const content = { ...linked.localized_content?.[contentLanguage] };
+  content.application_personalization = { ...content.application_personalization };
+  for (const [key] of localizedFields) {
+    const value = document.getElementById(`localized-${key}`).value;
+    if (personalKeys.includes(key)) content.application_personalization[key] = value;
+    else content[key] = listKeys.includes(key) ? value.split(',').map(item => item.trim()).filter(Boolean) : value;
+  }
+  content.application_preferences = Object.fromEntries(localizedPreferenceKeys.map(key => [key, document.getElementById(key).value]));
+  linked.localized_content = { ...linked.localized_content, [contentLanguage]: content };
+}
+function renderLanguage() {
+  const content = linked.localized_content?.[contentLanguage] ?? {};
+  for (const [key, english, german] of localizedFields) {
+    document.getElementById(`caption-${key}`).textContent = contentLanguage === 'de' ? german : english;
+    const value = personalKeys.includes(key) ? content.application_personalization?.[key] : content[key];
+    document.getElementById(`localized-${key}`).value = Array.isArray(value) ? value.join(', ') : value ?? '';
+  }
+  for (const key of localizedPreferenceKeys) document.getElementById(key).value = content.application_preferences?.[key] ?? (contentLanguage === 'en' ? linked.preferences?.[key] : '') ?? '';
+  for (const language of ['en', 'de']) {
+    document.getElementById(`content-tab-${language}`).setAttribute('aria-selected', String(language === contentLanguage));
+    for (const id of language === 'en' ? ['cv-file-en', 'cv_text'] : ['cv-file-de', 'cv-de']) document.getElementById(id).closest('label').hidden = language !== contentLanguage;
+  }
+  document.getElementById('content-panel').setAttribute('aria-labelledby', `content-tab-${contentLanguage}`);
+  document.querySelector('#cv-format-prompt').value = contentLanguage === 'de' ? cvFormattingPromptDe : cvFormattingPrompt;
+}
+for (const language of ['en', 'de']) document.getElementById(`content-tab-${language}`).onclick = () => {
+  captureLanguage(); contentLanguage = language; renderLanguage();
+};
 document.querySelector("#cv-format-prompt").value = cvFormattingPrompt;
 const status = (message, error = false, target = "status") => {
   const el = document.getElementById(target);
@@ -59,6 +114,7 @@ function render(profile, keepPackage = false) {
           : String(linked.preferences[key])),
   );
 
+  renderLanguage();
   document.querySelector("#cv_text").value =
     linked.base_cvs.en ||
     (Object.keys(linked.base_cvs).length ||
@@ -94,6 +150,7 @@ function render(profile, keepPackage = false) {
   }
 }
 function readEditor() {
+  captureLanguage();
   const data = Object.fromEntries(
     keys.map((key) => [key, document.getElementById(key).value]),
   );
@@ -111,6 +168,7 @@ function readEditor() {
     const value = document.getElementById(key).value;
     data.preferences[key] = value === "" ? null : value === "true";
   });
+  for (const key of localizedPreferenceKeys) data.preferences[key] = linked.localized_content?.en?.application_preferences?.[key] ?? linked.preferences[key] ?? '';
   const next = validateProfile({
     ...linked,
     ...data,
@@ -134,6 +192,7 @@ function readEditor() {
       profile.experiences,
       profile.cv_text,
       profile.base_cvs,
+      profile.localized_content,
     ]);
   if (
     (linked.application.url &&

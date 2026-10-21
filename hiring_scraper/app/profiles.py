@@ -64,7 +64,7 @@ class MatchingDefaults(BaseModel):
 
 NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
                    'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details',
-                   'application_personalization'}
+                   'application_personalization', 'localized_content'}
 
 
 class ApplicationPersonalization(BaseModel):
@@ -174,9 +174,30 @@ class ApplicationDetails(BaseModel):
         return self
 
 
+class LocalizedApplicationPreferences(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    notice_period: str = Field(default='', max_length=300)
+    employment_type: str = Field(default='', max_length=300)
+
+
+class LocalizedProfileContent(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    summary: str = Field(default='', max_length=5000)
+    custom_instructions: str = Field(default='', max_length=5000)
+    application_personalization: ApplicationPersonalization = Field(default_factory=ApplicationPersonalization)
+    application_preferences: LocalizedApplicationPreferences = Field(default_factory=LocalizedApplicationPreferences)
+    skills: list[Term] = Field(default_factory=list, max_length=100)
+    desired_roles: list[Term] = Field(default_factory=list, max_length=20)
+    secondary_roles: list[Term] = Field(default_factory=list, max_length=20)
+    skill_evidence: dict[Term, Evidence] = Field(default_factory=dict, max_length=100)
+    education: list[Education] = Field(default_factory=list, max_length=20)
+    certifications: list[Term] = Field(default_factory=list, max_length=50)
+
+
 class ProfileRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
+    localized_content: dict[Literal['en', 'de'], LocalizedProfileContent] = Field(default_factory=dict)
     application_details: ApplicationDetails = Field(default_factory=ApplicationDetails)
     application_personalization: ApplicationPersonalization = Field(default_factory=ApplicationPersonalization)
     skills: list[Term] = Field(default_factory=list, max_length=100)
@@ -206,6 +227,7 @@ def profile_json(profile):
     data = {'id': profile.id, 'name': profile.name, **profile.preferences,
             'updated_at': profile.updated_at.isoformat(), 'cv': cv_metadata(profile.cv)}
     data.setdefault('custom_instructions', '')
+    data.setdefault('localized_content', {})
     data.setdefault('application_personalization', ApplicationPersonalization().model_dump())
     defaults = data.get('matching_defaults')
     defaults = defaults if isinstance(defaults, dict) else {}
@@ -248,6 +270,7 @@ def _save(profile, request, session):
         raise HTTPException(status_code=422, detail='Enter a profile name')
     data['skills'] = normalize_skills(data['skills'])
     previous = profile.preferences or {}
+    previous_matching = profile.matching_preferences
     previous_weight = profile.low_afd_vote_share_weight
     defaults = data.get('matching_defaults') or {}
     requested_weight = defaults.pop('low_afd_vote_share_weight', 0)
@@ -258,11 +281,29 @@ def _save(profile, request, session):
     for key in NEW_PREFERENCES - request.model_fields_set:
         if key in previous:
             data[key] = previous[key]
+    english = data.get('localized_content', {}).get('en')
+    if english is not None:
+        # Top-level fields remain the canonical English API for older clients.
+        # Explicit translated English edits update that API; legacy edits update
+        # the translated copy so neither client can shadow the other's changes.
+        supplied = request.localized_content.get('en') if 'localized_content' in request.model_fields_set else None
+        for key in LocalizedProfileContent.model_fields.keys() - {'application_preferences'}:
+            if supplied is not None and key in supplied.model_fields_set:
+                data[key] = english[key]
+        preferences = data.setdefault('application_details', {}).setdefault('preferences', {})
+        if supplied is not None and 'application_preferences' in supplied.model_fields_set:
+            for key in supplied.application_preferences.model_fields_set:
+                preferences[key] = english['application_preferences'][key]
+        data['skills'] = normalize_skills(data['skills'])
+        data['localized_content'] = {**data['localized_content'], 'en': {
+            **{key: data[key] for key in LocalizedProfileContent.model_fields.keys() - {'application_preferences'}},
+            'application_preferences': {key: preferences.get(key, '') for key in LocalizedApplicationPreferences.model_fields},
+        }}
     if not data.get('application_details', {}).get('experiences'):
         data.get('application_details', {}).pop('experiences', None)
     profile.preferences = data
     profile.updated_at = utcnow()
-    preferences_changed = data != previous or profile.low_afd_vote_share_weight != previous_weight
+    preferences_changed = profile.matching_preferences != previous_matching
     if preferences_changed:
         profile.match_index_version = None
     session.add(profile)

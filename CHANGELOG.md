@@ -10,7 +10,13 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Fixed
+
+- Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
+
 ### Added
+
+- Independent German and English profile content tabs, shared contact and factual preferences, and German application, fit-assessment, CV-formatting and LaTeX prompts in Radius and the browser companion.
 
 - English and German LaTeX base CVs with marked work and study history extraction, starter templates, and automatic application-language selection. New CV uploads require `.tex`; PostgreSQL deployments apply migration `0031_cv_languages` during startup.
 - Current-job application preparation in the extension: fill details first, open ChatGPT with a copied brief, import results, and download validated LaTeX/PDF documents while Radius syncs in the background.

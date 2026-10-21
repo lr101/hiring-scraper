@@ -1910,3 +1910,8 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
   .application-workspace .finish-progress { justify-content: space-between; gap: 10px; }
   .application-workspace .finish-document-picker { gap: 12px; }
 }
+
+.profile-language-tabs { display: flex; gap: .5rem; margin: 1rem 0; }
+.profile-language-tabs [role="tab"] { border: 1px solid var(--border); padding: .6rem 1.2rem; border-radius: .5rem; }
+.profile-language-tabs [aria-selected="true"] { background: var(--accent, #24634a); color: white; }
+.profile-language-content { border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 1.5rem; }

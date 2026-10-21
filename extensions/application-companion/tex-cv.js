@@ -1,3 +1,4 @@
+import { profileForLanguage } from "./profile-language.js";
 // Explicit, non-printing markers are the only source of career facts.
 export function parseTexCV(source) {
   if (
@@ -151,8 +152,10 @@ export function selectCVLanguage(language = "auto", posting = "") {
 }
 
 export function withCVLanguage(profile, language) {
-  if (!Object.keys(profile.base_cvs ?? {}).length) return profile;
   const selected = selectCVLanguage(language?.split("-")[0]);
+  const localized = profileForLanguage({ application_details: { preferences: profile.preferences }, localized_content: profile.localized_content }, selected);
+  profile = { ...profile, preferences: localized.application_details.preferences };
+  if (!Object.keys(profile.base_cvs ?? {}).length) return profile;
   const source = profile.base_cvs[selected];
   if (!source)
     throw new Error(

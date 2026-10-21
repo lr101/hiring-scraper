@@ -296,8 +296,19 @@ class UserProfile(Base):
 
     @property
     def matching_preferences(self) -> dict:
-        """Return preferences with versioned matcher settings merged in."""
-        preferences = dict(self.preferences or {})
+        """Only matching inputs affect derived scores and their index version.
+
+        Application prose, translations and contact details are deliberately
+        excluded: editing them must not rescan the entire job inventory.
+        """
+        matching_fields = {
+            'skills', 'desired_roles', 'secondary_roles', 'work_styles',
+            'employment_types', 'seniority_levels', 'experience_years',
+            'languages', 'language_levels', 'excluded_terms', 'skill_evidence',
+            'search_area', 'education', 'certifications', 'matching_defaults',
+        }
+        preferences = {key: value for key, value in (self.preferences or {}).items()
+                       if key in matching_fields}
         defaults = dict(preferences.get("matching_defaults") or {})
         defaults["low_afd_vote_share_weight"] = self.low_afd_vote_share_weight
         preferences["matching_defaults"] = defaults
