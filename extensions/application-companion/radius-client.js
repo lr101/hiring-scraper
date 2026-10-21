@@ -199,7 +199,19 @@ export async function syncRadius(settings, signal) {
     ? validateProfile({
         ...(source?.application_details || {}),
         localized_content: {
-          en: { ...Object.fromEntries(localizedKeys.filter(key => source?.[key] !== undefined).map(key => [key, source[key]])), application_preferences: Object.fromEntries(['notice_period', 'employment_type'].map(key => [key, source?.application_details?.preferences?.[key] ?? ''])) },
+          en: {
+            ...Object.fromEntries(
+              localizedKeys
+                .filter((key) => source?.[key] !== undefined)
+                .map((key) => [key, source[key]]),
+            ),
+            application_preferences: Object.fromEntries(
+              ["notice_period", "employment_type"].map((key) => [
+                key,
+                source?.application_details?.preferences?.[key] ?? "",
+              ]),
+            ),
+          },
           ...source?.localized_content,
         },
         cv_text:

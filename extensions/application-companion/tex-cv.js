@@ -153,8 +153,17 @@ export function selectCVLanguage(language = "auto", posting = "") {
 
 export function withCVLanguage(profile, language) {
   const selected = selectCVLanguage(language?.split("-")[0]);
-  const localized = profileForLanguage({ application_details: { preferences: profile.preferences }, localized_content: profile.localized_content }, selected);
-  profile = { ...profile, preferences: localized.application_details.preferences };
+  const localized = profileForLanguage(
+    {
+      application_details: { preferences: profile.preferences },
+      localized_content: profile.localized_content,
+    },
+    selected,
+  );
+  profile = {
+    ...profile,
+    preferences: localized.application_details.preferences,
+  };
   if (!Object.keys(profile.base_cvs ?? {}).length) return profile;
   const source = profile.base_cvs[selected];
   if (!source)

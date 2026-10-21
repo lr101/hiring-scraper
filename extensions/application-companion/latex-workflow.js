@@ -1,7 +1,8 @@
 import { cvTailoringInstructions } from "./tex-cv-prompt.js";
 
 export function canvasLatexInstructions(template, language = "en") {
-  if (language === "de") return `LATEX-ARBEITSABLAUF MIT CANVAS:
+  if (language === "de")
+    return `LATEX-ARBEITSABLAUF MIT CANVAS:
 Öffne Code-Canvases namens tailored-cv.tex und cover-letter.tex und speichere darin den vollständigen LaTeX-Quelltext als einfachen Code, ohne Markdown-Codeblock. Stelle die Unterlagen ohne Freigabepause fertig. Die lesbaren Felder cv und cover_letter müssen denselben Inhalt wie die Quellen enthalten. Bei einer DOCX-Änderungsliste enthält der CV-Canvas den GESAMTEN bearbeiteten Lebenslauf, einschließlich unveränderter Absätze und bekannter Kontaktdaten.
 Verwende für jedes Dokument exakt die folgende Präambel und das folgende Ende. Ändere nur den Dokumentinhalt; Layout, Pakete und Schrift bleiben unverändert. Erlaubt sind maskierter Text, ausgeglichene Gruppen, \\section*{...}, \\subsection*{...}, \\textbf{...}, \\emph{...}, \\par und \\begin{itemize} / \\item / \\end{itemize}. Maskiere Backslash als \\textbackslash{}, geschweifte Klammern als \\{ und \\}, sowie &, %, $, #, _ als \\&, \\%, \\$, \\#, \\_. Nutze \\textasciitilde{} und \\textasciicircum{} für ~ und ^. Keine externen Dateien, eigenen Makros, zusätzlichen Pakete, sonstigen Kommentare oder nicht unterstützten Befehle. Bewahre Daten und Unicode-Namen.
 LATEX_PREAMBLE_BEGIN

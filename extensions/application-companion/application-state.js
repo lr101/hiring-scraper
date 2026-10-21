@@ -1468,7 +1468,10 @@ export async function saveConnectedApplicant(input) {
   }
   payload.application_details = {
     ...details,
-    preferences: { ...details.preferences, ...localized_content?.en?.application_preferences },
+    preferences: {
+      ...details.preferences,
+      ...localized_content?.en?.application_preferences,
+    },
     ...(profile.application_details?.experiences
       ? { experiences: profile.application_details.experiences }
       : {}),

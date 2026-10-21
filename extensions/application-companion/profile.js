@@ -65,7 +65,10 @@ export function validateProfile(input) {
       if (url.protocol !== "https:" || url.username || url.password)
         fail("Enter a complete HTTPS website URL.");
     }
-  if (input.localized_content !== undefined) profile.localized_content = validateLocalizedContent(input.localized_content);
+  if (input.localized_content !== undefined)
+    profile.localized_content = validateLocalizedContent(
+      input.localized_content,
+    );
   profile.base_cvs = {};
   for (const [language, source] of Object.entries(input.base_cvs ?? {})) {
     if (!["en", "de"].includes(language))
