@@ -439,7 +439,9 @@ export default function ApplicationsPage() {
         [application.status]: cachedPage.counts[application.status] + 1,
       } : cachedPage.counts
 
-      if (!previouslySelected && nowSelected) {
+      // Any membership change shifts offsets across every page of this query.
+      // Keep the visible optimistic update in state, and fetch fresh pages on navigation.
+      if (previouslySelected !== nowSelected) {
         pageCacheRef.current.delete(cacheKey)
         continue
       }

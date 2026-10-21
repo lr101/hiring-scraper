@@ -1,5 +1,26 @@
 import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
+import { readFileSync } from 'node:fs'
+import { stripTypeScriptTypes } from 'node:module'
+
+// Execute the component's cache mutation with real cached result pages.
+const component = readFileSync(new URL('../frontend/src/ApplicationsPage.tsx', import.meta.url), 'utf8')
+const cacheMutation = component.slice(component.indexOf('  function updateCachedApplicationPages('), component.indexOf('  function applyLocalStatus('))
+const cacheKey = (profile, statuses, offset) => JSON.stringify([profile, statuses, 'match', offset])
+const pageCacheRef = { current: new Map() }
+const updateCache = new Function('pageCacheRef', `${stripTypeScriptTypes(cacheMutation)}; return updateCachedApplicationPages`)(pageCacheRef)
+const cachedPage = ids => ({ jobs: ids.map(id => ({ id, profileId: 9, application: { status: 'new' } })), total: 100, counts: { new: 100, open: 0 } })
+pageCacheRef.current.set(cacheKey('9', ['new'], 0), cachedPage([1, 2]))
+pageCacheRef.current.set(cacheKey('9', ['new'], 40), cachedPage([41, 42]))
+pageCacheRef.current.set(cacheKey('9', [], 40), cachedPage([41, 42]))
+pageCacheRef.current.set(cacheKey('10', ['new'], 40), cachedPage([41, 42]))
+updateCache({ id: 1, profileId: 9 }, 'new', { status: 'open' })
+assert.equal(pageCacheRef.current.has(cacheKey('9', ['new'], 40)), false,
+  'Removing a job shifts later server offsets; stale cached pages would skip jobs')
+assert.equal(pageCacheRef.current.get(cacheKey('9', [], 40)).counts.open, 1,
+  'Pages whose filter membership is unchanged retain updated counts')
+assert.equal(pageCacheRef.current.has(cacheKey('10', ['new'], 40)), true,
+  'Editing one profile must preserve other profiles’ cached pages')
 
 const helpers = await import('../frontend/src/applications.ts').catch(() => null)
 assert.equal(typeof helpers?.saveApplication, 'function', 'Application controls must persist statuses through the profile API')
