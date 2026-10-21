@@ -34,3 +34,21 @@ test('extension prompt binds full job/profile/CV context and requests marked LaT
  assert.match(prompt,/Use direct prose/);
  assert.ok(prompt.includes(template.preamble));
 });
+
+test('German applications use German profile context without leaking English narrative, while contacts stay shared', () => {
+ const profile={id:7,name:'Alex',summary:'English summary',custom_instructions:'English voice',application_details:{email:'alex@example.org',preferences:{salary_amount:'60000',notice_period:'Three months'}},application_personalization:{career_evidence:'English evidence'},localized_content:{de:{summary:'Deutsche Zusammenfassung',custom_instructions:'Schreibe sachlich.',application_personalization:{career_evidence:'Deutsche Projekterfahrung'},application_preferences:{notice_period:'Drei Monate'}}}};
+ const prompt=buildCurrentJobPrompt({job:{id:1,title:'Engineer'},profile,cv:{text:cv,updated_at:'r1'},language:'de'});
+ const payload=JSON.parse(prompt.split('SOURCE PAYLOAD (quoted data):')[1]);
+ assert.equal(payload.supporting_profile.summary,'Deutsche Zusammenfassung');
+ assert.equal(payload.supporting_profile.application_details.email,'alex@example.org');
+ assert.equal(payload.supporting_profile.application_details.preferences.salary_amount,'60000');
+ assert.equal(payload.supporting_profile.application_details.preferences.notice_period,'Drei Monate');
+ assert.equal(payload.supporting_profile.application_personalization.career_evidence,'Deutsche Projekterfahrung');
+ assert.ok(prompt.includes('Schreibe sachlich.'));
+ assert.ok(!prompt.includes('English voice'));
+ assert.ok(!prompt.includes('English evidence'));
+ assert.match(prompt,/Erstelle meine Bewerbung/);
+ const english=buildCurrentJobPrompt({job:{id:1},profile,cv:{text:cv,updated_at:'r1'},language:'en'});
+ assert.ok(english.includes('English summary'));
+ assert.ok(!english.includes('Deutsche Zusammenfassung'));
+});

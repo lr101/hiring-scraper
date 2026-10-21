@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
+import { profileForLanguage } from '../../extensions/application-companion/profile-language.js'
 import SiteHeader from './SiteHeader'
-import { cvFormattingPrompt } from '../../extensions/application-companion/tex-cv-prompt.js'
+import { cvFormattingPrompt, cvFormattingPromptDe } from '../../extensions/application-companion/tex-cv-prompt.js'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile } from './profile'
-import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey } from './profile'
-const empty = (): Profile => ({ application_personalization: {}, application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+import { profileBoardLink, selectedLanguageLevels, skillEvidenceKey, updateProfileLanguage } from './profile'
+const empty = (): Profile => ({ localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -66,7 +67,19 @@ function ProfileOverviewPage() {
 }
 
 function ProfileEditorPage({ profileId }: { profileId?: number }) {
-  const [form, setForm] = useState<Profile>(empty())
+  const [storedForm, setStoredForm] = useState<Profile>(empty())
+  const [contentLanguage, setContentLanguage] = useState<'en' | 'de'>('en')
+  const german = contentLanguage === 'de'
+  const text = (english: string, deutsch: string) => german ? deutsch : english
+  const localized = profileForLanguage(storedForm, contentLanguage)
+  const form: Profile = { ...storedForm, ...Object.fromEntries(Object.entries(localized).filter(([, value]) => value !== undefined)) }
+  for (const key of ['summary', 'custom_instructions', 'application_personalization', 'skills', 'desired_roles', 'secondary_roles', 'skill_evidence', 'education', 'certifications'] as const) {
+    if (localized[key] === undefined) Object.assign(form, { [key]: empty()[key] })
+  }
+  function setForm(value: Profile | ((previous: Profile) => Profile)) {
+    const next = typeof value === 'function' ? value(form) : value
+    setStoredForm(previous => updateProfileLanguage(previous, next, contentLanguage))
+  }
   const [skillsText, setSkillsText] = useState('')
   const [rolesText, setRolesText] = useState('')
   const [secondaryText, setSecondaryText] = useState('')
@@ -92,8 +105,17 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   }
   function edit(profile: Profile) {
     const defaults = empty()
-    setForm({ ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
-      matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }); setSecondaryText((profile.secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profile.certifications ?? []).join(', ')); setSkillsText(profile.skills.join(', ')); setRolesText((profile.desired_roles ?? []).join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
+    setStoredForm({ ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
+      matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }); setSecondaryText((profileForLanguage(profile, contentLanguage).secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profileForLanguage(profile, contentLanguage).certifications ?? []).join(', ')); setSkillsText((profileForLanguage(profile, contentLanguage).skills ?? []).join(', ')); setRolesText((profileForLanguage(profile, contentLanguage).desired_roles ?? []).join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setCV(''); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
+  }
+  function switchContentLanguage(language: 'en' | 'de') {
+    if (busy) return
+    const updated = updateProfileLanguage(storedForm, { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), secondary_roles: terms(secondaryText), certifications: terms(certificationsText) }, contentLanguage)
+    setStoredForm(updated)
+    const selected = profileForLanguage(updated, language)
+    setSkillsText((selected.skills ?? []).join(', ')); setRolesText((selected.desired_roles ?? []).join(', '))
+    setSecondaryText((selected.secondary_roles ?? []).join(', ')); setCertificationsText((selected.certifications ?? []).join(', '))
+    setContentLanguage(language)
   }
   function toggle(key: 'work_styles' | 'employment_types' | 'seniority_levels' | 'languages', value: string) {
     setForm(previous => ({ ...previous, [key]: previous[key].includes(value) ? previous[key].filter(item => item !== value) : [...previous[key], value] }))
@@ -101,13 +123,14 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   async function save(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     try {
-      const payload = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const edited = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
+      const payload = updateProfileLanguage(storedForm, edited, contentLanguage)
       const id = payload.id
       delete payload.id
       delete payload.cv
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      setForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
+      setStoredForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
       if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit${returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : ''}`)
       for (const [language, pendingCV] of Object.entries(pendingCVs)) {
         const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}&language=${language}`,
@@ -189,56 +212,87 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
     {loading ? <div className="loading-state"><span className="spinner" /> Loading profile…</div> : <form className="detail-panel profile-form" onSubmit={save}>
         <h2>{form.id ? 'Edit your profile' : 'Create a profile'}</h2>
         <label>Profile name<input required maxLength={120} value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} placeholder="e.g. Backend developer" /></label>
-        <fieldset className="profile-section"><legend>Application details</legend>
-          <p className="muted">Saved with this profile and synced to the browser extension. Enter confirmed facts only; leave unknown answers blank. Your profile name above is a label, not your applicant name.</p>
-          {([['first_name', 'First name'], ['last_name', 'Last name'], ['email', 'Email'], ['phone', 'Phone'], ['street', 'Street'], ['postal_code', 'Postal code'], ['city', 'City'], ['country', 'Country'], ['linkedin', 'LinkedIn URL'], ['website', 'Website URL'], ['portfolio', 'Portfolio URL'], ['github', 'GitHub URL']] as const).map(([key, label]) =>
-            <label key={key}>{label}<input maxLength={300} type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : ['linkedin', 'website', 'portfolio', 'github'].includes(key) ? 'url' : 'text'} value={form.application_details?.[key] ?? ''}
-              onChange={event => setForm({ ...form, application_details: { ...form.application_details, [key]: event.target.value } })} /></label>)}
-          {([['salary_amount', 'Expected salary'], ['salary_currency', 'Salary currency (e.g. EUR)'], ['salary_period', 'Salary period (e.g. year)'], ['available_from', 'Available from'], ['notice_period', 'Notice period'], ['weekly_hours', 'Weekly hours'], ['employment_type', 'Employment type'], ['authorization_country', 'Work authorization country']] as const).map(([key, label]) =>
-            <label key={key}>{label}<input maxLength={300} value={form.application_details?.preferences?.[key] ?? ''}
-              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
-          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate'], ['willing_to_work_onsite', 'Willing to work on site']] as const).map(([key, label]) =>
-            <label key={key}>{label}<select value={form.application_details?.preferences?.[key] == null ? '' : String(form.application_details.preferences[key])}
-              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
-              <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
-        </fieldset>
-        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>Base LaTeX CVs</legend>
+        <section className="profile-language-content">
+          <h3>Application content</h3>
+          <p className="muted">German and English wording is saved independently. Shared contact details, dates, salary and search preferences below apply to both languages.</p>
+          <div role="tablist" aria-label="Profile content language" className="profile-language-tabs">{(['en', 'de'] as const).map(language => <button type="button" disabled={busy} key={language} role="tab" id={`profile-tab-${language}`} aria-controls="profile-language-panel" aria-selected={contentLanguage === language} tabIndex={contentLanguage === language ? 0 : -1} onKeyDown={event => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+            event.preventDefault(); const next = event.key === 'Home' ? 'en' : event.key === 'End' ? 'de' : contentLanguage === 'en' ? 'de' : 'en'
+            switchContentLanguage(next); document.getElementById(`profile-tab-${next}`)?.focus()
+          }} onClick={() => switchContentLanguage(language)}>{language === 'de' ? 'Deutsch' : 'English'}</button>)}</div>
+          <div role="tabpanel" id="profile-language-panel" aria-labelledby={`profile-tab-${contentLanguage}`}>
+        <fieldset id="profile-cv" className="profile-section profile-cv-attachment"><legend>{text('Base LaTeX CVs', 'LaTeX-Lebenslauf')}</legend>
           <p><a href="/cv-templates/cv-en.tex" download>English starter</a> · <a href="/cv-templates/cv-de.tex" download>German starter</a>. Replace all placeholders with verified facts before uploading.</p>
-          <p>Save an English and a German .tex CV. Applications automatically select the matching language. Work and study history, including responsibilities, comes directly from the marked CV.</p>
-          {(['en', 'de'] as const).map(language => <div key={language}>
+          <p>{text('Save an English and a German .tex CV. Applications automatically select the matching language. Work and study history, including responsibilities, comes directly from the marked CV.', 'Speichere einen englischen und einen deutschen .tex-Lebenslauf. Bewerbungen wählen automatisch die passende Sprache. Beruflicher Werdegang, Ausbildung und Aufgaben werden aus den markierten Einträgen übernommen.')}</p>
+          {([contentLanguage] as const).map(language => <div key={language}>
             <label>{language === 'en' ? 'English' : 'German'} base CV<input type="file" accept=".tex" disabled={busy}
               onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (!/\.tex$/i.test(file.name) || file.size > 5 * 1024 * 1024) { setError('Choose a LaTeX .tex CV up to 5 MB.'); event.target.value = ''; return } setPendingCVs(current => ({ ...current, [language]: file })); setError('') }} /></label>
             {form.cv?.languages?.[language] && <a href={`${API}/api/v1/profiles/${form.id}/cv?language=${language}`}>Download {form.cv.languages[language].filename}</a>}
             {pendingCVs[language] && <p role="status">{pendingCVs[language]!.name} · ready to save</p>}
           </div>)}
           {form.cv && !Object.keys(form.cv.languages ?? {}).length && <p>Replace the previous CV ({form.cv.filename}) with marked LaTeX sources.</p>}
-          {form.cv && <button type="button" disabled={busy} onClick={() => void removeCV()}>Remove all base CVs</button>}
-          <details><summary>Prompt for formatting my existing LaTeX CV</summary><p>Paste this into ChatGPT with your original CV. Review the facts before uploading both files.</p><textarea aria-label="CV formatting prompt" readOnly rows={12} value={cvFormattingPrompt} /></details>
+          {form.cv && <button type="button" disabled={busy} onClick={() => void removeCV()}>{text('Remove all base CVs', 'Alle Lebensläufe entfernen')}</button>}
+          <details><summary>{text('Prompt for formatting my existing LaTeX CV', 'Prompt zum Formatieren meines LaTeX-Lebenslaufs')}</summary><p>{text('Paste this into ChatGPT with your original CV. Review the facts before uploading both files.', 'Füge diesen Prompt mit deinem ursprünglichen Lebenslauf in ChatGPT ein. Prüfe die Fakten, bevor du beide Dateien hochlädst.')}</p><textarea aria-label="CV formatting prompt" readOnly rows={12} value={contentLanguage === 'de' ? cvFormattingPromptDe : cvFormattingPrompt} /></details>
         </fieldset>
-        <fieldset className="profile-section" id="profile-personalization"><legend>About me for applications</legend>
-          <p className="muted">Add confirmed examples and preferences once. They’re included when you copy an application or fit brief to ChatGPT. You can draft these in your usual ChatGPT conversation using the context it already has, then check the facts before saving here.</p>
+        <fieldset className="profile-section" id="profile-personalization"><legend>{text('About me for applications', 'Über mich für Bewerbungen')}</legend>
+          <p className="muted">{text('Add confirmed examples and preferences once. They’re included when you copy an application or fit brief to ChatGPT. You can draft these in your usual ChatGPT conversation using the context it already has, then check the facts before saving here.', 'Speichere bestätigte Beispiele und Wünsche einmal. Sie werden in Bewerbungs- und Eignungsprompts für ChatGPT aufgenommen. Du kannst sie im gewohnten ChatGPT-Gespräch entwerfen und die Fakten vor dem Speichern prüfen.')}</p>
           {([
-            ['career_evidence', 'Career evidence bank', 12000, 'Projects and achievements: the situation, your actions, and the outcome. Include dates, links and measured results when known. Distinguish academic projects from employment.'],
-            ['writing_samples', 'Writing samples', 12000, 'Paste two or three short pieces you wrote. ChatGPT will use these as voice examples, without borrowing their facts for this application.'],
-            ['wording_to_avoid', 'Wording to avoid', 3000, 'Words or phrases that don’t sound like you.'],
-            ['career_goals', 'Career goals', 5000, 'What you want to do next, skills you want to develop, and roles you would consider.'],
-            ['work_preferences', 'Working preferences and dealbreakers', 5000, 'Team environment, management style, travel limits, and other practical needs.'],
+            ['career_evidence', text('Career evidence bank', 'Berufliche Beispiele und Belege'), 12000, text('Projects and achievements: the situation, your actions, and the outcome. Include dates, links and measured results when known. Distinguish academic projects from employment.', 'Projekte und Erfolge: Ausgangslage, dein Beitrag und Ergebnis. Nenne bekannte Daten, Links und Messwerte. Trenne Studienprojekte von Beschäftigung.')],
+            ['writing_samples', text('Writing samples', 'Eigene Textbeispiele'), 12000, text('Paste two or three short pieces you wrote. ChatGPT will use these as voice examples, without borrowing their facts for this application.', 'Füge zwei oder drei kurze eigene Texte ein. Sie dienen als Stilvorbilder, nicht als Quelle zusätzlicher Fakten.')],
+            ['wording_to_avoid', text('Wording to avoid', 'Zu vermeidende Formulierungen'), 3000, text('Words or phrases that don’t sound like you.', 'Wörter oder Formulierungen, die nicht nach dir klingen.')],
+            ['career_goals', text('Career goals', 'Berufliche Ziele'), 5000, text('What you want to do next, skills you want to develop, and roles you would consider.', 'Deine nächsten beruflichen Ziele, gewünschte Fähigkeiten und mögliche Positionen.')],
+            ['work_preferences', text('Working preferences and dealbreakers', 'Arbeitswünsche und Ausschlusskriterien'), 5000, text('Team environment, management style, travel limits, and other practical needs.', 'Teamumfeld, Führungsstil, Reisegrenzen und weitere praktische Bedürfnisse.')],
           ] as const).map(([key, label, limit, hint]) => <label key={key}>{label}
-            <textarea rows={key === 'career_evidence' || key === 'writing_samples' ? 5 : 3} maxLength={limit}
+            <textarea aria-label={label} rows={key === 'career_evidence' || key === 'writing_samples' ? 5 : 3} maxLength={limit}
               value={form.application_personalization?.[key] ?? ''} placeholder={hint}
               onChange={event => setForm({ ...form, application_personalization: { ...form.application_personalization, [key]: event.target.value } })} />
             <small>{hint}</small></label>)}
         </fieldset>
-        <fieldset className="profile-section"><legend>Application writing preferences</legend>
-          <label htmlFor="profile-custom-instructions">Custom application instructions</label>
+        <fieldset className="profile-section"><legend>{text('Application writing preferences', 'Schreibstil für Bewerbungen')}</legend>
+          <label htmlFor="profile-custom-instructions">{text('Custom application instructions', 'Eigene Bewerbungsanweisungen')}</label>
           <textarea id="profile-custom-instructions" aria-describedby="profile-instructions-help" rows={5} maxLength={5000} value={form.custom_instructions} onChange={event => setForm({ ...form, custom_instructions: event.target.value })}
             placeholder="For example: Write in German. Keep my cover letter under 250 words, use a warm, direct voice, and focus on research coordination." />
-          <small id="profile-instructions-help">Saved for every application using this profile. Add your preferred voice, language or points to emphasize. Documents match the job posting by default. You can override these preferences for an individual application.</small>
+          <small id="profile-instructions-help">{text('Saved for every application using this profile. Add your preferred voice, language or points to emphasize. Documents match the job posting by default. You can override these preferences for an individual application.', 'Gilt für jede Bewerbung mit diesem Profil. Beschreibe deinen bevorzugten Stil und Schwerpunkte. Die Dokumentensprache richtet sich nach der Bewerbung; einzelne Bewerbungen können eigene Vorgaben erhalten.')}</small>
         </fieldset>
-        <label>Profile summary<textarea maxLength={5000} value={form.summary} onChange={event => setForm({ ...form, summary: event.target.value })} /></label>
-        <label>Skills <small>Separate with commas; you can add skills beyond our suggestions</small><textarea maxLength={8000} value={skillsText} onChange={event => setSkillsText(event.target.value)} placeholder="Python, SQL, Docker, project management" /></label>
-        <label>Roles you’re interested in <small>Separate with commas</small><input value={rolesText} onChange={event => setRolesText(event.target.value)} placeholder="Software developer, backend" /></label>
-        <label>Adjacent roles <small>Other roles you would consider; separate with commas</small><input value={secondaryText} onChange={event => setSecondaryText(event.target.value)} /></label>
+        <label>{text('Profile summary', 'Profilzusammenfassung')}<textarea aria-label={text('Profile summary', 'Profilzusammenfassung')} maxLength={5000} value={form.summary} onChange={event => setForm({ ...form, summary: event.target.value })} /></label>
+        <label>{text('Skills', 'Fähigkeiten')} <small>{text('Separate with commas; you can add skills beyond our suggestions', 'Mit Kommas trennen; eigene Fähigkeiten sind ebenfalls möglich')}</small><textarea aria-label={text('Skills', 'Fähigkeiten')} maxLength={8000} value={skillsText} onChange={event => setSkillsText(event.target.value)} placeholder="Python, SQL, Docker, project management" /></label>
+        <label>{text('Roles you’re interested in', 'Gewünschte Positionen')} <small>{text('Separate with commas', 'Mit Kommas trennen')}</small><input value={rolesText} onChange={event => setRolesText(event.target.value)} placeholder="Software developer, backend" /></label>
+        <label>{text('Adjacent roles', 'Weitere Positionen')} <small>{text('Other roles you would consider; separate with commas', 'Weitere mögliche Positionen; mit Kommas trennen')}</small><input value={secondaryText} onChange={event => setSecondaryText(event.target.value)} /></label>
+        <fieldset className="profile-section"><legend>{text('Evidence behind your skills', 'Belege für deine Fähigkeiten')}</legend><p className="muted">{text('Distinguish employment from academic or research experience. Leave unknown experience unstated.', 'Unterscheide Beschäftigung von Studien- und Forschungserfahrung. Lasse unbekannte Erfahrung offen.')}</p>
+          {terms(skillsText).map(skill => { const evidenceKey = skillEvidenceKey(skill, form.skill_evidence); return <details className="profile-evidence-row" key={skill}><summary>{skill} <small>{form.skill_evidence[evidenceKey]?.context || 'Context not recorded'}</small></summary>
+            <label>{text('Experience context', 'Erfahrungskontext')}<select value={form.skill_evidence[evidenceKey]?.context ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { note: form.skill_evidence[evidenceKey]?.note ?? '', context: event.target.value } } })}><option value="">Unknown</option>{['professional','academic','research'].map(context => <option key={context} value={context}>{context}</option>)}{form.skill_evidence[evidenceKey]?.context && !['professional','academic','research'].includes(form.skill_evidence[evidenceKey].context) && <option value={form.skill_evidence[evidenceKey].context}>{form.skill_evidence[evidenceKey].context}</option>}</select></label>
+            <label>{text('Supporting experience', 'Belegende Erfahrung')}<textarea maxLength={2000} value={form.skill_evidence[evidenceKey]?.note ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { context: form.skill_evidence[evidenceKey]?.context ?? '', note: event.target.value } } })} /></label>
+          </details> })}
+        </fieldset>
+        <fieldset className="profile-section"><legend>{text('Education and certifications', 'Ausbildung und Zertifikate')}</legend>
+          {form.education.map((row,index) => <div className="profile-education-row" key={index}>
+            <label>{text('Qualification', 'Abschluss')}<select value={row.level} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, level: event.target.value as typeof row.level } : item) })}>{[['vocational','Vocational'],['bachelor','Bachelor’s degree'],['master','Master’s degree'],['doctorate','Doctorate']].map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+            <label>{text('Field of study', 'Studienfach')}<input value={row.field} maxLength={200} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, field: event.target.value } : item) })} /></label>
+            <label>{text('Details and recognition notes', 'Einzelheiten und Anerkennung')}<textarea value={row.note} maxLength={2000} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, note: event.target.value } : item) })} /></label>
+            <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_,i) => i !== index) })}>{text('Remove qualification', 'Abschluss entfernen')}</button>
+          </div>)}
+          <button type="button" onClick={() => setForm({ ...form, education: [...form.education, { level: 'bachelor', field: '', note: '' }] })}>{text('Add qualification', 'Abschluss hinzufügen')}</button>
+          <label>{text('Certifications', 'Zertifikate')} <small>{text('Separate with commas', 'Mit Kommas trennen')}</small><input value={certificationsText} onChange={event => setCertificationsText(event.target.value)} /></label>
+        </fieldset>
+        <fieldset className="profile-section"><legend>{text('Application wording', 'Formulierungen für Bewerbungen')}</legend>
+          {([['notice_period', text('Notice period', 'Kündigungsfrist')], ['employment_type', text('Employment type', 'Beschäftigungsart')]] as const).map(([key, label]) => <label key={key}>{label}<input aria-label={label} maxLength={300} value={form.application_details?.preferences?.[key] ?? ''} onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
+        </fieldset>
+          </div>
+        </section>
+        <h3>Shared profile details</h3>
+        <fieldset className="profile-section"><legend>Application details</legend>
+          <p className="muted">Saved with this profile and synced to the browser extension. Enter confirmed facts only; leave unknown answers blank. Your profile name above is a label, not your applicant name.</p>
+          {([['first_name', 'First name'], ['last_name', 'Last name'], ['email', 'Email'], ['phone', 'Phone'], ['street', 'Street'], ['postal_code', 'Postal code'], ['city', 'City'], ['country', 'Country'], ['linkedin', 'LinkedIn URL'], ['website', 'Website URL'], ['portfolio', 'Portfolio URL'], ['github', 'GitHub URL']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input maxLength={300} type={key === 'email' ? 'email' : key === 'phone' ? 'tel' : ['linkedin', 'website', 'portfolio', 'github'].includes(key) ? 'url' : 'text'} value={form.application_details?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, [key]: event.target.value } })} /></label>)}
+          {([['salary_amount', 'Expected salary'], ['salary_currency', 'Salary currency (e.g. EUR)'], ['salary_period', 'Salary period (e.g. year)'], ['available_from', 'Available from'], ['weekly_hours', 'Weekly hours'], ['authorization_country', 'Work authorization country']] as const).map(([key, label]) =>
+            <label key={key}>{label}<input aria-label={label} maxLength={300} value={form.application_details?.preferences?.[key] ?? ''}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value } } })} /></label>)}
+          {([['authorized_to_work', 'Authorized to work'], ['sponsorship_required', 'Requires sponsorship'], ['willing_to_relocate', 'Willing to relocate'], ['willing_to_work_onsite', 'Willing to work on site']] as const).map(([key, label]) =>
+            <label key={key}>{label}<select value={form.application_details?.preferences?.[key] == null ? '' : String(form.application_details.preferences[key])}
+              onChange={event => setForm({ ...form, application_details: { ...form.application_details, preferences: { ...form.application_details?.preferences, [key]: event.target.value === '' ? null : event.target.value === 'true' } } })}>
+              <option value="">Unknown</option><option value="true">Yes</option><option value="false">No</option></select></label>)}
+        </fieldset>
         <label>Years of relevant experience <small>Optional; used only when a job states a minimum</small><input type="number" min={0} max={60} step={0.5} value={form.experience_years ?? ''} onChange={event => setForm({ ...form, experience_years: event.target.value === '' ? null : Number(event.target.value) })} /></label>
         {choices('work_styles','Preferred work styles',[['remote','Remote'],['hybrid','Hybrid'],['onsite','On-site']])}
         {choices('employment_types','Employment types',[['full_time','Full time'],['part_time','Part time'],['contract','Contract'],['internship','Internship'],['working_student','Student job'],['apprenticeship','Apprenticeship'],['dual_study','Dual study']])}
@@ -260,22 +314,6 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
             <label>Radius (km)<input type="number" min={1} max={200} value={form.search_area.radius_km} onChange={event => setForm({ ...form, search_area: { ...form.search_area!, radius_km: Number(event.target.value) } })} /></label>
             <label>Country code<input maxLength={2} value={form.search_area.country_code ?? ''} placeholder="DE" onChange={event => setForm({ ...form, search_area: { ...form.search_area!, country_code: event.target.value.toUpperCase() || null } })} /></label>
           </div><details><summary>Map coordinates</summary><div className="profile-area-grid">{(['latitude','longitude'] as const).map(key => <label key={key}>{key}<input type="number" step="any" min={key === 'latitude' ? -90 : -180} max={key === 'latitude' ? 90 : 180} value={form.search_area![key] ?? ''} onChange={event => setForm({ ...form, search_area: { ...form.search_area!, [key]: event.target.value === '' ? null : Number(event.target.value) } })} /></label>)}</div></details><button type="button" onClick={() => setForm({ ...form, search_area: null })}>Use board area instead</button></> : <button type="button" onClick={() => setForm({ ...form, search_area: { label: 'Heidelberg, Germany', city: 'Heidelberg', latitude: 49.40936, longitude: 8.69472, radius_km: 35, country_code: 'DE' } })}>Set Heidelberg area</button>}
-        </fieldset>
-        <fieldset className="profile-section"><legend>Evidence behind your skills</legend><p className="muted">Distinguish employment from academic or research experience. Leave unknown experience unstated.</p>
-          {terms(skillsText).map(skill => { const evidenceKey = skillEvidenceKey(skill, form.skill_evidence); return <details className="profile-evidence-row" key={skill}><summary>{skill} <small>{form.skill_evidence[evidenceKey]?.context || 'Context not recorded'}</small></summary>
-            <label>Experience context<select value={form.skill_evidence[evidenceKey]?.context ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { note: form.skill_evidence[evidenceKey]?.note ?? '', context: event.target.value } } })}><option value="">Unknown</option>{['professional','academic','research'].map(context => <option key={context} value={context}>{context}</option>)}{form.skill_evidence[evidenceKey]?.context && !['professional','academic','research'].includes(form.skill_evidence[evidenceKey].context) && <option value={form.skill_evidence[evidenceKey].context}>{form.skill_evidence[evidenceKey].context}</option>}</select></label>
-            <label>Supporting experience<textarea maxLength={2000} value={form.skill_evidence[evidenceKey]?.note ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { context: form.skill_evidence[evidenceKey]?.context ?? '', note: event.target.value } } })} /></label>
-          </details> })}
-        </fieldset>
-        <fieldset className="profile-section"><legend>Education and certifications</legend>
-          {form.education.map((row,index) => <div className="profile-education-row" key={index}>
-            <label>Qualification<select value={row.level} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, level: event.target.value as typeof row.level } : item) })}>{[['vocational','Vocational'],['bachelor','Bachelor’s degree'],['master','Master’s degree'],['doctorate','Doctorate']].map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-            <label>Field of study<input value={row.field} maxLength={200} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, field: event.target.value } : item) })} /></label>
-            <label>Details and recognition notes<textarea value={row.note} maxLength={2000} onChange={event => setForm({ ...form, education: form.education.map((item,i) => i === index ? { ...item, note: event.target.value } : item) })} /></label>
-            <button type="button" onClick={() => setForm({ ...form, education: form.education.filter((_,i) => i !== index) })}>Remove qualification</button>
-          </div>)}
-          <button type="button" onClick={() => setForm({ ...form, education: [...form.education, { level: 'bachelor', field: '', note: '' }] })}>Add qualification</button>
-          <label>Certifications <small>Separate with commas</small><input value={certificationsText} onChange={event => setCertificationsText(event.target.value)} /></label>
         </fieldset>
         <fieldset className="profile-section"><legend>Board defaults</legend>
           <label>Minimum overlap score<input type="number" min={0} max={100} value={form.matching_defaults.min_match_score} onChange={event => setForm({ ...form, matching_defaults: { ...form.matching_defaults, min_match_score: Number(event.target.value) } })} /></label>

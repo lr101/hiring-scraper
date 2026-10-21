@@ -54,6 +54,79 @@ class ProfileIntegrationTests(unittest.TestCase):
             with self.subTest(context=list(context)), self.assertRaises(ValidationError):
                 profiles.ProfileRequest(name='Alex', application_personalization=context)
 
+    def test_localized_content_roundtrip_and_legacy_update_preservation(self):
+        profiles = self.profile_api()
+        with Session(self.engine) as session:
+            content = {'de': {'summary': 'Forschung und Entwicklung',
+                'custom_instructions': 'Schreibe auf Deutsch.',
+                'application_personalization': {'career_goals': 'Forschungskoordination'},
+                'application_preferences': {'notice_period': 'Drei Monate'}}}
+            saved = profiles.create_profile(profiles.ProfileRequest(name='Alex',
+                summary='Research and development', localized_content=content), session)
+            self.assertEqual(saved['localized_content']['de']['summary'], 'Forschung und Entwicklung')
+            updated = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Renamed'), session)
+            self.assertEqual(updated['localized_content'], saved['localized_content'])
+            cleared = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex', localized_content={}), session)
+            self.assertEqual(cleared['localized_content'], {})
+
+    def test_legacy_english_updates_and_normalized_skills_reach_both_language_clients(self):
+        profiles = self.profile_api()
+        with Session(self.engine) as session:
+            saved = profiles.create_profile(profiles.ProfileRequest(name='Alex', summary='Old summary',
+                localized_content={'en': {'summary': 'Old summary', 'skills': ['postgres']},
+                                   'de': {'summary': 'Deutsche Zusammenfassung'}}), session)
+            self.assertEqual(saved['skills'], ['PostgreSQL'])
+            self.assertEqual(saved['localized_content']['en']['skills'], ['PostgreSQL'])
+            updated = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex',
+                summary='Updated by older client', skills=['python'],
+                application_details={'preferences': {'notice_period': 'Two months'}}), session)
+            self.assertEqual(updated['localized_content']['en']['summary'], 'Updated by older client')
+            self.assertEqual(updated['localized_content']['en']['skills'], ['Python'])
+            self.assertEqual(updated['localized_content']['en']['application_preferences']['notice_period'], 'Two months')
+            self.assertEqual(updated['localized_content']['de']['summary'], 'Deutsche Zusammenfassung')
+
+    def test_application_only_edits_preserve_journey_matches_but_skill_edits_invalidate_them(self):
+        from hiring_scraper.app.job_search import _profile_index_version
+        profiles = self.profile_api()
+        with Session(self.engine) as session:
+            saved = profiles.create_profile(profiles.ProfileRequest(name='Developer', skills=['Python'],
+                matching_defaults={'min_match_score': 0}), session)
+            company = models.Company(source='test', source_id='journey-perf', name='Example')
+            feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.org/jobs', status='parsed')
+            job = models.Job(feed=feed, external_id='1', title='Python developer',
+                url='https://example.org/jobs/1', description='Python development.', is_remote=True)
+            session.add(company); session.commit()
+            page = api.list_applications(profile_ids=str(saved['id']), statuses='new', sort='match', offset=0, limit=40, session=session)
+            self.assertEqual(len(page['items']), 1)
+            profile = session.get(models.UserProfile, saved['id'])
+            version = profile.match_index_version
+            scores = session.scalars(select(models.ProfileJobMatch).where(models.ProfileJobMatch.profile_id == profile.id)).all()
+            self.assertEqual(len(scores), 1)
+            score = scores[0].match_score
+            # These inputs are read only while drafting applications, never by the matcher.
+            profiles.update_profile(profile.id, profiles.ProfileRequest(name='Renamed', skills=['Python'],
+                matching_defaults={'min_match_score': 0}, summary='Updated application summary',
+                custom_instructions='Use direct prose.', application_details={'email': 'new@example.org'},
+                application_personalization={'career_goals': 'Build useful tools.'},
+                localized_content={'de': {'summary': 'Deutsche Zusammenfassung'}}), session)
+            self.assertEqual(profile.match_index_version, version)
+            self.assertEqual(_profile_index_version(profile), version)
+            self.assertEqual(session.get(models.ProfileJobMatch, (profile.id, job.id)).match_score, score)
+            profiles.update_profile(profile.id, profiles.ProfileRequest(name='Renamed', skills=['Java'],
+                matching_defaults={'min_match_score': 0}), session)
+            self.assertIsNone(profile.match_index_version)
+            self.assertEqual(session.scalars(select(models.ProfileJobMatch).where(models.ProfileJobMatch.profile_id == profile.id)).all(), [])
+
+    def test_localized_content_rejects_shared_facts_and_unknown_languages(self):
+        from pydantic import ValidationError
+        profiles = self.profile_api()
+        for content in [{'fr': {}}, {'de': {'email': 'other@example.org'}},
+                        {'de': {'summary': 'x' * 5001}},
+                        {'de': {'application_preferences': {'salary_amount': '1'}}},
+                        {'de': {'application_preferences': {'authorization_country': 'Austria'}}}]:
+            with self.subTest(content=content), self.assertRaises(ValidationError):
+                profiles.ProfileRequest(name='Alex', localized_content=content)
+
     def setUp(self):
         self.engine = create_engine('sqlite://')
         models.Base.metadata.create_all(self.engine)

@@ -5,6 +5,10 @@ Runs in the server image: python -m hiring_scraper.app.enrichment [--fetch-detai
 from __future__ import annotations
 
 import argparse
+from collections import OrderedDict
+from concurrent.futures import Future
+from copy import deepcopy
+from threading import Lock
 import hashlib
 import json
 import os
@@ -31,13 +35,59 @@ def job_input(job: Job) -> dict:
     return source
 
 
+# Bound process-local reuse to derived signals. Equal source hashes share one
+# extraction even when two Journey requests scan the same jobs concurrently.
+_ENRICHMENT_CACHE_SIZE = 4096
+_ENRICHMENT_CACHE: OrderedDict[tuple[str, str], dict] = OrderedDict()
+_ENRICHMENT_PENDING: dict[tuple[str, str], Future] = {}
+_ENRICHMENT_CACHE_LOCK = Lock()
+
+
+def _cached_enrichment(source: dict, digest: str) -> dict:
+    key = (VERSION, digest)
+    with _ENRICHMENT_CACHE_LOCK:
+        cached = _ENRICHMENT_CACHE.get(key)
+        if cached is not None:
+            _ENRICHMENT_CACHE.move_to_end(key)
+            return deepcopy(cached)
+        pending = _ENRICHMENT_PENDING.get(key)
+        owner = pending is None
+        if owner:
+            pending = Future()
+            _ENRICHMENT_PENDING[key] = pending
+    if not owner:
+        return deepcopy(pending.result())
+    try:
+        result = enrich_job(source)
+    except BaseException as error:
+        with _ENRICHMENT_CACHE_LOCK:
+            _ENRICHMENT_PENDING.pop(key, None)
+        pending.set_exception(error)
+        raise
+    with _ENRICHMENT_CACHE_LOCK:
+        _ENRICHMENT_CACHE[key] = result
+        _ENRICHMENT_CACHE.move_to_end(key)
+        while len(_ENRICHMENT_CACHE) > _ENRICHMENT_CACHE_SIZE:
+            _ENRICHMENT_CACHE.popitem(last=False)
+        _ENRICHMENT_PENDING.pop(key, None)
+    pending.set_result(result)
+    return deepcopy(result)
+
+
 def current_enrichment(job: Job) -> dict:
     source = job_input(job)
     digest = hashlib.sha256(json.dumps(source, sort_keys=True, default=str).encode()).hexdigest()
     stored = job.enrichment or {}
     if stored.get('version') == VERSION and stored.get('source_hash') == digest:
         return stored
-    return enrich_job(source)
+    cached = getattr(job, '_current_enrichment_cache', None)
+    if cached and cached.get('version') == VERSION and cached.get('source_hash') == digest:
+        return cached
+    # A page can serialize and match the same ORM job several times. Reuse its
+    # extraction for this source without dirtying persisted rows on a read.
+    result = _cached_enrichment(source, digest)
+    job._current_enrichment_cache = result
+    return result
 
 
 def refresh_enrichment(job: Job) -> None:

@@ -13,6 +13,7 @@ python -m unittest discover -s tests -v
 
 printf '%s\n' 'Checking profile behavior with Node and the real Python matcher'
 node tests/frontend_profile_defaults.mjs
+node tests/frontend_profile_languages.mjs
 node tests/frontend_applications.mjs
 node tests/frontend_application_interactions.mjs
 node tests/frontend_application_handoff.mjs

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import JobFeedCard from './JobFeedCard'
 import JourneyConnections from './JourneyConnections'
-import { applicationStatuses, saveApplication, trackJobInteraction } from './applications'
+import { applicationStatuses, fetchApplicationResults, saveApplication, trackJobInteraction } from './applications'
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import { getApplicationMomentum } from './applicationMomentum'
 import type { ApplicationMomentum } from './applicationMomentum'
@@ -82,7 +82,7 @@ async function requestApplicationPage(
     offset: String(offset),
     limit: String(PAGE_SIZE),
   })
-  const response = await fetch(`${API}/api/v1/applications?${query}`)
+  const response = await fetchApplicationResults(API, query)
   const data = await response.json() as JobsPage & { detail?: unknown }
   if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not load matching jobs.')
   return {
@@ -439,7 +439,9 @@ export default function ApplicationsPage() {
         [application.status]: cachedPage.counts[application.status] + 1,
       } : cachedPage.counts
 
-      if (!previouslySelected && nowSelected) {
+      // Any membership change shifts offsets across every page of this query.
+      // Keep the visible optimistic update in state, and fetch fresh pages on navigation.
+      if (previouslySelected !== nowSelected) {
         pageCacheRef.current.delete(cacheKey)
         continue
       }

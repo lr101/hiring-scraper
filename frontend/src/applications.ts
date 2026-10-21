@@ -60,6 +60,15 @@ export type Application = {
   created_at: string; updated_at: string
 }
 
+/** A feed update can invalidate a rebuild; retry that read once from fresh state. */
+export async function fetchApplicationResults(base: string, query: URLSearchParams): Promise<Response> {
+  const url = `${base}/api/v1/applications?${query}`
+  const response = await fetch(url)
+  if (response.status !== 409) return response
+  await response.body?.cancel()
+  return fetch(url)
+}
+
 export async function saveApplication(
   base: string,
   profileId: number,

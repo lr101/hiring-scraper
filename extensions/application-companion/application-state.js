@@ -1457,10 +1457,21 @@ export async function saveConnectedApplicant(input) {
     education,
     experiences,
     source_notes,
+    localized_content,
     ...details
   } = applicant;
+  if (localized_content) {
+    payload.localized_content = localized_content;
+    // Keep the legacy English fields in sync for search and older clients.
+    Object.assign(payload, localized_content.en);
+    delete payload.application_preferences;
+  }
   payload.application_details = {
     ...details,
+    preferences: {
+      ...details.preferences,
+      ...localized_content?.en?.application_preferences,
+    },
     ...(profile.application_details?.experiences
       ? { experiences: profile.application_details.experiences }
       : {}),

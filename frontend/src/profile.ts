@@ -24,7 +24,12 @@ export type ApplicationDetails = {
     authorized_to_work?: boolean | null; sponsorship_required?: boolean | null; willing_to_relocate?: boolean | null; willing_to_work_onsite?: boolean | null
   }
 }
+export type LocalizedProfileContent = Pick<Profile, 'summary' | 'custom_instructions' | 'application_personalization' | 'skills' | 'desired_roles' | 'secondary_roles' | 'skill_evidence' | 'education' | 'certifications'> & {
+  application_preferences?: Pick<NonNullable<ApplicationDetails['preferences']>, 'notice_period' | 'employment_type'>
+}
 export type Profile = {
+  localized_content?: Partial<Record<'en' | 'de', Partial<LocalizedProfileContent>>>
+
   application_personalization?: {
     career_evidence?: string; writing_samples?: string; wording_to_avoid?: string
     career_goals?: string; work_preferences?: string
@@ -84,4 +89,17 @@ export function boardLocationParams(location: { latitude: number; longitude: num
   const country = countryOverride ?? location.country_code ?? profileCountry
   if (country) params.set('country_code', country.trim().toUpperCase())
   return params
+}
+
+/** Apply a tab's narrative edits while updating shared facts just once. */
+export function updateProfileLanguage(base: Profile, next: Profile, language: 'en' | 'de'): Profile {
+  const keys = ['summary', 'custom_instructions', 'application_personalization', 'skills', 'desired_roles', 'secondary_roles', 'skill_evidence', 'education', 'certifications'] as const
+  const content = Object.fromEntries(keys.map(key => [key, next[key]])) as LocalizedProfileContent
+  content.application_preferences = Object.fromEntries(['notice_period', 'employment_type'].map(key => [key, next.application_details?.preferences?.[key as 'notice_period'] ?? '']))
+  const shared = { ...next, application_details: { ...next.application_details, preferences: { ...next.application_details?.preferences } } }
+  if (language === 'de') {
+    for (const key of keys) Object.assign(shared, { [key]: base[key] })
+    Object.assign(shared.application_details.preferences, Object.fromEntries(['notice_period', 'employment_type'].map(key => [key, base.application_details?.preferences?.[key as 'notice_period'] ?? ''])))
+  }
+  return { ...shared, localized_content: { ...base.localized_content, [language]: content } }
 }

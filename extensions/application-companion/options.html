@@ -226,6 +226,46 @@
             >
           </div>
         </section>
+        <section class="section" aria-label="Application content">
+          <h2>Application content</h2>
+          <p class="muted">
+            Save German and English wording independently. Contact details,
+            salary, dates and permissions above are shared.
+          </p>
+          <div
+            role="tablist"
+            aria-label="Profile content language"
+            class="actions"
+          >
+            <button
+              type="button"
+              role="tab"
+              id="content-tab-en"
+              aria-controls="content-panel"
+              aria-selected="true"
+            >
+              English
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="content-tab-de"
+              aria-controls="content-panel"
+              aria-selected="false"
+            >
+              Deutsch
+            </button>
+          </div>
+          <div
+            id="content-panel"
+            role="tabpanel"
+            aria-labelledby="content-tab-en"
+          >
+            <div id="localized-fields"></div>
+            <div id="localized-preferences"></div>
+            <div id="localized-cv"></div>
+          </div>
+        </section>
         <section class="section" aria-labelledby="sources-heading">
           <button id="remove-base-cvs" type="button">
             Remove saved base CVs

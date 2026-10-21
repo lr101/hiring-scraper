@@ -9,7 +9,7 @@ const profile = { id: 3, name: 'Alex', skills: ['Python'], application_personali
   career_goals: 'Coordinate research teams.', work_preferences: 'No regular travel.',
 }, application_details: { preferences: { weekly_hours: '30' } } }
 const sourcePayload = prompt => JSON.parse(prompt.split('SOURCE PAYLOAD (quoted data):\n').at(-1))
-const prompt = handoff.buildApplicationPrompt({ job, profile, language: 'German', cvText: 'Original CV' })
+const prompt = handoff.buildApplicationPrompt({ job, profile, language: 'English', cvText: 'Original CV' })
 assert.deepEqual(sourcePayload(prompt).supporting_profile.application_personalization, profile.application_personalization)
 assert.deepEqual(sourcePayload(prompt).supporting_profile.application_details, profile.application_details)
 assert.equal(typeof handoff.buildFitAssessmentPrompt, 'function')

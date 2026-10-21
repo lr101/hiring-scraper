@@ -1,3 +1,4 @@
+import { validateLocalizedContent } from "./profile-language.js";
 import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
 // Shared by the editor and service worker. No inferred dates or answers.
 const contacts = [
@@ -34,6 +35,7 @@ export function validateProfile(input) {
     "experiences",
     "cv_text",
     "base_cvs",
+    "localized_content",
     "education",
     "application",
     "source_notes",
@@ -63,6 +65,10 @@ export function validateProfile(input) {
       if (url.protocol !== "https:" || url.username || url.password)
         fail("Enter a complete HTTPS website URL.");
     }
+  if (input.localized_content !== undefined)
+    profile.localized_content = validateLocalizedContent(
+      input.localized_content,
+    );
   profile.base_cvs = {};
   for (const [language, source] of Object.entries(input.base_cvs ?? {})) {
     if (!["en", "de"].includes(language))

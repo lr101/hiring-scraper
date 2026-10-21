@@ -17,6 +17,6 @@ export function validateLatexDocuments(value: unknown): LatexDocuments | undefin
   return result
 }
 
-export function canvasLatexInstructions() {
-  return sharedCanvasLatexInstructions(template)
+export function canvasLatexInstructions(language = 'en') {
+  return sharedCanvasLatexInstructions(template, language)
 }

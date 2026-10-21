@@ -13,3 +13,16 @@ Place all responsibility/achievement bullets (or study details) between radius:r
 
 export const cvTailoringInstructions = String.raw`CV HISTORY CONTRACT:
 Preserve every % radius:entry, % radius:responsibilities and % radius:end marker in the selected base CV. Keep stable IDs, kinds, employer/institution names, dates and current status unchanged. Translate titles, locations and descriptions into the chosen application language as needed. Keep visible headings and dates consistent with metadata. Tailor only supported responsibilities/achievements inside their own marked blocks, using the permitted inert LaTeX commands. Keep work and study separate. Include all original entries; do not silently omit history. These non-printing marker comments are permitted in the CV body. Return the full marked CV in latex_documents.cv. The extension extracts complete work/study records and responsibility text from these blocks automatically; no separate experience_bullets request is needed.`;
+
+export const cvFormattingPromptDe = String.raw`Überarbeite meinen beigefügten ursprünglichen LaTeX-Lebenslauf und erstelle zwei vollständige Dateien: cv-en.tex auf Englisch und cv-de.tex auf Deutsch. Bewahre alle belegten Fakten, Namen, Arbeitgeber, Abschlüsse und Daten. Übersetze Überschriften und Beschreibungen idiomatisch. Erfinde keine Erfolge oder Daten. Frage nach fehlenden erforderlichen Metadaten, statt sie zu erraten.
+Markiere JEDEN Berufs- und Ausbildungseintrag mit diesen nicht gedruckten Kommentaren, jeweils auf einer eigenen Zeile:
+% radius:entry {"id":"work-1","kind":"work","company":"Exakter Arbeitgeber","title":"Exakte Position","location":"Bekannter Ort oder leere Zeichenfolge","start":"2021-03","end":null,"current":true}
+\subsection*{Exakte Position bei Exakter Arbeitgeber}
+Bekannter Ort und Zeitraum.\par
+% radius:responsibilities
+\begin{itemize}
+\item Eine belegte Aufgabe oder ein belegter Erfolg.
+\end{itemize}
+% radius:end
+Verwende kind "study" für Ausbildung und Studium, company für die Institution und title für den Abschluss. Behalte in beiden Sprachen und allen späteren Fassungen dieselben eindeutigen stabilen IDs. Daten müssen bekannt sein, im Format YYYY oder YYYY-MM; erfinde keine Monate. Abgeschlossene Einträge: current=false und bekanntes end; laufende Einträge: current=true und end=null. Alle acht JSON-Schlüssel müssen auf einer Zeile stehen, ohne zusätzliche Schlüssel. Übersetze Arbeitgebernamen nicht; verwende einen leeren Ort, wenn er unbekannt ist.
+Alle Aufgaben, Erfolge und Ausbildungsdetails stehen zwischen radius:responsibilities und radius:end. Nutze dort nur korrekt maskierten einfachen Text und die Befehle itemize, item, textbf, emph und par. Keine eigenen Makros, externen Eingaben, verschachtelten Marker oder doppelten Metadaten. Keine ^^-Zeichenfolgen. Sichtbare Überschrift und Daten stehen vor dem Aufgabenmarker und stimmen mit den Metadaten überein. Gib vollständige UTF-8-.tex-Dateien mit documentclass, begin{document} und end{document} zurück, keine Ausschnitte. Erstelle keinen gesonderten Abschnitt mit Profilaufgaben. Ich prüfe die Dateien und lade jede im passenden Sprachbereich hoch.`;

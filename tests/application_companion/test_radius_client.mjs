@@ -46,7 +46,7 @@ test('sync imports the selected application facts and CV text, and clears facts 
  const server=createServer((req,res)=>{
   res.setHeader('Content-Type','application/json');
   if(req.url==='/api/v1/profiles') res.end(JSON.stringify({items:[
-   {id:1,name:'Developer',cv:{updated_at:'v1'},application_details:{first_name:'Alex',preferences:{salary_amount:'75000'}}},
+   {id:1,name:'Developer',summary:'English profile',localized_content:{de:{summary:'Deutsches Profil',application_personalization:{career_goals:'Forschung'}}},cv:{updated_at:'v1'},application_details:{first_name:'Alex',preferences:{salary_amount:'75000'}}},
    {id:2,name:'Other',cv:null,application_details:{}}
   ]}));
   else if(req.url==='/api/v1/profiles/1/cv/text') res.end(JSON.stringify({text:'Confirmed CV text'}));
@@ -60,6 +60,9 @@ test('sync imports the selected application facts and CV text, and clears facts 
   assert.equal(first.applicant?.first_name,'Alex');
   assert.equal(first.applicant.cv_text,'Confirmed CV text');
   assert.equal(first.applicant.preferences.salary_amount,'75000');
+  assert.equal(first.applicant.localized_content.en.summary,'English profile');
+  assert.equal(first.applicant.localized_content.de.summary,'Deutsches Profil');
+  assert.equal(first.applicant.localized_content.de.application_personalization.career_goals,'Forschung');
   const second=await syncRadius({origin,profile_id:2});
   assert.equal(second.applicant.first_name,'');
   assert.equal(second.applicant.cv_text,'');

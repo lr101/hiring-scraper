@@ -221,3 +221,19 @@ The Karlsruhe sample includes OpenStreetMap-derived data. See [OpenStreetMap att
 In **Settings → Application companion**, download the extension ZIP and load its `extension/` folder unpacked in Chrome. Save your reusable details, connect Radius, then open a job’s **Start application** flow to tailor its CV with ChatGPT. Saved profile CVs retain their original DOCX template; profiles without an attached CV can save CV text in the browser or attach one to the profile. The toolbar shows prepared jobs and follows their Apply links to employer forms. Filling is user-triggered and never submits an application or changes its tracked stage.
 
 [Installation, privacy, limits, and developer checks](extensions/application-companion/README.md). CI builds the same installable ZIP and checksum for every PR/main/tag, and includes them in tagged releases.
+
+### German and English application profiles
+
+The profile editor and companion offer **English** and **Deutsch** tabs for base CVs,
+summaries, writing instructions, career evidence, writing samples, goals, skill and
+qualification wording, and common application wording. Each version is saved
+independently; switching tabs preserves unsaved edits. Existing profile text is
+available in the English tab. Fill the German tab with your reviewed German wording.
+Missing German text stays blank rather than silently borrowing English prose.
+
+Contact details, salary amounts and currency, availability dates, weekly hours,
+work permissions, search area and board settings are shared outside the tabs.
+Application and fit briefs select the matching profile language alongside the CV.
+German briefs use German drafting and LaTeX instructions; JSON keys and history
+IDs retain the same machine-readable format in both languages. Connected companion
+saves and syncs preserve both language versions.
