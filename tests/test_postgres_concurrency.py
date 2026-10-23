@@ -61,6 +61,36 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.flush()
             return company.id, feed.id, run.id
 
+    def test_journey_reads_while_background_matching_is_pending(self):
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Journey refresh', preferences={'matching_defaults': {'min_match_score': 0}})
+            job = Job(feed_id=feed_id, external_id='journey', title='Engineer',
+                      url='https://example.test/journey', is_remote=True)
+            session.add_all([profile, job])
+            session.flush()
+            profile_id, job_id = profile.id, job.id
+        with patch.object(api, 'IS_SQLITE', False):
+            with self.factory() as session:
+                pending = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
+            self.assertTrue(pending['matching_pending'])
+            self.assertEqual(pending['items'], [])
+            # Another replica's worker owns the backfill; this replica must
+            # return without blocking or touching the profile's index.
+            with self.factory() as owner, patch.object(job_search, 'SessionLocal', self.factory):
+                owner.execute(text('SELECT pg_advisory_xact_lock(85793011, 4)'))
+                self.assertFalse(job_search.refresh_profile_match_indexes_once())
+            with self.factory() as feed_initializer, patch.object(job_search, 'SessionLocal', self.factory):
+                # Feed bootstrap has a separate lock and must not prevent
+                # matching work (or be blocked by a long matching scan).
+                feed_initializer.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
+                self.assertTrue(job_search.refresh_profile_match_indexes_once())
+                self.assertFalse(job_search.refresh_profile_match_indexes_once())
+            with self.factory() as session:
+                ready = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
+            self.assertFalse(ready['matching_pending'])
+            self.assertEqual([item['id'] for item in ready['items']], [job_id])
+
     def test_disjoint_source_flushes_do_not_share_a_lock_until_commit(self):
         company_id, _, _ = self.seed_feed()
         with self.factory.begin() as session:

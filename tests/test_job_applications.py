@@ -9,9 +9,9 @@ from alembic.operations import Operations
 from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
-from hiring_scraper.app import api, models, profiles
+from hiring_scraper.app import api, job_search, models, profiles
 from hiring_scraper.app.database import initialize_sqlite_schema
 
 
@@ -44,6 +44,33 @@ class JobApplicationTests(unittest.TestCase):
         endpoint = getattr(api, 'list_job_applications', None)
         self.assertIsNotNone(endpoint, 'Profiles must expose an application overview')
         return endpoint((profile or self.profile)['id'], session=self.session, **kwargs)
+
+    def test_production_journey_returns_saved_roles_before_rebuilding_matches(self):
+        self.save(self.jobs[0], 'open')
+        with patch.object(api, 'IS_SQLITE', False):
+            page = api.list_applications(profile_ids=str(self.profile['id']),
+                                         statuses='all', session=self.session)
+        self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
+        self.assertEqual(page['counts']['new'], 0)
+        self.assertTrue(page['matching_pending'])
+        self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
+
+    def test_background_rebuild_populates_journey_and_preserves_saved_stages(self):
+        self.save(self.jobs[0], 'interview')
+        refresh = job_search.refresh_profile_match_indexes_once
+        with patch.object(job_search, 'SessionLocal', sessionmaker(bind=self.engine)):
+            self.assertTrue(refresh())
+            # The other saved profile is also stale and is processed next.
+            self.assertTrue(refresh())
+            self.assertFalse(refresh())
+        self.session.expire_all()
+        with patch.object(api, 'IS_SQLITE', False):
+            page = api.list_applications(profile_ids=str(self.profile['id']),
+                                         statuses='all', session=self.session)
+        self.assertFalse(page['matching_pending'])
+        self.assertEqual(page['counts']['interview'], 1)
+        self.assertEqual(page['counts']['new'], 7)
+        self.assertEqual(page['total'], 8)
 
     def test_every_status_roundtrips_without_creating_duplicate_applications(self):
         for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted', 'closed']:

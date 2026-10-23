@@ -47,8 +47,8 @@ type MatchingJob = {
 }
 type ProfiledJob = MatchingJob & { profileId: number; profileName: string }
 type SavedProfile = Profile & { id: number }
-type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number> }
-type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number> }
+type JobsPage = { items: Array<MatchingJob & { profile_id: number; profile_name: string }>; total: number; counts: Record<ApplicationStatus, number>; matching_pending?: boolean }
+type ApplicationResultsPage = { jobs: ProfiledJob[]; total: number; counts: Record<ApplicationStatus, number>; matchingPending: boolean }
 
 const MAX_CACHED_RESULT_PAGES = 32
 
@@ -93,6 +93,7 @@ async function requestApplicationPage(
     })),
     counts: data.counts,
     total: data.total,
+    matchingPending: data.matching_pending === true,
   }
 }
 
@@ -150,6 +151,7 @@ export default function ApplicationsPage() {
   const [reloadKey, setReloadKey] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [matchingPending, setMatchingPending] = useState(false)
   const [notice, setNotice] = useState('')
   const [noticeKind, setNoticeKind] = useState<'standard' | 'applied' | 'milestone'>('standard')
   const [momentum, setMomentum] = useState<ApplicationMomentum | null>(null)
@@ -164,9 +166,10 @@ export default function ApplicationsPage() {
   const queryKey = applicationResultsKey(activeProfileKey, statuses, sortBy, offset)
   const cachedPage = pageCacheRef.current.get(queryKey)
   const currentPage = cachedPage ?? (resultQueryKey === queryKey
-    ? { jobs, counts, total: totalVisible }
+    ? { jobs, counts, total: totalVisible, matchingPending }
     : null)
   const visibleJobs = currentPage?.jobs ?? []
+  const refreshingMatches = currentPage?.matchingPending === true
   const currentCounts = currentPage?.counts ?? (countsProfileKey === activeProfileKey ? counts : null)
   const visibleCounts = currentCounts ?? counts
   const countsReady = currentCounts !== null
@@ -237,6 +240,7 @@ export default function ApplicationsPage() {
     }
     jobsRef.current = cached.jobs
     setJobs(cached.jobs)
+    setMatchingPending(cached.matchingPending)
     setCounts(cached.counts)
     setCountsProfileKey(profileKey)
     setTotalVisible(cached.total)
@@ -261,7 +265,8 @@ export default function ApplicationsPage() {
       return requestApplicationPage(profileKey, selectedStatuses, sort, selectedOffset)
     }).then(page => {
       if (generation === cacheGenerationRef.current) {
-        cacheApplicationResults(pageCacheRef.current, key, page)
+        if (page.matchingPending) pageCacheRef.current.clear()
+        else cacheApplicationResults(pageCacheRef.current, key, page)
       }
       return page
     }).finally(() => {
@@ -303,6 +308,7 @@ export default function ApplicationsPage() {
       jobsRef.current = []
       setJobs([])
       setCounts(Object.fromEntries(applicationStatuses.map(item => [item.value, 0])) as Record<ApplicationStatus, number>)
+      setMatchingPending(false)
       setCountsProfileKey('')
       setTotalVisible(0)
       setResultQueryKey(queryKey)
@@ -315,6 +321,7 @@ export default function ApplicationsPage() {
     if (cached) {
       jobsRef.current = cached.jobs
       setJobs(cached.jobs)
+      setMatchingPending(cached.matchingPending)
       setCounts(cached.counts)
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(cached.total)
@@ -331,6 +338,7 @@ export default function ApplicationsPage() {
       if (controller.signal.aborted) return
       jobsRef.current = resultPage.jobs
       setJobs(resultPage.jobs)
+      setMatchingPending(resultPage.matchingPending)
       setCounts(resultPage.counts)
       setCountsProfileKey(activeProfileKey)
       setTotalVisible(resultPage.total)
@@ -341,6 +349,12 @@ export default function ApplicationsPage() {
 
     return () => controller.abort()
   }, [profilesReady, activeProfileKey, activeProfileIds.length, reloadKey, profiles, statuses, sortBy, offset, queryKey])
+
+  useEffect(() => {
+    if (!refreshingMatches || loading || error || hasSavingJob) return
+    const timer = window.setTimeout(() => setReloadKey(current => current + 1), 2000)
+    return () => window.clearTimeout(timer)
+  }, [refreshingMatches, loading, error, hasSavingJob, queryKey, reloadKey])
 
   useEffect(() => {
     let active = true
@@ -455,6 +469,7 @@ export default function ApplicationsPage() {
       const total = cachedPage.total + (previouslySelected === nowSelected
         ? 0 : nowSelected ? 1 : -1)
       pageCacheRef.current.set(cacheKey, {
+        ...cachedPage,
         jobs: nextJobs,
         counts: nextCounts,
         total: Math.max(0, total),
@@ -708,6 +723,9 @@ export default function ApplicationsPage() {
       </section>}
 
       {error && <div className="error-banner" role="alert">{error}</div>}
+      {refreshingMatches && <p className="journey-notice" role="status">
+        Finding matching roles… Your saved roles are available while matches update.
+      </p>}
       {notice && <p className={`journey-notice ${noticeKind === 'standard' ? '' : `is-${noticeKind}`}`} role="status">
         <span aria-hidden="true">{noticeKind === 'milestone' ? '★' : '✓'}</span> {notice}</p>}
       {profilesReady && profiles.length > 0 && <section id="journey-roles" className="journey-results" aria-labelledby="journey-results-heading">
@@ -734,7 +752,7 @@ export default function ApplicationsPage() {
                     pendingStatus={pendingStatuses[key]} onAction={onCardAction} onOpenOriginal={onOriginalPost} />
                 })}
               </div> : <div className="journey-empty"><span className="journey-empty-icon" aria-hidden="true">✦</span>
-                <h3>{statuses.length ? 'Nothing here yet' : 'Your next role is out there'}</h3>
+                <h3>{refreshingMatches ? 'Checking for matching roles' : statuses.length ? 'Nothing here yet' : 'Your next role is out there'}</h3>
                 <a className="journey-empty-link" href="/discover?view=jobs">Find a role <span aria-hidden="true">↗</span></a>
               </div>}
         <div className="journey-results-footer">

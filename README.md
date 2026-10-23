@@ -28,6 +28,18 @@ profileless snapshot and the web app refreshes it when the new snapshot is ready
 mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker
 ```
 
+PostgreSQL deployments also run a profile matching worker. Journey returns saved
+roles immediately while this worker rebuilds stale matches after a profile edit
+or matcher update. The page checks for completed matches automatically. Compose
+starts the worker when `RUN_BACKGROUND_WORKERS=true`; when running PostgreSQL
+without Compose, start it separately:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
+```
+
+SQLite development keeps the existing synchronous matching flow.
+
 In another terminal, start the frontend:
 
 ```bash

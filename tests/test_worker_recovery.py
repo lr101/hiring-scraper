@@ -4,7 +4,8 @@ from unittest.mock import patch
 
 from sqlalchemy.exc import OperationalError
 
-from hiring_scraper.app import discovery_worker, worker
+from hiring_scraper.app import discovery_worker, profile_match_worker, worker
+from hiring_scraper.app.job_search import ProfileIndexChanged
 
 
 class LockTimeout(Exception):
@@ -12,6 +13,14 @@ class LockTimeout(Exception):
 
 
 class WorkerRecoveryTests(unittest.TestCase):
+    def test_profile_match_loop_retries_conflicts_without_exiting(self):
+        with patch.object(profile_match_worker, 'refresh_profile_match_indexes_once',
+                          side_effect=[ProfileIndexChanged('inventory changed'), KeyboardInterrupt]), \
+                patch.object(profile_match_worker.time, 'sleep'), \
+                self.assertLogs(profile_match_worker.LOG, level='WARNING'):
+            with self.assertRaises(KeyboardInterrupt):
+                profile_match_worker.main()
+
     def test_feed_loop_survives_a_database_lock_timeout(self):
         failure = OperationalError('claim feed', {}, LockTimeout('lock timeout'))
         with patch.object(worker, 'ensure_default_job_feeds', return_value=0), \
