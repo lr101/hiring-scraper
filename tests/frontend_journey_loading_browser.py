@@ -52,6 +52,32 @@ with sync_playwright() as pw:
             if label == 'after_inventory_conflict':
                 assert len(conflict_requests) == 2, conflict_requests
                 page.unroute(f'{api}/api/v1/applications?*', interrupt_first_read)
+        # Production serves saved roles while a separate worker fills stale matches.
+        # Exercise both a first backfill with no roles and a refresh with saved roles.
+        for empty in [True, False]:
+            refresh_reads = []
+            def pending_then_ready(route):
+                response = route.fetch()
+                payload = response.json()
+                refresh_reads.append(route.request.url)
+                if len(refresh_reads) == 1:
+                    payload['matching_pending'] = True
+                    if empty:
+                        payload['items'] = []
+                        payload['total'] = 0
+                else:
+                    payload['matching_pending'] = False
+                route.fulfill(response=response, json=payload)
+            page.route(f'{api}/api/v1/applications?*', pending_then_ready)
+            page.reload()
+            expect(page.get_by_role('status').filter(has_text='Finding matching roles')).to_be_visible()
+            expect(page.locator('.loading-state')).to_have_count(0)
+            if not empty:
+                expect(page.locator('.application-job-card')).to_have_count(40)
+            expect(page.locator('.application-job-card')).to_have_count(40, timeout=15000)
+            expect(page.get_by_role('status').filter(has_text='Finding matching roles')).to_have_count(0, timeout=15000)
+            assert len(refresh_reads) >= 2, refresh_reads
+            page.unroute(f'{api}/api/v1/applications?*', pending_then_ready)
         # Nonempty pages and working stage switches are the user-facing contract;
         # the backend regression separately checks that wording edits do not rebuild.
         expect(page.locator('.application-job-card')).to_have_count(40)

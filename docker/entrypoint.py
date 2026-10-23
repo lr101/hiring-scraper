@@ -201,10 +201,11 @@ def _serve() -> int:
             ["python", "-m", "hiring_scraper.app.worker"],
             ["python", "-m", "hiring_scraper.app.discovery_worker"],
             ["python", "-m", "hiring_scraper.app.search_snapshot_worker"],
+            ["python", "-m", "hiring_scraper.app.profile_match_worker"],
             ["python", "-m", "hiring_scraper.app.semantic_search_worker"],
         ])
     # The API's synchronous route pool can run up to 40 requests concurrently.
-    # With four worker pools capped at 10 each, the app uses at most 80 of
+    # With five worker pools capped at 10 each, the app uses at most 90 of
     # PostgreSQL's default 100 connections.
     api_pool = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
     commands.append((

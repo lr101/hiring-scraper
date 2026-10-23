@@ -54,7 +54,7 @@ from hiring_scraper.app.profiles import router as profiles_router, require_profi
 from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
                                             ApplicationStatus, application_json, close_job_applications)
 from hiring_scraper.app.job_search import (
-    ProfileIndexChanged, ensure_profile_match_indexes, refresh_application_matches_for_jobs,
+    ProfileIndexChanged, ensure_profile_match_indexes, profile_match_index_stale, refresh_application_matches_for_jobs,
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
 from hiring_scraper.app.board_scope import (
@@ -2689,15 +2689,17 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         if not selected_statuses or any(value not in APPLICATION_STATUSES for value in selected_statuses):
             raise HTTPException(status_code=422, detail='statuses contains an unknown application state')
 
-    # Rebuild selected profiles together so a shared active-job scan can fill
-    # their indexes and create New states for newly visible matches.
-    try:
-        index_rebuilt = ensure_profile_match_indexes(session, profiles)
-    except ProfileIndexChanged as error:
-        raise HTTPException(status_code=409,
-                            detail='Profile or job inventory changed during search; retry the request') from error
-    if index_rebuilt:
-        session.commit()
+    # Production reads must not scan the entire job inventory. A dedicated
+    # worker backfills stale profiles while saved application stages stay usable.
+    # Keep the small SQLite development flow self-contained, like browse search.
+    if IS_SQLITE:
+        try:
+            if ensure_profile_match_indexes(session, profiles):
+                session.commit()
+        except ProfileIndexChanged as error:
+            raise HTTPException(status_code=409,
+                                detail='Profile or job inventory changed during search; retry the request') from error
+    matching_pending = any(profile_match_index_stale(profile) for profile in profiles)
 
     counts = dict.fromkeys(APPLICATION_STATUSES, 0)
     count_rows = session.execute(select(JobApplication.status, func.count()).where(
@@ -2744,7 +2746,7 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         items.append(item)
     return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
             'total': total,
-            'offset': offset, 'limit': limit, 'sort': sort}
+            'offset': offset, 'limit': limit, 'sort': sort, 'matching_pending': matching_pending}
 
 
 @app.get("/api/v1/jobs/{job_id}")

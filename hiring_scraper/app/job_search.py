@@ -10,6 +10,7 @@ from typing import Callable
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.orm import Session, joinedload, selectinload
 
+from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
@@ -87,6 +88,27 @@ def _profile_index_version(profile: UserProfile) -> str:
         "preferences": profile.matching_preferences,
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:40]
+
+
+def profile_match_index_stale(profile: UserProfile) -> bool:
+    return profile.match_index_version != _profile_index_version(profile)
+
+
+def refresh_profile_match_indexes_once() -> bool:
+    """Rebuild one stale profile outside HTTP requests; stale versions are the queue."""
+    with SessionLocal() as session:
+        if session.get_bind().dialect.name == 'postgresql':
+            # Only one replica backfills at a time, without waiting for an owner
+            # or locking profiles while the expensive matching pass runs.
+            if not session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 4)')):
+                return False
+        profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
+        stale = next((profile for profile in profiles if profile_match_index_stale(profile)), None)
+        if stale is None:
+            return False
+        rebuilt = ensure_profile_match_indexes(session, [stale])
+        session.commit()
+        return rebuilt
 
 
 def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> bool:
