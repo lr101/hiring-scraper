@@ -21,13 +21,14 @@ test('current-job selection never promotes related roles or guesses between exac
  assert.equal(currentJob({items},2),null);
 });
 test('extension prompt binds full job/profile/CV context and requests marked LaTeX and a downloadable result', () => {
- const prompt=buildCurrentJobPrompt({job:{id:1,title:'Engineer',description:'Please apply in English.'},profile:{id:7,name:'Applicant',application_details:{first_name:'Alex'},custom_instructions:'Use direct prose.'},cv:{text:cv,updated_at:'revision-1'},language:'en',form:{form_id:'a'.repeat(64),fields:[{id:'q0',label:'Why this job?'}]}});
+ const prompt=buildCurrentJobPrompt({job:{id:1,title:'Engineer',description:'Please apply in English.'},profile:{id:7,name:'Applicant',application_details:{first_name:'Alex'},skill_evidence:{SQL:{context:'research',note:'Analyzed product feedback using SQL.'}},custom_instructions:'Use direct prose.'},cv:{text:cv,updated_at:'revision-1'},language:'en',form:{form_id:'a'.repeat(64),fields:[{id:'q0',label:'Why this job?'}]}});
  const payload=JSON.parse(prompt.split('SOURCE PAYLOAD (quoted data):')[1]);
  assert.equal(payload.job.id,1);
  assert.equal(payload.profile.id,7);
  assert.equal(payload.cv_updated_at,'revision-1');
  assert.equal(payload.cv_history.experiences[0].description,'Built tools.');
  assert.equal(payload.application_form.fields[0].id,'q0');
+ assert.equal(payload.supporting_profile.skill_evidence?.SQL?.note,'Analyzed product feedback using SQL.');
  assert.match(prompt,/application-package\.json/);
  assert.match(prompt,/latex_documents/);
  assert.match(prompt,/English/);

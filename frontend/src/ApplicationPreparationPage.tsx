@@ -9,6 +9,8 @@ import { applicationDocumentFilename, applicationStartLink, readApplicationRetur
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
 import { readApplicationForm } from './applicationForm'
 import type { FormAnswers } from './applicationForm'
+import { prepareInsideRadius } from './applicationGeneration'
+import ChatGPTConnection from './ChatGPTConnection'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const CHATGPT = 'https://chatgpt.com/'
@@ -85,7 +87,10 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
   const [formAnswers, setFormAnswers] = useState<FormAnswers>()
   useEffect(() => {
-    const update = () => setForm(readApplicationForm(job.id, profile.id!))
+    const update = () => {
+      const next = readApplicationForm(job.id, profile.id!)
+      setForm(current => JSON.stringify(current) === JSON.stringify(next) ? current : next)
+    }
     document.addEventListener('radius-form-updated', update); window.addEventListener('storage', update)
     // A capture may arrive after the initial render but before we subscribe.
     update()
@@ -98,6 +103,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [manualResult, setManualResult] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [aiEnabled, setAIEnabled] = useState<boolean | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const generationAbort = useRef<AbortController | null>(null)
   const [template, setTemplate] = useState<{ source_sha256: string; paragraphs: TemplateParagraph[] } | null>(null)
   const [changes, setChanges] = useState<TemplateParagraph[]>([])
   const [pdf, setPDF] = useState<{ url: string; body: string } | null>(null)
@@ -112,6 +120,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const importVersion = useRef(0)
   const pdfURL = useRef('')
   const promptRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => () => { generationAbort.current?.abort() }, [cvText, language, notes, form])
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true); setCVText(''); setError('')
@@ -232,6 +241,33 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const text = documents[selected]
   const finalCVText = template ? template.paragraphs.map(row => changes.find(change => change.id === row.id)?.text ?? row.text).join('\n') : documents.cv
 
+  async function prepareDirect() {
+    if (generationAbort.current) return
+    const controller = new AbortController()
+    generationAbort.current = controller
+    const version = ++importVersion.current
+    setGenerating(true); setError(''); setNotice('')
+    try {
+      const imported = await prepareInsideRadius({ api: API, jobId: job.id, profile,
+        language: applicationLanguage === 'German' ? 'de' : 'en', notes, cvText, form, signal: controller.signal })
+      if (controller.signal.aborted || version !== importVersion.current) return
+      setDocuments(imported.documents); setChanges(imported.changes); setLatexDocuments(imported.latexDocuments)
+      setFormAnswers(imported.formAnswers); setDocumentLayout('latex'); setSelected('cv'); setStep('edit')
+      setOptionsOpen(false); setManual(false)
+      setNotice('Prepared inside Radius. Review the documents before applying.')
+    } catch (reason) {
+      if (!controller.signal.aborted && version === importVersion.current) setError(reason instanceof Error ? reason.message : 'Could not prepare this application.')
+    } finally {
+      if (generationAbort.current === controller) { generationAbort.current = null; setGenerating(false) }
+    }
+  }
+
+  function cancelGeneration() {
+    generationAbort.current?.abort(); generationAbort.current = null
+    importVersion.current++; setGenerating(false)
+    setNotice('Preparation cancelled. Your existing documents are unchanged.')
+  }
+
   async function start(openChatGPT = true) {
     setError(''); setNotice(''); setBusy(true); setManualResult(false); setOptionsOpen(false); setManual(false)
     // Copy during the click, before opening a tab can take focus away. The
@@ -308,6 +344,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   }
 
   function clearDraft() {
+    cancelGeneration()
     importVersion.current++
     setManualResult(false); setOptionsOpen(false)
     try { localStorage.removeItem(draftKey); setStorageError('') }
@@ -355,17 +392,23 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
     {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.languages?.[applicationLanguage === 'German' ? 'de' : 'en']?.filename ?? profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
     {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
-    <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · ChatGPT</li><li aria-current={step === 'response' ? 'step' : undefined}>2 · Return</li><li aria-current={step === 'edit' ? 'step' : undefined}>3 · Download</li></ol>
+    <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · Prepare</li><li aria-current={step === 'response' || step === 'edit' ? 'step' : undefined}>2 · Review</li><li>3 · Download</li></ol>
     <section className="application-finish-card">
       {step === 'handoff' && <>
         <h2>{briefType === 'fit' ? 'Is this role worth applying for?' : 'Tailor this application.'}</h2>
-        <label>Brief type<select aria-label="Brief type" value={briefType} onChange={event => { setBriefType(event.target.value as 'application' | 'fit'); setNotice(''); setError('') }}>
+        <label>Brief type<select disabled={generating} aria-label="Brief type" value={briefType} onChange={event => { setBriefType(event.target.value as 'application' | 'fit'); setNotice(''); setError('') }}>
           <option value="application">Prepare application documents</option><option value="fit">Assess job fit</option>
         </select></label>
-        <p>{briefType === 'fit' ? 'Compare the role with your evidence, career goals and working preferences in ChatGPT. The assessment stays in that conversation.' : 'Paste the brief in ChatGPT. It saves your LaTeX in code Canvases, then creates a return link containing that source.'}</p>
+        <p>{briefType === 'fit' ? 'Compare the role with your evidence, career goals and working preferences in ChatGPT. The assessment stays in that conversation.' : aiEnabled ? 'Prepare a tailored CV, cover letter and application answers here, then review and download them.' : 'Connect your ChatGPT subscription to prepare documents here, or use the ChatGPT handoff below.'}</p>
         <p className="finish-help"><a href={editHref.replace('#profile-cv', '#profile-personalization')}>Edit career evidence and writing voice</a></p>
         {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
-        <button className="primary-button" disabled={loading || !cvText || busy || !draftReady} onClick={() => void start()}>{loading ? 'Reading CV…' : briefType === 'fit' ? 'Assess fit in ChatGPT ↗' : 'Copy brief & open ChatGPT ↗'}</button>
+        {briefType === 'application' && <>
+          <ChatGPTConnection onChange={setAIEnabled} preparing={generating} />
+          <button className="primary-button" disabled={!aiEnabled || loading || !cvText || busy || !draftReady || generating || job.expired || job.is_active === false} onClick={() => void prepareDirect()}>{generating ? 'Preparing your documents…' : 'Prepare inside Radius'}</button>
+          {generating ? <><p role="status">Evaluating fit, drafting, reviewing and revising your documents. This can take several minutes…</p><button onClick={cancelGeneration}>Cancel preparation</button></>
+            : aiEnabled && <p className="finish-help">Drafts, independently reviews and revises your application using your saved evidence. Uses three Codex requests from your subscription. Review the fit gaps and document checks before applying.</p>}
+        </>}
+        <button className={briefType === 'fit' || !aiEnabled ? 'primary-button' : 'finish-text-button'} disabled={loading || !cvText || busy || !draftReady || generating} onClick={() => void start()}>{loading ? 'Reading CV…' : briefType === 'fit' ? 'Assess fit in ChatGPT ↗' : 'Copy brief & open ChatGPT ↗'}</button>
         {briefType === 'fit' && manual && <a className="page-link" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a>}
       </>}
       {step === 'response' && <>
@@ -384,13 +427,18 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       </>}
       {step === 'edit' && <>
         <h2>Your documents are ready.</h2>
+        {documents.reviewNotes && <details className="finish-options">
+          <summary>Fit and document checks</summary>
+          <div aria-label="Application review report" className="finish-help" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{documents.reviewNotes}</div>
+          <p className="finish-help">These checks describe the generated version. Check again after editing text, source or the optional photo.</p>
+        </details>}
         <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
         {selected === 'cv' && <p className="finish-help">CV downloads use LaTeX rendering. <a href={editHref}>Manage English and German base CVs</a>.</p>}
         {selected === 'coverLetter' && <>
           <label>PDF layout<select aria-label="PDF layout" value={documentLayout} onChange={event => setDocumentLayout(event.target.value as 'original' | 'latex')}>
             <option value="original">Standard layout</option><option value="latex">LaTeX · single column</option>
           </select></label>
-          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.cover_letter ? 'Downloads use the LaTeX source returned from ChatGPT. The link captures a snapshot; regenerate it after editing a Canvas.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
+          {documentLayout === 'latex' && <p className="finish-help">{latexDocuments?.cover_letter ? 'Downloads use the saved LaTeX source for this letter.' : 'LaTeX creates a new layout from your finished text.'} Download the PDF to see the compiled layout.</p>}
         </>}
         <div className="finish-actions finish-download-actions">{(selected === 'cv' || selected === 'coverLetter') ? <>
           <button className="primary-button" disabled={busy} onClick={() => void downloadDocument(selected === 'cv' || documentLayout === 'latex' ? 'latex_pdf' : 'pdf')}>{busy ? 'Preparing…' : 'Download PDF'}</button>
@@ -424,19 +472,18 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       </>}
       <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>
         {step === 'handoff' && <>
-          <label>Document language<select aria-label="Document language" value={language} onChange={event => setLanguage(event.target.value)}>
+          <label>Document language<select disabled={generating} aria-label="Document language" value={language} onChange={event => setLanguage(event.target.value)}>
             <option value="the language of the job posting">Match the job posting</option><option>English</option><option>German</option>
           </select></label>
           <p className="finish-help">Selected base CV: {applicationLanguage}. An explicit language selection overrides automatic detection.</p>
-          <label>Additional instructions<textarea value={notes} maxLength={5000} rows={3} onChange={event => setNotes(event.target.value)} placeholder="Optional instructions for this application" /></label>
+          <label>Additional instructions<textarea disabled={generating} value={notes} maxLength={5000} rows={3} onChange={event => setNotes(event.target.value)} placeholder="Optional instructions for this application" /></label>
           {profile.custom_instructions?.trim() && <a className="finish-help" href={editHref.replace('#profile-cv', '#profile-custom-instructions')}>Edit profile instructions</a>}
-          <button disabled={loading || !draftReady} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>
+          <button disabled={loading || !draftReady || generating} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>
         </>}
         {step !== 'handoff' && <button onClick={() => { setStep('handoff'); setOptionsOpen(false); setError('') }}>Back to brief</button>}
         {step === 'edit' && <button onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>Paste a new response</button>}
         {step !== 'edit' && <button disabled={!cvText} onClick={() => { setOptionsOpen(false); setManual(true); setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0) }}>Show brief</button>}
         {draftExpiresAt > 0 && <button onClick={clearDraft}>Clear browser draft</button>}
-        {step === 'edit' && documents.reviewNotes && <p className="finish-help">{documents.reviewNotes}</p>}
       </details>
       {manual && step !== 'edit' && cvText && <div className="finish-manual">
         <label>Brief to copy<textarea ref={promptRef} aria-label="Prepared application prompt" value={prompt} readOnly rows={6} /></label>

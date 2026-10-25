@@ -19,6 +19,7 @@ services:
     image: ${HIRING_APP_IMAGE:-ghcr.io/lr101/hiring-scraper/hiring-scraper:latest}
     volumes:
       - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
+      - radius_codex:/var/lib/radius/codex
     ports:
       - "${APP_BIND:-0.0.0.0}:${APP_PORT:-8080}:8000"
     environment:
@@ -29,6 +30,8 @@ services:
       SEARCH_SNAPSHOT_POLL_SECONDS: ${SEARCH_SNAPSHOT_POLL_SECONDS:-1}
       SEARCH_SNAPSHOT_PREWARM_SECONDS: ${SEARCH_SNAPSHOT_PREWARM_SECONDS:-60}
       APPLICATION_WEEKLY_GOAL: ${APPLICATION_WEEKLY_GOAL:-10}
+      APPLICATION_AI_MODEL: ${APPLICATION_AI_MODEL:-}
+      RADIUS_CODEX_STATE_DIR: /var/lib/radius/codex
       DB_POOL_SIZE: ${DB_POOL_SIZE:-}
       DB_MAX_OVERFLOW: ${DB_MAX_OVERFLOW:-}
       DB_POOL_TIMEOUT_SECONDS: ${DB_POOL_TIMEOUT_SECONDS:-10}
@@ -72,3 +75,4 @@ services:
 
 volumes:
   hiring_db:
+  radius_codex:

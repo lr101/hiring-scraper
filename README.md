@@ -62,6 +62,14 @@ stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 
+On a saved-CV application's page, **Prepare inside Radius** generates the CV,
+cover letter and answers through drafting, independent review, revision and PDF
+checks, directly into the review/export flow. Choose
+**Continue with ChatGPT** in Settings or on the application page to connect your
+subscription through the bundled Codex runtime. No API key is needed. The ChatGPT
+handoff remains available. See [configuration, data handling and
+limits](docs/application-handoff.md#prepare-inside-radius).
+
 ### City election context
 
 German city and municipality records show the AfD share of valid second votes in
