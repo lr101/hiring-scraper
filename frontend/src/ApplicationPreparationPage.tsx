@@ -1,5 +1,5 @@
 import { selectCVLanguage } from '../../extensions/application-companion/tex-cv.js'
-import { downloadApplicationDocument } from './applicationDocumentExport'
+import { downloadApplicationDocument, readCVPhoto } from './applicationDocumentExport'
 import type { DocumentFormat } from './applicationDocumentExport'
 import type { LatexDocuments } from './applicationLatex'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -78,6 +78,8 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [documentLayout, setDocumentLayout] = useState<'original' | 'latex'>('latex')
   const [latexDocuments, setLatexDocuments] = useState<LatexDocuments>()
   const [notes, setNotes] = useState('')
+  const [photoDataURL, setPhotoDataURL] = useState('')
+  const photoVersion = useRef(0)
   const [response, setResponse] = useState('')
   const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
   const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
@@ -205,7 +207,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     window.addEventListener('focus', expire)
     return () => { clearTimeout(timer); window.removeEventListener('focus', expire) }
   }, [draftExpiresAt])
-  const exportBody = JSON.stringify(template ? { source_sha256: template.source_sha256, changes } : { job_id: context.job_id, cv_updated_at: context.cv_updated_at, cv: documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments })
+  const exportBody = JSON.stringify(template ? { source_sha256: template.source_sha256, changes } : { job_id: context.job_id, cv_updated_at: context.cv_updated_at, cv: documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments, ...(photoDataURL ? { photo_data_url: photoDataURL } : {}) })
   useEffect(() => {
     if (step !== 'edit' || selected !== 'cv' || (!template && !latexDocuments?.cv)) return
     const controller = new AbortController()
@@ -311,7 +313,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     try { localStorage.removeItem(draftKey); setStorageError('') }
     catch { setStorageError('This browser could not remove the saved draft. Clear this site’s browser storage to remove it.') }
     setDocuments({ cv: '', coverLetter: '', answers: '', reviewNotes: '' }); setChanges([]); setResponse(''); setNotes(''); setFormAnswers(undefined)
-    setLatexDocuments(undefined)
+    setLatexDocuments(undefined); photoVersion.current++; setPhotoDataURL('')
     setLanguage('the language of the job posting'); setDraftExpiresAt(0)
     setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
   }
@@ -321,7 +323,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     try {
       const kind = selected === 'cv' ? 'cv' : 'cover_letter'
       assertFinishedText(selected === 'cv' ? finalCVText : text)
-      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format === 'latex_pdf' ? 'pdf' : format))
+      await downloadApplicationDocument({ ...context, cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, latex_documents: latexDocuments }, kind, format, applicationDocumentFilename(job.company_name, kind === 'cv' ? 'cv' : 'coverLetter', format === 'latex_pdf' ? 'pdf' : format === 'tex_bundle' ? 'zip' : format), cvText, photoDataURL)
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not export this document.') }
     finally { setBusy(false) }
   }
@@ -396,6 +398,17 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
           {(selected === 'cv' || documentLayout === 'latex') && <button disabled={busy} onClick={() => void downloadDocument('tex')}>Download LaTeX source</button>}
         </> : <><button className="primary-button" disabled={!text.trim()} onClick={printDocument}>Print / save PDF</button><button disabled={!text.trim()} onClick={() => void copyDocument()}>Copy to document editor</button></>}</div>
         {selected === 'answers' && formAnswers && <section aria-label="Prepared form answers"><h3>Answers for the captured step</h3>{form?.form_id !== formAnswers.form_id && <p className="finish-help">These answers belong to an earlier capture. Question IDs are shown because the current captured form does not match.</p>}{formAnswers.answers.map(answer => <div key={answer.id}><strong>{(form?.form_id === formAnswers.form_id ? form.fields.find(field => field.id === answer.id)?.label : undefined) ?? answer.id}</strong><pre>{answer.value}</pre></div>)}<p className="finish-help">These answers fill only the unchanged captured form. Editing the reference text clears them.</p></section>}
+        {selected === 'cv' && !template && <details className="finish-options"><summary>CV photo (optional)</summary>
+          <label>Photo for CV rendering<input type="file" accept="image/png,.png" onChange={event => {
+            const file = event.target.files?.[0], version = ++photoVersion.current
+            event.target.value = ''
+            if (!file) return
+            setError('')
+            void readCVPhoto(file).then(value => { if (version === photoVersion.current) setPhotoDataURL(value) }).catch(reason => { if (version === photoVersion.current) setError(reason.message) })
+          }} /></label>
+          <p className="finish-help">Choose a PNG up to 2 MiB and 4096 pixels per side. The photo is sent to Radius for PDF previews and exports. It is kept only in this tab’s memory, not saved in the draft or sent to ChatGPT. Custom templates use their existing portrait position; download the ZIP and compile locally.</p>
+          {photoDataURL && <><img src={photoDataURL} alt="Selected CV photo" width={80} style={{ maxHeight: 110, objectFit: 'contain' }} /><div className="finish-download-actions"><button disabled={busy} onClick={() => void downloadDocument('tex_bundle')}>Download source + photo ZIP</button><button onClick={() => { photoVersion.current++; setPhotoDataURL('') }}>Remove photo</button></div></>}
+        </details>}
         <div className="finish-download-preview">{selected === 'cv' ? <div className="template-pdf-preview">{previewBusy && <p role="status">Preparing preview…</p>}
           {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
           : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>

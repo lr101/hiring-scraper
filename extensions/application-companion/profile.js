@@ -1,5 +1,5 @@
 import { validateLocalizedContent } from "./profile-language.js";
-import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
+import { parseTexCV, validateCVTranslations } from "./tex-cv.js";
 // Shared by the editor and service worker. No inferred dates or answers.
 const contacts = [
   "salutation",
@@ -97,7 +97,7 @@ export function validateProfile(input) {
     profile.base_cvs[language] = source;
   }
   if (profile.base_cvs.en && profile.base_cvs.de)
-    validateTailoredCV(profile.base_cvs.en, profile.base_cvs.de);
+    validateCVTranslations(profile.base_cvs.en, profile.base_cvs.de);
   const history = input.cv_text?.includes("\\begin{document}")
     ? parseTexCV(input.cv_text)
     : null;

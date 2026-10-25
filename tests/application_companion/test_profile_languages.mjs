@@ -24,3 +24,25 @@ test('German form filling selects translated common answers without changing sha
  assert.equal(result.preferences.authorized_to_work,true);
  assert.equal(result.email,'alex@example.org');
 });
+
+
+test('cover-letter examples survive companion validation in their own language and stay out of other-language briefs', async () => {
+ const { buildCurrentJobPrompt } = await import('../../extensions/application-companion/current-job.js');
+ const { readFileSync } = await import('node:fs');
+ const template = JSON.parse(readFileSync(new URL('../../hiring_scraper/app/latex_template.json', import.meta.url)));
+ const validated = validateProfile({localized_content:{en:{application_personalization:{cover_letter_example:'English letter reference'}},de:{application_personalization:{cover_letter_example:'Deutsches Anschreiben als Vorbild'}}}});
+ const profile = {id:7,name:'Alex',...validated};
+ const cv = {updated_at:'v1',text:template.preamble+String.raw`
+% radius:entry {"id":"work-1","kind":"work","company":"Labs","title":"Engineer","location":"Bonn","start":"2021","end":null,"current":true}
+% radius:responsibilities
+Built tools.
+% radius:end
+`+template.ending};
+ for (const [language,want,excluded] of [['en','English letter reference','Deutsches Anschreiben als Vorbild'],['de','Deutsches Anschreiben als Vorbild','English letter reference']]) {
+  const prompt = buildCurrentJobPrompt({job:{id:42,title:'Engineer'},profile,cv,language});
+  const payload = JSON.parse(prompt.split('SOURCE PAYLOAD (quoted data):\n').at(-1));
+  assert.equal(payload.supporting_profile.application_personalization.cover_letter_example,want);
+  assert.ok(!prompt.includes(excluded));
+ }
+ assert.throws(()=>validateProfile({localized_content:{de:{application_personalization:{cover_letter_example:'x'.repeat(16001)}}}}));
+});

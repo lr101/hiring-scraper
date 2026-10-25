@@ -42,7 +42,7 @@ class ProfileIntegrationTests(unittest.TestCase):
     def test_application_personalization_is_saved_preserved_and_explicitly_cleared(self):
         profiles = self.profile_api()
         context = dict(career_evidence='Built an academic prototype; reduced test time by 20%.',
-                       writing_samples='I explain the work in direct sentences.',
+                       writing_samples='I explain the work in direct sentences.', cover_letter_example='',
                        wording_to_avoid='passionate, perfect fit', career_goals='Move into research coordination.',
                        work_preferences='Small teams, clear expectations; no regular travel.')
         with Session(self.engine) as session:
@@ -63,6 +63,25 @@ class ProfileIntegrationTests(unittest.TestCase):
                         {'wording_to_avoid': 'x' * 3001}, {'invented_credentials': True}]:
             with self.subTest(context=list(context)), self.assertRaises(ValidationError):
                 profiles.ProfileRequest(name='Alex', application_personalization=context)
+
+    def test_cover_letter_examples_are_independent_preserved_and_clearable(self):
+        from pydantic import ValidationError
+        profiles = self.profile_api()
+        with Session(self.engine) as session:
+            saved = profiles.create_profile(profiles.ProfileRequest(name='Alex',
+                application_personalization={'cover_letter_example': 'Dear Hiring Team,\nEnglish example.'},
+                localized_content={'de': {'application_personalization': {'cover_letter_example': 'Sehr geehrtes Team,\nDeutsches Beispiel.'}}}), session)
+            updated = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex renamed'), session)
+            self.assertEqual(updated['application_personalization']['cover_letter_example'], 'Dear Hiring Team,\nEnglish example.')
+            self.assertEqual(updated['localized_content']['de']['application_personalization']['cover_letter_example'], 'Sehr geehrtes Team,\nDeutsches Beispiel.')
+            cleared = profiles.update_profile(saved['id'], profiles.ProfileRequest(name='Alex',
+                application_personalization={'cover_letter_example': ''}), session)
+            self.assertEqual(cleared['application_personalization']['cover_letter_example'], '')
+            self.assertEqual(cleared['localized_content']['de']['application_personalization']['cover_letter_example'], 'Sehr geehrtes Team,\nDeutsches Beispiel.')
+        for kwargs in [{'application_personalization': {'cover_letter_example': 'x' * 16001}},
+                       {'localized_content': {'de': {'application_personalization': {'cover_letter_example': 'x' * 16001}}}}]:
+            with self.assertRaises(ValidationError):
+                profiles.ProfileRequest(name='Alex', **kwargs)
 
     def test_localized_content_roundtrip_and_legacy_update_preservation(self):
         profiles = self.profile_api()

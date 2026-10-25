@@ -93,6 +93,7 @@ export function validateLocalizedContent(input) {
         const limits = {
           career_evidence: 12000,
           writing_samples: 12000,
+          cover_letter_example: 16000,
           wording_to_avoid: 3000,
           career_goals: 5000,
           work_preferences: 5000,

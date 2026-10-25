@@ -74,6 +74,28 @@ class TexCVTests(unittest.TestCase):
             with self.assertRaises(HTTPException):
                 application_document(self.id, invalid, kind='cv', format='tex', session=self.session)
 
+    def test_custom_template_source_download_preserves_layout_and_pdf_stays_restricted(self):
+        from hiring_scraper.app.application_documents import ApplicationDocumentRequest, application_document
+        original = source().replace('11pt,a4paper', '10pt,letterpaper')
+        profiles.store_profile_cv(self.session, self.id, 'custom.tex', original.encode(), language='en')
+        company = models.Company(name='Labs', source='test', source_id='custom')
+        feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://example.org/jobs')
+        job = models.Job(feed=feed, external_id='1', title='Engineer', url='https://example.org/job')
+        self.session.add(job)
+        self.session.commit()
+        version = profiles.cv_metadata(self.session.get(models.ProfileCV, self.id))['updated_at']
+        tailored = original.replace('Built research tools.', 'Built useful research tools.')
+        request = ApplicationDocumentRequest(job_id=job.id, cv_updated_at=version, cv='Finished CV', cover_letter='Dear team', latex_documents={'cv': tailored})
+        exported = application_document(self.id, request, kind='cv', format='tex', session=self.session)
+        self.assertEqual(exported.body.decode(), tailored)
+        with self.assertRaises(HTTPException) as raised:
+            application_document(self.id, request, kind='cv', format='latex_pdf', session=self.session)
+        self.assertIn('compile locally', raised.exception.detail)
+        request.latex_documents.cv = tailored.replace('letterpaper', 'a4paper')
+        with self.assertRaises(HTTPException) as raised:
+            application_document(self.id, request, kind='cv', format='tex', session=self.session)
+        self.assertIn('structure', raised.exception.detail)
+
     def test_marked_canvas_can_render_but_metadata_cannot_inject_tex(self):
         from hiring_scraper.app.latex_documents import validate_latex_source
         self.assertEqual(validate_latex_source(source()), source())
@@ -114,3 +136,48 @@ class TexCVTests(unittest.TestCase):
         request = ApplicationDocumentRequest(job_id=job.id, cv_updated_at=profiles.cv_metadata(self.session.get(models.ProfileCV, self.id))['updated_at'], cv='Deutscher Lebenslauf', cover_letter='Sehr geehrtes Team', latex_documents={'cv': source('de')})
         exported = application_document(self.id, request, kind='cv', format='tex', session=self.session)
         self.assertEqual(exported.body.decode(), source('de'))
+
+class TemplatePreservationTests(unittest.TestCase):
+    def test_description_macro_extraction_and_immutable_source(self):
+        from hiring_scraper.app.tex_cv import parse_tex_cv, validate_tailored_cv
+        original = source()
+        tailored = original.replace('Built research tools.', 'Built relevant research tools.')
+        self.assertIn('relevant', validate_tailored_cv(original, tailored)['experiences'][0]['description'])
+        for altered in (tailored.replace('article', 'report'), tailored.replace('Engineer', 'Developer'),
+                        tailored.replace('\\item ', '\\item Added.\n\\item ', 1)):
+            with self.assertRaises(ValueError):
+                validate_tailored_cv(original, altered)
+        macro = original.replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}', '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        self.assertEqual(parse_tex_cv(macro)['experiences'][0]['description'], 'Built research tools.')
+        with self.assertRaises(ValueError):
+            parse_tex_cv(macro.replace('Built research tools.', '\\input{secret}'))
+
+    def test_fixed_layout_description_budget_and_line_endings(self):
+        from hiring_scraper.app.tex_cv import validate_tailored_cv
+        original = source()
+        validate_tailored_cv(original.replace('\n', '\r\n'), original)
+        macro = original.replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}', '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        with self.assertRaisesRegex(ValueError, 'budget|length|fit'):
+            validate_tailored_cv(macro, macro.replace('Built research tools.', 'Built research tools. ' * 100))
+        self.assertIn('useful', validate_tailored_cv(macro, macro.replace('Built research tools.', 'Built useful tools.'))['experiences'][0]['description'])
+
+class ProfileIntroductionTests(unittest.TestCase):
+    def test_personalize_marked_profile_without_unlocking_header_or_layout(self):
+        from hiring_scraper.app.tex_cv import validate_tailored_cv
+        original = source().replace('Alex Example\\par', 'Alex Example\\par\nalex@example.org\\par\n% radius:profile\n\\newcommand{\\RadiusProfileA}{Engineer building useful research tools.}\n% radius:endprofile\n\\RadiusProfileA{}\\par')
+        tailored = original.replace('Engineer building useful research tools.', 'Engineer coordinating research tools.')
+        self.assertEqual(validate_tailored_cv(original, tailored)['experiences'][0]['company'], 'Labs')
+        for altered in [tailored.replace('Alex Example', 'Another Name'), tailored.replace('alex@example.org', 'other@example.org'), tailored.replace('RadiusProfileA', 'RadiusProfileB', 1), tailored.replace('Engineer coordinating research tools.', 'Very long ' * 30), tailored.replace('% radius:endprofile', ''), tailored.replace('% radius:profile', '% radius:profile\n% radius:profile')]:
+            with self.subTest(source=altered[:50]), self.assertRaises(ValueError):
+                validate_tailored_cv(original, altered)
+
+    def test_profile_is_optional_unique_separate_and_inert(self):
+        from hiring_scraper.app.tex_cv import parse_tex_cv
+        original = source()
+        self.assertEqual(len(parse_tex_cv(original)['experiences']), 1)
+        block = '% radius:profile\nEngineer building useful tools.\\par\n% radius:endprofile\n'
+        marked = original.replace('Alex Example\\par', 'Alex Example\\par\n' + block)
+        self.assertEqual(parse_tex_cv(marked)['experiences'][0]['description'], 'Built research tools.')
+        for altered in [marked.replace(block, block + block), marked.replace('Engineer building useful tools.', '\\input{secret}'), marked.replace('% radius:responsibilities', '% radius:responsibilities\n' + block), marked.replace('% radius:endprofile', '% radius:end')]:
+            with self.assertRaises(ValueError):
+                parse_tex_cv(altered)
