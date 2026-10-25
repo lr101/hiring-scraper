@@ -2,6 +2,7 @@ import { useState } from 'react'
 import SiteHeader from './SiteHeader'
 import { getThemePreference, setThemePreference } from './theme'
 import type { ThemePreference } from './theme'
+import ChatGPTConnection from './ChatGPTConnection'
 
 const themeOptions: { value: ThemePreference; label: string; detail: string }[] = [
   { value: 'system', label: 'System', detail: 'Follow device settings' },
@@ -40,6 +41,14 @@ export default function SettingsPage() {
           <span className="settings-link-copy"><strong>Manage job profiles</strong><small>Edit the details used to find your next role.</small></span>
           <span className="settings-link-arrow" aria-hidden="true">→</span>
         </a>
+      </section>
+
+      <section className="detail-panel settings-card" aria-labelledby="chatgpt-heading">
+        <div className="settings-section-heading">
+          <div><p className="eyebrow">Applications</p><h2 id="chatgpt-heading">ChatGPT subscription</h2></div>
+          <p>Use your existing subscription to prepare application documents inside Radius.</p>
+        </div>
+        <ChatGPTConnection />
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="companion-heading">

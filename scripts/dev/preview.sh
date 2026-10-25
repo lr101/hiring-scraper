@@ -505,6 +505,7 @@ server {
     server_name $api_host;
     location / {
         proxy_pass http://127.0.0.1:$api_port;
+        proxy_read_timeout 480s;
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;

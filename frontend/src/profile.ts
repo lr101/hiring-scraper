@@ -30,6 +30,7 @@ export type LocalizedProfileContent = Pick<Profile, 'summary' | 'custom_instruct
   application_preferences?: Pick<NonNullable<ApplicationDetails['preferences']>, 'notice_period' | 'employment_type'>
 }
 export type Profile = {
+  updated_at?: string
   localized_content?: Partial<Record<'en' | 'de', Partial<LocalizedProfileContent>>>
 
   application_personalization?: {

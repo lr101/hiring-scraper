@@ -1,3 +1,10 @@
+FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS codex-build
+WORKDIR /codex-build
+COPY runtime/codex/package.json runtime/codex/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
+COPY runtime/codex/export-runtime.mjs ./
+RUN node export-runtime.mjs /codex-runtime
+
 FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS frontend-build
 WORKDIR /frontend
 RUN apk add --no-cache python3
@@ -24,6 +31,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
+COPY --from=codex-build /codex-runtime /opt/radius-codex
+ENV RADIUS_CODEX_BIN=/opt/radius-codex/bin/codex \
+    RADIUS_CODEX_STATE_DIR=/var/lib/radius/codex
+RUN /opt/radius-codex/bin/codex --version
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project
 COPY alembic.ini ./

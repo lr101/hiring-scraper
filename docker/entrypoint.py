@@ -19,6 +19,26 @@ APP_GID = 10001
 BOOTSTRAP_ENV_FILE = Path("/run/app-bootstrap.env")
 
 
+def _prepare_codex_state() -> None:
+    """Make the mounted private runtime writable before dropping to the app UID."""
+    configured = os.environ.get("RADIUS_CODEX_STATE_DIR")
+    if not configured:
+        return
+    root = Path(configured)
+    if not root.is_absolute() or root == Path('/') or root.is_symlink():
+        raise RuntimeError("RADIUS_CODEX_STATE_DIR must be an absolute private directory")
+    root.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # Named volumes can start root-owned. Repair existing native auth/cache
+    # files too, without following links outside this dedicated runtime tree.
+    if os.geteuid() == 0:
+        for directory, directories, files in os.walk(root, followlinks=False):
+            for path in [Path(directory), *(Path(directory) / name for name in directories + files)]:
+                if path.is_symlink():
+                    raise RuntimeError("The private Codex state directory must not contain symbolic links")
+                os.chown(path, APP_UID, APP_GID, follow_symlinks=False)
+    root.chmod(0o700)
+
+
 def _drop_privileges() -> None:
     if os.geteuid() == 0:
         try:
@@ -246,6 +266,7 @@ def _serve() -> int:
 
 
 def main() -> int:
+    _prepare_codex_state()
     arguments = sys.argv[1:]
     if arguments and arguments[0] == "--runtime-entrypoint":
         if len(arguments) != 1:

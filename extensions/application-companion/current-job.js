@@ -25,6 +25,7 @@ export function buildCurrentJobPrompt({ job, profile, cv, language, form }) {
     supporting_profile: {
       summary: profile.summary,
       skills: profile.skills,
+      skill_evidence: profile.skill_evidence,
       application_details: details,
       application_personalization: profile.application_personalization,
       language_levels: profile.language_levels,

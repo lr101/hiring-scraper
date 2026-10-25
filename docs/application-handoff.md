@@ -1,5 +1,162 @@
 # Saved CV and application workflow
 
+## Prepare inside Radius
+
+With a saved CV, choose **Prepare inside Radius** on the application page. Radius
+uses the selected English/German base CV, saved career evidence and writing
+preferences, the job description, additional instructions and any captured form
+questions. The resulting CV, cover letter and answers open directly in the
+existing review, PDF preview and download flow. There is no ChatGPT tab or result
+file to import. Review all factual claims and wording before using the documents.
+
+### Draft, review and revise
+
+The workflow follows the drafting/review/revision pattern of
+[ai-job-search's apply workflow](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/commands/apply.md):
+
+1. Evaluate requirements against saved evidence while drafting the CV, business
+   letter and captured answers. Missing permission/sponsorship, graduation or paid
+   experience facts remain unknown.
+2. Send the original sources and draft inline to a fresh, independent Codex context.
+   It reports fit evidence, required/preferred gaps and concrete grounding, coverage,
+   voice and formatting issues.
+3. Revise the draft against that critique, preserving verified facts and the selected
+   original CV layout. Validate both drafting passes against the locked history,
+   structure and text budgets. A failed review or revision returns an error rather
+   than publishing the first draft.
+4. Compile safe fixed-template PDFs and inspect their page counts and extracted text
+   with pypdf, including known email/phone details. The CV target is at most two
+   pages and the letter target is one. Warnings remain visible; these checks do not
+   prove visual layout, full ATS compatibility or claim accuracy. Custom uploaded
+   templates retain their original source/assets and are marked as needing local
+   compilation and inspection; they are never executed by this workflow.
+
+**Fit and document checks** next to the returned documents shows the model's fit
+assessment, the initial critique sent for revision and the final PDF checks. A
+critique is not proof that the revision resolved every issue. Checks describe the
+generated version; inspect again after editing or adding a photo. Review uses the
+saved posting and evidence, with no external company-research tools. No application
+status is advanced by preparation.
+
+Preparation uses **three Codex requests** from the connected subscription. Each is
+ephemeral and isolated. The native calls share a six-minute overall budget, with
+at most 180 seconds per call; local PDF checks can take up to another minute.
+Configure reverse-proxy read timeouts to at least 480 seconds. Cancel prevents
+the result replacing browser documents; the already-started workflow can continue
+and use subscription capacity until it finishes or times out.
+
+The server prompt reflects the same original-template and matching-language example
+letter policies as the companion. Marked profile/responsibility prose is editable;
+headers, layout, commands, bullet count, order and original per-line budgets stay
+locked. The saved cover-letter example guides voice/paragraphs, while the current
+CV/profile supplies facts. Letters use a separate business-letter template and their
+reviewed prose is the source used for export.
+
+### Writing lessons applied
+
+The [reference README's writing and verification lessons](https://github.com/ai-job-search-dev/ai-job-search#tips-for-better-results)
+now guide both the direct workflow and the shared web/companion handoff:
+
+- Supply evidence-rich role/project descriptions: problem, own actions, methods and
+  verified results. Profile hints encourage this depth; metrics are used only when known.
+- Show skills through real examples and distinguish paid work from study projects.
+  Career goals guide direction, while example letters and writing samples guide voice.
+- Use relevant, distinct evidence within each editable line's existing budget. Shorten
+  repetition before useful evidence, including older examples that matter to the role.
+  Locked history, bullets, fonts and geometry stay intact.
+- Connect a specific employer need to a verified example and future contribution in
+  the letter; avoid a CV recap, generic praise and unproved promises.
+- Treat rendered pages and extracted text as separate quality checks. Inspect page
+  breaks, contact readability and the letter closing; source-only documents stay unchecked.
+
+The direct review supplies concise required/preferred keywords from the saved posting.
+Radius filters out terms absent from that posting, checks any supporting excerpt against
+the original CV or saved factual profile (excluding style samples, examples and goals),
+and compares the terms with the actual CV PDF text. The report distinguishes a literal
+match, a missing exact term and an unavailable check. It shows verified source excerpts
+separately from the model's support assessment: finding a quote does not prove the
+model interpreted it correctly. Synonyms and translations can explain a missing term.
+These checks produce no ATS percentage and never add unsupported keywords to documents.
+
+### Connect your ChatGPT subscription
+
+1. In **Settings → ChatGPT subscription**, or on the application page, choose
+   **Continue with ChatGPT**.
+2. Open **Open ChatGPT sign-in**, sign in to the intended ChatGPT account and enter
+   the displayed one-time code. Device code login may need enabling in ChatGPT's
+   security settings or workspace permissions. The code expires after 15 minutes.
+3. Return to Radius. It detects the completed login and enables **Prepare inside
+   Radius**. **Manage ChatGPT usage** opens the account's usage settings.
+
+Authentication and token refresh are handled by the official Codex CLI. Usage
+comes from that account's Codex entitlement within its ChatGPT subscription;
+account/workspace policies and usage limits apply. There is no API-key fallback.
+Radius strips inherited API credentials, access-token overrides and alternative
+gateway settings from its Codex child processes. The optional
+`APPLICATION_AI_MODEL` selects a model; leaving it empty uses the Codex default.
+
+The release image includes Codex **0.163.0**, installed from the locked
+`runtime/codex` package and exported as native Linux x64/arm64 binaries. Node is
+needed only during the image build. Compose preserves the isolated login in the
+`radius_codex` volume at `/var/lib/radius/codex`; changing the container does not
+require another login. Startup initializes this private volume for the app's
+unprivileged UID before serving requests. **Disconnect ChatGPT** clears the cached login through
+Codex. Account access can also be managed in ChatGPT settings.
+
+Use this connection in a private, access-controlled personal Radius deployment.
+The signed-in subscription belongs to the operator of that instance; everyone
+with access to its preparation endpoints can invoke it. These endpoints inherit
+the deployment's existing access controls. Credentials are kept in an owner-only
+runtime directory, never in browser storage, frontend code, source control or
+the release image. Radius does not reuse the developer's `~/.codex` login.
+
+For local development, run `npm --prefix runtime/codex ci --ignore-scripts`, then
+set `RADIUS_CODEX_BIN` to the absolute path of
+`runtime/codex/node_modules/.bin/codex` when starting the API. A compatible system
+`codex` is otherwise found on PATH. `RADIUS_CODEX_STATE_DIR` optionally selects
+the protected storage directory (default `~/.local/state/radius/codex`). It must
+be persistent and writable; never point it at a developer's existing Codex home.
+If device login is unavailable, follow the official local-login/secure-cache
+transfer fallback into `RADIUS_CODEX_STATE_DIR/home`, then reload the page.
+
+Sources: [Codex authentication and headless login](https://learn.chatgpt.com/docs/auth),
+[non-interactive structured output](https://learn.chatgpt.com/docs/non-interactive-mode).
+
+Direct preparation sends the selected CV text, relevant saved profile fields,
+job description and captured question schema through Codex. It has no ChatGPT
+conversation history, memory or Canvas access. Each generation uses an isolated
+temporary directory, an ephemeral session, an explicit JSON schema and a read-only
+sandbox. Shell, file, browser, plugin and agent tools are disabled. A file lock
+serializes native login, generation and disconnect across API processes. Each call
+has a maximum 180-second timeout within the workflow budget; Radius does not retry failed calls, although
+Codex may reconnect its transport. Native ChatGPT/Codex data handling policies
+apply to the signed-in account.
+
+The server builds context from saved records, checks the profile/CV revisions,
+and rechecks job/profile/CV context after generation. It validates the returned
+package, inert letter/fixed-template LaTeX grammar, marked CV layout/history and captured-question
+constraints. These checks cannot prove every generated claim, so applicant review
+remains necessary. Failed, invalid or stale results preserve current browser
+documents. Cancel stops waiting and prevents the result from replacing documents;
+an already-started Codex request can continue and count toward subscription usage.
+The current native call holds the connection lease until it finishes or times out. Generated drafts
+use the existing device-local seven-day storage; originals and application stages
+are not changed. No employer form is filled or submitted by preparation.
+
+The application companion's existing question-capture, draft bridge and manual
+result import use the same package format. Direct generation uses the existing
+device-local draft storage that the connected companion reads; no new extension
+storage protocol is introduced. Unchanged companion capture heartbeats do not
+cancel an in-progress generation; changed questions do.
+
+Verification includes process-level CLI fixtures, an offline wire check using
+the real pinned Codex binary, persisted-state permission checks under the production
+UID, and the real UI/API/PDF path with synthetic login
+and model responses. A real account sign-in and completed subscription inference
+remain a separate live check requiring the account owner's approval in ChatGPT.
+
+## ChatGPT handoff
+
 1. Attach a CV to a profile and save it once.
 2. Click **Start application** on a job. The remaining steps open on a dedicated page.
 3. **Copy brief & open ChatGPT** includes the saved CV text, job description, employer/job URLs, the selected original LaTeX CV, a separate cover-letter template and the return format. Paste and send; the prompt asks ChatGPT to save the full CV and letter source in code Canvases, then create a return link containing those exact sources. A repeated CV attachment is unnecessary.
@@ -29,7 +186,7 @@ Paste an example into **Example cover letter (English)** in the English profile-
 
 These optional fields are included in copied briefs in both saved-CV and browser-local flows. Writing samples guide style rather than supplying new factual claims. The brief asks ChatGPT to choose relevant verified examples and avoid disclosing private dealbreakers in application prose. The data is stored in profile preferences JSON; no migration is required. Older clients that omit `application_personalization` preserve the saved object; explicitly sending an empty object clears it.
 
-Choose **Assess job fit** in **Brief type**, then **Assess fit in ChatGPT**. The separate assessment compares skills, experience, qualifications, logistics, career direction and working environment. It asks for evidence, gaps, unknowns, dealbreakers, a recommendation and employer questions without an invented percentage score. It stays in ChatGPT; choose **Prepare application documents** to resume the normal document return workflow. Nothing calls an AI API or retrieves ChatGPT history from Radius.
+Choose **Assess job fit** in **Brief type**, then **Assess fit in ChatGPT**. The separate assessment compares skills, experience, qualifications, logistics, career direction and working environment. It asks for evidence, gaps, unknowns, dealbreakers, a recommendation and employer questions without an invented percentage score. It stays in ChatGPT; choose **Prepare application documents** to resume document preparation. The fit-assessment action does not call an AI API or retrieve ChatGPT history. Direct document preparation is described above.
 
 ## Original-template DOCX workflow
 
