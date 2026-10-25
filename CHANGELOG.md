@@ -12,6 +12,7 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Align the Open original post button to the left of job cards, including when Undo is available.
 - Restore Python 3.14 in production and CI containers so the locked ONNX Runtime dependency has compatible wheels.
 - Invalidate filtered Journey pages after a status change moves a job between checkpoints, preventing stale pagination offsets from skipping jobs.
 
