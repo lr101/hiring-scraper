@@ -2,6 +2,13 @@ import { validateLocalizedContent } from "./profile-language.js";
 import { parseTexCV, validateTailoredCV } from "./tex-cv.js";
 // Shared by the editor and service worker. No inferred dates or answers.
 const contacts = [
+  "salutation",
+  "birth_name",
+  "birth_date",
+  "birth_place",
+  "nationality",
+  "driving_licence",
+  "additional_information",
   "first_name",
   "last_name",
   "email",
@@ -50,8 +57,21 @@ export function validateProfile(input) {
     return value.trim();
   };
   const profile = Object.fromEntries(
-    contacts.map((key) => [key, text(input[key], key)]),
+    contacts.map((key) => [
+      key,
+      text(input[key], key, key === "additional_information" ? 10000 : 300),
+    ]),
   );
+  if (
+    profile.birth_date &&
+    (!/^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$/.test(profile.birth_date) ||
+      !Number.isFinite(Date.parse(profile.birth_date)) ||
+      new Date(profile.birth_date).toISOString().slice(0, 10) !==
+        profile.birth_date)
+  )
+    fail(
+      "birth_date: provide a real complete date (YYYY-MM-DD), or leave it blank.",
+    );
   if (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))
     fail("Enter a valid email address or leave it blank.");
   for (const name of ["linkedin", "website", "portfolio", "github"])

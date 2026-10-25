@@ -33,8 +33,33 @@
     el instanceof HTMLSelectElement
       ? el.value
       : el.textContent.trim();
+  const groupLabel = (el) => {
+    const group = el.closest(".form-group");
+    if (
+      group &&
+      group.querySelectorAll("input,select,textarea,[role=combobox]").length ===
+        1
+    ) {
+      const labels = group.querySelectorAll(":scope > label");
+      if (labels.length === 1) return labels[0];
+    }
+    return null;
+  };
   const labelsFor = (el) => {
-    const associated = [...(el.labels || [])];
+    // Some Bootstrap ATS templates copy label[for] from another question.
+    // Recover the single local question and reject misplaced labels belonging
+    // to another single-control group. Preserve other valid native labels so
+    // contradictory meanings still prevent filling.
+    const local = groupLabel(el);
+    const associated = [...(el.labels || [])].filter((node) => {
+      const group = node.closest(".form-group");
+      if (!group || group.contains(el)) return true;
+      const controls = group.querySelectorAll(
+        "input,select,textarea,[role=combobox]",
+      );
+      return controls.length !== 1 || groupLabel(controls[0]) !== node;
+    });
+    if (local && !associated.includes(local)) return [local, ...associated];
     if (associated.length) return associated;
     const sibling = el.previousElementSibling;
     // Some ATS templates omit label[for]. Only infer a direct preceding
@@ -96,6 +121,30 @@
     ).slice(0, 180);
   };
   const aliases = {
+    salutation: ["salutation", "anrede", "honorific prefix"],
+    birth_name: ["birth name", "maiden name", "geburtsname"],
+    birth_date: ["birth date", "date of birth", "geburtsdatum"],
+    birth_place: ["birth place", "place of birth", "geburtsort"],
+    nationality: [
+      "nationality",
+      "citizenship",
+      "staatsangehorigkeit",
+      "staatsangehoerigkeit",
+      "kennung staatsangehoerigkeit",
+    ],
+    driving_licence: [
+      "driving licence",
+      "driving license",
+      "driver s license",
+      "fuhrerschein",
+      "fuehrerschein",
+    ],
+    additional_information: [
+      "additional information",
+      "further information",
+      "weitere informationen",
+      "mochten sie uns noch weitere informationen mitteilen",
+    ],
     first_name: ["first", "first name", "given name", "forename", "vorname"],
     last_name: ["last", "last name", "surname", "family name", "nachname"],
     full_name: [
@@ -213,6 +262,8 @@
   };
   const auto = {
     "given-name": "first_name",
+    "honorific-prefix": "salutation",
+    bday: "birth_date",
     "family-name": "last_name",
     name: "full_name",
     email: "email",
@@ -350,7 +401,7 @@
             ["internship", "praktikum"],
             ["working student", "werkstudent", "werkstudententatigkeit"],
           ]
-        : key === "country"
+        : ["country", "nationality"].includes(key)
           ? [["germany", "deutschland", "de", "ger"]]
           : [];
     return terms.some(
@@ -623,6 +674,22 @@
       return false;
     }
   }
+  function dateValue(el, value) {
+    if (
+      !/^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$/.test(value || "") ||
+      el.type === "date"
+    )
+      return value;
+    const format =
+      el.getAttribute("data-date-format") ||
+      (location.hostname === "www.bewerber-online.de" &&
+      el.matches("input.datepicker")
+        ? "dd.mm.yyyy"
+        : "");
+    return format.toLowerCase() === "dd.mm.yyyy"
+      ? value.split("-").reverse().join(".")
+      : value;
+  }
   function valueFor(field, profile, answers, scoped, preparedAnswer) {
     const { el, key } = field;
     const structured = globalThis.applicationHistory?.mapping(el, profile);
@@ -630,7 +697,10 @@
     const pref = profile.preferences || {};
     if (key?.startsWith("pref:")) {
       const property = key.slice(5);
-      let value = pref[property];
+      let value =
+        property === "available_from"
+          ? dateValue(el, pref[property])
+          : pref[property];
       let reason = "This reusable answer has not been supplied.";
       const name = normalize(field.label);
       if (property === "authorized_to_work") {
@@ -784,13 +854,40 @@
             "This form separates street and house number; the profile contains a combined address line. Review both fields manually.",
         };
     }
+    // These questions previously used the exact job-linked answer path.
+    // A new reusable fact must not hide an already prepared explicit answer.
+    if (
+      key &&
+      [
+        "salutation",
+        "birth_name",
+        "birth_date",
+        "birth_place",
+        "nationality",
+        "driving_licence",
+        "additional_information",
+      ].includes(key) &&
+      !profile[key] &&
+      scoped
+    ) {
+      const answer = preparedAnswer || answers.get(normalize(field.label));
+      if (answer)
+        return {
+          value: key === "birth_date" ? dateValue(el, answer) : answer,
+          source: preparedAnswer ? "Prepared form answer" : "ChatGPT package",
+        };
+    }
     if (key)
       return {
         value:
           key === "full_name"
             ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
-            : profile[key] || "",
+            : key === "birth_date"
+              ? dateValue(el, profile[key])
+              : profile[key] || "",
         source: "CV/profile",
+        reason:
+          "Save this confirmed fact in your profile, then sync and fill again.",
       };
     if (scoped && profile.application?.form_answers)
       return {
@@ -1464,16 +1561,32 @@
       }
     }
     for (const frame of document.querySelectorAll("iframe"))
-      if (visible(frame))
+      if (visible(frame)) {
+        // A same-origin recommendations frame without editable controls is
+        // unrelated to filling. Cross-origin frames remain reported for review.
+        try {
+          if (
+            frame.contentDocument?.body &&
+            frame.contentDocument.readyState === "complete" &&
+            (frame.contentDocument.URL !== "about:blank" ||
+              !frame.getAttribute("src") ||
+              frame.src === "about:blank") &&
+            !frame.contentDocument.querySelector(
+              "input:not([type=hidden]),select,textarea,iframe,[contenteditable]:not([contenteditable=false]),[role=combobox],[role=textbox],[role=checkbox],[role=radio]",
+            )
+          )
+            continue;
+        } catch {}
         report.push({
           id: "frame",
-          label: frame.title || "Embedded application frame",
+          label: frame.title || "Embedded frame",
           required: false,
           status: "unsupported",
           reason:
-            "Open the embedded application directly; this run operates on the top document.",
+            "This frame was not inspected. If it contains application fields, open it directly to fill them.",
           source: "",
         });
+      }
     for (const element of document.querySelectorAll("*"))
       if (element.shadowRoot && visible(element))
         report.push({

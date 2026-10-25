@@ -10,6 +10,16 @@ from hiring_scraper.app import api, models
 
 
 class ProfileIntegrationTests(unittest.TestCase):
+    def test_optional_personal_application_facts_persist_through_profile_edits(self):
+        profiles = self.profile_api()
+        facts = dict(salutation='Herr', birth_name='Beispiel', birth_date='1992-02-29', birth_place='Bonn',
+                     nationality='Deutschland', driving_licence='Klasse B', additional_information='Kontakt per E-Mail.')
+        with Session(self.engine) as session:
+            created = profiles.create_profile(profiles.ProfileRequest(name='Fictional applicant', application_details=facts), session)
+            saved = profiles.update_profile(created['id'], profiles.ProfileRequest(name='Updated fictional applicant'), session)
+            for key, value in facts.items():
+                self.assertEqual(saved['application_details'][key], value)
+
     def test_personalization_edit_preserves_main_work_history_and_tex_cv(self):
         profiles = self.profile_api()
         history = [{'id': 'role-1', 'company': 'Example GmbH', 'title': 'Engineer',

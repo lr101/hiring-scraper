@@ -139,6 +139,13 @@ class ApplicationExperience(BaseModel):
 
 class ApplicationDetails(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    salutation: str = Field(default='', max_length=300)
+    birth_name: str = Field(default='', max_length=300)
+    birth_date: str = Field(default='', max_length=300)
+    birth_place: str = Field(default='', max_length=300)
+    nationality: str = Field(default='', max_length=300)
+    driving_licence: str = Field(default='', max_length=300)
+    additional_information: str = Field(default='', max_length=10000)
     first_name: str = Field(default='', max_length=300)
     last_name: str = Field(default='', max_length=300)
     email: str = Field(default='', max_length=300)
@@ -156,6 +163,10 @@ class ApplicationDetails(BaseModel):
 
     @model_validator(mode='after')
     def validate_contacts(self):
+        if self.birth_date:
+            if not re.fullmatch(r'[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}', self.birth_date):
+                raise ValueError('Birth date must use YYYY-MM-DD')
+            date.fromisoformat(self.birth_date)
         identities = [(entry.company.lower(), entry.title.lower(), entry.start) for entry in self.experiences]
         if len(set(identities)) != len(identities):
             raise ValueError('Remove duplicate work experiences')
