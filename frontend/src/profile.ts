@@ -61,6 +61,36 @@ export function profileBoardLink(profile: Pick<Profile, 'id'>) {
   return `/discover?${params}`
 }
 
+export type ProfileSetupStep = 'goals' | 'experience' | 'details' | 'documents'
+/** Empty language tabs are not edits; explicit false and zero remain meaningful. */
+export function profileDraftFingerprint(profile: Partial<Profile>): string {
+  function normalize(value: unknown): unknown {
+    if (value == null || value === '') return undefined
+    if (Array.isArray(value)) {
+      const items = value.map(normalize).filter(item => item !== undefined)
+      return items.length ? items : undefined
+    }
+    if (typeof value === 'object') {
+      const entries = Object.entries(value).sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, item]) => [key, normalize(item)]).filter(([, item]) => item !== undefined)
+      return entries.length ? Object.fromEntries(entries) : undefined
+    }
+    return value
+  }
+  return JSON.stringify(normalize(profile)) ?? '{}'
+}
+/** Offer useful next edits without treating optional fields as a gate. */
+export function profileSetupSections(profile: Partial<Profile>) {
+  const content = [profile, ...Object.values(profile.localized_content ?? {})]
+  const present = (value?: string) => Boolean(value?.trim())
+  return [
+    { id: 'goals' as const, title: 'Job goals', ready: content.some(item => item.desired_roles?.some(present)), hint: 'Add the roles you want to explore.' },
+    { id: 'experience' as const, title: 'Experience & skills', ready: content.some(item => item.skills?.some(present) || item.education?.some(row => present(row.field))) || profile.experience_years != null, hint: 'Add skills, study or experience to build on.' },
+    { id: 'details' as const, title: 'Application details', ready: ['first_name', 'last_name', 'email'].every(key => present(profile.application_details?.[key as 'email'])), hint: 'Add your name and email for application forms.' },
+    { id: 'documents' as const, title: 'CVs & writing', ready: Object.values(profile.cv?.languages ?? {}).some(cv => present(cv?.filename)), hint: 'Attach a base LaTeX CV when you’re ready to apply.' },
+  ]
+}
+
 /** Persist only visible languages, preserving proficiency across case-only edits. */
 export function selectedLanguageLevels(languages: string[], levels: Record<string, string>) {
   const selected: Record<string, string> = {}

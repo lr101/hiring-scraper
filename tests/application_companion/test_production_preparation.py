@@ -134,7 +134,10 @@ class ProductionPreparationTests(ProductionHarness):
 
     def test_app_profile_details_survive_edit_and_sync_without_local_entry(self):
         self.context.set_default_timeout(60000)
-        self.page.goto(self.origin + '/profile/1/edit')
+        # The production fixture has a legacy profile with no preference lists.
+        self.page.goto(self.origin + '/profile')
+        self.page.get_by_role('link', name='Edit profile', exact=True).click()
+        self.page.get_by_role('navigation', name='Profile setup').get_by_role('button', name='Application details', exact=False).click()
         self.page.get_by_label('First name', exact=True).fill('Alex')
         self.page.get_by_label('Last name', exact=True).fill('Example')
         self.page.get_by_label('Expected salary', exact=True).fill('75000')
@@ -144,6 +147,7 @@ class ProductionPreparationTests(ProductionHarness):
         expect(self.page.get_by_role('status')).to_contain_text('Profile saved', timeout=60000)
         expect(self.page.get_by_label('First name', exact=True)).to_have_value('Alex', timeout=60000)
         self.page.reload()
+        expect(self.page.get_by_role('navigation', name='Profile setup').get_by_role('button', name='Application details', exact=False)).to_have_attribute('aria-current', 'step')
         expect(self.page.get_by_label('First name', exact=True)).to_have_value('Alex', timeout=60000)
         self.upload_base()
         options = self.context.new_page()
