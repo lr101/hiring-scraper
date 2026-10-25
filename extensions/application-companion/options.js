@@ -5,6 +5,13 @@ import { emptyProfile, validateProfile } from "./profile.js";
 import { readPackage, connectSources, bulletPrompt } from "./sources.js";
 
 const keys = [
+  "salutation",
+  "birth_name",
+  "birth_date",
+  "birth_place",
+  "nationality",
+  "driving_licence",
+  "additional_information",
   "first_name",
   "last_name",
   "email",

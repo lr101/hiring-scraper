@@ -13,6 +13,8 @@ export type ApplicationExperience = {
   start: string; end: string | null; current: boolean; cv_bullet_ids?: number[]
 }
 export type ApplicationDetails = {
+  salutation?: string; birth_name?: string; birth_date?: string; birth_place?: string
+  nationality?: string; driving_licence?: string; additional_information?: string
   first_name?: string; last_name?: string; email?: string; phone?: string; linkedin?: string
   city?: string; country?: string; street?: string; postal_code?: string
   website?: string; portfolio?: string; github?: string
