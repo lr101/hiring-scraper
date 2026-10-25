@@ -1,6 +1,7 @@
 """Current employer job -> ChatGPT -> imported documents, entirely in extension UI."""
 import json
 import os
+import re
 from pathlib import Path
 from playwright.sync_api import expect
 from .test_production_preparation import ProductionHarness
@@ -59,7 +60,9 @@ class CurrentJobFlowTests(ProductionHarness):
         unsafe = source.replace('\\begin{document}\n', '\\begin{document}\n'+r'\directlua{os.execute("id")}'+'\n',1)
         popup.locator('#result-input').fill(json.dumps({**pack,'latex_documents':{'cv':unsafe}}))
         popup.get_by_role('button', name='Use returned result', exact=True).click()
-        expect(popup.locator('#status')).to_contain_text('Unsupported LaTeX')
+        # Source-preservation validation can reject before the renderer grammar.
+        # Assert rejection and the unchanged cache rather than a layer's wording.
+        expect(popup.locator('#status')).to_have_class(re.compile(r'\berror\b'))
         cache = self.worker.evaluate("async ()=>(await chrome.storage.local.get('radiusVault')).radiusVault.packages")
         self.assertNotIn('1574:1',cache)
         popup.locator('#result-input').fill(json.dumps(pack))

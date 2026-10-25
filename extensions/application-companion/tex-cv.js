@@ -13,7 +13,8 @@ export function parseTexCV(source) {
     ids = new Set();
   let entry = null,
     description = null,
-    profileBlock = false;
+    profile = null,
+    profileSeen = false;
   const fail = () => {
     throw new Error(
       "Invalid CV history markers. Use the CV formatting prompt; check IDs, dates and entry boundaries.",
@@ -23,14 +24,15 @@ export function parseTexCV(source) {
     const marker = line.match(/^\s*% radius:(.*)$/);
     if (marker) {
       if (marker[1] === "profile") {
-        if (profileBlock || entry || description !== null) fail();
-        profileBlock = true;
+        if (entry || profile !== null || profileSeen) fail();
+        profile = [];
+        profileSeen = true;
       } else if (marker[1] === "endprofile") {
-        if (!profileBlock || entry || description !== null) fail();
-        profileBlock = false;
-      } else if (profileBlock) fail();
-      else if (marker[1].startsWith("entry ")) {
-        if (entry) fail();
+        if (profile === null || texText(profile.join("\n")).length > 10000)
+          fail();
+        profile = null;
+      } else if (marker[1].startsWith("entry ")) {
+        if (entry || profile !== null) fail();
         try {
           entry = JSON.parse(marker[1].slice(6));
         } catch {
@@ -102,11 +104,12 @@ export function parseTexCV(source) {
         entry = null;
         description = null;
       } else fail();
-    } else if (description !== null && !profileBlock) description.push(line);
+    } else if (profile !== null) profile.push(line);
+    else if (description !== null) description.push(line);
   }
   if (
     entry ||
-    profileBlock ||
+    profile !== null ||
     !ids.size ||
     experiences.length > 20 ||
     education.length > 20
@@ -117,6 +120,12 @@ export function parseTexCV(source) {
 
 function texText(value) {
   // Do not expand commands or read referenced files. Known inert formatting only.
+  // Layout-heavy templates keep descriptions in inert, zero-argument text
+  // macros. Read their literal bodies only; never expand arbitrary TeX.
+  value = value.replace(
+    /^\\newcommand\{\\Radius[A-Za-z]+\}\{(.*)\}\s*$/gm,
+    "$1",
+  );
   const escapes = [];
   value = value
     .replace(
@@ -200,9 +209,7 @@ export function withCVLanguage(profile, language) {
   return { ...profile, cv_text: source, ...parseTexCV(source) };
 }
 
-export function validateTailoredCV(original, tailored) {
-  if (typeof tailored !== "string" || !tailored.trim())
-    throw new Error("Return the full marked LaTeX CV in latex_documents.cv.");
+export function validateCVTranslations(original, tailored) {
   const history = parseTexCV(tailored);
   const base = parseTexCV(original);
   for (const kind of ["experiences", "education"]) {
@@ -219,4 +226,52 @@ export function validateTailoredCV(original, tailored) {
       );
   }
   return history;
+}
+
+export function validateTailoredCV(original, tailored) {
+  if (typeof tailored !== "string" || !tailored.trim())
+    throw new Error("Return the full marked LaTeX CV in latex_documents.cv.");
+  const history = validateCVTranslations(original, tailored);
+  if (tailoringSkeleton(original) !== tailoringSkeleton(tailored))
+    throw new Error(
+      "Returned CV changed its structure or layout. Edit only existing text inside marked responsibility or profile blocks.",
+    );
+  const macro = /^\\newcommand\{(\\Radius[A-Za-z]+)\}\{(.*)\}[ \t]*$/gm;
+  const before = [...original.replace(/\r\n/g, "\n").matchAll(macro)];
+  const after = [...tailored.replace(/\r\n/g, "\n").matchAll(macro)];
+  for (let index = 0; index < before.length; index++) {
+    if (
+      !after[index] ||
+      [...after[index][2]].length > [...before[index][2]].length
+    )
+      throw new Error(
+        "Returned CV description exceeds its original text-length budget. Shorten it to fit the existing layout.",
+      );
+  }
+  return history;
+}
+
+function tailoringSkeleton(source) {
+  let editable = false;
+  return source
+    .replace(/\r\n/g, "\n")
+    .replace(/\n+$/, "")
+    .split("\n")
+    .map((line) => {
+      if (/^\s*% radius:(?:responsibilities|profile)$/.test(line))
+        editable = true;
+      else if (/^\s*% radius:(?:end|endprofile)$/.test(line)) editable = false;
+      else if (editable) {
+        // Preserve macro names, grouping, bullet count and line slots. Escaped
+        // literal punctuation is prose; commands and structure are immutable.
+        return (
+          line
+            .replace(/\\[&%$#_{}]/g, "")
+            .match(/\\[A-Za-z]+|\\.|[{}]/g)
+            ?.join("") ?? ""
+        );
+      }
+      return line;
+    })
+    .join("\n");
 }
