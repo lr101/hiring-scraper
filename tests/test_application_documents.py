@@ -37,6 +37,24 @@ class ApplicationDocumentTests(unittest.TestCase):
             self.assertIn('José in Genève 2021-2024', text)
             self.assertNotIn('Tailored CV', text)
 
+    def test_business_letter_line_breaks_and_no_page_number_render_safely(self):
+        from hiring_scraper.app.latex_documents import latex_source, validate_latex_source
+        source = latex_source('Letter body.').replace('Letter body.' + r'\par',
+            r'\thispagestyle{empty}' + '\n' + r'Alex Example\\Bonn\par' + '\n' +
+            r'Labs\\Hiring Team\par' + '\n' + r'Application for Engineer\par' + '\n' +
+            r'Dear Hiring Team,\par' + '\n' + r'Letter body.\par' + '\n' + r'Sincerely,\\Alex Example\par')
+        self.assertEqual(validate_latex_source(source), source)
+        if shutil.which('lualatex'):
+            from pypdf import PdfReader
+            response = self.export(kind='cover_letter', format='latex_pdf', latex_documents={'cover_letter': source})
+            pdf = PdfReader(BytesIO(response.body))
+            self.assertEqual(len(pdf.pages), 1)
+            text = pdf.pages[0].extract_text()
+            self.assertIn('Application for Engineer', text)
+            self.assertFalse(text.rstrip().endswith('1'))
+        with self.assertRaises(ValueError):
+            validate_latex_source(source.replace(r'\thispagestyle{empty}', r'\thispagestyle{\input{secret}}'))
+
     def test_canvas_latex_rejects_executable_commands_and_preamble_changes(self):
         from hiring_scraper.app.latex_documents import latex_source
         from pydantic import ValidationError
@@ -49,6 +67,18 @@ class ApplicationDocumentTests(unittest.TestCase):
         source = latex_source('safe').replace('margin=22mm', 'margin=1mm')
         with self.assertRaises((HTTPException, ValidationError)):
             self.export(format='tex', latex_documents={'cv': source})
+
+    def test_cover_letter_rejects_cv_headings_and_lists_in_new_and_legacy_templates(self):
+        from hiring_scraper.app.latex_documents import _TEMPLATE
+        for preamble in [_TEMPLATE['preamble'], _TEMPLATE['letter_preamble']]:
+            for body in [r'\section*{Cover letter}', r'\subsection*{Experience}', r'\begin{itemize}\item My letter.\end{itemize}']:
+                with self.subTest(preamble=preamble.splitlines()[1], body=body):
+                    with self.assertRaises(HTTPException) as raised:
+                        self.export(kind='cover_letter', format='tex', latex_documents={'cover_letter': preamble + body + '\n' + _TEMPLATE['ending']})
+                    self.assertEqual(raised.exception.status_code, 422)
+        # Valid old article letters and escaped literal command names still work.
+        legacy = _TEMPLATE['preamble'] + r'Alex\\Bonn\par Dear team,\par I use \textbackslash{}section* in examples.\par' + '\n' + _TEMPLATE['ending']
+        self.assertEqual(self.export(kind='cover_letter', format='tex', latex_documents={'cover_letter': legacy}).body.decode(), legacy)
 
     def test_latex_source_escapes_prose_and_keeps_selected_document(self):
         response = self.export(format='tex', cv='# José Müller\n## Experience\n- R&D: 20% with C_1 and $5\n\\input{/etc/passwd} ~ ^ { }',
@@ -118,6 +148,103 @@ class ApplicationDocumentTests(unittest.TestCase):
                 self.assertEqual(len(reader.pages), 1)
                 self.assertEqual(response.headers['content-type'], 'application/pdf')
                 self.assertIn('.pdf"', response.headers['content-disposition'])
+
+    def test_letter_export_keeps_compact_sender_and_recipient_blocks(self):
+        letter = 'Alex Example\nBonn, Germany\n+49 123 456\nalex@example.org\n\nExample Ltd\nHiring Team\n\n25 October 2026\n\n**Application for Engineer**\n\nDear Hiring Team,\n\nI build useful tools.\n\nYours sincerely,\nAlex Example'
+        source = self.export(kind='cover_letter', format='tex', cover_letter=letter).body.decode()
+        self.assertIn(r'Alex Example\\Bonn, Germany\\+49 123 456\\alex@example.org\par', source)
+        self.assertIn(r'Example Ltd\\Hiring Team\par', source)
+        self.assertIn(r'\thispagestyle{empty}', source)
+        self.assertIn(r'\documentclass[11pt,a4paper]{letter}', source)
+        self.assertIn(r'\textbf{Application for Engineer}', source)
+
+    @unittest.skipUnless(shutil.which('lualatex'), 'LuaLaTeX unavailable')
+    def test_letter_accepts_extra_blank_lines_between_address_blocks(self):
+        from pypdf import PdfReader
+        response = self.export(kind='cover_letter', format='latex_pdf', cover_letter='Alex Example\nBonn\n\n\nExample Ltd\n\n\nDear team,\n\nI build tools.')
+        self.assertIn('Example Ltd', PdfReader(BytesIO(response.body)).pages[0].extract_text())
+
+    def test_custom_cv_photo_bundle_preserves_source_header_and_asset(self):
+        from test_tex_cv import source
+        original = source().replace(r'\begin{document}', r'\begin{document}' + '\n' + r'\includegraphics[width=25mm]{portrait_cropped.png}' + '\nAlex Example | alex@example.org\n')
+        revision = profiles.store_profile_cv(self.session, self.profile_id, 'original.tex', original.encode())['updated_at']
+        # Attaching arbitrary templates never enables their server compilation.
+        photo = self.photo()
+        with patch('hiring_scraper.app.latex_documents.subprocess.Popen', side_effect=AssertionError('Custom TeX must never run')):
+            response = self.export(format='tex_bundle', cv_updated_at=revision,
+                                   latex_documents={'cv': original}, photo_data_url=photo)
+        self.assertEqual(response.headers['content-type'], 'application/zip')
+        with ZipFile(BytesIO(response.body)) as bundle:
+            self.assertEqual(set(bundle.namelist()), {'application.tex', 'portrait_cropped.png', 'README.txt'})
+            self.assertEqual(bundle.read('application.tex').decode(), original)
+            self.assertIn(b'lualatex -no-shell-escape', bundle.read('README.txt'))
+            self.assertTrue(bundle.read('portrait_cropped.png').startswith(b'\x89PNG\r\n\x1a\n'))
+        self.assertEqual(bytes(self.session.get(models.ProfileCV, self.profile_id).data), original.encode())
+
+    def test_browser_local_cv_photo_bundle_never_compiles_custom_source(self):
+        from test_tex_cv import source
+        original = source().replace(r'\begin{document}', r'\begin{document}' + '\n' + r'\includegraphics{portrait.png}')
+        with patch('hiring_scraper.app.latex_documents.subprocess.Popen', side_effect=AssertionError('Custom TeX must never run')):
+            response = self.export(format='tex_bundle', latex_documents={'cv': original}, photo_data_url=self.photo())
+        with ZipFile(BytesIO(response.body)) as bundle:
+            self.assertEqual(bundle.read('application.tex').decode(), original)
+
+    def test_photo_is_bounded_and_never_injected_into_letter_or_custom_tex(self):
+        from hiring_scraper.app.latex_documents import latex_source
+        for photo in ['data:image/png;base64,not-base64', 'data:image/png;base64,SGVsbG8=', self.photo(width=10000)]:
+            with self.subTest(photo=photo[:40]), self.assertRaises(HTTPException):
+                self.export(format='latex_pdf', photo_data_url=photo)
+        with self.assertRaises(HTTPException):
+            self.export(kind='cover_letter', format='tex_bundle', photo_data_url=self.photo())
+        # Raw source download stays exact; an image requires the source bundle.
+        with self.assertRaises(HTTPException):
+            self.export(format='tex', latex_documents={'cv': latex_source('Alex')}, photo_data_url=self.photo())
+
+    def test_truncated_png_is_rejected_before_engine_or_bundle(self):
+        import base64
+        data = base64.b64decode(self.photo().split(',', 1)[1])
+        for broken in [data[:33], data[:-12], data[:-1], data[:40] + b'corrupt' + data[47:]]:
+            for format in ['latex_pdf', 'tex_bundle']:
+                with self.subTest(format=format, length=len(broken)), patch('hiring_scraper.app.latex_documents.subprocess.Popen', side_effect=AssertionError('Invalid PNG must never reach the engine')):
+                    with self.assertRaises(HTTPException) as raised:
+                        self.export(format=format, photo_data_url='data:image/png;base64,' + base64.b64encode(broken).decode())
+                    self.assertEqual(raised.exception.status_code, 422)
+
+    def test_crc_correct_png_with_invalid_pixels_is_rejected_before_engine(self):
+        import base64
+        import struct
+        import zlib
+        def chunk(kind, data):
+            return struct.pack('!I', len(data)) + kind + data + struct.pack('!I', zlib.crc32(kind + data))
+        for depth, pixels in [(3, b'x'), (8, b'x')]:
+            data = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('!IIBBBBB', 24, 36, depth, 0, 0, 0, 0)) + chunk(b'IDAT', pixels) + chunk(b'IEND', b'')
+            with self.subTest(depth=depth), patch('hiring_scraper.app.latex_documents.subprocess.Popen', side_effect=AssertionError('Invalid pixels must never reach the engine')):
+                with self.assertRaises(HTTPException) as raised:
+                    self.export(format='latex_pdf', photo_data_url='data:image/png;base64,' + base64.b64encode(data).decode())
+                self.assertEqual(raised.exception.status_code, 422)
+
+    @unittest.skipUnless(shutil.which('lualatex'), 'LuaLaTeX unavailable')
+    def test_photo_pdf_keeps_header_text_and_embeds_image(self):
+        from pypdf import PdfReader
+        response = self.export(format='latex_pdf', cv='# Alex Example\nalex@example.org\n\n## Experience\nBuilt useful tools.', photo_data_url=self.photo())
+        pdf = PdfReader(BytesIO(response.body))
+        text = '\n'.join(page.extract_text() for page in pdf.pages)
+        self.assertIn('Alex Example', text)
+        self.assertIn('alex@example.org', text)
+        self.assertIn('Built useful tools.', text)
+        self.assertEqual(len(pdf.pages), 1)
+        self.assertTrue(any(obj.get_object().get('/Subtype') == '/Image' for page in pdf.pages for obj in page['/Resources'].get('/XObject', {}).get_object().values()))
+
+    @staticmethod
+    def photo(width=24):
+        import base64
+        import struct
+        import zlib
+        def chunk(kind, data):
+            return struct.pack('!I', len(data)) + kind + data + struct.pack('!I', zlib.crc32(kind + data))
+        data = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('!IIBBBBB', width, 36, 8, 2, 0, 0, 0))
+        data += chunk(b'IDAT', zlib.compress((b'\0' + b'\x35\x67\x89' * 24) * 36)) + chunk(b'IEND', b'')
+        return 'data:image/png;base64,' + base64.b64encode(data).decode()
 
     def setUp(self):
         self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)

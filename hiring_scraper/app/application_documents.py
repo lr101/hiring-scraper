@@ -40,6 +40,7 @@ class ApplicationDocumentRequest(BaseModel):
     cv: Annotated[str, Field(max_length=100000)] | Annotated[list[TemplateChange], Field(max_length=1000)]
     cover_letter: str = Field(max_length=100000)
     latex_documents: LatexDocuments | None = None
+    photo_data_url: str | None = Field(default=None, max_length=2800000)
 
     @field_validator('cv_updated_at')
     @classmethod
@@ -114,7 +115,7 @@ def _text_docx(text):
 @router.post('/{profile_id}/application-document')
 def application_document(profile_id: int, request: ApplicationDocumentRequest,
                          kind: Literal['cv', 'cover_letter'] = 'cv',
-                         format: Literal['pdf', 'docx', 'tex', 'latex_pdf'] = 'pdf',
+                         format: Literal['pdf', 'docx', 'tex', 'latex_pdf', 'tex_bundle'] = 'pdf',
                          session: Session = Depends(get_session)):
     require_profile(profile_id, session)
     if session.get(Job, request.job_id) is None:
@@ -122,28 +123,40 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
     cv = session.get(ProfileCV, profile_id)
     # Preserve old API exports for existing DOCX/browser drafts during migration.
     # All new base CVs and the current companion UI use LaTeX exclusively.
-    if kind == 'cv' and cv is not None and (cv.variants or cv.filename.lower().endswith('.tex')) and format not in {'tex', 'latex_pdf'}:
+    if kind == 'cv' and cv is not None and (cv.variants or cv.filename.lower().endswith('.tex')) and format not in {'tex', 'latex_pdf', 'tex_bundle'}:
         raise HTTPException(422, 'CVs use LaTeX rendering. Download LaTeX PDF or .tex source.')
     if cv is not None and cv_metadata(cv)['updated_at'] != request.cv_updated_at:
         raise HTTPException(409, 'Your saved CV changed. Reload this application package before exporting.')
-    if kind == 'cv' and cv is not None and cv.variants:
-        from hiring_scraper.app.tex_cv import parse_tex_cv, history_facts
-        try:
+    preserved_source = False
+    if kind == 'cv' and cv is not None:
+        from hiring_scraper.app.tex_cv import validate_tailored_cv
+        originals = [row['text'] for row in cv.variants.values()] if cv.variants else [cv.extracted_text]
+        originals = [text for text in originals if text and '% radius:entry ' in text]
+        if originals:
             returned = request.latex_documents.cv if request.latex_documents else None
             if not returned:
-                raise ValueError('Return the full marked LaTeX CV in latex_documents.cv.')
-            history = parse_tex_cv(returned)
-            original = parse_tex_cv(next(iter(cv.variants.values()))['text'])
-            if history_facts(original) != history_facts(history):
-                raise ValueError('Returned CV changed work/study facts or dates. Keep all original history IDs, employers and dates.')
-        except ValueError as error:
-            raise HTTPException(422, str(error)) from None
+                raise HTTPException(422, 'Return the full marked LaTeX CV in latex_documents.cv.')
+            for original in originals:
+                try:
+                    validate_tailored_cv(original, returned)
+                    preserved_source = True
+                    break
+                except ValueError:
+                    pass
+            if not preserved_source:
+                raise HTTPException(422, 'Returned CV changed its structure, layout or history. Edit only existing text in marked profile and responsibility blocks of a saved base CV.')
     changes = request.cv if kind == 'cv' and isinstance(request.cv, list) else None
     if isinstance(request.cv, list) and (cv is None or not cv.filename.lower().endswith('.docx')):
         raise HTTPException(422, 'Attach a DOCX to export paragraph edits with your original CV layout.')
     source = bytes(cv.data) if changes is not None else None
     session.rollback()  # Return the DB connection before editing/conversion.
     try:
+        from hiring_scraper.app.latex_documents import photo_bytes, latex_source_bundle
+        photo = photo_bytes(request.photo_data_url) if request.photo_data_url else None
+        if photo is not None and (kind != 'cv' or format not in {'latex_pdf', 'tex_bundle'}):
+            raise ValueError('Photos are supported for CV LaTeX PDFs and source + photo ZIP bundles only.')
+        if format == 'tex_bundle' and (kind != 'cv' or photo is None):
+            raise ValueError('Choose a CV photo before downloading a source + photo ZIP bundle.')
         if changes is not None:
             # The editor flattens line breaks, which can hide line-start TODOs.
             for row in changes:
@@ -157,7 +170,7 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
             output = _text_docx(text)
         if len(output) > MAX_BYTES:
             raise HTTPException(413, 'This document exceeds 5 MiB. Use a smaller document or DOCX template.')
-        if format in {'tex', 'latex_pdf'}:
+        if format in {'tex', 'latex_pdf', 'tex_bundle'}:
             from hiring_scraper.app.latex_documents import docx_text, latex_source, render_latex_pdf, validate_latex_source
             if changes is not None:
                 text = docx_text(output)
@@ -165,8 +178,27 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
             returned_source = getattr(request.latex_documents, kind, None)
             if returned_source is not None:
                 _finished_text(returned_source)
-                validate_latex_source(returned_source)
-            output = (returned_source or latex_source(text)).encode('utf-8') if format == 'tex' else render_latex_pdf(text, source=returned_source)
+                # Downloading source does not execute it. Custom templates may
+                # be returned only after comparison with the saved original.
+                local_bundle = cv is None and kind == 'cv' and format == 'tex_bundle'
+                if local_bundle:
+                    from hiring_scraper.app.tex_cv import parse_tex_cv
+                    parse_tex_cv(returned_source)
+                if not (local_bundle or (preserved_source and format in {'tex', 'tex_bundle'})):
+                    if preserved_source and returned_source.endswith(r'\end{document}'):
+                        returned_source += '\n'
+                    try:
+                        validate_latex_source(returned_source, letter=kind == 'cover_letter')
+                    except ValueError:
+                        if preserved_source:
+                            raise ValueError('This CV preserves a custom LaTeX template. Download the .tex source and compile locally with its original assets; the server PDF renderer supports only the Radius template.') from None
+                        raise
+            if format == 'tex_bundle':
+                output = latex_source_bundle(returned_source or latex_source(text), photo)
+            elif format == 'tex':
+                output = (returned_source or latex_source(text, letter=kind == 'cover_letter')).encode('utf-8')
+            else:
+                output = render_latex_pdf(text, source=returned_source, photo=photo, letter=kind == 'cover_letter')
         elif format == 'pdf':
             output = cv_templates.render_pdf(output)
     except ValueError as error:
@@ -175,9 +207,9 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
         raise HTTPException(503, str(error)) from None
     if len(output) > MAX_BYTES:
         raise HTTPException(413, 'This document exceeds 5 MiB. Try downloading the DOCX instead.')
-    extension = 'pdf' if format == 'latex_pdf' else format
+    extension = 'pdf' if format == 'latex_pdf' else 'zip' if format == 'tex_bundle' else format
     filename = f'{"tailored-cv" if kind == "cv" else "cover-letter"}-{request.job_id}.{extension}'
-    media_type = 'application/pdf' if extension == 'pdf' else 'text/plain; charset=utf-8' if format == 'tex' else TYPES['.docx']
+    media_type = 'application/zip' if format == 'tex_bundle' else 'application/pdf' if extension == 'pdf' else 'text/plain; charset=utf-8' if format == 'tex' else TYPES['.docx']
     return Response(output, media_type=media_type, headers={
         'Content-Disposition': f'attachment; filename="{filename}"',
         'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',

@@ -57,7 +57,7 @@ export function buildCurrentJobPrompt({ job, profile, cv, language, form }) {
 WRITING PREFERENCES (applicant instructions):
 ${profile.custom_instructions || "Schreibe klar und direkt."}
 
-${canvasLatexInstructions(documentTemplate, "de")}
+${canvasLatexInstructions(documentTemplate, "de", cv.text)}
 
 RÜCKGABE AN DIE ERWEITERUNG:
 Speichere zuerst die Canvases und erstelle dann das folgende vollständige Paket. Behalte job_id, profile_id, cv_updated_at und alle Verlaufs-IDs exakt bei. Ersetze Platzhalter durch fertigen Text; latex_documents enthält die vollständigen Quellen. cv und cover_letter sind deren lesbare Fassungen. ${form ? 'Füge form_answers mit der erfassten form_id und Antworten [{"id":"q0","value":"fertige Antwort"}] hinzu. Nutze nur erfasste IDs und exakte Auswahlwerte, beachte max_length und lasse manuelle Felder und unbekannte Antworten aus.' : "Erfinde keine form_answers oder experience_bullets."}
@@ -71,7 +71,7 @@ ${JSON.stringify(payload, null, 2)}`;
 WRITING PREFERENCES (applicant instructions):
 ${profile.custom_instructions || "Use clear, direct prose."}
 
-${canvasLatexInstructions(documentTemplate, language)}
+${canvasLatexInstructions(documentTemplate, language, cv.text)}
 
 RETURN TO THE EXTENSION:
 After saving the Canvases, build the complete package below. Keep job_id, profile_id, cv_updated_at and every history ID exactly unchanged. Replace all placeholders with finished text; latex_documents must contain full source strings. The cv and cover_letter fields are readable versions of those same sources. ${form ? 'Include form_answers with the captured form_id and answers [{"id":"q0","value":"finished answer"}]. Use only captured IDs and exact select values, respect max_length, and omit manual controls and unknown answers.' : "Do not invent form_answers or experience_bullets."}

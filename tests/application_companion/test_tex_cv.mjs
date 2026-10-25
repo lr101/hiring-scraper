@@ -70,3 +70,56 @@ test('marked base CV rejects a returned CV without the complete marker contract'
 test('base CV translations share stable identity before they can be saved', () => {
  assert.throws(() => validateProfile({base_cvs: {en: source, de: source.replace('work-1', 'different-id')}}), /facts|dates|history/i);
 });
+
+import { validateTailoredCV } from '../../extensions/application-companion/tex-cv.js';
+test('tailoring rejects layout, headings, metadata and entry-order changes outside descriptions', () => {
+ for (const changed of [
+  source.replace('article', 'report'),
+  source.replace('\\subsection*{Engineer}', '\\subsection*{Developer}'),
+  source.replace('"location":"Bonn"', '"location":"Berlin"'),
+  source.replace('\\begin{itemize}', '\\begin{itemize}\n\\item Added a new bullet.'),
+ ]) assert.throws(() => validateTailoredCV(source, changed), /structure|description|layout/i);
+ assert.equal(validateTailoredCV(source, source.replace('Coordinated research.', 'Coordinated product research.')).experiences[0].description.includes('product research'), true);
+});
+test('layout-preserving description macros extract text and only their prose may change', () => {
+ const compact = source.replace('\\begin{itemize}\n\\item Built \\textbf{R\\&D} tools with 20\\% less waste.\n\\item Coordinated research.\n\\end{itemize}', String.raw`\newcommand{\RadiusWorkOne}{Built R\&D tools with 20\% less waste.}
+\newcommand{\RadiusWorkTwo}{Coordinated research.}`);
+ assert.equal(parseTexCV(compact).experiences[0].description, 'Built R&D tools with 20% less waste.\nCoordinated research.');
+ assert.match(validateTailoredCV(compact, compact.replace('Coordinated research.', 'Led user research.')).experiences[0].description, /Led user research/);
+ assert.throws(() => validateTailoredCV(compact, compact.replace('RadiusWorkTwo', 'RadiusOther')), /structure|description|layout/i);
+ assert.throws(() => parseTexCV(compact.replace('Coordinated research.', '\\input{secret}')), /plain|responsibility/i);
+});
+
+test('preserved sources normalize CRLF and enforce each fixed-layout macro text budget', () => {
+ assert.doesNotThrow(() => validateTailoredCV((source + '\n').replace(/\n/g, '\r\n'), source + '\n'));
+ const macro = source.replace('\\begin{itemize}\n\\item Built \\textbf{R\\&D} tools with 20\\% less waste.\n\\item Coordinated research.\n\\end{itemize}', String.raw`\newcommand{\RadiusWorkOne}{Coordinated research.}`);
+ assert.throws(() => validateTailoredCV(macro, macro.replace('Coordinated research.', 'Coordinated research. '.repeat(100))), /budget|length|fit/i);
+ assert.match(validateTailoredCV(macro, macro.replace('Coordinated research.', 'Led user research.')).experiences[0].description, /Led user research/);
+});
+
+test('tailors a marked Kurzprofil while preserving contacts, layout, history and line budgets', async () => {
+ const { validateTailoredCV } = await import('../../extensions/application-companion/tex-cv.js');
+ const profile = String.raw`Alex Example\par
+alex@example.org\par
+% radius:profile
+\newcommand{\RadiusProfileA}{Engineer building useful research tools.}
+% radius:endprofile
+\RadiusProfileA{}\par
+`;
+ const original = source.replace('\\begin{document}', '\\begin{document}\n' + profile);
+ const tailored = original.replace('Engineer building useful research tools.', 'Engineer coordinating research tools.');
+ assert.equal(validateTailoredCV(original, tailored).experiences[0].company, 'R&D Labs');
+ for (const altered of [tailored.replace('Alex Example','Other Name'), tailored.replace('alex@example.org','other@example.org'), tailored.replace('RadiusProfileA','RadiusProfileB'), tailored.replace('Engineer coordinating research tools.', 'Very long '.repeat(30)), tailored.replace('% radius:endprofile',''), tailored.replace('% radius:profile','% radius:profile\n% radius:profile')]) assert.throws(() => validateTailoredCV(original, altered));
+ assert.throws(() => parseTexCV(original.replace('Engineer building useful research tools.', '\\input{secret}')));
+ assert.equal(parseTexCV(original).experiences.length, 1);
+});
+
+test('English and German base CVs allow translated headings and prose while retaining career identities', async () => {
+ const { validateProfile } = await import('../../extensions/application-companion/profile.js');
+ const german = source.replaceAll('Engineer', 'Entwicklung').replace('Coordinated research.', 'Koordinierte Forschung.').replace('Studied computer science.', 'Studierte Informatik.');
+ const profile = validateProfile({base_cvs:{en:source,de:german}});
+ assert.equal(profile.base_cvs.de,german);
+ assert.throws(()=>validateProfile({base_cvs:{en:source,de:german.replace('R&D Labs','Other employer')}}),/facts|dates|history/i);
+ assert.throws(()=>validateProfile({base_cvs:{en:source,de:german.replace('"2021"','"2019"')}}),/facts|dates|history/i);
+ assert.throws(()=>validateTailoredCV(source,german),/structure|layout/i);
+});

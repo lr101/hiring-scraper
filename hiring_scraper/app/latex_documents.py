@@ -1,4 +1,6 @@
 """Render generated LaTeX or returned source checked against an inert grammar."""
+import base64
+import binascii
 from io import BytesIO
 import json
 import os
@@ -6,12 +8,14 @@ from pathlib import Path
 import re
 import shutil
 import signal
+import struct
 import subprocess
 import tempfile
 import threading
 from zipfile import ZipFile
 
 from lxml import etree
+from PIL import Image, UnidentifiedImageError
 from pypdf import PdfReader
 
 _renders = threading.BoundedSemaphore(2)
@@ -21,16 +25,18 @@ _ESCAPES = {'\\': r'\textbackslash{}', '{': r'\{', '}': r'\}', '$': r'\$',
 _TEMPLATE = json.loads(Path(__file__).with_name('latex_template.json').read_text(encoding='utf-8'))
 
 
-def validate_latex_source(source):
+def validate_latex_source(source, *, letter=False):
     """Accept only the fixed template and an inert, small body vocabulary.
 
     Disabling shell escape alone does not sandbox LuaTeX. Reject every command
     outside this grammar before handing returned Canvas source to the engine.
     """
-    if (len(source) > 100000 or not source.startswith(_TEMPLATE['preamble'])
+    preamble = next((value for value in (_TEMPLATE['preamble'], _TEMPLATE['letter_preamble']) if source.startswith(value)), None)
+    if (len(source) > 100000 or preamble is None
             or not source.endswith(_TEMPLATE['ending'])):
         raise ValueError('Use the supplied Radius LaTeX template without changing its preamble or ending.')
-    body = source[len(_TEMPLATE['preamble']):-len(_TEMPLATE['ending'])]
+    letter = letter or preamble == _TEMPLATE['letter_preamble']
+    body = source[len(preamble):-len(_TEMPLATE['ending'])]
     if not body.strip() or re.search(r'[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]', body):
         raise ValueError('LaTeX needs complete document text without unsupported control characters.')
     if re.search(r'^\s*% radius:', body, re.M):
@@ -39,14 +45,16 @@ def validate_latex_source(source):
         if '^^' in body:
             raise ValueError('LaTeX character-code escapes are not supported.')
         body = re.sub(r'^\s*% radius:[^\n]*', '', body, flags=re.M)
+    allowed = (r'\\|thispagestyle\{empty\}|[&%$#_{}]|'
+               r'(?:textbackslash|textasciitilde|textasciicircum)\{\}|'
+               r'(?:textbf|emph)(?=\{)|par(?![A-Za-z])')
+    if not letter:
+        allowed += r'|begin\{itemize\}|end\{itemize\}|(?:section\*|subsection\*)(?=\{)|item(?![A-Za-z])'
     position, groups, lists = 0, 0, 0
     while position < len(body):
         char = body[position]
         if char == '\\':
-            token = re.match(r'\\(?:begin\{itemize\}|end\{itemize\}|[&%$#_{}]|'
-                             r'(?:textbackslash|textasciitilde|textasciicircum)\{\}|'
-                             r'(?:section\*|subsection\*|textbf|emph)(?=\{)|'
-                             r'(?:par|item)(?![A-Za-z]))', body[position:])
+            token = re.match(r'\\(?:' + allowed + ')', body[position:])
             if token is None:
                 raise ValueError('Unsupported LaTeX command. Use only the document-body commands in the brief.')
             value = token[0]
@@ -107,8 +115,13 @@ def docx_text(data):
     return text
 
 
-def latex_source(text):
+def latex_source(text, *, letter=False):
     """A selectable-text, single-column A4 layout for a CV or letter."""
+    if letter:
+        blocks = re.split(r'\n(?:[ \t]*\n)+', text.replace('\r\n', '\n').replace('\r', '\n').strip())
+        body = r'\thispagestyle{empty}' + '\n'
+        body += '\n'.join(r'\\'.join(_inline(line) for line in block.splitlines()) + r'\par' for block in blocks)
+        return _TEMPLATE['letter_preamble'] + body + '\n' + _TEMPLATE['ending']
     lines = []
     in_list = False
     for line in text.replace('\r\n', '\n').replace('\r', '\n').split('\n'):
@@ -134,8 +147,98 @@ def latex_source(text):
     return _TEMPLATE['preamble'] + '\n'.join(lines) + '\n' + _TEMPLATE['ending']
 
 
-def render_latex_pdf(text, *, source=None):
-    source = validate_latex_source(source if source is not None else latex_source(text))
+def photo_bytes(data_url):
+    """Only bounded raster PNG data is materialized, under a fixed asset name."""
+    if not data_url.startswith('data:image/png;base64,') or len(data_url) > 2800000:
+        raise ValueError('Choose a PNG photo under 2 MiB.')
+    try:
+        data = base64.b64decode(data_url.split(',', 1)[1], validate=True)
+    except (ValueError, binascii.Error):
+        raise ValueError('Could not read this PNG photo.') from None
+    if (len(data) < 45 or len(data) > 2 * 1024 * 1024 or not data.startswith(b'\x89PNG\r\n\x1a\n')
+            or data[8:16] != b'\x00\x00\x00\rIHDR'):
+        raise ValueError('Choose a valid PNG photo under 2 MiB.')
+    width, height = struct.unpack('!II', data[16:24])
+    if not (1 <= width <= 4096 and 1 <= height <= 4096):
+        raise ValueError('Use a PNG photo no larger than 4096 pixels per side.')
+    # Validate complete chunk framing and checksums before using or bundling it.
+    offset, image_data, ended = 8, False, False
+    while offset < len(data):
+        if offset + 12 > len(data):
+            raise ValueError('The PNG photo is truncated or corrupt.')
+        size = struct.unpack('!I', data[offset:offset + 4])[0]
+        end = offset + size + 12
+        if end > len(data):
+            raise ValueError('The PNG photo is truncated or corrupt.')
+        kind = data[offset + 4:offset + 8]
+        checksum = struct.unpack('!I', data[end - 4:end])[0]
+        if binascii.crc32(data[offset + 4:end - 4]) != checksum:
+            raise ValueError('The PNG photo is truncated or corrupt.')
+        if kind == b'IHDR' and offset != 8:
+            raise ValueError('The PNG photo has an invalid image header.')
+        if kind == b'IDAT' and size:
+            image_data = True
+        if kind == b'IEND':
+            ended = size == 0 and end == len(data)
+            break
+        offset = end
+    if not image_data or not ended:
+        raise ValueError('The PNG photo is truncated or corrupt.')
+    try:
+        with Image.open(BytesIO(data), formats=['PNG']) as image:
+            image.verify()
+        with Image.open(BytesIO(data), formats=['PNG']) as image:
+            image.load()  # Verify compressed pixels as well as chunk checksums.
+    except (UnidentifiedImageError, OSError, SyntaxError, ValueError):
+        raise ValueError('The PNG photo is truncated or corrupt.') from None
+    return data
+
+
+def source_with_photo(source):
+    """Add a photo beside the fixed-template header, after source validation."""
+    validate_latex_source(source)
+    if not source.startswith(_TEMPLATE['preamble']):
+        raise ValueError('Photos use the CV template, not the letter template.')
+    body = source[len(_TEMPLATE['preamble']):-len(_TEMPLATE['ending'])]
+    sections = list(re.finditer(r'\\section\*\{', body))
+    # Keep the name/contact header together; reserve a separate photo column.
+    split = sections[1].start() if len(sections) > 1 else len(body)
+    header, rest = body[:split], body[split:]
+    preamble = _TEMPLATE['preamble'].replace(r'\begin{document}', r'\usepackage{graphicx}' + '\n' + r'\begin{document}')
+    return (preamble + r'\noindent\begin{minipage}[t]{0.76\textwidth}\vspace{0pt}' + '\n' + header
+            + '\n' + r'\end{minipage}\hfill\begin{minipage}[t]{0.20\textwidth}\vspace{0pt}'
+            + r'\includegraphics[width=\linewidth,height=35mm,keepaspectratio]{portrait.png}'
+            + r'\end{minipage}\par' + '\n' + rest + _TEMPLATE['ending'])
+
+
+def latex_source_bundle(source, photo):
+    """Package source and one portrait; custom source is never compiled here."""
+    try:
+        validate_latex_source(source)
+        fixed = True
+    except ValueError:
+        fixed = False
+    if fixed:
+        source, filename = source_with_photo(source), 'portrait.png'
+    else:
+        images = re.findall(r'\\includegraphics(?:\[[^]\n]*\])?\{([^}\n]+)\}', source)
+        if len(images) != 1 or not re.fullmatch(r'[A-Za-z0-9_-]+\.png', images[0]):
+            raise ValueError('For a photo bundle, the custom CV must reference one PNG portrait using a plain filename, such as portrait_cropped.png.')
+        filename = images[0]
+    output = BytesIO()
+    with ZipFile(output, 'w') as bundle:
+        bundle.writestr('application.tex', source)
+        bundle.writestr(filename, photo)
+        bundle.writestr('README.txt', 'Extract all files into one folder. Compile the trusted CV locally with:\n'
+                        'lualatex -no-shell-escape application.tex\n'
+                        'The header text and custom layout are retained. The supplied photo fills the existing portrait slot.\n')
+    return output.getvalue()
+
+
+def render_latex_pdf(text, *, source=None, photo=None, letter=False):
+    source = validate_latex_source(source if source is not None else latex_source(text, letter=letter), letter=letter)
+    if photo is not None:
+        source = source_with_photo(source)
     executable = shutil.which('lualatex')
     if not executable:
         raise RuntimeError('LaTeX PDF generation is unavailable. Download the LaTeX source or choose DOCX/PDF instead.')
@@ -145,6 +248,8 @@ def render_latex_pdf(text, *, source=None):
         with tempfile.TemporaryDirectory(prefix='radius-latex-') as folder:
             root = Path(folder)
             (root / 'application.tex').write_text(source, encoding='utf-8')
+            if photo is not None:
+                (root / 'portrait.png').write_bytes(photo)
             # Only grammar-checked source reaches the engine. Disable shell
             # escape and confine output/cache files to this temporary directory.
             env = {**os.environ, 'openin_any': 'p', 'openout_any': 'p', 'HOME': folder,

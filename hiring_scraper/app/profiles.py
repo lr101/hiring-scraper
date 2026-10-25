@@ -71,6 +71,7 @@ class ApplicationPersonalization(BaseModel):
     model_config = ConfigDict(extra='forbid')
     career_evidence: str = Field(default='', max_length=12000)
     writing_samples: str = Field(default='', max_length=12000)
+    cover_letter_example: str = Field(default='', max_length=16000)
     wording_to_avoid: str = Field(default='', max_length=3000)
     career_goals: str = Field(default='', max_length=5000)
     work_preferences: str = Field(default='', max_length=5000)

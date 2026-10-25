@@ -33,7 +33,7 @@ export type Profile = {
   localized_content?: Partial<Record<'en' | 'de', Partial<LocalizedProfileContent>>>
 
   application_personalization?: {
-    career_evidence?: string; writing_samples?: string; wording_to_avoid?: string
+    career_evidence?: string; writing_samples?: string; cover_letter_example?: string; wording_to_avoid?: string
     career_goals?: string; work_preferences?: string
   }
   application_details?: ApplicationDetails
