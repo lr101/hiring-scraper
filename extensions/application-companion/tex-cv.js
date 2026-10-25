@@ -12,7 +12,8 @@ export function parseTexCV(source) {
     education = [],
     ids = new Set();
   let entry = null,
-    description = null;
+    description = null,
+    profileBlock = false;
   const fail = () => {
     throw new Error(
       "Invalid CV history markers. Use the CV formatting prompt; check IDs, dates and entry boundaries.",
@@ -21,7 +22,14 @@ export function parseTexCV(source) {
   for (const line of source.split(/\r?\n/)) {
     const marker = line.match(/^\s*% radius:(.*)$/);
     if (marker) {
-      if (marker[1].startsWith("entry ")) {
+      if (marker[1] === "profile") {
+        if (profileBlock || entry || description !== null) fail();
+        profileBlock = true;
+      } else if (marker[1] === "endprofile") {
+        if (!profileBlock || entry || description !== null) fail();
+        profileBlock = false;
+      } else if (profileBlock) fail();
+      else if (marker[1].startsWith("entry ")) {
         if (entry) fail();
         try {
           entry = JSON.parse(marker[1].slice(6));
@@ -74,7 +82,16 @@ export function parseTexCV(source) {
         description = [];
       } else if (marker[1] === "end") {
         if (!entry || description === null) fail();
-        const text = texText(description.join("\n"));
+        const lines = description.map((line) => {
+          // Radius preserves line-sized CV text as inert \\newcommand bodies.
+          // Capture only the narrow generated macro name pattern; never expand
+          // TeX commands or evaluate definitions from an uploaded document.
+          const macro = line.match(
+            /^\s*\\newcommand\s*\{\s*\\Radius[A-Za-z0-9]+\s*\}\s*\{(.*)\}\s*$/,
+          );
+          return macro ? macro[1] : line;
+        });
+        const text = texText(lines.join("\n"));
         if (text.length > 10000) fail();
         const { kind, ...facts } = entry;
         (kind === "work" ? experiences : education).push({
@@ -85,9 +102,15 @@ export function parseTexCV(source) {
         entry = null;
         description = null;
       } else fail();
-    } else if (description !== null) description.push(line);
+    } else if (description !== null && !profileBlock) description.push(line);
   }
-  if (entry || !ids.size || experiences.length > 20 || education.length > 20)
+  if (
+    entry ||
+    profileBlock ||
+    !ids.size ||
+    experiences.length > 20 ||
+    education.length > 20
+  )
     fail();
   return { experiences, education };
 }
@@ -165,10 +188,14 @@ export function withCVLanguage(profile, language) {
     preferences: localized.application_details.preferences,
   };
   if (!Object.keys(profile.base_cvs ?? {}).length) return profile;
-  const source = profile.base_cvs[selected];
+  // Keep structured work history available when the form language has no
+  // matching base CV. The saved source still controls which facts are used;
+  // this fallback does not translate or rewrite its text.
+  const source =
+    profile.base_cvs[selected] || profile.base_cvs.en || profile.base_cvs.de;
   if (!source)
     throw new Error(
-      `Add the ${selected === "de" ? "German" : "English"} base LaTeX CV before filling this form.`,
+      "Add a marked English or German base LaTeX CV before filling this form.",
     );
   return { ...profile, cv_text: source, ...parseTexCV(source) };
 }

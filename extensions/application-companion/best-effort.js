@@ -422,6 +422,25 @@
           name,
         ),
     );
+  function experienceYearsControl(el) {
+    if (!(el instanceof HTMLSelectElement)) return false;
+    const hints = [
+      el.id || "",
+      el.name || "",
+      el.getAttribute("aria-label") || "",
+      referencedText(el),
+      ...labelsFor(el).map((node) => node.textContent),
+    ].map(cleanHint);
+    return hints.some((hint) =>
+      [
+        "job experience",
+        "years of experience",
+        "years of professional experience",
+        "total years of experience",
+        "berufserfahrung",
+      ].includes(hint),
+    );
+  }
   function key(el) {
     const section = sectionContext(el);
     if (foreignPersonScope(section)) return null;
@@ -429,6 +448,7 @@
     if (history?.key) return "experience:" + history.key;
     const presentation = globalThis.applicationHistory?.presentationKey(el);
     if (presentation) return "history:" + presentation;
+    if (experienceYearsControl(el)) return "experience_years";
     // "Name", "Email" and "City" also occur in other people's contact
     // cards, schools and employers. Only a structured adapter can establish
     // the identity of a history row; applicant contacts are not a fallback.
@@ -690,11 +710,126 @@
       ? value.split("-").reverse().join(".")
       : value;
   }
+  function experienceMonths(experiences) {
+    if (!experiences?.length) return null;
+    const monthRange = (value) => {
+      const match = String(value || "").match(
+        /^([1-9][0-9]{3})(?:-(0[1-9]|1[0-2]))?$/,
+      );
+      if (!match) return null;
+      const yearStart = Number(match[1]) * 12;
+      if (!match[2]) return { earliest: yearStart, latest: yearStart + 11 };
+      const month = yearStart + Number(match[2]) - 1;
+      return { earliest: month, latest: month };
+    };
+    const now = new Date();
+    const currentMonth = now.getFullYear() * 12 + now.getMonth();
+    const shortestPeriods = [];
+    const longestPeriods = [];
+    for (const entry of experiences) {
+      const start = monthRange(entry.start);
+      const end = entry.current
+        ? { earliest: currentMonth, latest: currentMonth }
+        : monthRange(entry.end);
+      if (!start || !end || end.latest <= start.earliest) return null;
+      if (end.earliest > start.latest)
+        shortestPeriods.push([start.latest, end.earliest]);
+      longestPeriods.push([start.earliest, end.latest]);
+    }
+    const totalMonths = (periods) => {
+      if (!periods.length) return 0;
+      periods.sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+      let total = 0;
+      let [start, end] = periods[0];
+      for (const [nextStart, nextEnd] of periods.slice(1)) {
+        if (nextStart <= end) end = Math.max(end, nextEnd);
+        else {
+          total += end - start;
+          [start, end] = [nextStart, nextEnd];
+        }
+      }
+      return total + end - start;
+    };
+    return {
+      minimum: totalMonths(shortestPeriods),
+      maximum: totalMonths(longestPeriods),
+    };
+  }
+  function experienceYearBand(el, profile) {
+    const months = experienceMonths(profile.experiences || []);
+    if (months === null || months.maximum < 1)
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The saved CV dates do not establish a reliable total work-experience duration.",
+      };
+    const options = [...el.options].filter(
+      (option) => !option.disabled && option.value,
+    );
+    const categories = options.flatMap((option) => {
+      const text = cleanHint(option.textContent || "");
+      if (/\b(einsteiger|entry level|no experience)\b/.test(text))
+        return [{ option, kind: "entry", limit: 0 }];
+      const number =
+        text.match(/\d+(?:[.,]\d+)?/) ||
+        option.value.match(/^\d+(?:[.,]\d+)?$/);
+      if (!number) return [];
+      const limit = Number(number[0].replace(",", "."));
+      if (!Number.isFinite(limit)) return [];
+      if (/\b(or more|oder mehr|at least|and over|plus|ab)\b/.test(text))
+        return [{ option, kind: "minimum", limit }];
+      if (/\b(up to|bis|max(?:imum)?)\b/.test(text))
+        return [{ option, kind: "maximum", limit }];
+      return [];
+    });
+    const bandFor = (years) => {
+      const minimums = categories
+        .filter(({ kind, limit }) => kind === "minimum" && years >= limit)
+        .sort((left, right) => right.limit - left.limit);
+      const maximums = categories
+        .filter(
+          ({ kind, limit }) =>
+            (kind === "maximum" && years <= limit) ||
+            (kind === "entry" && years === 0),
+        )
+        .sort((left, right) => left.limit - right.limit);
+      return minimums[0] || maximums[0] || null;
+    };
+    const lowerBand = bandFor(months.minimum / 12);
+    const upperBand = bandFor(months.maximum / 12);
+    if (
+      !lowerBand ||
+      !upperBand ||
+      lowerBand.option.value !== upperBand.option.value
+    )
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The approximate CV dates span more than one work-experience range, so this answer needs review.",
+      };
+    const selected = lowerBand;
+    if (!selected)
+      return {
+        value: "",
+        source: "CV work dates",
+        reason:
+          "The form does not offer one clear range for the duration in the saved work history.",
+      };
+    return {
+      value: selected.option.value,
+      source: "CV work dates (approximate range)",
+      reason:
+        "The range uses saved work dates, merges overlapping roles, and checks the CV's year/month precision.",
+    };
+  }
   function valueFor(field, profile, answers, scoped, preparedAnswer) {
     const { el, key } = field;
     const structured = globalThis.applicationHistory?.mapping(el, profile);
     if (structured) return structured;
     const pref = profile.preferences || {};
+    if (key === "experience_years") return experienceYearBand(el, profile);
     if (key?.startsWith("pref:")) {
       const property = key.slice(5);
       let value =

@@ -117,24 +117,22 @@
       ) || null
     );
   }
+  function localGroupNames(parent) {
+    const referenced = (parent.getAttribute("aria-labelledby") || "")
+      .split(/\s+/)
+      .map((id) => document.getElementById(id)?.textContent || "")
+      .join(" ");
+    const heading = parent.querySelector(
+      ":scope > legend,:scope > h2,:scope > h3,:scope > h4",
+    )?.textContent;
+    return [parent.getAttribute("aria-label"), referenced, heading]
+      .map((name) => norm(name || ""))
+      .filter(Boolean);
+  }
   const groupNames = (group) => {
     const names = [];
-    for (let parent = group; parent; parent = parent.parentElement) {
-      const referenced = (parent.getAttribute("aria-labelledby") || "")
-        .split(/\s+/)
-        .map((id) => document.getElementById(id)?.textContent || "")
-        .join(" ");
-      names.push(
-        norm(
-          parent.getAttribute("aria-label") ||
-            referenced ||
-            parent.querySelector(
-              ":scope > legend,:scope > h2,:scope > h3,:scope > h4",
-            )?.textContent ||
-            "",
-        ),
-      );
-    }
+    for (let parent = group; parent; parent = parent.parentElement)
+      names.push(...localGroupNames(parent));
     return names;
   };
   const foreignScope = (names) =>
@@ -143,6 +141,46 @@
         name,
       ),
     );
+  const historyHeading =
+    /\b(work experience|professional experience|employment history|employment experience|work history|experience|berufserfahrung|beruflicher werdegang)\b/;
+  const historyAddAction =
+    /^(?:add (?:another )?(?:work )?experience|add employment|berufserfahrung hinzufugen|weitere berufserfahrung)$/;
+  function historyContainer(el) {
+    for (let parent = el.parentElement; parent; parent = parent.parentElement) {
+      if (
+        localGroupNames(parent).some(
+          (name) =>
+            !/\bemployment application\b/.test(name) &&
+            historyHeading.test(name),
+        )
+      )
+        return parent;
+    }
+    return null;
+  }
+  function historySectionForGroup(group) {
+    // When an ATS creates its first row directly inside the labeled group,
+    // that group is both the row and the section that owns the Add button.
+    return historyContainer(group) || group;
+  }
+  function addExperienceButtons(scope = document) {
+    return [...scope.querySelectorAll("button")].filter((button) => {
+      const name = norm(
+        button.getAttribute("aria-label") ||
+          button.textContent ||
+          button.title ||
+          "",
+      );
+      return (
+        visible(button) &&
+        button.type === "button" &&
+        !button.disabled &&
+        historyAddAction.test(name)
+      );
+    });
+  }
+  const hasVisibleDialog = () =>
+    [...document.querySelectorAll("dialog[open],[role=dialog]")].some(visible);
   let cachedGroups = null;
   const invalidateGroups = () => {
     cachedGroups = null;
@@ -565,14 +603,44 @@
       mutated = false;
     let entries = groups();
     if (!entries.length) {
-      const actions = [...document.querySelectorAll("button")].filter(
-        (b) =>
-          visible(b) &&
-          /^(add (work )?experience|add employment|berufserfahrung hinzufugen)$/.test(
-            norm(b.textContent),
-          ),
-      );
-      if (actions.length && profile.experiences.length)
+      const actions = addExperienceButtons();
+      // Only bootstrap a completely empty history section on the ATS whose
+      // inline row behavior has been verified. Existing rows can still use
+      // the generic scoped Add flow below on other supported forms.
+      const scoped =
+        location.hostname === "jobs.smartrecruiters.com"
+          ? actions.filter((button) => historyContainer(button))
+          : [];
+      if (scoped.length === 1 && profile.experiences.length) {
+        const section = historyContainer(scoped[0]);
+        scoped[0].click();
+        mutated = true;
+        const until = performance.now() + 1500;
+        while (
+          performance.now() < until &&
+          groups().length === 0 &&
+          !hasVisibleDialog()
+        )
+          await new Promise((r) => setTimeout(r, 30));
+        entries = groups();
+        if (
+          entries.length !== 1 ||
+          historySectionForGroup(entries[0]) !== section ||
+          hasVisibleDialog()
+        ) {
+          extra.push({
+            id: "work-history-add",
+            label: "Work history",
+            status: "unsupported",
+            reason:
+              "The Add experience action did not create one inline job row in this section. An employer-specific modal or save workflow needs manual completion; no Save action was attempted.",
+            required: false,
+            source: "",
+          });
+          return { added, mutated };
+        }
+        added++;
+      } else if (actions.length && profile.experiences.length)
         extra.push({
           id: "work-history",
           label: "Work history",
@@ -582,7 +650,7 @@
           required: false,
           source: "",
         });
-      return { added, mutated };
+      if (!entries.length) return { added, mutated };
     }
     if (entries.length > profile.experiences.length)
       blocked =
@@ -616,16 +684,11 @@
     if (blocked) return { added, mutated };
     while (entries.length < profile.experiences.length) {
       const section =
+        historySectionForGroup(entries[0]) ||
         entries[0].parentElement.closest("section,[role=group]") ||
         entries[0].parentElement;
-      const buttons = [...section.querySelectorAll("button")].filter(
-        (b) =>
-          visible(b) &&
-          b.type === "button" &&
-          !b.disabled &&
-          /^(add (work )?experience|add employment|berufserfahrung hinzufugen|weitere berufserfahrung)$/.test(
-            norm(b.textContent),
-          ),
+      const buttons = addExperienceButtons(section).filter(
+        (button) => historyContainer(button) === section,
       );
       if (buttons.length !== 1) {
         extra.push({
@@ -646,14 +709,11 @@
       while (
         performance.now() < until &&
         groups().length === count &&
-        !document.querySelector("dialog[open],[role=dialog]")
+        !hasVisibleDialog()
       )
         await new Promise((r) => setTimeout(r, 30));
       entries = groups();
-      if (
-        entries.length !== count + 1 ||
-        document.querySelector("dialog[open],[role=dialog]")
-      ) {
+      if (entries.length !== count + 1 || hasVisibleDialog()) {
         blocked =
           "The Add action did not create one recognizable inline job row. An employer-specific modal or asynchronous workflow needs manual completion; no Save action was attempted.";
         extra.push({
