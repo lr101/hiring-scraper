@@ -11,6 +11,11 @@ const empty = (): Profile => ({ localized_content: {}, application_personalizati
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
+function withProfileDefaults(profile: Profile): Profile {
+  const defaults = empty()
+  return { ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
+    matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }
+}
 
 const stepOrder = ['goals', 'experience', 'details', 'documents', 'review'] as const
 const contactLabels = {
@@ -48,7 +53,7 @@ function ProfileOverviewPage() {
     return data
   }
   useEffect(() => {
-    request('').then(data => setProfiles(data.items))
+    request('').then(data => setProfiles(data.items.map(withProfileDefaults)))
       .catch(reason => setError(String(reason.message)))
       .finally(() => setLoading(false))
   }, [])
@@ -154,9 +159,10 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   }
   function edit(profile: Profile) {
     setBaseline('')
-    const defaults = empty()
-    setStoredForm({ ...defaults, ...Object.fromEntries(Object.keys(defaults).filter(key => key in profile).map(key => [key, profile[key as keyof Profile]])),
-      matching_defaults: { ...defaults.matching_defaults, ...profile.matching_defaults }, id: profile.id }); setSecondaryText((profileForLanguage(profile, contentLanguage).secondary_roles ?? []).join(', ')); setLanguageText(profile.languages.join(', ')); setCertificationsText((profileForLanguage(profile, contentLanguage).certifications ?? []).join(', ')); setSkillsText((profileForLanguage(profile, contentLanguage).skills ?? []).join(', ')); setRolesText((profileForLanguage(profile, contentLanguage).desired_roles ?? []).join(', ')); setExcludedText(profile.excluded_terms.join(', ')); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
+    const normalized = withProfileDefaults(profile)
+    const localized = profileForLanguage(normalized, contentLanguage)
+    setStoredForm(normalized)
+    setSecondaryText((localized.secondary_roles ?? []).join(', ')); setLanguageText(normalized.languages.join(', ')); setCertificationsText((localized.certifications ?? []).join(', ')); setSkillsText((localized.skills ?? []).join(', ')); setRolesText((localized.desired_roles ?? []).join(', ')); setExcludedText(normalized.excluded_terms.join(', ')); setAreaChoices([]); setAreaQuery(''); setNotice(''); setError('')
   }
   function switchContentLanguage(language: 'en' | 'de') {
     if (busy) return
