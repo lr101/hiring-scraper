@@ -91,9 +91,9 @@ jobs:
         run: |
           # The runner's Azure mirror can trickle downloads without triggering failover.
           # Both Playwright and the PDF runtime install packages through this list.
-          printf '%s\n' \
-            'https://archive.ubuntu.com/ubuntu/ priority:1' \
-            'https://security.ubuntu.com/ubuntu/ priority:2' \
+          printf '%s\tpriority:%s\n' \
+            'https://archive.ubuntu.com/ubuntu/' 1 \
+            'https://security.ubuntu.com/ubuntu/' 2 \
             | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
 
       - name: Install dependencies and full Chromium
