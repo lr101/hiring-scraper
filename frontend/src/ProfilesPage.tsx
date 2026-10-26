@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { profileForLanguage } from '../../extensions/application-companion/profile-language.js'
 import SiteHeader from './SiteHeader'
 import './profile-onboarding.css'
+import { readCVPhoto } from './applicationDocumentExport'
 import { cvFormattingPrompt, cvFormattingPromptDe } from '../../extensions/application-companion/tex-cv-prompt.js'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 import type { SearchArea, Profile, ProfileSetupStep } from './profile'
 import { profileBoardLink, profileDraftFingerprint, profileSetupSections, selectedLanguageLevels, skillEvidenceKey, updateProfileLanguage } from './profile'
-const empty = (): Profile => ({ localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, photo: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -79,7 +80,7 @@ function ProfileOverviewPage() {
           ...(profile.matching_defaults?.low_afd_vote_share_weight ? [`City preference · up to ${profile.matching_defaults.low_afd_vote_share_weight} pts`] : []),
           ...profile.work_styles.slice(0, 2).map(style => style.replaceAll('_', ' '))].slice(0, 5)
         return <article className="saved-profile" key={profile.id}>
-          <header className="saved-profile-header"><span className="saved-profile-avatar" aria-hidden="true">{profile.name.slice(0, 1).toUpperCase()}</span>
+          <header className="saved-profile-header"><span className="saved-profile-avatar" aria-hidden="true">{profile.photo ? <img src={`${API}/api/v1/profiles/${profile.id}/photo?v=${encodeURIComponent(profile.photo.updated_at)}`} alt="" /> : profile.name.slice(0, 1).toUpperCase()}</span>
             <div><h2>{profile.name}</h2><small>{profile.summary || germanContent.summary || skills.slice(0, 3).join(' · ') || 'Add skills and roles to tune this profile.'}</small></div>
           </header>
           <div className="profile-overview-tags">{tags.map((tag, index) => <span key={`${tag}-${index}`}>{tag}</span>)}</div>
@@ -132,6 +133,8 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   const [areaChoices, setAreaChoices] = useState<SearchArea[]>([])
   const [cv, setCV] = useState('')
   const [pendingCVs, setPendingCVs] = useState<Partial<Record<'en' | 'de', File>>>({})
+  const [pendingPhoto, setPendingPhoto] = useState<{ file: File; preview: string } | null>(null)
+  const [removePhoto, setRemovePhoto] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -143,7 +146,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
 
   const currentProfile = updateProfileLanguage(storedForm, { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), secondary_roles: terms(secondaryText), certifications: terms(certificationsText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), excluded_terms: terms(excludedText) }, contentLanguage)
   const snapshot = profileDraftFingerprint(currentProfile)
-  const dirty = Boolean(baseline && snapshot !== baseline) || Object.keys(pendingCVs).length > 0 || Boolean(cv.trim())
+  const dirty = Boolean(baseline && snapshot !== baseline) || Object.keys(pendingCVs).length > 0 || Boolean(pendingPhoto) || removePhoto || Boolean(cv.trim())
   useEffect(() => { if (!baseline && !loading) setBaseline(snapshot) }, [baseline, loading, snapshot])
   useEffect(() => {
     const guard = (event: BeforeUnloadEvent) => { if (dirty && !allowLeave.current) { event.preventDefault(); event.returnValue = '' } }
@@ -184,10 +187,23 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
       const id = payload.id
       delete payload.id
       delete payload.cv
+      delete payload.photo
       const saved = await request(id ? `/${id}` : '', { method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      setStoredForm(current => ({ ...current, id: saved.id, cv: saved.cv }))
+      setStoredForm(current => ({ ...current, id: saved.id, cv: saved.cv, photo: saved.photo }))
       if (!id && saved.id) window.history.replaceState({}, '', `/profile/${saved.id}/edit${returnTo ? `?return_to=${encodeURIComponent(returnTo)}` : ''}#profile-${step}`)
+      if (pendingPhoto) {
+        saved.photo = await request(`/${saved.id}/photo?filename=${encodeURIComponent(pendingPhoto.file.name)}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pendingPhoto.file,
+        })
+        setStoredForm(current => ({ ...current, photo: saved.photo }))
+        setPendingPhoto(null); setRemovePhoto(false)
+      } else if (removePhoto) {
+        const response = await fetch(`${API}/api/v1/profiles/${saved.id}/photo`, { method: 'DELETE' })
+        if (!response.ok) throw new Error('Could not remove the photo. Try again.')
+        saved.photo = null
+        setStoredForm(current => ({ ...current, photo: null })); setRemovePhoto(false)
+      }
       for (const [language, pendingCV] of Object.entries(pendingCVs)) {
         const uploaded = await fetch(`${API}/api/v1/profiles/${saved.id}/cv?filename=${encodeURIComponent(pendingCV.name)}&language=${language}`,
           { method: 'PUT', headers: { 'Content-Type': 'application/octet-stream' }, body: pendingCV })
@@ -423,6 +439,25 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
           {form.cv && !Object.keys(form.cv.languages ?? {}).length && <p>Replace the previous CV ({form.cv.filename}) with marked LaTeX sources.</p>}
           {form.cv && <button type="button" disabled={busy} onClick={() => void removeCV()}>{text('Remove all base CVs', 'Alle Lebensläufe entfernen')}</button>}
           <details><summary>{text('Prompt for formatting my existing LaTeX CV', 'Prompt zum Formatieren meines LaTeX-Lebenslaufs')}</summary><p>{text('Paste this into ChatGPT with your original CV. Review the facts before uploading both files.', 'Füge diesen Prompt mit deinem ursprünglichen Lebenslauf in ChatGPT ein. Prüfe die Fakten, bevor du beide Dateien hochlädst.')}</p><textarea aria-label="CV formatting prompt" readOnly rows={12} value={contentLanguage === 'de' ? cvFormattingPromptDe : cvFormattingPrompt} /></details>
+        </fieldset>
+        <fieldset className="profile-section" id="profile-photo"><legend>{text('CV photo (optional)', 'Bewerbungsfoto (optional)')}</legend>
+          <p>{text('Save a photo once for CV previews and PDF exports in both languages. You can leave it out or choose a different photo for an individual application. It is not sent to ChatGPT.', 'Speichere ein Foto für die Lebenslauf-Vorschau und PDF-Exporte in beiden Sprachen. Du kannst es bei einzelnen Bewerbungen weglassen oder ersetzen. Es wird nicht an ChatGPT gesendet.')}</p>
+          <label>{text('Profile photo', 'Profilfoto')}<input type="file" accept="image/png,.png" disabled={busy} onChange={event => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            if (!file) return
+            setBusy(true); setError(''); setNotice('')
+            void readCVPhoto(file).then(preview => { setPendingPhoto({ file, preview }); setRemovePhoto(false) })
+              .catch(reason => setError(reason.message)).finally(() => setBusy(false))
+          }} /></label>
+          <small>{text('PNG up to 2 MiB and 4096 pixels per side. Changes take effect when you save the profile.', 'PNG bis 2 MiB und 4096 Pixel pro Seite. Änderungen werden mit dem Profil gespeichert.')}</small>
+          {(pendingPhoto || (form.photo && !removePhoto)) && <div className="profile-pending-cv">
+            <img src={pendingPhoto?.preview ?? `${API}/api/v1/profiles/${form.id}/photo?v=${encodeURIComponent(form.photo!.updated_at)}`} alt={text('Profile photo preview', 'Profilfoto-Vorschau')} width={96} style={{ maxHeight: 128, objectFit: 'contain' }} />
+            <p>{pendingPhoto ? `${pendingPhoto.file.name} · ${text('ready to save', 'bereit zum Speichern')}` : form.photo!.filename}</p>
+            <button type="button" disabled={busy} onClick={() => { setPendingPhoto(null); setRemovePhoto(Boolean(form.photo)) }}>{text('Remove photo', 'Foto entfernen')}</button>
+            {pendingPhoto && <button type="button" disabled={busy} onClick={() => setPendingPhoto(null)}>{text('Cancel upload', 'Upload abbrechen')}</button>}
+          </div>}
+          {removePhoto && form.photo && <p>{text('Photo will be removed when you save.', 'Das Foto wird beim Speichern entfernt.')} <button type="button" disabled={busy} onClick={() => setRemovePhoto(false)}>{text('Undo', 'Rückgängig')}</button></p>}
         </fieldset>
         <fieldset className="profile-section" id="profile-personalization"><legend>{text('About me for applications', 'Über mich für Bewerbungen')}</legend>
           <p className="muted">{text('Add confirmed examples and preferences once. They’re used by Prepare inside Radius and included in application and fit briefs for ChatGPT. You can draft these in your usual ChatGPT conversation, then check the facts before saving here.', 'Speichere bestätigte Beispiele und Wünsche einmal. Sie werden bei Prepare inside Radius und in Bewerbungs- und Eignungsprompts für ChatGPT verwendet. Du kannst sie im gewohnten ChatGPT-Gespräch entwerfen und die Fakten vor dem Speichern prüfen.')}</p>

@@ -20,6 +20,42 @@ from test_cv_template import template_docx
 
 
 class ApplicationDocumentTests(unittest.TestCase):
+    def test_saved_profile_photo_is_used_by_default_and_can_be_overridden_or_excluded(self):
+        import base64
+        original = base64.b64decode(self.photo().split(',', 1)[1])
+        self.assertTrue(callable(getattr(profiles, 'store_profile_photo', None)), 'Saved profile portraits are missing')
+        profiles.store_profile_photo(self.session, self.profile_id, 'portrait.png', original)
+        response = self.export(format='tex_bundle')
+        with ZipFile(BytesIO(response.body)) as bundle:
+            self.assertEqual(bundle.read('portrait.png'), original)
+            self.assertIn('includegraphics', bundle.read('application.tex').decode())
+        # An application override changes this export, never the saved portrait.
+        from PIL import Image
+        output = BytesIO()
+        Image.new('RGB', (4, 4), 'red').save(output, format='PNG')
+        override = 'data:image/png;base64,' + base64.b64encode(output.getvalue()).decode()
+        with ZipFile(BytesIO(self.export(format='tex_bundle', photo_data_url=override).body)) as bundle:
+            self.assertEqual(bundle.read('portrait.png'), output.getvalue())
+        self.assertEqual(profiles.download_photo(self.profile_id, self.session).body, original)
+        with self.assertRaises(HTTPException) as error:
+            self.export(format='tex_bundle', use_profile_photo=False)
+        self.assertEqual(error.exception.status_code, 422)
+        # Letters and raw TeX exports must keep working with a saved photo.
+        self.assertNotIn('includegraphics', self.export(kind='cover_letter', format='tex').body.decode())
+        self.assertNotIn('includegraphics', self.export(format='tex').body.decode())
+
+    @unittest.skipUnless(shutil.which('lualatex'), 'LuaLaTeX unavailable')
+    def test_saved_photo_is_embedded_in_pdf_unless_excluded(self):
+        import base64
+        from pypdf import PdfReader
+        self.assertTrue(callable(getattr(profiles, 'store_profile_photo', None)), 'Saved profile portraits are missing')
+        profiles.store_profile_photo(self.session, self.profile_id, 'portrait.png', base64.b64decode(self.photo().split(',', 1)[1]))
+        def image_count(response):
+            return sum(len(page.images) for page in PdfReader(BytesIO(response.body)).pages)
+        self.assertGreater(image_count(self.export(format='latex_pdf')), 0)
+        self.assertEqual(image_count(self.export(format='latex_pdf', use_profile_photo=False)), 0)
+        self.assertEqual(image_count(self.export(kind='cover_letter', format='latex_pdf')), 0)
+
     def test_canvas_latex_source_is_exported_verbatim_and_used_for_pdf(self):
         from hiring_scraper.app.latex_documents import latex_source
         source = latex_source('# Canvas-only heading\nJosé in Genève 2021-2024')
