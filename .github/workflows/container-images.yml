@@ -57,7 +57,7 @@ jobs:
   extension:
     name: Radius extension
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     concurrency:
       group: extension-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -86,6 +86,15 @@ jobs:
         with:
           version: '0.12.23'
           enable-cache: true
+
+      - name: Use Ubuntu HTTPS package mirrors
+        run: |
+          # The runner's Azure mirror can trickle downloads without triggering failover.
+          # Both Playwright and the PDF runtime install packages through this list.
+          printf '%s\n' \
+            'https://archive.ubuntu.com/ubuntu/ priority:1' \
+            'https://security.ubuntu.com/ubuntu/ priority:2' \
+            | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
 
       - name: Install dependencies and full Chromium
         run: |
