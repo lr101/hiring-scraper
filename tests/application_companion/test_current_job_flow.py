@@ -1,5 +1,6 @@
 """Current employer job -> ChatGPT -> imported documents, entirely in extension UI."""
 import json
+import io
 import os
 import re
 from pathlib import Path
@@ -115,6 +116,15 @@ class CurrentJobFlowTests(ProductionHarness):
         self.assertEqual(state['radiusVault']['settings']['cv_updated_at'],canonical)
 
     def test_connected_contact_save_preserves_legacy_history_and_cv_removal_is_explicit(self):
+        from PIL import Image
+        portrait = io.BytesIO()
+        Image.new('RGB', (4, 4), 'red').save(portrait, format='PNG')
+        photo = portrait.getvalue()
+        uploaded_photo = self.context.request.put(
+            self.origin+'/api/v1/profiles/1/photo?filename=portrait.png',
+            data=photo, headers={'Content-Type':'image/png'})
+        self.assertTrue(uploaded_photo.ok, uploaded_photo.text())
+        photo_metadata = uploaded_photo.json()
         history=[dict(id='legacy-1',company='Legacy company',title='Engineer',start='2018',end='2020',current=False)]
         response=self.context.request.put(self.origin+'/api/v1/profiles/1',data={'name':'Research profile','application_details':{'experiences':history}})
         self.assertTrue(response.ok,response.text())
@@ -130,7 +140,10 @@ class CurrentJobFlowTests(ProductionHarness):
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#status')).to_have_text('Profile saved and synced with Radius.')
         saved=self.context.request.get(self.origin+'/api/v1/profiles').json()['items'][0]
+        self.assertEqual(saved['application_details']['first_name'], 'Edited')
         self.assertEqual(saved['application_details']['experiences'][0]['id'],'legacy-1')
+        self.assertEqual(saved['photo'], photo_metadata)
+        self.assertEqual(self.context.request.get(self.origin+'/api/v1/profiles/1/photo').body(), photo)
         options.locator('#cv_text').fill('')
         options.get_by_role('button',name='Save profile',exact=True).click()
         expect(options.locator('#status')).to_contain_text('Remove saved base CVs')
@@ -139,3 +152,5 @@ class CurrentJobFlowTests(ProductionHarness):
         expect(options.locator('#status')).to_contain_text('Base CVs removed')
         saved=self.context.request.get(self.origin+'/api/v1/profiles').json()['items'][0]
         self.assertIsNone(saved['cv'])
+        self.assertEqual(saved['photo'], photo_metadata)
+        self.assertEqual(self.context.request.get(self.origin+'/api/v1/profiles/1/photo').body(), photo)
