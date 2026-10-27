@@ -74,7 +74,8 @@ class ExtensionHarness(unittest.TestCase):
         trace_dir = os.environ.get("RADIUS_BROWSER_TRACE_DIR")
         if trace_dir:
             result = self._outcome.result
-            failed = any(test is self for test, _ in result.failures + result.errors)
+            failed = (bool(self.errors or self.external_requests) or
+                      any(test is self for test, _ in result.failures + result.errors))
             if failed:
                 Path(trace_dir).mkdir(parents=True, exist_ok=True)
                 self.context.tracing.stop(path=str(Path(trace_dir) / f"{self.id()}.zip"))
