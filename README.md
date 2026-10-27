@@ -50,7 +50,18 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-Save a job profile under **Your profile**. Viewing a job detail adds it to
+Save a job profile under **Your profile**.
+
+Save a PNG portrait under **Edit profile → CVs & writing → CV photo (optional)**,
+then click **Save profile**. The photo is reused in English and German CV PDF
+previews, PDF exports, and source + photo ZIPs. PNGs must be at most 2 MiB and
+4096 pixels per side. In an application's **CV photo (optional)** section,
+uncheck **Use saved profile photo** to leave it out, or choose a different photo
+for that application. Temporary replacements are not saved to your profile.
+Photos are stored separately from profile prose and are not sent to ChatGPT.
+Custom LaTeX templates still need local compilation using their source + photo ZIP.
+
+Viewing a job detail adds it to
 **My applications** as New. Opening the original post leaves its stage unchanged.
 Mark a role as Interested
 when you choose to pursue it; you can also move it to Not interested later.

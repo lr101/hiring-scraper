@@ -1,5 +1,6 @@
 """Single-workspace profile preferences and explicitly saved CV attachments."""
 import json
+import base64
 import hashlib
 import re
 from datetime import date
@@ -15,7 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from hiring_scraper.app.database import get_session
-from hiring_scraper.app.models import ProfileCV, UserProfile, utcnow
+from hiring_scraper.app.models import ProfileCV, ProfilePhoto, UserProfile, utcnow
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
 from hiring_scraper.app.job_search import clear_profile_match_scores
 from hiring_scraper.election_data import municipality_vote_result
@@ -237,7 +238,8 @@ class CVPreview(BaseModel):
 
 def profile_json(profile):
     data = {'id': profile.id, 'name': profile.name, **profile.preferences,
-            'updated_at': profile.updated_at.isoformat(), 'cv': cv_metadata(profile.cv)}
+            'updated_at': profile.updated_at.isoformat(), 'cv': cv_metadata(profile.cv),
+            'photo': photo_metadata(profile.photo)}
     data.setdefault('custom_instructions', '')
     data.setdefault('localized_content', {})
     data.setdefault('application_personalization', ApplicationPersonalization().model_dump())
@@ -343,6 +345,67 @@ def delete_profile(profile_id: int, session: Session = Depends(get_session)):
     session.delete(require_profile(profile_id, session))
     session.commit()
     return {'deleted': True}
+
+
+MAX_PHOTO_BYTES = 2 * 1024 * 1024
+
+
+def photo_metadata(photo):
+    return None if photo is None else {'filename': photo.filename, 'content_type': 'image/png',
+                                      'size_bytes': photo.size_bytes, 'updated_at': photo.updated_at.isoformat()}
+
+
+def store_profile_photo(session, profile_id, filename, data):
+    if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or Path(filename).suffix.lower() != '.png':
+        raise HTTPException(422, 'Choose a PNG photo with a simple filename.')
+    if len(data) > MAX_PHOTO_BYTES:
+        raise HTTPException(413, 'Choose a PNG photo under 2 MiB.')
+    from hiring_scraper.app.latex_documents import photo_bytes
+    try:
+        photo_bytes('data:image/png;base64,' + base64.b64encode(data).decode('ascii'))
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from None
+    require_profile(profile_id, session)
+    if session.get_bind().dialect.name == 'sqlite':
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
+    # Two tabs can both upload the first photo. Let the database serialize
+    # creation/replacement instead of relying on a previously read relationship.
+    values = {'filename': filename, 'size_bytes': len(data), 'data': data, 'updated_at': utcnow()}
+    session.execute(insert(ProfilePhoto).values(profile_id=profile_id, **values).on_conflict_do_update(
+        index_elements=['profile_id'], set_=values))
+    session.commit()
+    return photo_metadata(session.get(ProfilePhoto, profile_id))
+
+
+@router.put('/{profile_id}/photo')
+async def upload_photo(profile_id: int, request: Request, filename: str = Query(..., min_length=1, max_length=200),
+                       session: Session = Depends(get_session)):
+    data = bytearray()
+    async for chunk in request.stream():
+        if len(data) + len(chunk) > MAX_PHOTO_BYTES:
+            raise HTTPException(413, 'Choose a PNG photo under 2 MiB.')
+        data.extend(chunk)
+    return await run_in_threadpool(store_profile_photo, session, profile_id, filename, bytes(data))
+
+
+@router.get('/{profile_id}/photo')
+def download_photo(profile_id: int, session: Session = Depends(get_session)):
+    require_profile(profile_id, session)
+    photo = session.get(ProfilePhoto, profile_id)
+    if photo is None:
+        raise HTTPException(404, 'No photo is saved for this profile.')
+    return Response(photo.data, media_type='image/png', headers={
+        'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'})
+
+
+@router.delete('/{profile_id}/photo', status_code=204)
+def delete_photo(profile_id: int, session: Session = Depends(get_session)):
+    profile = require_profile(profile_id, session)
+    profile.photo = None
+    session.commit()
+    return Response(status_code=204)
 
 
 def cv_metadata(cv):
