@@ -1,6 +1,7 @@
 """Exercise the deployed PostgreSQL app using isolated CI data."""
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import copy
 import json
 import os
@@ -149,7 +150,51 @@ def exercise_collation_repair_migration() -> None:
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
-            command.upgrade(config, 'head')
+            # Hold the probe table so the concurrent reindex pauses. While it
+            # waits, the recorded collation version must still be stale; this
+            # checks the ordering through PostgreSQL's observable behavior.
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                with admin_engine.connect() as blocker:
+                    blocking_transaction = blocker.begin()
+                    try:
+                        blocker.execute(text(
+                            'LOCK TABLE public.ci_collation_reindex_probe '
+                            'IN ACCESS EXCLUSIVE MODE'
+                        ))
+                        upgrade = executor.submit(command.upgrade, config, 'head')
+                        deadline = time.monotonic() + 60
+                        while time.monotonic() < deadline:
+                            if upgrade.done():
+                                upgrade.result()
+                                raise AssertionError(
+                                    'Collation repair did not wait to reindex the probe table'
+                                )
+                            with admin_engine.connect() as observer:
+                                waiting_on_reindex = observer.scalar(text(
+                                    "SELECT EXISTS (SELECT 1 FROM pg_stat_activity "
+                                    "WHERE datname = current_database() "
+                                    "AND pid <> pg_backend_pid() "
+                                    "AND query ILIKE 'REINDEX DATABASE CONCURRENTLY%' "
+                                    "AND wait_event_type = 'Lock')"
+                                ))
+                                version_during_reindex = observer.scalar(text(
+                                    'SELECT datcollversion FROM pg_database '
+                                    'WHERE datname = current_database()'
+                                ))
+                            if waiting_on_reindex:
+                                assert version_during_reindex == 'ci-forced-stale', (
+                                    'Collation version was refreshed before index rebuilding '
+                                    'completed'
+                                )
+                                break
+                            time.sleep(0.05)
+                        else:
+                            raise AssertionError(
+                                'Collation repair did not reach the blocked probe index'
+                            )
+                    finally:
+                        blocking_transaction.rollback()
+                upgrade.result(timeout=300)
         finally:
             os.environ['DATABASE_URL'] = app_database_url
 
