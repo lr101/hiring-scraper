@@ -130,10 +130,21 @@ jobs:
       - name: Test shipped extension and production CV flow in Chromium
         env:
           RADIUS_EXTENSION_BROWSER_TESTS: '1'
+          RADIUS_BROWSER_TRACE_DIR: .ci-results/browser-traces
         run: >-
           uv run python scripts/ci/test_shard.py
           --top-level-directory tests
           --shard ${{ matrix.shard }} --shards 2
+
+      - name: Upload failed browser traces
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-traces-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .ci-results/browser-traces/*.zip
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Build installable ZIP and checksum
         if: matrix.shard == 1

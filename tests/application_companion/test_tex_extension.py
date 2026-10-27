@@ -46,8 +46,7 @@ class TexExtensionTests(ExtensionHarness):
     def save_marked_profile(self, source):
         options = self.context.new_page()
         options.goto(f'chrome-extension://{self.extension_id}/options.html')
-        options.get_by_role('button', name='Load fictional example').click()
-        expect(options.locator('#status')).to_have_text('Fictional example loaded. Save profile to use it.')
+        self.load_editor_example(options)
         options.locator('#cv_text').fill(source)
         options.get_by_role('button', name='Save profile', exact=True).click()
         expect(options.locator('#status')).to_have_text('Profile saved in this browser.')

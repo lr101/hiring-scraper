@@ -799,18 +799,15 @@ class PostgresConcurrencyTests(unittest.TestCase):
         release_index = threading.Event()
         application_waiting_for_profile = threading.Event()
         application_done = threading.Event()
-        generation_reads = 0
         errors = []
 
         def pause_index(_conn, _cursor, statement, *_args):
-            nonlocal generation_reads
+            normalized = ' '.join(statement.upper().split())
             if (threading.current_thread().name == 'profile-index-rebuild' and
-                    statement.startswith('SELECT max(job_search_state.id)')):
-                generation_reads += 1
-                if generation_reads == 2:
-                    index_at_publish.set()
-                    if not release_index.wait(5):
-                        raise AssertionError('index publication was not released')
+                    'FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized):
+                index_at_publish.set()
+                if not release_index.wait(5):
+                    raise AssertionError('index publication was not released')
 
         def observe_application(_conn, _cursor, statement, *_args):
             if (threading.current_thread().name == 'application-save' and

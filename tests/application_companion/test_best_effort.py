@@ -89,7 +89,7 @@ class BestEffortBrowserTests(ExtensionHarness):
 
     def test_connects_cv_and_radius_package_in_editor_and_scopes_answers(self):
         options=self.context.new_page();options.goto(f'chrome-extension://{self.extension_id}/options.html')
-        options.get_by_role('button',name='Load fictional example').click()
+        self.load_editor_example(options)
         from .test_tex_extension import tex_source
         options.locator('#cv_text').fill(tex_source())
         pack={'format':'radius-application-v1','job_id':9,'profile_id':2,'cv_updated_at':'v1','cv':'Known CV','cover_letter':'A job-specific cover letter.','application_answers':'Q: Why this role?\nA: My product coordination experience matches the role.\nQ: Availability?\nA: Two weeks','review_notes':'Personalized.'}

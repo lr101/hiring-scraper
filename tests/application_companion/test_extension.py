@@ -42,6 +42,8 @@ class ExtensionHarness(unittest.TestCase):
                   "--enable-unsafe-extension-debugging"],
         )
         self.context.set_default_timeout(5000)
+        if os.environ.get("RADIUS_BROWSER_TRACE_DIR"):
+            self.context.tracing.start(screenshots=True, snapshots=True)
         self.errors = []
         self.external_requests = []
         self.context.on("page", lambda page: page.on("pageerror", lambda error: self.errors.append(str(error))))
@@ -69,6 +71,15 @@ class ExtensionHarness(unittest.TestCase):
             route.abort()
 
     def tearDown(self):
+        trace_dir = os.environ.get("RADIUS_BROWSER_TRACE_DIR")
+        if trace_dir:
+            result = self._outcome.result
+            failed = any(test is self for test, _ in result.failures + result.errors)
+            if failed:
+                Path(trace_dir).mkdir(parents=True, exist_ok=True)
+                self.context.tracing.stop(path=str(Path(trace_dir) / f"{self.id()}.zip"))
+            else:
+                self.context.tracing.stop()
         self.context.close()
         self.directory.cleanup()
         self.assertEqual(self.errors, [])
@@ -76,6 +87,10 @@ class ExtensionHarness(unittest.TestCase):
 
     def save_example(self):
         self.worker.evaluate("applicant => chrome.storage.local.set({applicant})", self.applicant)
+
+    def load_editor_example(self, options):
+        options.get_by_role("button", name="Load fictional example").click()
+        expect(options.locator("#status")).to_have_text("Fictional example loaded. Save profile to use it.")
 
     def open_fixture(self, layout="inline"):
         self.page.goto(DEMO + "?layout=" + layout)
@@ -115,7 +130,7 @@ class ExtensionBrowserTests(ExtensionHarness):
             from test_tex_extension import tex_source
         options = self.context.new_page()
         options.goto(f"chrome-extension://{self.extension_id}/options.html")
-        options.get_by_role("button", name="Load fictional example").click()
+        self.load_editor_example(options)
         options.locator('#cv_text').fill(tex_source())
         options.get_by_role("button", name="Save profile", exact=True).click()
         expect(options.locator("#status")).to_have_text("Profile saved in this browser.")
