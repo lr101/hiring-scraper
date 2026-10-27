@@ -38,6 +38,7 @@ export type Profile = {
     career_goals?: string; work_preferences?: string
   }
   application_details?: ApplicationDetails
+  photo?: { filename: string; content_type: string; size_bytes: number; updated_at: string } | null
   cv?: { languages?: Partial<Record<'en' | 'de', { filename: string }>>; filename: string; content_type: string; size_bytes: number; updated_at: string } | null
   id?: number; name: string; summary: string; custom_instructions: string; skills: string[]; desired_roles: string[]; secondary_roles: string[]
   work_styles: string[]; employment_types: string[]; seniority_levels: string[]; experience_years: number | null

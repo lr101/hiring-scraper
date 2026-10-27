@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from hiring_scraper.app import cv_templates
 from hiring_scraper.app.database import get_session
-from hiring_scraper.app.models import Job, ProfileCV
+from hiring_scraper.app.models import Job, ProfileCV, ProfilePhoto
 from hiring_scraper.app.profiles import TemplateChange, TYPES, cv_metadata, require_profile
 
 router = APIRouter(prefix='/api/v1/profiles', tags=['application-documents'])
@@ -41,6 +41,7 @@ class ApplicationDocumentRequest(BaseModel):
     cover_letter: str = Field(max_length=100000)
     latex_documents: LatexDocuments | None = None
     photo_data_url: str | None = Field(default=None, max_length=2800000)
+    use_profile_photo: bool = True
 
     @field_validator('cv_updated_at')
     @classmethod
@@ -149,10 +150,14 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
     if isinstance(request.cv, list) and (cv is None or not cv.filename.lower().endswith('.docx')):
         raise HTTPException(422, 'Attach a DOCX to export paragraph edits with your original CV layout.')
     source = bytes(cv.data) if changes is not None else None
+    saved_photo = None
+    if kind == 'cv' and format in {'latex_pdf', 'tex_bundle'} and request.use_profile_photo and not request.photo_data_url:
+        attachment = session.get(ProfilePhoto, profile_id)
+        saved_photo = bytes(attachment.data) if attachment else None
     session.rollback()  # Return the DB connection before editing/conversion.
     try:
         from hiring_scraper.app.latex_documents import photo_bytes, latex_source_bundle
-        photo = photo_bytes(request.photo_data_url) if request.photo_data_url else None
+        photo = photo_bytes(request.photo_data_url) if request.photo_data_url else saved_photo
         if photo is not None and (kind != 'cv' or format not in {'latex_pdf', 'tex_bundle'}):
             raise ValueError('Photos are supported for CV LaTeX PDFs and source + photo ZIP bundles only.')
         if format == 'tex_bundle' and (kind != 'cv' or photo is None):

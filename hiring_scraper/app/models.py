@@ -297,6 +297,7 @@ class UserProfile(Base):
     deduplication_archive: Mapped[list[JobApplicationDeduplicationArchive]] = relationship(
         back_populates='profile', cascade='all, delete-orphan')
     cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
+    photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
 
     @property
     def matching_preferences(self) -> dict:
@@ -331,6 +332,17 @@ class ProfileCV(Base):
     extracted_text: Mapped[str] = mapped_column(Text, nullable=False, deferred=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     profile: Mapped[UserProfile] = relationship(back_populates="cv")
+
+
+class ProfilePhoto(Base):
+    __tablename__ = "profile_photos"
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    filename: Mapped[str] = mapped_column(String(200), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    data: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    profile: Mapped[UserProfile] = relationship(back_populates="photo")
 
 
 class JobApplication(Base):

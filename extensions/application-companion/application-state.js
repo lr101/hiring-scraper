@@ -1449,7 +1449,7 @@ export async function saveConnectedApplicant(input) {
     (profile) => profile.id === settings.profile_id,
   );
   if (!profile) throw new Error("The selected profile no longer exists.");
-  const { id, cv, updated_at, ...payload } = profile;
+  const { id, cv, photo, updated_at, ...payload } = profile;
   const {
     application,
     cv_text,

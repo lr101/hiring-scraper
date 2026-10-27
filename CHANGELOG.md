@@ -23,6 +23,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Saved profile photos reused in English and German CV previews, PDF exports and source + photo ZIPs, with per-application exclusion and temporary replacements.
 - Optional PNG CV photos, restricted-template PDF rendering, and source + photo ZIP downloads for custom templates.
 - Language-specific example cover letters in profile content, used as structure and voice references in application briefs.
 
