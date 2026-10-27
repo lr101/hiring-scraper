@@ -52,10 +52,11 @@ def database_counts() -> dict:
         assert session.bind.dialect.name == 'postgresql'
         assert session.scalar(text('SELECT current_user')) == 'hiring_app'
         assert session.scalar(text('SELECT postgis_version()'))
-        recorded, actual = session.execute(text(
-            'SELECT datcollversion, pg_database_collation_actual_version(oid) '
+        provider, recorded, actual = session.execute(text(
+            'SELECT datlocprovider, datcollversion, pg_database_collation_actual_version(oid) '
             'FROM pg_database WHERE datname = current_database()'
         )).one()
+        assert provider == 'c', f'Expected the existing libc collation provider, got {provider!r}'
         assert actual is not None and recorded == actual, (
             f'Database collation version is stale or unavailable: {recorded!r} != {actual!r}'
         )
@@ -84,6 +85,7 @@ def exercise_collation_repair_migration() -> None:
         f"postgresql+psycopg://postgres:{quote(postgres_password, safe='')}@db:5432/hiring"
     )
     admin_engine = create_engine(admin_url)
+    reindex_probe_before = None
     try:
         with admin_engine.connect() as connection:
             assert_migration_heads(connection, config)
@@ -115,6 +117,21 @@ def exercise_collation_repair_migration() -> None:
                 'Expected the PostgreSQL collation revision at the migration branchpoint'
             )
             connection.execute(text(
+                'CREATE TABLE public.ci_collation_reindex_probe (value text NOT NULL)'
+            ))
+            connection.execute(text(
+                "INSERT INTO public.ci_collation_reindex_probe (value) "
+                "VALUES ('Karlsruhe'), ('München'), ('Århus')"
+            ))
+            connection.execute(text(
+                'CREATE INDEX ci_collation_reindex_probe_idx '
+                'ON public.ci_collation_reindex_probe (value)'
+            ))
+            reindex_probe_before = connection.scalar(text(
+                "SELECT pg_relation_filenode('public.ci_collation_reindex_probe_idx'::regclass)"
+            ))
+            assert reindex_probe_before is not None, 'Could not inspect the collation probe index'
+            connection.execute(text(
                 "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
                 'WHERE datname = current_database()'
             ))
@@ -144,7 +161,17 @@ def exercise_collation_repair_migration() -> None:
             assert actual is not None and recorded == actual, (
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
+            reindex_probe_after = connection.scalar(text(
+                "SELECT pg_relation_filenode('public.ci_collation_reindex_probe_idx'::regclass)"
+            ))
+            assert reindex_probe_after is not None and reindex_probe_after != reindex_probe_before, (
+                'Collation migration did not rebuild an existing text index'
+            )
             assert_migration_heads(connection, config)
+        with admin_engine.begin() as connection:
+            connection.execute(text(
+                'DROP TABLE public.ci_collation_reindex_probe'
+            ))
     finally:
         admin_engine.dispose()
 
