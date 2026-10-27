@@ -20,7 +20,7 @@ npm --prefix extensions/application-companion ci
 env -u DATABASE_URL -u TEST_POSTGRES_URL mise exec actionlint@1.7.12 -- uv run bash scripts/ci/check.sh
 ```
 
-Install ShellCheck using your OS package manager. To run the browser shards too, install Chromium and the PDF/TeX dependencies as in the workflow, then use the shard commands below. On Ubuntu, `mise exec -- uv run python -m playwright install --with-deps chromium` installs Chromium and its OS dependencies; the workflow's PDF export step lists the remaining packages. Set `RADIUS_BROWSER_TRACE_DIR=.ci-results/browser-traces` to save a Playwright trace for each failing browser test; view one with `mise exec -- uv run python -m playwright show-trace PATH`. Traces can contain page contents and should only be shared where those contents are appropriate.
+Install ShellCheck using your OS package manager. To run the browser shards too, install Chromium, the PDF/TeX dependencies, and the pinned Codex runtime as in the workflow, then use the shard commands below. On Ubuntu, `mise exec -- uv run python -m playwright install --with-deps chromium` installs Chromium and its OS dependencies; the workflow's PDF export step lists the remaining packages. Set `RADIUS_BROWSER_TRACE_DIR=.ci-results/browser-traces` to save a Playwright trace for each failing browser test; view one with `mise exec -- uv run python -m playwright show-trace PATH`. Traces can contain page contents and should only be shared where those contents are appropriate.
 
 These host checks do not replace the image builds or PostgreSQL/PostGIS smoke test, which require Docker. CI runs both paths.
 
@@ -77,9 +77,16 @@ The successful PR run [40300241093](https://github.com/lr101/hiring-scraper/acti
 
 The workflow builds fixed local image tags through `compose.ci.yaml` and `docker-bake.ci.hcl`, then runs `HIRING_CI_PREBUILT=1 ./scripts/ci/run.sh`. This mode requires all three images to exist and retags them into the invocation's private Compose project. Normal local invocations still build images automatically. Cold runs populate the caches; warm-run timing depends on which dependency layers changed. Cache exports have a two-minute budget and export failures do not fail otherwise valid image builds.
 
-To reproduce the browser jobs after installing the locked Python/frontend dependencies, full Playwright Chromium, and the PDF/TeX runtime, build the frontend and run each shard:
+To reproduce the browser jobs after installing the locked Python/frontend dependencies, full Playwright Chromium, and the PDF/TeX runtime, install the pinned Codex runtime and run both shards in the same shell:
 
 ```bash
+npm --prefix runtime/codex ci --ignore-scripts
+RADIUS_CI_CODEX_RUNTIME="$(mktemp -d)"
+RADIUS_CI_CODEX_STATE="$(mktemp -d)"
+node runtime/codex/export-runtime.mjs "$RADIUS_CI_CODEX_RUNTIME"
+chmod 700 "$RADIUS_CI_CODEX_STATE"
+export RADIUS_CODEX_BIN="$RADIUS_CI_CODEX_RUNTIME/bin/codex"
+export RADIUS_CODEX_STATE_DIR="$RADIUS_CI_CODEX_STATE"
 npm --prefix frontend run build
 RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 1 --shards 2
 RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 2 --shards 2

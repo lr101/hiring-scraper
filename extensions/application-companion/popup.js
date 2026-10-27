@@ -168,7 +168,7 @@ function entry(item, continuation = false) {
       );
     } else if (ready && (continuation || !exact))
       links.append(action("Use on this page", use, true));
-    else if (ready && !info.supported)
+    else if (ready && !info.supported && !exact)
       links.append(
         action(
           "Open application",
@@ -177,7 +177,7 @@ function entry(item, continuation = false) {
         ),
       );
     else if (!ready) links.append(action("Prepare documents", prepare, true));
-    else if (ready && exact && info.supported)
+    else if (ready && exact)
       links.append(
         action(
           "Fill this application",
