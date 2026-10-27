@@ -161,6 +161,7 @@ def exercise_collation_repair_migration() -> None:
                             'LOCK TABLE public.ci_collation_reindex_probe '
                             'IN ACCESS EXCLUSIVE MODE'
                         ))
+                        blocker_pid = blocker.scalar(text('SELECT pg_backend_pid()'))
                         upgrade = executor.submit(command.upgrade, config, 'head')
                         deadline = time.monotonic() + 60
                         while time.monotonic() < deadline:
@@ -171,12 +172,24 @@ def exercise_collation_repair_migration() -> None:
                                 )
                             with admin_engine.connect() as observer:
                                 waiting_on_reindex = observer.scalar(text(
-                                    "SELECT EXISTS (SELECT 1 FROM pg_stat_activity "
-                                    "WHERE datname = current_database() "
-                                    "AND pid <> pg_backend_pid() "
-                                    "AND query ILIKE 'REINDEX DATABASE CONCURRENTLY%' "
-                                    "AND wait_event_type = 'Lock')"
-                                ))
+                                    "SELECT EXISTS (SELECT 1 "
+                                    "FROM pg_stat_activity AS activity "
+                                    "JOIN pg_locks AS pending_lock ON pending_lock.pid = activity.pid "
+                                    "WHERE activity.datname = current_database() "
+                                    "AND activity.query ILIKE 'REINDEX DATABASE CONCURRENTLY%' "
+                                    "AND activity.wait_event_type = 'Lock' "
+                                    "AND pending_lock.locktype = 'relation' "
+                                    "AND pending_lock.relation = "
+                                    "'public.ci_collation_reindex_probe'::regclass "
+                                    "AND pending_lock.mode = 'ShareUpdateExclusiveLock' "
+                                    "AND NOT pending_lock.granted "
+                                    "AND EXISTS (SELECT 1 FROM pg_locks AS blocker_lock "
+                                    "WHERE blocker_lock.pid = :blocker_pid "
+                                    "AND blocker_lock.locktype = 'relation' "
+                                    "AND blocker_lock.relation = pending_lock.relation "
+                                    "AND blocker_lock.mode = 'AccessExclusiveLock' "
+                                    "AND blocker_lock.granted))"
+                                ), {'blocker_pid': blocker_pid})
                                 version_during_reindex = observer.scalar(text(
                                     'SELECT datcollversion FROM pg_database '
                                     'WHERE datname = current_database()'
