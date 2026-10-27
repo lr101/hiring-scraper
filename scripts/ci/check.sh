@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd /app
+cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
 printf '%s\n' 'Checking workflow and shell syntax'
 actionlint .github/workflows/*.yml

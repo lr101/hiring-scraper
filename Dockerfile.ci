@@ -9,11 +9,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 shellcheck libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended \
+RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 libatomic1 shellcheck libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY --from=node /usr/local/bin/node /usr/local/bin/node
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN node --version
 COPY --from=actionlint /usr/local/bin/actionlint /usr/local/bin/actionlint
 RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
