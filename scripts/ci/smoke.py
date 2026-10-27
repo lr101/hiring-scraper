@@ -15,6 +15,8 @@ from urllib.request import Request, urlopen
 from dotenv import dotenv_values
 from sqlalchemy import create_engine, func, select, text
 
+from migration_heads import assert_migration_heads
+
 bootstrap_environment = dotenv_values('/run/app-bootstrap.env')
 database_password = bootstrap_environment.get('HIRING_DB_PASSWORD')
 if not database_password:
@@ -71,6 +73,10 @@ def exercise_company_domain_index() -> None:
 
 
 def exercise_collation_repair_migration() -> None:
+    from alembic import command
+    from alembic.config import Config
+
+    config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
     # Force stale catalog metadata, then run the real migration on the fresh
     # CI database. Rewinding newer empty-table migrations lets CI exercise the
     # historical repair against every current migration without deleting data.
@@ -80,10 +86,7 @@ def exercise_collation_repair_migration() -> None:
     admin_engine = create_engine(admin_url)
     try:
         with admin_engine.connect() as connection:
-            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0033_application_deduplication', (
-                f'Expected the current migration head, got {version!r}'
-            )
+            assert_migration_heads(connection, config)
             counts = connection.execute(text(
                 'SELECT (SELECT count(*) FROM user_profiles), '
                 '(SELECT count(*) FROM profile_cvs), '
@@ -93,13 +96,9 @@ def exercise_collation_repair_migration() -> None:
                 'The collation migration smoke must run before fixture or user data is added'
             )
 
-        from alembic import command
-        from alembic.config import Config
-
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
-            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
             command.downgrade(config, '0026_weekly_goal_environment')
         finally:
             os.environ['DATABASE_URL'] = app_database_url
@@ -133,7 +132,6 @@ def exercise_collation_repair_migration() -> None:
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
-            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
             command.upgrade(config, 'head')
         finally:
             os.environ['DATABASE_URL'] = app_database_url
@@ -146,10 +144,7 @@ def exercise_collation_repair_migration() -> None:
             assert actual is not None and recorded == actual, (
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
-            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0033_application_deduplication', (
-                f'Collation migration did not return to head: {version!r}'
-            )
+            assert_migration_heads(connection, config)
     finally:
         admin_engine.dispose()
 

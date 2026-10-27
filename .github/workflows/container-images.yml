@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          fetch-depth: 0
+          fetch-depth: ${{ startsWith(github.ref, 'refs/tags/v') && '0' || '1' }}
 
       - name: Validate tagged release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
@@ -36,8 +36,20 @@ jobs:
           fi
           python3 scripts/ci/release_notes.py --tag "$RELEASE_TAG"
 
-      - name: Test, build, and smoke test in Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Build check and production images with shared caches
+        uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
+        with:
+          files: |
+            compose.ci.yaml
+            docker-bake.ci.hcl
+          load: true
+
+      - name: Test and smoke test built images
         env:
+          HIRING_CI_PREBUILT: "1"
           HIRING_CI_LOAD_CHROMIUM_PROFILE: "1"
           HIRING_CI_WAIT_TIMEOUT: "120"
         run: ./scripts/ci/run.sh
@@ -54,12 +66,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  extension:
-    name: Radius extension
+  extension-browser:
+    name: Radius browser (${{ matrix.shard }}/2)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     concurrency:
-      group: extension-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+      group: extension-${{ matrix.shard }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Check out source
@@ -79,7 +95,6 @@ jobs:
           cache: npm
           cache-dependency-path: |
             frontend/package-lock.json
-            extensions/application-companion/package-lock.json
 
       - name: Set up locked Python environment
         uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
@@ -99,7 +114,6 @@ jobs:
       - name: Install dependencies and full Chromium
         run: |
           uv sync --locked
-          npm --prefix extensions/application-companion ci
           npm --prefix frontend ci
           uv run python -m playwright install --with-deps chromium
 
@@ -110,30 +124,41 @@ jobs:
           libreoffice --version
           lualatex --version
 
-      - name: Check extension and build production frontend
-        run: |
-          npm --prefix extensions/application-companion run check
-          npm --prefix extensions/application-companion test
-          node tests/frontend_application_preparation.mjs
-          node tests/frontend_application_handoff.mjs
-          node tests/frontend_application_form.mjs
-          npm --prefix frontend run build
+      - name: Build production frontend
+        run: npm --prefix frontend run build
 
       - name: Test shipped extension and production CV flow in Chromium
         env:
           RADIUS_EXTENSION_BROWSER_TESTS: '1'
-        run: uv run python -m unittest discover -s tests/application_companion -t tests -v
+        run: >-
+          uv run python scripts/ci/test_shard.py
+          --top-level-directory tests
+          --shard ${{ matrix.shard }} --shards 2
 
       - name: Build installable ZIP and checksum
+        if: matrix.shard == 1
         run: uv run python scripts/build_extension.py
 
       - name: Upload installable Chrome package
+        if: matrix.shard == 1
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: radius-application-companion
           path: dist/extension/*
           if-no-files-found: error
           retention-days: 30
+
+  extension:
+    name: Radius extension
+    needs: extension-browser
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require both browser shards
+        env:
+          RESULT: ${{ needs.extension-browser.result }}
+        run: test "$RESULT" = success
 
   publish:
     name: Publish container images

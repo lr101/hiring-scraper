@@ -37,10 +37,10 @@ ENV RADIUS_CODEX_BIN=/opt/radius-codex/bin/codex \
 RUN /opt/radius-codex/bin/codex --version
 COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project
+RUN /app/.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='intfloat/multilingual-e5-small', revision='ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3', local_dir='/opt/models/multilingual-e5-small', allow_patterns=['onnx/model_O4.onnx', 'tokenizer.json'])"
 COPY alembic.ini ./
 COPY hiring_scraper ./hiring_scraper
 COPY fixtures ./fixtures
-RUN /app/.venv/bin/python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='intfloat/multilingual-e5-small', revision='ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3', local_dir='/opt/models/multilingual-e5-small', allow_patterns=['onnx/model_O4.onnx', 'tokenizer.json'])"
 COPY scripts/ci/browser_sandbox_smoke.py /usr/local/bin/hiring-browser-sandbox-smoke.py
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev
 RUN /app/.venv/bin/python -m playwright install --with-deps --only-shell chromium

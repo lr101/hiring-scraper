@@ -21,6 +21,8 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev --no-install-project
 COPY frontend/package.json frontend/package-lock.json ./frontend/
 RUN --mount=type=cache,target=/root/.npm npm --prefix frontend ci
+COPY extensions/application-companion/package.json extensions/application-companion/package-lock.json ./extensions/application-companion/
+RUN --mount=type=cache,target=/root/.npm npm --prefix extensions/application-companion ci
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked --no-dev
 ENV PATH="/app/.venv/bin:$PATH"

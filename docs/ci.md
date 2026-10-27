@@ -18,7 +18,9 @@ The value must be a positive whole number of seconds. It changes the stack start
 
 ## What the checks cover
 
-The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI scripts, changelog validation, all Python unittest suites, the frontend profile regression checks, and the TypeScript/Vite production build inside containers. Python unit tests exercise the SQLite application path. It also builds the combined app image, then starts an isolated PostgreSQL/PostGIS Compose stack to exercise migrations, repeatable fixture imports, API requests, and the built frontend. The CI override disables background crawlers during the smoke run.
+The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI scripts, changelog validation, Python unittest suites, extension formatting, and frontend/extension Node regression checks inside containers. Python unit tests exercise the SQLite application path; browser suites are skipped unless explicitly enabled. The combined app image runs the TypeScript/Vite production build, then an isolated PostgreSQL/PostGIS Compose stack exercises migrations, repeatable fixture imports, API requests, and the built frontend. The CI override disables background crawlers during the smoke run.
+
+The PostgreSQL smoke test forces stale collation metadata, replays the repair migration, and verifies the repaired database and usable company index. It checks the applied revisions against Alembic's migration graph before and after repair. Adding a migration does not require updating a hard-coded expected head. A source-order test for historical migration SQL was removed in favor of exercising the real migration. A small compatibility guard retains the current Debian/glibc PostgreSQL base because deployed databases reuse a persistent cluster whose indexes depend on that collation provider.
 
 Each invocation uses a unique Compose project and disposable database volume. Cleanup removes that run's containers, network, and volumes on success or failure; the deployment's `hiring_db` volume is separate. Build caches and local images remain available for subsequent runs. Logs are written to `.ci-results/`, which is ignored by Git. The workflow uploads only `.log` and `.txt` files from that directory, including logs from failed checks, with seven-day retention. Dotenv files, database contents, and private source captures are not included in artifacts. Docker build contexts exclude local `.env` files, private `data/`, and CV source files; the committed sanitized fixtures remain available to tests and seeds.
 
@@ -31,6 +33,27 @@ Health logs preserve probe timestamps, exit codes and output before teardown. Th
 [Container CI](../.github/workflows/container-images.yml) runs on pull requests, pushes to `main`, pushes of `v*` tags, and manual dispatch. It has no path filters, so documentation-only pull requests also produce the required check. Require the stable **Container checks** status in a ruleset or branch protection rule for `main`; optionally require review and an up-to-date branch. Repository administrators configure those GitHub settings separately from the workflow.
 
 Pull requests and manual dispatch run checks without registry login or publication. The workflow's default token permission is `contents: read`, and checkout does not persist credentials. Publication uses a separate job with `packages: write`, which only runs after checks pass on a push to `main` or a valid stable release tag. Tag checks require the tagged commit to be reachable from `origin/main` and reject malformed tags, versions that differ from `pyproject.toml`, and missing or empty dated changelog entries before publishing images. There is no `pull_request_target` trigger. New commits cancel older checks for the same pull request; publication jobs are not canceled by concurrency settings. Check and image jobs have a 30-minute timeout. A separate five-minute job requests `contents: write` to create the GitHub Release only after both images publish successfully.
+
+### Keeping the pipeline fast
+
+The successful PR run [40300241093](https://github.com/lr101/hiring-scraper/actions/runs/40300241093) took about ten minutes: 515 seconds for 133 extension tests, compared with 92 seconds for 857 backend tests. The pipeline therefore retains the backend regressions and all browser behavior scenarios, and reduces repeated work:
+
+- Two browser jobs each run half the discovered tests, in deterministic test-ID order. New browser tests are included automatically. The stable **Radius extension** check requires both shards to succeed; one failure does not cancel the other shard's diagnostics.
+- Node checks and extension formatting run once in the quality image. The packaging regression runs once in the backend suite. The frontend is built in the app image and in each browser job that consumes it, without an additional unused quality-image build.
+- Buildx Bake builds all three CI images with independent GitHub Actions layer caches. App and database cache scopes are shared with publication. The pinned semantic-model download precedes application source copies, so backend edits can reuse that layer. Cache misses still build and test the full images; no registry write credentials are needed on PRs.
+- Ordinary checks use a shallow checkout; tag validation keeps full history for its ancestry check.
+
+The workflow builds fixed local image tags through `compose.ci.yaml` and `docker-bake.ci.hcl`, then runs `HIRING_CI_PREBUILT=1 ./scripts/ci/run.sh`. This mode requires all three images to exist and retags them into the invocation's private Compose project. Normal local invocations still build images automatically. Cold runs populate the caches; warm-run timing depends on which dependency layers changed. Cache exports have a two-minute budget and export failures do not fail otherwise valid image builds.
+
+To reproduce the browser jobs after installing the locked Python/frontend dependencies, full Playwright Chromium, and the PDF/TeX runtime, build the frontend and run each shard:
+
+```bash
+npm --prefix frontend run build
+RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 1 --shards 2
+RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 2 --shards 2
+```
+
+Unsharded discovery remains available with `RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python -m unittest discover -s tests/application_companion -t tests -v`. Browser jobs use fresh contexts and disposable databases per test. They retain the shipped-package, real API/PDF, stale-document, navigation-race, consent, and no-automatic-submit regressions. Change-based test exclusion and broad removal of behavioral tests were avoided because they can hide cross-component regressions.
 
 Actions are pinned to verified release commit hashes, with their versions recorded beside the pins. Build base images are pinned to the manifest digests resolved by Docker so checks and publishing use the same bases. [Dependabot](../.github/dependabot.yml) checks actions, Docker images, Compose images, `frontend/package-lock.json`, and `uv.lock` weekly. Dependency updates go through the same container checks. GitHub documents the supported [Dependabot ecosystems](https://docs.github.com/en/code-security/reference/supply-chain-security/supported-ecosystems-and-repositories).
 

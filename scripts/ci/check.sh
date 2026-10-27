@@ -8,7 +8,7 @@ shellcheck scripts/ci/*.sh
 python scripts/ci/release_notes.py
 
 printf '%s\n' 'Compiling Python source and running regression tests'
-python -m compileall -q hiring_scraper experiments scripts/ci tests
+python -m compileall -q hiring_scraper scripts/ci
 python -m unittest discover -s tests -v
 
 printf '%s\n' 'Checking profile behavior with Node and the real Python matcher'
@@ -22,7 +22,7 @@ node tests/frontend_application_personalization.mjs
 node tests/frontend_application_canvas.mjs
 node tests/frontend_application_preparation.mjs
 node tests/frontend_application_form.mjs
-node --test tests/application_companion/*.mjs
-
-printf '%s\n' 'Building the frontend with locked dependencies'
-npm --prefix frontend run build
+npm --prefix extensions/application-companion run check
+npm --prefix extensions/application-companion test
+# The app image already runs the TypeScript/Vite build and its output is served
+# by the PostgreSQL smoke stack. Browser shards build their own tested bundle.
