@@ -111,13 +111,6 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                         "finished_at=CURRENT_TIMESTAMP, error='Superseded by the active Germany inventory.' "
                         "WHERE id=?", (duplicate_id,))
         Base.metadata.create_all(connection)
-        job_columns = {column['name'] for column in inspect(connection).get_columns('jobs')}
-        if 'vacancy_group_id' not in job_columns:
-            connection.exec_driver_sql(
-                'ALTER TABLE jobs ADD COLUMN vacancy_group_id INTEGER '
-                'REFERENCES jobs(id) ON DELETE SET NULL')
-        connection.exec_driver_sql(
-            'CREATE INDEX IF NOT EXISTS ix_jobs_vacancy_group_id ON jobs (vacancy_group_id)')
         if 'application_momentum_settings' in inspect(connection).get_table_names():
             connection.exec_driver_sql("DROP TABLE application_momentum_settings")
 

@@ -520,7 +520,9 @@ class FeedWorkerSafetyTests(unittest.TestCase):
 
         def before_sql(connection, cursor, statement, parameters, context, executemany):
             if threading.current_thread().name == 'journey-save' and (
-                    statement.startswith('UPDATE jobs SET') or statement.startswith('INSERT INTO job_applications')):
+                    statement.startswith('UPDATE jobs SET') or statement.startswith('INSERT INTO job_applications')
+                    or statement.startswith('INSERT INTO job_vacancy_identities')
+                    or statement.startswith('INSERT INTO job_vacancy_groups')):
                 tracking_write.set()
 
         def after_sql(connection, cursor, statement, parameters, context, executemany):

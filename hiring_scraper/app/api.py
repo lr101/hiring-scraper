@@ -27,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from hiring_scraper.app.companion import router as companion_router
 from hiring_scraper.app.application_documents import router as application_documents_router
 from hiring_scraper.app.application_generation import router as application_generation_router
+from hiring_scraper.app.application_deduplication import index_vacancy_identities
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
@@ -35,7 +36,8 @@ from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, get_ses
 from hiring_scraper.app.models import (
     ApplicationMomentumEvent, Base, Company, ConfiguredLocation,
     DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication,
-    JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, ProfileJobMatch, SemanticSearchDocument,
+    JobSearchRefresh, JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup,
+    ProfileJobMatch, SemanticSearchDocument,
     SemanticSearchIndexState, UserProfile,
     JobFeed, JobLocation, LocationCache, ScanRun, utcnow,
 )
@@ -54,7 +56,8 @@ from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
 from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
                                             ApplicationStatus, application_json, canonical_application_states,
-                                            canonical_application_states_for_jobs, close_job_applications)
+                                            canonical_application_states_for_jobs, close_job_applications,
+                                            vacancy_group_ids_for_jobs)
 from hiring_scraper.app.job_search import (
     ProfileIndexChanged, ensure_profile_match_indexes, profile_match_index_stale, refresh_application_matches_for_jobs,
 )
@@ -1711,6 +1714,18 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
                                    'remote_not_selected', 'not_remote',
                                    'profile_conflict', 'below_score', 'uncertain'), 0),
     }
+    application_profile_ids = session.scalars(select(JobApplication.profile_id).distinct()).all()
+    # Attach every retained source copy before grouping the candidate set. If
+    # indexing happens after winner selection, aliases bridged through a saved
+    # vacancy can survive together in the first snapshot built after migration.
+    if application_profile_ids:
+        for start in range(0, len(candidate_ids), 200):
+            batch_ids = candidate_ids[start:start + 200]
+            jobs = session.scalars(select(Job).where(Job.id.in_(batch_ids)).options(
+                joinedload(Job.feed).joinedload(JobFeed.company),
+                joinedload(Job.employer_company), selectinload(Job.locations),
+            )).unique().all()
+            _index_unlinked_application_copies(session, application_profile_ids, jobs)
     winners, scoped_count, geo_filtered = _scoped_candidate_winners(
         session, candidate_ids, latitude, longitude, radius_km, place, country,
         location_scope, state, employer_country, criteria.get('posting_status', 'open'),
@@ -1817,6 +1832,23 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
     session.execute(delete(JobSearchSnapshot).where(JobSearchSnapshot.key.in_(stale_keys)))
     session.commit()
     return snapshot
+
+
+def _index_unlinked_application_copies(session: Session, profile_ids, jobs) -> None:
+    """Retain a shared group ID for untracked source copies used by search."""
+    jobs = list(jobs)
+    if not jobs:
+        return
+    unlinked_ids = set()
+    groups_by_job = vacancy_group_ids_for_jobs(session, [job.id for job in jobs])
+    for profile_id in profile_ids:
+        states_by_job = canonical_application_states_for_jobs(session, profile_id, jobs)
+        unlinked_ids.update(job.id for job in jobs
+                            if (application := states_by_job.get(job.id)) is not None
+                            and application.vacancy_group_id is not None
+                            and groups_by_job.get(job.id) != application.vacancy_group_id)
+    if unlinked_ids:
+        index_vacancy_identities(session, unlinked_ids)
 
 
 def _stable_search_criteria(criteria: dict[str, Any]) -> dict[str, Any]:
@@ -2196,19 +2228,22 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
     if not state and not employer_country:
         filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
     candidate_filters = list(filters)
-    if job_status is not None:
-        application_job = aliased(Job)
-        candidate_filters.append(Job.id.in_(select(application_job.id).join(
-            JobApplication, JobApplication.job_id == application_job.id).where(
-                JobApplication.profile_id == profile.id,
-                JobApplication.status == job_status,
-                or_(application_job.id == Job.id,
-                    and_(Job.vacancy_group_id.is_not(None),
-                         application_job.vacancy_group_id == Job.vacancy_group_id)),
-            )))
     filtered_statement = statement.where(*candidate_filters)
     candidate_count = int(session.scalar(select(func.count()).select_from(
         filtered_statement.order_by(None).with_only_columns(Job.id).subquery())) or 0)
+    if profile is not None and candidate_count and session.scalar(select(JobApplication.id).where(
+            JobApplication.profile_id == profile.id).limit(1)) is not None:
+        candidate_id_rows = filtered_statement.order_by(None).with_only_columns(Job.id).subquery()
+        for start in range(0, candidate_count, 400):
+            candidate_job_ids = session.scalars(select(candidate_id_rows.c.id).order_by(candidate_id_rows.c.id)
+                                                .offset(start).limit(400)).all()
+            if not candidate_job_ids:
+                break
+            candidate_jobs = session.scalars(select(Job).where(Job.id.in_(candidate_job_ids)).options(
+                joinedload(Job.feed).joinedload(JobFeed.company),
+                joinedload(Job.employer_company), selectinload(Job.locations),
+            )).unique().all()
+            _index_unlinked_application_copies(session, [profile.id], candidate_jobs)
     batch_size = max(1_000, limit * 10)
     candidate_ids: list[int] = []
     score_by_id: dict[int, float] = {}
@@ -2217,6 +2252,8 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
     scoped_count = 0
     geo_filtered: dict[str, int] = {}
     ordered_ids: list[int] = []
+    status_by_job = {}
+    status_filtered_ids: list[int] = []
     scopes: dict[int, dict[str, Any]] = {}
     while fetch_offset < candidate_count:
         candidates = session.execute(filtered_statement.order_by(
@@ -2233,17 +2270,45 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
         scopes = dict(winners)
         ordered_ids = sorted((job_id for job_id, _scope in winners),
                              key=lambda job_id: (score_by_id.get(job_id, 1.0), job_id))
-        if len(ordered_ids) >= offset + limit or len(candidates) < batch_size:
+        if job_status is not None:
+            missing_status_ids = [job_id for job_id in ordered_ids if job_id not in status_by_job]
+            if missing_status_ids:
+                for start in range(0, len(missing_status_ids), 400):
+                    id_batch = missing_status_ids[start:start + 400]
+                    status_jobs = session.scalars(select(Job).where(Job.id.in_(id_batch)).options(
+                        joinedload(Job.feed).joinedload(JobFeed.company),
+                        joinedload(Job.employer_company), selectinload(Job.locations),
+                    )).unique().all()
+                    states = canonical_application_states_for_jobs(session, profile.id, status_jobs)
+                    status_by_job.update({job_id: states.get(job_id) for job_id in id_batch})
+            seen_status_groups = set()
+            status_filtered_ids = []
+            for job_id in ordered_ids:
+                application = status_by_job.get(job_id)
+                if application is None or application.status != job_status:
+                    continue
+                group_key = application.vacancy_group_id or application.job_id
+                if group_key in seen_status_groups:
+                    continue
+                seen_status_groups.add(group_key)
+                status_filtered_ids.append(job_id)
+            enough_results = len(status_filtered_ids) >= offset + limit
+        else:
+            enough_results = len(ordered_ids) >= offset + limit
+        if enough_results or len(candidates) < batch_size:
             break
     application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
     if profile is not None:
         application_job = aliased(Job)
+        application_group = aliased(JobVacancyGroup)
         application_rows = session.execute(select(
             Job.id, JobApplication.status,
         ).select_from(JobApplication).join(application_job, application_job.id == JobApplication.job_id)
+            .outerjoin(application_group, application_group.job_id == application_job.id)
             .join(Job, or_(Job.id == application_job.id,
-                           and_(Job.vacancy_group_id.is_not(None),
-                                Job.vacancy_group_id == application_job.vacancy_group_id)))
+                           and_(application_group.vacancy_group_id.is_not(None),
+                                Job.id.in_(select(JobVacancyGroup.job_id).where(
+                                    JobVacancyGroup.vacancy_group_id == application_group.vacancy_group_id)))))
             .join(JobFeed, JobFeed.id == Job.feed_id)
             .join(Company, Company.id == JobFeed.company_id)
             .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
@@ -2265,8 +2330,12 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
                 if status in application_counts:
                     application_counts[status] += 1
     complete_scan = fetch_offset >= candidate_count
-    total = len(ordered_ids) if complete_scan else candidate_count
-    page_ids = ordered_ids[offset:offset + limit]
+    if job_status is None:
+        total = len(ordered_ids) if complete_scan else candidate_count
+        page_ids = ordered_ids[offset:offset + limit]
+    else:
+        total = len(status_filtered_ids) if complete_scan else candidate_count
+        page_ids = status_filtered_ids[offset:offset + limit]
     jobs = session.scalars(select(Job).where(Job.id.in_(page_ids)).options(
         joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
         selectinload(Job.locations),
@@ -2462,19 +2531,6 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
     result_rows = select(JobSearchResult, Job).join(Job, Job.id == JobSearchResult.job_id).where(
         JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
-    if job_status is not None:
-        application_job = aliased(Job)
-        application_join = and_(
-            JobApplication.profile_id == tracking_profile.id,
-            JobApplication.job_id.in_(select(application_job.id).where(
-                or_(application_job.id == JobSearchResult.job_id,
-                    and_(Job.vacancy_group_id.is_not(None),
-                         application_job.vacancy_group_id == Job.vacancy_group_id)))),
-        )
-        result_count = result_count.join(JobApplication, application_join).where(
-            JobApplication.status == job_status)
-        result_rows = result_rows.join(JobApplication, application_join).where(
-            JobApplication.status == job_status)
     total = session.scalar(result_count) or 0
     result_order = {
         'posted': (JobSearchResult.posted_rank.desc(), JobSearchResult.discovered_rank.desc(),
@@ -2487,14 +2543,51 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     }.get(search_sort, (JobSearchResult.discovered_rank.desc(),
                         JobSearchResult.posted_rank.desc(), JobSearchResult.title_sort,
                         JobSearchResult.job_id))
-    selected_rows = session.execute(result_rows.options(
+    result_options = result_rows.options(
         joinedload(Job.feed).joinedload(JobFeed.company),
         joinedload(Job.employer_company), selectinload(Job.locations),
-    ).order_by(*result_order).offset(offset).limit(limit)).unique().all()
-    selected_results = [(row[0], row[1], None) for row in selected_rows]
-    applications_by_job = (canonical_application_states_for_jobs(
-        session, tracking_profile.id, (job for _, job, _ in selected_results))
-        if tracking_profile else {})
+    ).order_by(*result_order)
+    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
+    applications_by_job = {}
+    if tracking_profile is not None and job_status is not None:
+        # Status filtering needs identity-aware state for unindexed legacy
+        # copies. Scan the cached result set in bounded pages before slicing.
+        selected_results = []
+        seen_groups = set()
+        seen_matching_groups = set()
+        matched_count = 0
+        cursor = 0
+        batch_size = 400
+        while cursor < total:
+            rows = session.execute(result_options.offset(cursor).limit(batch_size)).unique().all()
+            if not rows:
+                break
+            batch_jobs = [row[1] for row in rows]
+            states_by_job = canonical_application_states_for_jobs(
+                session, tracking_profile.id, batch_jobs)
+            for result_row, job in rows:
+                application = states_by_job.get(job.id)
+                if application is None:
+                    continue
+                group_key = application.vacancy_group_id or application.job_id
+                if group_key not in seen_groups:
+                    seen_groups.add(group_key)
+                    application_counts[application.status] += 1
+                if application.status != job_status or group_key in seen_matching_groups:
+                    continue
+                seen_matching_groups.add(group_key)
+                if matched_count >= offset and len(selected_results) < limit:
+                    selected_results.append((result_row, job, None))
+                    applications_by_job[job.id] = application
+                matched_count += 1
+            cursor += len(rows)
+        total = matched_count
+    else:
+        selected_rows = session.execute(result_options.offset(offset).limit(limit)).unique().all()
+        selected_results = [(row[0], row[1], None) for row in selected_rows]
+        applications_by_job = (canonical_application_states_for_jobs(
+            session, tracking_profile.id, (job for _, job, _ in selected_results))
+            if tracking_profile else {})
     items = []
     for result_row, job, match_row in selected_results:
         item = _job_json(job)
@@ -2506,18 +2599,22 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
             application = applications_by_job.get(job.id)
             item['application'] = application_json(application) if application else None
         items.append(item)
-    application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    if tracking_profile:
+    if tracking_profile and job_status is None:
         application_job = aliased(Job)
+        application_group = aliased(JobVacancyGroup)
+        candidate_group = aliased(JobVacancyGroup)
+        same_application_group = select(application_group.job_id).where(
+            application_group.vacancy_group_id == candidate_group.vacancy_group_id)
         application_match = and_(
             JobApplication.profile_id == tracking_profile.id,
             JobApplication.job_id.in_(select(application_job.id).where(
                 or_(application_job.id == JobSearchResult.job_id,
-                    and_(Job.vacancy_group_id.is_not(None),
-                         application_job.vacancy_group_id == Job.vacancy_group_id)))),
+                    and_(candidate_group.vacancy_group_id.is_not(None),
+                         application_job.id.in_(same_application_group))))),
         )
         count_statement = select(JobApplication.status, func.count()).select_from(
-            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(
+            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).outerjoin(
+                candidate_group, candidate_group.job_id == Job.id).join(
                 JobApplication, application_match).where(
                     JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
         counts = session.execute(count_statement.group_by(JobApplication.status)).all()
@@ -2536,11 +2633,14 @@ def _application_momentum_json(session: Session) -> dict[str, int]:
     week_start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
     weekly_jobs: dict[datetime, set[int]] = {}
     lifetime_jobs: set[int] = set()
+    logical_job_id = func.coalesce(JobVacancyGroup.vacancy_group_id, Job.id)
     applied_events = session.execute(select(
-        ApplicationMomentumEvent.job_id,
+        logical_job_id,
         ApplicationMomentumEvent.occurred_at,
         ApplicationMomentumEvent.is_legacy,
-    ).where(ApplicationMomentumEvent.event_type == 'applied')
+    ).select_from(ApplicationMomentumEvent).join(Job, Job.id == ApplicationMomentumEvent.job_id)
+        .outerjoin(JobVacancyGroup, JobVacancyGroup.job_id == Job.id)
+        .where(ApplicationMomentumEvent.event_type == 'applied')
         .order_by(ApplicationMomentumEvent.occurred_at)).all()
     counted_weekly_jobs: set[int] = set()
     for job_id, occurred_at, is_legacy in applied_events:
@@ -2562,12 +2662,16 @@ def _application_momentum_json(session: Session) -> dict[str, int]:
         successful_weeks += 1
         streak_week -= timedelta(days=7)
 
-    interview_count = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
-        ApplicationMomentumEvent.event_type == 'interview',
-    )) or 0
-    jobs_won = session.scalar(select(func.count(func.distinct(ApplicationMomentumEvent.job_id))).where(
-        ApplicationMomentumEvent.event_type == 'accepted',
-    )) or 0
+    interview_count = session.scalar(select(func.count(func.distinct(logical_job_id))).select_from(
+        ApplicationMomentumEvent).join(Job, Job.id == ApplicationMomentumEvent.job_id).outerjoin(
+            JobVacancyGroup, JobVacancyGroup.job_id == Job.id).where(
+            ApplicationMomentumEvent.event_type == 'interview',
+        )) or 0
+    jobs_won = session.scalar(select(func.count(func.distinct(logical_job_id))).select_from(
+        ApplicationMomentumEvent).join(Job, Job.id == ApplicationMomentumEvent.job_id).outerjoin(
+            JobVacancyGroup, JobVacancyGroup.job_id == Job.id).where(
+            ApplicationMomentumEvent.event_type == 'accepted',
+        )) or 0
     return {
         'weekly_goal': weekly_goal,
         'applied_this_week': applied_this_week,
@@ -2587,6 +2691,13 @@ def get_application_momentum(session: Session = Depends(get_session)) -> dict[st
 def set_job_application(profile_id: int, job_id: int, request: ApplicationRequest,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
     require_profile(profile_id, session)
+    if session.get_bind().dialect.name == 'sqlite':
+        # End the read transaction before SQLite's no-op inventory write lock.
+        session.commit()
+    # Index in its own transaction before taking row locks, then release the
+    # shared inventory lock before taking the profile lock used by publishers.
+    index_vacancy_identities(session, [job_id])
+    session.commit()
     # Serialize tracking with source closure before reading the posting state.
     # SQLite needs a write to acquire the same protection as FOR UPDATE.
     if session.get_bind().dialect.name == 'sqlite':
@@ -2603,9 +2714,16 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
     if locked_profile_id is None:
         raise HTTPException(status_code=404, detail='Profile not found')
     canonical_application = canonical_application_states_for_jobs(session, profile_id, [job]).get(job.id)
-    target_job_id = canonical_application.job_id if canonical_application else job.id
     previous_status = canonical_application.status if canonical_application else None
     requested_status = request.status
+    # Opening a retained source copy can submit its default New state. Keep an
+    # existing decision unless the request explicitly undoes it.
+    if (canonical_application is not None and canonical_application.job_id != job.id
+            and request.status == 'new' and request.action != 'undo'
+            and previous_status != 'new'):
+        session.commit()
+        return application_json(canonical_application)
+    target_job_id = canonical_application.job_id if canonical_application else job.id
     if not job.is_active:
         if request.status == 'new' and previous_status in ('accepted', 'rejected', 'closed'):
             target_status = previous_status
@@ -2638,11 +2756,13 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
         'accepted': 'accepted',
     }.get(requested_status)
     if request.action == 'stage' and momentum_event_type and previous_status != requested_status:
-        # Count a profile/job only once across the manual and autofill sent stages.
-        already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
+        already_counted = session.scalar(select(ApplicationMomentumEvent.id).where(
             ApplicationMomentumEvent.profile_id == profile_id,
-            ApplicationMomentumEvent.job_id == target_job_id,
-            ApplicationMomentumEvent.event_type == 'applied',
+            or_(ApplicationMomentumEvent.job_id == job.id,
+                and_(job.vacancy_group_id is not None, ApplicationMomentumEvent.job_id.in_(
+                    select(JobVacancyGroup.job_id).where(
+                        JobVacancyGroup.vacancy_group_id == job.vacancy_group_id)))),
+            ApplicationMomentumEvent.event_type == momentum_event_type,
         ).limit(1)) is not None
         if not already_counted:
             session.add(ApplicationMomentumEvent(

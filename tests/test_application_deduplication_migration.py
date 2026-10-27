@@ -13,7 +13,7 @@ from hiring_scraper.app import application_deduplication, job_search, models, pr
 from hiring_scraper.app.database import initialize_sqlite_schema
 
 
-MIGRATION = 'hiring_scraper.app.migrations.versions.0032_application_deduplication'
+MIGRATION = 'hiring_scraper.app.migrations.versions.0033_application_deduplication'
 ARCHIVE = 'job_application_deduplication_archive'
 
 
@@ -77,10 +77,7 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
     def remove_vacancy_identity_schema(self):
         with self.engine.begin() as connection:
             connection.exec_driver_sql('DROP TABLE job_vacancy_identities')
-            operations = Operations(MigrationContext.configure(connection))
-            operations.drop_index('ix_jobs_vacancy_group_id', table_name='jobs')
-            with operations.batch_alter_table('jobs', recreate='always') as batch:
-                batch.drop_column('vacancy_group_id')
+            connection.exec_driver_sql('DROP TABLE job_vacancy_groups')
 
     def test_upgrade_consolidates_existing_duplicates_and_archives_prior_states(self):
         self.migration('upgrade')
@@ -90,6 +87,24 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
         with self.engine.connect() as connection:
             rows = connection.execute(text(f'SELECT job_id, status, previous_status FROM {ARCHIVE}')).all()
         self.assertEqual(set(rows), {(self.job_ids[0], 'open', 'new'), (self.job_ids[2], 'new', None)})
+
+    def test_upgrade_invalidates_cached_job_results_for_identity_backfill(self):
+        with Session(self.engine) as session:
+            generation = session.scalar(select(func.max(models.JobSearchState.id))) or 0
+            snapshot = models.JobSearchSnapshot(key='c' * 64, generation=0, payload={}, criteria_hash='')
+            session.add(snapshot)
+            session.flush()
+            session.add(models.JobSearchResult(snapshot_key=snapshot.key, job_id=self.job_ids[0],
+                scope={}, scope_uncertain=False, posted_rank=0, discovered_rank=0,
+                title_sort='role', company_sort='employer', remote_sort=False))
+            session.commit()
+
+        self.migration('upgrade')
+
+        with Session(self.engine) as session:
+            self.assertEqual(session.scalar(select(func.count()).select_from(models.JobSearchSnapshot)), 0)
+            self.assertEqual(session.scalar(select(func.count()).select_from(models.JobSearchResult)), 0)
+            self.assertGreater(session.scalar(select(func.max(models.JobSearchState.id))), generation)
 
     def test_downgrade_restores_removed_states_and_timestamps(self):
         self.migration('upgrade')
@@ -112,8 +127,9 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
         with self.engine.connect() as connection:
             columns = {column['name'] for column in connection.dialect.get_columns(connection, 'jobs')}
             tables = set(connection.dialect.get_table_names(connection))
-        self.assertIn('vacancy_group_id', columns)
+        self.assertNotIn('vacancy_group_id', columns)
         self.assertIn('job_vacancy_identities', tables)
+        self.assertIn('job_vacancy_groups', tables)
         self.assert_cleaned(momentum_events=3)
 
     def test_alembic_upgrade_adds_identity_schema_before_cleanup(self):
@@ -122,8 +138,9 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
         with self.engine.connect() as connection:
             columns = {column['name'] for column in connection.dialect.get_columns(connection, 'jobs')}
             tables = set(connection.dialect.get_table_names(connection))
-        self.assertIn('vacancy_group_id', columns)
+        self.assertNotIn('vacancy_group_id', columns)
         self.assertIn('job_vacancy_identities', tables)
+        self.assertIn('job_vacancy_groups', tables)
         self.assert_cleaned()
 
     def test_sqlite_schema_creation_does_not_skip_data_cleanup(self):

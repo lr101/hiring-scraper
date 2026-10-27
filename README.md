@@ -40,7 +40,7 @@ mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
 
 SQLite development keeps the existing synchronous matching flow.
 
-Migration `0032_application_deduplication` consolidates existing duplicate Journey
+Migration `0033_application_deduplication` consolidates existing duplicate Journey
 applications per profile using the same vacancy identity rules as search. It
 keeps the selected application and archives removed stages, undo state, and
 timestamps in `job_application_deduplication_archive`. Source job records and

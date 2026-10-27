@@ -1,4 +1,6 @@
 """Profile-specific application states, separate from the source's job lifecycle."""
+import hashlib
+import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Literal, get_args
@@ -8,7 +10,9 @@ from sqlalchemy import and_, case, or_, select, update
 from sqlalchemy.orm import joinedload
 
 from hiring_scraper.app.board_scope import expiry, vacancy_keys
-from hiring_scraper.app.models import Job, JobApplication, JobFeed, ProfileJobMatch
+from hiring_scraper.app.models import (
+    Job, JobApplication, JobFeed, JobVacancyGroup, JobVacancyIdentity, ProfileJobMatch,
+)
 
 ApplicationStatus = Literal['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply',
                             'automated_application', 'interview', 'rejected', 'accepted', 'closed']
@@ -40,22 +44,25 @@ def canonical_application_states(session, profile_ids, *, vacancy_group_ids=None
     Capturing state also survives workers replacing automatic application IDs
     between this scan and the bounded page fetch.
     """
-    statement = select(JobApplication, ProfileJobMatch.match_score).outerjoin(ProfileJobMatch, and_(
+    statement = select(JobApplication, ProfileJobMatch.match_score,
+                       JobVacancyGroup.vacancy_group_id).outerjoin(ProfileJobMatch, and_(
         ProfileJobMatch.profile_id == JobApplication.profile_id,
         ProfileJobMatch.job_id == JobApplication.job_id,
-    )).where(JobApplication.profile_id.in_(profile_ids)).options(
+    )).outerjoin(JobVacancyGroup, JobVacancyGroup.job_id == JobApplication.job_id).where(
+        JobApplication.profile_id.in_(profile_ids)).options(
         joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
         joinedload(JobApplication.job).selectinload(Job.locations),
     ).order_by(JobApplication.id).execution_options(yield_per=200)
     if vacancy_group_ids is not None or job_ids is not None:
         targets = []
         if vacancy_group_ids:
-            targets.append(JobApplication.job.has(Job.vacancy_group_id.in_(vacancy_group_ids)))
+            targets.append(JobApplication.job_id.in_(select(JobVacancyGroup.job_id).where(
+                JobVacancyGroup.vacancy_group_id.in_(vacancy_group_ids))))
         if job_ids:
             targets.append(JobApplication.job_id.in_(job_ids))
         statement = statement.where(or_(*targets) if targets else False)
     groups, seen = {}, {}
-    for application, match_score in session.execute(statement):
+    for application, match_score, vacancy_group_id in session.execute(statement):
         job = application.job
         keys = {(application.profile_id, *key) for key in vacancy_keys(job)}
         existing = {seen[key] for key in keys if key in seen}
@@ -75,7 +82,7 @@ def canonical_application_states(session, profile_ids, *, vacancy_group_ids=None
         discovered = discovered.replace(tzinfo=timezone.utc) if discovered.tzinfo is None else discovered
         state = CanonicalApplicationState(
             id=application.id, profile_id=application.profile_id, job_id=application.job_id,
-            vacancy_group_id=job.vacancy_group_id,
+            vacancy_group_id=vacancy_group_id,
             status=application.status, previous_status=application.previous_status,
             created_at=application.created_at, updated_at=application.updated_at,
             updated_rank=updated.timestamp(), match_rank=match_score if match_score is not None else -1,
@@ -98,14 +105,55 @@ def canonical_application_states_for_jobs(session, profile_id, jobs):
     jobs = list(jobs)
     if not jobs:
         return {}
+    if len(jobs) > 200:
+        mapped = {}
+        for start in range(0, len(jobs), 200):
+            mapped.update(canonical_application_states_for_jobs(session, profile_id, jobs[start:start + 200]))
+        return mapped
     job_ids = {job.id for job in jobs}
-    group_ids = {job.vacancy_group_id for job in jobs if job.vacancy_group_id is not None}
+    group_rows = session.execute(select(JobVacancyGroup.job_id, JobVacancyGroup.vacancy_group_id).where(
+        JobVacancyGroup.job_id.in_(job_ids))).all()
+    groups_by_job = {job_id: {group_id} for job_id, group_id in group_rows}
+    groups_by_job.update({job_id: set() for job_id in job_ids if job_id not in groups_by_job})
+    group_ids = {group_id for _, group_id in group_rows}
+    identity_hashes = {}
+    for job in jobs:
+        hashes = {hashlib.sha256(json.dumps(key, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+                  for key in vacancy_keys(job) if key[0] != 'retained-vacancy'}
+        identity_hashes[job.id] = hashes
+    all_hashes = set().union(*identity_hashes.values()) if identity_hashes else set()
+    if all_hashes:
+        jobs_by_hash = {}
+        for job_id, hashes in identity_hashes.items():
+            for key_hash in hashes:
+                jobs_by_hash.setdefault(key_hash, []).append(job_id)
+        ordered_hashes = sorted(all_hashes)
+        for start in range(0, len(ordered_hashes), 500):
+            for key_hash, group_id in session.execute(select(
+                JobVacancyIdentity.key_hash, JobVacancyIdentity.vacancy_group_id,
+            ).where(JobVacancyIdentity.key_hash.in_(ordered_hashes[start:start + 500]))):
+                for job_id in jobs_by_hash[key_hash]:
+                    groups_by_job[job_id].add(group_id)
+                    group_ids.add(group_id)
     states = canonical_application_states(session, [profile_id],
                                           vacancy_group_ids=group_ids, job_ids=job_ids)
     by_job = {state.job_id: state for state in states}
     by_group = {state.vacancy_group_id: state for state in states
                 if state.vacancy_group_id is not None}
-    return {job.id: by_group.get(job.vacancy_group_id) or by_job.get(job.id) for job in jobs}
+    return {job.id: (by_job.get(job.id) or next((by_group[group_id] for group_id in groups_by_job[job.id]
+                                                if group_id in by_group), None))
+            for job in jobs}
+
+
+def vacancy_group_ids_for_jobs(session, job_ids):
+    """Return persisted canonical groups for source job IDs in bounded queries."""
+    ids = sorted(set(job_ids))
+    groups = {}
+    for start in range(0, len(ids), 500):
+        groups.update(session.execute(select(
+            JobVacancyGroup.job_id, JobVacancyGroup.vacancy_group_id,
+        ).where(JobVacancyGroup.job_id.in_(ids[start:start + 500]))).all())
+    return groups
 
 
 def close_job_applications(session, job_ids, now):

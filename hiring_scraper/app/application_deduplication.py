@@ -9,12 +9,14 @@ from hiring_scraper.app.applications import canonical_application_states
 from hiring_scraper.app.board_scope import vacancy_keys
 from hiring_scraper.app.models import (
     AppDataMigration, Job, JobApplication, JobApplicationDeduplicationArchive,
-    JobFeed, JobVacancyIdentity, UserProfile, utcnow,
+    JobFeed, JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup,
+    JobVacancyIdentity,
+    UserProfile, utcnow,
 )
 
 
 _STATE_FIELDS = ('profile_id', 'job_id', 'status', 'previous_status', 'auto_created', 'created_at', 'updated_at')
-MIGRATION_KEY = '0032_application_deduplication'
+MIGRATION_KEY = '0033_application_deduplication'
 
 
 def migrate_existing_application_duplicates(session):
@@ -27,6 +29,11 @@ def migrate_existing_application_duplicates(session):
     job_ids = session.scalars(select(JobApplication.job_id).distinct()).all()
     index_vacancy_identities(session, job_ids)
     consolidate_application_duplicates(session, archive=True)
+    # Search rows predate retained vacancy groups. Drop this disposable cache so
+    # the next materialization can link untracked copies to saved application IDs.
+    session.execute(delete(JobSearchResult))
+    session.execute(delete(JobSearchSnapshot))
+    session.add(JobSearchState())
     session.execute(insert(AppDataMigration).values(key=MIGRATION_KEY, applied_at=utcnow()))
 
 
@@ -37,6 +44,12 @@ def index_vacancy_identities(session, job_ids):
         return set()
     if session.get_bind().dialect.name == 'postgresql':
         session.execute(text('SELECT pg_advisory_xact_lock(85793011, 2)'))
+    else:
+        # SQLite has no advisory locks. Take its single-writer lock before
+        # reading identities so concurrent indexers cannot race on unique keys.
+        for start in range(0, len(ids), 200):
+            session.execute(update(Job).where(Job.id.in_(ids[start:start + 200])).values(
+                is_active=Job.is_active).execution_options(synchronize_session=False))
     for start in range(0, len(ids), 200):
         jobs = session.scalars(select(Job).where(Job.id.in_(ids[start:start + 200])).options(
             joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations),
@@ -47,22 +60,31 @@ def index_vacancy_identities(session, job_ids):
             existing = session.execute(select(JobVacancyIdentity.key_hash, JobVacancyIdentity.vacancy_group_id)
                                        .where(JobVacancyIdentity.key_hash.in_(hashes))).all()
             groups = {group_id for _, group_id in existing}
-            if job.vacancy_group_id is not None:
-                groups.add(job.vacancy_group_id)
+            job_group_id = session.scalar(select(JobVacancyGroup.vacancy_group_id).where(
+                JobVacancyGroup.job_id == job.id))
+            if job_group_id is not None:
+                groups.add(job_group_id)
             group_id = min({job.id, *groups})
             merged = groups - {group_id}
             if merged:
-                session.execute(update(Job).where(Job.vacancy_group_id.in_(merged)).values(vacancy_group_id=group_id))
                 session.execute(update(JobVacancyIdentity).where(JobVacancyIdentity.vacancy_group_id.in_(merged))
                                 .values(vacancy_group_id=group_id))
-            session.execute(update(Job).where(Job.id == job.id).values(vacancy_group_id=group_id))
+                session.execute(update(JobVacancyGroup).where(JobVacancyGroup.vacancy_group_id.in_(merged))
+                                .values(vacancy_group_id=group_id))
             missing = hashes - {key_hash for key_hash, _ in existing}
             if missing:
                 session.execute(insert(JobVacancyIdentity), [
                     {'key_hash': key_hash, 'vacancy_group_id': group_id} for key_hash in missing])
+            if job_group_id is None:
+                session.execute(insert(JobVacancyGroup).values(job_id=job.id, vacancy_group_id=group_id))
+            elif job_group_id != group_id:
+                session.execute(update(JobVacancyGroup).where(JobVacancyGroup.job_id == job.id)
+                                .values(vacancy_group_id=group_id))
+            session.expire(job, ['vacancy_group'])
     affected = set()
     for start in range(0, len(ids), 200):
-        affected.update(session.scalars(select(Job.vacancy_group_id).where(Job.id.in_(ids[start:start + 200]))))
+        affected.update(session.scalars(select(JobVacancyGroup.vacancy_group_id).where(
+            JobVacancyGroup.job_id.in_(ids[start:start + 200]))))
     return affected - {None}
 
 
@@ -89,7 +111,8 @@ def consolidate_application_duplicates(session, profile_ids=None, *, archive=Fal
                 statement = select(JobApplication).where(
                     JobApplication.profile_id.in_(batch_ids), JobApplication.id > cursor)
                 if group_batch is not None:
-                    statement = statement.where(JobApplication.job.has(Job.vacancy_group_id.in_(group_batch)))
+                    statement = statement.where(JobApplication.job_id.in_(select(JobVacancyGroup.job_id).where(
+                        JobVacancyGroup.vacancy_group_id.in_(group_batch))))
                 rows = session.scalars(statement.order_by(JobApplication.id).limit(200)).all()
                 if not rows:
                     break

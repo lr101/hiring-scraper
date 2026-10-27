@@ -86,7 +86,7 @@ class JobApplicationTests(unittest.TestCase):
                 self.assertEqual(first['total'], 2)
                 self.assertEqual(first['counts']['new'], 2)
                 self.assertEqual({first['items'][0]['id'], second['items'][0]['id']},
-                                 {duplicate.id, self.jobs[1].id})
+                                 {self.jobs[0].id, self.jobs[1].id})
                 self.assertEqual(third['items'], [])
 
     def test_saved_stage_wins_over_new_duplicate_before_status_filtering(self):
@@ -142,6 +142,53 @@ class JobApplicationTests(unittest.TestCase):
         journey = self.journey()
         self.assertEqual(journey['total'], 1)
         self.assertEqual(journey['items'][0]['application']['status'], 'accepted')
+
+    def test_save_during_identity_indexing_updates_existing_duplicate_state(self):
+        duplicate = self.duplicate_job(self.jobs[0], description='Richer source copy. ' * 100)
+        self.save(self.jobs[0], 'interview')
+        detail = api.get_job(duplicate.id, self.session, profile_id=self.profile['id'])
+        self.assertEqual(detail['application']['status'], 'interview')
+        browse = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+                               session=self.session, profile_id=self.profile['id'])
+        self.assertEqual(browse['application_counts']['interview'], 1)
+        board = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+                              session=self.session, profile_id=self.profile['id'],
+                              job_status='interview')
+        self.assertEqual([item['id'] for item in board['items']], [duplicate.id])
+
+        saved = self.save(duplicate, 'accepted')
+
+        self.assertEqual(saved['job_id'], self.jobs[0].id)
+        self.assertEqual(saved['status'], 'accepted')
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 1)
+
+    def test_first_browse_snapshot_links_retained_copies_before_deduping(self):
+        bridge = self.jobs[0]
+        bridge.raw_metadata = {'requisition_id': 'bridge-42'}
+        bridge.is_active = False
+        self.session.commit()
+        self.session.add(models.JobApplication(profile_id=self.profile['id'], job_id=bridge.id,
+            status='interview', auto_created=False))
+        self.session.commit()
+        from hiring_scraper.app.application_deduplication import index_vacancy_identities
+        index_vacancy_identities(self.session, [bridge.id])
+        self.session.commit()
+        by_url = self.duplicate_job(bridge, url=bridge.url + '?utm_source=retained-copy')
+        feed = models.JobFeed(company=bridge.feed.company, provider='lever', tenant='other-source',
+            feed_url='https://example.test/other-translated', status='parsed')
+        by_requisition = models.Job(feed=feed, external_id='bridge-copy', title='Translated role',
+            url='https://example.test/jobs/bridge-copy', is_remote=True,
+            raw_metadata={'requisition_id': 'bridge-42'})
+        self.session.add(by_requisition)
+        self.session.commit()
+
+        page = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+                             session=self.session, profile_id=self.profile['id'],
+                             location_scope='remote')
+
+        retained_cards = [item for item in page['items'] if item['id'] in {by_url.id, by_requisition.id}]
+        self.assertEqual(len(retained_cards), 1)
+        self.assertEqual(page['application_counts']['interview'], 1)
 
     def test_index_rebuild_between_grouping_and_page_read_keeps_cards(self):
         self.save(self.jobs[0])
@@ -215,7 +262,7 @@ class JobApplicationTests(unittest.TestCase):
         self.save(duplicate, 'not_interested')
         for page in (self.journey(), self.overview()):
             self.assertEqual(page['total'], 1)
-            self.assertEqual(page['items'][0]['id'], duplicate.id)
+            self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
             self.assertEqual(page['counts']['open'], 0)
             self.assertEqual(page['counts']['not_interested'], 1)
         self.assertEqual(self.overview(status='open')['total'], 0)
@@ -228,7 +275,7 @@ class JobApplicationTests(unittest.TestCase):
         api.set_job_application(self.profile['id'], duplicate.id,
             api.ApplicationRequest(status='new', action='undo'), self.session)
         page = self.journey()
-        self.assertEqual(page['items'][0]['id'], duplicate.id)
+        self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
         self.assertEqual(page['items'][0]['application']['status'], 'new')
         self.assertEqual(page['counts']['open'], 0)
 
@@ -363,6 +410,18 @@ class JobApplicationTests(unittest.TestCase):
         self.save(self.jobs[0], 'automated_application')
         self.save(self.jobs[0], 'waiting_for_reply')
         self.assertEqual(api.get_application_momentum(self.session)['lifetime_applied'], 1)
+
+    def test_momentum_counts_a_vacancy_once_after_switching_source_copies(self):
+        duplicate = self.duplicate_job(self.jobs[0])
+        self.save(self.jobs[0], 'waiting_for_reply')
+        self.save(duplicate, 'automated_application')
+
+        momentum = api.get_application_momentum(self.session)
+        self.assertEqual(momentum['lifetime_applied'], 1)
+        self.assertEqual(momentum['applied_this_week'], 1)
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(
+            models.ApplicationMomentumEvent).where(
+                models.ApplicationMomentumEvent.event_type == 'applied')), 1)
 
     def test_closed_expired_and_out_of_scope_applications_remain_in_overview(self):
         self.save(self.jobs[0], 'waiting_for_reply')

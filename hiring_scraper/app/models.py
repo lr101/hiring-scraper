@@ -225,8 +225,6 @@ class Job(Base):
     feed_id: Mapped[int] = mapped_column(ForeignKey("job_feeds.id", ondelete="CASCADE"), nullable=False, index=True)
     employer_company_id: Mapped[int | None] = mapped_column(
         ForeignKey("companies.id", ondelete="SET NULL"), index=True)
-    vacancy_group_id: Mapped[int | None] = mapped_column(
-        ForeignKey('jobs.id', ondelete='SET NULL'), index=True)
     external_id: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
@@ -253,6 +251,14 @@ class Job(Base):
         back_populates="employer_jobs", foreign_keys=[employer_company_id])
     locations: Mapped[list[JobLocation]] = relationship(back_populates="job", cascade="all, delete-orphan")
     applications: Mapped[list[JobApplication]] = relationship(back_populates="job", cascade="all, delete-orphan")
+    vacancy_group: Mapped[JobVacancyGroup | None] = relationship(
+        back_populates='job', foreign_keys='JobVacancyGroup.job_id',
+        uselist=False, lazy='selectin', cascade='all, delete-orphan', passive_deletes=True)
+
+    @property
+    def vacancy_group_id(self) -> int | None:
+        """Persisted canonical group for this source row, when indexed."""
+        return self.vacancy_group.vacancy_group_id if self.vacancy_group is not None else None
 
 
 class JobLocation(Base):
@@ -373,6 +379,15 @@ class JobVacancyIdentity(Base):
 
     key_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
     vacancy_group_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+
+
+class JobVacancyGroup(Base):
+    """Job-to-group mapping kept separate from source rows to avoid lock cycles."""
+    __tablename__ = 'job_vacancy_groups'
+
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    vacancy_group_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+    job: Mapped[Job] = relationship(back_populates='vacancy_group', foreign_keys=[job_id])
 
 
 class JobApplicationDeduplicationArchive(Base):
