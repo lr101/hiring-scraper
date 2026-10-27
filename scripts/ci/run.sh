@@ -70,7 +70,14 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 "${compose[@]}" config --quiet
-"${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
+if [[ "${HIRING_CI_PREBUILT:-0}" == "1" ]]; then
+    # Missing images fail here; never silently build a different image for smoke.
+    docker tag hiring-scraper-checks:ci "$HIRING_QUALITY_IMAGE"
+    docker tag hiring-scraper:ci "$HIRING_APP_IMAGE"
+    docker tag hiring-scraper-postgis-pgvector:ci "$HIRING_DB_IMAGE"
+else
+    "${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
+fi
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
 if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
     printf '%s\n' 'Loading Chromium AppArmor profile'

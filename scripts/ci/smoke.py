@@ -1,6 +1,7 @@
 """Exercise the deployed PostgreSQL app using isolated CI data."""
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 import copy
 import json
 import os
@@ -14,6 +15,8 @@ from urllib.request import Request, urlopen
 
 from dotenv import dotenv_values
 from sqlalchemy import create_engine, func, select, text
+
+from migration_heads import assert_migration_heads
 
 bootstrap_environment = dotenv_values('/run/app-bootstrap.env')
 database_password = bootstrap_environment.get('HIRING_DB_PASSWORD')
@@ -50,10 +53,11 @@ def database_counts() -> dict:
         assert session.bind.dialect.name == 'postgresql'
         assert session.scalar(text('SELECT current_user')) == 'hiring_app'
         assert session.scalar(text('SELECT postgis_version()'))
-        recorded, actual = session.execute(text(
-            'SELECT datcollversion, pg_database_collation_actual_version(oid) '
+        provider, recorded, actual = session.execute(text(
+            'SELECT datlocprovider, datcollversion, pg_database_collation_actual_version(oid) '
             'FROM pg_database WHERE datname = current_database()'
         )).one()
+        assert provider == 'c', f'Expected the existing libc collation provider, got {provider!r}'
         assert actual is not None and recorded == actual, (
             f'Database collation version is stale or unavailable: {recorded!r} != {actual!r}'
         )
@@ -71,6 +75,10 @@ def exercise_company_domain_index() -> None:
 
 
 def exercise_collation_repair_migration() -> None:
+    from alembic import command
+    from alembic.config import Config
+
+    config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
     # Force stale catalog metadata, then run the real migration on the fresh
     # CI database. Rewinding newer empty-table migrations lets CI exercise the
     # historical repair against every current migration without deleting data.
@@ -78,12 +86,10 @@ def exercise_collation_repair_migration() -> None:
         f"postgresql+psycopg://postgres:{quote(postgres_password, safe='')}@db:5432/hiring"
     )
     admin_engine = create_engine(admin_url)
+    reindex_probe_before = None
     try:
         with admin_engine.connect() as connection:
-            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0033_application_deduplication', (
-                f'Expected the current migration head, got {version!r}'
-            )
+            assert_migration_heads(connection, config)
             counts = connection.execute(text(
                 'SELECT (SELECT count(*) FROM user_profiles), '
                 '(SELECT count(*) FROM profile_cvs), '
@@ -93,13 +99,9 @@ def exercise_collation_repair_migration() -> None:
                 'The collation migration smoke must run before fixture or user data is added'
             )
 
-        from alembic import command
-        from alembic.config import Config
-
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
-            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
             command.downgrade(config, '0026_weekly_goal_environment')
         finally:
             os.environ['DATABASE_URL'] = app_database_url
@@ -115,6 +117,21 @@ def exercise_collation_repair_migration() -> None:
             assert deleted.rowcount == 1, (
                 'Expected the PostgreSQL collation revision at the migration branchpoint'
             )
+            connection.execute(text(
+                'CREATE TABLE public.ci_collation_reindex_probe (value text NOT NULL)'
+            ))
+            connection.execute(text(
+                "INSERT INTO public.ci_collation_reindex_probe (value) "
+                "VALUES ('Karlsruhe'), ('München'), ('Århus')"
+            ))
+            connection.execute(text(
+                'CREATE INDEX ci_collation_reindex_probe_idx '
+                'ON public.ci_collation_reindex_probe (value)'
+            ))
+            reindex_probe_before = connection.scalar(text(
+                "SELECT pg_relation_filenode('public.ci_collation_reindex_probe_idx'::regclass)"
+            ))
+            assert reindex_probe_before is not None, 'Could not inspect the collation probe index'
             connection.execute(text(
                 "UPDATE pg_database SET datcollversion = 'ci-forced-stale' "
                 'WHERE datname = current_database()'
@@ -133,8 +150,64 @@ def exercise_collation_repair_migration() -> None:
         app_database_url = os.environ['DATABASE_URL']
         os.environ['DATABASE_URL'] = admin_url
         try:
-            config = Config(str(Path(__file__).resolve().parents[2] / 'alembic.ini'))
-            command.upgrade(config, 'head')
+            # Hold the probe table so the concurrent reindex pauses. While it
+            # waits, the recorded collation version must still be stale; this
+            # checks the ordering through PostgreSQL's observable behavior.
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                with admin_engine.connect() as blocker:
+                    blocking_transaction = blocker.begin()
+                    try:
+                        blocker.execute(text(
+                            'LOCK TABLE public.ci_collation_reindex_probe '
+                            'IN ACCESS EXCLUSIVE MODE'
+                        ))
+                        blocker_pid = blocker.scalar(text('SELECT pg_backend_pid()'))
+                        upgrade = executor.submit(command.upgrade, config, 'head')
+                        deadline = time.monotonic() + 60
+                        while time.monotonic() < deadline:
+                            if upgrade.done():
+                                upgrade.result()
+                                raise AssertionError(
+                                    'Collation repair did not wait to reindex the probe table'
+                                )
+                            with admin_engine.connect() as observer:
+                                waiting_on_reindex = observer.scalar(text(
+                                    "SELECT EXISTS (SELECT 1 "
+                                    "FROM pg_stat_activity AS activity "
+                                    "JOIN pg_locks AS pending_lock ON pending_lock.pid = activity.pid "
+                                    "WHERE activity.datname = current_database() "
+                                    "AND activity.query ILIKE 'REINDEX DATABASE CONCURRENTLY%' "
+                                    "AND activity.wait_event_type = 'Lock' "
+                                    "AND pending_lock.locktype = 'relation' "
+                                    "AND pending_lock.relation = "
+                                    "'public.ci_collation_reindex_probe'::regclass "
+                                    "AND pending_lock.mode = 'ShareUpdateExclusiveLock' "
+                                    "AND NOT pending_lock.granted "
+                                    "AND EXISTS (SELECT 1 FROM pg_locks AS blocker_lock "
+                                    "WHERE blocker_lock.pid = :blocker_pid "
+                                    "AND blocker_lock.locktype = 'relation' "
+                                    "AND blocker_lock.relation = pending_lock.relation "
+                                    "AND blocker_lock.mode = 'AccessExclusiveLock' "
+                                    "AND blocker_lock.granted))"
+                                ), {'blocker_pid': blocker_pid})
+                                version_during_reindex = observer.scalar(text(
+                                    'SELECT datcollversion FROM pg_database '
+                                    'WHERE datname = current_database()'
+                                ))
+                            if waiting_on_reindex:
+                                assert version_during_reindex == 'ci-forced-stale', (
+                                    'Collation version was refreshed before index rebuilding '
+                                    'completed'
+                                )
+                                break
+                            time.sleep(0.05)
+                        else:
+                            raise AssertionError(
+                                'Collation repair did not reach the blocked probe index'
+                            )
+                    finally:
+                        blocking_transaction.rollback()
+                upgrade.result(timeout=300)
         finally:
             os.environ['DATABASE_URL'] = app_database_url
 
@@ -146,10 +219,17 @@ def exercise_collation_repair_migration() -> None:
             assert actual is not None and recorded == actual, (
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
-            version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0033_application_deduplication', (
-                f'Collation migration did not return to head: {version!r}'
+            reindex_probe_after = connection.scalar(text(
+                "SELECT pg_relation_filenode('public.ci_collation_reindex_probe_idx'::regclass)"
+            ))
+            assert reindex_probe_after is not None and reindex_probe_after != reindex_probe_before, (
+                'Collation migration did not rebuild an existing text index'
             )
+            assert_migration_heads(connection, config)
+        with admin_engine.begin() as connection:
+            connection.execute(text(
+                'DROP TABLE public.ci_collation_reindex_probe'
+            ))
     finally:
         admin_engine.dispose()
 

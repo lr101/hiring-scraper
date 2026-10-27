@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from zipfile import ZipFile
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class PackagingTests(unittest.TestCase):
