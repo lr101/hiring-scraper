@@ -251,6 +251,14 @@ class Job(Base):
         back_populates="employer_jobs", foreign_keys=[employer_company_id])
     locations: Mapped[list[JobLocation]] = relationship(back_populates="job", cascade="all, delete-orphan")
     applications: Mapped[list[JobApplication]] = relationship(back_populates="job", cascade="all, delete-orphan")
+    vacancy_group: Mapped[JobVacancyGroup | None] = relationship(
+        back_populates='job', foreign_keys='JobVacancyGroup.job_id',
+        uselist=False, lazy='selectin', cascade='all, delete-orphan', passive_deletes=True)
+
+    @property
+    def vacancy_group_id(self) -> int | None:
+        """Persisted canonical group for this source row, when indexed."""
+        return self.vacancy_group.vacancy_group_id if self.vacancy_group is not None else None
 
 
 class JobLocation(Base):
@@ -292,6 +300,8 @@ class UserProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    deduplication_archive: Mapped[list[JobApplicationDeduplicationArchive]] = relationship(
+        back_populates='profile', cascade='all, delete-orphan')
     cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
     photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
 
@@ -361,6 +371,48 @@ class JobApplication(Base):
 
     profile: Mapped[UserProfile] = relationship(back_populates="applications")
     job: Mapped[Job] = relationship(back_populates="applications")
+
+
+class JobVacancyIdentity(Base):
+    """Retained source identities connect copies even after Journey cleanup."""
+    __tablename__ = 'job_vacancy_identities'
+
+    key_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    vacancy_group_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+
+
+class JobVacancyGroup(Base):
+    """Job-to-group mapping kept separate from source rows to avoid lock cycles."""
+    __tablename__ = 'job_vacancy_groups'
+
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    vacancy_group_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+    job: Mapped[Job] = relationship(back_populates='vacancy_group', foreign_keys=[job_id])
+
+
+class JobApplicationDeduplicationArchive(Base):
+    """Original states removed by the historical Journey cleanup migration."""
+    __tablename__ = 'job_application_deduplication_archive'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    original_application_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), nullable=False, index=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    previous_status: Mapped[str | None] = mapped_column(String(24))
+    auto_created: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    archived_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    profile: Mapped[UserProfile] = relationship(back_populates='deduplication_archive')
+
+
+class AppDataMigration(Base):
+    """Completed data upgrades for stores that use additive schema startup."""
+    __tablename__ = 'app_data_migrations'
+
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class ApplicationMomentumEvent(Base):

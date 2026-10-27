@@ -81,7 +81,7 @@ def exercise_collation_repair_migration() -> None:
     try:
         with admin_engine.connect() as connection:
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0032_profile_photo', (
+            assert version == '0033_application_deduplication', (
                 f'Expected the current migration head, got {version!r}'
             )
             counts = connection.execute(text(
@@ -147,7 +147,7 @@ def exercise_collation_repair_migration() -> None:
                 f'Collation migration did not refresh the version: {recorded!r} != {actual!r}'
             )
             version = connection.scalar(text('SELECT version_num FROM alembic_version'))
-            assert version == '0032_profile_photo', (
+            assert version == '0033_application_deduplication', (
                 f'Collation migration did not return to head: {version!r}'
             )
     finally:

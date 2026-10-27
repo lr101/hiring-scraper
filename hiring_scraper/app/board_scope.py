@@ -485,6 +485,8 @@ def canonical_vacancy_url(url):
 
 def vacancy_keys(job):
     keys = [('source', job.feed_id, job.external_id)]
+    if (group_id := getattr(job, 'vacancy_group_id', None)) is not None:
+        keys.append(('retained-vacancy', group_id))
     if url := canonical_vacancy_url(job.url):
         keys.append(('url', url))
     employer_id = getattr(job, 'employer_company_id', None)

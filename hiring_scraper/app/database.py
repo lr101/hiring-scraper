@@ -399,6 +399,11 @@ def initialize_sqlite_schema(target_engine=engine) -> None:
                 "AND status IN ('scheduled','queued','running')"
             )
 
+        from hiring_scraper.app.application_deduplication import migrate_existing_application_duplicates
+        with Session(bind=connection) as session:
+            migrate_existing_application_duplicates(session)
+            session.flush()
+
 
 def get_session() -> Generator[Session, None, None]:
     session = SessionLocal()
