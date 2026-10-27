@@ -344,6 +344,9 @@ def update_profile(profile_id: int, request: ProfileRequest, session: Session = 
 def delete_profile(profile_id: int, session: Session = Depends(get_session)):
     session.delete(require_profile(profile_id, session))
     session.commit()
+    from hiring_scraper.app import application_generation_jobs, codex_runtime
+    application_generation_jobs.delete_profile(codex_runtime._root(), profile_id)
+    application_generation_jobs.delete_profile(codex_runtime._root() / 'document-revisions', profile_id)
     return {'deleted': True}
 
 
@@ -502,6 +505,9 @@ def delete_cv(profile_id: int, session: Session = Depends(get_session)):
     profile = require_profile(profile_id, session)
     profile.cv = None
     session.commit()
+    from hiring_scraper.app import application_generation_jobs, codex_runtime
+    application_generation_jobs.delete_profile(codex_runtime._root(), profile_id)
+    application_generation_jobs.delete_profile(codex_runtime._root() / 'document-revisions', profile_id)
     return Response(status_code=204)
 
 

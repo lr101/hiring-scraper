@@ -11,6 +11,8 @@ import {
   addJobToProfile,
   disconnectRadius,
   prepareJob,
+  preparationStatus,
+  approvePreparedApplication,
   usePage,
   openApplication,
   fillProfile,
@@ -18,6 +20,7 @@ import {
   watchPage,
   importReturnedPackage,
   radiusState,
+  deleteRadiusApplication,
   applyClick,
   installNavigation,
   lookupPage,
@@ -88,9 +91,17 @@ async function handle(message) {
     await prepareJob(message.jobId);
     return {};
   }
+  if (message.type === "preparation-status")
+    return preparationStatus(message.jobId);
   const tabId = message.tabId;
   if (!Number.isInteger(tabId))
     throw new UserError("Select an application tab first.");
+  if (message.type === "approve-application")
+    return approvePreparedApplication(
+      tabId,
+      message.jobId,
+      message.reviewToken,
+    );
   if (message.type === "prepare-current-job")
     return prepareCurrentJob(tabId, message.jobId, message.language);
   if (message.type === "import-current-result")
@@ -292,7 +303,12 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     if (
       !sender.tab ||
       sender.frameId !== 0 ||
-      !["radius-draft", "radius-state", "apply-click"].includes(message?.type)
+      ![
+        "radius-draft",
+        "radius-state",
+        "radius-delete-application",
+        "apply-click",
+      ].includes(message?.type)
     )
       return false;
     const task =
@@ -300,7 +316,9 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
         ? captureDraft(message.source, sender)
         : message.type === "radius-state"
           ? radiusState(sender, message.theme)
-          : applyClick(sender, message);
+          : message.type === "radius-delete-application"
+            ? deleteRadiusApplication(sender)
+            : applyClick(sender, message);
     task
       .then((result) => reply({ ok: true, result }))
       .catch((error) => reply({ ok: false, error: error.message }));
@@ -319,6 +337,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       "select-profile",
       "disconnect-radius",
       "prepare-job",
+      "preparation-status",
+      "approve-application",
       "add-feed",
       "add-job",
       "use-page",
@@ -349,6 +369,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
             "add-job",
             "use-page",
             "prepare-job",
+            "preparation-status",
+            "approve-application",
             "open-application",
             "scan-form",
             "attach-documents",

@@ -48,3 +48,19 @@ test('structured question answers reject duplicate, unfinished and control text'
  for(const answers of [[{id:'q0',value:'One'},{id:'q0',value:'Two'}],[{id:'q0',value:'[TODO: answer]'}],[{id:'q0',value:'Unsafe\u0001text'}]])
   await assert.rejects(readPackage(JSON.stringify({...original,form_answers:{form_id,answers}})));
 });
+
+test('a source-only revised CV does not treat template metadata as applicant contacts',()=>{
+ const source=String.raw`\documentclass{article}
+% Template maintainer: other@example.invalid
+\begin{document}
+% radius:entry {"id":"work-1","kind":"work","company":"Labs","title":"Engineer","location":"Bonn","start":"2021","end":null,"current":true}
+% radius:responsibilities
+\begin{itemize}
+\item Built research tools.
+\end{itemize}
+% radius:end
+\end{document}`;
+ const merged=connectSources({email:'actual@example.invalid'},source,{...pack,cv:'The current CV is available in its LaTeX source and PDF.',latex_documents:{cv:source}},'https://forms.example/apply');
+ assert.equal(merged.email,'actual@example.invalid');
+ assert.equal(merged.experiences[0].description,'Built research tools.');
+});

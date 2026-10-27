@@ -13,6 +13,9 @@ import {
   matchJobs,
   addBinding,
   readyPackage,
+  assertReviewed,
+  assertReviewTarget,
+  packageStamp,
   profileStamp,
   applicationURL,
   cacheJobs,
@@ -199,16 +202,22 @@ export async function pageState(tabId, url) {
             ),
         )
         .slice(0, 8);
-  const items = [
-    ...new Map(
-      (exact.length ? exact : related).map((job) => [job.id, job]),
-    ).values(),
-  ].map((job) => ({
-    job,
-    exact: exact.some((j) => j.id === job.id),
-    ready: !!readyPackage(vault, job.id, stamp),
-    has_saved: !!vault.packages?.[`${job.id}:${vault.settings?.profile_id}`],
-  }));
+  const items = await Promise.all(
+    [
+      ...new Map(
+        (exact.length ? exact : related).map((job) => [job.id, job]),
+      ).values(),
+    ].map(async (job) => ({
+      job,
+      exact: exact.some((j) => j.id === job.id),
+      ready: !!readyPackage(vault, job.id, stamp),
+      reviewed: readyPackage(vault, job.id, stamp)?.reviewed === true,
+      review_token: readyPackage(vault, job.id, stamp)
+        ? await packageStamp(readyPackage(vault, job.id, stamp).package)
+        : "",
+      has_saved: !!vault.packages?.[`${job.id}:${vault.settings?.profile_id}`],
+    })),
+  );
   const continuation =
     fresh(recent) && !items.some((i) => i.job.id === recent.job_id)
       ? vault.jobs.find((j) => j.id === recent.job_id)
@@ -467,7 +476,24 @@ export async function prepareJob(jobId) {
     job_id: jobId,
     expires: Date.now() + 30 * 60000,
   });
-  await chrome.tabs.create({ url: applicationURL(vault, jobId) });
+  const url = new URL(applicationURL(vault, jobId));
+  if (vault.forms?.[`${jobId}:${vault.settings.profile_id}`])
+    url.searchParams.set("companion_form", "1");
+  await chrome.tabs.create({ url: url.href });
+}
+
+export async function preparationStatus(jobId) {
+  const vault = await loadVault();
+  if (
+    !vault.settings?.profile_id ||
+    !vault.jobs.some((job) => job.id === jobId)
+  )
+    return null;
+  const result = await radiusJSON(
+    vault.settings,
+    `/api/v1/profiles/${vault.settings.profile_id}/preparation-job?job_id=${jobId}&summary=true`,
+  );
+  return result.job || null;
 }
 
 export async function captureQuestions(
@@ -588,6 +614,7 @@ export async function fillProfile(tabId, url, jobId, base) {
         experience_bullets: [],
       },
     };
+  assertReviewed(saved);
   if ((await currentCV(vault.settings)) !== saved.cv_updated_at) {
     throw new Error(
       "The original CV changed or is unavailable. Prepare a current package before filling tailored details.",
@@ -857,6 +884,7 @@ async function storePreparedPackage(pack, cvText, url = "") {
     saved_at: Date.now(),
     package: pack,
     source_cv_text: base.cv_text ? "" : cvText,
+    reviewed: false,
   };
   await changeVault(async (v) => {
     const { applicant: latestApplicant } =
@@ -903,6 +931,8 @@ async function storePreparedPackage(pack, cvText, url = "") {
         };
       if (!record.source_cv_text)
         record.source_cv_text = latest.source_cv_text || "";
+      if (stableJSON(latest.package) === stableJSON(record.package))
+        record.reviewed = latest.reviewed === true;
     }
     const packages = { ...v.packages, [key]: record };
     // Retain at most 100 packages. Documents stay in local trusted extension storage.
@@ -931,6 +961,37 @@ async function storePreparedPackage(pack, cvText, url = "") {
   await refreshAllBadges();
   return {
     message: "Application CV connected. Return to the job tab to continue.",
+  };
+}
+
+export async function approvePreparedApplication(tabId, jobId, reviewToken) {
+  const tab = await chrome.tabs.get(tabId);
+  const state = await pageState(tabId, tab.url);
+  if (
+    !state.items.some(
+      (item) => item.exact && item.job.id === jobId && item.ready,
+    )
+  )
+    throw new Error(
+      "Link this page to the prepared job before confirming review.",
+    );
+  const { applicant } = await chrome.storage.local.get("applicant");
+  const stamp = await profileStamp(applicant);
+  await changeVault(async (vault) => {
+    const saved = readyPackage(vault, jobId, stamp);
+    if (!saved)
+      throw new Error(
+        "Prepare a current application before confirming review.",
+      );
+    await assertReviewTarget(saved.package, reviewToken);
+    const key = `${jobId}:${vault.settings.profile_id}`;
+    return {
+      ...vault,
+      packages: { ...vault.packages, [key]: { ...saved, reviewed: true } },
+    };
+  });
+  return {
+    message: "Review confirmed. You can choose to fill or attach documents.",
   };
 }
 let metadataAt = 0;
@@ -978,6 +1039,35 @@ export async function radiusState(sender, theme) {
       : v,
   );
   return reply;
+}
+
+export async function deleteRadiusApplication(sender) {
+  const vault = await loadVault();
+  const settings = vault.settings;
+  const url = safeURL(sender.url);
+  const match = url?.pathname.match(/^\/jobs\/(\d+)\/apply\/?$/);
+  const profileId = Number(url?.searchParams.get("profile_id"));
+  if (
+    !settings ||
+    sender.frameId !== 0 ||
+    url?.origin !== settings.origin ||
+    !match ||
+    profileId !== settings.profile_id
+  )
+    throw new Error(
+      "The application does not match the connected Radius profile.",
+    );
+  const key = `${Number(match[1])}:${profileId}`;
+  await changeVault((current) => {
+    if (!sameConnection(current.settings, settings))
+      throw new Error("Radius connection changed.");
+    const packages = { ...current.packages },
+      forms = { ...current.forms };
+    delete packages[key];
+    delete forms[key];
+    return { ...current, packages, forms };
+  });
+  return {};
 }
 export async function attachRadius(tab) {
   const vault = await loadVault();

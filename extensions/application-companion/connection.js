@@ -44,7 +44,7 @@ function render(state) {
       `${state.total ?? state.jobs?.length ?? 0} jobs cached${state.truncated ? " (offline cache limit; live lookup checks all jobs and company feeds)" : ""}. ` +
         (connected.profile_id
           ? connected.cv_updated_at
-            ? "Application details and original CV synced from Radius. Use Sync after editing your app profile. Prepared CVs sync when you return from ChatGPT."
+            ? "Application details and original CV synced from Radius. Use Sync after editing your app profile."
             : "Application details synced. Attach a CV to your profile in Radius."
           : "Choose a Radius profile to continue."),
     );

@@ -48,6 +48,9 @@ def main():
             if mode == 'error':
                 raise HTTPException(502, 'ChatGPT could not prepare this application. Check subscription usage.')
             if mode == 'slow': time.sleep(1)
+            if schema['title'] == 'RevisionOutput':
+                document = data['original_cv_text'] if 'DOCUMENT TYPE: CV LaTeX source' in prompt else 'Dear hiring team,\nI bring practical requirements coordination.'
+                return {'document': document, 'review': 'The original can be more direct.', 'changes': 'Made the wording more direct.'}
             if schema['title'] == 'ApplicationReview':
                 return {'recommendation': 'possible', 'summary': 'Coordination matches; permit status is unknown.',
                     'requirements': [{'requirement': 'German work authorization', 'priority': 'logistics',
@@ -90,14 +93,10 @@ def main():
                     page = context.new_page(); page.set_default_timeout(15000)
                     errors = []; page.on('pageerror', lambda error: errors.append(str(error)))
                     page.goto(f'{url}/jobs/{job_id}/apply?profile_id={profile_id}')
-                    direct = page.get_by_role('button', name='Prepare inside Radius', exact=True)
-                    expect(direct).to_be_disabled()
+                    direct = page.get_by_role('button', name='Prepare documents', exact=True)
                     page.get_by_role('button', name='Continue with ChatGPT', exact=True).click()
                     expect(page.get_by_label('ChatGPT sign-in code')).to_have_text('ABCD-EFGH')
                     expect(page.get_by_role('link', name='Open ChatGPT sign-in', exact=True)).to_have_attribute('href', 'https://auth.openai.com/codex/device')
-                    (Path(folder)/'allow-login').touch()
-                    expect(direct).to_be_enabled(timeout=15000)
-                    expect(page.get_by_text('Using your ChatGPT subscription', exact=True)).to_be_visible()
                     # This is the companion's actual capture shape, including document_kind.
                     captured = {'format': 'radius-form-v1', 'job_id': job_id, 'profile_id': profile_id,
                         'form_id': 'a' * 64, 'url': 'https://example.invalid/apply', 'captured_at': int(time.time() * 1000),
@@ -108,16 +107,77 @@ def main():
                         [f'radius:application-form:v1:{job_id}:{profile_id}', captured])
                     expect(page.get_by_text('This application step’s questions and answer limits are included in your brief.')).to_be_visible()
                     state['mode'] = 'slow'
-                    with page.expect_response(lambda response: response.url.endswith('/prepare-application')) as response:
-                        direct.click()
+                    with page.expect_response(lambda response: response.url.endswith('/preparation-job') and response.request.method == 'POST', timeout=30000) as response:
+                        (Path(folder)/'allow-login').touch()
                         page.wait_for_timeout(100)
                         # Unchanged companion heartbeats must not cancel a pending generation.
                         page.evaluate("document.dispatchEvent(new Event('radius-form-updated'))")
-                    state['mode'] = 'normal'
                     assert response.value.ok, response.value.text()
                     assert response.value.headers.get('cache-control') == 'no-store', 'Generated private documents must not be cached'
-                    expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
+                    expect(page.get_by_text('You can leave or reload this page', exact=False)).to_be_visible()
+                    page.reload()
+                    expect(page.get_by_text('You can leave or reload this page', exact=False)).to_be_visible()
+                    expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible(timeout=30000)
+                    state['mode'] = 'normal'
                     assert state['stages'][:3] == ['GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments']
+                    page.get_by_role('button', name='Cover letter', exact=True).click()
+                    page.get_by_label('What would you like to change?').fill('Make the opening more direct.')
+                    page.get_by_role('button', name='Review and suggest changes', exact=True).click()
+                    expect(page.get_by_text('Suggested version', exact=True)).to_be_visible(timeout=30000)
+                    expect(page.frame_locator('iframe[title="Suggested cover letter"]').locator('body')).to_contain_text('I bring practical requirements coordination.')
+                    page.screenshot(path='/tmp/radius-revision-review.png', full_page=True)
+                    page.reload()
+                    page.get_by_role('button', name='Open it', exact=True).click()
+                    expect(page.get_by_text('Suggested version', exact=True)).to_be_visible(timeout=15000)
+                    page.get_by_text('Edit document text', exact=True).click()
+                    page.get_by_role('textbox', name='Cover letter text').fill('Dear team, edited while the suggestion was waiting.')
+                    expect(page.get_by_role('button', name='Use this version', exact=True)).to_be_disabled()
+                    page.get_by_role('textbox', name='Cover letter text').fill('Dear hiring team,\nI coordinate requirements and research tools.')
+                    page.get_by_text('Edit document text', exact=True).click()
+                    expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I coordinate requirements and research tools.')
+                    page.get_by_role('button', name='Use this version', exact=True).click()
+                    expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I bring practical requirements coordination.')
+                    retained = context.request.get(f'{url}/api/v1/profiles/{profile_id}/document-revision?job_id={job_id}').json()['job']
+                    assert retained['state'] == 'completed', 'Accepted suggestion must remain recoverable'
+                    page.reload()
+                    expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
+                    page.wait_for_timeout(1500)
+                    if page.get_by_role('button', name='Keep this device’s draft', exact=True).is_visible(): page.get_by_role('button', name='Keep this device’s draft', exact=True).click()
+                    page.get_by_role('button', name='Cover letter', exact=True).click()
+                    expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I bring practical requirements coordination.')
+                    page.get_by_role('button', name='CV', exact=True).click()
+                    page.get_by_label('What would you like to change?').fill('Keep the original wording.')
+                    page.get_by_role('button', name='Review and suggest changes', exact=True).click()
+                    expect(page.get_by_text('Suggested version', exact=True)).to_be_visible(timeout=30000)
+                    page.get_by_role('button', name='Use this version', exact=True).click()
+                    page.get_by_text('Edit LaTeX source', exact=True).click()
+                    expect(page.get_by_role('textbox', name='CV LaTeX source', exact=True)).to_contain_text('Built research tools.')
+                    page.wait_for_function('''key => { const draft = JSON.parse(localStorage.getItem(key) || 'null'); return draft?.package?.cv === 'The current CV is available in its LaTeX source and PDF.' && draft?.package?.latex_documents?.cv?.includes('Built research tools.') }''', arg=f'radius:application-draft:v1:{job_id}:{profile_id}', timeout=5000)
+                    cv_editor = page.get_by_role('textbox', name='CV LaTeX source', exact=True)
+                    cv_editor.fill(cv_editor.input_value().replace('Built research tools.', 'Built reliable tools.'))
+                    page.wait_for_function('''key => { const draft = JSON.parse(localStorage.getItem(key) || 'null'); return draft?.package?.cv === 'The current CV is available in its LaTeX source and PDF.' && draft?.package?.latex_documents?.cv?.includes('Built reliable tools.') }''', arg=f'radius:application-draft:v1:{job_id}:{profile_id}', timeout=5000)
+                    valid_source = cv_editor.input_value()
+                    cv_editor.fill('')
+                    expect(page.get_by_role('alert').filter(has_text='CV source is incomplete')).to_be_visible()
+                    page.wait_for_timeout(1200)
+                    saved_source = page.evaluate('''key => JSON.parse(localStorage.getItem(key)).package.latex_documents.cv''', f'radius:application-draft:v1:{job_id}:{profile_id}')
+                    assert saved_source == valid_source, 'Incomplete CV must not replace the last valid draft'
+                    cv_editor.fill(valid_source)
+                    expect(page.get_by_role('alert').filter(has_text='CV source is incomplete')).to_have_count(0)
+                    page.reload()
+                    expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
+                    page.wait_for_timeout(1500)
+                    if page.get_by_role('button', name='Keep this device’s draft', exact=True).is_visible(): page.get_by_role('button', name='Keep this device’s draft', exact=True).click()
+                    page.get_by_text('Edit LaTeX source', exact=True).click()
+                    expect(page.get_by_role('textbox', name='CV LaTeX source', exact=True)).to_contain_text('Built reliable tools.')
+                    page.get_by_text('Edit LaTeX source', exact=True).click()
+                    # Restore the original synthetic generation for the existing export checks.
+                    page.get_by_text('Options', exact=True).click()
+                    page.get_by_role('button', name='Back to brief', exact=True).click()
+                    page.get_by_role('button', name='Prepare documents', exact=True).click()
+                    expect(page.get_by_role('button', name='Open latest prepared documents')).to_be_visible(timeout=30000)
+                    page.get_by_role('button', name='Open latest prepared documents').click()
+                    expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
                     page.get_by_text('Fit and document checks', exact=True).click()
                     checks = page.get_by_label('Application review report')
                     expect(checks).to_contain_text('German work authorization')
@@ -142,6 +202,40 @@ def main():
                     letter_text = '\n'.join(p.extract_text() for p in PdfReader(letter_download.value.path()).pages)
                     assert 'I coordinate requirements and research tools.' in letter_text
                     assert 'Unreviewed invented achievements.' not in letter_text
+                    page.get_by_text('Edit document text', exact=True).click()
+                    editor = page.get_by_role('textbox', name='Cover letter text')
+                    editor.fill('Dear team, I reviewed and edited this letter.')
+                    endpoint = f'{url}/api/v1/profiles/{profile_id}/application-draft?job_id={job_id}'
+                    deadline = time.time() + 15
+                    while time.time() < deadline:
+                        saved = context.request.get(endpoint).json().get('saved')
+                        if saved and 'reviewed and edited' in json.dumps(saved): break
+                        time.sleep(.2)
+                    assert saved and 'reviewed and edited' in json.dumps(saved), 'Edited draft was not synced'
+                    second = browser.new_context(viewport={'width': 1280, 'height': 1000})
+                    other = second.new_page(); other.goto(f'{url}/jobs/{job_id}/apply?profile_id={profile_id}')
+                    expect(other.get_by_text('Your documents are ready.', exact=True)).to_be_visible(timeout=15000)
+                    other.get_by_role('button', name='Cover letter', exact=True).click()
+                    expect(other.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I reviewed and edited this letter.')
+                    other.get_by_text('Edit document text', exact=True).click()
+                    other.get_by_role('textbox', name='Cover letter text').fill('Dear team, edited on the second device.')
+                    deadline = time.time() + 15
+                    while time.time() < deadline:
+                        saved = context.request.get(endpoint).json().get('saved')
+                        if saved and 'edited on the second device' in json.dumps(saved): break
+                        time.sleep(.2)
+                    assert saved and 'edited on the second device' in json.dumps(saved)
+                    second.close()
+                    editor.fill('Dear team, I coordinate requirements and research tools.')
+                    expect(page.get_by_text('This draft changed on another device.', exact=False)).to_be_visible(timeout=15000)
+                    page.get_by_role('button', name='Keep this device’s draft', exact=True).click()
+                    deadline = time.time() + 15
+                    while time.time() < deadline:
+                        saved = context.request.get(endpoint).json().get('saved')
+                        if saved and 'I coordinate requirements and research tools.' in json.dumps(saved): break
+                        time.sleep(.2)
+                    assert saved and 'I coordinate requirements and research tools.' in json.dumps(saved)
+                    page.get_by_text('Edit document text', exact=True).click()
                     page.get_by_role('button', name='CV', exact=True).click()
                     page.screenshot(path='/tmp/radius-direct-preparation-desktop.png', full_page=True)
                     page.reload()
@@ -153,38 +247,28 @@ def main():
                     state['mode'] = 'error'; direct.click()
                     expect(page.get_by_role('alert').filter(has_text='ChatGPT could not prepare')).to_be_visible()
                     assert 'Private provider details' not in page.content()
-                    state['mode'] = 'invalid'; direct.click()
+                    state['mode'] = 'invalid'; page.get_by_role('button', name='Start with current options', exact=True).click()
                     expect(page.get_by_role('alert').filter(has_text='changed CV facts')).to_be_visible()
-                    state['mode'] = 'slow'; direct.click()
-                    page.get_by_role('button', name='Cancel preparation', exact=True).click()
                     state['mode'] = 'normal'
                     page.get_by_text('Options', exact=True).click()
                     page.get_by_role('combobox', name='Document language', exact=True).select_option('German')
                     expect(page.locator('[data-original-cv-text]')).to_have_attribute('data-original-cv-text', source('de').strip())
-                    expect(direct).to_be_enabled()
-                    with page.expect_response(lambda response: response.url.endswith('/prepare-application')
-                            and response.request.post_data_json.get('language') == 'de') as german_response:
-                        direct.click()
-                    assert german_response.value.ok, german_response.value.text()
+                    page.get_by_role('button', name='Start with current options', exact=True).click()
+                    expect(page.get_by_role('button', name='Open latest prepared documents')).to_be_visible(timeout=30000)
+                    page.get_by_role('button', name='Open latest prepared documents').click()
                     expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
-                    # The cancelled English workflow can continue in the background.
-                    # Verify this request's result rather than global completion order.
                     assert state['languages'].count('de') == 3
-                    assert 'Forschungswerkzeuge entwickelt.' in german_response.value.json()['package']['latex_documents']['cv']
-                    # Cancellation must not let the old, slower result overwrite a new generation.
-                    page.wait_for_timeout(1200)
                     page.get_by_text('Edit LaTeX source', exact=True).click()
                     expect(page.get_by_role('textbox', name='CV LaTeX source', exact=True)).to_contain_text('Forschungswerkzeuge entwickelt.')
                     back_to_prepare()
                     page.get_by_role('button', name='Disconnect ChatGPT', exact=True).click()
-                    expect(direct).to_be_disabled()
-                    expect(page.get_by_role('button', name='Copy brief & open ChatGPT ↗', exact=True)).to_be_enabled()
+                    expect(page.get_by_role('button', name='Continue with ChatGPT', exact=True)).to_be_visible()
                     page.set_viewport_size({'width': 390, 'height': 844})
                     page.screenshot(path='/tmp/radius-direct-preparation-mobile.png', full_page=True)
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile layout overflow'
                     assert not errors, errors
                     browser.close()
-                    print('Direct preparation browser: real UI/API, source download, recovery, provider errors, history rejection, cancellation, German selection and disabled fallback passed.')
+                    print('Direct preparation browser: real UI/API, source download, recovery, provider errors, history rejection, reload recovery, German selection and disabled fallback passed.')
             finally:
                 server.should_exit = True; thread.join(timeout=10)
                 engine.dispose()

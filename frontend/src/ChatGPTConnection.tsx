@@ -47,7 +47,7 @@ export default function ChatGPTConnection({ onChange, preparing = false }: { onC
   return <div className="chatgpt-connection" role="group" aria-label="ChatGPT subscription connection">
     {!connection ? <p className="finish-help">Checking your ChatGPT connection…</p>
       : connection.enabled ? <>
-        <p className="finish-help">Using your ChatGPT subscription</p>
+        <p className="finish-help">Using your ChatGPT subscription on this Radius instance, across your devices.</p>
         <div className="finish-actions"><a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">Manage ChatGPT usage ↗</a>
           <button className="finish-text-button" disabled={busy || preparing} onClick={() => void change('logout')}>Disconnect ChatGPT</button></div>
       </> : pending ? <>
