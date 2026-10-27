@@ -1,6 +1,8 @@
 """Application tracking persists independently of vacancy and matching lifecycles."""
 import unittest
 import importlib
+import sqlite3
+from datetime import timedelta
 from unittest.mock import patch
 
 from alembic.migration import MigrationContext
@@ -54,6 +56,230 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(page['counts']['new'], 0)
         self.assertTrue(page['matching_pending'])
         self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
+
+    def duplicate_job(self, original, *, url=None, metadata=None, **fields):
+        feed = models.JobFeed(company=original.feed.company, provider='greenhouse',
+            tenant='translated', feed_url='https://example.test/translated', status='parsed')
+        duplicate = models.Job(feed=feed, external_id='translated', title='Translated role',
+            url=url or original.url + '?utm_source=another-feed', is_remote=True,
+            raw_metadata=metadata or {}, **fields)
+        self.session.add(duplicate)
+        self.session.commit()
+        return duplicate
+
+    def journey(self, **kwargs):
+        # Exercise the production read path without a synchronous match rebuild.
+        with patch.object(api, 'IS_SQLITE', False):
+            return api.list_applications(profile_ids=str(self.profile['id']),
+                                         statuses='all', session=self.session, **kwargs)
+
+    def test_journey_deduplicates_tracking_urls_before_counts_and_pagination(self):
+        duplicate = self.duplicate_job(self.jobs[0])
+        self.save(self.jobs[0])
+        self.save(duplicate)
+        self.save(self.jobs[1])
+        for sort in ('match', 'posted', 'discovered'):
+            with self.subTest(sort=sort):
+                first = self.journey(sort=sort, limit=1)
+                second = self.journey(sort=sort, offset=1, limit=1)
+                third = self.journey(sort=sort, offset=2, limit=1)
+                self.assertEqual(first['total'], 2)
+                self.assertEqual(first['counts']['new'], 2)
+                self.assertEqual({first['items'][0]['id'], second['items'][0]['id']},
+                                 {duplicate.id, self.jobs[1].id})
+                self.assertEqual(third['items'], [])
+
+    def test_saved_stage_wins_over_new_duplicate_before_status_filtering(self):
+        duplicate = self.duplicate_job(self.jobs[0], description='Richer source copy. ' * 100)
+        self.save(self.jobs[0], 'interview')
+        self.session.add(models.JobApplication(profile_id=self.profile['id'], job_id=duplicate.id,
+            status='new', auto_created=True, updated_at=models.utcnow() + timedelta(days=1)))
+        self.session.commit()
+        page = self.journey()
+        self.assertEqual(page['total'], 1)
+        self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
+        self.assertEqual(page['items'][0]['application']['status'], 'interview')
+        with patch.object(api, 'IS_SQLITE', False):
+            new = api.list_applications(profile_ids=str(self.profile['id']), statuses='new', session=self.session)
+        self.assertEqual(new['items'], [])
+        self.assertEqual(new['total'], 0)
+        self.assertEqual(new['counts']['new'], 0)
+        self.assertEqual(new['counts']['interview'], 1)
+        # Reads preserve every source row and its saved history.
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 2)
+
+    def test_detail_and_save_on_archived_duplicate_use_the_canonical_application(self):
+        from hiring_scraper.app.application_deduplication import (
+            consolidate_application_duplicates, index_vacancy_identities,
+        )
+
+        duplicate = self.duplicate_job(self.jobs[0], description='Richer source copy. ' * 100)
+        self.save(self.jobs[0], 'interview')
+        index_vacancy_identities(self.session, [self.jobs[0].id, duplicate.id])
+        consolidate_application_duplicates(self.session, archive=True)
+        self.session.commit()
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 1)
+
+        detail = api.get_job(duplicate.id, self.session, profile_id=self.profile['id'])
+        self.assertEqual(detail['application']['status'], 'interview')
+        company = api.get_company(self.jobs[0].feed.company_id, self.session,
+                                  profile_id=self.profile['id'])
+        company_cards = [item for item in company['jobs'] if item.get('application')]
+        self.assertEqual(len(company_cards), 1)
+        self.assertEqual(company_cards[0]['id'], duplicate.id)
+        self.assertEqual(company_cards[0]['application']['status'], 'interview')
+        board = api.list_jobs(49, 8, 35, None, None, None, 0, 100,
+                              session=self.session, profile_id=self.profile['id'])
+        board_cards = [item for item in board['items']
+                       if item['id'] in {self.jobs[0].id, duplicate.id}]
+        self.assertEqual(len(board_cards), 1)
+        self.assertEqual(board_cards[0]['id'], duplicate.id)
+        self.assertEqual(board_cards[0]['application']['status'], 'interview')
+        saved = self.save(duplicate, 'accepted')
+        self.assertEqual(saved['job_id'], self.jobs[0].id)
+        self.assertEqual(saved['status'], 'accepted')
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 1)
+        journey = self.journey()
+        self.assertEqual(journey['total'], 1)
+        self.assertEqual(journey['items'][0]['application']['status'], 'accepted')
+
+    def test_index_rebuild_between_grouping_and_page_read_keeps_cards(self):
+        self.save(self.jobs[0])
+        original = api.canonical_application_states
+
+        def rebuild_after_grouping(session, profile_ids):
+            result = original(session, profile_ids)
+            # A worker publishes a new set of automatic application IDs.
+            session.query(models.JobApplication).delete(synchronize_session=False)
+            session.add(models.JobApplication(id=1000, profile_id=self.profile['id'],
+                job_id=self.jobs[0].id, status='new', auto_created=True))
+            session.commit()
+            return result
+
+        with patch.object(api, 'canonical_application_states', side_effect=rebuild_after_grouping):
+            page = self.journey()
+        self.assertEqual(page['total'], 1)
+        self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
+
+    def test_large_journey_keeps_page_query_below_database_parameter_limit(self):
+        jobs = [models.Job(feed=self.jobs[0].feed, external_id=f'unique-{index}',
+            title=f'Unique role {index}', url=f'https://example.test/unique/{index}')
+            for index in range(300)]
+        self.session.add_all(jobs)
+        self.session.flush()
+        self.session.add_all([models.JobApplication(profile_id=self.profile['id'], job_id=job.id,
+            status='new', auto_created=True) for job in jobs])
+        self.session.commit()
+        connection = self.session.connection().connection.driver_connection
+        previous_limit = connection.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 250)
+        try:
+            for page in (self.journey(limit=1), self.overview(limit=1)):
+                self.assertEqual(page['total'], 300)
+                self.assertEqual(len(page['items']), 1)
+        finally:
+            connection.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, previous_limit)
+
+    def test_journey_preserves_match_posted_and_discovered_sort_order(self):
+        now = models.utcnow()
+        for index, job in enumerate(self.jobs[:3]):
+            job.first_seen_at = now - timedelta(days=index)
+            job.date_posted = ['2026-01-01', None, '2026-02-01'][index]
+            self.save(job)
+            if index != 0:
+                self.session.add(models.ProfileJobMatch(profile_id=self.profile['id'], job_id=job.id,
+                    match_score=index * 10, match_tier='possible', match_uncertain=False))
+        self.session.commit()
+        for sort, expected in [('match', [2, 1, 0]), ('posted', [2, 0, 1]), ('discovered', [0, 1, 2])]:
+            with self.subTest(sort=sort):
+                self.assertEqual([item['id'] for item in self.journey(sort=sort)['items']],
+                                 [self.jobs[index].id for index in expected])
+
+    def test_reappearing_automatic_copy_wins_over_closed_automatic_copy(self):
+        duplicate = self.duplicate_job(self.jobs[0])
+        self.jobs[0].is_active = False
+        self.session.add_all([
+            models.JobApplication(profile_id=self.profile['id'], job_id=self.jobs[0].id,
+                status='closed', previous_status='new', auto_created=True),
+            models.JobApplication(profile_id=self.profile['id'], job_id=duplicate.id,
+                status='new', auto_created=True),
+        ])
+        self.session.commit()
+        page = self.journey()
+        self.assertEqual(page['items'][0]['id'], duplicate.id)
+        self.assertEqual(page['counts']['new'], 1)
+        self.assertEqual(page['counts']['closed'], 0)
+
+    def test_latest_saved_decision_is_shared_by_both_application_overviews(self):
+        duplicate = self.duplicate_job(self.jobs[0])
+        self.save(self.jobs[0], 'open')
+        self.save(duplicate, 'not_interested')
+        for page in (self.journey(), self.overview()):
+            self.assertEqual(page['total'], 1)
+            self.assertEqual(page['items'][0]['id'], duplicate.id)
+            self.assertEqual(page['counts']['open'], 0)
+            self.assertEqual(page['counts']['not_interested'], 1)
+        self.assertEqual(self.overview(status='open')['total'], 0)
+
+    def test_undo_to_new_does_not_restore_an_older_duplicate_decision(self):
+        duplicate = self.duplicate_job(self.jobs[0])
+        self.save(self.jobs[0], 'open')
+        self.save(duplicate, 'new')
+        self.save(duplicate, 'not_interested')
+        api.set_job_application(self.profile['id'], duplicate.id,
+            api.ApplicationRequest(status='new', action='undo'), self.session)
+        page = self.journey()
+        self.assertEqual(page['items'][0]['id'], duplicate.id)
+        self.assertEqual(page['items'][0]['application']['status'], 'new')
+        self.assertEqual(page['counts']['open'], 0)
+
+    def test_requisition_language_variants_stay_separate_for_each_profile(self):
+        self.jobs[0].feed.provider = 'greenhouse'
+        self.jobs[0].raw_metadata = {'requisition_id': 'req-123'}
+        duplicate = self.duplicate_job(self.jobs[0], url='https://example.test/en/jobs/translated',
+                                       metadata={'requisition_id': 'req-123'})
+        self.save(self.jobs[0], 'interview')
+        self.save(duplicate, 'new')
+        self.save(self.jobs[0], 'not_interested', self.other)
+        self.save(duplicate, 'new', self.other)
+        with patch.object(api, 'IS_SQLITE', False):
+            page = api.list_applications(profile_ids=f"{self.profile['id']},{self.other['id']}",
+                                         statuses='all', session=self.session)
+        self.assertEqual(page['total'], 2)
+        self.assertEqual({(item['profile_id'], item['application']['status']) for item in page['items']},
+                         {(self.profile['id'], 'interview'), (self.other['id'], 'not_interested')})
+
+    def test_same_title_without_vacancy_identity_remains_separate(self):
+        self.jobs[0].title = self.jobs[1].title = 'Software engineer'
+        self.jobs[0].url = self.jobs[1].url = 'https://example.test/careers'
+        self.session.commit()
+        self.save(self.jobs[0])
+        self.save(self.jobs[1])
+        self.assertEqual(self.journey()['total'], 2)
+
+    def test_automatic_matches_deduplicate_after_rebuild_and_across_batches(self):
+        duplicate = self.duplicate_job(self.jobs[0], description='Complete role description')
+        copies = [models.Job(feed=self.jobs[0].feed, external_id=f'copy-{index}',
+            title='Source copy', url=self.jobs[0].url, is_remote=True) for index in range(205)]
+        self.session.add_all(copies)
+        self.session.commit()
+        page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertEqual(page['total'], 8)
+        self.assertEqual(page['counts']['new'], 8)
+        self.assertEqual({item['id'] for item in page['items']},
+                         {duplicate.id, *(job.id for job in self.jobs[1:])})
+        self.assertEqual(self.journey()['total'], 8)
+
+    def test_transitive_vacancy_identities_merge_existing_groups(self):
+        self.jobs[1].feed.provider = 'greenhouse'
+        self.jobs[1].raw_metadata = {'requisition_id': 'bridge'}
+        self.save(self.jobs[0])
+        self.save(self.jobs[1], 'open')
+        bridge = self.duplicate_job(self.jobs[0], metadata={'requisition_id': 'bridge'})
+        self.save(bridge)
+        page = self.journey()
+        self.assertEqual(page['total'], 1)
+        self.assertEqual(page['items'][0]['id'], self.jobs[1].id)
+        self.assertEqual(page['counts']['open'], 1)
 
     def test_background_rebuild_populates_journey_and_preserves_saved_stages(self):
         self.save(self.jobs[0], 'interview')

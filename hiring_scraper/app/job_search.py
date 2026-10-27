@@ -12,6 +12,9 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
+from hiring_scraper.app.application_deduplication import (
+    consolidate_application_duplicates, index_vacancy_identities,
+)
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
     Job, JobApplication, JobFeed, JobLocation, JobSearchState, ProfileJobMatch, UserProfile, utcnow,
@@ -320,6 +323,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                 _upsert_profile_matches(session, [row for row in batch if row["profile_id"] in stable_ids])
             for batch in _iter_pending_batches(state_spool):
                 upsert_new_match_states(session, [row for row in batch if row["profile_id"] in stable_ids])
+            consolidate_application_duplicates(session, stable_ids)
             for profile in stable_profiles:
                 profile.match_index_version = expected_versions[profile.id]
 
@@ -344,6 +348,7 @@ def refresh_application_matches_for_jobs(
         select(UserProfile).order_by(UserProfile.id).execution_options(populate_existing=True)
     ).all()
     if not profiles:
+        index_vacancy_identities(session, ids)
         if before_publish is not None:
             before_publish(session)
         return
@@ -409,6 +414,7 @@ def refresh_application_matches_for_jobs(
             # Source retirement must update application rows only after profile
             # locks are held, and before stale automatic New rows are retracted.
             before_publish(session)
+        affected_vacancy_groups = index_vacancy_identities(session, ids)
         stable_profiles = [profile for profile in current_profiles
                            if _profile_index_version(profile) == profile_versions[profile.id]]
         stable_ids = {profile.id for profile in stable_profiles}
@@ -446,6 +452,9 @@ def refresh_application_matches_for_jobs(
                 session.execute(stale)
             _upsert_profile_matches(session, matches)
             upsert_new_match_states(session, states)
+        consolidate_application_duplicates(
+            session, stable_ids, vacancy_group_ids=affected_vacancy_groups,
+        )
 
 
 def clear_profile_match_scores(session: Session, profile_id: int) -> None:

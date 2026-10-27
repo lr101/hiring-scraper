@@ -40,6 +40,15 @@ mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
 
 SQLite development keeps the existing synchronous matching flow.
 
+Migration `0032_application_deduplication` consolidates existing duplicate Journey
+applications per profile using the same vacancy identity rules as search. It
+keeps the selected application and archives removed stages, undo state, and
+timestamps in `job_application_deduplication_archive`. Source job records and
+momentum events stay intact. PostgreSQL applies this through the normal
+`alembic upgrade head` deployment step; SQLite applies it once at startup.
+Downgrading restores archived entries that have no newer saved state. Background
+matching also retracts redundant automatic New entries after each publication.
+
 In another terminal, start the frontend:
 
 ```bash

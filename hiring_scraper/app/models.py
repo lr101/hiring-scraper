@@ -225,6 +225,8 @@ class Job(Base):
     feed_id: Mapped[int] = mapped_column(ForeignKey("job_feeds.id", ondelete="CASCADE"), nullable=False, index=True)
     employer_company_id: Mapped[int | None] = mapped_column(
         ForeignKey("companies.id", ondelete="SET NULL"), index=True)
+    vacancy_group_id: Mapped[int | None] = mapped_column(
+        ForeignKey('jobs.id', ondelete='SET NULL'), index=True)
     external_id: Mapped[str] = mapped_column(String(255), nullable=False)
     title: Mapped[str] = mapped_column(String(1000), nullable=False, index=True)
     url: Mapped[str] = mapped_column(Text, nullable=False)
@@ -292,6 +294,8 @@ class UserProfile(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
+    deduplication_archive: Mapped[list[JobApplicationDeduplicationArchive]] = relationship(
+        back_populates='profile', cascade='all, delete-orphan')
     cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
 
     @property
@@ -349,6 +353,39 @@ class JobApplication(Base):
 
     profile: Mapped[UserProfile] = relationship(back_populates="applications")
     job: Mapped[Job] = relationship(back_populates="applications")
+
+
+class JobVacancyIdentity(Base):
+    """Retained source identities connect copies even after Journey cleanup."""
+    __tablename__ = 'job_vacancy_identities'
+
+    key_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    vacancy_group_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False, index=True)
+
+
+class JobApplicationDeduplicationArchive(Base):
+    """Original states removed by the historical Journey cleanup migration."""
+    __tablename__ = 'job_application_deduplication_archive'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    original_application_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), nullable=False, index=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    previous_status: Mapped[str | None] = mapped_column(String(24))
+    auto_created: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    archived_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    profile: Mapped[UserProfile] = relationship(back_populates='deduplication_archive')
+
+
+class AppDataMigration(Base):
+    """Completed data upgrades for stores that use additive schema startup."""
+    __tablename__ = 'app_data_migrations'
+
+    key: Mapped[str] = mapped_column(String(80), primary_key=True)
+    applied_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class ApplicationMomentumEvent(Base):

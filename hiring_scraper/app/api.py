@@ -53,7 +53,8 @@ from hiring_scraper.geography import GERMAN_STATES, haversine_m, normalize_germa
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.profiles import router as profiles_router, require_profile
 from hiring_scraper.app.applications import (APPLIED_STATUSES, APPLICATION_STATUSES, ApplicationRequest,
-                                            ApplicationStatus, application_json, close_job_applications)
+                                            ApplicationStatus, application_json, canonical_application_states,
+                                            canonical_application_states_for_jobs, close_job_applications)
 from hiring_scraper.app.job_search import (
     ProfileIndexChanged, ensure_profile_match_indexes, profile_match_index_stale, refresh_application_matches_for_jobs,
 )
@@ -2196,10 +2197,15 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
         filters.append(_job_area_candidates(latitude, longitude, radius_km, place, location_scope))
     candidate_filters = list(filters)
     if job_status is not None:
-        candidate_filters.append(Job.id.in_(select(JobApplication.job_id).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.status == job_status,
-        )))
+        application_job = aliased(Job)
+        candidate_filters.append(Job.id.in_(select(application_job.id).join(
+            JobApplication, JobApplication.job_id == application_job.id).where(
+                JobApplication.profile_id == profile.id,
+                JobApplication.status == job_status,
+                or_(application_job.id == Job.id,
+                    and_(Job.vacancy_group_id.is_not(None),
+                         application_job.vacancy_group_id == Job.vacancy_group_id)),
+            )))
     filtered_statement = statement.where(*candidate_filters)
     candidate_count = int(session.scalar(select(func.count()).select_from(
         filtered_statement.order_by(None).with_only_columns(Job.id).subquery())) or 0)
@@ -2229,17 +2235,15 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
                              key=lambda job_id: (score_by_id.get(job_id, 1.0), job_id))
         if len(ordered_ids) >= offset + limit or len(candidates) < batch_size:
             break
-    applications_by_job: dict[int, JobApplication] = {}
-    if profile is not None and ordered_ids:
-        applications_by_job = {row.job_id: row for row in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.job_id.in_(ordered_ids),
-        ))}
     application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
     if profile is not None:
+        application_job = aliased(Job)
         application_rows = session.execute(select(
-            JobApplication.job_id, JobApplication.status,
-        ).select_from(JobApplication).join(Job, Job.id == JobApplication.job_id)
+            Job.id, JobApplication.status,
+        ).select_from(JobApplication).join(application_job, application_job.id == JobApplication.job_id)
+            .join(Job, or_(Job.id == application_job.id,
+                           and_(Job.vacancy_group_id.is_not(None),
+                                Job.vacancy_group_id == application_job.vacancy_group_id)))
             .join(JobFeed, JobFeed.id == Job.feed_id)
             .join(Company, Company.id == JobFeed.company_id)
             .outerjoin(employer_company, Job.employer_company_id == employer_company.id)
@@ -2267,6 +2271,8 @@ def _semantic_jobs_page(session: Session, vector: list[float], *,
         joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
         selectinload(Job.locations),
     )).unique().all() if page_ids else []
+    applications_by_job = (canonical_application_states_for_jobs(session, profile.id, jobs)
+                           if profile is not None else {})
     jobs_by_id = {job.id: job for job in jobs}
     items = []
     for job_id in page_ids:
@@ -2457,8 +2463,14 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
     result_rows = select(JobSearchResult, Job).join(Job, Job.id == JobSearchResult.job_id).where(
         JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
     if job_status is not None:
-        application_join = and_(JobApplication.profile_id == tracking_profile.id,
-                                JobApplication.job_id == JobSearchResult.job_id)
+        application_job = aliased(Job)
+        application_join = and_(
+            JobApplication.profile_id == tracking_profile.id,
+            JobApplication.job_id.in_(select(application_job.id).where(
+                or_(application_job.id == JobSearchResult.job_id,
+                    and_(Job.vacancy_group_id.is_not(None),
+                         application_job.vacancy_group_id == Job.vacancy_group_id)))),
+        )
         result_count = result_count.join(JobApplication, application_join).where(
             JobApplication.status == job_status)
         result_rows = result_rows.join(JobApplication, application_join).where(
@@ -2480,13 +2492,9 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         joinedload(Job.employer_company), selectinload(Job.locations),
     ).order_by(*result_order).offset(offset).limit(limit)).unique().all()
     selected_results = [(row[0], row[1], None) for row in selected_rows]
-    applications_by_job = {}
-    if tracking_profile and selected_results:
-        selected_job_ids = [result.job_id for result, _, _ in selected_results]
-        applications_by_job = {item.job_id: item for item in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == tracking_profile.id,
-            JobApplication.job_id.in_(selected_job_ids),
-        ))}
+    applications_by_job = (canonical_application_states_for_jobs(
+        session, tracking_profile.id, (job for _, job, _ in selected_results))
+        if tracking_profile else {})
     items = []
     for result_row, job, match_row in selected_results:
         item = _job_json(job)
@@ -2500,11 +2508,18 @@ def list_jobs(latitude: float | None = Query(None, ge=-90, le=90),
         items.append(item)
     application_counts = dict.fromkeys(APPLICATION_STATUSES, 0)
     if tracking_profile:
+        application_job = aliased(Job)
+        application_match = and_(
+            JobApplication.profile_id == tracking_profile.id,
+            JobApplication.job_id.in_(select(application_job.id).where(
+                or_(application_job.id == JobSearchResult.job_id,
+                    and_(Job.vacancy_group_id.is_not(None),
+                         application_job.vacancy_group_id == Job.vacancy_group_id)))),
+        )
         count_statement = select(JobApplication.status, func.count()).select_from(
-            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(JobApplication, and_(
-                JobApplication.profile_id == tracking_profile.id,
-                JobApplication.job_id == JobSearchResult.job_id,
-            )).where(JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
+            JobSearchResult).join(Job, Job.id == JobSearchResult.job_id).join(
+                JobApplication, application_match).where(
+                    JobSearchResult.snapshot_key == key, _posting_status_filter(posting_status))
         counts = session.execute(count_statement.group_by(JobApplication.status)).all()
         application_counts.update(dict(counts))
     payload = snapshot.payload or {}
@@ -2587,8 +2602,9 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
         UserProfile.id == profile_id).with_for_update())
     if locked_profile_id is None:
         raise HTTPException(status_code=404, detail='Profile not found')
-    previous_status = session.scalar(select(JobApplication.status).where(
-        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id))
+    canonical_application = canonical_application_states_for_jobs(session, profile_id, [job]).get(job.id)
+    target_job_id = canonical_application.job_id if canonical_application else job.id
+    previous_status = canonical_application.status if canonical_application else None
     requested_status = request.status
     if not job.is_active:
         if request.status == 'new' and previous_status in ('accepted', 'rejected', 'closed'):
@@ -2604,7 +2620,7 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
     else:
         from sqlalchemy.dialects.postgresql import insert
     now = utcnow()
-    statement = insert(JobApplication).values(profile_id=profile_id, job_id=job_id,
+    statement = insert(JobApplication).values(profile_id=profile_id, job_id=target_job_id,
         status=request.status, previous_status=None, auto_created=False,
         created_at=now, updated_at=now).on_conflict_do_update(
             index_elements=['profile_id', 'job_id'], set_={
@@ -2625,19 +2641,19 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
         # Count a profile/job only once across the manual and autofill sent stages.
         already_counted = momentum_event_type == 'applied' and session.scalar(select(ApplicationMomentumEvent.id).where(
             ApplicationMomentumEvent.profile_id == profile_id,
-            ApplicationMomentumEvent.job_id == job_id,
+            ApplicationMomentumEvent.job_id == target_job_id,
             ApplicationMomentumEvent.event_type == 'applied',
         ).limit(1)) is not None
         if not already_counted:
             session.add(ApplicationMomentumEvent(
                 profile_id=profile_id,
-                job_id=job_id,
+                job_id=target_job_id,
                 event_type=momentum_event_type,
                 occurred_at=now,
             ))
     session.commit()
     application = session.scalar(select(JobApplication).where(
-        JobApplication.profile_id == profile_id, JobApplication.job_id == job_id)
+        JobApplication.profile_id == profile_id, JobApplication.job_id == target_job_id)
         .execution_options(populate_existing=True))
     return application_json(application)
 
@@ -2649,21 +2665,20 @@ def list_job_applications(profile_id: int,
                           limit: Annotated[int, Query(ge=1, le=100)] = 40,
                           session: Session = Depends(get_session)) -> dict[str, Any]:
     require_profile(profile_id, session)
+    canonical_states = canonical_application_states(session, [profile_id])
     counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    counts.update(dict(session.execute(select(JobApplication.status, func.count()).where(
-        JobApplication.profile_id == profile_id).group_by(JobApplication.status)).all()))
-    statement = select(JobApplication).where(JobApplication.profile_id == profile_id)
-    if status is not None:
-        statement = statement.where(JobApplication.status == status)
-    applications = session.scalars(statement.options(
-        joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
-        joinedload(JobApplication.job).joinedload(Job.employer_company),
-        joinedload(JobApplication.job).selectinload(Job.locations))
-        .order_by(JobApplication.updated_at.desc(), JobApplication.id.desc())
-        .offset(offset).limit(limit)).unique().all()
+    for application in canonical_states:
+        counts[application.status] += 1
+    applications = sorted((application for application in canonical_states
+                           if status is None or application.status == status),
+                          key=lambda row: (row.updated_rank, row.id), reverse=True)[offset:offset + limit]
+    jobs = session.scalars(select(Job).where(Job.id.in_({row.job_id for row in applications})).options(
+        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+        selectinload(Job.locations))).unique().all()
+    jobs_by_id = {job.id: job for job in jobs}
     items = []
     for application in applications:
-        item = _job_json(application.job)
+        item = _job_json(jobs_by_id[application.job_id])
         item['application'] = application_json(application)
         items.append(item)
     return {'profile_id': profile_id, 'items': items, 'counts': counts,
@@ -2703,43 +2718,28 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
                                 detail='Profile or job inventory changed during search; retry the request') from error
     matching_pending = any(profile_match_index_stale(profile) for profile in profiles)
 
+    canonical_states = canonical_application_states(session, selected_ids)
     counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    count_rows = session.execute(select(JobApplication.status, func.count()).where(
-        JobApplication.profile_id.in_(selected_ids)).group_by(JobApplication.status)).all()
-    counts.update(dict(count_rows))
-    statement = select(JobApplication, Job).join(Job, Job.id == JobApplication.job_id).outerjoin(
-        ProfileJobMatch, and_(ProfileJobMatch.profile_id == JobApplication.profile_id,
-                              ProfileJobMatch.job_id == JobApplication.job_id)
-    ).where(
-        JobApplication.profile_id.in_(selected_ids))
-    if selected_statuses:
-        statement = statement.where(JobApplication.status.in_(selected_statuses))
-    if sort == 'posted':
-        statement = statement.order_by(Job.date_posted.desc().nullslast(),
-                                       ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.first_seen_at.desc(), JobApplication.id.desc())
-    elif sort == 'discovered':
-        statement = statement.order_by(Job.first_seen_at.desc(),
-                                       ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.date_posted.desc().nullslast(), JobApplication.id.desc())
-    else:
-        statement = statement.order_by(ProfileJobMatch.match_score.desc().nullslast(),
-                                       Job.first_seen_at.desc(), Job.date_posted.desc().nullslast(),
-                                       JobApplication.id.desc())
-    total_statement = select(func.count()).select_from(JobApplication).where(
-        JobApplication.profile_id.in_(selected_ids))
-    if selected_statuses:
-        total_statement = total_statement.where(JobApplication.status.in_(selected_statuses))
-    total = session.scalar(total_statement) or 0
-    rows = session.execute(statement.options(
-        joinedload(JobApplication.profile),
-        joinedload(JobApplication.job).joinedload(Job.feed).joinedload(JobFeed.company),
-        joinedload(JobApplication.job).joinedload(Job.employer_company),
-        joinedload(JobApplication.job).selectinload(Job.locations)
-    ).offset(offset).limit(limit)).unique().all()
+    for application in canonical_states:
+        counts[application.status] += 1
+    applications = [application for application in canonical_states
+                    if not selected_statuses or application.status in selected_statuses]
+    total = len(applications)
+    order = {
+        'posted': lambda row: (row.posted_rank, row.match_rank, row.discovered_rank, row.id),
+        'discovered': lambda row: (row.discovered_rank, row.match_rank, row.posted_rank, row.id),
+        'match': lambda row: (row.match_rank, row.discovered_rank, row.posted_rank, row.id),
+    }[sort]
+    applications = sorted(applications, key=order, reverse=True)[offset:offset + limit]
+    # Bind only this page's stable job IDs, regardless of the full Journey size.
+    jobs = session.scalars(select(Job).where(Job.id.in_({row.job_id for row in applications})).options(
+        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+        selectinload(Job.locations))).unique().all()
+    jobs_by_id = {job.id: job for job in jobs}
     profiles_by_id = {profile.id: profile for profile in profiles}
     items = []
-    for application, job in rows:
+    for application in applications:
+        job = jobs_by_id[application.job_id]
         item = _job_json(job)
         item['application'] = application_json(application)
         item['profile_id'] = application.profile_id
@@ -2779,8 +2779,7 @@ def get_job(job_id: int, session: Session = Depends(get_session),
                                  resolved['country'] if resolved['profile_area'] or isinstance(country_code, str) else None, state, employer_country) if state or employer_country or resolved['profile_area'] or resolved['explicit'] else None
         data['geography'] = scope
         data['profile_match'] = _profile_match(job, profile, scope)
-        application = session.scalar(select(JobApplication).where(
-            JobApplication.profile_id == profile.id, JobApplication.job_id == job.id))
+        application = canonical_application_states_for_jobs(session, profile.id, [job]).get(job.id)
         data['application'] = application_json(application) if application else None
     return data
 
@@ -2804,10 +2803,9 @@ def get_company(company_id: int,
     data["feeds"] = [_feed_json(feed) for feed in company.feeds]
     job_data = [_job_json(job) for job in all_jobs]
     if profile is not None and job_data:
-        applications = {row.job_id: application_json(row) for row in session.scalars(select(JobApplication).where(
-            JobApplication.profile_id == profile.id,
-            JobApplication.job_id.in_([item["id"] for item in job_data]),
-        ))}
+        applications = {job_id: application_json(state) for job_id, state in
+                        canonical_application_states_for_jobs(session, profile.id, all_jobs).items()
+                        if state is not None}
         for item in job_data:
             item["application"] = applications.get(item["id"])
     data["jobs"] = job_data
