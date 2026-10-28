@@ -16,6 +16,8 @@ no historical releases have been reconstructed.
 - Preserve the original CV template, header, history and layout during application tailoring, allowing only marked Kurzprofil and description edits with fixed-line budgets. Cover letters use a separate business-letter template and stacked contact details.
 - Accept independently translated English/German base CVs in the companion while retaining career identity checks.
 - Keep the reviewed fill action available on linked application steps that contain only job-specific questions.
+- Require a click before application-document generation starts, and remove URL credentials, queries and fragments from captured form data before saving or prompting.
+- Serialize preparation, revision and draft writes with profile and CV deletion so concurrent requests cannot restore deleted application data.
 
 - Restore Python 3.14 in production and CI containers so the locked ONNX Runtime dependency has compatible wheels.
 - Invalidate filtered Journey pages after a status change moves a job between checkpoints, preventing stale pagination offsets from skipping jobs.

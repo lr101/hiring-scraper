@@ -10,10 +10,18 @@ import threading
 import time
 import unicodedata
 from typing import Literal
+from urllib.parse import urlsplit, urlunsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
@@ -60,6 +68,22 @@ class CapturedForm(StrictModel):
     url: str = Field(max_length=2048)
     captured_at: int
     fields: list[FormField] = Field(max_length=100)
+
+    @field_validator('url')
+    @classmethod
+    def remove_url_secrets(cls, value):
+        try:
+            parsed = urlsplit(value)
+            if parsed.scheme.lower() not in ('http', 'https') or not parsed.hostname:
+                raise ValueError
+            host = parsed.hostname
+            if ':' in host and not host.startswith('['):
+                host = f'[{host}]'
+            if parsed.port is not None:
+                host = f'{host}:{parsed.port}'
+        except ValueError:
+            raise ValueError('Use a complete HTTP or HTTPS application URL.') from None
+        return urlunsplit((parsed.scheme.lower(), host, parsed.path or '/', '', ''))
 
     @model_validator(mode='after')
     def bounded(self):
@@ -523,12 +547,15 @@ def start_preparation_job(profile_id: int, request: PrepareApplicationRequest, r
     if request.form and (request.form.job_id != request.job_id or request.form.profile_id != profile_id
                          or not 0 <= time.time() * 1000 - request.form.captured_at <= 7 * 86400000):
         raise HTTPException(409, 'Capture the current application questions again before preparing answers.')
-    _, revision = _snapshot(profile_id, request, session)
-    session.rollback()
-    def run(progress):
-        with SessionLocal() as worker_session:
-            return _prepare_application(profile_id, request, worker_session, progress=progress, expected_revision=revision)
-    return {'job': _public_job(application_generation_jobs.start(codex_runtime._root(), profile_id, request.job_id, run, request.model_dump(), revision=revision))}
+    root = codex_runtime._root()
+    with application_generation_jobs.profile_lock(root, profile_id):
+        _, revision = _snapshot(profile_id, request, session)
+        session.rollback()
+        def run(progress):
+            with SessionLocal() as worker_session:
+                return _prepare_application(profile_id, request, worker_session, progress=progress, expected_revision=revision)
+        job = application_generation_jobs.start(root, profile_id, request.job_id, run, request.model_dump(), revision=revision)
+        return {'job': _public_job(job)}
 
 
 @router.post('/profiles/{profile_id}/preparation-job/cancel')
@@ -558,21 +585,25 @@ def get_saved_application_draft(profile_id: int, job_id: int, response: Response
 @router.put('/profiles/{profile_id}/application-draft')
 def save_application_draft(profile_id: int, job_id: int, request: SavedDraftRequest, response: Response, session: Session = Depends(get_session)):
     response.headers['Cache-Control'] = 'no-store'
-    profile = require_profile(profile_id, session)
-    if not session.get(Job, job_id): raise HTTPException(404, 'Job not found.')
-    cv = require_cv(profile_id, session)
-    context = request.draft.get('context')
-    if (not isinstance(context, dict) or context.get('job_id') != job_id or context.get('profile_id') != profile_id
-            or context.get('cv_updated_at') != cv_metadata(cv)['updated_at']
-            or request.draft.get('profile_updated_at') != profile.updated_at.isoformat()):
-        raise HTTPException(409, 'The saved profile or CV changed. Reload before saving this draft.')
-    return {'saved': application_generation_jobs.save_draft(codex_runtime._root(), profile_id, job_id, request.draft, request.version)}
+    root = codex_runtime._root()
+    with application_generation_jobs.profile_lock(root, profile_id):
+        profile = require_profile(profile_id, session)
+        if not session.get(Job, job_id): raise HTTPException(404, 'Job not found.')
+        cv = require_cv(profile_id, session)
+        context = request.draft.get('context')
+        if (not isinstance(context, dict) or context.get('job_id') != job_id or context.get('profile_id') != profile_id
+                or context.get('cv_updated_at') != cv_metadata(cv)['updated_at']
+                or request.draft.get('profile_updated_at') != profile.updated_at.isoformat()):
+            raise HTTPException(409, 'The saved profile or CV changed. Reload before saving this draft.')
+        return {'saved': application_generation_jobs.save_draft(root, profile_id, job_id, request.draft, request.version)}
 
 
 @router.delete('/profiles/{profile_id}/application-draft')
 def delete_application_draft(profile_id: int, job_id: int, response: Response, session: Session = Depends(get_session)):
     response.headers['Cache-Control'] = 'no-store'
-    require_profile(profile_id, session)
-    application_generation_jobs.delete(codex_runtime._root(), profile_id, job_id)
-    application_generation_jobs.delete(codex_runtime._root() / 'document-revisions', profile_id, job_id)
+    root = codex_runtime._root()
+    with application_generation_jobs.profile_lock(root, profile_id):
+        require_profile(profile_id, session)
+        application_generation_jobs.delete(root, profile_id, job_id)
+        application_generation_jobs.delete(root / 'document-revisions', profile_id, job_id)
     return {'deleted': True}

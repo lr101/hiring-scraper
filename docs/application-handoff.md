@@ -50,9 +50,11 @@ Accepted revisions are saved to Radius before the editor changes. After a CV rev
 or manual LaTeX edit the source and PDF are authoritative and readable CV text is not
 automatically regenerated. Invalid
 source edits stay unsaved until corrected.
-The latest suggestion is kept in the private backend state directory for up to seven
-days, survives a page reload, and is removed with the saved application. Review all
-claims before using the result; no employer form is submitted.
+The latest suggestion is kept in the private backend state directory and survives a
+page reload. Expired records are removed during later application activity, with at
+most 100 expired files checked per cleanup pass, so records can remain longer than
+seven days while the instance is idle. Deleting the saved application removes it.
+Review all claims before using the result; no employer form is submitted.
 
 Preparation uses **three Codex requests** from the connected subscription. Each is
 ephemeral and isolated. The native calls share a 15-minute overall budget, with

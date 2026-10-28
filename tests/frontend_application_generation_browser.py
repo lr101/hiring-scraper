@@ -92,6 +92,9 @@ def main():
                         assert uploaded.ok, uploaded.text()
                     page = context.new_page(); page.set_default_timeout(15000)
                     errors = []; page.on('pageerror', lambda error: errors.append(str(error)))
+                    preparation_posts = []
+                    page.on('request', lambda request: preparation_posts.append(request.url)
+                        if request.method == 'POST' and request.url.split('?', 1)[0].endswith('/preparation-job') else None)
                     page.goto(f'{url}/jobs/{job_id}/apply?profile_id={profile_id}')
                     direct = page.get_by_role('button', name='Prepare documents', exact=True)
                     page.get_by_role('button', name='Continue with ChatGPT', exact=True).click()
@@ -107,9 +110,12 @@ def main():
                         [f'radius:application-form:v1:{job_id}:{profile_id}', captured])
                     expect(page.get_by_text('This application step’s questions and answer limits are included in your brief.')).to_be_visible()
                     state['mode'] = 'slow'
+                    (Path(folder)/'allow-login').touch()
+                    expect(direct).to_be_enabled(timeout=15000)
+                    page.wait_for_timeout(300)
+                    assert not preparation_posts, 'Loading the application page must not start preparation'
                     with page.expect_response(lambda response: response.url.endswith('/preparation-job') and response.request.method == 'POST', timeout=30000) as response:
-                        (Path(folder)/'allow-login').touch()
-                        page.wait_for_timeout(100)
+                        direct.click()
                         # Unchanged companion heartbeats must not cancel a pending generation.
                         page.evaluate("document.dispatchEvent(new Event('radius-form-updated'))")
                     assert response.value.ok, response.value.text()
@@ -263,6 +269,12 @@ def main():
                     back_to_prepare()
                     page.get_by_role('button', name='Disconnect ChatGPT', exact=True).click()
                     expect(page.get_by_role('button', name='Continue with ChatGPT', exact=True)).to_be_visible()
+                    page.get_by_text('Options', exact=True).click()
+                    page.once('dialog', lambda dialog: dialog.accept())
+                    page.get_by_role('button', name='Delete saved application', exact=True).click()
+                    expect(page.get_by_text('Saved application deleted from Radius and this browser.', exact=False)).to_be_visible()
+                    expect(page.get_by_text('This application step’s questions and answer limits are included in your brief.')).to_have_count(0)
+                    assert page.evaluate('key => localStorage.getItem(key)', f'radius:application-form:v1:{job_id}:{profile_id}') is None
                     page.set_viewport_size({'width': 390, 'height': 844})
                     page.screenshot(path='/tmp/radius-direct-preparation-mobile.png', full_page=True)
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile layout overflow'

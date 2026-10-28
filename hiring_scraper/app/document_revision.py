@@ -80,22 +80,25 @@ def start_revision(profile_id: int, request: DocumentRevisionRequest, response: 
     response.headers['Cache-Control'] = 'no-store'
     if not request.instruction.strip(): raise HTTPException(422, 'Enter what you want to change.')
     if not generation_status()['enabled']: raise HTTPException(503, 'Connect ChatGPT before revising your document.')
-    data, revision = _snapshot(profile_id, request, session)
-    try: _validate_document(request.target, request.current_document, data['original_cv_text'])
-    except (ValueError, TypeError): raise HTTPException(422, 'The current document is incomplete or does not match your saved CV.') from None
-    session.rollback()
-    def run(progress):
-        with SessionLocal() as worker:
-            data, current = _snapshot(profile_id, request, worker)
-            if current != revision: raise HTTPException(409, 'The job or profile changed. Reload before revising.')
-            worker.rollback()
-            try: result = revise_document(data, request, progress)
-            except (ValueError, TypeError): raise HTTPException(502, 'The suggested revision was invalid. Your document is unchanged.') from None
-            worker.expire_all()
-            _, current = _snapshot(profile_id, request, worker)
-            if current != revision: raise HTTPException(409, 'The job or profile changed during revision. Your document is unchanged.')
-            return result
-    return {'job': _public_job(application_generation_jobs.start(_root(), profile_id, request.job_id, run, request.model_dump(), revision=revision))}
+    state_root = codex_runtime._root()
+    with application_generation_jobs.profile_lock(state_root, profile_id):
+        data, revision = _snapshot(profile_id, request, session)
+        try: _validate_document(request.target, request.current_document, data['original_cv_text'])
+        except (ValueError, TypeError): raise HTTPException(422, 'The current document is incomplete or does not match your saved CV.') from None
+        session.rollback()
+        def run(progress):
+            with SessionLocal() as worker:
+                data, current = _snapshot(profile_id, request, worker)
+                if current != revision: raise HTTPException(409, 'The job or profile changed. Reload before revising.')
+                worker.rollback()
+                try: result = revise_document(data, request, progress)
+                except (ValueError, TypeError): raise HTTPException(502, 'The suggested revision was invalid. Your document is unchanged.') from None
+                worker.expire_all()
+                _, current = _snapshot(profile_id, request, worker)
+                if current != revision: raise HTTPException(409, 'The job or profile changed during revision. Your document is unchanged.')
+                return result
+        job = application_generation_jobs.start(_root(), profile_id, request.job_id, run, request.model_dump(), revision=revision)
+        return {'job': _public_job(job)}
 
 
 @router.post('/profiles/{profile_id}/document-revision/cancel')

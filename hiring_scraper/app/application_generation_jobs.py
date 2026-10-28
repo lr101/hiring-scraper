@@ -31,6 +31,20 @@ def _directory(root):
     return folder
 
 
+@contextmanager
+def profile_lock(root, profile_id):
+    """Serialize private application writes with profile and CV deletion."""
+    root = Path(root)
+    _directory(root)
+    path = root / f'profile-{int(profile_id)}.lock'
+    fd = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        os.close(fd)
+
+
 def _path(root, profile_id, job_id):
     return _directory(root) / f'{int(profile_id)}-{int(job_id)}.json'
 

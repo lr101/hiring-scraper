@@ -24,20 +24,22 @@
             const profileId = Number(
               new URLSearchParams(location.search).get("profile_id"),
             );
-            if (
-              response?.ok &&
-              form?.format === "radius-form-v1" &&
-              match &&
-              form.job_id === Number(match[1]) &&
-              form.profile_id === profileId
-            ) {
-              localStorage.setItem(
-                `radius:application-form:v1:${form.job_id}:${form.profile_id}`,
-                JSON.stringify(form),
-              );
+            if (response?.ok && match && profileId > 0) {
+              const formKey = `radius:application-form:v1:${match[1]}:${profileId}`;
+              if (
+                form?.format === "radius-form-v1" &&
+                form.job_id === Number(match[1]) &&
+                form.profile_id === profileId
+              ) {
+                localStorage.setItem(formKey, JSON.stringify(form));
+                document.documentElement.dataset.radiusCompanionReady = "true";
+                document.dispatchEvent(
+                  new CustomEvent("radius-companion-ready"),
+                );
+              } else {
+                localStorage.removeItem(formKey);
+              }
               document.dispatchEvent(new CustomEvent("radius-form-updated"));
-              document.documentElement.dataset.radiusCompanionReady = "true";
-              document.dispatchEvent(new CustomEvent("radius-companion-ready"));
             }
           })
           .catch(() => {});

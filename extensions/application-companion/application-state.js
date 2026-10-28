@@ -522,11 +522,7 @@ export async function captureQuestions(
     },
   });
   if (result?.result?.error) throw new Error(result.result.error);
-  if (
-    !result?.result ||
-    (await chrome.tabs.get(tabId)).url !== tab.url ||
-    result.result.url !== tab.url
-  )
+  if (!result?.result || (await chrome.tabs.get(tabId)).url !== tab.url)
     throw new Error(
       "The application changed during scanning. Try again on the intended step.",
     );
@@ -659,7 +655,17 @@ export async function attachPreparedDocuments(tabId, documentId, jobId) {
   });
   const form = scan?.result;
   if (form?.error) throw new Error(form.error);
-  if (!form || form.url !== tab.url)
+  const formURL = safeURL(tab.url);
+  if (formURL) {
+    formURL.search = "";
+    formURL.hash = "";
+  }
+  if (
+    !form ||
+    !formURL ||
+    form.url !== formURL.href ||
+    (await chrome.tabs.get(tabId)).url !== tab.url
+  )
     throw new Error("The application page changed.");
   const types = {
     pdf: "application/pdf",

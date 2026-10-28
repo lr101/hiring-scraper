@@ -220,6 +220,21 @@ class ApplicationGenerationTests(unittest.TestCase):
             result = self.generate(form=form)
         self.assertEqual(result['package']['form_answers']['answers'], [{'id': 'q0', 'value': 'Requirements work.'}])
 
+    def test_captured_form_url_drops_credentials_query_and_fragment(self):
+        m = self.module()
+        form = {'format': 'radius-form-v1', 'job_id': self.job_id, 'profile_id': self.profile_id,
+                'form_id': 'a' * 64, 'url': 'https://user:password@example.invalid/apply?session=secret#access_token=private',
+                'captured_at': int(time.time() * 1000), 'fields': []}
+        request = self.request(form=form)
+        safe_url = 'https://example.invalid/apply'
+        self.assertEqual(request.form.url, safe_url)
+        self.assertEqual(request.model_dump()['form']['url'], safe_url)
+        data, _ = m._snapshot(self.profile_id, request, self.session)
+        self.assertEqual(data['application_form']['url'], safe_url)
+        prompt = m._prompt(data)
+        for secret in ('user', 'password', 'session=secret', 'access_token=private'):
+            self.assertNotIn(secret, prompt)
+
     def test_original_template_is_preserved_and_locked_header_changes_are_rejected(self):
         from test_tex_cv import source
         m = self.module()

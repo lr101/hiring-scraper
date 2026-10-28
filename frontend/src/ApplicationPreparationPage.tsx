@@ -8,7 +8,7 @@ import PDFPreview from './PDFPreview'
 import type { Profile } from './profile'
 import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
-import { readApplicationForm } from './applicationForm'
+import { formStorageKey, readApplicationForm } from './applicationForm'
 import type { FormAnswers } from './applicationForm'
 import { getPreparationJob, startPreparationJob, cancelPreparationJob, getApplicationDraft, saveApplicationDraft, deleteApplicationDraft, matchesDraftContext, matchesLegacyDraftContext, applicationDraftSnapshot } from './applicationGeneration'
 import type { PreparationJob, SavedApplicationDraft } from './applicationGeneration'
@@ -120,7 +120,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [busy, setBusy] = useState(false)
   const [aiEnabled, setAIEnabled] = useState<boolean | null>(null)
   const [generationJob, setGenerationJob] = useState<PreparationJob | null>(null)
-  const [generationChecked, setGenerationChecked] = useState(false)
   const [startingGeneration, setStartingGeneration] = useState(false)
   const [revisionSaving, setRevisionSaving] = useState(false)
   const [clock, setClock] = useState(() => Date.now())
@@ -132,7 +131,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     return () => clearInterval(timer)
   }, [generating])
   const generationAbort = useRef<AbortController | null>(null)
-  const autoStarted = useRef(false)
   const [template, setTemplate] = useState<{ source_sha256: string; paragraphs: TemplateParagraph[] } | null>(null)
   const [changes, setChanges] = useState<TemplateParagraph[]>([])
   const [pdf, setPDF] = useState<{ url: string; body: string } | null>(null)
@@ -383,7 +381,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       try {
         const current = await getPreparationJob(API, profile.id!, job.id, controller.signal)
         if (controller.signal.aborted) return
-        setGenerationJob(current); setGenerationChecked(true); setGenerationStatusError('')
+        setGenerationJob(current); setGenerationStatusError('')
         if (current?.state === 'running' || current?.state === 'cancelling') timer = setTimeout(() => void refresh(), 2000)
       } catch {
         if (!controller.signal.aborted) {
@@ -443,12 +441,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       if (generationAbort.current === controller) { generationAbort.current = null; setStartingGeneration(false) }
     }
   }
-
-  useEffect(() => {
-    if (autoStarted.current || !generationChecked || !cloudReady || cloudConflict || storageError || generationJob || !companionReady || briefType !== 'application' || !aiEnabled || loading || !cvText || !draftReady || step !== 'handoff' || incoming.hash || documents.cv || job.expired || job.is_active === false || new URLSearchParams(location.search).has('customize')) return
-    autoStarted.current = true
-    void prepareDirect()
-  }, [aiEnabled, briefType, companionReady, generationChecked, generationJob, cloudReady, cloudConflict, storageError, loading, cvText, draftReady, step, incoming.hash, documents.cv, job.expired, job.is_active])
 
   function cancelGeneration() {
     generationAbort.current?.abort(); generationAbort.current = null
@@ -559,7 +551,14 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       await saveQueue.current
       await deleteApplicationDraft(API, profile.id!, job.id)
       cloudVersion.current = null; setCloudConflict(null); setGenerationJob(null)
-      openedJob.current = ''; attemptedJob.current = ''; autoStarted.current = true
+      openedJob.current = ''; attemptedJob.current = ''
+      try {
+        localStorage.removeItem(formStorageKey(job.id, profile.id!))
+        setStorageError('')
+      } catch {
+        setStorageError('This browser could not remove the captured application questions. Clear this site’s browser storage to remove them.')
+      }
+      setForm(undefined)
       clearDraft(); setNotice('Saved application deleted from Radius and this browser. Extension copies may remain if the companion is unavailable; remove them in the extension profile.')
       document.dispatchEvent(new CustomEvent('radius-delete-application'))
       setCloudError(''); cloudBlocked.current = false

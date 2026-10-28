@@ -1120,14 +1120,17 @@
         manual: !!manual,
       };
     });
+    const safeURL =
+      globalThis.applicationPageContext?.sanitizeURL(location.href) ||
+      `${location.origin}${location.pathname}`;
     const shape = JSON.stringify({
-      url: location.href,
+      url: safeURL,
       identity: globalThis.applicationPageContext?.identity(),
       fields,
     });
     if (shape.length > 30000)
       throw new Error("This form is too large to prepare automatically.");
-    return { url: location.href, fields, shape, controls };
+    return { url: safeURL, fields, shape, controls };
   }
 
   async function describeCapture({ url, fields, shape }) {

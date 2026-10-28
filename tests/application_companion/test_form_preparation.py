@@ -38,6 +38,18 @@ class FormPreparationTests(ExtensionHarness):
         expect(popup.get_by_role('button',name='Prepare from these questions',exact=True)).to_be_visible()
         self.capture_questions(popup)
         saved=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
+        self.assertEqual(saved['url'],'https://ats.example/application')
+        tab_id=self.worker.evaluate("async url=>(await chrome.tabs.query({})).find(tab=>tab.url===url).id",self.page.url)
+        changed_url_capture=self.worker.evaluate("""async tabId=>{
+          const [result]=await chrome.scripting.executeScript({target:{tabId},func:async()=>{
+          const url=new URL(location.href);url.searchParams.set('session','private-query');url.hash='access_token=private-fragment';
+          history.replaceState({},'',url);return globalThis.applicationFields.describe(true,true);
+          }});return result.result;
+        }""",tab_id)
+        self.assertEqual(changed_url_capture['url'],saved['url'])
+        self.assertEqual(changed_url_capture['form_id'],saved['form_id'])
+        self.assertNotIn('private-query',json.dumps(changed_url_capture))
+        self.assertNotIn('private-fragment',json.dumps(changed_url_capture))
         self.assertNotIn('Private existing answer',json.dumps(saved))
         why=next(field for field in saved['fields'] if field['label']=='Why this role?')
         self.assertEqual(why['max_length'],180)
