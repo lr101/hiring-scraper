@@ -19,7 +19,7 @@ from fastapi import HTTPException
 
 DEVICE_URL = 'https://auth.openai.com/codex/device'
 LOGIN_SECONDS = 900
-GENERATION_SECONDS = 180
+GENERATION_SECONDS = 300
 _ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 _disabled = ('shell_tool', 'unified_exec', 'code_mode', 'code_mode_host', 'view_image',
              'multi_agent', 'multi_agent_v2', 'apps', 'plugins', 'hooks', 'skill_search',
@@ -189,7 +189,7 @@ def logout():
     return status()
 
 
-def generate(prompt, schema, *, timeout=GENERATION_SECONDS):
+def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None):
     root = _root()
     _binary()
     with _lock(root) as descriptor:
@@ -213,10 +213,21 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS):
                 process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
                     stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                     text=True, start_new_session=True, pass_fds=(descriptor,))
-                try: process.communicate(prompt, timeout=min(timeout, GENERATION_SECONDS))
-                except subprocess.TimeoutExpired:
-                    _stop(process)
-                    raise HTTPException(504, 'ChatGPT preparation timed out. Your current documents are unchanged.') from None
+                deadline = time.monotonic() + min(timeout, GENERATION_SECONDS)
+                first = True
+                while True:
+                    if cancelled and cancelled():
+                        _stop(process)
+                        raise HTTPException(409, 'Preparation cancelled.')
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        _stop(process)
+                        raise HTTPException(504, 'ChatGPT preparation timed out. Your current documents are unchanged.')
+                    try:
+                        process.communicate(prompt if first else None, timeout=min(remaining, .5) if cancelled else remaining)
+                        break
+                    except subprocess.TimeoutExpired:
+                        first = False
                 if process.returncode:
                     raise HTTPException(502, 'ChatGPT could not prepare this application. Check your subscription usage or sign in again; you can also use the ChatGPT handoff.')
                 if output_path.stat().st_size > 1024 * 1024: raise ValueError()

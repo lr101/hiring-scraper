@@ -220,6 +220,21 @@ class ApplicationGenerationTests(unittest.TestCase):
             result = self.generate(form=form)
         self.assertEqual(result['package']['form_answers']['answers'], [{'id': 'q0', 'value': 'Requirements work.'}])
 
+    def test_captured_form_url_drops_credentials_query_and_fragment(self):
+        m = self.module()
+        form = {'format': 'radius-form-v1', 'job_id': self.job_id, 'profile_id': self.profile_id,
+                'form_id': 'a' * 64, 'url': 'https://user:password@example.invalid/apply?session=secret#access_token=private',
+                'captured_at': int(time.time() * 1000), 'fields': []}
+        request = self.request(form=form)
+        safe_url = 'https://example.invalid/apply'
+        self.assertEqual(request.form.url, safe_url)
+        self.assertEqual(request.model_dump()['form']['url'], safe_url)
+        data, _ = m._snapshot(self.profile_id, request, self.session)
+        self.assertEqual(data['application_form']['url'], safe_url)
+        prompt = m._prompt(data)
+        for secret in ('user', 'password', 'session=secret', 'access_token=private'):
+            self.assertNotIn(secret, prompt)
+
     def test_original_template_is_preserved_and_locked_header_changes_are_rejected(self):
         from test_tex_cv import source
         m = self.module()
@@ -403,6 +418,25 @@ class ApplicationGenerationTests(unittest.TestCase):
                 with self.assertRaises(HTTPException) as raised: self.generate(form=form)
                 self.assertEqual(raised.exception.status_code, 502)
 
+
+    def test_retry_reuses_validated_draft_after_review_timeout(self):
+        m = self.module()
+        data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        class Control:
+            def __init__(self): self.values = {}
+            def __call__(self, stage): pass
+            def cancelled(self): return False
+            def checkpoint(self, key, value): self.values[key] = value
+            def load(self, key): return self.values.get(key)
+        control = Control()
+        review = {'recommendation': 'possible', 'summary': 'Relevant experience.', 'requirements': [{'requirement': 'Coordination', 'priority': 'required', 'status': 'supported', 'evidence': 'Saved experience'}], 'findings': [], 'keywords': []}
+        with patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(), HTTPException(504, 'Timed out')]) as provider:
+            with self.assertRaises(HTTPException): m._workflow(data, None, control)
+            self.assertEqual(provider.call_count, 2)
+        with patch.object(m.codex_runtime, 'generate', side_effect=[review, self.documents()]) as provider, patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
+            m._workflow(data, None, control)
+            self.assertEqual(provider.call_count, 2)
+            self.assertEqual(provider.call_args_list[0].args[1]['title'], 'ApplicationReview')
 
 if __name__ == '__main__':
     unittest.main()

@@ -15,6 +15,9 @@ no historical releases have been reconstructed.
 - Align the Open original post button to the left of job cards, including when Undo is available.
 - Preserve the original CV template, header, history and layout during application tailoring, allowing only marked Kurzprofil and description edits with fixed-line budgets. Cover letters use a separate business-letter template and stacked contact details.
 - Accept independently translated English/German base CVs in the companion while retaining career identity checks.
+- Keep the reviewed fill action available on linked application steps that contain only job-specific questions.
+- Require a click before application-document generation starts, and remove URL credentials, queries and fragments from captured form data before saving or prompting.
+- Serialize preparation, revision and draft writes with profile and CV deletion so concurrent requests cannot restore deleted application data.
 
 - Restore Python 3.14 in production and CI containers so the locked ONNX Runtime dependency has compatible wheels.
 - Invalidate filtered Journey pages after a status change moves a job between checkpoints, preventing stale pagination offsets from skipping jobs.
@@ -23,6 +26,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Resumable application preparation with a backend-saved ChatGPT connection, automatically generated CV and cover letter, prompt-based document revisions, and human confirmation before extension autofill.
 - Saved profile photos reused in English and German CV previews, PDF exports and source + photo ZIPs, with per-application exclusion and temporary replacements.
 - Optional PNG CV photos, restricted-template PDF rendering, and source + photo ZIP downloads for custom templates.
 - Language-specific example cover letters in profile content, used as structure and voice references in application briefs.

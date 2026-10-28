@@ -1,5 +1,5 @@
 import CVPhotoOptions from './CVPhotoOptions'
-import { selectCVLanguage } from '../../extensions/application-companion/tex-cv.js'
+import { selectCVLanguage, validateTailoredCV } from '../../extensions/application-companion/tex-cv.js'
 import { downloadApplicationDocument } from './applicationDocumentExport'
 import type { DocumentFormat } from './applicationDocumentExport'
 import type { LatexDocuments } from './applicationLatex'
@@ -8,10 +8,14 @@ import PDFPreview from './PDFPreview'
 import type { Profile } from './profile'
 import { applicationDocumentFilename, applicationStartLink, readApplicationReturnInput, assertFinishedText, buildApplicationPrompt, buildFitAssessmentPrompt, readApplicationReturn, documentHTML, documentPlainText, documentSections, parseApplicationPackage, parseApplicationResponse, parseTemplateChanges } from './applicationHandoff'
 import type { ApplicationDocuments, ApplicationPackage, HandoffJob, TemplateParagraph } from './applicationHandoff'
-import { readApplicationForm } from './applicationForm'
+import { formStorageKey, readApplicationForm } from './applicationForm'
 import type { FormAnswers } from './applicationForm'
-import { prepareInsideRadius } from './applicationGeneration'
+import { getPreparationJob, startPreparationJob, cancelPreparationJob, getApplicationDraft, saveApplicationDraft, deleteApplicationDraft, matchesDraftContext, matchesLegacyDraftContext, applicationDraftSnapshot } from './applicationGeneration'
+import type { PreparationJob, SavedApplicationDraft } from './applicationGeneration'
 import ChatGPTConnection from './ChatGPTConnection'
+import DocumentRevisionPanel from './DocumentRevisionPanel'
+import { validateLatexDocuments } from './applicationLatex'
+import { assertRevisionPackageFits, assertRevisionDraftFits, hasEmptyCVSource, persistRevisionLocally } from './documentRevision'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 const CHATGPT = 'https://chatgpt.com/'
@@ -62,7 +66,8 @@ export default function ApplicationPreparationPage({ jobId }: { jobId: number })
       {!profile ? <section className="application-finish-card"><h2>{profiles.length ? 'Choose your profile' : 'Add a profile to get started'}</h2>
         {profiles.length ? <label>Application profile<select value={profileId} onChange={event => {
           setProfileId(event.target.value)
-          history.replaceState({}, '', applicationStartLink(jobId, Number(event.target.value)))
+          const target = applicationStartLink(jobId, Number(event.target.value))
+          history.replaceState({}, '', target + (new URLSearchParams(location.search).has('customize') ? '&customize=1' : ''))
         }}><option value="">Choose a profile</option>{profiles.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
           : <a className="primary-button" href={`/profile/new?return_to=${encodeURIComponent(applicationStartLink(jobId))}`}>Create profile</a>}</section>
         : !profile.cv ? <section className="application-finish-card"><h2>Attach your CV once</h2><p>Add your CV to {profile.name}. It will be ready for this application and every one after it.</p>
@@ -87,6 +92,14 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [response, setResponse] = useState('')
   const [documents, setDocuments] = useState<ApplicationDocuments>({ cv: '', coverLetter: '', answers: '', reviewNotes: '' })
   const [form, setForm] = useState(() => readApplicationForm(job.id, profile.id!))
+  const [companionReady, setCompanionReady] = useState(() => !new URLSearchParams(location.search).has('companion_form') || document.documentElement.dataset.radiusCompanionReady === 'true')
+  useEffect(() => {
+    if (companionReady) return
+    const ready = () => setCompanionReady(true)
+    document.addEventListener('radius-companion-ready', ready)
+    if (document.documentElement.dataset.radiusCompanionReady === 'true') ready()
+    return () => { document.removeEventListener('radius-companion-ready', ready) }
+  }, [companionReady])
   const [formAnswers, setFormAnswers] = useState<FormAnswers>()
   useEffect(() => {
     const update = () => {
@@ -106,7 +119,17 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [aiEnabled, setAIEnabled] = useState<boolean | null>(null)
-  const [generating, setGenerating] = useState(false)
+  const [generationJob, setGenerationJob] = useState<PreparationJob | null>(null)
+  const [startingGeneration, setStartingGeneration] = useState(false)
+  const [revisionSaving, setRevisionSaving] = useState(false)
+  const [clock, setClock] = useState(() => Date.now())
+  const [generationStatusError, setGenerationStatusError] = useState('')
+  const generating = startingGeneration || generationJob?.state === 'running' || generationJob?.state === 'cancelling'
+  useEffect(() => {
+    if (!generating) return
+    const timer = setInterval(() => setClock(Date.now()), 10000)
+    return () => clearInterval(timer)
+  }, [generating])
   const generationAbort = useRef<AbortController | null>(null)
   const [template, setTemplate] = useState<{ source_sha256: string; paragraphs: TemplateParagraph[] } | null>(null)
   const [changes, setChanges] = useState<TemplateParagraph[]>([])
@@ -114,6 +137,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const [previewBusy, setPreviewBusy] = useState(false)
   const [previewError, setPreviewError] = useState('')
   const [draftReady, setDraftReady] = useState(false)
+  const [cloudReady, setCloudReady] = useState(false)
+  const [cloudConflict, setCloudConflict] = useState<SavedApplicationDraft | null>(null)
+  const [cloudError, setCloudError] = useState('')
+  const cloudVersion = useRef<string | null>(null)
+  const cloudSnapshot = useRef<string | null>(null)
+  const saveQueue = useRef<Promise<void>>(Promise.resolve())
+  const cloudBlocked = useRef(false)
   const [storageError, setStorageError] = useState('')
   const [draftExpiresAt, setDraftExpiresAt] = useState(0)
   const restored = useRef(false)
@@ -122,7 +152,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const importVersion = useRef(0)
   const pdfURL = useRef('')
   const promptRef = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => () => { generationAbort.current?.abort() }, [cvText, language, notes, form])
+  useEffect(() => () => { generationAbort.current?.abort() }, [])
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true); setCVText(''); setError('')
@@ -139,6 +169,17 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     return () => controller.abort()
   }, [profile.id, language, job.description])
   const context = useMemo(() => ({ job_id: job.id, profile_id: profile.id!, cv_updated_at: profile.cv!.updated_at }), [job.id, profile.id, profile.cv?.updated_at])
+  const cvSourceError = useMemo(() => {
+    if (!cvText || loading) return ''
+    if (hasEmptyCVSource(latexDocuments)) return 'The CV source is incomplete or changes protected facts. These edits are not saved until the source is valid.'
+    if (!latexDocuments?.cv) return ''
+    try {
+      validateLatexDocuments({ cv: latexDocuments.cv })
+      if (cvText.includes('% radius:entry ')) validateTailoredCV(cvText, latexDocuments.cv)
+      assertFinishedText(latexDocuments.cv)
+      return ''
+    } catch { return 'The CV source is incomplete or changes protected facts. These edits are not saved until the source is valid.' }
+  }, [latexDocuments?.cv, cvText, loading])
   const applicationLanguage = selectCVLanguage(language, job.description ?? '') === 'de' ? 'German' : 'English'
   const returnURL = new URL(applicationStartLink(job.id, profile.id), location.origin).href
   const draftKey = `radius:application-draft:v1:${job.id}:${profile.id}`
@@ -151,7 +192,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     try {
       const raw = localStorage.getItem(draftKey)
       const saved = raw && raw.length <= 450000 ? JSON.parse(raw) : null
-      if (saved && Date.now() - saved.saved_at < 7 * 86400000 && saved.saved_at <= Date.now() && JSON.stringify(saved.context) === JSON.stringify(context)) {
+      const currentDraft = matchesDraftContext(saved ?? {}, context, profile.updated_at)
+      const legacyDraft = matchesLegacyDraftContext(saved ?? {}, context)
+      if (saved && Date.now() - saved.saved_at < 7 * 86400000 && saved.saved_at <= Date.now() && (currentDraft || legacyDraft)) {
         if (saved.package) {
           const imported = parseApplicationPackage(JSON.stringify(saved.package), context, template?.paragraphs, undefined, cvText)
           setDocuments(imported.documents); setChanges(imported.changes)
@@ -165,7 +208,9 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         if (typeof saved.notes === 'string' && saved.notes.length <= 5000) setNotes(saved.notes)
         setDraftExpiresAt(saved.saved_at + 7 * 86400000)
         skipHydrationSave.current = true
-      } else if (raw) localStorage.removeItem(draftKey)
+        if (legacyDraft) setNotice('Restored an earlier browser draft. Review it against your current profile before using it.')
+      } else if (saved && saved.saved_at && Date.now() - saved.saved_at < 7 * 86400000) setStorageError('A saved browser draft belongs to an older profile or CV. Clear it or restore the matching profile before preparing again.')
+      else if (raw) localStorage.removeItem(draftKey)
     } catch {
       // Discard corrupt drafts as well; never retain an unusable document silently.
       try { localStorage.removeItem(draftKey) } catch { /* Storage may be disabled. */ }
@@ -193,7 +238,7 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     return () => { cancelled = true }
   }, [draftReady, incoming, context, template, form])
   useEffect(() => {
-    if (!draftReady) return
+    if (!draftReady || cvSourceError) return
     // Restoring a draft is not an edit and must not extend its expiry window.
     if (skipHydrationSave.current) { skipHydrationSave.current = false; return }
     const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
@@ -202,11 +247,95 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     if (step === 'handoff' && !result && !response && !notes) return
     try {
       const savedAt = Date.now()
-      localStorage.setItem(draftKey, JSON.stringify({ context, package: result, step, language, notes, response, saved_at: savedAt }))
+      localStorage.setItem(draftKey, JSON.stringify({ context, profile_updated_at: profile.updated_at, package: result, step, language, notes, response, saved_at: savedAt }))
       setDraftExpiresAt(savedAt + 7 * 86400000)
       setStorageError('')
     } catch { setStorageError('This browser cannot save your draft. Export your documents before closing the page.') }
-  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers, latexDocuments])
+  }, [draftReady, draftKey, context, documents, changes, template, step, language, notes, response, formAnswers, latexDocuments, cvSourceError])
+
+  async function restoreCloudDraft(saved: SavedApplicationDraft) {
+    const value = saved.draft as { context?: unknown; profile_updated_at?: string; package?: unknown; step?: string; language?: string; notes?: string; response?: string }
+    if (!matchesDraftContext(value, context, profile.updated_at)) throw new Error('The saved draft belongs to an older profile or CV. Your local draft is unchanged.')
+    if (value.package) {
+      let source = cvText
+      const preferred = value.language ?? language
+      const savedLanguage = selectCVLanguage(preferred, job.description ?? '')
+      if (savedLanguage !== selectCVLanguage(language, job.description ?? '')) {
+        const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/text?language=${savedLanguage}`, { cache: 'no-store' })
+        if (!result.ok) throw new Error('Could not load the CV for the saved draft.')
+        source = (await result.json()).text
+      }
+      const imported = parseApplicationPackage(JSON.stringify(value.package), context, template?.paragraphs, undefined, source)
+      setDocuments(imported.documents); setChanges(imported.changes); setLatexDocuments(imported.latexDocuments); setFormAnswers(imported.formAnswers)
+    }
+    if (value.language) setLanguage(value.language)
+    if (typeof value.notes === 'string') setNotes(value.notes)
+    if (typeof value.response === 'string') setResponse(value.response)
+    if (value.step === 'edit' && value.package) setStep('edit')
+    else if (value.step === 'response') setStep('response')
+    else setStep('handoff')
+  }
+
+  useEffect(() => {
+    if (!draftReady || cloudReady || loading || !cvText) return
+    const controller = new AbortController()
+    async function load() {
+      try {
+        const saved = await getApplicationDraft(API, profile.id!, job.id, controller.signal)
+        if (controller.signal.aborted) return
+        cloudVersion.current = saved?.version ?? null
+        let local: Record<string, unknown> | null = null
+        try { local = JSON.parse(localStorage.getItem(draftKey) || 'null') } catch { /* local copy is unusable */ }
+        cloudSnapshot.current = saved ? applicationDraftSnapshot(saved.draft) : null
+        if (saved && local && applicationDraftSnapshot(local) !== applicationDraftSnapshot(saved.draft)) {
+          cloudBlocked.current = true; setCloudConflict(saved)
+        } else if (saved && !local && !incoming.hash) {
+          await restoreCloudDraft(saved)
+        }
+        if (!controller.signal.aborted) { setCloudError(''); setCloudReady(true) }
+      } catch (reason) {
+        if (!controller.signal.aborted) { cloudBlocked.current = true; setCloudError(reason instanceof Error ? reason.message : 'Could not load the saved draft.'); setCloudReady(true) }
+      }
+    }
+    void load()
+    return () => controller.abort()
+  }, [draftReady, cloudReady, loading, cvText, job.id, profile.id])
+
+  useEffect(() => {
+    if (!cloudReady || cloudConflict || cloudBlocked.current || !draftReady || cvSourceError) return
+    const result: ApplicationPackage | null = documents.cv ? { format: 'radius-application-v1', ...context,
+      cv: template ? changes : documents.cv, cover_letter: documents.coverLetter, application_answers: documents.answers, review_notes: documents.reviewNotes, ...(formAnswers ? { form_answers: formAnswers } : {}), ...(latexDocuments ? { latex_documents: latexDocuments } : {}) } : null
+    if (step === 'handoff' && !result && !response && !notes) return
+    const draft = { context, profile_updated_at: profile.updated_at, package: result, step, language, notes, response, saved_at: Date.now() }
+    const snapshot = applicationDraftSnapshot(draft)
+    if (snapshot === cloudSnapshot.current) return
+    const timer = setTimeout(() => {
+      saveQueue.current = saveQueue.current.then(async () => {
+        if (cloudBlocked.current || snapshot === cloudSnapshot.current) return
+        try {
+          const saved = await saveApplicationDraft(API, profile.id!, job.id, draft, cloudVersion.current)
+          cloudVersion.current = saved?.version ?? null
+          cloudSnapshot.current = saved ? snapshot : null
+          setCloudError('')
+        } catch (reason) {
+          cloudBlocked.current = true
+          setCloudError(reason instanceof Error ? reason.message : 'Could not sync your draft.')
+        }
+      })
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [cloudReady, cloudConflict, cloudError, draftReady, context, documents, changes, template, step, language, notes, response, formAnswers, latexDocuments, cvSourceError])
+
+  async function resolveCloudConflict(useCloud: boolean) {
+    try {
+      await saveQueue.current
+      const latest = await getApplicationDraft(API, profile.id!, job.id)
+      if (useCloud && latest) await restoreCloudDraft(latest)
+      cloudVersion.current = latest?.version ?? null
+      cloudSnapshot.current = latest ? applicationDraftSnapshot(latest.draft) : null
+      cloudBlocked.current = false; setCloudConflict(null); setCloudError('')
+    } catch (reason) { setCloudError(reason instanceof Error ? reason.message : 'Could not load the saved draft.') }
+  }
   useEffect(() => {
     if (!draftExpiresAt) return
     function expire() {
@@ -244,31 +373,88 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
   const text = documents[selected]
   const finalCVText = template ? template.paragraphs.map(row => changes.find(change => change.id === row.id)?.text ?? row.text).join('\n') : documents.cv
 
-  async function prepareDirect() {
+  useEffect(() => {
+    if (startingGeneration) return
+    const controller = new AbortController()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    async function refresh() {
+      try {
+        const current = await getPreparationJob(API, profile.id!, job.id, controller.signal)
+        if (controller.signal.aborted) return
+        setGenerationJob(current); setGenerationStatusError('')
+        if (current?.state === 'running' || current?.state === 'cancelling') timer = setTimeout(() => void refresh(), 2000)
+      } catch {
+        if (!controller.signal.aborted) {
+          setGenerationStatusError('Connection interrupted. Reconnecting to preparation…')
+          timer = setTimeout(() => void refresh(), 5000)
+        }
+      }
+    }
+    void refresh()
+    return () => { controller.abort(); clearTimeout(timer) }
+  }, [job.id, profile.id, startingGeneration])
+
+  const openedJob = useRef('')
+  const attemptedJob = useRef('')
+  async function openGenerated(current: PreparationJob) {
+    const version = ++importVersion.current
+    try {
+      const request = current.request
+      if (!request || request.cv_updated_at !== profile.cv?.updated_at || request.profile_updated_at !== profile.updated_at)
+        throw new Error('Your profile or CV changed since preparation. Prepare a fresh application.')
+      let source = cvText
+      if (request.language !== selectCVLanguage(language, job.description ?? '')) {
+        const result = await fetch(`${API}/api/v1/profiles/${profile.id}/cv/text?language=${request.language}`, { cache: 'no-store' })
+        if (!result.ok) throw new Error('Could not load the original CV for this prepared application.')
+        source = (await result.json()).text
+      }
+      if (version !== importVersion.current) return
+      const imported = parseApplicationPackage(JSON.stringify(current.result?.package ?? null), context, template?.paragraphs, request.form ?? undefined, source)
+      if (request.language !== selectCVLanguage(language, job.description ?? '')) setLanguage(request.language === 'de' ? 'German' : 'English')
+      setDocuments(imported.documents); setChanges(imported.changes); setLatexDocuments(imported.latexDocuments)
+      setFormAnswers(imported.formAnswers); setDocumentLayout('latex'); setSelected('cv'); setStep('edit')
+      openedJob.current = current.id
+      setOptionsOpen(false); setManual(false); setError('')
+      setNotice('Documents prepared. Review them before applying.')
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not open the prepared documents.') }
+  }
+
+  useEffect(() => {
+    if (!draftReady || !cloudReady || cloudConflict || loading || !cvText || generationJob?.state !== 'completed' || documents.cv || incoming.hash || attemptedJob.current === generationJob.id || openedJob.current === generationJob.id) return
+    attemptedJob.current = generationJob.id
+    void openGenerated(generationJob)
+  }, [generationJob, draftReady, cloudReady, cloudConflict, loading, cvText, documents.cv, incoming.hash])
+
+  async function prepareDirect(retry = false) {
     if (generationAbort.current) return
     const controller = new AbortController()
     generationAbort.current = controller
-    const version = ++importVersion.current
-    setGenerating(true); setError(''); setNotice('')
+    setStartingGeneration(true); setError(''); setNotice('')
     try {
-      const imported = await prepareInsideRadius({ api: API, jobId: job.id, profile,
-        language: applicationLanguage === 'German' ? 'de' : 'en', notes, cvText, form, signal: controller.signal })
-      if (controller.signal.aborted || version !== importVersion.current) return
-      setDocuments(imported.documents); setChanges(imported.changes); setLatexDocuments(imported.latexDocuments)
-      setFormAnswers(imported.formAnswers); setDocumentLayout('latex'); setSelected('cv'); setStep('edit')
-      setOptionsOpen(false); setManual(false)
-      setNotice('Prepared inside Radius. Review the documents before applying.')
+      const previous = retry ? generationJob?.request : undefined
+      const current = await startPreparationJob({ api: API, jobId: job.id, profile,
+        language: previous?.language ?? (applicationLanguage === 'German' ? 'de' : 'en'), notes: previous?.notes ?? notes, form: previous ? previous.form ?? undefined : form, signal: controller.signal })
+      if (!controller.signal.aborted) { setGenerationJob(current); openedJob.current = ''; attemptedJob.current = '' }
     } catch (reason) {
-      if (!controller.signal.aborted && version === importVersion.current) setError(reason instanceof Error ? reason.message : 'Could not prepare this application.')
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : 'Could not prepare this application.')
     } finally {
-      if (generationAbort.current === controller) { generationAbort.current = null; setGenerating(false) }
+      if (generationAbort.current === controller) { generationAbort.current = null; setStartingGeneration(false) }
     }
   }
 
   function cancelGeneration() {
     generationAbort.current?.abort(); generationAbort.current = null
-    importVersion.current++; setGenerating(false)
-    setNotice('Preparation cancelled. Your existing documents are unchanged.')
+    importVersion.current++; setStartingGeneration(false)
+    setNotice('Preparation continues on the server. You can return to this page to see its progress.')
+  }
+
+  async function stopPreparation() {
+    try {
+      if (!generationJob?.id) throw new Error('No active preparation was found. Reload to see its current state.')
+      const current = await cancelPreparationJob(API, profile.id!, job.id, generationJob.id)
+      setGenerationJob(current)
+      setNotice('Stopping preparation…')
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not stop preparation.') }
   }
 
   async function start(openChatGPT = true) {
@@ -358,6 +544,27 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     setStep('handoff'); setError(''); setNotice('Browser draft cleared. Your original CV is still attached.'); setManual(false)
   }
 
+  async function deleteEverything() {
+    if (!window.confirm('Delete the saved application and its generated documents from this Radius instance and this browser?')) return
+    cloudBlocked.current = true
+    try {
+      await saveQueue.current
+      await deleteApplicationDraft(API, profile.id!, job.id)
+      cloudVersion.current = null; setCloudConflict(null); setGenerationJob(null)
+      openedJob.current = ''; attemptedJob.current = ''
+      try {
+        localStorage.removeItem(formStorageKey(job.id, profile.id!))
+        setStorageError('')
+      } catch {
+        setStorageError('This browser could not remove the captured application questions. Clear this site’s browser storage to remove them.')
+      }
+      setForm(undefined)
+      clearDraft(); setNotice('Saved application deleted from Radius and this browser. Extension copies may remain if the companion is unavailable; remove them in the extension profile.')
+      document.dispatchEvent(new CustomEvent('radius-delete-application'))
+      setCloudError(''); cloudBlocked.current = false
+    } catch (reason) { cloudBlocked.current = false; setError(reason instanceof Error ? reason.message : 'Could not delete the saved application.') }
+  }
+
   async function downloadDocument(format: DocumentFormat) {
     if (selected === 'cv' && photoReading) return
     setBusy(true); setError('')
@@ -396,6 +603,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
     {!loading && cvText && <span hidden className="application-cv-ready" data-original-cv-text={cvText} />}
     {step === 'handoff' && <div className="application-cv-ready"><span aria-hidden="true">✓</span><div><strong>{profile.cv?.languages?.[applicationLanguage === 'German' ? 'de' : 'en']?.filename ?? profile.cv?.filename}</strong></div><a href={editHref}>Change CV</a></div>}
     {(job.expired || job.is_active === false) && <p className="preparation-warning">This posting is closed or expired. Check the original post before applying.</p>}
+    {generationStatusError && <p role="status">{generationStatusError}</p>}
+    {(generationJob?.state === 'running' || generationJob?.state === 'cancelling') && <p role="status">{{starting: 'Starting preparation', waiting: 'Waiting for the ChatGPT connection', drafting: 'Drafting your documents', reviewing: 'Reviewing the draft', revising: 'Revising your documents', checking: 'Checking the documents', cancelling: 'Stopping preparation'}[generationJob.stage] ?? 'Preparing your documents'}… {generationJob.started_at ? `${Math.max(0, Math.floor((clock - generationJob.started_at * 1000) / 60000))} min elapsed. ` : ''}You can leave or reload this page; preparation continues on the server.</p>}
+    {generationJob?.state === 'running' && <button onClick={() => void stopPreparation()}>Cancel preparation</button>}
+    {generationJob?.state === 'cancelled' && <p role="status">Preparation cancelled. Retry to continue from a validated checkpoint when your source details are unchanged.</p>}
+    {generationJob?.state === 'failed' && <p className="preparation-error" role="alert">{generationJob.error ?? 'Preparation failed. Please try again.'}</p>}
+    {generationJob?.state === 'completed' && openedJob.current !== generationJob.id && <button onClick={() => void openGenerated(generationJob)}>Open latest prepared documents</button>}
+    {(cloudConflict || cloudError) && <div className="preparation-warning" role="status"><p>{cloudError || 'This device and Radius have different saved drafts. Choose which version to keep.'}</p><button disabled={revisionSaving} onClick={() => void resolveCloudConflict(true)}>Load Radius draft</button> <button disabled={revisionSaving} onClick={() => void resolveCloudConflict(false)}>Keep this device’s draft</button></div>}
     <ol className="finish-progress" aria-label="Application steps"><li aria-current={step === 'handoff' ? 'step' : undefined}>1 · Prepare</li><li aria-current={step === 'response' || step === 'edit' ? 'step' : undefined}>2 · Review</li><li>3 · Download</li></ol>
     <section className="application-finish-card">
       {step === 'handoff' && <>
@@ -408,11 +622,12 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
         {form && <p className="finish-help">This application step’s questions and answer limits are included in your brief.</p>}
         {briefType === 'application' && <>
           <ChatGPTConnection onChange={setAIEnabled} preparing={generating} />
-          <button className="primary-button" disabled={!aiEnabled || loading || !cvText || busy || !draftReady || generating || job.expired || job.is_active === false} onClick={() => void prepareDirect()}>{generating ? 'Preparing your documents…' : 'Prepare inside Radius'}</button>
-          {generating ? <><p role="status">Evaluating fit, drafting, reviewing and revising your documents. This can take several minutes…</p><button onClick={cancelGeneration}>Cancel preparation</button></>
+          {!companionReady && <p className="finish-help">Waiting for the companion to share captured questions. You can also prepare without them.</p>}
+          {!generating && aiEnabled && <><button className="primary-button" disabled={loading || !cvText || busy || !draftReady || job.expired || job.is_active === false} onClick={() => void prepareDirect(generationJob?.state === 'failed' || generationJob?.state === 'cancelled')}>{generationJob?.state === 'failed' || generationJob?.state === 'cancelled' ? 'Retry preparation' : 'Prepare documents'}</button>{(generationJob?.state === 'failed' || generationJob?.state === 'cancelled') && <button disabled={loading || !cvText || busy || !draftReady} onClick={() => void prepareDirect(false)}>Start with current options</button>}</>}
+          {generating ? <p className="finish-help">This can take several minutes. You can return later to review the result.</p>
             : aiEnabled && <p className="finish-help">Drafts, independently reviews and revises your application using your saved evidence. Uses three Codex requests from your subscription. Review the fit gaps and document checks before applying.</p>}
         </>}
-        <button className={briefType === 'fit' || !aiEnabled ? 'primary-button' : 'finish-text-button'} disabled={loading || !cvText || busy || !draftReady || generating} onClick={() => void start()}>{loading ? 'Reading CV…' : briefType === 'fit' ? 'Assess fit in ChatGPT ↗' : 'Copy brief & open ChatGPT ↗'}</button>
+        {briefType === 'fit' && <button className="primary-button" disabled={loading || !cvText || busy || !draftReady || generating} onClick={() => void start()}>{loading ? 'Reading CV…' : 'Assess fit in ChatGPT ↗'}</button>}
         {briefType === 'fit' && manual && <a className="page-link" href={CHATGPT} target="_blank" rel="noreferrer">Open ChatGPT ↗</a>}
       </>}
       {step === 'response' && <>
@@ -431,13 +646,64 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       </>}
       {step === 'edit' && <>
         <h2>Your documents are ready.</h2>
-        {documents.reviewNotes && <details className="finish-options">
+        {documents.reviewNotes && <details className="finish-options" open>
           <summary>Fit and document checks</summary>
           <div aria-label="Application review report" className="finish-help" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{documents.reviewNotes}</div>
           <p className="finish-help">These checks describe the generated version. Check again after editing text, source or the optional photo.</p>
         </details>}
-        <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
+        <div className="finish-document-picker" role="group" aria-label="Choose document">{documentSections.filter(item => item.key !== 'reviewNotes').map(item => <button key={item.key} disabled={revisionSaving} aria-pressed={selected === item.key} onClick={() => { setSelected(item.key); setNotice(''); setError('') }}>{item.label}</button>)}</div>
+        {(selected === 'cv' || selected === 'coverLetter') && <DocumentRevisionPanel key={selected} api={API} jobId={job.id} profile={profile} language={applicationLanguage === 'German' ? 'de' : 'en'}
+          target={selected === 'cv' ? 'cv' : 'cover_letter'} currentDocument={selected === 'cv' ? latexDocuments?.cv ?? '' : documents.coverLetter}
+          cv={documents.cv} coverLetter={documents.coverLetter} latexDocuments={latexDocuments} useProfilePhoto={useProfilePhoto} photoDataURL={photoDataURL}
+          onSwitchTarget={target => setSelected(target === 'cv' ? 'cv' : 'coverLetter')}
+          onApply={async (document, review) => {
+            let lockedCloud = false
+            let saveFailed = false
+            try {
+              assertFinishedText(document)
+              const nextLatex = { ...latexDocuments }
+              if (selected === 'cv') {
+                validateLatexDocuments({ cv: document })
+                if (cvText.includes('% radius:entry ')) validateTailoredCV(cvText, document)
+                nextLatex.cv = document
+              } else {
+                delete nextLatex.cover_letter
+              }
+              const nextDocuments = { ...documents, ...(selected === 'cv' ? { cv: 'The current CV is available in its LaTeX source and PDF.' } : { coverLetter: document }),
+                reviewNotes: `${documents.reviewNotes.slice(0, 90000)}\n\nRevision review (check the updated document):\n${review.slice(0, 8000)}` }
+              const candidate: ApplicationPackage = { format: 'radius-application-v1', ...context,
+                cv: template ? changes : nextDocuments.cv, cover_letter: nextDocuments.coverLetter,
+                application_answers: nextDocuments.answers, review_notes: nextDocuments.reviewNotes,
+                ...(formAnswers ? { form_answers: formAnswers } : {}), latex_documents: nextLatex }
+              assertRevisionPackageFits(candidate)
+              parseApplicationPackage(JSON.stringify(candidate), context, template?.paragraphs, undefined, cvText)
+              const savedAt = Date.now()
+              const savedDraft = { context, profile_updated_at: profile.updated_at,
+                package: candidate, step: 'edit', language, notes, response, saved_at: savedAt }
+              assertRevisionDraftFits(savedDraft)
+              if (!cloudReady || cloudBlocked.current || cloudConflict) throw new Error('Resolve the saved-draft conflict or reconnect to Radius before applying this suggestion.')
+              cloudBlocked.current = true; lockedCloud = true; setRevisionSaving(true)
+              await saveQueue.current
+              const saved = await saveApplicationDraft(API, profile.id!, job.id, savedDraft, cloudVersion.current)
+              if (!saved) throw new Error('Could not save the revised draft on Radius. Your current document is unchanged.')
+              cloudVersion.current = saved.version
+              cloudSnapshot.current = applicationDraftSnapshot(savedDraft)
+              try { persistRevisionLocally(localStorage, draftKey, savedDraft); setStorageError('') }
+              catch { setStorageError('The revised draft is saved on Radius, but this browser could not save its local copy.') }
+              setDraftExpiresAt(savedAt + 7 * 86400000)
+              setLatexDocuments(nextLatex)
+              setDocuments(nextDocuments)
+              setCloudError(''); setError(''); setNotice('Suggested version applied. Review it before using or downloading it.')
+              return true
+            } catch (reason) {
+              const message = reason instanceof Error ? reason.message : 'Could not apply this suggestion.'
+              if (lockedCloud) { saveFailed = true; setCloudError(message) }
+              setError(message); return false
+            }
+            finally { if (lockedCloud && !saveFailed) cloudBlocked.current = false; setRevisionSaving(false) }
+          }} />}
         {selected === 'cv' && <p className="finish-help">CV downloads use LaTeX rendering. <a href={editHref}>Manage English and German base CVs</a>.</p>}
+        {cvSourceError && <p className="preparation-error" role="alert">{cvSourceError}</p>}
         {selected === 'coverLetter' && <>
           <label>PDF layout<select aria-label="PDF layout" value={documentLayout} onChange={event => setDocumentLayout(event.target.value as 'original' | 'latex')}>
             <option value="original">Standard layout</option><option value="latex">LaTeX · single column</option>
@@ -456,13 +722,13 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
           {previewError && <p role="alert">{previewError}</p>}{pdf?.body === exportBody && <PDFPreview key={pdf.url} url={pdf.url} />}</div>
           : <iframe title={`${section.label} preview`} sandbox="" srcDoc={documentHTML(text, section.label)} />}</div>
         <details className="finish-options"><summary>{selected === 'cv' ? 'Edit LaTeX source' : 'Edit document text'}</summary>
-          {selected === 'cv' && !template ? <label>CV LaTeX source<textarea aria-label="CV LaTeX source" rows={18} maxLength={100000} value={latexDocuments?.cv ?? ''} onChange={event => setLatexDocuments(current => ({ ...current, cv: event.target.value }))} /><span>Keep the marked history and verified metadata intact. The PDF preview updates after edits.</span></label> : selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
-            {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000}
+          {selected === 'cv' && !template ? <label>CV LaTeX source<textarea aria-label="CV LaTeX source" rows={18} maxLength={100000} disabled={revisionSaving} value={latexDocuments?.cv ?? ''} onChange={event => { setLatexDocuments(current => ({ ...current, cv: event.target.value })); setDocuments(current => ({ ...current, cv: 'The current CV is available in its LaTeX source and PDF.' })) }} /><span>Keep the marked history and verified metadata intact. The PDF preview updates after edits. Readable CV text is not regenerated by manual source edits.</span></label> : selected === 'cv' && template ? <div className="template-paragraph-editor"><p className="finish-help">Longer text can shift page breaks.</p>
+            {template.paragraphs.map(row => <label key={row.id}>Paragraph {row.id + 1}<textarea aria-label={`CV paragraph ${row.id + 1}`} rows={Math.max(1, Math.min(4, Math.ceil(row.text.length / 65)))} maxLength={5000} disabled={revisionSaving}
               value={changes.find(change => change.id === row.id)?.text ?? row.text} onChange={event => { setLatexDocuments(current => current ? { ...current, cv: undefined } : undefined); setChanges(current => {
                 const next = current.filter(change => change.id !== row.id)
                 return event.target.value === row.text ? next : [...next, { id: row.id, text: event.target.value }]
               }) }} /></label>)}</div>
-            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined); if (selected === 'cv' || selected === 'coverLetter') setLatexDocuments(current => current ? { ...current, [selected === 'cv' ? 'cv' : 'cover_letter']: undefined } : undefined) }} /></label>}
+            : <label>{section.label} text<textarea aria-label={`${section.label} text`} rows={18} disabled={revisionSaving} value={text} onChange={event => { setDocuments(current => ({ ...current, [selected]: event.target.value })); if (selected === 'answers') setFormAnswers(undefined); if (selected === 'cv' || selected === 'coverLetter') setLatexDocuments(current => current ? { ...current, [selected === 'cv' ? 'cv' : 'cover_letter']: undefined } : undefined) }} /></label>}
         </details>
       </>}
       <details className="finish-options finish-secondary-options" open={optionsOpen} onToggle={event => setOptionsOpen(event.currentTarget.open)}><summary>Options</summary>
@@ -475,10 +741,11 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
           {profile.custom_instructions?.trim() && <a className="finish-help" href={editHref.replace('#profile-cv', '#profile-custom-instructions')}>Edit profile instructions</a>}
           <button disabled={loading || !draftReady || generating} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>I already have a result</button>
         </>}
-        {step !== 'handoff' && <button onClick={() => { setStep('handoff'); setOptionsOpen(false); setError('') }}>Back to brief</button>}
-        {step === 'edit' && <button onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>Paste a new response</button>}
+        {step !== 'handoff' && <button disabled={revisionSaving} onClick={() => { setStep('handoff'); setOptionsOpen(false); setError('') }}>Back to brief</button>}
+        {step === 'edit' && <button disabled={revisionSaving} onClick={() => { setOptionsOpen(false); setManualResult(true); setStep('response') }}>Paste a new response</button>}
         {step !== 'edit' && <button disabled={!cvText} onClick={() => { setOptionsOpen(false); setManual(true); setTimeout(() => { promptRef.current?.focus(); promptRef.current?.select() }, 0) }}>Show brief</button>}
-        {draftExpiresAt > 0 && <button onClick={clearDraft}>Clear browser draft</button>}
+        {(draftExpiresAt > 0 || storageError) && <button disabled={revisionSaving} onClick={clearDraft}>Clear browser draft</button>}
+        {(generationJob || draftExpiresAt > 0 || cloudVersion.current) && <button disabled={revisionSaving} onClick={() => void deleteEverything()}>Delete saved application</button>}
       </details>
       {manual && step !== 'edit' && cvText && <div className="finish-manual">
         <label>Brief to copy<textarea ref={promptRef} aria-label="Prepared application prompt" value={prompt} readOnly rows={6} /></label>
@@ -488,6 +755,6 @@ function ApplicationFinish({ job, profile, editHref, incoming }: { job: HandoffJ
       {error && <p className="preparation-error" role="alert">{error} {!cvText && !loading && <a href={editHref}>Update CV</a>}</p>}
       {storageError && <p className="preparation-error" role="alert">{storageError}</p>}
     </section>
-    {step !== 'handoff' && !storageError && <p className="finish-saved-note">Saved on this device · 7 days</p>}
+    {step !== 'handoff' && !storageError && <p className="finish-saved-note">{cloudReady && !cloudError && !cloudConflict ? 'Saved on this device and syncing to Radius' : 'Saved on this device'} · 7 days</p>}
   </>
 }

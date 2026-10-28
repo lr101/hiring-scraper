@@ -95,6 +95,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             frontend/package-lock.json
+            runtime/codex/package-lock.json
 
       - name: Set up locked Python environment
         uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
@@ -123,6 +124,18 @@ jobs:
           sudo apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-latex-recommended
           libreoffice --version
           lualatex --version
+
+      - name: Install pinned Codex subscription runtime
+        run: |
+          npm --prefix runtime/codex ci --ignore-scripts
+          codex_runtime_dir="$RUNNER_TEMP/radius-codex-runtime"
+          codex_state_dir="$RUNNER_TEMP/radius-codex-state"
+          node runtime/codex/export-runtime.mjs "$codex_runtime_dir"
+          mkdir -p "$codex_state_dir"
+          chmod 700 "$codex_state_dir"
+          "$codex_runtime_dir/bin/codex" --version
+          printf 'RADIUS_CODEX_BIN=%s/bin/codex\nRADIUS_CODEX_STATE_DIR=%s\n' \
+            "$codex_runtime_dir" "$codex_state_dir" >> "$GITHUB_ENV"
 
       - name: Build production frontend
         run: npm --prefix frontend run build

@@ -169,3 +169,15 @@ class CodexRuntimeTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+class CancellationTests(CodexRuntimeTests):
+    def test_cancel_stops_running_generation(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'delay':10}))
+        started = time.monotonic()
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('CV', {'type':'object'}, timeout=15, cancelled=lambda: time.monotonic() - started > .2)
+        self.assertEqual(raised.exception.status_code, 409)
+        self.assertLess(time.monotonic() - started, 4)
+        (self.root/'fixture.json').unlink()
+        self.assertEqual(runtime.generate('CV', {'type':'object'}), {'answer':'prepared'})

@@ -1919,3 +1919,31 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 .profile-language-tabs [role="tab"] { border: 1px solid var(--border); padding: .6rem 1.2rem; border-radius: .5rem; }
 .profile-language-tabs [aria-selected="true"] { background: var(--accent, #24634a); color: white; }
 .profile-language-content { border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+
+/* A revision stays separate from the document until the applicant accepts it. */
+.application-finish-page .document-revision { margin: 24px 0; padding: 22px; border: 1px solid var(--finish-line); border-radius: 9px; background: var(--finish-soft); }
+.document-revision-heading, .revision-suggestion-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.document-revision-heading h3, .revision-suggestion-head h4 { margin: 0; color: var(--finish-ink); font-size: 17px; line-height: 1.3; }
+.document-revision-heading p, .revision-suggestion-head p { margin: 6px 0 0; color: var(--finish-muted); font-size: 13px; line-height: 1.55; }
+.document-revision-heading > span, .revision-suggestion-head > span { flex: none; color: var(--finish-muted); font-size: 11px; font-weight: 600; }
+.document-revision-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.application-finish-card .document-revision label { margin: 18px 0 10px; font-size: 13px; }
+.document-revision-connection { margin-top: 10px; }
+.document-revision-connection summary { display: inline-block; color: var(--finish-muted); text-decoration: underline; text-underline-offset: 3px; }
+.revision-suggestion { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--finish-line); }
+.revision-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+.revision-notes > div { padding-left: 12px; border-left: 2px solid #8da281; }
+.revision-notes strong, .revision-comparison h5 { color: var(--finish-ink); font-size: 12px; font-weight: 700; }
+.revision-notes p { margin: 5px 0 0; color: var(--finish-ink); font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.revision-comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin: 16px 0; }
+.revision-comparison h5 { margin: 0 0 8px; }
+.revision-comparison iframe { width: 100%; height: 380px; border: 1px solid var(--finish-line); border-radius: 5px; background: white; }
+.revision-comparison pre { max-height: 300px; margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--finish-line); border-radius: 5px; background: var(--finish-paper); color: var(--finish-ink); font: 12px/1.5 monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.revision-cv-preview { margin: 16px 0; }
+@media (max-width: 650px) {
+  .application-finish-page .document-revision { padding: 16px; }
+  .document-revision-heading, .revision-suggestion-head { flex-direction: column; gap: 6px; }
+  .revision-notes, .revision-comparison { grid-template-columns: minmax(0, 1fr); }
+  .revision-comparison iframe { height: 320px; }
+  .document-revision-actions > button { width: 100%; }
+}

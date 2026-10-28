@@ -217,6 +217,30 @@ export function readyPackage(vault, jobId, stamp, now = Date.now()) {
   if (!(typeof cv === "string" ? cv.trim() : Array.isArray(cv))) return null;
   return saved;
 }
+
+export function assertReviewed(saved) {
+  if (saved?.reviewed !== true)
+    throw new Error(
+      "Review the prepared documents, then confirm your review in the extension before filling or attaching them.",
+    );
+}
+
+export async function packageStamp(value) {
+  const bytes = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(stableJSON(value)),
+  );
+  return [...new Uint8Array(bytes)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function assertReviewTarget(value, expected) {
+  if (!expected || (await packageStamp(value)) !== expected)
+    throw new Error(
+      "The prepared documents changed. Review the current version before confirming.",
+    );
+}
 export function applicationURL(vault, jobId) {
   const job = vault.jobs.find((j) => j.id === jobId);
   if (!job) throw new Error("This Radius job is unavailable.");

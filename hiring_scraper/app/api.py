@@ -27,6 +27,7 @@ from fastapi.staticfiles import StaticFiles
 from hiring_scraper.app.companion import router as companion_router
 from hiring_scraper.app.application_documents import router as application_documents_router
 from hiring_scraper.app.application_generation import router as application_generation_router
+from hiring_scraper.app.document_revision import router as document_revision_router
 from hiring_scraper.app.application_deduplication import index_vacancy_identities
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
@@ -771,6 +772,7 @@ app.include_router(profiles_router)
 app.include_router(companion_router)
 app.include_router(application_documents_router)
 app.include_router(application_generation_router)
+app.include_router(document_revision_router)
 
 
 @app.get("/health/ready")

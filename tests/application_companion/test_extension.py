@@ -111,8 +111,51 @@ class ExtensionHarness(unittest.TestCase):
         )
         return popup
 
-    def fill(self, popup):
-        popup.get_by_role("button", name="Fill known details", exact=True).click()
+    def review_prepared_documents(self, popup, refresh=False):
+        review = popup.get_by_role(
+            "button", name="I reviewed these documents", exact=True
+        )
+        if refresh and review.count():
+            # Fixture tests sometimes update the package after opening the popup.
+            # Reload so the review token is bound to the latest exact package.
+            popup.reload()
+            expect(popup.locator("#page-name")).not_to_have_text(
+                "Checking this page…", timeout=15_000
+            )
+            review = popup.get_by_role(
+                "button", name="I reviewed these documents", exact=True
+            )
+        if review.count() > 1:
+            selected = popup.locator("#current-job-picker").input_value()
+            if selected:
+                review = popup.locator(
+                    f'.job-entry[data-job-id="{selected}"]'
+                ).get_by_role(
+                    "button", name="I reviewed these documents", exact=True
+                )
+        if review.count() == 1:
+            expect(review).to_be_visible()
+            review.click()
+            expect(review).to_have_count(0)
+
+    def fill(self, popup, refresh_review=False):
+        self.review_prepared_documents(popup, refresh=refresh_review)
+        fill_application = popup.get_by_role(
+            "button", name="Fill this application", exact=True
+        )
+        if fill_application.count():
+            expect(fill_application).to_be_enabled()
+            fill_application.click()
+        else:
+            fill_known = popup.get_by_role(
+                "button", name="Fill known details", exact=True
+            )
+            if not fill_known.count():
+                fill_known = popup.get_by_role(
+                    "button", name="Fill reusable details", exact=True
+                )
+            expect(fill_known).to_be_enabled()
+            fill_known.click()
         expect(popup.locator("#status")).not_to_have_text("Filling known details…")
 
     def report(self):

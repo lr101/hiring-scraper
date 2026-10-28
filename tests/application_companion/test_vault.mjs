@@ -76,3 +76,17 @@ test('on-demand catalog caching is bounded while retaining prepared jobs and new
  const large=cacheJobs({...state,jobs:[]},Array.from({length:1000},(_,i)=>({id:i+1,title:'X'.repeat(300),company_name:'Labs',url:`https://example.org/jobs/${i+1}?q=${'a'.repeat(1800)}`,active:true})));
  assert.ok(new TextEncoder().encode(JSON.stringify(large.jobs)).length<=2000000);
 });
+
+test('prepared documents require an explicit review before use', async () => {
+  const { assertReviewed } = await import('../../extensions/application-companion/vault.js');
+  assert.throws(() => assertReviewed({reviewed:false}), /review/i);
+  assert.doesNotThrow(() => assertReviewed({reviewed:true}));
+});
+
+test('review confirmation is bound to the exact package shown', async () => {
+  const { packageStamp, assertReviewTarget } = await import('../../extensions/application-companion/vault.js');
+  const original = {cv:'first',cover_letter:'first letter'};
+  const token = await packageStamp(original);
+  await assert.doesNotReject(assertReviewTarget(original, token));
+  await assert.rejects(assertReviewTarget({...original, cover_letter:'changed'}, token), /changed/i);
+});

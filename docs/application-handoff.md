@@ -38,12 +38,31 @@ generated version; inspect again after editing or adding a photo. Review uses th
 saved posting and evidence, with no external company-research tools. No application
 status is advanced by preparation.
 
+In the review editor, choose **CV** or **Cover letter** and describe a change in
+**Refine your document**. Radius sends the selected current document, the request,
+and the saved job/profile/CV context for one ChatGPT revision. The proposed version
+and its review are kept separate until **Use this version** is selected. A changed
+document, profile, CV or job invalidates the proposal; request a new one. Marked CV
+revisions must preserve the original template and history. For custom CV templates
+that Radius cannot render, inspect the proposed source before using it. The previous
+fit and PDF checks describe the earlier version and must be checked again after edits.
+Accepted revisions are saved to Radius before the editor changes. After a CV revision
+or manual LaTeX edit the source and PDF are authoritative and readable CV text is not
+automatically regenerated. Invalid
+source edits stay unsaved until corrected.
+The latest suggestion is kept in the private backend state directory and survives a
+page reload. Expired records are removed during later application activity, with at
+most 100 expired files checked per cleanup pass, so records can remain longer than
+seven days while the instance is idle. Deleting the saved application removes it.
+Review all claims before using the result; no employer form is submitted.
+
 Preparation uses **three Codex requests** from the connected subscription. Each is
-ephemeral and isolated. The native calls share a six-minute overall budget, with
-at most 180 seconds per call; local PDF checks can take up to another minute.
-Configure reverse-proxy read timeouts to at least 480 seconds. Cancel prevents
-the result replacing browser documents; the already-started workflow can continue
-and use subscription capacity until it finishes or times out.
+ephemeral and isolated. The native calls share a 15-minute overall budget, with
+at most 300 seconds per call; local PDF checks may take additional time. The page
+polls a backend job, so reloading or closing it does not cancel preparation. It
+shows the current stage and can recover the result when reopened. Cancel stops
+queued or active model work. Retry reuses validated checkpoints only when the
+request and source revision are unchanged.
 
 The server prompt reflects the same original-template and matching-language example
 letter policies as the companion. Marked profile/responsibility prose is editable;
@@ -128,7 +147,8 @@ conversation history, memory or Canvas access. Each generation uses an isolated
 temporary directory, an ephemeral session, an explicit JSON schema and a read-only
 sandbox. Shell, file, browser, plugin and agent tools are disabled. A file lock
 serializes native login, generation and disconnect across API processes. Each call
-has a maximum 180-second timeout within the workflow budget; Radius does not retry failed calls, although
+has a maximum 300-second timeout within the workflow budget; Radius waits for a busy
+connection but does not retry failed model calls, although
 Codex may reconnect its transport. Native ChatGPT/Codex data handling policies
 apply to the signed-in account.
 
@@ -137,17 +157,23 @@ and rechecks job/profile/CV context after generation. It validates the returned
 package, inert letter/fixed-template LaTeX grammar, marked CV layout/history and captured-question
 constraints. These checks cannot prove every generated claim, so applicant review
 remains necessary. Failed, invalid or stale results preserve current browser
-documents. Cancel stops waiting and prevents the result from replacing documents;
-an already-started Codex request can continue and count toward subscription usage.
-The current native call holds the connection lease until it finishes or times out. Generated drafts
-use the existing device-local seven-day storage; originals and application stages
-are not changed. No employer form is filled or submitted by preparation.
+documents. The current native call holds the connection lease until it finishes or times out.
+The backend stores the current job and finished package in the private `application-jobs`
+directory under `RADIUS_CODEX_STATE_DIR`, so devices connected to the same instance
+can recover it. Records older than seven days are removed during subsequent job
+activity; server administrators can also remove these files. Editable drafts sync to
+Radius with version checks and explicit conflict resolution. Deleting an application
+removes its backend job, checkpoints and draft and the current browser copy; an
+extension copy on another device may remain. Deleting the profile or CV removes its
+saved application data from Radius. Originals and application stages are not changed. No employer
+form is filled or submitted by preparation.
 
 The application companion's existing question-capture, draft bridge and manual
 result import use the same package format. Direct generation uses the existing
-device-local draft storage that the connected companion reads; no new extension
-storage protocol is introduced. Unchanged companion capture heartbeats do not
-cancel an in-progress generation; changed questions do.
+draft storage that the connected companion reads. The companion displays progress
+and requires explicit review confirmation before filling or attaching a prepared
+package. Questions captured after a job starts are not
+included in that job; start a fresh preparation to include them.
 
 Verification includes process-level CLI fixtures, an offline wire check using
 the real pinned Codex binary, persisted-state permission checks under the production
@@ -214,7 +240,7 @@ Original CV bytes and extracted text are stored in a separate `profile_cvs` tabl
 
 Uploads support PDF, DOCX, UTF-8 TXT and LaTeX TEX, at most 5 MB and 100,000 extracted characters. Upload a `.tex` file under **Profile → Edit → Your CV → Attach CV** (or **Replace CV**), then save the profile. Its original bytes remain downloadable; its UTF-8 source is included in the ChatGPT brief as quoted data. Source uploads are never compiled, expanded, or used to read referenced files. Custom LaTeX CV classes are accepted as source; application tailoring preserves them for source download, and custom-template PDFs require local compilation. The browser-local preparation flow also offers **Import .txt or .tex** for source files under 100,000 bytes, followed by **Save CV**. PDFs are limited to 20 pages; password-protected or scan-only PDFs need a readable replacement. Extraction runs in a short-lived process with a timeout and resource limits on Linux. DOCX packages with external linked images/templates, embedded objects, macros, duplicate parts or custom XML entities are rejected. The normal single-workspace API access model applies; this feature does not introduce multi-user authorization.
 
-The original CV is never overwritten by the generated documents. Optional returned LaTeX source is included in the same browser draft and follows its deletion/expiry rules. Rendering sends edits transiently to the app server for export. Generated drafts, partial pasted responses and brief preferences are saved in localStorage for this job/profile on this browser. **Clear browser draft** removes them. A draft expires after 7 days without changes; expired records are removed when this application is opened, and an open tab also clears its current draft at expiry or on return to focus. Browser code cannot erase storage while the browser is closed. Drafts are device/browser-specific, not server-synced, and storage denial leaves export available with a visible warning.
+The original CV is never overwritten by the generated documents. Optional returned LaTeX source is included in the same browser draft and follows its deletion/expiry rules. Rendering sends edits transiently to the app server for export. Generated drafts, partial pasted responses and brief preferences are saved in localStorage for this job/profile on this browser. **Clear browser draft** removes them. A draft expires after 7 days without changes; expired records are removed when this application is opened, and an open tab also clears its current draft at expiry or on return to focus. Browser code cannot erase storage while the browser is closed. Browser edits also sync to Radius with version checks; storage denial leaves export available with a visible warning. Delete saved application removes the backend job and draft as described above.
 
 Starting/preparing/importing an application never marks it submitted. ChatGPT is not controlled, logged into or called through an API. The prompt uses relevant personal information already available in that conversation, project or enabled memory, as authorized by the user. It requests finished personalized documents without follow-up questions or approval. Unsupported or unresolved details are omitted instead of invented. The app does not retrieve private ChatGPT history itself.
 

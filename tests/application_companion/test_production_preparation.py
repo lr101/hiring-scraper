@@ -107,7 +107,7 @@ class ProductionPreparationTests(ProductionHarness):
     def setup_preparation(self, attached=False):
         version = self.upload_base()
         self.page.goto(self.origin + '/jobs/1574/apply?profile_id=1')
-        expect(self.page.get_by_role('button', name='Copy brief & open ChatGPT')).to_be_enabled()
+        expect(self.page.get_by_role('button', name='Continue with ChatGPT')).to_be_enabled()
         options = self.context.new_page()
         options.goto(f'chrome-extension://{self.extension_id}/options.html')
         options.locator('#radius-origin').fill(self.origin)
@@ -217,9 +217,13 @@ class ProductionPreparationTests(ProductionHarness):
         popup.get_by_text('Link this page to a job',exact=True).click()
         popup.locator('#job-query').fill('Uncached specialist')
         expect(popup.locator('#job-search-results')).to_contain_text('Uncached specialist')
-        popup.evaluate("() => {chrome.tabs.create=async()=>({id:999});}")
-        popup.locator('#job-search-results').get_by_role('button',name='Prepare with ChatGPT',exact=True).click()
-        expect(popup.locator('#prepared-prompt')).not_to_have_value('')
+        with self.context.expect_page() as opened:
+            popup.locator('#job-search-results').get_by_role('button',name='Prepare documents',exact=True).click()
+        application = opened.value
+        application.wait_for_load_state('domcontentloaded')
+        self.assertTrue(application.url.startswith(self.origin + '/jobs/'))
+        self.assertTrue(application.url.endswith('/apply?profile_id=1'))
+        expect(application.get_by_role('heading',name='Tailor this application.')).to_be_visible()
         bindings=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.bindings")
         self.assertTrue(any(binding['url']=='https://employer.example/unlinked' for binding in bindings))
 
