@@ -70,6 +70,14 @@ export async function readPackage(input) {
     if (typeof data[key] !== "string" || data[key].length > 100000)
       throw new Error(`Invalid ${key} in package.`);
   }
+  if (
+    /\\(?:[A-Za-z]+|[^A-Za-z0-9])|```(?:latex|tex)\b|\$\$[\s\S]*?\$\$|\$[A-Za-z][^$\n]*\$/i.test(
+      data.cover_letter,
+    )
+  )
+    throw new Error(
+      "The cover letter contains LaTeX. Ask for readable text without LaTeX and import it again.",
+    );
   if (typeof data.cv !== "string" && !Array.isArray(data.cv))
     throw new Error("The package must contain CV text or template edits.");
   if (Array.isArray(data.cv)) {

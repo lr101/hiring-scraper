@@ -103,12 +103,40 @@ def _connected(root):
     except (OSError, subprocess.TimeoutExpired): return False
 
 
+def selected_model():
+    root = _root()
+    try:
+        fd = os.open(root / 'model.json', os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(fd) as source:
+            data = json.load(source)
+        value = data.get('model') if isinstance(data, dict) else None
+        if isinstance(value, str) and re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,99}', value):
+            return value
+    except (OSError, ValueError, TypeError):
+        pass
+    return os.environ.get('APPLICATION_AI_MODEL', '').strip() or None
+
+
+def set_model(model):
+    if model is not None and (not isinstance(model, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,99}', model)):
+        raise HTTPException(422, 'Enter a valid model ID.')
+    root = _root()
+    _prepare(root)
+    descriptor, name = tempfile.mkstemp(prefix='model-', dir=root)
+    try:
+        with os.fdopen(descriptor, 'w') as output:
+            json.dump({'model': model}, output)
+        os.replace(name, root / 'model.json')
+    finally:
+        Path(name).unlink(missing_ok=True)
+
+
 def status():
     root = _root()
     available = bool(shutil.which(os.environ.get('RADIUS_CODEX_BIN', 'codex')))
     connected = available and _connected(root)
     data = {'enabled': connected, 'available': available, 'provider': 'ChatGPT subscription',
-            'model': os.environ.get('APPLICATION_AI_MODEL', '').strip() or None,
+            'model': selected_model(),
             'login_state': 'connected' if connected else 'disconnected',
             'usage_url': 'https://chatgpt.com/settings/usage'}
     if not connected:
@@ -189,7 +217,7 @@ def logout():
     return status()
 
 
-def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None):
+def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, model=None):
     root = _root()
     _binary()
     with _lock(root) as descriptor:
@@ -206,7 +234,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None):
                 '-c', 'project_doc_max_bytes=0', '-c', 'features.skip_host_skill_discovery=true',
                 '-c', 'log_dir=' + json.dumps(str(workspace / 'logs'))]
             for feature in _disabled: command += ['-c', f'features.{feature}=false']
-            model = os.environ.get('APPLICATION_AI_MODEL', '').strip()
+            if model is None: model = selected_model()
             if model: command += ['--model', model]
             command += ['-']
             try:

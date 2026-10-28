@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 
 const handoff = await import('../frontend/src/applicationHandoff.ts').catch(() => null)
 assert.equal(typeof handoff?.buildApplicationPrompt, 'function', 'Job-specific application handoff must be implemented')
-const { buildApplicationPrompt, parseApplicationResponse, documentHTML, documentPlainText } = handoff
+const { buildApplicationPrompt, parseApplicationResponse, documentHTML, documentPlainText, applicationPostingURL } = handoff
+assert.equal(applicationPostingURL('https://example.org/jobs/42'), 'https://example.org/jobs/42')
+for (const value of ['', 'javascript:alert(1)', '//example.org', 'https://user:password@example.org']) assert.equal(applicationPostingURL(value), null)
 const job = { id: 42, title: 'Project coordinator', company_name: 'Example GmbH', url: 'https://example.org/jobs/42',
   description: '<h2>Your role</h2><p>Coordinate &amp; plan projects.</p><script>steal()</script>',
   location_text: 'Heidelberg', company_website: 'https://example.org' }

@@ -3,8 +3,8 @@ import type { Profile } from './profile'
 import type { ApplicationForm } from './applicationForm'
 
 export type PreparationJob = {
-  id: string; state: 'running' | 'cancelling' | 'cancelled' | 'completed' | 'failed'; stage: string; error?: string; started_at?: number
-  request?: { cv_updated_at: string; profile_updated_at: string; language: 'en' | 'de'; notes?: string; form?: ApplicationForm | null }
+  id: string; state: 'running' | 'cancelling' | 'cancelled' | 'completed' | 'failed'; stage: string; failed_stage?: string; error?: string; started_at?: number
+  request?: { cv_updated_at: string; profile_updated_at: string; language: 'en' | 'de'; notes?: string; form?: ApplicationForm | null; mode?: 'full' | 'fast'; model?: string | null }
   result?: { package?: unknown }
 }
 
@@ -51,14 +51,14 @@ export function getPreparationJob(api: string, profileId: number, jobId: number,
   return jobRequest(`${api}/api/v1/profiles/${profileId}/preparation-job?job_id=${jobId}`, { signal })
 }
 
-export function startPreparationJob({ api, jobId, profile, language, notes, form, signal }: {
+export function startPreparationJob({ api, jobId, profile, language, notes, form, mode, model, signal }: {
   api: string; jobId: number; profile: Pick<Profile, 'id' | 'cv' | 'updated_at'>
-  language: 'en' | 'de'; notes: string; form?: ApplicationForm; signal?: AbortSignal
+  language: 'en' | 'de'; notes: string; form?: ApplicationForm; mode?: 'full' | 'fast'; model?: string; signal?: AbortSignal
 }) {
   if (!profile.id || !profile.cv?.updated_at || !profile.updated_at) throw new Error('Reload this application to use the current saved profile and CV.')
   return jobRequest(`${api}/api/v1/profiles/${profile.id}/preparation-job`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
-    body: JSON.stringify({ job_id: jobId, cv_updated_at: profile.cv.updated_at, profile_updated_at: profile.updated_at, language, notes, ...(form ? { form } : {}) }),
+    body: JSON.stringify({ job_id: jobId, cv_updated_at: profile.cv.updated_at, profile_updated_at: profile.updated_at, language, notes, ...(form ? { form } : {}), ...(mode ? { mode } : {}), ...(model ? { model } : {}) }),
   })
 }
 

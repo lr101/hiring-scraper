@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SiteHeader from './SiteHeader'
 import { getThemePreference, setThemePreference } from './theme'
 import type { ThemePreference } from './theme'
@@ -16,8 +16,69 @@ const settingsLinks = [
   { href: '/feeds', symbol: '≋', label: 'Job feeds', detail: 'Manage employer websites and other job sources.' },
 ]
 
+const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
+const modelChoices = ['gpt-6.1-sol', 'gpt-6.1-terra', 'gpt-6-luna']
+
+function ApplicationModelSettings({ onSaved }: { onSaved: () => void }) {
+  const [choice, setChoice] = useState('')
+  const [custom, setCustom] = useState('')
+  const [current, setCurrent] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetch(`${API}/api/v1/application-preparation`, { cache: 'no-store', signal: controller.signal })
+      .then(response => { if (!response.ok) throw new Error(); return response.json() })
+      .then(data => {
+        const model = typeof data.model === 'string' ? data.model : null
+        setCurrent(model)
+        setChoice(model ? (modelChoices.includes(model) ? model : 'custom') : '')
+        setCustom(model && !modelChoices.includes(model) ? model : '')
+        setLoading(false)
+      }).catch(() => { if (!controller.signal.aborted) { setError('Could not load the model setting. Reload to try again.'); setLoading(false) } })
+    return () => controller.abort()
+  }, [])
+
+  async function saveModel() {
+    const model = choice === 'custom' ? custom.trim() : choice
+    if (choice === 'custom' && !/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(model)) {
+      setError('Enter a valid model ID.'); setMessage(''); return
+    }
+    setSaving(true); setError(''); setMessage('')
+    try {
+      const response = await fetch(`${API}/api/v1/application-preparation/model`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: model || null }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Could not save the model.')
+      setCurrent(data?.model ?? null)
+      setMessage('Model saved for future preparations.')
+      onSaved()
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save the model.') }
+    finally { setSaving(false) }
+  }
+
+  return <div className="settings-model">
+    <h3>Application model</h3>
+    <p>Used for new preparations and document revisions. Availability depends on your ChatGPT subscription.</p>
+    <label>Model<select value={choice} disabled={loading || saving} onChange={event => { setChoice(event.target.value); setMessage(''); setError('') }}>
+      <option value="">Server or Codex default</option>
+      <option value="gpt-6.1-sol">GPT-6.1 Sol</option><option value="gpt-6.1-terra">GPT-6.1 Terra</option><option value="gpt-6-luna">GPT-6 Luna</option>
+      <option value="custom">Other model</option>
+    </select></label>
+    {choice === 'custom' && <label>Model ID<input value={custom} disabled={saving} maxLength={100} onChange={event => { setCustom(event.target.value); setMessage(''); setError('') }} /></label>}
+    <p>Current default: {current || 'Codex default'}</p>
+    <button type="button" className="primary-button" disabled={loading || saving || !!error && !current && choice === ''} onClick={() => void saveModel()}>{saving ? 'Saving…' : 'Save model'}</button>
+    {message && <p role="status">{message}</p>}{error && <p role="alert">{error}</p>}
+  </div>
+}
+
 export default function SettingsPage() {
   const [theme, setTheme] = useState<ThemePreference>(getThemePreference)
+  const [modelRevision, setModelRevision] = useState(0)
 
   function chooseTheme(value: ThemePreference) {
     setThemePreference(value)
@@ -48,7 +109,8 @@ export default function SettingsPage() {
           <div><p className="eyebrow">Applications</p><h2 id="chatgpt-heading">ChatGPT subscription</h2></div>
           <p>Use your existing subscription to prepare application documents inside Radius.</p>
         </div>
-        <ChatGPTConnection />
+        <ChatGPTConnection refreshKey={modelRevision} />
+        <ApplicationModelSettings onSaved={() => setModelRevision(value => value + 1)} />
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="companion-heading">

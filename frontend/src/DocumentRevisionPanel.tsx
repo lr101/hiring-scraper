@@ -23,6 +23,7 @@ export default function DocumentRevisionPanel({ api, jobId, profile, language, t
   const [preview, setPreview] = useState('')
   const [previewError, setPreviewError] = useState('')
   const [applying, setApplying] = useState(false)
+  const [comparisonView, setComparisonView] = useState<'current' | 'suggested'>('suggested')
   const mounted = useRef(false)
   const latest = useRef({ job, target, currentDocument, profile, language, onApply })
   latest.current = { job, target, currentDocument, profile, language, onApply }
@@ -110,7 +111,7 @@ export default function DocumentRevisionPanel({ api, jobId, profile, language, t
   }
 
   return <section className="document-revision" aria-label={`Review and revise ${name}`}>
-    <div className="document-revision-heading"><div><h3>Refine your {name}</h3><p>Ask for a change, then review the suggested version before using it.</p></div><span>Review before applying</span></div>
+    <div className="document-revision-heading"><div><h3>Refine your {name}</h3><p>Describe a change. You’ll review the suggestion before applying it.</p></div></div>
     {!currentDocument && <p className="finish-help">This CV has no editable LaTeX source. Prepare a current CV before requesting a revision.</p>}
     <label htmlFor={`revision-instruction-${target}`}>What would you like to change?
       <textarea id={`revision-instruction-${target}`} value={instruction} maxLength={5000} rows={3} disabled={running} onChange={event => setInstruction(event.target.value)} placeholder={target === 'cv' ? 'For example: Make the profile more concise and emphasize my coordination experience.' : 'For example: Make the opening more direct and connect my experience to this role.'} />
@@ -119,16 +120,16 @@ export default function DocumentRevisionPanel({ api, jobId, profile, language, t
       {running && job?.state === 'running' && <button onClick={() => void stop()}>Cancel revision</button>}</div>
     {otherTarget && <p className="finish-help">A {otherTarget === 'cv' ? 'CV' : 'cover letter'} suggestion {job?.state === 'completed' ? 'is ready for review' : 'is in progress'}. <button className="finish-text-button" onClick={() => onSwitchTarget(otherTarget)}>Open it</button></p>}
     <details className="document-revision-connection" open={connected === false}><summary>ChatGPT connection</summary><ChatGPTConnection onChange={setConnected} preparing={!!running} /></details>
-    {running && !applying && <p className="finish-help" role="status">{job?.stage === 'waiting' ? 'Waiting for the ChatGPT connection' : job?.state === 'cancelling' ? 'Stopping revision' : 'Reviewing and preparing a suggestion'}… You can reload this page; your current document is unchanged.</p>}
+    {running && !applying && <p className="finish-help" role="status">{job?.stage === 'waiting' ? 'Waiting for the ChatGPT connection' : job?.stage === 'repairing' ? 'Correcting the cover letter format' : job?.state === 'cancelling' ? 'Stopping revision' : 'Reviewing and preparing a suggestion'}… You can reload this page; your current document is unchanged.</p>}
     {job?.state === 'failed' && <p className="preparation-error" role="alert">{job.error || 'Could not prepare a suggestion. Try again.'}</p>}
     {job?.state === 'cancelled' && <p className="finish-help" role="status">Revision cancelled. Your current document is unchanged.</p>}
     {error && <p className="preparation-error" role="alert">{error}</p>}
     {result && <div className="revision-suggestion">
-      <div className="revision-suggestion-head"><div><h4>Suggested version</h4><p>Review the content and any gaps before replacing your current {name}.</p></div><span>{matchesCurrent ? 'Applied' : 'Not applied'}</span></div>
+      <div className="revision-suggestion-head"><div><h4>Suggested version</h4><p>Compare the suggestion and check its claims before deciding.</p></div><span>{matchesCurrent ? 'Applied' : 'Ready to review'}</span></div>
       <p className="finish-help">Your request: {job?.request?.instruction}</p>
       <div className="revision-notes"><div><strong>Review</strong><p>{result.review}</p></div><div><strong>Changes</strong><p>{result.changes}</p></div></div>
       {!valid && !matchesCurrent && <p className="preparation-warning" role="alert">The document, language or profile changed since this suggestion was requested. Request a new suggestion to avoid overwriting newer work.</p>}
-      {target === 'cover_letter' ? <div className="revision-comparison"><div><h5>Current</h5><iframe title="Current cover letter" sandbox="" srcDoc={documentHTML(currentDocument, 'Current cover letter')} /></div><div><h5>Suggested</h5><iframe title="Suggested cover letter" sandbox="" srcDoc={documentHTML(result.document, 'Suggested cover letter')} /></div></div>
+      {target === 'cover_letter' ? <><div className="revision-mobile-picker" role="group" aria-label="Compare cover letters"><button type="button" aria-pressed={comparisonView === 'current'} onClick={() => setComparisonView('current')}>Current</button><button type="button" aria-pressed={comparisonView === 'suggested'} onClick={() => setComparisonView('suggested')}>Suggested</button></div><div className={`revision-comparison revision-show-${comparisonView}`}><div className="revision-current"><h5>Current</h5><iframe title="Current cover letter" sandbox="" srcDoc={documentHTML(currentDocument, 'Current cover letter')} /></div><div className="revision-proposed"><h5>Suggested</h5><iframe title="Suggested cover letter" sandbox="" srcDoc={documentHTML(result.document, 'Suggested cover letter')} /></div></div></>
         : <div className="revision-cv-preview">{preview ? <PDFPreview url={preview} /> : <p className="finish-help">{previewError || 'Preparing the suggested CV preview…'}</p>}<p className="finish-help">The PDF and LaTeX source are the complete CV. Readable CV text is not automatically regenerated.</p><details><summary>Compare LaTeX sources</summary><div className="revision-comparison"><div><h5>Current</h5><pre>{currentDocument}</pre></div><div><h5>Suggested</h5><pre>{result.document}</pre></div></div></details></div>}
       <div className="document-revision-actions">{!matchesCurrent && <button className="primary-button" disabled={!valid || applying || starting} onClick={() => void apply()}>{applying ? 'Checking…' : 'Use this version'}</button>}<button disabled={applying || starting} onClick={() => void discard()}>{matchesCurrent ? 'Dismiss suggestion' : 'Keep current version'}</button></div>
     </div>}

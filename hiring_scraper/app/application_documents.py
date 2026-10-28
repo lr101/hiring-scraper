@@ -78,6 +78,16 @@ def _finished_text(text, *, allow_empty=False):
         raise ValueError('The selected document contains unfinished drafting text. Return a finished document without placeholders.')
 
 
+class CoverLetterLatexError(ValueError):
+    pass
+
+
+def validate_cover_letter_text(text):
+    # Recognize TeX syntax without treating ordinary backslashes or C++ as code.
+    if re.search(r'\\(?:[A-Za-z]+|[^A-Za-z0-9])|```(?:latex|tex)\b|\$\$[\s\S]*?\$\$|\$[A-Za-z][^$\n]*\$', text, re.IGNORECASE):
+        raise CoverLetterLatexError('The cover letter contains LaTeX. Return the letter as readable text without LaTeX commands.')
+
+
 def _text_docx(text):
     """Render the brief's simple Markdown subset; supplied prose stays XML text."""
     paragraphs = []
@@ -172,6 +182,7 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
         else:
             text = request.cv if kind == 'cv' else request.cover_letter
             _finished_text(text)
+            if kind == 'cover_letter': validate_cover_letter_text(text)
             output = _text_docx(text)
         if len(output) > MAX_BYTES:
             raise HTTPException(413, 'This document exceeds 5 MiB. Use a smaller document or DOCX template.')
@@ -180,7 +191,7 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
             if changes is not None:
                 text = docx_text(output)
                 _finished_text(text)
-            returned_source = getattr(request.latex_documents, kind, None)
+            returned_source = getattr(request.latex_documents, kind, None) if kind == 'cv' else None
             if returned_source is not None:
                 _finished_text(returned_source)
                 # Downloading source does not execute it. Custom templates may

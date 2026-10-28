@@ -79,6 +79,88 @@ class ApplicationGenerationTests(unittest.TestCase):
     def generate(self, **changes):
         return self.module().prepare_application(self.profile_id, self.request(**changes), self.session)
 
+    def test_invalid_cv_format_is_repaired_once_and_revalidated(self):
+        m = self.module()
+        invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co'), 'cover_letter': latex_source('Letter')})
+        valid = self.documents()
+        calls = []
+        def provider(prompt, schema, **kwargs):
+            calls.append(prompt)
+            return invalid if len(calls) == 1 else valid
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider):
+            result = self.generate(mode='fast')
+        self.assertEqual(len(calls), 2)
+        self.assertIn('Escape LaTeX special characters', calls[1])
+        self.assertEqual(result['package']['latex_documents']['cv'], valid['latex_documents']['cv'])
+
+    def test_failed_format_repair_reports_reason_without_publishing(self):
+        m = self.module()
+        invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co'), 'cover_letter': latex_source('Letter')})
+        with patch.object(m.codex_runtime, 'generate', return_value=invalid) as provider:
+            with self.assertRaises(HTTPException) as raised: self.generate(mode='fast')
+        self.assertEqual(provider.call_count, 2)
+        self.assertIn('formatting', raised.exception.detail.lower())
+        self.assertEqual(list(self.session.scalars(select(models.JobApplication))), [])
+
+    def test_latex_in_letter_is_corrected_once_before_publication(self):
+        m = self.module()
+        bad = self.documents(cover_letter=r'\documentclass{letter}\begin{document}Dear team\end{document}')
+        good = self.documents(cover_letter='Dear team, I build research tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
+            result = self.generate(mode='fast')
+        self.assertEqual(provider.call_count, 2)
+        self.assertEqual(result['package']['cover_letter'], good['cover_letter'])
+        self.assertNotIn('documentclass{letter}', result['package']['latex_documents']['cover_letter'].split('\\begin{document}', 1)[-1])
+
+    def test_repeated_latex_in_letter_fails_without_publishing(self):
+        m = self.module()
+        bad = self.documents(cover_letter=r'Dear \textbf{team}, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', return_value=bad) as provider:
+            with self.assertRaises(HTTPException) as raised: self.generate(mode='fast')
+        self.assertEqual(provider.call_count, 2)
+        self.assertIn('cover letter', raised.exception.detail.lower())
+        self.assertEqual(list(self.session.scalars(select(models.JobApplication))), [])
+
+    def test_bare_latex_commands_in_letter_are_corrected(self):
+        m = self.module()
+        bad = self.documents(cover_letter=r'\centering Dear team, I build tools.')
+        good = self.documents(cover_letter='Dear team, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
+            result = self.generate(mode='fast')
+        self.assertEqual(provider.call_count, 2)
+        self.assertEqual(result['package']['cover_letter'], good['cover_letter'])
+
+    def test_math_or_latex_fences_in_letter_trigger_correction(self):
+        m = self.module()
+        for letter in (r'\(x+y\)', r'\[x^2\]', r'\"o', r'Price is $x^2$ per unit.', '$x + y$', '$E = mc^2$', '$$x+y$$', '```latex\nDear team\n```'):
+            with self.subTest(letter=letter), patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(cover_letter=letter), self.documents()]) as provider:
+                self.generate(mode='fast')
+                self.assertEqual(provider.call_count, 2)
+        with patch.object(m.codex_runtime, 'generate', return_value=self.documents(cover_letter='The budget was $5 to $10.')) as provider:
+            self.generate(mode='fast')
+            self.assertEqual(provider.call_count, 1)
+
+    def test_fast_preparation_uses_selected_model_once(self):
+        m = self.module()
+        calls = []
+        def provider(prompt, schema, **kwargs):
+            calls.append((schema['title'], kwargs.get('model')))
+            return self.documents()
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider):
+            result = self.generate(mode='fast', model='example-model')
+        self.assertEqual(calls, [('GeneratedDocuments', 'example-model')])
+        self.assertIn('independent review', result['package']['review_notes'].lower())
+
+    def test_model_setting_is_exposed_and_validated(self):
+        m = self.module()
+        with patch.object(m.codex_runtime, 'set_model') as save:
+            response = m.set_preparation_model(m.ModelSetting(model='chosen-model'))
+        save.assert_called_once_with('chosen-model')
+        self.assertEqual(response.headers['cache-control'], 'no-store')
+        from pydantic import ValidationError
+        with self.assertRaises(ValidationError):
+            m.ModelSetting(model='--invalid')
+
     def test_disabled_configuration_does_not_expose_or_call_provider(self):
         m = self.module()
         with patch.dict(os.environ, {'RADIUS_CODEX_BIN': '/nonexistent/codex'}), patch.object(m.codex_runtime, 'generate') as network:

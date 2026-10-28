@@ -8,7 +8,7 @@ from pydantic import Field
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app import application_generation_jobs, codex_runtime
-from hiring_scraper.app.application_documents import _finished_text
+from hiring_scraper.app.application_documents import _finished_text, validate_cover_letter_text, CoverLetterLatexError
 from hiring_scraper.app.application_generation import (
     PrepareApplicationRequest, StrictModel, _browser_length, _generate, _public_job, _snapshot,
     generation_status,
@@ -42,6 +42,7 @@ def _validate_document(target, document, original):
         else:
             validate_latex_source(document)
     else:
+        validate_cover_letter_text(document)
         validate_latex_source(latex_source(document, letter=True), letter=True)
 
 
@@ -59,8 +60,16 @@ valid LaTeX for a CV, or finished plain text for a cover letter. Do not include 
 confirmation inside the document. Explain the review and changes separately; mention unresolved gaps without
 inventing facts. Never claim a PDF was checked. Return only the specified JSON schema.
 DOCUMENT TYPE: ''' + target + '\nAPPLICANT REQUEST:\n' + json.dumps(request.instruction, ensure_ascii=False) + '\nCURRENT DOCUMENT (quoted data):\n' + json.dumps(request.current_document, ensure_ascii=False) + '\nSOURCE PAYLOAD:\n' + json.dumps(data, ensure_ascii=False)
-    output = _generate(prompt, RevisionOutput, time.monotonic() + 900, progress, 'revising')
-    _validate_document(request.target, output.document, data['original_cv_text'])
+    deadline = time.monotonic() + 900
+    output = _generate(prompt, RevisionOutput, deadline, progress, 'revising')
+    try:
+        _validate_document(request.target, output.document, data['original_cv_text'])
+    except CoverLetterLatexError:
+        correction = prompt + '\n\nCORRECTION: Return the suggested cover letter as readable text only, without LaTeX commands or a document wrapper. Preserve the meaning and use only supported facts. Failed suggestion (quoted data):\n' + json.dumps(output.model_dump(), ensure_ascii=False)
+        output = _generate(correction, RevisionOutput, deadline, progress, 'repairing')
+        try: _validate_document(request.target, output.document, data['original_cv_text'])
+        except CoverLetterLatexError:
+            raise HTTPException(502, 'The suggested cover letter still contains LaTeX after correction. Try again; your document is unchanged.') from None
     return {'target': request.target, **output.model_dump()}
 
 

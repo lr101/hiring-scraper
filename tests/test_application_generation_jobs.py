@@ -30,7 +30,9 @@ class GenerationJobTests(unittest.TestCase):
 
     def test_failure_and_interrupted_job_have_recoverable_state(self):
         with tempfile.TemporaryDirectory() as folder:
-            def fail(_): raise RuntimeError('private details')
+            def fail(progress):
+                progress('reviewing')
+                raise RuntimeError('private details')
             jobs.start(Path(folder), 1, 2, fail)
             for _ in range(100):
                 state = jobs.status(Path(folder), 1, 2)
@@ -38,8 +40,11 @@ class GenerationJobTests(unittest.TestCase):
                 time.sleep(.01)
             self.assertEqual(state['state'], 'failed')
             self.assertNotIn('private details', str(state))
-            jobs._write(Path(folder), 1, 2, {'id': 'old', 'state': 'running', 'updated_at': time.time()})
-            self.assertEqual(jobs.status(Path(folder), 1, 2)['state'], 'failed')
+            self.assertEqual(state['failed_stage'], 'reviewing')
+            jobs._write(Path(folder), 1, 2, {'id': 'old', 'state': 'running', 'stage': 'drafting', 'updated_at': time.time()})
+            interrupted = jobs.status(Path(folder), 1, 2)
+            self.assertEqual(interrupted['state'], 'failed')
+            self.assertEqual(interrupted['failed_stage'], 'drafting')
 
     def test_large_unicode_result_and_expired_other_job_are_handled(self):
         with tempfile.TemporaryDirectory() as folder:

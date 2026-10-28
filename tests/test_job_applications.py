@@ -57,6 +57,20 @@ class JobApplicationTests(unittest.TestCase):
         self.assertTrue(page['matching_pending'])
         self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
 
+    def test_sqlite_journey_keeps_saved_roles_when_match_rebuild_conflicts(self):
+        self.save(self.jobs[0], 'open')
+        def conflict(session, profiles):
+            session.add(models.JobApplication(profile_id=self.profile['id'], job_id=self.jobs[1].id,
+                status='new', auto_created=True))
+            session.flush()
+            raise job_search.ProfileIndexChanged('inventory changed')
+        with patch.object(api, 'IS_SQLITE', True), patch.object(api, 'ensure_profile_match_indexes', side_effect=conflict):
+            page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertTrue(page['matching_pending'])
+        self.assertEqual([item['id'] for item in page['items']], [self.jobs[0].id])
+        self.assertEqual(page['items'][0]['application']['status'], 'open')
+        self.assertEqual(self.session.scalar(select(func.count()).select_from(models.JobApplication)), 1)
+
     def duplicate_job(self, original, *, url=None, metadata=None, **fields):
         feed = models.JobFeed(company=original.feed.company, provider='greenhouse',
             tenant='translated', feed_url='https://example.test/translated', status='parsed')

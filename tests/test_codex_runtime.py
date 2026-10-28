@@ -72,6 +72,17 @@ class CodexRuntimeTests(unittest.TestCase):
         self.assertEqual(seen['args'][seen['args'].index('--sandbox')+1],'read-only')
         self.assertFalse(Path(seen['cwd']).exists(),'Transient prompt/output workspace must be removed')
 
+    def test_saved_model_is_used_for_generation_and_can_be_reset(self):
+        runtime = self.module(); self.connect()
+        with patch.dict(os.environ, {'APPLICATION_AI_MODEL': 'server-default'}):
+            runtime.set_model('chosen-model')
+            self.assertEqual(runtime.status()['model'], 'chosen-model')
+            runtime.generate('CV', {'type': 'object'})
+            args = json.loads((self.root / 'seen.json').read_text())['args']
+            self.assertEqual(args[args.index('--model') + 1], 'chosen-model')
+            runtime.set_model(None)
+            self.assertEqual(runtime.status()['model'], 'server-default')
+
     def test_device_sign_in_is_pollable_idempotent_and_never_returns_credentials(self):
         runtime=self.module()
         runtime.start_login()
