@@ -82,6 +82,120 @@ stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
 
+Profile matching also compares job duties and qualifications with your skills,
+profile summary, work-history descriptions and saved career evidence. Strong
+content overlap can recommend a role with an unfamiliar title, including an
+adjacent role. This runs locally with bilingual skill/task aliases and cached
+profile analysis; it makes no LLM calls and consumes no API tokens. Title matches
+remain a fallback for sparse postings.
+
+The content score uses weighted coverage of the competencies mentioned in a
+posting (up to 85 points). Optional skills carry one quarter of the weight;
+benefits and title-only mentions contribute none. A strong content match needs
+at least two distinct substantive competencies. Common tools alone do not
+promote a role, academic/research evidence has half weight, and repeated words
+or overlapping aliases do not add extra points. Explicit qualification gaps,
+language requirements, location and saved preferences still apply. Job details
+explain the contributing skills and their profile sources. The vocabulary is
+bounded: unsupported paraphrases and unrecognized skills may still be missed;
+explicit custom profile skills also match literally.
+
+Matcher updates and edits to those career facts rebuild matches across the
+existing active inventory, so previously low-scoring roles can appear in Journey.
+Application wording and contact edits do not trigger this rebuild. This expands
+profile matching within the collected inventory; external feed coverage is unchanged.
+The approach takes inspiration from the skills and functional-experience
+dimensions in [AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md).
+
+Local semantic matching supplements these rules using the existing pinned
+multilingual E5 model on CPU. Inference runs serially in batches of at most four
+sections to limit native memory use during backfills and concurrent requests.
+The profile matching worker embeds career facts
+and separate sections of job responsibilities/qualifications, so related work
+can surface even without a shared title or vocabulary alias. Titles, benefits,
+optional training and contact details do not contribute to this semantic path.
+Sections are bounded and sampled across long postings, retaining late requirements.
+Exact duplicate sentences are removed before embedding.
+The model uses local inference; it makes no paid LLM/API calls.
+
+Normalized section vectors are stored once per job/profile in
+`match_semantic_documents` (migration `0034_profile_semantics` for PostgreSQL;
+SQLite creates the table during initialization). Job vectors are reused across
+profiles and process restarts. Content changes invalidate their vectors;
+contact/drafting edits reuse them. Background inference runs outside database
+transactions, checks that the source is still current before saving, and updates
+Journey ranking. Job detail and Journey use the same cached evidence. Results
+appear on subsequent Journey loads as indexing progresses.
+
+Semantic similarity alone can surface a **possible lead**, capped at 59 points;
+it never proves a required skill, credential or language level. The initial
+cosine threshold is conservative and needs calibration against a broader judged
+corpus; similarity is not a hiring probability. Higher saved minimum-score
+filters still apply. Rule matching continues while the local service loads or
+is unavailable. Compose already starts both the embedding service and profile
+matching worker. For local development, run both worker commands above and:
+
+```bash
+mise exec -- uv run python -m hiring_scraper.app.semantic_search_worker
+```
+
+An optional real-model smoke test uses synthetic English/German paraphrases and
+unrelated work examples (requires the pinned model cache):
+
+```bash
+HF_HUB_OFFLINE=1 RUN_LOCAL_SEMANTIC_TESTS=1 mise exec -- uv run python -m unittest discover -s tests -p test_semantic_profile_matching.py -v
+```
+
+For an isolated preview with both local semantic services, set
+`HIRING_PREVIEW_LOCAL_SEMANTICS=true` when starting `scripts/dev/preview.sh` with a
+fresh slug. The adapter reserves a separate embedding port and owns both processes.
+
+### Subscription-backed job scoring
+
+The profile matching worker also evaluates locally plausible active jobs with
+`gpt-6-luna` at medium reasoning through the private Radius ChatGPT connection.
+Connect your subscription in **Settings → ChatGPT subscription**. This uses
+included Codex subscription capacity, not an API key. It does not reuse a
+developer's Codex login or silently fall back to paid API billing.
+
+The worker reads subscription usage before each job. It starts another job only
+when a current five-hour (300-minute) usage window is available and total usage
+is below 50%. It pauses when the connection is missing, usage cannot be verified,
+the five-hour window is absent, or the limit has been reached. A weekly or other
+window is not substituted for the requested five-hour budget. Accounts without
+that window remain paused. Processing can resume after a reported reset; local
+matching continues while Luna is paused. An in-flight request can finish above
+50%, and other activity on the account also consumes the shared allowance.
+
+Assessments follow the functional-experience approach of
+[AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md):
+skills (30%), experience (25%), behavioral/work-preference fit (15%) and career
+alignment (30%), with separate location, language and eligibility gates.
+Unavailable dimensions remain unknown and weights are redistributed over the
+known dimensions. The prompt uses saved career facts and preferences, including
+career goals and work preferences when supplied, rather than inferring abilities
+from desired job titles. It does not research companies or follow instructions
+embedded in job postings.
+
+A valid, current Luna assessment **replaces** the local numerical score and its
+fit explanation, including lowering a score to zero. It is not blended with the
+local estimate or subject to the semantic-only 59-point ceiling. Explicit local
+eligibility restrictions still apply. The same assessment drives job detail,
+Journey ranking and materialized profile matches; the detail page identifies a
+Luna assessment. Missing, invalid or stale assessments fall back to local matching.
+
+Assessments are cached per profile/job in `profile_llm_scores` (PostgreSQL
+migration `0035_profile_llm_scores`; additive SQLite initialization). Source
+changes invalidate the cached assessment; unchanged jobs do not consume another
+request. Inference runs outside database transactions, and publication verifies
+that the profile and job are still current. Existing acted application stages
+remain intact. API reads use only cached data and never start inference.
+
+For a preview of the rules/Luna worker without loading another local embedding
+model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
+`HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
+backfills; it enables the profile worker as well.
+
 On a saved-CV application's page, **Prepare inside Radius** generates the CV,
 cover letter and answers through drafting, independent review, revision and PDF
 checks, directly into the review/export flow. Choose

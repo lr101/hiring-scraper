@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
-    JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text,
+    JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text, update,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
@@ -260,6 +260,11 @@ class Job(Base):
         """Persisted canonical group for this source row, when indexed."""
         return self.vacancy_group.vacancy_group_id if self.vacancy_group is not None else None
 
+    semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
+        foreign_keys="MatchSemanticDocument.job_id", cascade="all, delete-orphan", uselist=False)
+    llm_scores: Mapped[list[ProfileLLMScore]] = relationship(
+        foreign_keys="ProfileLLMScore.job_id", cascade="all, delete-orphan")
+
 
 class JobLocation(Base):
     __tablename__ = "job_locations"
@@ -302,15 +307,20 @@ class UserProfile(Base):
     applications: Mapped[list[JobApplication]] = relationship(back_populates="profile", cascade="all, delete-orphan")
     deduplication_archive: Mapped[list[JobApplicationDeduplicationArchive]] = relationship(
         back_populates='profile', cascade='all, delete-orphan')
-    cv: Mapped[ProfileCV | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
+    cv: Mapped[ProfileCV | None] = relationship(
+        back_populates="profile", cascade="all, delete-orphan", uselist=False, lazy="selectin")
     photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
+    semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
+        foreign_keys="MatchSemanticDocument.profile_id", cascade="all, delete-orphan", uselist=False)
+    llm_scores: Mapped[list[ProfileLLMScore]] = relationship(
+        foreign_keys="ProfileLLMScore.profile_id", cascade="all, delete-orphan")
 
     @property
     def matching_preferences(self) -> dict:
         """Only matching inputs affect derived scores and their index version.
 
-        Application prose, translations and contact details are deliberately
-        excluded: editing them must not rescan the entire job inventory.
+        Career narratives contribute content signals. Drafting instructions,
+        translations and contact details do not rescan the job inventory.
         """
         matching_fields = {
             'skills', 'desired_roles', 'secondary_roles', 'work_styles',
@@ -320,6 +330,10 @@ class UserProfile(Base):
         }
         preferences = {key: value for key, value in (self.preferences or {}).items()
                        if key in matching_fields}
+        from hiring_scraper.matching import profile_content_sources
+        sources = profile_content_sources(self.preferences or {})
+        if sources:
+            preferences['content_sources'] = sources
         defaults = dict(preferences.get("matching_defaults") or {})
         defaults["low_afd_vote_share_weight"] = self.low_afd_vote_share_weight
         preferences["matching_defaults"] = defaults
@@ -449,6 +463,35 @@ class ProfileJobMatch(Base):
     match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
+class ProfileLLMScore(Base):
+    """Persisted model judgment, separate from local vectors and derived ranks."""
+    __tablename__ = 'profile_llm_scores'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    version: Mapped[str] = mapped_column(String(160), nullable=False)
+    assessment: Mapped[dict] = mapped_column(JSON, nullable=False)
+    scored_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class MatchSemanticDocument(Base):
+    """Rebuildable section vectors, shared by all profile/job comparisons."""
+    __tablename__ = 'match_semantic_documents'
+    __table_args__ = (CheckConstraint(
+        '(job_id IS NULL AND profile_id IS NOT NULL) OR (job_id IS NOT NULL AND profile_id IS NULL)',
+        name='ck_match_semantic_document_owner'),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int | None] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), unique=True)
+    profile_id: Mapped[int | None] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), unique=True)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    version: Mapped[str] = mapped_column(String(160), nullable=False)
+    sections: Mapped[list] = mapped_column(JSON, nullable=False)
+    vectors: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    indexed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
 class JobSearchState(Base):
     """Append-only change marker; its generated ID is a cheap search generation."""
     __tablename__ = "job_search_state"
@@ -547,12 +590,14 @@ class JobSearchResult(Base):
 
 
 _SEARCH_FIELDS = {
+    ProfileLLMScore: {'source_hash', 'version', 'assessment'},
+    MatchSemanticDocument: {'source_hash', 'version', 'sections', 'vectors'},
     Company: {"name", "domain", "state", "country_code", "category", "source"},
     JobFeed: {"company_id", "provider", "tenant", "source_revision"},
     Job: {"feed_id", "external_id", "employer_company_id", "title", "url", "description",
           "location_text", "is_remote", "work_arrangement", "employment_type", "schedule",
           "department", "seniority", "date_posted", "salary", "raw_metadata", "enrichment",
-          "first_seen_at", "is_active"},
+          "first_seen_at", "is_active", "closed_at"},
     JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
 }
 
@@ -573,6 +618,171 @@ def _search_data_changed(session: Session) -> bool:
         if any(state.attrs[name].history.has_changes() for name in fields):
             return True
     return False
+
+
+def _lock_job_source_rows(connection, job_ids) -> None:
+    ordered_ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
+    if not ordered_ids:
+        return
+    if connection.dialect.name == 'sqlite':
+        # SQLite ignores row-level locks. Reserve the writer before any cache or
+        # profile lookup so source edits follow the same job -> profile order.
+        driver_connection = connection.connection.driver_connection
+        if not driver_connection.in_transaction:
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+        return
+
+    # NO KEY UPDATE serializes source writers and application tracking while
+    # remaining compatible with the FK KEY SHARE locks used by match indexes.
+    for start in range(0, len(ordered_ids), 500):
+        connection.execute(select(Job.id).where(Job.id.in_(ordered_ids[start:start + 500]))
+                            .order_by(Job.id).with_for_update(key_share=True)).all()
+
+
+def reserve_job_source_rows(session: Session, job_ids) -> None:
+    """Reserve a known batch of existing jobs before a caller can flush rows."""
+    _lock_job_source_rows(session.connection(), job_ids)
+
+
+def _reserve_changed_job_sources(session: Session, connection) -> None:
+    """Lock every written job before profiles when a flush changes match inputs."""
+    from hiring_scraper.app.profile_llm import assessment_job_source_changed
+
+    source_job_ids = set()
+    written_job_ids = set()
+    for item in session.dirty:
+        if not isinstance(item, Job) or item.id is None:
+            continue
+        state = inspect(item)
+        if session.is_modified(item, include_collections=False):
+            written_job_ids.add(item.id)
+        if assessment_job_source_changed(item) or state.attrs.locations.history.has_changes():
+            source_job_ids.add(item.id)
+    for item in session.deleted:
+        if isinstance(item, Job) and item.id is not None:
+            written_job_ids.add(item.id)
+            source_job_ids.add(item.id)
+    for item in list(session.new) + list(session.dirty) + list(session.deleted):
+        if not isinstance(item, JobLocation) or not (
+                item in session.new or item in session.deleted or
+                session.is_modified(item, include_collections=False)):
+            continue
+        job_id = item.job_id or (item.job.id if item.job is not None else None)
+        if job_id is not None:
+            source_job_ids.add(job_id)
+            written_job_ids.add(job_id)
+    if not source_job_ids:
+        return
+
+    # A single ORM flush may update additional jobs for bookkeeping or
+    # enrichment. Lock the complete UPDATE set before taking profile locks;
+    # otherwise a later UPDATE can wait on a job held by a tracker that itself
+    # waits on one of the profiles reserved below.
+    _lock_job_source_rows(connection, written_job_ids | source_job_ids)
+    if connection.dialect.name == 'sqlite':
+        return
+    # Incremental match publication locks every profile in ID order after the
+    # changed jobs. Reserve that same complete set before cache invalidation;
+    # otherwise two writers can each invalidate a different profile and then
+    # deadlock when publication asks for the full ordered set.
+    connection.execute(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
+
+
+@event.listens_for(Session, "before_flush")
+def _invalidate_profile_semantic_documents(session: Session, _flush_context, _instances) -> None:
+    from hiring_scraper.semantic_matching import job_sections, profile_sections, source_hash
+    connection = session.connection()
+    _reserve_changed_job_sources(session, connection)
+    for item in list(session.dirty):
+        if isinstance(item, Job):
+            fields, owner = ('description', 'raw_metadata'), MatchSemanticDocument.job_id
+            sections = lambda: job_sections({'description': item.description, 'raw_metadata': item.raw_metadata})
+        elif isinstance(item, UserProfile):
+            fields, owner = ('preferences',), MatchSemanticDocument.profile_id
+            sections = lambda: profile_sections(item.matching_preferences)
+        else:
+            continue
+        if item.id is None or not any(inspect(item).attrs[name].history.has_changes() for name in fields):
+            continue
+        if isinstance(item, UserProfile):
+            # Publishers lock a profile before verifying/publishing its vectors.
+            # Take that owner lock before checking for a cache row on PostgreSQL.
+            if connection.dialect.name == 'sqlite':
+                driver_connection = connection.connection.driver_connection
+                if not driver_connection.in_transaction:
+                    connection.exec_driver_sql('BEGIN IMMEDIATE')
+            else:
+                connection.execute(select(UserProfile.id).where(
+                    UserProfile.id == item.id).with_for_update())
+        old_hash = connection.execute(select(MatchSemanticDocument.source_hash).where(owner == item.id)).scalar()
+        if old_hash is not None and old_hash != source_hash(sections()):
+            connection.execute(delete(MatchSemanticDocument).where(owner == item.id))
+            session.info['job_search_generation_dirty'] = True
+
+
+@event.listens_for(Session, "before_flush")
+def _invalidate_profile_llm_scores(session: Session, _flush_context, _instances) -> None:
+    from hiring_scraper.app.profile_llm import assessment_job_source_changed, cv_career_data, profile_data
+    connection = session.connection()
+    for item in list(session.dirty):
+        if isinstance(item, UserProfile) and inspect(item).attrs.preferences.history.has_changes():
+            history = inspect(item).attrs.preferences.history
+            old = profile_data(history.deleted[0]) if history.deleted else None
+            if old != profile_data(item.preferences):
+                # Publishers own the profile before updating its assessment. Take
+                # the same owner lock before deletion, rather than in the later
+                # ORM UPDATE of preferences, to avoid a profile/cache lock cycle.
+                connection.execute(select(UserProfile.id).where(UserProfile.id == item.id).with_for_update())
+                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == item.id))
+                item.match_index_version = None
+                session.info['job_search_generation_dirty'] = True
+        elif isinstance(item, Job):
+            state = inspect(item)
+            if assessment_job_source_changed(item) or state.attrs.locations.history.has_changes():
+                affected = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id == item.id)
+                connection.execute(update(UserProfile).where(UserProfile.id.in_(affected)).values(match_index_version=None))
+                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.job_id == item.id))
+    for item in list(session.new) + list(session.dirty) + list(session.deleted):
+        if isinstance(item, JobLocation) and (item in session.new or item in session.deleted or
+                session.is_modified(item, include_collections=False)):
+            job_id = item.job_id or (item.job.id if item.job is not None else None)
+            affected = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id == job_id)
+            connection.execute(update(UserProfile).where(UserProfile.id.in_(affected)).values(match_index_version=None))
+            connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.job_id == job_id))
+        if isinstance(item, ProfileCV):
+            state = inspect(item)
+            changed = item in session.new or item in session.deleted or any(
+                state.attrs[name].history.has_changes() for name in ('extracted_text', 'variants'))
+            if not changed:
+                continue
+            # Compare canonical career blocks, so CV contact/layout edits retain scores.
+            variants_history = state.attrs.variants.history
+            previous_variants = variants_history.deleted[0] if variants_history.deleted else None
+            new_variant = (item.variants or {}).get('en') or (item.variants or {}).get('de')
+            previous_variant = ((previous_variants or {}).get('en') or (previous_variants or {}).get('de'))
+            previous_texts = state.attrs.extracted_text.history.deleted
+            old_text = previous_variant.get('text', '') if previous_variant else previous_texts[0] if previous_texts else ''
+            new_text = new_variant.get('text', '') if new_variant else item.extracted_text or ''
+            old_facts = cv_career_data(old_text)
+            new_facts = {} if item in session.deleted else cv_career_data(new_text)
+            if old_facts != new_facts:
+                profile_id = item.profile_id or (item.profile.id if item.profile is not None else None)
+                # CV storage does not update the profile's own preferences. Take
+                # its owner lock explicitly before changing career facts/cache.
+                if profile_id is not None:
+                    connection.execute(select(UserProfile.id).where(UserProfile.id == profile_id).with_for_update())
+                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id))
+                profile = session.get(UserProfile, profile_id) if profile_id is not None else None
+                if profile is not None:
+                    profile.match_index_version = None
+                session.info['job_search_generation_dirty'] = True
+    # A directly imported/edited assessment must invalidate the materialized rank.
+    for item in list(session.new) + list(session.dirty) + list(session.deleted):
+        if isinstance(item, ProfileLLMScore) and (item in session.new or item in session.deleted or
+                session.is_modified(item, include_collections=False)):
+            profile = session.get(UserProfile, item.profile_id)
+            if profile is not None:
+                profile.match_index_version = None
 
 
 @event.listens_for(Session, "before_flush")

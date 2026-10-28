@@ -20,6 +20,10 @@ from hiring_scraper.app.models import (
     Job, JobApplication, JobFeed, JobLocation, JobSearchState, ProfileJobMatch, UserProfile, utcnow,
 )
 from hiring_scraper.matching import VERSION, match_job
+from hiring_scraper.app.profile_semantics import cached_semantic_evidence
+from hiring_scraper.app.profile_llm import (VERSION as LLM_VERSION, apply_cached_assessment,
+    load_matching_documents as load_semantic_documents, profile_data)
+from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 
 _PENDING_MATCH_MAX_BYTES = 1_048_576
 _MATCH_JOB_BATCH_SIZE = 500
@@ -88,6 +92,9 @@ def _insert_for(session: Session, model):
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
         "matcher": VERSION,
+        "semantic": SEMANTIC_VERSION,
+        "llm": LLM_VERSION,
+        "llm_preferences": profile_data(profile),
         "preferences": profile.matching_preferences,
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:40]
@@ -241,11 +248,16 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                     selectinload(Job.locations),
                 )
             ).unique().all()
+            semantic_documents = load_semantic_documents(session, jobs, stale_profiles)
             for job in jobs:
                 source = job_input(job)
                 enrichment = current_enrichment(job)
                 for profile in stale_profiles:
-                    result = match_job(source, profile.matching_preferences, enrichment)
+                    semantic = cached_semantic_evidence(source, profile.matching_preferences,
+                                                        job.id, profile.id, semantic_documents)
+                    result = match_job(source, profile.matching_preferences, enrichment,
+                                       **({'semantic': semantic} if semantic else {}))
+                    result = apply_cached_assessment(result, job, profile, semantic_documents)
                     if not result.get("eligible"):
                         continue
                     pending_matches.append({
@@ -353,6 +365,7 @@ def refresh_application_matches_for_jobs(
             before_publish(session)
         return
     profile_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
+    search_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
     now = utcnow()
     with SpooledTemporaryFile(max_size=_PENDING_MATCH_MAX_BYTES, mode="w+t", encoding="utf-8") as pending_spool:
         for start in range(0, len(ids), _MATCH_JOB_BATCH_SIZE):
@@ -364,6 +377,7 @@ def refresh_application_matches_for_jobs(
                     selectinload(Job.locations),
                 ).execution_options(populate_existing=True)
             ).unique().all()
+            semantic_documents = load_semantic_documents(session, jobs, profiles)
             matching_jobs = [
                 (job, job_input(job), current_enrichment(job))
                 for job in jobs if job.is_active
@@ -377,7 +391,11 @@ def refresh_application_matches_for_jobs(
                 }
                 for job, source, enrichment in matching_jobs:
                     for profile in profile_batch:
-                        result = match_job(source, profile.matching_preferences, enrichment)
+                        semantic = cached_semantic_evidence(source, profile.matching_preferences,
+                                                            job.id, profile.id, semantic_documents)
+                        result = match_job(source, profile.matching_preferences, enrichment,
+                                           **({'semantic': semantic} if semantic else {}))
+                        result = apply_cached_assessment(result, job, profile, semantic_documents)
                         if not result.get("eligible"):
                             continue
                         matches.append({
@@ -415,6 +433,10 @@ def refresh_application_matches_for_jobs(
             # locks are held, and before stale automatic New rows are retracted.
             before_publish(session)
         affected_vacancy_groups = index_vacancy_identities(session, ids)
+        # Assessment publication also owns profile locks, so a committed change
+        # observed here cannot race past the derived writes that follow.
+        if int(session.scalar(select(func.max(JobSearchState.id))) or 0) != search_generation:
+            raise ProfileIndexChanged("Search evidence changed during incremental matching")
         stable_profiles = [profile for profile in current_profiles
                            if _profile_index_version(profile) == profile_versions[profile.id]]
         stable_ids = {profile.id for profile in stable_profiles}

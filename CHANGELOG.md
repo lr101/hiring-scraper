@@ -28,6 +28,11 @@ no historical releases have been reconstructed.
 
 - Resumable application preparation with a backend-saved ChatGPT connection, automatically generated CV and cover letter, prompt-based document revisions, and human confirmation before extension autofill.
 - Saved profile photos reused in English and German CV previews, PDF exports and source + photo ZIPs, with per-application exclusion and temporary replacements.
+- Subscription-backed Luna profile ranking with cached authoritative assessments, functional-experience dimensions, a verified five-hour usage guard at 50%, and migration `0035_profile_llm_scores`.
+
+- Local content-based profile matching across skills, summaries, work descriptions and career evidence, allowing unfamiliar job titles to surface in Journey with explained overlap and existing qualification checks.
+- Local multilingual semantic profile matching with cached section embeddings, background CPU inference, explained possible leads for unfamiliar wording, and migration `0034_profile_semantics`.
+
 - Optional PNG CV photos, restricted-template PDF rendering, and source + photo ZIP downloads for custom templates.
 - Language-specific example cover letters in profile content, used as structure and voice references in application briefs.
 
