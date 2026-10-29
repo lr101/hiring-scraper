@@ -1449,18 +1449,33 @@ def _resolved_search_area(profile, latitude, longitude, radius_km, place, countr
             'profile_area': bool(area), 'explicit': explicit}
 
 
-def _profile_match(job, profile, scope):
-    match = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
+def _profile_match(job, profile, scope, semantic_documents=None):
+    from sqlalchemy.orm import object_session
+    from hiring_scraper.app.profile_semantics import cached_semantic_evidence
+    from hiring_scraper.app.profile_llm import apply_cached_assessment, load_matching_documents as load_semantic_documents
+    source = job_input(job)
+    if semantic_documents is None:
+        semantic_documents = load_semantic_documents(object_session(job), [job], [profile])
+    semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, semantic_documents)
+    match = match_job(source, profile.matching_preferences, current_enrichment(job), semantic=semantic)
+    match = apply_cached_assessment(match, job, profile, semantic_documents)
+    return _apply_profile_match_scope(match, scope)
+
+
+def _apply_profile_match_scope(match, scope):
+    """External geography remains authoritative after local or cached scoring."""
     if scope is not None:
-        match['unknowns'] = list(dict.fromkeys(match['unknowns'] + scope['unknowns']))
-        if scope['unknowns']:
+        scope_unknowns = scope.get('unknowns') or []
+        match['unknowns'] = list(dict.fromkeys((match.get('unknowns') or []) + scope_unknowns))
+        if scope_unknowns:
             match['uncertain'] = True
             if match.get('fit_tier') == 'recommended':
                 match['fit_tier'] = 'possible'
         if not scope['eligible']:
             match['eligible'] = False
             match['fit_tier'] = 'unlikely'
-            match['conflicts'] = match['conflicts'] + ['Search scope: ' + scope['reason'].replace('_', ' ')]
+            match['conflicts'] = (match.get('conflicts') or []) + [
+                'Search scope: ' + scope['reason'].replace('_', ' ')]
     return match
 
 
@@ -1575,22 +1590,28 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
     matches = {}
     if profile is not None:
         selected = []
+        from sqlalchemy.orm import object_session
+        from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
+        semantic_documents = load_semantic_documents(object_session(profile), matching, [profile])
         for job in matching:
             indexed = (indexed_matches or {}).get(job.id)
             if indexed_matches is not None and indexed is None:
                 match = {'eligible': False, 'score': 0, 'fit_tier': 'unlikely',
                          'uncertain': False, 'unknowns': []}
             elif indexed is None:
-                match = _profile_match(job, profile, scopes[job.id])
+                match = _profile_match(job, profile, scopes[job.id], semantic_documents)
             else:
-                scope_unknowns = scopes[job.id].get('unknowns') or []
-                tier = indexed.match_tier
-                uncertain = bool(indexed.match_uncertain or scope_unknowns)
-                if scope_unknowns and tier == 'recommended':
-                    tier = 'possible'
                 match = {'eligible': True, 'score': indexed.match_score,
-                         'fit_tier': tier, 'uncertain': uncertain,
-                         'unknowns': scope_unknowns}
+                         'fit_tier': indexed.match_tier, 'uncertain': bool(indexed.match_uncertain),
+                         'unknowns': []}
+                from hiring_scraper.app.profile_llm import apply_cached_assessment
+                match = apply_cached_assessment(match, job, profile, semantic_documents)
+                if (match['score_source'] == 'local' and
+                        (profile.id, job.id) in getattr(semantic_documents, 'llm_scores', {})):
+                    # Bulk source writes may leave a derived rank behind. Its old
+                    # model number is never a valid local fallback for a stale hash.
+                    match = _profile_match(job, profile, None, semantic_documents)
+                match = _apply_profile_match_scope(match, scopes[job.id])
             matches[job.id] = match
             if not match['eligible']:
                 filtered['profile_conflict'] += 1
@@ -2863,6 +2884,8 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         selectinload(Job.locations))).unique().all()
     jobs_by_id = {job.id: job for job in jobs}
     profiles_by_id = {profile.id: profile for profile in profiles}
+    from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
+    semantic_documents = load_semantic_documents(session, jobs, profiles)
     items = []
     for application in applications:
         job = jobs_by_id[application.job_id]
@@ -2870,7 +2893,7 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         item['application'] = application_json(application)
         item['profile_id'] = application.profile_id
         item['profile_name'] = profiles_by_id[application.profile_id].name
-        item['profile_match'] = _profile_match(job, profiles_by_id[application.profile_id], None)
+        item['profile_match'] = _profile_match(job, profiles_by_id[application.profile_id], None, semantic_documents)
         items.append(item)
     return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
             'total': total,
@@ -3332,6 +3355,12 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             "jobs_for_location": job_page["total"],
             "remote_jobs_in_result": remote_job_page["total"],
             "as_of": datetime.now(timezone.utc).isoformat()}
+
+
+@app.get('/api/v1/profile-matching/status')
+def profile_matching_status():
+    from hiring_scraper.app.profile_llm import matching_status
+    return matching_status()
 
 
 FRONTEND_DIR = Path(os.getenv(

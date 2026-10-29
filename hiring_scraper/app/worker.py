@@ -26,7 +26,7 @@ from hiring_scraper.app.models import (Company, ConfiguredLocation, Job, JobFeed
                                       ScanRun, utcnow)
 from hiring_scraper.app.applications import close_job_applications
 from hiring_scraper.app.job_search import (
-    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+    ProfileIndexChanged, job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
 from hiring_scraper.app.feed_schedules import (
     is_synthetic_germany_scope, next_scope_due, scope_due_at,
@@ -52,6 +52,7 @@ USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public job-feed 
 _ORIGIN_LOCK = Lock()
 _LAST_ORIGIN_REQUEST: dict[str, float] = {}
 SQLITE_BUSY_RETRIES = 4
+PROFILE_INDEX_RETRIES = 3
 
 
 def _is_sqlite_busy(error: Exception) -> bool:
@@ -659,8 +660,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
         seen = set()
-        touched_job_ids: set[int] = set()
-        closed_job_ids: set[int] = set()
+        touched_jobs: set[Job] = set()
+        closed_jobs: set[Job] = set()
         for data in incoming:
             if (feed.provider == "rss" and not data.get("locations")
                     and feed.company.location_label):
@@ -685,7 +686,6 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 job = Job(feed_id=feed.id, external_id=external_id, title=data["title"], url=data["url"],
                           first_seen_at=now, last_seen_at=now)
                 session.add(job)
-                session.flush()
                 current[external_id] = job
                 old_locations = []
             else:
@@ -715,7 +715,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             job.closed_at = None
             replace_job_locations(job, _location_rows(data, old_locations))
             if created or job_search_signature(job) != before_signature:
-                touched_job_ids.add(job.id)
+                touched_jobs.add(job)
 
         if complete:
             for external_id, job in current.items():
@@ -727,8 +727,8 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
                 if job.is_active:
                     job.is_active = False
                     job.closed_at = now
-                    closed_job_ids.add(job.id)
-                    touched_job_ids.add(job.id)
+                    closed_jobs.add(job)
+                    touched_jobs.add(job)
 
         feed.job_count = len(incoming)
         feed.status = (("parsed" if incoming else "complete_empty") if complete else
@@ -738,7 +738,12 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             (metadata.get("pagination") or {}).get("error") or
             "Feed returned a partial page. No jobs were closed.")
         feed.attempt_count = 0
+        # Flush all changed jobs together. A per-new-job flush here could
+        # invalidate a profile for an earlier job before later changed jobs in
+        # this feed have acquired their source locks.
         session.flush()
+        touched_job_ids = {job.id for job in touched_jobs if job.id is not None}
+        closed_job_ids = {job.id for job in closed_jobs if job.id is not None}
         refresh_company_rank(session, feed.company, now,
                              {'complete': True, 'status': 'complete_empty'} if complete and not incoming else None)
         due = (next_feed_due(feed.company, feed, now) if successful else
@@ -758,6 +763,7 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
         run.http_status = status
         run.item_count = len(incoming)
         run.error = feed.last_error
+        session.flush()
         if touched_job_ids:
             session.flush()
             refresh_application_matches_for_jobs(
@@ -798,6 +804,39 @@ def _record_scan_failure(feed_id: int, run_id: int, source_revision: int,
                     failed_feed.next_scan_at = retry_at if failed_feed.enabled else None
 
 
+def _defer_match_index_scan(feed_id: int, run_id: int, source_revision: int,
+                            metadata: dict) -> None:
+    """Requeue a healthy response when match publication remains contended."""
+    now = utcnow()
+    retry_at = now + timedelta(seconds=random.randint(15, 45))
+    with SessionLocal.begin() as session:
+        feed = _lock_feed_result(session, feed_id)
+        run = _current_feed_run(session, feed_id, run_id)
+        if feed is None or run is None:
+            return
+        if feed.source_revision != source_revision:
+            newer_run = session.scalar(select(ScanRun.id).where(
+                ScanRun.feed_id == feed.id, ScanRun.id != run.id,
+                ScanRun.status == "running").limit(1))
+            if newer_run is None:
+                feed.lease_until = None
+            run.finished_at = now
+            run.status = "stale_source"
+            run.http_status = metadata.get("status")
+            run.error = "Feed source changed during this scan; the old response was discarded."
+            return
+        _requeue_search_scope(feed, run, retry_at)
+        feed.lease_until = None
+        feed.next_scan_at = (next_scope_due(feed.pending_search_scopes, now)
+                             if feed.provider == "arbeitsagentur" and feed.enabled else
+                             retry_at if feed.enabled else None)
+        feed.attempt_count = max(0, feed.attempt_count - 1)
+        run.finished_at = now
+        run.status = "retry_pending"
+        run.http_status = metadata.get("status")
+        run.error = "Match indexing changed repeatedly; this healthy feed will be fetched again."
+
+
 def scan_once() -> bool:
     claimed = _retry_sqlite_busy(_claim_due_feed, action="claiming a due feed")
     if claimed is None:
@@ -818,10 +857,20 @@ def scan_once() -> bool:
         return True
     try:
         metadata, body = _request(feed, search_scope, run_id=run_id)
-        _retry_sqlite_busy(
-            lambda: _persist_result(feed_id, run_id, metadata, body, source_revision),
-            action=f"saving scan result for feed {feed_id}",
-        )
+        for attempt in range(PROFILE_INDEX_RETRIES):
+            try:
+                _retry_sqlite_busy(
+                    lambda: _persist_result(feed_id, run_id, metadata, body, source_revision),
+                    action=f"saving scan result for feed {feed_id}",
+                )
+                break
+            except ProfileIndexChanged:
+                if attempt + 1 == PROFILE_INDEX_RETRIES:
+                    raise
+                delay = min(0.25 * (2 ** attempt), 1.0) + random.uniform(0, 0.1)
+                LOG.info("Match index changed while saving feed %s; retrying response in %.2fs (%s/%s)",
+                         feed_id, delay, attempt + 1, PROFILE_INDEX_RETRIES)
+                time.sleep(delay)
         LOG.info("feed scan id=%s provider=%s state=%s jobs=%s", feed_id, feed.provider,
                  metadata.get("state"), metadata.get("status"))
     except Exception as error:
@@ -829,6 +878,16 @@ def scan_once() -> bool:
             # The rolled-back persistence transaction must not label a healthy
             # source failed. The outer loop backs off; the lease allows recovery.
             raise
+        if isinstance(error, ProfileIndexChanged):
+            # Keep a successful upstream response from being recorded as a
+            # source failure. Finalize the attempt and schedule a fresh fetch.
+            LOG.warning("Feed %s response remained blocked by matching contention after %s attempts",
+                        feed_id, PROFILE_INDEX_RETRIES)
+            _retry_sqlite_busy(
+                lambda: _defer_match_index_scan(feed_id, run_id, source_revision, metadata),
+                action=f"deferring match-contended feed {feed_id}",
+            )
+            return True
         LOG.exception("feed scan failed id=%s", feed_id)
         try:
             _retry_sqlite_busy(

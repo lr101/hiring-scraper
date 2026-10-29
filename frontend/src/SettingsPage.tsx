@@ -106,11 +106,12 @@ export default function SettingsPage() {
 
       <section className="detail-panel settings-card" aria-labelledby="chatgpt-heading">
         <div className="settings-section-heading">
-          <div><p className="eyebrow">Applications</p><h2 id="chatgpt-heading">ChatGPT subscription</h2></div>
-          <p>Use your existing subscription to prepare application documents inside Radius.</p>
+          <div><p className="eyebrow">Jobs and applications</p><h2 id="chatgpt-heading">ChatGPT subscription</h2></div>
+          <p>Use your existing subscription for job ranking and application documents.</p>
         </div>
         <ChatGPTConnection refreshKey={modelRevision} />
         <ApplicationModelSettings onSaved={() => setModelRevision(value => value + 1)} />
+        <p className="finish-help">Background job reviews use Luna and pause at 50% of your five-hour allowance, or whenever that usage cannot be checked.</p>
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="companion-heading">

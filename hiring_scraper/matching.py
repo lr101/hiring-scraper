@@ -16,7 +16,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v20'
+VERSION = 'rules-v23'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -35,12 +35,12 @@ SKILLS = {
     'SAP': ['sap'], 'Salesforce': ['salesforce'], 'Accounting': ['accounting', 'buchhaltung', 'buchführung', 'buchfuehrung'],
     'Financial reporting': ['financial reporting', 'bilanzierung', 'jahresabschluss'],
     'Payroll': ['payroll', 'lohnabrechnung'], 'DATEV': ['datev'],
-    'Project management': ['project management', 'projektmanagement', 'project coordination', 'projektkoordination', 'plan projects', 'coordinate projects'],
-    'Requirements gathering': ['requirements gathering', 'requirements analysis', 'anforderungsanalyse', 'anforderungsmanagement'],
+    'Project management': ['project management', 'projektmanagement', 'project coordination', 'projektkoordination', 'plan projects', 'coordinate projects', 'manage projects', 'project planning', 'projektplanung', 'koordinieren projekte', 'projekte koordinieren'],
+    'Requirements gathering': ['requirements gathering', 'requirements analysis', 'anforderungsanalyse', 'anforderungsmanagement', 'gather requirements', 'collect requirements', 'erheben anforderungen', 'anforderungen erheben'],
     'Project coordination': ['project coordination', 'projektkoordination'],
     'Product development': ['product development', 'produktentwicklung'],
     'Stakeholder coordination': ['stakeholder coordination', 'stakeholder management', 'stakeholderkommunikation', 'coordinate stakeholders'],
-    'Process improvement': ['process improvement', 'prozessoptimierung', 'prozessverbesserung'],
+    'Process improvement': ['process improvement', 'prozessoptimierung', 'prozessverbesserung', 'improve processes', 'optimieren prozesse', 'prozesse optimieren'],
     'KPI monitoring': ['kpi monitoring', 'kpi tracking', 'kennzahlenmonitoring'],
     'Training and onboarding': ['training and onboarding', 'training delivery', 'schulungsdurchführung', 'onboarding coordination'],
     'Training and development': ['training and development', 'learning and development', 'personalentwicklung'],
@@ -536,9 +536,19 @@ def _requirement_clauses(sentence: str) -> list[str]:
     return parts
 
 
-def _required_context(sentence: str, *, explicit: bool = False) -> bool:
+def _required_context(sentence: str, *, explicit: bool = False, duties: bool = False) -> bool:
     if OPTIONAL.search(sentence) or NON_REQUIREMENT.search(sentence):
         return False
+    if duties:
+        # Requirements can be a deliverable ("gather requirements"), while
+        # explicit applicant cues such as "Python required" still apply here.
+        sentence = re.sub(
+            r'\b(?:gather(?:ing)?|collect(?:ing)?|analy[sz](?:e|ing)|document(?:ing)?|'
+            r'manag(?:e|ing)|defin(?:e|ing)|erheben|erfassen|sammeln|analysieren|dokumentieren)\s+'
+            r'(?:(?:business|technical|customer|functional|user|software|fachliche|technische)\s+){0,3}'
+            r'(?:requirements?|anforderungen)\b|'
+            r'\b(?:requirements?|anforderungen)\s+(?:gathering|collection|analysis|management|'
+            r'erheben|erfassen|sammeln|analysieren|dokumentieren)\b', '', sentence, flags=re.I)
     return explicit or bool(REQUIREMENT.search(sentence))
 
 
@@ -596,7 +606,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 for exp in experience_matches:
                     minimum = bool(exp.group('range_max') or exp.group('marker') or
                                    exp.group('reverse_marker') or exp.group('plus'))
-                    if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum)):
+                    if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum), duties=scope == 'duties'):
                         years = _experience_years(exp)
                         if years is not None:
                             experience = _evidence(years, clause, exp, source)
@@ -694,7 +704,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                                            _shared_language_requirement(clause, language_hits) or
                                            (requirement_section and _bare_language_clause(clause, language_hits)))
                     if not language_signal or not _required_context(
-                            clause, explicit=requirement_section or (scope == 'neutral' and language_signal)):
+                            clause, explicit=requirement_section or (scope == 'neutral' and language_signal), duties=scope == 'duties'):
                         continue
                     group = alternative_groups.get(index)
                     previous = next((row for row in languages if row['value'] == language
@@ -729,7 +739,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     if group:
                         row['alternative_group'] = group
                     languages.append(row)
-                if _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(APPLICANT_CUE.search(clause))) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I))):
+                if _required_context(clause, explicit=requirement_section or (scope == 'neutral' and bool(APPLICANT_CUE.search(clause))) or bool(re.search(r'\bSprachniveau\s+C[12]\b', clause, re.I)), duties=scope == 'duties'):
                     rows = qualification_rows(clause, source)
                     professional = bool(TENURE.search(clause))
                     alternative_lists = _quantified_scripting_lists(clause)
@@ -871,9 +881,83 @@ def _role_match(role: str, title: str) -> bool:
     return False
 
 
-def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
+# Common tools and general service skills alone say little about the work.
+_GENERAL_SKILLS = {'Excel', 'Git', 'Customer service', 'Onboarding', 'Trello', 'Kanban'}
+_UNSUPPORTED_PROFILE_CLAIM = re.compile(
+    r'\b(?:no|not|never|without|lack\w*|kein\w*|nicht|ohne|want\w*|wish\w*|'
+    r'aspir\w*|hope\w*|would like|interested in|learning|lernen|möchte\w*)\b', re.I)
+_ACADEMIC_PROFILE_CLAIM = re.compile(r'\b(?:academic|research|university|course\w*|studium|universität|hochschule)\b', re.I)
+
+
+def profile_content_sources(profile: dict) -> tuple[tuple[str, str], ...]:
+    """Project only career facts, so contacts and drafting preferences cannot affect ranking."""
+    sources = [('summary', profile.get('summary') or '')]
+    for index, entry in enumerate((profile.get('application_details') or {}).get('experiences') or []):
+        sources.append((f'experience.{index}', entry.get('description') or ''))
+    sources.append(('career_evidence', (profile.get('application_personalization') or {}).get('career_evidence') or ''))
+    # Saved profiles pass this compact projection instead of personal details.
+    sources.extend(tuple(row) for row in profile.get('content_sources') or [])
+    return tuple((source, text) for source, text in sources if text)
+
+
+@lru_cache(maxsize=256)
+def _profile_content_skills(sources: tuple[tuple[str, str], ...]) -> tuple[tuple[str, float, str], ...]:
+    """Bounded, local vocabulary extraction; narrative never verifies qualifications."""
+    found = {}
+    for source, text in sources:
+        for sentence, _ in scoped_sentences(structured_text(text)):
+            if _UNSUPPORTED_PROFILE_CLAIM.search(sentence):
+                continue
+            weight = .5 if _ACADEMIC_PROFILE_CLAIM.search(sentence) else 1.0
+            for skill in extract_profile_skills(sentence):
+                if weight > found.get(skill, (0, ''))[0]:
+                    found[skill] = (weight, source)
+    return tuple((skill, weight, source) for skill, (weight, source) in found.items())
+
+
+def _content_overlap(job_evidence: dict, profile_skills: list[str], evidence_by_skill: dict,
+                     narrative: tuple[tuple[str, float, str], ...]) -> dict:
+    capabilities = {}
+    for skill, weight, source in narrative:
+        name = _content_skill_name(skill)
+        if weight > capabilities.get(name, (0, ''))[0]:
+            capabilities[name] = (weight, source)
+    for skill in profile_skills:
+        context = str((evidence_by_skill.get(skill.casefold()) or {}).get('context', '')).casefold()
+        capabilities[_content_skill_name(skill)] = (.5 if context in {'academic', 'research'} else 1.0, 'skills')
+    totals, overlaps, specifics = {}, {}, {}
+    matches = []
+    for skill, row in job_evidence.items():
+        name = _content_skill_name(skill)
+        kind = row.get('kind', 'mentioned')
+        weight = {'mentioned': 1.0, 'optional': .25}.get(kind, 0)
+        totals[name] = max(totals.get(name, 0), weight)
+        if not weight or name not in capabilities:
+            continue
+        strength, source = capabilities[name]
+        overlaps[name] = max(overlaps.get(name, 0), weight * strength)
+        if kind == 'mentioned' and skill not in _GENERAL_SKILLS:
+            specifics[name] = max(specifics.get(name, 0), strength)
+        matches.append({'skill': skill, 'profile_source': source, 'weight': strength,
+                        'source': row.get('source'), 'evidence': row.get('evidence'), 'kind': kind})
+    total, overlap, specific = sum(totals.values()), sum(overlaps.values()), sum(specifics.values())
+    # A single substantive competency can surface a possible lead. Strong fit
+    # requires at least two full-strength competencies, independent of title.
+    score = min(85 * overlap / max(1, total), 85 if specific >= 2 else 59) if specific >= 1 else 0
+    return {'score': round(score), 'coverage': round(overlap / max(1, total), 3), 'matches': matches}
+
+
+@lru_cache(maxsize=512)
+def _content_skill_name(skill: str) -> str:
+    # Some vocabulary entries share aliases (project coordination/management).
+    # One concept cannot provide two independent signals of fit.
+    return normalize_skills([skill])[0]
+
+
+def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, semantic: dict | None = None) -> dict:
     enriched = enrichment or enrich_job(job)
     profile_skills = normalize_skills(profile.get('skills', []))
+    narrative = _profile_content_skills(profile_content_sources(profile))
     job_skills = [row['name'] for row in enriched['skills']]
     # Explicit user skills outside the small vocabulary still get literal matching.
     title = plain_text(job.get('title'))
@@ -1044,7 +1128,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         if not any(row['evidence'] == experience['evidence'] and row.get('kind') in {'domain', 'professional_experience'}
                    for row in enriched.get('requirements', [])):
             gap_penalties[gap] = 15
-    if (roles or secondary_roles) and profile.get('experience_years') is None and (enriched.get('seniority') or {}).get('value') in {'senior', 'lead'}:
+    if (roles or secondary_roles or matched or narrative) and profile.get('experience_years') is None and (enriched.get('seniority') or {}).get('value') in {'senior', 'lead'}:
         gap = 'Verify senior-level professional tenure: exact relevant CV months not established'
         requirement_gaps.append(gap)
         unknowns.append(gap)
@@ -1101,13 +1185,27 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         reasons.extend('Role matches ' + role for role in roles)
     elif secondary_roles:
         reasons.extend('Secondary role matches ' + role for role in secondary_roles)
-    score = min(100, round(score))
-    if requirement_gaps:
-        # Missing mandatory evidence lowers ranking as well as confidence. Each
-        # independent clause counts once, even when it names both a tool/domain.
-        score = max(0, min(score, 60) - min(40, sum(gap_penalties.values())))
-    score += max(-10, min(5, experience_adjustment))
-    score += max(-20, min(10, language_adjustment))
+    content = _content_overlap(job_evidence, profile_skills, evidence_by_skill, narrative)
+    if content['score']:
+        score = max(score, content['score'])
+        reasons.append('Job content overlaps profile capabilities: ' + ', '.join(
+            row['skill'] for row in content['matches'] if row['kind'] == 'mentioned'))
+        for row in content['matches']:
+            if row['profile_source'] != 'skills':
+                source = ('work history' if row['profile_source'].startswith('experience.') else
+                          'career evidence' if row['profile_source'] == 'career_evidence' else 'summary')
+                reasons.append(f"{row['skill']} found in profile {source}; qualification evidence still needs checking")
+    content_skills = [row['skill'] for row in content['matches']]
+    matched = list(dict.fromkeys([*matched, *content_skills]))
+    missing = [skill for skill in missing if skill not in content_skills]
+    lexical_score = score
+    semantic_boosted = False
+    if semantic and semantic.get('score', 0) > 0:
+        semantic_score = max(0, min(59, semantic['score']))
+        if semantic_score > score:
+            score = semantic_score
+            semantic_boosted = True
+        reasons.append('Local semantic overlap: ' + semantic.get('job_evidence', '')[:300])
     # A title-only listing cannot imply a strong fit, even with matching skills or languages.
     score_limit = 100
     if enriched['quality'] == 'limited':
@@ -1116,11 +1214,10 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
         score_limit = min(score_limit, 85)
     if (roles and substantive_matches and set(substantive_matches) <= {'Customer service', 'Onboarding'}
             and not _role_match('Customer service', title)
-            and not verified_requirements):
+            and not verified_requirements and content['score'] < 65):
         score_limit = min(score_limit, 64)
-    if secondary_roles and not roles:
+    if secondary_roles and not roles and content['score'] < 65:
         score_limit = min(score_limit, 59)
-    score = max(0, min(score_limit, score))
     fully_remote = (job.get('work_arrangement') in {None, 'remote'} and
                     (job.get('is_remote') is True or job.get('work_arrangement') == 'remote'))
     vote_results = [] if fully_remote else job_city_vote_results(job)
@@ -1135,7 +1232,24 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     location_adjustment = (max(-location_weight, min(location_weight,
                            round((25 - average_vote_share) / 25 * location_weight)))
                            if average_vote_share is not None and location_weight else 0)
-    score = max(0, min(score_limit, score + location_adjustment))
+    def adjusted_score(value):
+        value = min(100, round(value))
+        if requirement_gaps:
+            # Independent mandatory gaps retain the same penalties on both paths.
+            value = max(0, min(value, 60) - min(40, sum(gap_penalties.values())))
+        value += max(-10, min(5, experience_adjustment))
+        value += max(-20, min(10, language_adjustment))
+        value = max(0, min(score_limit, value))
+        return max(0, min(score_limit, value + location_adjustment))
+
+    score = adjusted_score(score)
+    if semantic_boosted:
+        baseline = adjusted_score(lexical_score)
+        # Language, tenure and location bonuses cannot turn semantic similarity
+        # into a recommendation. Independently qualifying rule matches survive.
+        score = min(score, max(59, baseline))
+        if score > baseline:
+            unknowns.append('Related work found by local semantic similarity; verify transferable experience')
     if location_adjustment:
         direction = 'increased' if location_adjustment > 0 else 'reduced'
         cities = ', '.join(row['municipality'] for row in scoring_vote_results)
@@ -1149,7 +1263,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None) -> dict:
     return {'score': score, 'eligible': not conflicts, 'uncertain': bool(unknowns),
             'fit_tier': fit_tier, 'requirement_gaps': requirement_gaps,
             'matched_skills': matched, 'missing_skills': missing, 'reasons': reasons,
-            'custom_skill_evidence': custom_evidence,
+            'custom_skill_evidence': custom_evidence, 'content_match': content,
+            'semantic_match': semantic if semantic and semantic.get('score', 0) > 0 else None,
             'local_context': {'city_election_results': vote_results,
                               'average_afd_vote_share_percent': average_vote_share,
                               'score_adjustment': location_adjustment,

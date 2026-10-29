@@ -29,7 +29,7 @@ from hiring_scraper.app.discovery_jobs import (
 from hiring_scraper.app.feed_schedules import queue_arbeitsagentur_scope
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun,
-    Job, JobFeed, JobLocation, utcnow,
+    Job, JobFeed, JobLocation, reserve_job_source_rows, utcnow,
 )
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
@@ -446,6 +446,27 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
 
         feed_by_key = {(feed.provider, feed.feed_url): feed for feed in session.scalars(
             select(JobFeed).where(JobFeed.company_id == company_id)).all()}
+        # `_upsert_jobs` may flush while inserting a new posting. Reserve every
+        # existing source row this discovery batch can update or close before
+        # that first flush can reserve the profile set.
+        source_job_ids = set()
+        for board in parsed_boards:
+            feed = feed_by_key.get((board.get("provider"), board.get("feed_url")))
+            if feed is None and board.get("provider") in {"html_jobs", "browser_html"}:
+                feed = next((candidate for (provider, url), candidate in feed_by_key.items()
+                             if url == board.get("feed_url") and
+                             provider in {"html_jobs", "browser_html"}), None)
+            if feed is None or feed.id is None:
+                continue
+            external_ids = {str(row.get("id")) for row in board.get("jobs", [])
+                            if row.get("id") not in (None, "")}
+            source_query = select(Job.id).where(Job.feed_id == feed.id)
+            if not board.get("complete") and external_ids:
+                source_query = source_query.where(Job.external_id.in_(external_ids))
+            elif not board.get("complete"):
+                continue
+            source_job_ids.update(session.scalars(source_query.order_by(Job.id)).all())
+        reserve_job_source_rows(session, source_job_ids)
         # Career listings with no current postings still need direct future checks.
         # Do not turn individual vacancy pages or untrusted pages into listings.
         if not parsed_boards:

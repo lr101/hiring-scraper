@@ -1,6 +1,7 @@
 import type { CityElectionResult } from './profile'
 
 export type ProfileMatch = {
+  score_source?: 'local' | 'llm'
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
@@ -28,13 +29,15 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
     <p className="eyebrow">How this job fits</p>
     {match ? <>
       <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
-      <p className="muted">This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.</p>
-      {match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
+      <p className="muted">{match.score_source === 'llm'
+        ? 'Luna assessed this job against your saved profile. Its assessment replaces the local match estimate.'
+        : 'This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.'}</p>
+      {match.score_source !== 'llm' && match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Outside your preferences</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
-      {match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
+      {match.score_source !== 'llm' && match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
     </> : <><h2>Skills and requirements found</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}
     {enrichment.seniority && <p><strong>Experience level:</strong> {enrichment.seniority.value} · {enrichment.seniority.evidence}</p>}
     {enrichment.experience_years && <p><strong>Minimum experience:</strong> {enrichment.experience_years.value} years · {enrichment.experience_years.evidence}</p>}
