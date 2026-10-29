@@ -56,6 +56,15 @@ class ApplicationGenerationTests(unittest.TestCase):
         return self.module().PrepareApplicationRequest(job_id=self.job_id, cv_updated_at=self.revision,
             profile_updated_at=self.profile_revision, language='en', **changes)
 
+    def test_snapshot_revision_is_stable_across_dates(self):
+        m = self.module()
+        with patch.object(m, 'date') as day:
+            day.today.return_value.isoformat.return_value = '2026-01-01'
+            _, first = m._snapshot(self.profile_id, self.request(), self.session)
+            day.today.return_value.isoformat.return_value = '2026-01-02'
+            _, second = m._snapshot(self.profile_id, self.request(), self.session)
+        self.assertEqual(first, second)
+
     def documents(self, **changes):
         return {'cv': 'Alex Example\nProduct coordination', 'cover_letter': 'Dear hiring team,\nI coordinate product requirements.',
                 'application_answers': 'No additional answers needed.', 'review_notes': 'Emphasized requirements work.',

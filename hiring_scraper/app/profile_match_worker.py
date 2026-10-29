@@ -7,6 +7,7 @@ import time
 from hiring_scraper.app.job_search import ProfileIndexChanged, refresh_profile_match_indexes_once
 from hiring_scraper.app.profile_semantics import refresh_semantic_documents_once
 from hiring_scraper.app.profile_llm import refresh_llm_scores_once
+from hiring_scraper.app.auto_preparation import prepare_once
 
 
 LOG = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ def main() -> None:
     LOG.info("profile match worker started")
     next_semantic_attempt = 0.0
     next_llm_attempt = 0.0
+    next_preparation_attempt = 0.0
     while True:
         try:
             refresh_profile_match_indexes_once()
@@ -41,6 +43,12 @@ def main() -> None:
             except Exception:
                 LOG.exception('Could not refresh model assessments; local matching continues; retrying in 30 seconds')
                 next_llm_attempt = time.monotonic() + 30
+        if time.monotonic() >= next_preparation_attempt:
+            try:
+                prepare_once()
+            except Exception:
+                LOG.exception('Could not schedule automatic application preparation')
+            next_preparation_attempt = time.monotonic() + 30
         time.sleep(POLL_SECONDS)
 
 
