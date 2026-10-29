@@ -169,16 +169,24 @@ class JourneyBrowserTests(ExtensionHarness):
         with self.context.expect_page() as event:self.page.get_by_role('link',name='Apply now').click()
         popup.close();self.page=event.value;self.page.wait_for_url(ATS)
         popup=self.popup()
+        # Confirm the exact package before introducing the navigation race. A
+        # navigation during review correctly invalidates that confirmation.
+        self.review_prepared_documents(popup)
+        fill = popup.locator('#fill')
+        expect(fill).to_be_enabled()
         self.worker.evaluate('''()=>{
           const original=chrome.scripting.executeScript.bind(chrome.scripting);
+          globalThis.navigationRaceIntercepted = 0;
           chrome.scripting.executeScript=async details=>{
-            if(details.func?.toString().includes('applicationCompanion.inspect'))
-              // Popup refreshes may inspect before the fill message. Toggle so
-              // every intercepted inspection really changes the requisition.
+            if(details.func?.toString().includes('applicationCompanion.inspect')) {
+              globalThis.navigationRaceIntercepted++;
               await original({target:details.target,func:()=>history.replaceState({},'',location.href.replace(/1574|2000/,id=>id==='1574'?'2000':'1574'))});
+            }
             return original(details);
           };
         }''')
-        self.fill(popup)
+        fill.click()
+        expect(popup.locator('#status')).not_to_have_text('Filling known details…')
+        self.assertGreater(self.worker.evaluate('globalThis.navigationRaceIntercepted'), 0)
         expect(self.page.locator('#first')).to_have_value('')
         expect(self.page.locator('#letter')).to_have_value('')
