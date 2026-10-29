@@ -5,6 +5,7 @@ Never reuse the developer's CODEX_HOME, inherited API credentials, or repo confi
 from contextlib import contextmanager
 import fcntl
 import json
+import logging
 import os
 from pathlib import Path
 import re
@@ -19,6 +20,8 @@ import time
 from fastapi import HTTPException
 
 from .codex_usage import evaluate, UsageUnavailable
+
+LOG = logging.getLogger(__name__)
 
 DEVICE_URL = 'https://auth.openai.com/codex/device'
 LOGIN_SECONDS = 900
@@ -297,6 +300,29 @@ def _subscription_usage(root):
             process.stdout.close()
 
 
+def _generation_failure(stderr, returncode):
+    """Report recognized failures without exposing prompts, credentials, or URLs."""
+    diagnostic = _ansi.sub('', stderr).lower()
+    if re.search(r'context (?:length|window).*exceed|too many tokens', diagnostic):
+        return 'The application exceeds the model context limit. Reduce the CV or job description and try again.'
+    if re.search(r'\b429\b|rate.limit|usage limit|too many requests', diagnostic):
+        return 'ChatGPT rate limit reached. Check subscription usage and try again after the limit resets.'
+    if re.search(r'\b401\b|unauthorized|authentication failed|token.*expired', diagnostic):
+        return 'ChatGPT authentication failed or expired. Sign in again in Radius settings.'
+    if re.search(r'\b403\b|forbidden', diagnostic):
+        return 'ChatGPT denied access to this request. Check that your subscription can use the selected model.'
+    if 'model' in diagnostic and re.search(r'not supported|not available|not found|does not exist|no access', diagnostic):
+        return 'The selected ChatGPT model is unavailable for this account. Choose another model in Radius settings.'
+    if re.search(r'connection refused|connection reset|dns|failed to connect|error sending request|network error', diagnostic):
+        return 'Could not connect to ChatGPT. Check the server network connection and try again.'
+    if re.search(r'\b50[0234]\b|service unavailable|bad gateway', diagnostic):
+        return 'ChatGPT service is unavailable or returned a server error. Try again later.'
+    status = re.search(r'(?:http(?: status)?|status(?: code)?)\s*[:=]?\s*([45]\d\d)\b', diagnostic)
+    if status:
+        return f'ChatGPT returned HTTP {status.group(1)}. Try again or use the ChatGPT handoff.'
+    return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again or use the ChatGPT handoff.'
+
+
 def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, model=None,
              reasoning_effort=None, usage_limit_percent=None):
     root = _root()
@@ -326,9 +352,11 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                 command += ['-c', 'model_reasoning_effort=' + json.dumps(reasoning_effort)]
             command += ['-']
             try:
-                process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
-                    stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                    text=True, start_new_session=True, pass_fds=(descriptor,))
+                diagnostic_file = workspace / 'stderr'
+                with diagnostic_file.open('wb') as diagnostics:
+                    process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
+                        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=diagnostics,
+                        text=True, start_new_session=True, pass_fds=(descriptor,))
                 deadline = time.monotonic() + min(timeout, GENERATION_SECONDS)
                 first = True
                 while True:
@@ -345,7 +373,12 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                     except subprocess.TimeoutExpired:
                         first = False
                 if process.returncode:
-                    raise HTTPException(502, 'ChatGPT could not prepare this application. Check your subscription usage or sign in again; you can also use the ChatGPT handoff.')
+                    with diagnostic_file.open('rb') as diagnostics:
+                        diagnostics.seek(0, os.SEEK_END)
+                        diagnostics.seek(max(0, diagnostics.tell() - 65536))
+                        detail = _generation_failure(diagnostics.read().decode('utf-8', errors='replace'), process.returncode)
+                    LOG.warning('ChatGPT preparation failed: %s', detail)
+                    raise HTTPException(502, detail)
                 if output_path.stat().st_size > 1024 * 1024: raise ValueError()
                 result = json.loads(output_path.read_text())
                 if not isinstance(result, dict): raise ValueError()

@@ -80,6 +80,32 @@ class RecruiteeIntegrationTests(unittest.TestCase):
         with patch.object(discovery_worker, 'Client', return_value=self.client('discovery')):
             self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
 
+    def test_discovery_retries_match_index_conflict_without_refetching(self):
+        from hiring_scraper.app.job_search import ProfileIndexChanged
+        claim = discovery_worker._claim_due_company()
+        with patch.object(discovery_worker, 'Client'), \
+             patch.object(discovery_worker, 'discover', return_value={'status': 'ok', 'pages': []}) as discover, \
+             patch.object(discovery_worker, '_persist_discovery', side_effect=[ProfileIndexChanged('changed'), 2]) as persist, \
+             patch.object(discovery_worker.time, 'sleep'):
+            self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+        self.assertEqual(discover.call_count, 1)
+        self.assertEqual(persist.call_count, 2)
+        with self.factory() as session:
+            self.assertIsNone(session.get(DiscoveryRun, claim[1]).error)
+
+    def test_discovery_defers_persistent_match_index_conflict(self):
+        from hiring_scraper.app.job_search import ProfileIndexChanged
+        claim = discovery_worker._claim_due_company()
+        with patch.object(discovery_worker, 'Client'), \
+             patch.object(discovery_worker, 'discover', return_value={'status': 'ok', 'pages': []}), \
+             patch.object(discovery_worker, '_persist_discovery', side_effect=ProfileIndexChanged('changed')), \
+             patch.object(discovery_worker.time, 'sleep'):
+            self.assertTrue(discovery_worker._process_claimed_company((*claim, None, None)))
+        with self.factory() as session:
+            company = session.get(Company, self.company_id)
+            self.assertEqual(company.discovery_attempt_count, 0)
+            self.assertGreater(company.next_discovery_at.replace(tzinfo=None), utcnow().replace(tzinfo=None))
+
     def manually_rediscover(self, expected_jobs):
         # Isolate the explicit campaign from an independently ranked homepage revisit.
         with self.factory.begin() as session:

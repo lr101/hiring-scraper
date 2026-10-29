@@ -450,7 +450,7 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
             void readCVPhoto(file).then(preview => { setPendingPhoto({ file, preview }); setRemovePhoto(false) })
               .catch(reason => setError(reason.message)).finally(() => setBusy(false))
           }} /></label>
-          <small>{text('PNG up to 2 MiB and 4096 pixels per side. Changes take effect when you save the profile.', 'PNG bis 2 MiB und 4096 Pixel pro Seite. Änderungen werden mit dem Profil gespeichert.')}</small>
+          <small>{text('PNG up to 2 MiB and 4096 pixels per side. Your file can have any name. For a custom LaTeX CV, use portrait.png in the image reference; the source + photo ZIP supplies the matching file. Changes take effect when you save the profile.', 'PNG bis 2 MiB und 4096 Pixel pro Seite. Die Datei darf beliebig heißen. Verwende für ein eigenes LaTeX-CV portrait.png als Bildreferenz; das ZIP mit Quelltext und Foto enthält die passende Datei. Änderungen werden mit dem Profil gespeichert.')}</small>
           {(pendingPhoto || (form.photo && !removePhoto)) && <div className="profile-pending-cv">
             <img src={pendingPhoto?.preview ?? `${API}/api/v1/profiles/${form.id}/photo?v=${encodeURIComponent(form.photo!.updated_at)}`} alt={text('Profile photo preview', 'Profilfoto-Vorschau')} width={96} style={{ maxHeight: 128, objectFit: 'contain' }} />
             <p>{pendingPhoto ? `${pendingPhoto.file.name} · ${text('ready to save', 'bereit zum Speichern')}` : form.photo!.filename}</p>
