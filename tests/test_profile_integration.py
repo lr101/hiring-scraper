@@ -114,7 +114,7 @@ class ProfileIntegrationTests(unittest.TestCase):
             self.assertEqual(updated['localized_content']['en']['application_preferences']['notice_period'], 'Two months')
             self.assertEqual(updated['localized_content']['de']['summary'], 'Deutsche Zusammenfassung')
 
-    def test_application_only_edits_preserve_journey_matches_but_skill_edits_invalidate_them(self):
+    def test_drafting_and_contact_edits_preserve_journey_matches_but_skill_edits_invalidate_them(self):
         from hiring_scraper.app.job_search import _profile_index_version
         profiles = self.profile_api()
         with Session(self.engine) as session:
@@ -134,9 +134,9 @@ class ProfileIntegrationTests(unittest.TestCase):
             score = scores[0].match_score
             # These inputs are read only while drafting applications, never by the matcher.
             profiles.update_profile(profile.id, profiles.ProfileRequest(name='Renamed', skills=['Python'],
-                matching_defaults={'min_match_score': 0}, summary='Updated application summary',
+                matching_defaults={'min_match_score': 0},
                 custom_instructions='Use direct prose.', application_details={'email': 'new@example.org'},
-                application_personalization={'career_goals': 'Build useful tools.'},
+                application_personalization={'writing_samples': 'Use short, direct sentences.'},
                 localized_content={'de': {'summary': 'Deutsche Zusammenfassung'}}), session)
             self.assertEqual(profile.match_index_version, version)
             self.assertEqual(_profile_index_version(profile), version)
@@ -145,6 +145,37 @@ class ProfileIntegrationTests(unittest.TestCase):
                 matching_defaults={'min_match_score': 0}), session)
             self.assertIsNone(profile.match_index_version)
             self.assertEqual(session.scalars(select(models.ProfileJobMatch).where(models.ProfileJobMatch.profile_id == profile.id)).all(), [])
+
+    def test_content_edits_rebuild_journey_and_find_unfamiliar_titles(self):
+        profiles = self.profile_api()
+        from hiring_scraper.app.job_search import ensure_profile_match_indexes
+        for content in [
+            {'summary': 'Built Python services with SQL and Docker.'},
+            {'application_details': {'experiences': [{'id': 'role1', 'company': 'Example',
+                'title': 'Specialist', 'start': '2020', 'current': True,
+                'description': 'Built Python services with SQL and Docker.'}]}},
+            {'application_personalization': {'career_evidence': 'Built Python services with SQL and Docker.'}},
+        ]:
+            with self.subTest(content=list(content)), Session(self.engine) as session:
+                saved = profiles.create_profile(profiles.ProfileRequest(name='Developer',
+                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 65}), session)
+                profile = session.get(models.UserProfile, saved['id'])
+                host = f"example-{saved['id']}.org"
+                company = models.Company(source='test', source_id=str(saved['id']), name=f"Example {saved['id']}")
+                feed = models.JobFeed(company=company, provider='html_jobs', feed_url=f'https://{host}/jobs', status='parsed')
+                job = models.Job(feed=feed, external_id=str(saved['id']), title='Solutions Specialist',
+                    url=f'https://{host}/jobs/1', is_remote=True,
+                    description='Your tasks: Build Python and SQL services and deploy with Docker. ' * 12)
+                session.add(company); session.commit()
+                ensure_profile_match_indexes(session, [profile]); session.commit()
+                self.assertEqual(session.scalars(select(models.JobApplication).where(
+                    models.JobApplication.profile_id == profile.id)).all(), [])
+                profiles.update_profile(profile.id, profiles.ProfileRequest(name='Developer',
+                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 65}, **content), session)
+                self.assertIsNone(profile.match_index_version)
+                page = api.list_applications(profile_ids=str(profile.id), statuses='new', sort='match',
+                                             offset=0, limit=40, session=session)
+                self.assertIn(job.id, {item['id'] for item in page['items']})
 
     def test_localized_content_rejects_shared_facts_and_unknown_languages(self):
         from pydantic import ValidationError

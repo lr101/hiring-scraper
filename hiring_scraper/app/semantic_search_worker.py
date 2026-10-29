@@ -6,6 +6,7 @@ import logging
 import os
 import threading
 import time
+from typing import Literal
 from datetime import timedelta
 from pathlib import Path
 from uuid import uuid4
@@ -31,6 +32,7 @@ MODEL_ID = "intfloat/multilingual-e5-small"
 MODEL_REVISION = "ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 MODEL_KEY = f"{MODEL_ID}@{MODEL_REVISION}"
 DIMENSIONS = 384
+INFERENCE_BATCH_SIZE = 4
 MODEL_DIR = Path(os.getenv("SEMANTIC_MODEL_DIR", "/opt/models/multilingual-e5-small"))
 INDEX_BATCH_SIZE = max(2, int(os.getenv("SEMANTIC_INDEX_BATCH_SIZE", "32")))
 INDEX_POLL_SECONDS = max(1, float(os.getenv("SEMANTIC_INDEX_POLL_SECONDS", "2")))
@@ -42,12 +44,17 @@ class EmbedRequest(BaseModel):
     text: str = Field(min_length=1, max_length=1000)
 
 
+class EmbedBatchRequest(BaseModel):
+    texts: list[str] = Field(min_length=1, max_length=32)
+    kind: Literal['query', 'passage']
+
+
 class LocalE5:
     """Small CPU ONNX runtime for the pinned multilingual E5 model."""
 
     def __init__(self) -> None:
         self.tokenizer = Tokenizer.from_file(str(self._model_file("tokenizer.json")))
-        self._tokenizer_lock = threading.Lock()
+        self._inference_lock = threading.Lock()
         self.tokenizer.enable_truncation(max_length=512)
         self.tokenizer.enable_padding(pad_id=1, pad_token="<pad>")
         options = ort.SessionOptions()
@@ -71,13 +78,17 @@ class LocalE5:
         ))
 
     def encode(self, texts: list[str]) -> list[list[float]]:
-        if not texts:
-            return []
-        # Tokenizer configuration is shared, so serialize tokenization only.
-        # ONNX Runtime supports concurrent Run calls; leaving inference outside
-        # this lock lets interactive queries run alongside the backfill worker.
-        with self._tokenizer_lock:
-            encodings = self.tokenizer.encode_batch(texts, add_special_tokens=True)
+        vectors = []
+        for start in range(0, len(texts), INFERENCE_BATCH_SIZE):
+            # Attention memory grows with batch size and the square of token
+            # length. Bound native runs, including simultaneous HTTP/indexer
+            # requests, and release the lock between batches for query access.
+            with self._inference_lock:
+                vectors.extend(self._encode_batch(texts[start:start + INFERENCE_BATCH_SIZE]))
+        return vectors
+
+    def _encode_batch(self, texts: list[str]) -> list[list[float]]:
+        encodings = self.tokenizer.encode_batch(texts, add_special_tokens=True)
         width = max(len(item.ids) for item in encodings)
         token_ids = np.zeros((len(encodings), width), dtype=np.int64)
         masks = np.zeros((len(encodings), width), dtype=np.int64)
@@ -373,6 +384,16 @@ def embed(request: EmbedRequest) -> dict[str, list[float]]:
         raise HTTPException(status_code=503, detail="Local embedding model is loading")
     vector = embedder.encode(["query: " + request.text.strip()])[0]
     return {"embedding": vector}
+
+
+@app.post('/embed/batch')
+def embed_batch(request: EmbedBatchRequest):
+    if _embedder is None:
+        raise HTTPException(status_code=503, detail='Local embedding model is loading')
+    if any(not text.strip() or len(text) > 900 for text in request.texts):
+        raise HTTPException(status_code=422, detail='Sections must contain between 1 and 900 characters')
+    return {'model': MODEL_KEY, 'embeddings': _embedder.encode([
+        request.kind + ': ' + text.strip() for text in request.texts])}
 
 
 def main() -> None:

@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import selectors
 import shutil
 import signal
 import subprocess
@@ -17,9 +18,13 @@ import time
 
 from fastapi import HTTPException
 
+from .codex_usage import evaluate, UsageUnavailable
+
 DEVICE_URL = 'https://auth.openai.com/codex/device'
 LOGIN_SECONDS = 900
 GENERATION_SECONDS = 300
+USAGE_SECONDS = 8
+USAGE_MAX_BYTES = 128 * 1024
 _ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')
 _disabled = ('shell_tool', 'unified_exec', 'code_mode', 'code_mode_host', 'view_image',
              'multi_agent', 'multi_agent_v2', 'apps', 'plugins', 'hooks', 'skill_search',
@@ -126,9 +131,9 @@ def status():
 
 
 def _stop(process):
-    if process.poll() is None:
-        try: os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError: pass
+    # The session may still contain descendants after its leader has exited.
+    try: os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError: pass
     process.wait(timeout=10)
 
 
@@ -189,12 +194,93 @@ def logout():
     return status()
 
 
-def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None):
+def subscription_usage():
+    """Read only Radius subscription limits; never start a model turn."""
+    root = _root()
+    try:
+        with _lock(root):
+            return _subscription_usage(root)
+    except HTTPException:
+        return evaluate(None)
+
+
+def _subscription_usage(root):
+    # The caller owns the runtime lease, including throughout guarded generation.
+    unavailable = evaluate(None)
+    if not (root / 'home/auth.json').is_file():
+        return {**unavailable, 'reason': 'disconnected'}
+    process = None
+    try:
+        command = _command('app-server') + ['--listen', 'stdio://']
+        for feature in _disabled:
+            command += ['-c', f'features.{feature}=false']
+        process = subprocess.Popen(command, env=_environment(root), cwd=root,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            start_new_session=True)
+        deadline = time.monotonic() + USAGE_SECONDS
+        pending = bytearray()
+        consumed = 0
+        with selectors.DefaultSelector() as selector:
+            selector.register(process.stdout, selectors.EVENT_READ)
+
+            def send(message):
+                process.stdin.write(json.dumps(message).encode() + b'\n')
+                process.stdin.flush()
+
+            def request(identifier, method, params=None):
+                nonlocal consumed
+                message = {'id': identifier, 'method': method}
+                if params is not None:
+                    message['params'] = params
+                send(message)
+                while True:
+                    while b'\n' in pending:
+                        line, _, remaining = pending.partition(b'\n')
+                        pending[:] = remaining
+                        response = json.loads(line)
+                        if not isinstance(response, dict):
+                            raise UsageUnavailable()
+                        if response.get('id') == identifier:
+                            if 'error' in response or 'result' not in response:
+                                raise UsageUnavailable()
+                            return response['result']
+                    remaining_time = deadline - time.monotonic()
+                    if remaining_time <= 0 or not selector.select(remaining_time):
+                        raise UsageUnavailable()
+                    chunk = os.read(process.stdout.fileno(), 8192)
+                    consumed += len(chunk)
+                    if not chunk or consumed > USAGE_MAX_BYTES:
+                        raise UsageUnavailable()
+                    pending.extend(chunk)
+
+            request(1, 'initialize', {'clientInfo': {'name': 'radius', 'title': 'Radius', 'version': '0.2.0'}})
+            send({'method': 'initialized'})
+            account = request(2, 'account/read', {'refreshToken': False})
+            if (not isinstance(account, dict) or not isinstance(account.get('account'), dict) or
+                    account['account'].get('type') != 'chatgpt'):
+                return {**unavailable, 'reason': 'disconnected'}
+            return evaluate(request(3, 'account/rateLimits/read'))
+    except (OSError, ValueError, RecursionError, HTTPException):
+        return unavailable
+    finally:
+        if process is not None:
+            _stop(process)
+            process.stdin.close()
+            process.stdout.close()
+
+
+def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, model=None,
+             reasoning_effort=None, usage_limit_percent=None):
     root = _root()
     _binary()
     with _lock(root) as descriptor:
         if not _connected(root):
             raise HTTPException(401, 'Continue with ChatGPT to use your subscription before preparing documents.')
+        if usage_limit_percent is not None:
+            usage = _subscription_usage(root)
+            if (not usage['available'] or not usage['allowed'] or
+                    usage['used_percent'] is None or usage['used_percent'] >= usage_limit_percent):
+                raise HTTPException(429, 'ChatGPT scoring paused: ' + usage['reason'] + '.')
         with tempfile.TemporaryDirectory(prefix='radius-application-') as folder:
             workspace = Path(folder)
             schema_path, output_path = workspace / 'schema.json', workspace / 'application.json'
@@ -206,8 +292,10 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None):
                 '-c', 'project_doc_max_bytes=0', '-c', 'features.skip_host_skill_discovery=true',
                 '-c', 'log_dir=' + json.dumps(str(workspace / 'logs'))]
             for feature in _disabled: command += ['-c', f'features.{feature}=false']
-            model = os.environ.get('APPLICATION_AI_MODEL', '').strip()
-            if model: command += ['--model', model]
+            selected_model = model if model is not None else os.environ.get('APPLICATION_AI_MODEL', '').strip()
+            if selected_model: command += ['--model', selected_model]
+            if reasoning_effort is not None:
+                command += ['-c', 'model_reasoning_effort=' + json.dumps(reasoning_effort)]
             command += ['-']
             try:
                 process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,

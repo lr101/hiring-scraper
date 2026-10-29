@@ -1,6 +1,6 @@
 import json
 import unittest
-from datetime import timedelta
+from datetime import timedelta, timezone
 from unittest.mock import patch
 
 from sqlalchemy import create_engine, select
@@ -9,6 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from hiring_scraper import ats
 from hiring_scraper.app import worker
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, ScanRun, utcnow
+from hiring_scraper.app.job_search import ProfileIndexChanged
 from hiring_scraper.discovery import discover
 
 
@@ -311,6 +312,66 @@ class LeverWorkerTests(unittest.TestCase):
             self.assertEqual(feed.job_count, 100)
             self.assertEqual(feed.status, 'incomplete')
             self.assertIn('schema', feed.last_error.casefold())
+
+    def test_profile_index_contention_retries_successful_feed_persistence(self):
+        metadata = {'state': 'ok', 'status': 200, 'parsed_feed': {'complete': True, 'jobs': [
+            {'id': 'retry-match-contention', 'title': 'Engineer',
+             'url': BOARD + '/retry-match-contention', 'description': 'Build reliable software.'},
+        ]}}
+        original_refresh = worker.refresh_application_matches_for_jobs
+        calls = []
+
+        def fail_once_then_refresh(session, job_ids, **kwargs):
+            calls.append(set(job_ids))
+            if len(calls) == 1:
+                raise ProfileIndexChanged('inventory changed during match publication')
+            return original_refresh(session, job_ids, **kwargs)
+
+        with patch.object(worker, '_request', return_value=(metadata, b'')) as request, \
+                patch.object(worker, 'refresh_application_matches_for_jobs', side_effect=fail_once_then_refresh):
+            self.assertTrue(worker.scan_once())
+
+        self.assertEqual(request.call_count, 1, 'The already-fetched response should be reused')
+        self.assertEqual(len(calls), 2, 'Persistence should retry the same response after match contention')
+        with self.factory() as session:
+            feed = session.get(JobFeed, self.feed_id)
+            run = session.scalar(select(ScanRun).where(ScanRun.feed_id == self.feed_id))
+            retry_job = session.scalar(select(Job).where(Job.external_id == 'retry-match-contention'))
+            self.assertEqual(feed.status, 'parsed')
+            self.assertIsNone(feed.last_error)
+            self.assertIsNotNone(retry_job)
+            self.assertEqual(run.status, 'parsed')
+
+    def test_exhausted_profile_index_contention_defers_run_and_releases_lease(self):
+        metadata = {'state': 'ok', 'status': 200, 'parsed_feed': {'complete': True, 'jobs': [
+            {'id': 'exhausted-match-contention', 'title': 'Engineer',
+             'url': BOARD + '/exhausted-match-contention', 'description': 'Build reliable software.'},
+        ]}}
+        calls = []
+
+        def keep_changing(*_args, **_kwargs):
+            calls.append(True)
+            raise ProfileIndexChanged('inventory changed during match publication')
+
+        with patch.object(worker, '_request', return_value=(metadata, b'')) as request, \
+                patch.object(worker, 'refresh_application_matches_for_jobs', side_effect=keep_changing):
+            self.assertTrue(worker.scan_once())
+
+        self.assertEqual(request.call_count, 1, 'Contention handling must not refetch during one attempt')
+        self.assertEqual(len(calls), worker.PROFILE_INDEX_RETRIES)
+        with self.factory() as session:
+            feed = session.get(JobFeed, self.feed_id)
+            run = session.scalar(select(ScanRun).where(ScanRun.feed_id == self.feed_id))
+            self.assertEqual(feed.status, 'incomplete')
+            self.assertIsNone(feed.lease_until)
+            next_scan = feed.next_scan_at
+            if next_scan.tzinfo is None:
+                next_scan = next_scan.replace(tzinfo=timezone.utc)
+            self.assertGreater(next_scan, utcnow())
+            self.assertEqual(feed.attempt_count, 0)
+            self.assertEqual(run.status, 'retry_pending')
+            self.assertIsNotNone(run.finished_at)
+            self.assertIn('match', run.error.casefold())
 
     def assert_malformed_continuation_preserves_rows_and_closure_counters(self, field, value):
         rows = json.loads(page(100, 1))
