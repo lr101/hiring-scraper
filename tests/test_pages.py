@@ -10,6 +10,10 @@ class PageTests(unittest.TestCase):
         result=inspect_page('https://acme.de/','<title>Acme</title><h1>Products</h1><a href>Career</a>')
         self.assertEqual(result['candidates'],[])
 
+    def test_valueless_anchor_label_preserves_link_text(self):
+        result = inspect_page('https://acme.de/', '<a href="/jobs" aria-label>Jobs</a>')
+        self.assertEqual([link['url'] for link in result['candidates']], ['https://acme.de/jobs'])
+
     def test_url_like_regex_in_script_is_ignored(self):
         result=inspect_page('https://acme.de/',
             '<title>Acme</title><script>const pattern = "https://[a-zA-Z0-9-]+";</script>')

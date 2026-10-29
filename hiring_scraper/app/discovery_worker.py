@@ -32,7 +32,7 @@ from hiring_scraper.app.models import (
     Job, JobFeed, JobLocation, reserve_job_source_rows, utcnow,
 )
 from hiring_scraper.app.job_search import (
-    job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
+    ProfileIndexChanged, job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
 from hiring_scraper.app.employers import EmployerUpsertDeferred, upsert_job_employer
 from hiring_scraper.discovery import discover, trusted_html_jobs, trusted_html_source
@@ -1380,11 +1380,18 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
                 _finish_campaign_company(item_id, run_id, jobs_found=jobs or 0)
             return jobs
 
-        if engine.dialect.name == "sqlite":
-            with _SQLITE_FINALIZE_LOCK:
-                jobs = persist_result()
-        else:
-            jobs = persist_result()
+        for attempt in range(3):
+            try:
+                if engine.dialect.name == "sqlite":
+                    with _SQLITE_FINALIZE_LOCK:
+                        jobs = persist_result()
+                else:
+                    jobs = persist_result()
+                break
+            except ProfileIndexChanged:
+                if attempt == 2:
+                    raise
+                time.sleep(min(0.25 * 2 ** attempt, 1.0) + random.uniform(0, 0.1))
         LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
                  company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
     except Exception as error:
@@ -1392,7 +1399,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
             # Database contention is not a remote-source failure. Preserve the
             # attempt for lease recovery and let the worker cycle back off.
             raise
-        if isinstance(error, EmployerUpsertDeferred):
+        if isinstance(error, (EmployerUpsertDeferred, ProfileIndexChanged)):
             def defer_retry() -> None:
                 _defer_employer_contention(
                     company_id, run_id, error, campaign_item_id=item_id)

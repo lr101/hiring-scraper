@@ -97,7 +97,7 @@ class Document(HTMLParser):
     def handle_starttag(self, tag, attrs):
         a = dict(attrs)
         if tag == 'a':
-            self.anchor = [a.get('href',''), a.get('aria-label','')]
+            self.anchor = [a.get('href',''), a.get('aria-label') or '']
         label = a.get('aria-label') or a.get('title') or ''
         for key in ('data-href', 'data-url', 'data-link', 'data-redirect-url'):
             if a.get(key):
