@@ -131,6 +131,34 @@ class CodexRuntimeTests(unittest.TestCase):
         self.assertNotIn('private-token',raised.exception.detail)
         self.assertIn('ChatGPT',raised.exception.detail)
 
+    def test_generation_reports_specific_safe_runtime_failure(self):
+        runtime = self.module(); self.connect()
+        cases = [
+            ('ERROR: HTTP 429 Too Many Requests token=private-token', 'rate limit'),
+            ('ERROR: HTTP 401 Unauthorized token=private-token', 'sign in'),
+            ('ERROR: model is not supported for this account private-token', 'model'),
+            ('ERROR: connection refused private-token', 'connect'),
+            ('ERROR: HTTP status 400 Bad Request private-token', '400'),
+            ('ERROR: context length exceeded private-token', 'context'),
+        ]
+        for stderr, expected in cases:
+            with self.subTest(stderr=stderr):
+                (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'stderr': stderr}))
+                with self.assertRaises(HTTPException) as raised:
+                    runtime.generate('Private CV', {'type':'object'})
+                self.assertIn(expected, raised.exception.detail.lower())
+                self.assertNotIn('private-token', raised.exception.detail)
+
+    def test_unknown_runtime_failure_reports_exit_without_leaking_output(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'exit_code': 7,
+            'stderr': 'private-token and Private CV'}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type':'object'})
+        self.assertIn('7', raised.exception.detail)
+        self.assertNotIn('private-token', raised.exception.detail)
+        self.assertNotIn('Private CV', raised.exception.detail)
+
     def test_workflow_timeout_kills_the_child_and_releases_the_lease(self):
         runtime=self.module(); self.connect()
         (self.root/'fixture.json').write_text(json.dumps({'delay':10}))
