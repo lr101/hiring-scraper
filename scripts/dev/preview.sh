@@ -502,7 +502,7 @@ chmod 600 "$api_log" "$web_log" "$worker_log" "$feed_worker_log" "$search_worker
 
 (
   cd "$repo_root"
-  exec setsid env DATABASE_URL="$database_url" CORS_ORIGINS="$web_url" \
+  exec setsid env DATABASE_URL="$database_url" CORS_ORIGINS="$web_url" RADIUS_CODEX_STATE_DIR="$state_dir/codex" \
     mise exec -- uv run uvicorn hiring_scraper.app.api:app --host 127.0.0.1 --port "$api_port"
 ) >> "$api_log" 2>&1 < /dev/null &
 api_pid=$!

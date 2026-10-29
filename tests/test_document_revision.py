@@ -19,6 +19,25 @@ class DocumentRevisionTests(unittest.TestCase):
         self.assertIn('original_cv_text', prompt)
         self.assertIn('untrusted', prompt.lower())
 
+    def test_letter_revision_corrects_latex_before_returning(self):
+        data = {'original_cv_text': source(), 'job': {}, 'supporting_profile': {}, 'writing_preferences': {}}
+        request = revision.DocumentRevisionRequest(job_id=1, cv_updated_at='c', profile_updated_at='p', language='en', target='cover_letter', instruction='Be direct', current_document='Dear team.')
+        bad = revision.RevisionOutput(document=r'Dear \textbf{team}', review='Review.', changes='Changed.')
+        good = revision.RevisionOutput(document='Dear team, I build tools.', review='Review.', changes='Changed.')
+        with patch.object(revision, '_generate', side_effect=[bad, good]) as generate:
+            result = revision.revise_document(data, request)
+        self.assertEqual(generate.call_count, 2)
+        self.assertEqual(result['document'], good.document)
+
+    def test_letter_revision_rejects_repeated_latex(self):
+        data = {'original_cv_text': source(), 'job': {}, 'supporting_profile': {}, 'writing_preferences': {}}
+        request = revision.DocumentRevisionRequest(job_id=1, cv_updated_at='c', profile_updated_at='p', language='en', target='cover_letter', instruction='Be direct', current_document='Dear team.')
+        bad = revision.RevisionOutput(document=r'Dear \textbf{team}', review='Review.', changes='Changed.')
+        with patch.object(revision, '_generate', return_value=bad) as generate:
+            with self.assertRaises(HTTPException) as error: revision.revise_document(data, request)
+        self.assertEqual(generate.call_count, 2)
+        self.assertIn('cover letter', error.exception.detail.lower())
+
     def test_cv_revision_rejects_changed_history_and_unfinished_output(self):
         original = source()
         request = revision.DocumentRevisionRequest(job_id=1, cv_updated_at='c', profile_updated_at='p', language='en', target='cv', instruction='Be concise', current_document=original)

@@ -101,12 +101,10 @@ a concrete connection to the work; connect one or two verified examples to the r
 and future contribution, rather than retelling the CV. Avoid generic praise, stock
 openings, inflated vocabulary and invented personal stories. Follow the applicant's
 voice. Include the letter unless the employer explicitly requests none.
-Keep the same letter blocks in readable cover_letter and latex_documents.cover_letter.
-Use the separate letter_preamble, not the CV preamble. Use thispagestyle{empty},
-LaTeX line breaks inside address/closing blocks and par between blocks. For fixed
-templates, use only escaped text, textbf, emph, par, line breaks and thispagestyle{empty};
-section*, subsection*, itemize/item are CV-only. Preserve the fixed preamble and ending.
-These fixed-template restrictions do not replace existing commands in an original CV.
+Return the cover_letter as readable text only, with blank lines between blocks.
+Use simple Markdown **bold** for the subject if needed. Never put LaTeX commands,
+LaTeX escaping, code fences or a document wrapper in cover_letter. Radius formats
+and renders the letter from this text. Do not generate a LaTeX cover letter.
 
 Return nonempty readable cv, cover_letter, application_answers and review_notes.
 Use the selected language's equivalent of Not requested or No additional answers

@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 type Connection = {
   enabled: boolean; available: boolean; login_state: string; login_error?: string
-  user_code?: string; verification_url?: string
+  user_code?: string; verification_url?: string; model?: string | null
 }
 
-export default function ChatGPTConnection({ onChange, preparing = false }: { onChange?: (enabled: boolean) => void; preparing?: boolean }) {
+export default function ChatGPTConnection({ onChange, preparing = false, compact = false, refreshKey = 0 }: { onChange?: (enabled: boolean) => void; preparing?: boolean; compact?: boolean; refreshKey?: number }) {
   const [connection, setConnection] = useState<Connection | null>(null)
   const [revision, setRevision] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -28,7 +28,7 @@ export default function ChatGPTConnection({ onChange, preparing = false }: { onC
     }
     void refresh()
     return () => { controller.abort(); clearTimeout(timer) }
-  }, [revision, onChange])
+  }, [revision, onChange, refreshKey])
 
   async function change(action: 'login' | 'logout') {
     setBusy(true); setError('')
@@ -45,21 +45,21 @@ export default function ChatGPTConnection({ onChange, preparing = false }: { onC
 
   const pending = ['starting', 'pending'].includes(connection?.login_state ?? '')
   return <div className="chatgpt-connection" role="group" aria-label="ChatGPT subscription connection">
-    {!connection ? <p className="finish-help">Checking your ChatGPT connection…</p>
+    {!connection ? <p className="finish-help connection-check" role="status"><span className="finish-spinner" aria-hidden="true" />Checking your ChatGPT connection…</p>
       : connection.enabled ? <>
-        <p className="finish-help">Using your ChatGPT subscription on this Radius instance, across your devices.</p>
-        <div className="finish-actions"><a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">Manage ChatGPT usage ↗</a>
-          <button className="finish-text-button" disabled={busy || preparing} onClick={() => void change('logout')}>Disconnect ChatGPT</button></div>
+        <p className="finish-help connection-ready"><span className="connection-dot" aria-hidden="true" />ChatGPT connected{!compact && <> · Default model: {connection.model || 'Codex default'}</>}</p>
+        {!compact && <div className="finish-actions"><a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">Manage ChatGPT usage ↗</a>
+          <button className="finish-text-button" disabled={busy || preparing} onClick={() => void change('logout')}>Disconnect ChatGPT</button></div>}
       </> : pending ? <>
         {connection.user_code && connection.verification_url === 'https://auth.openai.com/codex/device' ? <>
           <p>Open ChatGPT and enter this one-time code:</p>
           <p><code aria-label="ChatGPT sign-in code">{connection.user_code}</code></p>
           <a className="primary-button" href={connection.verification_url} target="_blank" rel="noreferrer">Open ChatGPT sign-in</a>
-          <p className="finish-help" role="status">Waiting for your approval in ChatGPT. This sign-in expires after 15 minutes.</p>
-        </> : <p className="finish-help" role="status">Starting ChatGPT sign-in…</p>}
+          <p className="finish-help connection-check" role="status"><span className="finish-spinner" aria-hidden="true" />Waiting for your approval in ChatGPT. This sign-in expires after 15 minutes.</p>
+        </> : <p className="finish-help connection-check" role="status"><span className="finish-spinner" aria-hidden="true" />Starting ChatGPT sign-in…</p>}
       </> : <>
-        <button disabled={busy || !connection.available} onClick={() => void change('login')}>{busy ? 'Starting sign-in…' : 'Continue with ChatGPT'}</button>
-        <p className="finish-help">{connection.available ? 'Connect your ChatGPT subscription once to prepare documents here. No API key is needed.' : 'The subscription runtime is missing. Use the current Radius release image or install its pinned Codex runtime.'}</p>
+        <button className={compact ? 'primary-button' : undefined} disabled={busy || !connection.available} onClick={() => void change('login')}>{busy && <span className="finish-spinner" aria-hidden="true" />}{busy ? 'Starting sign-in…' : 'Continue with ChatGPT'}</button>
+        {(!compact || !connection.available) && <p className="finish-help">{connection.available ? 'Connect your ChatGPT subscription once to prepare documents here. No API key is needed.' : 'The subscription runtime is missing. Use the current Radius release image or install its pinned Codex runtime.'}</p>}
         {connection.login_state === 'expired' && <p className="finish-help">The sign-in expired. Continue with ChatGPT to get a new code.</p>}
       </>}
     {(error || connection?.login_error) && <p className="preparation-error" role="alert">{error || connection?.login_error}</p>}

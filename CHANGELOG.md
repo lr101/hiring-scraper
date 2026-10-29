@@ -12,6 +12,10 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Keep saved applications available when a match rebuild conflicts with an inventory update.
+- Correct malformed generated CVs and cover letters once, and create cover-letter exports from the reviewed text.
+- Show the actual error when applying a suggested document revision and isolate draft state in development previews.
+
 - Align the Open original post button to the left of job cards, including when Undo is available.
 - Preserve the original CV template, header, history and layout during application tailoring, allowing only marked Kurzprofil and description edits with fixed-line budgets. Cover letters use a separate business-letter template and stacked contact details.
 - Accept independently translated English/German base CVs in the companion while retaining career identity checks.
@@ -25,6 +29,9 @@ no historical releases have been reconstructed.
 - Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
 
 ### Added
+
+- A guided application preparation flow with progress, a faster draft-only mode, instance and per-application model selection, and mobile-friendly revision comparison.
+- A fictional bilingual CV and portrait fixture for application testing.
 
 - Resumable application preparation with a backend-saved ChatGPT connection, automatically generated CV and cover letter, prompt-based document revisions, and human confirmation before extension autofill.
 - Saved profile photos reused in English and German CV previews, PDF exports and source + photo ZIPs, with per-application exclusion and temporary replacements.

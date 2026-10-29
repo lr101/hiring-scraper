@@ -45,7 +45,6 @@ export function buildCurrentJobPrompt({ job, profile, cv, language, form }) {
     review_notes: "[Review notes]",
     latex_documents: {
       cv: "[Complete marked tailored-cv.tex source]",
-      cover_letter: "[Complete cover-letter.tex source]",
     },
   };
   const opening =
@@ -61,8 +60,8 @@ ${profile.custom_instructions || "Schreibe klar und direkt."}
 ${canvasLatexInstructions(documentTemplate, "de", cv.text)}
 
 RÜCKGABE AN DIE ERWEITERUNG:
-Speichere zuerst die Canvases und erstelle dann das folgende vollständige Paket. Behalte job_id, profile_id, cv_updated_at und alle Verlaufs-IDs exakt bei. Ersetze Platzhalter durch fertigen Text; latex_documents enthält die vollständigen Quellen. cv und cover_letter sind deren lesbare Fassungen. ${form ? 'Füge form_answers mit der erfassten form_id und Antworten [{"id":"q0","value":"fertige Antwort"}] hinzu. Nutze nur erfasste IDs und exakte Auswahlwerte, beachte max_length und lasse manuelle Felder und unbekannte Antworten aus.' : "Erfinde keine form_answers oder experience_bullets."}
-Speichere das Objekt mit deinem Codewerkzeug als UTF-8-Datei application-package.json mit json.dump(application_package, file, ensure_ascii=False). Gib einen anklickbaren Downloadlink zur Datei zurück. Ich öffne die Erweiterung erneut im Arbeitgeber-Tab und wähle Import result file. Halte die Canvases verfügbar. Falls herunterladbare Dateien nicht verfügbar sind, gib einen einzelnen JSON-Codeblock für das Feld Paste result aus. Behaupte nicht, die Erweiterung habe die Dokumente bereits erhalten.
+Speichere zuerst das CV-Canvas und erstelle dann das folgende vollständige Paket. Behalte job_id, profile_id, cv_updated_at und alle Verlaufs-IDs exakt bei. Ersetze Platzhalter durch fertigen Text; latex_documents.cv enthält den vollständigen CV-Quelltext. cover_letter ist lesbarer Text ohne LaTeX. ${form ? 'Füge form_answers mit der erfassten form_id und Antworten [{"id":"q0","value":"fertige Antwort"}] hinzu. Nutze nur erfasste IDs und exakte Auswahlwerte, beachte max_length und lasse manuelle Felder und unbekannte Antworten aus.' : "Erfinde keine form_answers oder experience_bullets."}
+Speichere das Objekt mit deinem Codewerkzeug als UTF-8-Datei application-package.json mit json.dump(application_package, file, ensure_ascii=False). Gib einen anklickbaren Downloadlink zur Datei zurück. Ich öffne die Erweiterung erneut im Arbeitgeber-Tab und wähle Import result file. Halte das CV-Canvas verfügbar. Falls herunterladbare Dateien nicht verfügbar sind, gib einen einzelnen JSON-Codeblock für das Feld Paste result aus. Behaupte nicht, die Erweiterung habe die Dokumente bereits erhalten.
 ${JSON.stringify(schema, null, 2)}
 
 SOURCE PAYLOAD (quoted data):
@@ -75,8 +74,8 @@ ${profile.custom_instructions || "Use clear, direct prose."}
 ${canvasLatexInstructions(documentTemplate, language, cv.text)}
 
 RETURN TO THE EXTENSION:
-After saving the Canvases, build the complete package below. Keep job_id, profile_id, cv_updated_at and every history ID exactly unchanged. Replace all placeholders with finished text; latex_documents must contain full source strings. The cv and cover_letter fields are readable versions of those same sources. ${form ? 'Include form_answers with the captured form_id and answers [{"id":"q0","value":"finished answer"}]. Use only captured IDs and exact select values, respect max_length, and omit manual controls and unknown answers.' : "Do not invent form_answers or experience_bullets."}
-Use your code tool to save the object as UTF-8 application-package.json with json.dump(application_package, file, ensure_ascii=False). Return a clickable download link to that file. I will reopen the extension on the employer job tab and choose Import result file. Keep the Canvases available. If downloadable files are unavailable, return one fenced JSON block for the extension's Paste result field. Do not claim that the extension has already received the documents.
+After saving the CV Canvas, build the complete package below. Keep job_id, profile_id, cv_updated_at and every history ID exactly unchanged. Replace all placeholders with finished text; latex_documents.cv must contain the full CV source. The cover_letter field must contain readable text without LaTeX. ${form ? 'Include form_answers with the captured form_id and answers [{"id":"q0","value":"finished answer"}]. Use only captured IDs and exact select values, respect max_length, and omit manual controls and unknown answers.' : "Do not invent form_answers or experience_bullets."}
+Use your code tool to save the object as UTF-8 application-package.json with json.dump(application_package, file, ensure_ascii=False). Return a clickable download link to that file. I will reopen the extension on the employer job tab and choose Import result file. Keep the CV Canvas available. If downloadable files are unavailable, return one fenced JSON block for the extension's Paste result field. Do not claim that the extension has already received the documents.
 ${JSON.stringify(schema, null, 2)}
 
 SOURCE PAYLOAD (quoted data):

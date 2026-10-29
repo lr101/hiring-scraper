@@ -100,6 +100,7 @@ def _read(root, profile_id, job_id):
             return None
         if data.get('state') in ('running', 'cancelling') and (time.time() - data.get('updated_at', 0) > STALE_SECONDS or not _alive(root, profile_id, job_id)):
             cancelled = data.get('state') == 'cancelling'
+            if not cancelled: data['failed_stage'] = data.get('stage')
             data.update(state='cancelled' if cancelled else 'failed', stage='cancelled' if cancelled else 'failed', error='Preparation was interrupted or timed out. Please try again.' if not cancelled else None, updated_at=time.time())
             _write(root, profile_id, job_id, data)
         return data
@@ -163,6 +164,7 @@ def start(root, profile_id, job_id, runner, request=None, revision=None):
         with _lock(root, profile_id, job_id):
             current = _read(root, profile_id, job_id)
             if not current or current.get('id') != record['id'] or current.get('state') != 'running': return
+            if values.get('state') == 'failed': values['failed_stage'] = current.get('stage')
             current.update(values, updated_at=time.time())
             _write(root, profile_id, job_id, current)
 

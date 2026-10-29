@@ -112,7 +112,7 @@ comes from that account's Codex entitlement within its ChatGPT subscription;
 account/workspace policies and usage limits apply. There is no API-key fallback.
 Radius strips inherited API credentials, access-token overrides and alternative
 gateway settings from its Codex child processes. The optional
-`APPLICATION_AI_MODEL` selects a model; leaving it empty uses the Codex default.
+`APPLICATION_AI_MODEL` selects the server default; leaving it empty uses the Codex default. Choose an instance-wide default under Settings → ChatGPT subscription → Application model. Preparation options can override it for an individual job; availability depends on the connected account. Choosing the server or Codex default in Settings clears the saved selection. Full preparation normally uses three sequential requests. Fast preparation normally uses one request and skips the independent review and revision, so users should check the result carefully. Automatic correction can add requests in either mode.
 
 The release image includes Codex **0.163.0**, installed from the locked
 `runtime/codex` package and exported as native Linux x64/arm64 binaries. Node is
@@ -246,7 +246,7 @@ Starting/preparing/importing an application never marks it submitted. ChatGPT is
 
 ## One-package return contract
 
-The prompt asks ChatGPT to create code Canvases named `tailored-cv.tex` and `cover-letter.tex` using the selected original CV template and the separate supplied letter template. It then reads their latest exact source into optional `latex_documents.cv` and `latex_documents.cover_letter` strings inside the application package. The final chat message contains **Return to Radius with my documents**, while the Canvases remain available for editing. A Canvas ID, share URL or sandbox path is never substituted for source text. The normal prose/paragraph fields remain available for DOCX and readable previews.
+The prompt asks ChatGPT for a `tailored-cv.tex` Canvas and a readable cover letter. The package contains the exact CV source in `latex_documents.cv`; Radius creates cover-letter exports from `cover_letter`. Legacy packages may contain a separate letter source, but it does not override the readable letter. The final chat message contains **Return to Radius with my documents**. A Canvas ID, share URL or sandbox path is never substituted for CV source text.
 
 The return link is a snapshot, not a live reference to Canvas. After a Canvas edit, ChatGPT must synchronize the readable document fields and generate a new link. Radius imports the source strings, restores them with the browser draft, selects the LaTeX layout, and uses those exact sources for `.tex` and LaTeX PDF downloads. Editing a CV or letter’s prose in Radius discards that document’s stale Canvas source and falls back to regenerating it from the edited prose; the other document’s source remains intact.
 

@@ -195,6 +195,7 @@ class ProductionPreparationTests(ProductionHarness):
           };
         })()''')
         self.page.goto(self.origin+'/jobs/1574/apply?profile_id=1')
+        self.page.get_by_text('Options', exact=True).click()
         expect(self.page.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
         self.assertTrue(self.page.evaluate('window.captureRaceTriggered'))
 
@@ -223,7 +224,7 @@ class ProductionPreparationTests(ProductionHarness):
         application.wait_for_load_state('domcontentloaded')
         self.assertTrue(application.url.startswith(self.origin + '/jobs/'))
         self.assertTrue(application.url.endswith('/apply?profile_id=1'))
-        expect(application.get_by_role('heading',name='Tailor this application.')).to_be_visible()
+        expect(application.get_by_role('heading',name='Prepare your application')).to_be_visible()
         bindings=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.bindings")
         self.assertTrue(any(binding['url']=='https://employer.example/unlinked' for binding in bindings))
 
@@ -393,9 +394,11 @@ class ProductionPreparationTests(ProductionHarness):
         })()""")
         prepared = self.context.new_page()
         prepared.goto(self.origin + '/jobs/1574/apply?profile_id=1')
+        prepared.get_by_text('Options', exact=True).click()
         expect(prepared.get_by_text(
             'This application step’s questions and answer limits are included in your brief.',
             exact=True)).to_be_visible()
+        prepared.get_by_text('Options', exact=True).click()
 
     def test_manual_import_captured_questions_and_document_exports(self):
         self.check_captured_question_and_document_flow(attached=False)
@@ -419,7 +422,9 @@ class ProductionPreparationTests(ProductionHarness):
         captured=self.worker.evaluate("async()=>(await chrome.storage.local.get('radiusVault')).radiusVault.forms['1574:1']")
         prepared=self.context.new_page()
         prepared.goto(self.origin+'/jobs/1574/apply?profile_id=1')
+        prepared.get_by_text('Options', exact=True).click()
         expect(prepared.get_by_text('This application step’s questions and answer limits are included in your brief.',exact=True)).to_be_visible()
+        prepared.get_by_text('Options', exact=True).click()
         payload={'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':version,'cv':'Alex Example. Coordinated research teams.','cover_letter':'I coordinate research projects.','application_answers':'I coordinate research teams.','review_notes':'Review before applying.','form_answers':{'form_id':captured['form_id'],'answers':[{'id':'q0','value':'I coordinate research teams.'},{'id':'q1','value':'research'}]}}
         payload['latex_documents']={'cv':self.cv_source}
         self.import_package(prepared,payload,link=attached)

@@ -43,6 +43,14 @@ const pack = {
   cv: 'Known original CV', cover_letter: 'A factual letter.', application_answers: 'Availability: two weeks.',
   review_notes: 'Check dates.', experience_bullets: [{ experience_id: 'work-1', bullets: ['Coordinated delivery.'] }],
 }
+await assert.rejects(() => parseReturnedPackage(JSON.stringify({ ...pack, cover_letter: String.raw`Dear \textbf{team}` }), { jobId: 42, profileId: 3, cvUpdatedAt: 'v1' }), /cover letter.*latex/i)
+await assert.rejects(() => parseReturnedPackage(JSON.stringify({ ...pack, cover_letter: String.raw`\centering Dear team` }), { jobId: 42, profileId: 3, cvUpdatedAt: 'v1' }), /cover letter.*latex/i)
+await assert.rejects(() => readExtensionPackage(JSON.stringify({ ...pack, cover_letter: String.raw`\newline Dear team` })), /cover letter.*latex/i)
+for (const letter of [String.raw`\(x+y\)`, String.raw`\[x^2\]`, String.raw`\"o`, 'Price is $x^2$ per unit.', '$x + y$', '$E = mc^2$', '$$x+y$$', '```latex\nDear team\n```']) {
+  await assert.rejects(() => parseReturnedPackage(JSON.stringify({ ...pack, cover_letter: letter }), { jobId: 42, profileId: 3, cvUpdatedAt: 'v1' }), /cover letter.*latex/i)
+  await assert.rejects(() => readExtensionPackage(JSON.stringify({ ...pack, cover_letter: letter })), /cover letter.*latex/i)
+}
+assert.equal((await parseReturnedPackage(JSON.stringify({ ...pack, cover_letter: 'The budget was $5 to $10.' }), { jobId: 42, profileId: 3, cvUpdatedAt: 'v1' })).cover_letter, 'The budget was $5 to $10.')
 const prompt = buildApplicationPrompt({ text: 'Known original CV', updated_at: 'v1' }, { job: { id: 42, title: 'Role', company_name: 'Company', description: 'x'.repeat(60_000), location_text: null, employment_type: null, work_arrangement: null, url: 'https://employer.example/job' }, profile: { id: 3, name: 'Profile' }, returnUrl: 'https://radius.example/jobs/42/apply?profile_id=3' })
 const promptPayload = JSON.parse(prompt.slice(prompt.indexOf('SOURCE PAYLOAD (quoted data):\n') + 'SOURCE PAYLOAD (quoted data):\n'.length))
 assert.equal(promptPayload.job.description.length, 50_000, 'prompt bounds untrusted job descriptions')

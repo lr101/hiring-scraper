@@ -56,6 +56,13 @@ class ApplicationDocumentTests(unittest.TestCase):
         self.assertEqual(image_count(self.export(format='latex_pdf', use_profile_photo=False)), 0)
         self.assertEqual(image_count(self.export(kind='cover_letter', format='latex_pdf')), 0)
 
+    def test_cover_letter_export_uses_readable_text_not_supplied_latex(self):
+        from hiring_scraper.app.latex_documents import latex_source
+        response = self.export(kind='cover_letter', format='tex', cover_letter='Dear team, my current letter.',
+                               latex_documents={'cover_letter': latex_source('Older different letter.')})
+        self.assertIn('my current letter', response.body.decode())
+        self.assertNotIn('Older different letter', response.body.decode())
+
     def test_canvas_latex_source_is_exported_verbatim_and_used_for_pdf(self):
         from hiring_scraper.app.latex_documents import latex_source
         source = latex_source('# Canvas-only heading\nJosé in Genève 2021-2024')
@@ -64,7 +71,8 @@ class ApplicationDocumentTests(unittest.TestCase):
         response = self.export(format='tex', latex_documents=sources)
         self.assertEqual(response.body.decode(), source)
         response = self.export(kind='cover_letter', format='tex', latex_documents=sources)
-        self.assertEqual(response.body.decode(), letter_source)
+        self.assertIn('Dear', response.body.decode())
+        self.assertNotIn('Canvas-only letter', response.body.decode())
         if shutil.which('lualatex'):
             from pypdf import PdfReader
             response = self.export(format='latex_pdf', latex_documents=sources)
@@ -82,7 +90,7 @@ class ApplicationDocumentTests(unittest.TestCase):
         self.assertEqual(validate_latex_source(source), source)
         if shutil.which('lualatex'):
             from pypdf import PdfReader
-            response = self.export(kind='cover_letter', format='latex_pdf', latex_documents={'cover_letter': source})
+            response = self.export(kind='cover_letter', format='latex_pdf', cover_letter='Alex Example\nBonn\n\nLabs\nHiring Team\n\nApplication for Engineer\n\nDear Hiring Team,\n\nLetter body.\n\nSincerely,\nAlex Example', latex_documents={'cover_letter': source})
             pdf = PdfReader(BytesIO(response.body))
             self.assertEqual(len(pdf.pages), 1)
             text = pdf.pages[0].extract_text()
@@ -104,17 +112,13 @@ class ApplicationDocumentTests(unittest.TestCase):
         with self.assertRaises((HTTPException, ValidationError)):
             self.export(format='tex', latex_documents={'cv': source})
 
-    def test_cover_letter_rejects_cv_headings_and_lists_in_new_and_legacy_templates(self):
+    def test_legacy_letter_sources_do_not_override_the_readable_letter(self):
         from hiring_scraper.app.latex_documents import _TEMPLATE
-        for preamble in [_TEMPLATE['preamble'], _TEMPLATE['letter_preamble']]:
-            for body in [r'\section*{Cover letter}', r'\subsection*{Experience}', r'\begin{itemize}\item My letter.\end{itemize}']:
-                with self.subTest(preamble=preamble.splitlines()[1], body=body):
-                    with self.assertRaises(HTTPException) as raised:
-                        self.export(kind='cover_letter', format='tex', latex_documents={'cover_letter': preamble + body + '\n' + _TEMPLATE['ending']})
-                    self.assertEqual(raised.exception.status_code, 422)
-        # Valid old article letters and escaped literal command names still work.
-        legacy = _TEMPLATE['preamble'] + r'Alex\\Bonn\par Dear team,\par I use \textbackslash{}section* in examples.\par' + '\n' + _TEMPLATE['ending']
-        self.assertEqual(self.export(kind='cover_letter', format='tex', latex_documents={'cover_letter': legacy}).body.decode(), legacy)
+        for body in [r'\section*{Old letter}', r'\input{secret}', r'\begin{itemize}\item Old letter.\end{itemize}']:
+            source = _TEMPLATE['preamble'] + body + '\n' + _TEMPLATE['ending']
+            response = self.export(kind='cover_letter', format='tex', cover_letter='Dear team, current letter.', latex_documents={'cover_letter': source})
+            self.assertIn('current letter', response.body.decode())
+            self.assertNotIn(body, response.body.decode())
 
     def test_latex_source_escapes_prose_and_keeps_selected_document(self):
         response = self.export(format='tex', cv='# José Müller\n## Experience\n- R&D: 20% with C_1 and $5\n\\input{/etc/passwd} ~ ^ { }',
@@ -175,10 +179,13 @@ class ApplicationDocumentTests(unittest.TestCase):
         for kind in ['cv', 'cover_letter']:
             with self.subTest(kind=kind):
                 text = '# José Müller\n## Experience\n- R&D in Genève 2021-2024: 20% faster\n\\input{/etc/passwd}'
+                if kind == 'cover_letter':
+                    with self.assertRaises(HTTPException): self.export(kind=kind, format='latex_pdf', cv=text, cover_letter=text)
+                    text = text.replace('\\input{/etc/passwd}', 'Safe closing.')
                 response = self.export(kind=kind, format='latex_pdf', cv=text, cover_letter=text)
                 reader = PdfReader(BytesIO(response.body))
                 extracted = '\n'.join(page.extract_text() for page in reader.pages)
-                for expected in ['José Müller', 'R&D', 'Genève', '2021-2024', '20%', 'input{/etc/passwd}']:
+                for expected in ['José Müller', 'R&D', 'Genève', '2021-2024', '20%', 'input{/etc/passwd}' if kind == 'cv' else 'Safe closing.']:
                     self.assertIn(expected, extracted)
                 self.assertNotIn('root:x:', extracted)
                 self.assertEqual(len(reader.pages), 1)

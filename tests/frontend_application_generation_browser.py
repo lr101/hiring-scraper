@@ -96,6 +96,9 @@ def main():
                     page.on('request', lambda request: preparation_posts.append(request.url)
                         if request.method == 'POST' and request.url.split('?', 1)[0].endswith('/preparation-job') else None)
                     page.goto(f'{url}/jobs/{job_id}/apply?profile_id={profile_id}')
+                    expect(page.get_by_role('button', name='Continue with ChatGPT', exact=True)).to_be_visible()
+                    expect(page.get_by_role('combobox', name='Brief type', include_hidden=True)).to_be_hidden()
+                    expect(page.get_by_role('link', name='Change CV', include_hidden=True)).to_be_hidden()
                     direct = page.get_by_role('button', name='Prepare documents', exact=True)
                     page.get_by_role('button', name='Continue with ChatGPT', exact=True).click()
                     expect(page.get_by_label('ChatGPT sign-in code')).to_have_text('ABCD-EFGH')
@@ -108,10 +111,22 @@ def main():
                     page.evaluate('''([key, form]) => {localStorage.setItem(key, JSON.stringify(form));
                         document.dispatchEvent(new Event('radius-form-updated'))}''',
                         [f'radius:application-form:v1:{job_id}:{profile_id}', captured])
+                    page.get_by_text('Options', exact=True).click()
+                    expect(page.get_by_role('combobox', name='Brief type')).to_be_visible()
+                    expect(page.get_by_role('link', name='Change CV')).to_be_visible()
                     expect(page.get_by_text('This application step’s questions and answer limits are included in your brief.')).to_be_visible()
+                    page.get_by_text('Options', exact=True).click()
                     state['mode'] = 'slow'
                     (Path(folder)/'allow-login').touch()
                     expect(direct).to_be_enabled(timeout=15000)
+                    settings = context.new_page()
+                    settings.goto(f'{url}/settings')
+                    expect(settings.get_by_text('Default model: synthetic-test-model', exact=False)).to_be_visible()
+                    settings.get_by_role('combobox', name='Model', exact=True).select_option('gpt-6-luna')
+                    settings.get_by_role('button', name='Save model', exact=True).click()
+                    expect(settings.get_by_text('Current default: gpt-6-luna', exact=True)).to_be_visible()
+                    expect(settings.get_by_text('Default model: gpt-6-luna', exact=False)).to_be_visible()
+                    settings.close()
                     page.wait_for_timeout(300)
                     assert not preparation_posts, 'Loading the application page must not start preparation'
                     with page.expect_response(lambda response: response.url.endswith('/preparation-job') and response.request.method == 'POST', timeout=30000) as response:
@@ -120,9 +135,9 @@ def main():
                         page.evaluate("document.dispatchEvent(new Event('radius-form-updated'))")
                     assert response.value.ok, response.value.text()
                     assert response.value.headers.get('cache-control') == 'no-store', 'Generated private documents must not be cached'
-                    expect(page.get_by_text('You can leave or reload this page', exact=False)).to_be_visible()
+                    expect(page.get_by_text('You can leave this page', exact=False)).to_be_visible()
                     page.reload()
-                    expect(page.get_by_text('You can leave or reload this page', exact=False)).to_be_visible()
+                    expect(page.get_by_text('You can leave this page', exact=False)).to_be_visible()
                     expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible(timeout=30000)
                     state['mode'] = 'normal'
                     assert state['stages'][:3] == ['GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments']
@@ -131,6 +146,15 @@ def main():
                     page.get_by_role('button', name='Review and suggest changes', exact=True).click()
                     expect(page.get_by_text('Suggested version', exact=True)).to_be_visible(timeout=30000)
                     expect(page.frame_locator('iframe[title="Suggested cover letter"]').locator('body')).to_contain_text('I bring practical requirements coordination.')
+                    page.set_viewport_size({'width': 390, 'height': 844})
+                    comparison = page.get_by_role('group', name='Compare cover letters')
+                    expect(comparison.get_by_role('button', name='Suggested')).to_have_attribute('aria-pressed', 'true')
+                    expect(page.get_by_title('Suggested cover letter')).to_be_visible()
+                    expect(page.get_by_title('Current cover letter')).to_be_hidden()
+                    comparison.get_by_role('button', name='Current').click()
+                    expect(page.get_by_title('Current cover letter')).to_be_visible()
+                    expect(page.get_by_title('Suggested cover letter')).to_be_hidden()
+                    page.set_viewport_size({'width': 1280, 'height': 1000})
                     page.screenshot(path='/tmp/radius-revision-review.png', full_page=True)
                     page.reload()
                     page.get_by_role('button', name='Open it', exact=True).click()
@@ -141,6 +165,17 @@ def main():
                     page.get_by_role('textbox', name='Cover letter text').fill('Dear hiring team,\nI coordinate requirements and research tools.')
                     page.get_by_text('Edit document text', exact=True).click()
                     expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I coordinate requirements and research tools.')
+                    def reject_save(route):
+                        if route.request.method == 'PUT':
+                            route.fulfill(status=409, json={'detail': 'Test save conflict: reload the saved draft.'})
+                        else:
+                            route.continue_()
+                    page.route(f'{url}/api/v1/profiles/{profile_id}/application-draft?*', reject_save)
+                    page.get_by_role('button', name='Use this version', exact=True).click()
+                    expect(page.get_by_role('region', name='Review and revise cover letter').get_by_role('alert').filter(has_text='Test save conflict')).to_be_visible()
+                    expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I coordinate requirements and research tools.')
+                    page.unroute(f'{url}/api/v1/profiles/{profile_id}/application-draft?*', reject_save)
+                    page.get_by_role('button', name='Keep this device’s draft').click()
                     page.get_by_role('button', name='Use this version', exact=True).click()
                     expect(page.frame_locator('iframe[title="Cover letter preview"]').locator('body')).to_contain_text('I bring practical requirements coordination.')
                     retained = context.request.get(f'{url}/api/v1/profiles/{profile_id}/document-revision?job_id={job_id}').json()['job']
@@ -253,8 +288,8 @@ def main():
                     state['mode'] = 'error'; direct.click()
                     expect(page.get_by_role('alert').filter(has_text='ChatGPT could not prepare')).to_be_visible()
                     assert 'Private provider details' not in page.content()
-                    state['mode'] = 'invalid'; page.get_by_role('button', name='Start with current options', exact=True).click()
-                    expect(page.get_by_role('alert').filter(has_text='changed CV facts')).to_be_visible()
+                    state['mode'] = 'invalid'; page.get_by_text('Options', exact=True).click(); page.get_by_role('button', name='Start with current options', exact=True).click()
+                    expect(page.get_by_role('alert').filter(has_text='protected-history checks')).to_be_visible()
                     state['mode'] = 'normal'
                     page.get_by_text('Options', exact=True).click()
                     page.get_by_role('combobox', name='Document language', exact=True).select_option('German')
@@ -267,7 +302,10 @@ def main():
                     page.get_by_text('Edit LaTeX source', exact=True).click()
                     expect(page.get_by_role('textbox', name='CV LaTeX source', exact=True)).to_contain_text('Forschungswerkzeuge entwickelt.')
                     back_to_prepare()
-                    page.get_by_role('button', name='Disconnect ChatGPT', exact=True).click()
+                    disconnected = context.request.post(f'{url}/api/v1/application-preparation/logout', data={})
+                    assert disconnected.ok, disconnected.text()
+                    page.reload()
+                    if page.get_by_text('Your documents are ready.', exact=True).is_visible(): back_to_prepare()
                     expect(page.get_by_role('button', name='Continue with ChatGPT', exact=True)).to_be_visible()
                     page.get_by_text('Options', exact=True).click()
                     page.once('dialog', lambda dialog: dialog.accept())

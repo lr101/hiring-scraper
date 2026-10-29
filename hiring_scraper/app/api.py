@@ -2852,14 +2852,18 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     # Production reads must not scan the entire job inventory. A dedicated
     # worker backfills stale profiles while saved application stages stay usable.
     # Keep the small SQLite development flow self-contained, like browse search.
+    rebuild_interrupted = False
     if IS_SQLITE:
         try:
             if ensure_profile_match_indexes(session, profiles):
                 session.commit()
-        except ProfileIndexChanged as error:
-            raise HTTPException(status_code=409,
-                                detail='Profile or job inventory changed during search; retry the request') from error
-    matching_pending = any(profile_match_index_stale(profile) for profile in profiles)
+        except ProfileIndexChanged:
+            # Discard the interrupted snapshot and keep saved stages usable.
+            # The client's pending-state refresh will try the backfill again.
+            session.rollback()
+            profiles = [require_profile(value, session) for value in selected_ids]
+            rebuild_interrupted = True
+    matching_pending = rebuild_interrupted or any(profile_match_index_stale(profile) for profile in profiles)
 
     canonical_states = canonical_application_states(session, selected_ids)
     counts = dict.fromkeys(APPLICATION_STATUSES, 0)

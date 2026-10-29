@@ -9,6 +9,7 @@ const sources = { cv: template.preamble + '\\section*{José — Canvas CV}\nR\\&
   cover_letter: template.letter_preamble + 'Dear team,\\par\nMy Canvas letter.\\par\n' + template.ending }
 const context = { job_id: 42, profile_id: 9, cv_updated_at: 'cv-v1' }
 const pack = { format: 'radius-application-v1', ...context, cv: '# José\nResearch in Genève', cover_letter: 'Dear team,\nMy letter.', application_answers: 'None', review_notes: 'Personalized.', latex_documents: sources }
+assert.throws(() => parseApplicationPackage(JSON.stringify({...pack, cover_letter: String.raw`Dear \\textbf{team}`}), context), /cover letter.*LaTeX/i)
 const parsed = parseApplicationPackage(JSON.stringify(pack), context)
 assert.deepEqual(parsed.latexDocuments, sources, 'Canvas sources must survive package parsing verbatim')
 for (const bad of [null, [], { cv: 42 }, { cv: 'x'.repeat(100001) }, { unknown: sources.cv }, { cv: '[TODO write CV]' }]) {

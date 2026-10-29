@@ -33,7 +33,7 @@ class CurrentJobFlowTests(ProductionHarness):
 
         preparation = opened.value
         preparation.wait_for_url(f'{self.origin}/jobs/1574/apply?profile_id=1')
-        expect(preparation.get_by_role('heading', name='Tailor this application.')).to_be_visible()
+        expect(preparation.get_by_role('heading', name='Prepare your application')).to_be_visible()
         expect(preparation.get_by_role('group', name='ChatGPT subscription connection')).to_be_visible()
         expect(preparation.get_by_role('button', name='Continue with ChatGPT')).to_be_enabled()
 
