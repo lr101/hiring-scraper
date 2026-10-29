@@ -95,7 +95,7 @@ def _read(root, profile_id, job_id):
             return None
         data = json.loads(path.read_text())
         if not isinstance(data, dict): return None
-        if time.time() - data.get('updated_at', 0) > RETENTION_SECONDS:
+        if time.time() - data.get('updated_at', 0) > RETENTION_SECONDS and not (data.get('automatic') and data.get('state') == 'completed'):
             path.unlink(missing_ok=True)
             return None
         if data.get('state') in ('running', 'cancelling') and (time.time() - data.get('updated_at', 0) > STALE_SECONDS or not _alive(root, profile_id, job_id)):
@@ -130,7 +130,7 @@ def status(root, profile_id, job_id):
         return _read(root, profile_id, job_id)
 
 
-def start(root, profile_id, job_id, runner, request=None, revision=None):
+def start(root, profile_id, job_id, runner, request=None, revision=None, automatic=False):
     _sweep(root)
     with _lock(root, profile_id, job_id):
         current = _read(root, profile_id, job_id)
@@ -153,7 +153,7 @@ def start(root, profile_id, job_id, runner, request=None, revision=None):
             capacity.release()
             raise HTTPException(409, 'Preparation is already starting. Please try again shortly.') from None
         checkpoints = current.get('checkpoints', {}) if current and current.get('state') in ('failed', 'cancelled') and current.get('request') == request and current.get('revision') == revision else {}
-        record = {'id': uuid.uuid4().hex, 'state': 'running', 'stage': 'starting', 'started_at': time.time(), 'updated_at': time.time(), 'request': request, 'revision': revision, 'checkpoints': checkpoints}
+        record = {'id': uuid.uuid4().hex, 'state': 'running', 'stage': 'starting', 'started_at': time.time(), 'updated_at': time.time(), 'request': request, 'revision': revision, 'checkpoints': checkpoints, 'automatic': automatic}
         try: _write(root, profile_id, job_id, record)
         except Exception:
             os.close(lease)
@@ -169,6 +169,7 @@ def start(root, profile_id, job_id, runner, request=None, revision=None):
             _write(root, profile_id, job_id, current)
 
     class Control:
+        usage_limit_percent = 50 if automatic else None
         def __call__(self, stage):
             if self.cancelled(): raise HTTPException(409, 'Preparation cancelled.')
             update(stage=stage)

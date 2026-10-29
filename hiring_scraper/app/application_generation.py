@@ -223,7 +223,9 @@ def _snapshot(profile_id, request, session):
     serialized = json.dumps(data, ensure_ascii=False, sort_keys=True)
     if len(serialized) > 250000:
         raise HTTPException(413, 'This application context is too large. Shorten the CV or saved career evidence.')
-    return data, hashlib.sha256(serialized.encode()).hexdigest()
+    revision_data = {key: value for key, value in data.items() if key != 'current_date'}
+    revision = json.dumps(revision_data, ensure_ascii=False, sort_keys=True)
+    return data, hashlib.sha256(revision.encode()).hexdigest()
 
 
 def _prompt(data):
@@ -257,6 +259,8 @@ def _generate(prompt, model, deadline, progress=None, stage=None, selected_model
         try:
             if progress and stage: progress(stage)
             options = {'cancelled': progress.cancelled} if progress and hasattr(progress, 'cancelled') else {}
+            if progress and getattr(progress, 'usage_limit_percent', None) is not None:
+                options['usage_limit_percent'] = progress.usage_limit_percent
             if selected_model is not None: options['model'] = selected_model
             return model.model_validate(codex_runtime.generate(prompt, _schema(model), timeout=min(remaining, codex_runtime.GENERATION_SECONDS), **options))
         except HTTPException as exc:

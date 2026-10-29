@@ -138,6 +138,16 @@ be persistent and writable; never point it at a developer's existing Codex home.
 If device login is unavailable, follow the official local-login/secure-cache
 transfer fallback into `RADIUS_CODEX_STATE_DIR/home`, then reload the page.
 
+When background workers are enabled and ChatGPT is connected, Radius prepares
+documents for the 25 highest-ranked New applications of each profile with a
+CV. It chooses German or English from the job posting, using an available CV
+language if necessary. Existing saved drafts are left alone. Preparation runs
+one application at a time and pauses when subscription usage is unavailable or
+at least 50%; failures are retried after a delay. Completed automatic results
+remain in the private Codex volume until the application draft is deleted.
+Open the application to review its documents before applying. Form-specific
+answers still require capturing the application form.
+
 Sources: [Codex authentication and headless login](https://learn.chatgpt.com/docs/auth),
 [non-interactive structured output](https://learn.chatgpt.com/docs/non-interactive-mode).
 
