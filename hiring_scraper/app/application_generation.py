@@ -394,9 +394,9 @@ def _verify_pdfs(package, data, keywords=()):
             checks.append({'document': kind, 'status': 'warning' if warnings else 'passed',
                            'pages': len(reader.pages), 'details': '; '.join(warnings) if warnings else
                            f'{len(reader.pages)} page(s); readable text extracted with pypdf; within page target'})
-        except (RuntimeError, ValueError):
+        except (RuntimeError, ValueError) as error:
             checks.append({'document': kind, 'status': 'not_checked', 'pages': None,
-                           'details': 'PDF compilation or text verification unavailable. Download source and check locally.'})
+                           'details': f'PDF compilation or text verification failed: {error}'})
         if kind == 'cv':
             checks[-1]['keywords'] = _keyword_coverage(keywords, data, keyword_text if checks[-1]['status'] != 'not_checked' else None)
     return checks

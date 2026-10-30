@@ -149,6 +149,58 @@ class CodexRuntimeTests(unittest.TestCase):
                 self.assertIn(expected, raised.exception.detail.lower())
                 self.assertNotIn('private-token', raised.exception.detail)
 
+    def test_failure_reported_on_stdout_is_classified_without_exposing_data(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'stderr': '',
+            'stdout': 'HTTP 429 private-token Private CV'}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type': 'object'})
+        self.assertIn('rate limit', raised.exception.detail)
+        self.assertNotIn('private-token', raised.exception.detail)
+
+    def test_missing_output_identifies_the_failure(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'missing_output': True}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type': 'object'})
+        self.assertIn('no output file', raised.exception.detail)
+
+    def test_structured_provider_error_message_reaches_user_without_prompt(self):
+        runtime = self.module(); self.connect()
+        diagnostic = 'HTTP 503 ' + json.dumps({'error': {'message': 'Model capacity unavailable for Private CV', 'code': 'server_overloaded'}})
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'stderr': diagnostic}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type': 'object'})
+        self.assertIn('Model capacity unavailable', raised.exception.detail)
+        self.assertIn('server_overloaded', raised.exception.detail)
+        self.assertNotIn('Private CV', raised.exception.detail)
+
+    def test_structured_error_does_not_expose_long_prompt_fragment(self):
+        runtime = self.module(); self.connect()
+        prompt = 'private career history ' * 100
+        diagnostic = json.dumps({'error': {'message': 'Rejected: ' + prompt[:500]}})
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'stderr': diagnostic}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate(prompt, {'type': 'object'})
+        self.assertNotIn('private career history', raised.exception.detail)
+
+    def test_server_error_reports_http_status(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True,
+            'stderr': 'request failed with HTTP status 503 private-token'}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type': 'object'})
+        self.assertIn('503', raised.exception.detail)
+        self.assertNotIn('private-token', raised.exception.detail)
+
+    def test_unrelated_number_is_not_classified_as_server_error(self):
+        runtime = self.module(); self.connect()
+        (self.root/'fixture.json').write_text(json.dumps({'fail': True,
+            'stderr': 'retry delay 503 seconds'}))
+        with self.assertRaises(HTTPException) as raised:
+            runtime.generate('Private CV', {'type': 'object'})
+        self.assertIn('could not be classified', raised.exception.detail)
+
     def test_unknown_runtime_failure_reports_exit_without_leaking_output(self):
         runtime = self.module(); self.connect()
         (self.root/'fixture.json').write_text(json.dumps({'fail': True, 'exit_code': 7,
@@ -200,7 +252,8 @@ class CodexRuntimeTests(unittest.TestCase):
             with patch.dict(os.environ,{'RADIUS_CODEX_BIN':native,'APPLICATION_AI_MODEL':'gpt-5.4'}), \
                     patch.object(runtime,'_connected',return_value=True), patch.object(runtime,'_command',side_effect=offline), \
                     patch.object(runtime,'GENERATION_SECONDS',15):
-                with self.assertRaises(HTTPException): runtime.generate('Return JSON only.',{'type':'object'})
+                with self.assertRaises(HTTPException) as raised: runtime.generate('Return JSON only.',{'type':'object'})
+                self.assertIn('Controlled offline stop', raised.exception.detail)
             self.assertIsNotNone(Handler.captured, 'The native CLI must use the explicitly configured transport')
             self.assertLessEqual({tool.get('name',tool.get('type')) for tool in Handler.captured.get('tools',[])}, {'request_user_input'})
         finally:

@@ -282,8 +282,22 @@ def render_latex_pdf(text, *, source=None, photo=None, letter=False, _trusted_cu
             except OSError:
                 raise RuntimeError('Could not start LaTeX. Download the source or try DOCX.') from None
             output = root / 'application.pdf'
-            if process.returncode or not output.exists() or output.stat().st_size > 5 * 1024 * 1024:
-                raise RuntimeError('Could not render this document with LaTeX. Download the source or try DOCX.')
+            if process.returncode:
+                log_path = root / 'application.log'
+                diagnostic = ''
+                if log_path.exists():
+                    with log_path.open('rb') as log_file:
+                        log_file.seek(0, os.SEEK_END)
+                        log_file.seek(max(0, log_file.tell() - 65536))
+                        log_text = log_file.read().decode('utf-8', errors='replace')
+                    match = re.search(r'^! ([^\r\n]{1,300})', log_text, re.MULTILINE)
+                    if match:
+                        diagnostic = f' LaTeX error: {match.group(1)}'
+                raise RuntimeError(f'LaTeX exited with code {process.returncode}.{diagnostic} Download the source or try DOCX.')
+            if not output.exists():
+                raise RuntimeError('LaTeX produced no PDF. Download the source or try DOCX.')
+            if output.stat().st_size > 5 * 1024 * 1024:
+                raise RuntimeError('The LaTeX PDF exceeds 5 MiB. Download the source or try DOCX.')
             log = (root / 'application.log').read_text(encoding='utf-8', errors='replace')
             if 'Missing character:' in log:
                 raise ValueError('The LaTeX font cannot display some characters in this document. Use DOCX or download the source and select a suitable font.')

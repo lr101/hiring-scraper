@@ -315,12 +315,44 @@ def _generation_failure(stderr, returncode):
         return 'The selected ChatGPT model is unavailable for this account. Choose another model in Radius settings.'
     if re.search(r'connection refused|connection reset|dns|failed to connect|error sending request|network error', diagnostic):
         return 'Could not connect to ChatGPT. Check the server network connection and try again.'
-    if re.search(r'\b50[0234]\b|service unavailable|bad gateway', diagnostic):
-        return 'ChatGPT service is unavailable or returned a server error. Try again later.'
-    status = re.search(r'(?:http(?: status)?|status(?: code)?)\s*[:=]?\s*([45]\d\d)\b', diagnostic)
+    status = re.search(r'(?:http(?:/\d(?:\.\d)?)?(?: status(?: code)?)?|status(?: code)?)\s*[:=]?\s*([45]\d\d)\b', diagnostic)
     if status:
-        return f'ChatGPT returned HTTP {status.group(1)}. Try again or use the ChatGPT handoff.'
+        code = status.group(1)
+        if code.startswith('5'):
+            return f'ChatGPT returned HTTP {code} (server error). Try again later or use the ChatGPT handoff.'
+        return f'ChatGPT returned HTTP {code}. Try again or use the ChatGPT handoff.'
+    if re.search(r'service unavailable|bad gateway', diagnostic):
+        return 'ChatGPT reported that the service is unavailable. Try again later or use the ChatGPT handoff.'
     return f'ChatGPT runtime exited with code {returncode}; its error could not be classified. Try again or use the ChatGPT handoff.'
+
+
+def _provider_error_detail(diagnostic, prompt):
+    """Expose bounded structured provider errors to the application owner, never logs."""
+    decoder = json.JSONDecoder()
+    for match in re.finditer(r'\{\s*"error"\s*:', diagnostic):
+        try:
+            value, _ = decoder.raw_decode(diagnostic[match.start():])
+        except (ValueError, RecursionError):
+            continue
+        error = value.get('error') if isinstance(value, dict) else None
+        if not isinstance(error, dict) or not isinstance(error.get('message'), str):
+            continue
+        message = error['message']
+        if prompt:
+            message = message.replace(prompt, '[application context]')
+            # A provider may echo only a fragment of a much longer prompt.
+            # Suppress the whole message if it overlaps the private context.
+            if any(message[i:i + 16] in prompt for i in range(max(0, len(message[:500]) - 15))):
+                message = '[provider message omitted because it contains application context]'
+        message = message[:500]
+        message = re.sub(r'https?://\S+', '[URL]', message, flags=re.I)
+        message = re.sub(r'(?i)(bearer\s+|(?:api[_ -]?key|token|authorization)\s*[:=]\s*)[^\s,;]+', r'\1[redacted]', message)
+        message = ' '.join(message.split())
+        code = error.get('code')
+        if isinstance(code, str) and re.fullmatch(r'[A-Za-z0-9_.-]{1,80}', code):
+            message = f'{message} (code: {code})'
+        return message
+    return ''
 
 
 def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, model=None,
@@ -353,9 +385,9 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
             command += ['-']
             try:
                 diagnostic_file = workspace / 'stderr'
-                with diagnostic_file.open('wb') as diagnostics:
+                with diagnostic_file.open('wb') as diagnostics, (workspace / 'stdout').open('wb') as stdout:
                     process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
-                        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=diagnostics,
+                        stdin=subprocess.PIPE, stdout=stdout, stderr=diagnostics,
                         text=True, start_new_session=True, pass_fds=(descriptor,))
                 deadline = time.monotonic() + min(timeout, GENERATION_SECONDS)
                 first = True
@@ -376,9 +408,20 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                     with diagnostic_file.open('rb') as diagnostics:
                         diagnostics.seek(0, os.SEEK_END)
                         diagnostics.seek(max(0, diagnostics.tell() - 65536))
-                        detail = _generation_failure(diagnostics.read().decode('utf-8', errors='replace'), process.returncode)
+                        stderr = diagnostics.read().decode('utf-8', errors='replace')
+                    with (workspace / 'stdout').open('rb') as stdout:
+                        stdout.seek(0, os.SEEK_END)
+                        stdout.seek(max(0, stdout.tell() - 65536))
+                        diagnostic = stderr + '\n' + stdout.read().decode('utf-8', errors='replace')
+                    detail = _generation_failure(diagnostic, process.returncode)
                     LOG.warning('ChatGPT preparation failed: %s', detail)
+                    provider_error = _provider_error_detail(diagnostic, prompt)
+                    if provider_error:
+                        detail += ' Provider error: ' + provider_error
                     raise HTTPException(502, detail)
+                if not output_path.exists():
+                    LOG.warning('ChatGPT preparation failed: runtime produced no output file')
+                    raise HTTPException(502, 'ChatGPT runtime produced no output file. Try again or use the ChatGPT handoff.')
                 if output_path.stat().st_size > 1024 * 1024: raise ValueError()
                 result = json.loads(output_path.read_text())
                 if not isinstance(result, dict): raise ValueError()
