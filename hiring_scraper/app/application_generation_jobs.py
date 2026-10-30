@@ -2,15 +2,19 @@
 from contextlib import contextmanager
 import fcntl
 import json
+import logging
 import os
 from pathlib import Path
 import re
 import tempfile
 import threading
 import time
+import traceback
 import uuid
 
 from fastapi import HTTPException
+
+LOG = logging.getLogger(__name__)
 
 STALE_SECONDS = 1100
 RETENTION_SECONDS = 7 * 86400
@@ -190,8 +194,11 @@ def start(root, profile_id, job_id, runner, request=None, revision=None, automat
         except HTTPException as exc:
             detail = exc.detail if isinstance(exc.detail, str) else 'Could not prepare this application. Please try again.'
             update(state='failed', stage='failed', error=detail)
-        except Exception:
-            update(state='failed', stage='failed', error='Could not prepare this application. Please try again.')
+        except Exception as exc:
+            frames = traceback.extract_tb(exc.__traceback__)
+            location = ' > '.join(f'{Path(frame.filename).name}:{frame.lineno}:{frame.name}' for frame in frames[-8:])
+            LOG.error('Application preparation failed unexpectedly (%s; %s)', type(exc).__name__, location)
+            update(state='failed', stage='failed', error=f'Preparation failed unexpectedly ({type(exc).__name__}). Check server logs and try again.')
         finally:
             with _lock(root, profile_id, job_id):
                 current = _read(root, profile_id, job_id)

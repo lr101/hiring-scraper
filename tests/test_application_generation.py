@@ -422,6 +422,13 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertEqual(checks[1]['status'], 'passed')
         self.assertEqual(len(rendered), 1)
 
+    def test_pdf_check_reports_renderer_failure(self):
+        from hiring_scraper.app import latex_documents
+        m = self.module()
+        with patch.object(latex_documents, 'render_latex_pdf', side_effect=RuntimeError('LaTeX engine unavailable')):
+            checks = m._verify_pdfs(self.documents(), {})
+        self.assertTrue(all('LaTeX engine unavailable' in check['details'] for check in checks))
+
     def test_pdf_without_extractable_text_is_a_warning(self):
         from io import BytesIO
         from pypdf import PdfWriter

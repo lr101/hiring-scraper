@@ -156,6 +156,14 @@ class ApplicationDocumentTests(unittest.TestCase):
             self.export(format='tex')
         self.assertEqual(raised.exception.status_code, 409)
 
+    @unittest.skipUnless(shutil.which('xelatex'), 'XeLaTeX unavailable')
+    def test_custom_latex_compiler_error_is_reported(self):
+        from hiring_scraper.app.latex_documents import render_custom_latex_pdf
+        source = r"\documentclass{article}\usepackage{radius_nonexistent_package}\begin{document}Hello\end{document}"
+        with self.assertRaises(RuntimeError) as error:
+            render_custom_latex_pdf(source=source)
+        self.assertIn('radius_nonexistent_package.sty', str(error.exception))
+
     def test_latex_pdf_without_engine_offers_source_and_source_still_works(self):
         with patch('hiring_scraper.app.latex_documents.shutil.which', return_value=None):
             with self.assertRaises(HTTPException) as raised:

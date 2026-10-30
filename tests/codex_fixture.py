@@ -59,7 +59,10 @@ if 'exec' in args:
     (root/'seen.json').write_text(json.dumps({'args':args,'env':dict(os.environ),'prompt':text,
         'schema':json.loads(Path(args[args.index('--output-schema')+1]).read_text()),'cwd':os.getcwd()}))
     if settings.get('delay'):time.sleep(settings['delay'])
-    if settings.get('fail'): print(settings.get('stderr', 'private-token-do-not-expose'),file=sys.stderr);sys.exit(settings.get('exit_code', 1))
+    if settings.get('fail'):
+        print(settings.get('stdout', ''),file=sys.stdout)
+        print(settings.get('stderr', 'private-token-do-not-expose'),file=sys.stderr);sys.exit(settings.get('exit_code', 1))
+    if settings.get('missing_output'): sys.exit(0)
     Path(args[args.index('--output-last-message')+1]).write_text(json.dumps(settings.get('result',{'answer':'prepared'})))
     sys.exit(0)
 sys.exit(2)
