@@ -235,11 +235,24 @@ def latex_source_bundle(source, photo):
     return output.getvalue()
 
 
-def render_latex_pdf(text, *, source=None, photo=None, letter=False):
-    source = validate_latex_source(source if source is not None else latex_source(text, letter=letter), letter=letter)
-    if photo is not None:
-        source = source_with_photo(source)
-    executable = shutil.which('lualatex')
+def render_custom_latex_pdf(*, source, photo=None):
+    return render_latex_pdf('', source=source, photo=photo, _trusted_custom=True)
+
+
+def render_latex_pdf(text, *, source=None, photo=None, letter=False, _trusted_custom=False):
+    if _trusted_custom:
+        images = re.findall(r'\\includegraphics(?:\[[^]\n]*\])?\{([^}\n]+)\}', source)
+        if any(not re.fullmatch(r'[A-Za-z0-9_-]+\.png', image) for image in images) or len(set(images)) > 1:
+            raise ValueError('Custom CVs support one PNG portrait with a plain filename.')
+        if images and photo is None:
+            source = re.sub(r'\\includegraphics(?:\[[^]\n]*\])?\{[^}\n]+\}', '', source)
+        portrait_name = images[0] if images else None
+    else:
+        source = validate_latex_source(source if source is not None else latex_source(text, letter=letter), letter=letter)
+        if photo is not None:
+            source = source_with_photo(source)
+        portrait_name = 'portrait.png'
+    executable = shutil.which('xelatex' if _trusted_custom else 'lualatex')
     if not executable:
         raise RuntimeError('LaTeX PDF generation is unavailable. Download the LaTeX source or choose DOCX/PDF instead.')
     if not _renders.acquire(timeout=3):
@@ -248,10 +261,10 @@ def render_latex_pdf(text, *, source=None, photo=None, letter=False):
         with tempfile.TemporaryDirectory(prefix='radius-latex-') as folder:
             root = Path(folder)
             (root / 'application.tex').write_text(source, encoding='utf-8')
-            if photo is not None:
-                (root / 'portrait.png').write_bytes(photo)
-            # Only grammar-checked source reaches the engine. Disable shell
-            # escape and confine output/cache files to this temporary directory.
+            if photo is not None and portrait_name:
+                (root / portrait_name).write_bytes(photo)
+            # Trusted custom source is executable TeX; this is not a sandbox.
+            # Disable shell escape and confine output/cache files to this directory.
             env = {**os.environ, 'openin_any': 'p', 'openout_any': 'p', 'HOME': folder,
                    'TMPDIR': folder, 'TEXMFOUTPUT': folder, 'TEXMFVAR': str(root / 'cache'),
                    'TEXMFCACHE': str(root / 'cache')}

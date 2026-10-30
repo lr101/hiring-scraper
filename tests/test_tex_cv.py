@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest.mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -74,7 +75,7 @@ class TexCVTests(unittest.TestCase):
             with self.assertRaises(HTTPException):
                 application_document(self.id, invalid, kind='cv', format='tex', session=self.session)
 
-    def test_custom_template_source_download_preserves_layout_and_pdf_stays_restricted(self):
+    def test_custom_template_source_download_preserves_layout_and_pdf_can_be_disabled(self):
         from hiring_scraper.app.application_documents import ApplicationDocumentRequest, application_document
         original = source().replace('11pt,a4paper', '10pt,letterpaper')
         profiles.store_profile_cv(self.session, self.id, 'custom.tex', original.encode(), language='en')
@@ -88,9 +89,10 @@ class TexCVTests(unittest.TestCase):
         request = ApplicationDocumentRequest(job_id=job.id, cv_updated_at=version, cv='Finished CV', cover_letter='Dear team', latex_documents={'cv': tailored})
         exported = application_document(self.id, request, kind='cv', format='tex', session=self.session)
         self.assertEqual(exported.body.decode(), tailored)
-        with self.assertRaises(HTTPException) as raised:
-            application_document(self.id, request, kind='cv', format='latex_pdf', session=self.session)
-        self.assertIn('compile locally', raised.exception.detail)
+        with patch.dict('os.environ', {'RADIUS_TRUST_CUSTOM_LATEX': '0'}):
+            with self.assertRaises(HTTPException) as raised:
+                application_document(self.id, request, kind='cv', format='latex_pdf', session=self.session)
+            self.assertIn('compile locally', raised.exception.detail)
         request.latex_documents.cv = tailored.replace('letterpaper', 'a4paper')
         with self.assertRaises(HTTPException) as raised:
             application_document(self.id, request, kind='cv', format='tex', session=self.session)
