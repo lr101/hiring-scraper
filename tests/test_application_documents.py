@@ -207,6 +207,39 @@ class ApplicationDocumentTests(unittest.TestCase):
         response = self.export(kind='cover_letter', format='latex_pdf', cover_letter='Alex Example\nBonn\n\n\nExample Ltd\n\n\nDear team,\n\nI build tools.')
         self.assertIn('Example Ltd', PdfReader(BytesIO(response.body)).pages[0].extract_text())
 
+    def test_preserved_custom_cv_pdf_can_be_disabled_and_uses_custom_renderer(self):
+        from test_tex_cv import source
+        original = source().replace(r'\begin{document}', r'\usepackage{graphicx}' + '\n' + r'\begin{document}')
+        revision = profiles.store_profile_cv(self.session, self.profile_id, 'original.tex', original.encode())['updated_at']
+        with patch.dict('os.environ', {'RADIUS_TRUST_CUSTOM_LATEX': '0'}):
+            with self.assertRaises(HTTPException):
+                self.export(format='latex_pdf', cv_updated_at=revision, latex_documents={'cv': original})
+        with patch.dict('os.environ', {}, clear=True), patch('hiring_scraper.app.latex_documents.render_custom_latex_pdf', return_value=b'%PDF-test') as render:
+            response = self.export(format='latex_pdf', cv_updated_at=revision, latex_documents={'cv': original})
+        self.assertEqual(response.body, b'%PDF-test')
+        self.assertEqual(render.call_args.kwargs['source'], original)
+
+    @unittest.skipUnless(shutil.which('xelatex'), 'XeLaTeX unavailable')
+    def test_custom_cv_pdf_renders_saved_layout_and_portrait(self):
+        from test_tex_cv import source
+        from pypdf import PdfReader
+        original = source().replace(r'\begin{document}', r'\usepackage{graphicx}' + '\n' + r'\begin{document}' + '\n' + r'\includegraphics[width=1cm]{portrait_cropped.png}')
+        revision = profiles.store_profile_cv(self.session, self.profile_id, 'original.tex', original.encode())['updated_at']
+        response = self.export(format='latex_pdf', cv_updated_at=revision, latex_documents={'cv': original}, photo_data_url=self.photo())
+        pdf = PdfReader(BytesIO(response.body))
+        self.assertTrue(any(page.extract_text().strip() for page in pdf.pages))
+        self.assertEqual(sum(len(page.images) for page in pdf.pages), 1)
+
+    def test_custom_cv_rejects_tex_character_escape_in_tailored_prose(self):
+        from test_tex_cv import source
+        original = source().replace(r'\begin{document}', r'\usepackage{graphicx}' + '\n' + r'\begin{document}')
+        revision = profiles.store_profile_cv(self.session, self.profile_id, 'original.tex', original.encode())['updated_at']
+        tailored = original.replace('Built', '^^5cinput')
+        self.assertNotEqual(tailored, original)
+        with patch('hiring_scraper.app.latex_documents.render_custom_latex_pdf', side_effect=AssertionError('Must not execute')):
+            with self.assertRaises(HTTPException):
+                self.export(format='latex_pdf', cv_updated_at=revision, latex_documents={'cv': tailored})
+
     def test_custom_cv_photo_bundle_preserves_source_header_and_asset(self):
         from test_tex_cv import source
         original = source().replace(r'\begin{document}', r'\begin{document}' + '\n' + r'\includegraphics[width=25mm]{portrait_cropped.png}' + '\nAlex Example | alex@example.org\n')

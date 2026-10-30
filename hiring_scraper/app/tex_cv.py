@@ -92,6 +92,8 @@ def history_facts(history):
 
 def validate_tailored_cv(original, tailored):
     """Only marked description and profile prose may change; uploaded source is never executed."""
+    if "^^" in tailored:
+        raise ValueError("LaTeX character-code escapes are not supported in tailored CVs.")
     history = parse_tex_cv(tailored)
     base = parse_tex_cv(original)
     if history_facts(base) != history_facts(history):

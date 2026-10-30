@@ -1,6 +1,7 @@
 """Render a browser-returned application document without persisting it."""
 from io import BytesIO
 import re
+import os
 from typing import Annotated, Literal
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -192,6 +193,7 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
                 text = docx_text(output)
                 _finished_text(text)
             returned_source = getattr(request.latex_documents, kind, None) if kind == 'cv' else None
+            custom_render = False
             if returned_source is not None:
                 _finished_text(returned_source)
                 # Downloading source does not execute it. Custom templates may
@@ -206,15 +208,22 @@ def application_document(profile_id: int, request: ApplicationDocumentRequest,
                     try:
                         validate_latex_source(returned_source, letter=kind == 'cover_letter')
                     except ValueError:
-                        if preserved_source:
+                        if preserved_source and format == 'latex_pdf' and os.environ.get('RADIUS_TRUST_CUSTOM_LATEX', '1') == '1':
+                            custom_render = True
+                        elif preserved_source:
                             raise ValueError('This CV preserves a custom LaTeX template. Download the .tex source and compile locally with its original assets; the server PDF renderer supports only the Radius template.') from None
-                        raise
+                        else:
+                            raise
             if format == 'tex_bundle':
                 output = latex_source_bundle(returned_source or latex_source(text), photo)
             elif format == 'tex':
                 output = (returned_source or latex_source(text, letter=kind == 'cover_letter')).encode('utf-8')
             else:
-                output = render_latex_pdf(text, source=returned_source, photo=photo, letter=kind == 'cover_letter')
+                if custom_render:
+                    from hiring_scraper.app.latex_documents import render_custom_latex_pdf
+                    output = render_custom_latex_pdf(source=returned_source, photo=photo)
+                else:
+                    output = render_latex_pdf(text, source=returned_source, photo=photo, letter=kind == 'cover_letter')
         elif format == 'pdf':
             output = cv_templates.render_pdf(output)
     except ValueError as error:
