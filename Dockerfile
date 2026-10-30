@@ -28,7 +28,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SEMANTIC_MODEL_DIR=/opt/models/multilingual-e5-small \
     HF_HUB_DISABLE_TELEMETRY=1
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-xetex texlive-latex-extra texlive-latex-recommended fonts-dejavu-core \
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice-writer fonts-liberation texlive-luatex texlive-xetex texlive-fonts-recommended texlive-latex-extra texlive-latex-recommended fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=uv /uv /uvx /bin/
 COPY --from=codex-build /codex-runtime /opt/radius-codex

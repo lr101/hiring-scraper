@@ -157,6 +157,12 @@ class ApplicationDocumentTests(unittest.TestCase):
         self.assertEqual(raised.exception.status_code, 409)
 
     @unittest.skipUnless(shutil.which('xelatex'), 'XeLaTeX unavailable')
+    def test_custom_latex_with_hyperlinks_renders_pdf(self):
+        from hiring_scraper.app.latex_documents import render_custom_latex_pdf
+        source = r'\documentclass{article}\usepackage{hyperref}\begin{document}\href{https://example.com}{Example link}\end{document}'
+        self.assertTrue(render_custom_latex_pdf(source=source).startswith(b'%PDF'))
+
+    @unittest.skipUnless(shutil.which('xelatex'), 'XeLaTeX unavailable')
     def test_custom_latex_compiler_error_is_reported(self):
         from hiring_scraper.app.latex_documents import render_custom_latex_pdf
         source = r"\documentclass{article}\usepackage{radius_nonexistent_package}\begin{document}Hello\end{document}"
