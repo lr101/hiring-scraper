@@ -90,6 +90,56 @@ def history_facts(history):
                          for row in history[kind]) for kind in ('experiences', 'education')}
 
 
+def editable_macro_slots(source):
+    """Return unique single-line macro bodies only when all editable content uses them."""
+    parse_tex_cv(source)
+    slots, editable = {}, False
+    pattern = re.compile(r'^\\newcommand\{\\(Radius[A-Za-z]+)\}\{(.*)\}[ \t]*$')
+    for line in source.splitlines():
+        if re.fullmatch(r'\s*% radius:(?:responsibilities|profile)', line):
+            editable = True
+        elif re.fullmatch(r'\s*% radius:(?:end|endprofile)', line):
+            editable = False
+        elif editable and line.strip():
+            match = pattern.fullmatch(line)
+            if not match or match[1] in slots:
+                return {}
+            slots[match[1]] = match[2]
+    return slots
+
+
+def apply_macro_edits(source, edits, *, original=None):
+    slots = editable_macro_slots(source)
+    replacements = {}
+    for edit in edits:
+        name, value = edit['name'], edit['text']
+        if name not in slots or name in replacements or '\n' in value or '\r' in value:
+            raise ValueError('Invalid CV macro edits.')
+        # Ignore escaped symbols while rejecting TeX comments, alignment and math
+        # syntax that would alter or break the surrounding fixed layout.
+        unescaped = re.sub(r'\\.', '', value)
+        if re.search(r'[%&$#_^~]', unescaped):
+            raise ValueError('Escape LaTeX special characters using the examples in the brief.')
+        replacements[name] = value
+    pattern = re.compile(r'^(\\newcommand\{\\(Radius[A-Za-z]+)\}\{)(.*)(\}[ \t]*)$')
+    lines, editable = [], False
+    for line in source.splitlines(keepends=True):
+        body = line.rstrip('\r\n')
+        ending = line[len(body):]
+        if re.fullmatch(r'\s*% radius:(?:responsibilities|profile)', body):
+            editable = True
+        elif re.fullmatch(r'\s*% radius:(?:end|endprofile)', body):
+            editable = False
+        elif editable:
+            match = pattern.fullmatch(body)
+            if match and match[2] in replacements:
+                body = match[1] + replacements[match[2]] + match[4]
+        lines.append(body + ending)
+    result = ''.join(lines)
+    validate_tailored_cv(original if original is not None else source, result)
+    return result
+
+
 def validate_tailored_cv(original, tailored):
     """Only marked description and profile prose may change; uploaded source is never executed."""
     if "^^" in tailored:

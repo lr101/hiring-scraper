@@ -102,6 +102,85 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertIn('Escape LaTeX special characters', calls[1])
         self.assertEqual(result['package']['latex_documents']['cv'], valid['latex_documents']['cv'])
 
+    def test_macro_cv_generation_applies_edits_to_original_source(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]
+        with patch.object(m.codex_runtime, 'generate', return_value=response) as provider:
+            result = self.generate(mode='fast')['package']
+        self.assertEqual(result['latex_documents']['cv'], original.replace('Built research tools.', 'Built useful tools.'))
+        self.assertIn('cv_edits', provider.call_args.args[1]['properties'])
+
+    def test_macro_cv_rejects_unrecognized_edits(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusUnknown', 'text': 'Changed.'}]
+        with patch.object(m.codex_runtime, 'generate', return_value=response), self.assertRaises(HTTPException):
+            self.generate(mode='fast')
+
+    def test_macro_cv_corrects_an_overlong_edit(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        bad = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Too long ' * 20}]}
+        good = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]}
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
+            result = self.generate(mode='fast')['package']
+        self.assertEqual(provider.call_count, 2)
+        self.assertIn('Built useful tools.', result['latex_documents']['cv'])
+
+    def test_macro_cv_full_review_reconstructs_revised_source(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        documents = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        draft = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]}
+        revision = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built research apps.'}]}
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision]):
+            package = self.generate()['package']
+        self.assertEqual(package['latex_documents']['cv'], original.replace('Built research tools.', 'Built research apps.'))
+
+    def test_macro_revision_keeps_unmodified_draft_edits(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}\n'
+                                    '\\newcommand{\\RadiusWorkTwo}{Designed useful tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        documents = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        draft = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+                                            {'name': 'RadiusWorkTwo', 'text': 'Designed new tools.'}]}
+        revision = {**documents, 'cv_edits': [{'name': 'RadiusWorkTwo', 'text': 'Designed good tools.'}]}
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision]):
+            result = self.generate()['package']['latex_documents']['cv']
+        self.assertIn('Built useful tools.', result)
+        self.assertIn('Designed good tools.', result)
+
     def test_failed_format_repair_reports_reason_without_publishing(self):
         m = self.module()
         invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co'), 'cover_letter': latex_source('Letter')})

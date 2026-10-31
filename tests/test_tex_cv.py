@@ -140,6 +140,14 @@ class TexCVTests(unittest.TestCase):
         self.assertEqual(exported.body.decode(), source('de'))
 
 class TemplatePreservationTests(unittest.TestCase):
+    def test_macro_edits_cannot_insert_tex_comments_or_unescaped_specials(self):
+        from hiring_scraper.app.tex_cv import apply_macro_edits
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        for text in ('Built % hidden', 'Built & coordinated'):
+            with self.subTest(text=text), self.assertRaises(ValueError):
+                apply_macro_edits(original, [{'name': 'RadiusWorkOne', 'text': text}])
+
     def test_description_macro_extraction_and_immutable_source(self):
         from hiring_scraper.app.tex_cv import parse_tex_cv, validate_tailored_cv
         original = source()
