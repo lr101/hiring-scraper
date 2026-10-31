@@ -162,6 +162,25 @@ class ApplicationGenerationTests(unittest.TestCase):
             package = self.generate()['package']
         self.assertEqual(package['latex_documents']['cv'], original.replace('Built research tools.', 'Built research apps.'))
 
+    def test_macro_revision_keeps_unmodified_draft_edits(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}\n'
+                                    '\\newcommand{\\RadiusWorkTwo}{Designed useful tools.}')
+        cv = self.session.get(models.ProfileCV, self.profile_id)
+        cv.extracted_text = original
+        self.session.commit()
+        documents = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        draft = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+                                            {'name': 'RadiusWorkTwo', 'text': 'Designed new tools.'}]}
+        revision = {**documents, 'cv_edits': [{'name': 'RadiusWorkTwo', 'text': 'Designed good tools.'}]}
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision]):
+            result = self.generate()['package']['latex_documents']['cv']
+        self.assertIn('Built useful tools.', result)
+        self.assertIn('Designed good tools.', result)
+
     def test_failed_format_repair_reports_reason_without_publishing(self):
         m = self.module()
         invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co'), 'cover_letter': latex_source('Letter')})

@@ -108,7 +108,7 @@ def editable_macro_slots(source):
     return slots
 
 
-def apply_macro_edits(source, edits):
+def apply_macro_edits(source, edits, *, original=None):
     slots = editable_macro_slots(source)
     replacements = {}
     for edit in edits:
@@ -136,7 +136,7 @@ def apply_macro_edits(source, edits):
                 body = match[1] + replacements[match[2]] + match[4]
         lines.append(body + ending)
     result = ''.join(lines)
-    validate_tailored_cv(source, result)
+    validate_tailored_cv(original if original is not None else source, result)
     return result
 
 

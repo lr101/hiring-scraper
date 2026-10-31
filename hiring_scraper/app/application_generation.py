@@ -286,7 +286,7 @@ def _generate(prompt, model, deadline, progress=None, stage=None, selected_model
             raise HTTPException(502, 'ChatGPT returned an incomplete application. Your existing documents are unchanged.') from None
 
 
-def _generate_documents(prompt, data, deadline, progress, stage, selected_model):
+def _generate_documents(prompt, data, deadline, progress, stage, selected_model, *, draft_source=None):
     source = data['original_cv_text']
     if '% radius:entry ' not in source or not editable_macro_slots(source):
         return _generate(prompt, GeneratedDocuments, deadline, progress, stage, selected_model)
@@ -295,12 +295,13 @@ def _generate_documents(prompt, data, deadline, progress, stage, selected_model)
                    'for changed Radius macros only; omit the leading backslash from name. The server '
                    'preserves the original source and inserts each text as the complete existing macro '
                    'body. Preserve its commands and braces and do not exceed its original length. '
-                   'Omit unchanged macros. Return an empty array if no safe edit fits. '
+                   'Omit unchanged macros. For a revision, edits apply to the draft CV; omitted macros '
+                   'retain the draft text. Return an empty array if no safe edit fits. '
                    'The cv field remains readable CV text; cover_letter is plain text.')
     generated = _generate(prompt + instruction, MacroGeneratedDocuments, deadline, progress, stage, selected_model)
     for attempt in range(2):
         try:
-            latex = apply_macro_edits(source, [edit.model_dump() for edit in generated.cv_edits])
+            latex = apply_macro_edits(draft_source or source, [edit.model_dump() for edit in generated.cv_edits], original=source)
             break
         except ValueError as error:
             if attempt:
@@ -580,7 +581,8 @@ Keep the original layout, marked-block structure and per-line budgets locked. Re
 the complete revised GeneratedDocuments package, not edits or a critique. Do not
 claim any finding is verified or resolved merely because the reviewer proposed it.
 \nDRAFT AND FEEDBACK:\n''' + json.dumps({'draft': package, 'review': review.model_dump()}, ensure_ascii=False)
-    revised = _generate_documents(revision_prompt, data, deadline, progress, 'revising', selected_model)
+    revised = _generate_documents(revision_prompt, data, deadline, progress, 'revising', selected_model,
+                                  draft_source=package['latex_documents']['cv'])
     package = _validated_generation(revised, prompt, data, form, deadline, progress, selected_model)
     if progress: progress('checking')
     package['review_notes'] = _review_notes(review, _verify_pdfs(package, data, [row.model_dump() for row in review.keywords]), data['writing_preferences']['document_language'])
