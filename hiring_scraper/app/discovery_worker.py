@@ -1370,7 +1370,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
         return True
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
-        client = Client(capture_dir, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
+        client = Client(capture_dir, persist_captures=False, timeout=TIMEOUT_SECONDS, delay=REQUEST_DELAY_SECONDS,
                         max_requests=MAX_REQUESTS, user_agent=USER_AGENT, origin_pacer=_ORIGIN_PACER)
         result = discover(seed, client, max_pages=MAX_PAGES, max_depth=MAX_DEPTH)
 

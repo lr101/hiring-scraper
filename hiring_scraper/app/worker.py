@@ -175,7 +175,7 @@ def _request(feed: JobFeed, search_scope: dict | None = None,
         return _request_arbeitsagentur(feed, search_scope, run_id=run_id)
     max_requests = (BROWSER_CLIENT_REQUEST_BUDGET if feed.provider == "browser_html" else
                     10 if feed.provider == "lever" else 8)
-    client = Client(CAPTURE_DIR, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
+    client = Client(CAPTURE_DIR, persist_captures=False, timeout=20, delay=REQUEST_DELAY_SECONDS, origin_pacer=ORIGIN_PACER,
                     max_requests=max_requests, user_agent=USER_AGENT)
     headers = {}
     # A validator for offset zero cannot establish that later offsets are stable.
