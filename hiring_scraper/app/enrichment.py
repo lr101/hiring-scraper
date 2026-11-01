@@ -149,7 +149,7 @@ def backfill(limit: int = 200, *, fetch_details: bool = False, client=None) -> d
         session.commit()
     if not candidates:
         return counts
-    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), timeout=12, delay=1,
+    client = client or Client(Path('/tmp/hiring-scraper-enrichment'), persist_captures=False, timeout=12, delay=1,
                               max_requests=limit*8, origin_pacer=ORIGIN_PACER,
                               user_agent=os.getenv("HIRING_USER_AGENT", "HiringScraper/0.3 (public job-detail enrichment)"))
     for job_id in candidates:
