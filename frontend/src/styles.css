@@ -75,6 +75,8 @@
 .application-card-state { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 5px; }
 .application-job-card-header .application-state-badge { margin: 0; }
 .application-card-match-score { display: inline-flex; min-height: 22px; align-items: center; gap: 5px; padding: 3px 7px; border: 1px solid; border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.application-ai-match-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 3px 7px; border: 1px solid #a9a1cb; border-radius: 999px; color: #554784; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
+html[data-theme="dark"] .application-ai-match-tag { border-color: #8d80b4; color: #d7cafa; }
 .application-card-match-score::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; content: ''; }
 .application-card-match-score.match-recommended { border-color: #d4e4c9; background: #f0f2f1; color: #657a5a; }
 .application-card-match-score.match-possible { border-color: #e8dfc4; background: #f8f3e7; color: #806a3f; }

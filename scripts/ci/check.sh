@@ -12,6 +12,7 @@ python -m compileall -q hiring_scraper scripts/ci
 python -m unittest discover -s tests -v
 
 printf '%s\n' 'Checking profile behavior with Node and the real Python matcher'
+node frontend/test-ai-match.mjs
 node tests/frontend_profile_defaults.mjs
 node tests/frontend_profile_languages.mjs
 node tests/frontend_profile_onboarding.mjs
