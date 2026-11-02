@@ -27,7 +27,7 @@ type JobCardData = {
   first_seen_at?: string | null
   application?: Application | null
   enrichment?: Pick<Enrichment, 'languages' | 'experience_years'>
-  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier'>
+  profile_match?: Pick<ProfileMatch, 'matched_skills' | 'score' | 'fit_tier' | 'score_source'>
 }
 
 function formatDate(value?: string | null) {
@@ -92,6 +92,7 @@ function JobFeedCard({
           aria-label={`${job.profile_match.score} percent match${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
           {job.profile_match.score}% match
         </span>}
+        {job.profile_match?.score_source === 'llm' && <span className="application-ai-match-tag">AI matched</span>}
         {profileName && <span className="application-card-profile-name">{profileName}</span>}
       </div>
     </header>
