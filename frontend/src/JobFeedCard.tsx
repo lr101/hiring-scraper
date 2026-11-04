@@ -89,10 +89,10 @@ function JobFeedCard({
       <div className="application-card-state">
         <ApplicationStateBadge application={application} fallbackStatus={profileId ? 'new' : undefined} />
         {job.profile_match && <span className={`application-card-match-score match-${matchTier}`}
-          aria-label={`${job.profile_match.score} percent match${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
-          {job.profile_match.score}% match
+          aria-label={`${job.profile_match.score} out of 100 fit index${matchTier === 'recommended' ? ', strong' : matchTier === 'unlikely' ? ', low' : ', possible'}`}>
+          {job.profile_match.score}/100 fit
         </span>}
-        {job.profile_match?.score_source === 'llm' && <span className="application-ai-match-tag">AI matched</span>}
+        {job.profile_match && <span className="application-ai-match-tag">{job.profile_match.score_source === 'llm' ? 'AI assessed' : 'Local estimate'}</span>}
         {profileName && <span className="application-card-profile-name">{profileName}</span>}
       </div>
     </header>

@@ -25,12 +25,12 @@ from pydantic import (
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app import codex_runtime, application_generation_jobs
+from hiring_scraper.app import codex_runtime, application_generation_jobs, profile_llm, requirement_evidence
 from hiring_scraper.app.application_documents import LatexDocuments, _finished_text, validate_cover_letter_text, CoverLetterLatexError
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import get_session, SessionLocal
 from hiring_scraper.app.latex_documents import latex_source, validate_latex_source
-from hiring_scraper.app.models import Job
+from hiring_scraper.app.models import Job, ProfileLLMScore
 from hiring_scraper.app.profiles import cv_metadata, require_cv, require_profile
 from hiring_scraper.app.tex_cv import validate_tailored_cv, editable_macro_slots, apply_macro_edits
 
@@ -166,6 +166,11 @@ class ApplicationReview(StrictModel):
     keywords: list[KeywordEvidence] = Field(default_factory=list, max_length=40)
 
 
+class FinalContentReview(StrictModel):
+    summary: str = Field(min_length=1, max_length=2000)
+    findings: list[ReviewFinding] = Field(max_length=30)
+
+
 def generation_status():
     return codex_runtime.status()
 
@@ -234,10 +239,24 @@ def _snapshot(profile_id, request, session):
                                     'application_instructions': request.notes},
             'current_date': date.today().isoformat(),
             'application_form': request.form.model_dump() if request.form else None}
+    resolved_facts = profile_llm.profile_data(preferences)
+    cv_facts = profile_llm.cv_career_data(source)
+    if cv_facts:
+        resolved_facts['cv_career_facts'] = cv_facts
+    data['evidence_sources'] = requirement_evidence.evidence_sources(resolved_facts, profile_llm.job_data(job))
+    data['shared_requirements'] = None
+    cached = session.get(ProfileLLMScore, (profile_id, job.id))
+    if (cached and cached.version == profile_llm.VERSION and cached.source_hash == profile_llm.source_hash(job, profile)
+            and data['evidence_sources'] == profile_llm.assessment_sources(job, profile)):
+        try:
+            data['shared_requirements'] = profile_llm.validate_assessment(
+                cached.assessment, data['evidence_sources'])['requirements']
+        except (ValueError, TypeError):
+            pass
     serialized = json.dumps(data, ensure_ascii=False, sort_keys=True)
     if len(serialized) > 250000:
         raise HTTPException(413, 'This application context is too large. Shorten the CV or saved career evidence.')
-    revision_data = {key: value for key, value in data.items() if key != 'current_date'}
+    revision_data = {key: value for key, value in data.items() if key not in ('current_date', 'shared_requirements')}
     revision = json.dumps(revision_data, ensure_ascii=False, sort_keys=True)
     return data, hashlib.sha256(revision.encode()).hexdigest()
 
@@ -447,7 +466,7 @@ def _verify_pdfs(package, data, keywords=()):
     return checks
 
 
-def _review_notes(review, checks, language):
+def _review_notes(review, checks, language, final_review=None):
     german = language == 'de'
     lines = [('KI-Einschätzung anhand gespeicherter Nachweise' if german else 'AI fit assessment against saved evidence')
              + f': {review.recommendation}. {review.summary}']
@@ -458,6 +477,10 @@ def _review_notes(review, checks, language):
                   f'{len(review.findings)} finding(s) passed to the drafter for revision.'))
     for finding in review.findings:
         lines.append(f'- {finding.document} / {finding.category}: {finding.issue}')
+    if final_review:
+        lines += ['', 'Abschließende Inhaltsprüfung:' if german else 'Final content review:', final_review.summary]
+        for finding in final_review.findings:
+            lines.append(f'- {finding.document} / {finding.category}: {finding.issue} — {finding.suggestion}')
     lines += ['', 'PDF-Prüfungen:' if german else 'PDF checks:']
     for check in checks:
         lines.append(f"- {check['document']} [{check['status']}]: {check['details']}")
@@ -528,6 +551,23 @@ def _workflow(data, form, progress=None, mode='full', selected_model=None):
     # Fresh ephemeral Codex invocations provide separate drafting and critique
     # contexts. No conversation/session is shared between these passes.
     deadline = time.monotonic() + 900
+    rows = progress.load('assessment') if progress and hasattr(progress, 'load') else None
+    if rows is None:
+        rows = data.get('shared_requirements')
+    if rows is not None:
+        try:
+            rows = requirement_evidence.ground_requirements(rows, data['evidence_sources'])
+        except (ValueError, TypeError):
+            rows = None
+    if rows is None:
+        assessment_prompt = requirement_evidence.INSTRUCTIONS + '\nSOURCE DATA:\n' + json.dumps(
+            {'evidence_sources': data['evidence_sources']}, ensure_ascii=False)
+        assessment = _generate(assessment_prompt, requirement_evidence.RequirementAssessment,
+                               deadline, progress, 'assessing', selected_model)
+        rows = requirement_evidence.ground_requirements(assessment.model_dump()['requirements'], data['evidence_sources'])
+    if progress and hasattr(progress, 'checkpoint'):
+        progress.checkpoint('assessment', rows)
+    data = {**data, 'shared_requirements': rows}
     prompt = _prompt(data)
     saved_draft = progress.load('draft') if progress and hasattr(progress, 'load') else None
     if saved_draft:
@@ -584,8 +624,20 @@ claim any finding is verified or resolved merely because the reviewer proposed i
     revised = _generate_documents(revision_prompt, data, deadline, progress, 'revising', selected_model,
                                   draft_source=package['latex_documents']['cv'])
     package = _validated_generation(revised, prompt, data, form, deadline, progress, selected_model)
+    final_prompt = prompt + '''\n\nFINAL CONTENT REVIEW TASK:
+Review the REVISED package below against the ORIGINAL CV, saved factual sources and
+shared requirement assessment. Drafts and earlier feedback are not factual evidence.
+Check every new achievement, scope, metric, credential and eligibility claim. Flag
+unsupported claims as grounding findings. Report remaining coverage, repetition,
+voice and business-letter-format issues with actionable suggestions. Do not assume
+revision resolved earlier findings. Do not claim visual inspection or PDF verification.
+Return the final review schema only, in writing_preferences.document_language.
+REVISED PACKAGE:\n''' + json.dumps(package, ensure_ascii=False)
+    final_review = _generate(final_prompt, FinalContentReview, deadline, progress, 'final_review', selected_model)
+    if any(finding.category == 'grounding' for finding in final_review.findings):
+        raise HTTPException(502, 'The final content review found unsupported claims. Your existing documents are unchanged. Check your saved evidence and try again.')
     if progress: progress('checking')
-    package['review_notes'] = _review_notes(review, _verify_pdfs(package, data, [row.model_dump() for row in review.keywords]), data['writing_preferences']['document_language'])
+    package['review_notes'] = _review_notes(review, _verify_pdfs(package, data, [row.model_dump() for row in review.keywords]), data['writing_preferences']['document_language'], final_review)
     _finished_text(package['review_notes'])
     if _browser_length(package['review_notes']) > 100000:
         raise ValueError('Application review exceeds the browser field limit')

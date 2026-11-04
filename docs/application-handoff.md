@@ -14,17 +14,23 @@ file to import. Review all factual claims and wording before using the documents
 The workflow follows the drafting/review/revision pattern of
 [ai-job-search's apply workflow](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/commands/apply.md):
 
-1. Evaluate requirements against saved evidence while drafting the CV, business
-   letter and captured answers. Missing permission/sponsorship, graduation or paid
-   experience facts remain unknown.
-2. Send the original sources and draft inline to a fresh, independent Codex context.
+1. Reuse the current matching requirement assessment, or create one before drafting.
+   Each requirement names a job excerpt and factual applicant excerpt, with supported,
+   transferable, missing or unknown evidence. Source quotes are checked; goals and
+   writing samples cannot establish experience. Missing facts remain unknown.
+2. Draft the CV, business letter and captured answers using that shared assessment.
+3. Send the original sources and draft inline to a fresh, independent Codex context.
    It reports fit evidence, required/preferred gaps and concrete grounding, coverage,
    voice and formatting issues.
-3. Revise the draft against that critique, preserving verified facts and the selected
+4. Revise the draft against that critique, preserving verified facts and the selected
    original CV layout. Validate both drafting passes against the locked history,
    structure and text budgets. A failed review or revision returns an error rather
    than publishing the first draft.
-4. Compile safe fixed-template PDFs and inspect their page counts and extracted text
+5. Independently review the revised documents against the original facts and shared
+   assessment. Unsupported-claim findings stop preparation; remaining style, coverage
+   and format findings stay visible in the report. A failed final review never
+   publishes the draft.
+6. Compile safe fixed-template PDFs and inspect their page counts and extracted text
    with pypdf, including known email/phone details. The CV target is at most two
    pages and the letter target is one. Warnings remain visible; these checks do not
    prove visual layout, full ATS compatibility or claim accuracy. Custom uploaded
@@ -32,7 +38,7 @@ The workflow follows the drafting/review/revision pattern of
    compilation and inspection; they are never executed by this workflow.
 
 **Fit and document checks** next to the returned documents shows the model's fit
-assessment, the initial critique sent for revision and the final PDF checks. A
+assessment, the initial critique sent for revision, the final content review and PDF checks. A
 critique is not proof that the revision resolved every issue. Checks describe the
 generated version; inspect again after editing or adding a photo. Review uses the
 saved posting and evidence, with no external company-research tools. No application
@@ -112,7 +118,7 @@ comes from that account's Codex entitlement within its ChatGPT subscription;
 account/workspace policies and usage limits apply. There is no API-key fallback.
 Radius strips inherited API credentials, access-token overrides and alternative
 gateway settings from its Codex child processes. The optional
-`APPLICATION_AI_MODEL` selects the server default; leaving it empty uses the Codex default. Choose an instance-wide default under Settings → ChatGPT subscription → Application model. Preparation options can override it for an individual job; availability depends on the connected account. Choosing the server or Codex default in Settings clears the saved selection. Full preparation normally uses three sequential requests. Fast preparation normally uses one request and skips the independent review and revision, so users should check the result carefully. Automatic correction can add requests in either mode.
+`APPLICATION_AI_MODEL` selects the server default; leaving it empty uses the Codex default. Choose an instance-wide default under Settings → ChatGPT subscription → Application model. Preparation options can override it for an individual job; availability depends on the connected account. Choosing the server or Codex default in Settings clears the saved selection. Full preparation normally uses four sequential requests, plus one requirement-assessment request when no current matching assessment is cached. Fast preparation uses one drafting request, plus that assessment request when needed, and skips the independent review and revision, so users should check the result carefully. Automatic correction can add requests in either mode.
 
 The release image includes Codex **0.163.0**, installed from the locked
 `runtime/codex` package and exported as native Linux x64/arm64 binaries. Node is

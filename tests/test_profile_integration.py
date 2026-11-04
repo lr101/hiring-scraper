@@ -158,7 +158,7 @@ class ProfileIntegrationTests(unittest.TestCase):
         ]:
             with self.subTest(content=list(content)), Session(self.engine) as session:
                 saved = profiles.create_profile(profiles.ProfileRequest(name='Developer',
-                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 65}), session)
+                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 30}), session)
                 profile = session.get(models.UserProfile, saved['id'])
                 host = f"example-{saved['id']}.org"
                 company = models.Company(source='test', source_id=str(saved['id']), name=f"Example {saved['id']}")
@@ -171,11 +171,14 @@ class ProfileIntegrationTests(unittest.TestCase):
                 self.assertEqual(session.scalars(select(models.JobApplication).where(
                     models.JobApplication.profile_id == profile.id)).all(), [])
                 profiles.update_profile(profile.id, profiles.ProfileRequest(name='Developer',
-                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 65}, **content), session)
+                    desired_roles=['Software developer'], matching_defaults={'min_match_score': 30}, **content), session)
                 self.assertIsNone(profile.match_index_version)
                 page = api.list_applications(profile_ids=str(profile.id), statuses='new', sort='match',
                                              offset=0, limit=40, session=session)
                 self.assertIn(job.id, {item['id'] for item in page['items']})
+                match = next(item['profile_match'] for item in page['items'] if item['id'] == job.id)
+                self.assertLessEqual(match['score'], 59)
+                self.assertEqual(match['score_source'], 'local')
 
     def test_localized_content_rejects_shared_facts_and_unknown_languages(self):
         from pydantic import ValidationError

@@ -30,6 +30,8 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Shared, source-checked requirement evidence for matching and application drafting, separate fit/completeness breakdowns, and an independent final content review that blocks unsupported claims.
+
 - Automatically prepare documents for each profile's 25 highest-ranked New applications when subscription usage permits.
 - A guided application preparation flow with progress, a faster draft-only mode, instance and per-application model selection, and mobile-friendly revision comparison.
 - A fictional bilingual CV and portrait fixture for application testing.

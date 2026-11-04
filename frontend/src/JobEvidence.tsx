@@ -2,6 +2,13 @@ import type { CityElectionResult } from './profile'
 
 export type ProfileMatch = {
   score_source?: 'local' | 'llm'
+  llm_match?: {
+    qualification_fit: number | null; preference_fit: number | null; dimension_completeness: number
+    role_evidence_score: number; requirement_coverage: number | null; requirement_completeness: number
+    requirements: { requirement: string; priority: 'required' | 'preferred' | 'logistics'; importance: 'core' | 'supporting'
+      status: 'supported' | 'transferable' | 'missing' | 'unknown'; explanation: string
+      job_source: string; job_quote: string; evidence_quote: string; evidence_source: string }[]
+  } | null
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
@@ -30,11 +37,32 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
     {match ? <>
       <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
       <p className="muted">{match.score_source === 'llm'
-        ? 'Luna assessed this job against your saved profile. Its assessment replaces the local match estimate.'
-        : 'This heuristic score measures overlap with your interests and skills. It is not a prediction of hiring success.'}</p>
+        ? 'AI fit index based on your saved facts and preferences. It replaces the local estimate and is not a probability of getting hired.'
+        : 'Provisional local shortlist estimate, capped at 59/100 until AI assessment. Shared tools may be incidental; verify the main work before applying. This is not a prediction of hiring success.'}</p>
+      {match.score_source === 'llm' && match.llm_match && <>
+        <h3>Match breakdown</h3>
+        <dl>
+          <dt>Qualification fit · role-relevant evidence</dt><dd>{match.llm_match.qualification_fit == null ? 'Unknown' : `${match.llm_match.qualification_fit}/100`}</dd>
+          <dt>Preference fit · career direction and working style</dt><dd>{match.llm_match.preference_fit == null ? 'Unknown' : `${match.llm_match.preference_fit}/100`}</dd>
+          <dt>Core-role evidence ceiling</dt><dd>{match.llm_match.role_evidence_score}/100</dd>
+          <dt>Assessment detail completeness</dt><dd>{match.llm_match.dimension_completeness}% of the weighted assessment dimensions have evidence</dd>
+          <dt>Requirement evidence completeness</dt><dd>{match.llm_match.requirement_completeness}% of assessed requirement weight has evidence</dd>
+          <dt>Requirement coverage · known evidence only</dt><dd>{match.llm_match.requirement_coverage == null ? 'Unknown' : `${match.llm_match.requirement_coverage}/100`}</dd>
+        </dl>
+        <p className="muted">Core work controls 85% of the evidence ceiling (100% when there are no supporting requirements); supporting skills control at most 15%. Unknown requirements are excluded from coverage, so high coverage with low completeness needs checking. Preferred requirements have one quarter of the weight; transferable evidence earns half credit. Quotes establish the source, not the correctness of the AI interpretation.</p>
+        <details>
+          <summary>Requirements and saved evidence</summary>
+          {match.llm_match.requirements.map((row, index) => <div className="evidence-note" key={index}>
+            <strong>{row.requirement} · {row.priority} · {row.importance} · {row.status}</strong>
+            <p>{row.explanation}</p>
+            <p>Job ({row.job_source}): <q>{row.job_quote}</q></p>
+            {row.evidence_quote && <p>Saved evidence ({row.evidence_source}): <q>{row.evidence_quote}</q></p>}
+          </div>)}
+        </details>
+      </>}
       {match.score_source !== 'llm' && match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
-      {match.conflicts.length > 0 && <div className="error-banner"><strong>Outside your preferences</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
+      {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {match.score_source !== 'llm' && match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}

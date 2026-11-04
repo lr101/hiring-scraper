@@ -1420,7 +1420,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 worker_matching.set()
                 if not release_worker_matching.wait(6):
                     raise AssertionError('feed match computation did not resume')
-            return {'eligible': False}
+            return {'eligible': False, 'score': 0}
 
         def observe_detail_lock(_conn, _cursor, statement, *_args):
             normalized = ' '.join(statement.upper().split())
@@ -1608,7 +1608,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             matching_started.set()
             if not continue_matching.wait(6):
                 raise AssertionError('cached match computation did not resume')
-            return {'eligible': False}
+            return {'eligible': False, 'score': 0}
 
         def backfill():
             try:
