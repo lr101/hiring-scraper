@@ -177,12 +177,36 @@ career goals and work preferences when supplied, rather than inferring abilities
 from desired job titles. It does not research companies or follow instructions
 embedded in job postings.
 
-A valid, current Luna assessment **replaces** the local numerical score and its
+Local scores are provisional shortlist estimates capped at 59/100 in Radius. A
+valid, current Luna assessment **replaces** that estimate and its
 fit explanation, including lowering a score to zero. It is not blended with the
-local estimate or subject to the semantic-only 59-point ceiling. Explicit local
+local estimate. Its numerical score is capped by evidence for the job’s core work. Explicit local
 eligibility restrictions still apply. The same assessment drives job detail,
 Journey ranking and materialized profile matches; the detail page identifies a
 Luna assessment. Missing, invalid or stale assessments fall back to local matching.
+
+The job detail separates qualification fit (skills/experience), preference fit
+(behavior/career direction), assessed dimension weight, requirement coverage and
+requirement evidence completeness. The overall number remains a weighted fit index,
+not a hiring probability. The weighted dimension estimate is capped by demonstrated
+role evidence: core requirements control 85% and supporting requirements at most 15%
+(100% core when there are no supporting requirements). Unknown requirements add no
+demonstrated evidence; they do not establish inability. Required core gaps, unknowns
+or transferable-only evidence also cap the index at 59. No identified core work means
+zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
+These conservative initial budgets need calibration against judged jobs.
+Unknown dimensions are excluded rather than scored as zero;
+coverage excludes unknown requirements, so always read it alongside completeness.
+Preferred requirements have quarter weight and transferable evidence earns half credit.
+A required gap, unknown or transferable-only requirement prevents a Recommended label,
+even when the numerical index is high. Explicit eligibility conflicts still veto eligibility.
+
+Matching and application drafting share requirement assessments with named source
+excerpts. Applicant quotes are checked against factual profile fields; unverifiable
+support becomes unknown. Goals and writing examples are excluded from factual sources.
+Excerpt checks verify provenance, not the model's interpretation or exhaustiveness.
+The assessment version changes automatically invalidate older cached model results;
+local matching remains available while background assessments refresh.
 
 Assessments are cached per profile/job in `profile_llm_scores` (PostgreSQL
 migration `0035_profile_llm_scores`; additive SQLite initialization). Source

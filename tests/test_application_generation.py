@@ -56,6 +56,76 @@ class ApplicationGenerationTests(unittest.TestCase):
         return self.module().PrepareApplicationRequest(job_id=self.job_id, cv_updated_at=self.revision,
             profile_updated_at=self.profile_revision, language='en', **changes)
 
+    def requirements(self):
+        return {'requirements': [{'requirement': 'Product requirements', 'priority': 'required', 'importance': 'core',
+            'status': 'transferable', 'job_source': 'job.description',
+            'job_quote': 'Coordinate product requirements.', 'evidence_source': 'profile.summary',
+            'evidence_quote': 'Product coordination', 'explanation': 'Adjacent coordination experience.'}]}
+
+    def cache_assessment(self):
+        from hiring_scraper.app import profile_llm
+        from test_llm_profile_matching import assessment
+        profile = self.session.get(models.UserProfile, self.profile_id)
+        job = self.session.get(models.Job, self.job_id)
+        raw = {**assessment(), **self.requirements()}
+        digest = profile_llm.source_hash(job, profile)
+        row = self.session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
+        if row is None:
+            row = models.ProfileLLMScore(profile_id=self.profile_id, job_id=self.job_id)
+            self.session.add(row)
+        row.version, row.source_hash, row.assessment = profile_llm.VERSION, digest, raw
+        self.session.commit()
+
+    def test_preparation_assesses_evidence_before_drafting_when_cache_is_missing(self):
+        m = self.module()
+        seen = []
+        def provider(prompt, schema, **kwargs):
+            seen.append(schema['title'])
+            if schema['title'] == 'RequirementAssessment':
+                return self.requirements()
+            self.assertIn('Adjacent coordination experience.', prompt)
+            return self.documents()
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider):
+            result = m.prepare_application(self.profile_id, self.request(mode='fast'), self.session)
+        self.assertEqual(seen, ['RequirementAssessment', 'GeneratedDocuments'])
+        self.assertIn('Product coordination', result['package']['cv'])
+
+    def test_current_matching_evidence_is_reused_and_cache_arrival_does_not_change_revision(self):
+        m = self.module()
+        _, before = m._snapshot(self.profile_id, self.request(), self.session)
+        self.cache_assessment()
+        data, after = m._snapshot(self.profile_id, self.request(), self.session)
+        self.assertEqual(before, after)
+        self.assertEqual(data['shared_requirements'], self.requirements()['requirements'])
+        with patch.object(m.codex_runtime, 'generate', return_value=self.documents()) as provider:
+            m.prepare_application(self.profile_id, self.request(mode='fast'), self.session)
+        self.assertEqual(provider.call_count, 1)
+        self.assertIn('Adjacent coordination experience.', provider.call_args.args[0])
+
+    def test_sparse_posting_prepares_without_inventing_requirement_evidence(self):
+        m = self.module()
+        self.session.get(models.Job, self.job_id).description = 'Details to follow.'
+        self.session.commit()
+        def provider(prompt, schema, **kwargs):
+            return {'requirements': []} if schema['title'] == 'RequirementAssessment' else self.documents()
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider):
+            result = m.prepare_application(self.profile_id, self.request(mode='fast'), self.session)
+        self.assertEqual(result['package']['job_id'], self.job_id)
+
+    def test_final_grounding_failure_never_publishes_revised_documents(self):
+        m = self.module()
+        self.cache_assessment()
+        def provider(prompt, schema, **kwargs):
+            if schema['title'] == 'FinalContentReview':
+                return {'summary': 'Unsupported achievement.', 'findings': [{'document': 'cover_letter',
+                    'category': 'grounding', 'issue': 'Invented revenue.', 'suggestion': 'Remove the claim.'}]}
+            return self.transport(self.documents())(prompt, schema, **kwargs)
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider), self.assertRaises(HTTPException) as raised:
+            m.prepare_application(self.profile_id, self.request(), self.session)
+        self.assertEqual(raised.exception.status_code, 502)
+        self.assertIn('final content review', raised.exception.detail.lower())
+        self.assertEqual(list(self.session.scalars(select(models.JobApplication))), [])
+
     def test_snapshot_revision_is_stable_across_dates(self):
         m = self.module()
         with patch.object(m, 'date') as day:
@@ -77,6 +147,8 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def transport(self, result):
         def respond(prompt, schema, **kwargs):
+            if schema['title'] == 'FinalContentReview':
+                return {'summary': 'Revised wording is grounded.', 'findings': []}
             if schema['title'] == 'ApplicationReview':
                 return {'recommendation': 'possible', 'summary': 'Saved coordination experience is relevant.',
                     'requirements': [{'requirement': 'Product requirements', 'priority': 'required',
@@ -86,6 +158,7 @@ class ApplicationGenerationTests(unittest.TestCase):
         return respond
 
     def generate(self, **changes):
+        self.cache_assessment()
         return self.module().prepare_application(self.profile_id, self.request(**changes), self.session)
 
     def test_invalid_cv_format_is_repaired_once_and_revalidated(self):
@@ -158,7 +231,7 @@ class ApplicationGenerationTests(unittest.TestCase):
         draft = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]}
         revision = {**documents, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built research apps.'}]}
         review = self.transport(None)('', {'title': 'ApplicationReview'})
-        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision]):
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision, {'summary': 'Revised wording is grounded.', 'findings': []}]):
             package = self.generate()['package']
         self.assertEqual(package['latex_documents']['cv'], original.replace('Built research tools.', 'Built research apps.'))
 
@@ -176,7 +249,7 @@ class ApplicationGenerationTests(unittest.TestCase):
                                             {'name': 'RadiusWorkTwo', 'text': 'Designed new tools.'}]}
         revision = {**documents, 'cv_edits': [{'name': 'RadiusWorkTwo', 'text': 'Designed good tools.'}]}
         review = self.transport(None)('', {'title': 'ApplicationReview'})
-        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision]):
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision, {'summary': 'Revised wording is grounded.', 'findings': []}]):
             result = self.generate()['package']['latex_documents']['cv']
         self.assertIn('Built useful tools.', result)
         self.assertIn('Designed good tools.', result)
@@ -440,6 +513,9 @@ class ApplicationGenerationTests(unittest.TestCase):
                           'issue': 'The draft omits requirements work.', 'suggestion': 'Name the verified coordination work.'}]}
         def provider(prompt, schema, **kwargs):
             title = schema['title']; stages.append(title)
+            if title == 'FinalContentReview':
+                self.assertIn(revised['cover_letter'], json.loads(prompt.split('REVISED PACKAGE:\n')[1])['cover_letter'])
+                return {'summary': 'The revised letter covers requirements work.', 'findings': []}
             if title == 'ApplicationReview':
                 self.assertIn(draft['cover_letter'], json.loads(prompt.split('DRAFT TO REVIEW:\n')[1])['cover_letter'])
                 return review
@@ -449,7 +525,7 @@ class ApplicationGenerationTests(unittest.TestCase):
             return draft
         with patch.object(m.codex_runtime, 'generate', side_effect=provider):
             result = self.generate()
-        self.assertEqual(stages, ['GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments'])
+        self.assertEqual(stages, ['GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments', 'FinalContentReview'])
         self.assertEqual(result['package']['cover_letter'], revised['cover_letter'])
         self.assertIn('German work authorization', result['package']['review_notes'])
         self.assertIn('unknown', result['package']['review_notes'])
@@ -467,15 +543,18 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_selected_language_cover_letter_example_reaches_authoritative_context(self):
         m = self.module()
+        self.cache_assessment()
         profile = self.session.get(models.UserProfile, self.profile_id)
         profile.preferences = {**profile.preferences,
             'application_personalization': {'cover_letter_example': 'English example for voice.'},
-            'localized_content': {'de': {'application_personalization': {'cover_letter_example': 'Deutsches Beispiel als Stilreferenz.'}}}}
+            'localized_content': {'de': {'summary': 'Praktische Produktkoordination.', 'application_personalization': {'cover_letter_example': 'Deutsches Beispiel als Stilreferenz.'}}}}
         self.session.commit()
         request = self.request().model_copy(update={'profile_updated_at': profile.updated_at.isoformat(), 'language': 'de'})
         data, _ = m._snapshot(self.profile_id, request, self.session)
         self.assertEqual(data['supporting_profile']['application_personalization']['cover_letter_example'], 'Deutsches Beispiel als Stilreferenz.')
         self.assertEqual(data['writing_preferences']['document_language'], 'de')
+        self.assertEqual(data['evidence_sources']['profile.summary'], 'Praktische Produktkoordination.')
+        self.assertIsNone(data['shared_requirements'])
         self.assertIsNone(data['supporting_profile']['application_details']['preferences']['authorized_to_work'])
 
     def test_custom_cv_is_never_compiled_or_claimed_as_pdf_verified(self):
@@ -579,7 +658,7 @@ class ApplicationGenerationTests(unittest.TestCase):
                 'requirements': [{'requirement': 'R' * 500, 'priority': 'required',
                     'status': 'unknown', 'evidence': evidence} for _ in range(count)],
                 'findings': [], 'keywords': []}
-            with self.subTest(unicode=evidence[0]), patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(), review, self.documents()]):
+            with self.subTest(unicode=evidence[0]), patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(), review, self.documents(), {'summary': 'Revised wording is grounded.', 'findings': []}]):
                 with self.assertRaises(HTTPException) as raised: self.generate()
                 self.assertEqual(raised.exception.status_code, 502)
 
@@ -598,6 +677,7 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_retry_reuses_validated_draft_after_review_timeout(self):
         m = self.module()
+        self.cache_assessment()
         data, _ = m._snapshot(self.profile_id, self.request(), self.session)
         class Control:
             def __init__(self): self.values = {}
@@ -610,9 +690,9 @@ class ApplicationGenerationTests(unittest.TestCase):
         with patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(), HTTPException(504, 'Timed out')]) as provider:
             with self.assertRaises(HTTPException): m._workflow(data, None, control)
             self.assertEqual(provider.call_count, 2)
-        with patch.object(m.codex_runtime, 'generate', side_effect=[review, self.documents()]) as provider, patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
+        with patch.object(m.codex_runtime, 'generate', side_effect=[review, self.documents(), {'summary': 'Revised wording is grounded.', 'findings': []}]) as provider, patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
             m._workflow(data, None, control)
-            self.assertEqual(provider.call_count, 2)
+            self.assertEqual(provider.call_count, 3)
             self.assertEqual(provider.call_args_list[0].args[1]['title'], 'ApplicationReview')
 
 if __name__ == '__main__':

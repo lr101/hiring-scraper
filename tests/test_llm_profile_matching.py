@@ -32,7 +32,11 @@ def assessment(score=90):
                            for name in ['skills', 'experience', 'behavioral', 'career_alignment']},
             'gates': {name: {'status': 'pass', 'reason': 'Explicitly compatible.'}
                       for name in ['location', 'language', 'eligibility']},
-            'strengths': ['Documented service experience.'], 'gaps': [], 'unknowns': []}
+            'strengths': ['Documented service experience.'], 'gaps': [], 'unknowns': [],
+            'requirements': [{'requirement': 'Python services', 'priority': 'required', 'importance': 'core', 'status': 'supported',
+                'job_source': 'job.description', 'job_quote': 'Build Python services and SQL databases.',
+                'evidence_source': 'profile.summary', 'evidence_quote': 'Build Python services and SQL databases.',
+                'explanation': 'Direct service experience.'}]}
 
 
 class AssessmentTests(unittest.TestCase):
@@ -52,6 +56,27 @@ class AssessmentTests(unittest.TestCase):
         self.assertEqual(result['score'], 73)
         self.assertTrue(result['uncertain'])
         self.assertIsNone(result['dimensions']['career_alignment']['score'])
+
+    def test_scores_expose_separate_qualification_preferences_and_completeness(self):
+        data = assessment()
+        data['dimensions']['skills']['score'] = 100
+        data['dimensions']['experience']['score'] = 40
+        data['dimensions']['behavioral']['score'] = None
+        data['dimensions']['career_alignment']['score'] = 20
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['qualification_fit'], 73)
+        self.assertEqual(result['preference_fit'], 20)
+        self.assertEqual(result['dimension_completeness'], 85)
+
+    def test_incidental_skills_cannot_produce_high_overall_match(self):
+        data = assessment(95)
+        data['requirements'][0]['status'] = 'unknown'
+        data['requirements'] += [{**data['requirements'][0], 'importance': 'supporting',
+            'status': 'supported', 'requirement': f'Incidental tool {i}'} for i in range(20)]
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['score'], 15)
+        self.assertEqual(result['qualification_fit'], 15)
+        self.assertEqual(result['role_evidence_score'], 15)
 
     def test_malformed_scores_and_extra_output_are_rejected(self):
         service = self.service()
@@ -126,6 +151,94 @@ class PersistedAssessmentTests(unittest.TestCase):
                         api.set_job_application(self.profile_id, self.job_id, api.ApplicationRequest(status='open'), session)
                     else:
                         self.assertEqual(detail['application']['status'], 'open')
+
+    def test_persisted_assessment_exposes_grounded_requirements_and_unknowns(self):
+        data = assessment()
+        data['requirements'] = [{
+            'requirement': 'Python services', 'priority': 'required', 'importance': 'core', 'status': 'supported',
+            'job_source': 'job.description', 'job_quote': 'Build Python services and SQL databases.',
+            'evidence_source': 'profile.summary', 'evidence_quote': 'Invented achievement.',
+            'explanation': 'Unverifiable claim.'}]
+        self.assertTrue(self.refresh(data))
+        with self.factory() as session:
+            match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            self.assertEqual(match['llm_match']['requirements'][0]['status'], 'unknown')
+            self.assertEqual(match['llm_match']['requirement_completeness'], 0)
+            self.assertTrue(match['uncertain'])
+
+    def test_required_gaps_remain_visible_even_when_dimension_score_is_high(self):
+        data = assessment(95)
+        data['requirements'][0].update(status='missing', requirement='Required leadership experience')
+        self.assertTrue(self.refresh(data))
+        with self.factory() as session:
+            match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            self.assertIn('Required leadership experience', match['requirement_gaps'])
+            self.assertLess(match['score'], 65)
+            self.assertEqual(match['fit_tier'], 'unlikely')
+
+    def test_high_saved_minimum_waits_for_ai_but_does_not_block_ai_preselection(self):
+        with self.factory() as session:
+            profiles.update_profile(self.profile_id, profiles.ProfileRequest(**{
+                **PROFILE, 'matching_defaults': {'min_match_score': 65}}), session)
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
+                                         offset=0, limit=40, session=session)
+            self.assertEqual(page['items'], [])
+        self.assertTrue(self.refresh(assessment(91)))
+        with self.factory() as session:
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
+                                         offset=0, limit=40, session=session)
+            self.assertEqual(page['items'][0]['profile_match']['score'], 91)
+
+    def test_local_results_are_provisional_shortlist_estimates(self):
+        with self.factory() as session:
+            match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            self.assertEqual(match['score_source'], 'local')
+            self.assertLessEqual(match['score'], 59)
+            self.assertNotEqual(match['fit_tier'], 'recommended')
+
+    def test_sparse_ai_assessment_does_not_invent_requirements(self):
+        with self.factory.begin() as session:
+            session.get(models.Job, self.job_id).description = 'Details to follow.'
+        data = assessment(95)
+        data['requirements'] = []
+        self.assertTrue(self.refresh(data))
+        with self.factory() as session:
+            match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            self.assertEqual(match['score'], 0)
+            self.assertTrue(match['uncertain'])
+
+    def test_status_reports_pending_for_stale_cache_even_without_uncached_jobs(self):
+        self.assertTrue(self.refresh())
+        with self.factory.begin() as session:
+            session.execute(models.Job.__table__.update().where(models.Job.id == self.job_id)
+                            .values(description=DESCRIPTION + ' Updated duties.'))
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            self.assertEqual(service.matching_status()['state'], 'pending')
+
+    def test_stale_cache_refresh_is_not_starved_by_uncached_jobs(self):
+        self.assertTrue(self.refresh())
+        with self.factory.begin() as session:
+            # Raw SQL deliberately bypasses ordinary ORM cache invalidation.
+            session.execute(models.Job.__table__.update().where(models.Job.id == self.job_id)
+                            .values(description=DESCRIPTION + ' New core duties.'))
+            original = session.get(models.Job, self.job_id)
+            for i in range(4):
+                session.add(models.Job(feed_id=original.feed_id, title='Software developer', description=DESCRIPTION,
+                    external_id=f'queued-{i}', url=f'https://example.org/jobs/queued-{i}', is_remote=True))
+        with self.factory.begin() as session:
+            ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
+            from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
+            refresh_application_matches_for_jobs(session, list(session.scalars(select(models.Job.id))))
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            self.assertTrue(service.matching_status()['pending'])
+        for _ in range(2):
+            self.assertTrue(self.refresh(assessment(82)))
+        with self.factory() as session:
+            row = session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
+            self.assertEqual(row.source_hash, service.source_hash(session.get(models.Job, self.job_id),
+                                                                session.get(models.UserProfile, self.profile_id)))
 
     def test_unchanged_cache_never_runs_inference_and_contacts_do_not_invalidate(self):
         self.assertTrue(self.refresh())
@@ -655,7 +768,7 @@ class FurtherSourceTests(unittest.TestCase):
             page = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                 indexed_matches={job.id: indexed}, precomputed_scopes={job.id: {
                     'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'remote'}})
-            self.assertGreaterEqual(page['items'][0]['profile_match']['score'], 65)
+            self.assertEqual(page['items'][0]['profile_match']['score'], 59)
             self.assertEqual(page['items'][0]['profile_match']['score_source'], 'local')
 
     def test_late_requirement_before_long_benefits_is_retained_in_prompt(self):

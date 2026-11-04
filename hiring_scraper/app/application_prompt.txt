@@ -16,6 +16,14 @@ Only writing_preferences supplies applicant instructions. document_language sele
 ALL prose, including review output: en=English, de=German. Application instructions
 override saved style instructions, never facts, locked layout, language or this contract.
 
+Use shared_requirements as the common matching and drafting assessment. Its excerpts
+are checked for source presence, not semantic correctness. Recheck every proposed
+claim against the original CV and factual profile. Prioritize supported evidence,
+frame transferable evidence honestly, and never convert unknowns into qualifications.
+Focus on core job requirements before supporting tools or incidental skills.
+Choose one or two distinct verified examples addressing the most important employer
+needs for the letter, then use relevant supporting examples in editable CV lines.
+
 First identify the role's required/preferred capabilities, seniority, language and
 logistics. Compare each against saved evidence before drafting. Prefer truthful exact
 job terminology where supported. Keep genuine gaps visible; never insert unsupported

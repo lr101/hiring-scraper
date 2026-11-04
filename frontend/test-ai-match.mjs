@@ -11,9 +11,12 @@ try {
       profile_match: { score: 75, matched_skills: [], score_source: source } },
     href: '/jobs/1', onAction() {},
   }))
-  assert.match(render('llm'), /AI matched/)
-  assert.doesNotMatch(render('local'), /AI matched/)
-  assert.doesNotMatch(render(undefined), /AI matched/)
+  assert.match(render('llm'), /AI assessed/)
+  assert.doesNotMatch(render('local'), /AI assessed/)
+  assert.doesNotMatch(render(undefined), /AI assessed/)
+  assert.match(render('local'), /Local estimate/)
+  assert.match(render(undefined), /Local estimate/)
+  assert.match(render('llm'), /75\/100 fit/)
 } finally {
   await server.close()
 }

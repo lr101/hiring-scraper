@@ -43,6 +43,12 @@ def main():
             state['calls'] += 1
             state['stages'].append(schema['title'])
             mode = state['mode']
+            if schema['title'] == 'RequirementAssessment':
+                return {'requirements': [{'requirement': 'Requirements coordination', 'priority': 'required', 'importance': 'core',
+                    'status': 'supported', 'job_source': 'job.description',
+                    'job_quote': 'Coordinate product requirements in an English-speaking team.',
+                    'evidence_source': 'profile.summary', 'evidence_quote': 'Product requirements coordination',
+                    'explanation': 'Saved coordination evidence.'}]}
             data = json.JSONDecoder().raw_decode(prompt.split('SOURCE PAYLOAD:\n')[1])[0]
             state['languages'].append(data['writing_preferences']['document_language'])
             if mode == 'error':
@@ -51,6 +57,8 @@ def main():
             if schema['title'] == 'RevisionOutput':
                 document = data['original_cv_text'] if 'DOCUMENT TYPE: CV LaTeX source' in prompt else 'Dear hiring team,\nI bring practical requirements coordination.'
                 return {'document': document, 'review': 'The original can be more direct.', 'changes': 'Made the wording more direct.'}
+            if schema['title'] == 'FinalContentReview':
+                return {'summary': 'Revised documents reflect saved evidence.', 'findings': []}
             if schema['title'] == 'ApplicationReview':
                 return {'recommendation': 'possible', 'summary': 'Coordination matches; permit status is unknown.',
                     'requirements': [{'requirement': 'German work authorization', 'priority': 'logistics',
@@ -140,7 +148,7 @@ def main():
                     expect(page.get_by_text('You can leave this page', exact=False)).to_be_visible()
                     expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible(timeout=30000)
                     state['mode'] = 'normal'
-                    assert state['stages'][:3] == ['GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments']
+                    assert state['stages'][:5] == ['RequirementAssessment', 'GeneratedDocuments', 'ApplicationReview', 'GeneratedDocuments', 'FinalContentReview']
                     page.get_by_role('button', name='Cover letter', exact=True).click()
                     page.get_by_label('What would you like to change?').fill('Make the opening more direct.')
                     page.get_by_role('button', name='Review and suggest changes', exact=True).click()
@@ -298,7 +306,7 @@ def main():
                     expect(page.get_by_role('button', name='Open latest prepared documents')).to_be_visible(timeout=30000)
                     page.get_by_role('button', name='Open latest prepared documents').click()
                     expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
-                    assert state['languages'].count('de') == 3
+                    assert state['languages'].count('de') == 4
                     page.get_by_text('Edit LaTeX source', exact=True).click()
                     expect(page.get_by_role('textbox', name='CV LaTeX source', exact=True)).to_contain_text('Forschungswerkzeuge entwickelt.')
                     back_to_prepare()
