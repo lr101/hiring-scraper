@@ -128,6 +128,13 @@ require another login. Startup initializes this private volume for the app's
 unprivileged UID before serving requests. **Disconnect ChatGPT** clears the cached login through
 Codex. Account access can also be managed in ChatGPT settings.
 
+The native CLI creates disposable helper symlinks below its `home/tmp/` cache.
+Startup preserves these links and skips their targets during ownership repair,
+so an existing connection volume can restart safely. The state directory,
+`home/tmp` itself and persistent state outside that cache must not be symlinks;
+startup still rejects those paths. No login reset or volume deletion is needed
+for the native temporary helper links.
+
 Use this connection in a private, access-controlled personal Radius deployment.
 The signed-in subscription belongs to the operator of that instance; everyone
 with access to its preparation endpoints can invoke it. These endpoints inherit

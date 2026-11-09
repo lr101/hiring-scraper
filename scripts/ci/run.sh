@@ -87,6 +87,8 @@ if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
 fi
 printf '%s\n' 'Running Chromium sandbox smoke check'
 timeout 90s "${compose[@]}" run --rm --no-deps browser-sandbox-smoke 2>&1 | tee "$results_dir/$project-browser-sandbox.log"
+printf '%s\n' 'Checking native Codex private-volume restart without a login or network'
+timeout 60s "${compose[@]}" run --rm --no-deps codex-state-smoke 2>&1 | tee "$results_dir/$project-codex-state.log"
 # The CI override disables live crawl workers while keeping the production app image.
 printf '%s\n' 'Starting app and waiting for health check'
 "${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" app

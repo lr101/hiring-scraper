@@ -1,4 +1,4 @@
-# Application hillclimb integration
+# Application generation integration
 
 ## Prepared in the application code
 
@@ -21,7 +21,12 @@ prove that every model output follows them.
 The Dockerfile copies the application package, including the prompt. No schema,
 frontend, provider setting or subscription-limit change is needed. Existing saved
 documents are not rewritten. Previously saved preparation checkpoints may contain
-an earlier draft/review; use a fresh preparation for candidate comparisons.
+an earlier draft/review; start a fresh preparation to use the updated instructions.
+
+Offline evaluation tooling is maintained separately under
+`experiments/application_hillclimb/`. That directory is excluded from Docker build
+contexts and is not part of application startup, package installation or the
+deployment's application test discovery.
 
 ## Profile enrichment boundary
 
@@ -61,14 +66,4 @@ shards, PostgreSQL and container checks are reserved by `AGENTS.md` for immediat
 before a requested push. Mock-provider generation tests consume no subscription requests
 and do not establish live-provider or rendered benchmark success.
 
-The parent benchmark remains incomplete: candidate003 met seven of eight
-historical document baselines; some posting contexts remain provisional.
-Candidate004's archived preparation is not a completed evaluation. Generation
-must remain stopped while the subscription quota gate disallows it; a reset time
-alone is not proof of permission. Recheck the existing quota gate before any
-future run, without changing its limits. The latest review-task wording also
-changes the code fingerprint; preserve the archived candidate and record any
-subsequent candidate's exact source hashes separately. Completion requires all
-six fresh full runs, twelve rendered and independently scored documents, and
-both fit and checklist thresholds for each immutable historical baseline.
-No ATS, deployed-equivalence or complete benchmark claim follows from this work.
+No ATS or deployed-equivalence claim follows from these source changes.

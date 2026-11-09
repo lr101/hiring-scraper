@@ -9,8 +9,9 @@ import unittest
 from unittest.mock import patch
 
 
-ROOT = Path(__file__).resolve().parents[1]
-RUNNER_PATH = ROOT / 'scripts' / 'hillclimb' / 'run_application_generation.py'
+ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / 'tests'))
+RUNNER_PATH = ROOT / 'experiments' / 'application_hillclimb' / 'run_application_generation.py'
 SPEC = importlib.util.spec_from_file_location('application_generation_hillclimb_runner', RUNNER_PATH)
 runner = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = runner

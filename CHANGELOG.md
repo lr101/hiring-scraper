@@ -12,6 +12,10 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
+
+- Keep the opt-in application hillclimb runner and its tests in a separate experiments directory excluded from deployment build contexts.
+
 - Ground tailored application examples in supplied role evidence, avoid inferred employer duties for title-only postings, and provide original CV macro budgets during drafting and review.
 
 - Keep saved applications available when a match rebuild conflicts with an inventory update.
