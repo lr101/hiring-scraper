@@ -11,6 +11,7 @@ const themeOptions: { value: ThemePreference; label: string; detail: string }[] 
 ]
 
 const settingsLinks = [
+  { href: '/settings/ai-matching', symbol: '◎', label: 'AI matching status', detail: 'Check queued reviews, subscription usage, and recent assessment activity.' },
   { href: '/discover', symbol: '⌕', label: 'Find companies & jobs', detail: 'Search the full directory of employers and open roles.' },
   { href: '/locations', symbol: '⌖', label: 'Search areas', detail: 'Configure the places used to find local jobs.' },
   { href: '/feeds', symbol: '≋', label: 'Job feeds', detail: 'Manage employer websites and other job sources.' },

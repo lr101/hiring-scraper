@@ -13,8 +13,9 @@ from functools import lru_cache
 from pathlib import Path
 import tempfile
 import time
+from types import SimpleNamespace
 
-from sqlalchemy import and_, exists, or_, select, text
+from sqlalchemy import and_, exists, func, or_, select, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import selectinload
 
@@ -30,6 +31,7 @@ from hiring_scraper.semantic_matching import job_sections
 LOG = logging.getLogger(__name__)
 MODEL = 'gpt-6-luna'
 EFFORT = 'medium'
+MIN_AI_BASE_SCORE = 35
 VERSION = 'luna-profile-v2-core-evidence'
 WEIGHTS = {'skills': .30, 'experience': .25, 'behavioral': .15, 'career_alignment': .30}
 GATES = ('location', 'language', 'eligibility')
@@ -400,7 +402,7 @@ def _candidate_snapshot(session, engine_key, *, audit=False):
             # ORM invalidation, including previous low scores or failed gates.
             statement = statement.where(ProfileLLMScore.version == VERSION)
         else:
-            statement = statement.where(ProfileJobMatch.match_score >= 30,
+            statement = statement.where(ProfileJobMatch.match_score > MIN_AI_BASE_SCORE,
                 ~exists(select(1).where(ProfileLLMScore.profile_id == ProfileJobMatch.profile_id,
                     ProfileLLMScore.job_id == ProfileJobMatch.job_id, ProfileLLMScore.version == VERSION)))
         candidates = session.execute(statement).all()
@@ -437,7 +439,7 @@ def _candidate_snapshot(session, engine_key, *, audit=False):
             semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
             baseline = match_job(source, profile.matching_preferences, current_enrichment(job),
                                  **({'semantic': semantic} if semantic else {}))
-            if not baseline['eligible'] or baseline['score'] < 30:
+            if not baseline['eligible'] or baseline['score'] <= MIN_AI_BASE_SCORE:
                 continue
             return profile_id, job_id, digest, build_prompt(job, profile)
         return None
@@ -539,14 +541,22 @@ def matching_status():
     """Public quota diagnostics contain no prompts, credentials or personal data."""
     quota = codex_runtime.subscription_usage()
     with SessionLocal() as session:
-        pending = bool(session.scalar(select(exists(select(1).select_from(ProfileJobMatch).join(
-            Job, Job.id == ProfileJobMatch.job_id).where(Job.is_active.is_(True), ProfileJobMatch.match_score >= 30,
+        queued_metadata = session.scalars(select(Job.raw_metadata).select_from(ProfileJobMatch).join(
+            Job, Job.id == ProfileJobMatch.job_id).where(Job.is_active.is_(True), ProfileJobMatch.match_score > MIN_AI_BASE_SCORE,
                 ~exists(select(1).where(ProfileLLMScore.profile_id == ProfileJobMatch.profile_id,
-                    ProfileLLMScore.job_id == ProfileJobMatch.job_id, ProfileLLMScore.version == VERSION)))))))
-        if not pending:
-            pending = _stale_assessment_pending(session)
+                    ProfileLLMScore.job_id == ProfileJobMatch.job_id, ProfileLLMScore.version == VERSION)))
+            .execution_options(yield_per=200))
+        queued = sum(not expiry(SimpleNamespace(raw_metadata=metadata))['expired'] for metadata in queued_metadata)
+        assessed, last_assessed = session.execute(select(func.count(), func.max(ProfileLLMScore.scored_at))
+            .select_from(ProfileLLMScore).join(Job, Job.id == ProfileLLMScore.job_id)
+            .where(Job.is_active.is_(True), ProfileLLMScore.version == VERSION)).one()
+        stale = _stale_assessment_pending(session) if assessed else False
+        pending = bool(queued or stale)
     safe = {key: quota.get(key) for key in ('available', 'allowed', 'reason', 'used_percent',
                                            'resets_at', 'window_minutes', 'limit_percent')}
     return {'state': 'pending' if quota.get('allowed') and pending else 'ready' if quota.get('allowed') else
                      'disconnected' if quota.get('reason') == 'disconnected' else 'paused',
-            'pending': pending, 'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe}
+            'pending': pending, 'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe,
+            'queued_pairs': queued, 'assessed_pairs': assessed, 'stale_assessments_pending': stale,
+            'last_assessed_at': last_assessed.isoformat() if last_assessed else None,
+            'worker_health': 'unknown', 'checked_at': utcnow().isoformat()}

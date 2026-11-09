@@ -207,6 +207,29 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertEqual(match['score'], 0)
             self.assertTrue(match['uncertain'])
 
+    def test_status_exposes_queue_and_success_without_claiming_worker_health(self):
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            before = service.matching_status()
+            self.assertEqual(before['assessed_pairs'], 0)
+            self.assertEqual(before['queued_pairs'], 1)
+            self.assertIsNone(before['last_assessed_at'])
+            self.assertEqual(before['worker_health'], 'unknown')
+            self.assertTrue(self.refresh())
+            after = service.matching_status()
+            self.assertEqual(after['assessed_pairs'], 1)
+            self.assertEqual(after['queued_pairs'], 0)
+            self.assertIsNotNone(after['last_assessed_at'])
+
+    def test_status_does_not_queue_expired_jobs(self):
+        with self.factory.begin() as session:
+            session.get(models.Job, self.job_id).raw_metadata = {'validThrough': '2000-01-01'}
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            status = service.matching_status()
+            self.assertEqual(status['queued_pairs'], 0)
+            self.assertFalse(status['pending'])
+
     def test_status_reports_pending_for_stale_cache_even_without_uncached_jobs(self):
         self.assertTrue(self.refresh())
         with self.factory.begin() as session:
@@ -401,6 +424,26 @@ class PersistedAssessmentTests(unittest.TestCase):
         self.assertTrue(self.refresh())
         with self.factory() as session:
             self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, second_id)))
+
+    def test_ai_preselection_requires_indexed_score_strictly_over_35(self):
+        service = self.service()
+        for score in (30, 35):
+            with self.factory.begin() as session:
+                session.get(models.ProfileJobMatch, (self.profile_id, self.job_id)).match_score = score
+            def forbidden(*args, **kwargs):
+                self.fail('Scores at or below 35 must not consume AI inference')
+            self.assertFalse(self.refresh(generate=forbidden))
+            with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+                self.assertEqual(service.matching_status()['queued_pairs'], 0)
+        with self.factory.begin() as session:
+            session.get(models.ProfileJobMatch, (self.profile_id, self.job_id)).match_score = 36
+        self.assertTrue(self.refresh())
+
+    def test_ai_preselection_rechecks_current_base_score(self):
+        service = self.service()
+        with patch.object(service, 'match_job', return_value={'eligible': True, 'score': 35}):
+            self.assertFalse(self.refresh(generate=lambda *args, **kwargs: self.fail('Stale high index must not bypass the base cutoff')))
+        self.assertTrue(self.refresh())
 
     def test_ineligible_closed_and_implausible_candidates_are_not_scored(self):
         with self.factory() as session:
