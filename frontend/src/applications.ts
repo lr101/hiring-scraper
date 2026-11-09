@@ -79,8 +79,9 @@ export async function saveApplication(
   const response = await fetch(`${base}/api/v1/profiles/${profileId}/applications/${jobId}`, {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, action }),
   })
-  const data = await response.json()
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')
+  const data = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(typeof data?.detail === 'string' ? data.detail : 'Could not save application status. Please try again.')
+  if (!data) throw new Error('The server returned an invalid response. Please try again.')
   return data
 }
 

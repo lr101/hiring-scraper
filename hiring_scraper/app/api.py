@@ -3374,6 +3374,12 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             "as_of": datetime.now(timezone.utc).isoformat()}
 
 
+@app.post('/api/v1/profile-matching/rematch')
+def rematch_all_jobs():
+    from hiring_scraper.app.profile_llm import requeue_all_assessments
+    return requeue_all_assessments()
+
+
 @app.get('/api/v1/profile-matching/status')
 def profile_matching_status():
     from hiring_scraper.app.profile_llm import matching_status

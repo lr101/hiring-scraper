@@ -32,7 +32,7 @@ export function MatchingStatusDetails({ data }: { data: MatchingStatus }) {
         <div><dt>Saved assessments for active jobs</dt><dd>{data.assessed_pairs}</dd></div>
         <div><dt>Changed jobs awaiting reassessment</dt><dd>{data.stale_assessments_pending ? 'Yes' : 'No'}</dd></div>
         <div><dt>Last successful assessment</dt><dd>{timestamp(data.last_assessed_at)}</dd></div>
-        <div><dt>Five-hour subscription usage</dt><dd>{data.usage.used_percent == null ? 'Unavailable' : `${data.usage.used_percent}%`} · pauses at 50%</dd></div>
+        <div><dt>Five-hour subscription usage</dt><dd>{data.usage.used_percent == null ? 'Unavailable' : `${data.usage.used_percent}%`} · pauses when exhausted</dd></div>
         <div><dt>Model</dt><dd>{data.model}</dd></div>
       </dl>
       <p>Counts cover all profiles and active jobs. Saved assessments may need reassessment after source changes; queued candidates are checked for eligibility before scoring.</p>
@@ -44,6 +44,21 @@ export default function MatchingStatusPage() {
   const [data, setData] = useState<MatchingStatus | null>(null)
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
+  const [rematching, setRematching] = useState(false)
+  const [message, setMessage] = useState('')
+  async function rematchAll() {
+    setRematching(true); setMessage('')
+    try {
+      const response = await fetch(`${API}/api/v1/profile-matching/rematch`, { method: 'POST' })
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(typeof body?.detail === 'string' ? body.detail : 'Could not queue AI rematching. Please try again.')
+      }
+      setMessage('All eligible jobs are queued for a fresh AI match. The background worker will process them.')
+      setRevision(value => value + 1)
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not queue AI rematching. Please try again.') }
+    finally { setRematching(false) }
+  }
   useEffect(() => {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout>
@@ -62,7 +77,9 @@ export default function MatchingStatusPage() {
   return <div className="app-shell"><SiteHeader active="settings" />
     <main className="content settings-page">
       <section className="settings-page-heading"><h1>AI matching status</h1><p>Check whether AI job reviews are progressing. Updates every 30 seconds.</p>
-        <button type="button" onClick={() => setRevision(value => value + 1)}>Refresh status</button></section>
+        <button type="button" onClick={() => setRevision(value => value + 1)}>Refresh status</button>
+        <button type="button" disabled={rematching} onClick={() => void rematchAll()}>{rematching ? 'Queuing…' : 'Match all jobs with AI again'}</button>
+        {message && <p role="status">{message}</p>}</section>
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p role="status">Checking AI matching…</p>}
       {data && <MatchingStatusDetails data={data} />}

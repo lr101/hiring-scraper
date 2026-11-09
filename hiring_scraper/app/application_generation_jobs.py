@@ -173,7 +173,7 @@ def start(root, profile_id, job_id, runner, request=None, revision=None, automat
             _write(root, profile_id, job_id, current)
 
     class Control:
-        usage_limit_percent = 50 if automatic else None
+        usage_limit_percent = None
         def __call__(self, stage):
             if self.cancelled(): raise HTTPException(409, 'Preparation cancelled.')
             update(stage=stage)

@@ -112,7 +112,7 @@ export default function SettingsPage() {
         </div>
         <ChatGPTConnection refreshKey={modelRevision} />
         <ApplicationModelSettings onSaved={() => setModelRevision(value => value + 1)} />
-        <p className="finish-help">Background job reviews use Luna and pause at 50% of your five-hour allowance, or whenever that usage cannot be checked.</p>
+        <p className="finish-help">Background job reviews use Luna and pause when your subscription allowance is exhausted or usage cannot be checked.</p>
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="companion-heading">

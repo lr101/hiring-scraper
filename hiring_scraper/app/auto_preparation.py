@@ -60,7 +60,7 @@ def prepare_once():
         if _active_job(root) or not codex_runtime.status()['enabled']:
             return False
         quota = codex_runtime.subscription_usage()
-        if not quota.get('allowed') or quota.get('used_percent') is None or quota['used_percent'] >= 50:
+        if not quota.get('allowed'):
             return False
         with SessionLocal() as session:
             profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()

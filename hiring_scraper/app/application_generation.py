@@ -556,7 +556,8 @@ def _validated_generation(documents, prompt, data, form, deadline, progress, sel
 def _workflow(data, form, progress=None, mode='full', selected_model=None):
     # Fresh ephemeral Codex invocations provide separate drafting and critique
     # contexts. No conversation/session is shared between these passes.
-    deadline = time.monotonic() + 900
+    # Include macro correction and structural repair turns before final review.
+    deadline = time.monotonic() + 12 * codex_runtime.GENERATION_SECONDS
     rows = progress.load('assessment') if progress and hasattr(progress, 'load') else None
     if rows is None:
         rows = data.get('shared_requirements')

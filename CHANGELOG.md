@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Remove the built-in 50% AI quota threshold, handle plain-text application save failures, and give multi-pass CV preparation a larger review budget.
+
 - Sort Journey by current fit scores while matching rebuilds and refresh saved pages as AI assessments arrive.
 
 - Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
@@ -37,6 +39,8 @@ no historical releases have been reconstructed.
 - Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
 
 ### Added
+
+- Queue fresh AI assessments across profiles from the AI matching status page.
 
 - Only send eligible jobs with a local base score strictly over 35/100 for AI assessment.
 - Add an AI matching status page with queue counts, recent assessment activity, and subscription pause diagnostics.

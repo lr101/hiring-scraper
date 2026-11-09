@@ -51,6 +51,9 @@ const server = createServer(async (request, response) => {
       response.writeHead(422)
       response.end(JSON.stringify({ detail: [{ msg: 'Invalid status' }] }))
     } else response.end(JSON.stringify({ profile_id: 9, job_id: 42, status: payload.status }))
+  } else if (request.url.endsWith('/500')) {
+    response.writeHead(500)
+    response.end('Internal Server Error')
   } else {
     response.writeHead(404)
     response.end(JSON.stringify({ detail: 'Job not found' }))
@@ -75,6 +78,7 @@ try {
   }
   await assert.rejects(helpers.saveApplication(base, 9, 999, 'open'), /Job not found/)
   await assert.rejects(helpers.saveApplication(base, 9, 42, 'invalid'), /Could not save application status/)
+  await assert.rejects(helpers.saveApplication(base, 9, 500, 'not_interested'), /Could not save application status/)
   console.log('Application status requests and actionable API errors passed')
 } finally {
   server.closeAllConnections()
