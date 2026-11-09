@@ -34,6 +34,12 @@ def _prepare_codex_state() -> None:
         for directory, directories, files in os.walk(root, followlinks=False):
             for path in [Path(directory), *(Path(directory) / name for name in directories + files)]:
                 if path.is_symlink():
+                    # The native CLI creates PATH helper aliases in CODEX_HOME/tmp.
+                    # Keep those disposable links without touching their targets.
+                    # The cache root and all persistent state must remain real paths.
+                    temporary = root / 'home' / 'tmp'
+                    if path != temporary and path.is_relative_to(temporary):
+                        continue
                     raise RuntimeError("The private Codex state directory must not contain symbolic links")
                 os.chown(path, APP_UID, APP_GID, follow_symlinks=False)
     root.chmod(0o700)

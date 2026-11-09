@@ -24,6 +24,12 @@ Install ShellCheck using your OS package manager. To run the browser shards too,
 
 These host checks do not replace the image builds or PostgreSQL/PostGIS smoke test, which require Docker. CI runs both paths.
 
+The container checks also exercise the bundled Codex binary against a fresh
+disposable state directory with networking disabled. Native `login status`
+creates helper symlinks without a login or model turn, then repeated startup
+ownership repair and another status read must succeed. The check also rejects
+application images containing the offline hillclimb tooling.
+
 ### Local PostgreSQL checks
 
 Before pushing, a local PostgreSQL server can run the real concurrency regressions and migration graph without Docker. Install PostgreSQL client tools, PostGIS and pgvector on the server; the container pins pgvector `v0.8.7` in `docker/Dockerfile.postgres`. Migrations require a cluster role named `hiring_app` for grants; if absent on a dedicated local test server, an administrator can create it with `CREATE ROLE hiring_app NOLOGIN;`. The connecting role must be able to create and drop databases and install those extensions (normally a local superuser). Configure libpq's `PGHOST`, `PGPORT`, and `PGUSER` for a **local test server**, and use a `.pgpass` file if authentication needs a password. Then run:

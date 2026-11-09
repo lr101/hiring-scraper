@@ -30,3 +30,6 @@ poc
 extensions/**/node_modules
 frontend/public/downloads
 dist
+
+# Offline benchmark tooling and its private inputs never enter deployment builds.
+experiments/application_hillclimb

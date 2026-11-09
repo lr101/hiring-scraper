@@ -26,6 +26,14 @@ services:
         condition: service_healthy
     init: true
 
+  codex-state-smoke:
+    image: ${HIRING_APP_IMAGE:-hiring-scraper:ci}
+    entrypoint: ["python", "/run/codex-state-smoke.py"]
+    volumes:
+      - ./scripts/ci/codex_state_smoke.py:/run/codex-state-smoke.py:ro
+    network_mode: none
+    init: true
+
   browser-sandbox-smoke:
     image: ${HIRING_APP_IMAGE:-hiring-scraper:ci}
     entrypoint: ["python", "/usr/local/bin/hiring-browser-sandbox-smoke.py"]

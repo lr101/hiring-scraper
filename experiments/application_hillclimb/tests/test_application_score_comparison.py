@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/hillclimb/compare_scores.py'
+SCRIPT = Path(__file__).resolve().parents[1] / 'compare_scores.py'
 
 
 class ScoreComparisonTests(unittest.TestCase):

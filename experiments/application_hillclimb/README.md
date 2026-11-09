@@ -1,5 +1,30 @@
 # Application generation hillclimb
 
+This is an opt-in, local research tool. The runner and its tests live entirely in
+`experiments/application_hillclimb/`, which `.dockerignore` excludes from every
+image build context. They are not installed as application entry points, imported
+by the app, or included in the deployment's startup or application test discovery.
+Run its offline tests separately:
+
+```sh
+.venv/bin/python -m unittest discover -s experiments/application_hillclimb/tests -v
+```
+
+The runner moved from `scripts/hillclimb/`; update private wrapper commands to
+the new path before any future permitted run. Existing private scenarios and
+results remain untouched. Do not edit archived manifests to conceal a path or
+code-fingerprint change.
+
+The parent benchmark remains incomplete: candidate003 met seven of eight
+historical document baselines; some posting contexts remain provisional.
+Candidate004's archived preparation is not a completed evaluation. Generation
+must remain stopped while the subscription quota gate disallows it; a reset time
+alone is not proof of permission. Recheck the existing quota gate before any
+future run, without changing its limits. Preserve archived candidates and record
+any subsequent candidate's exact source hashes separately. Completion requires
+all six fresh full runs, twelve rendered and independently scored documents, and
+both fit and checklist thresholds for each immutable historical baseline.
+
 This runner evaluates the server's **full application-preparation worker** with a
 real Radius ChatGPT subscription. It builds a temporary SQLite profile, saved CV
 and job from a private scenario file, then calls the deployment's
@@ -73,7 +98,7 @@ model calls queue safely while each worker uses its own temporary database and
 output folder.
 
 ```sh
-python3 scripts/hillclimb/run_application_generation.py \
+python3 experiments/application_hillclimb/run_application_generation.py \
   --scenario /private/benchmark/role-2026-01.json \
   --candidate prompt-variant-a \
   --run-id trial-001
@@ -114,7 +139,7 @@ After an evaluator assigns scores, compare them with the frozen historical
 baseline:
 
 ```sh
-python3 scripts/hillclimb/compare_scores.py \
+python3 experiments/application_hillclimb/compare_scores.py \
   --baseline /private/benchmark/baseline/scores.json \
   --candidate /private/benchmark/candidate/scores.json \
   --provenance /private/benchmark/candidate/provenance.json \

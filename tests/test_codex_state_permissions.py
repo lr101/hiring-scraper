@@ -49,5 +49,39 @@ assert (root/'home/auth.json').read_text() == 'synthetic cached login'
             self.assertEqual(outside.stat().st_uid, original.st_uid)
             self.assertEqual(outside.read_text(), 'unchanged')
 
+    @unittest.skipUnless(os.geteuid() == 0, 'Production ownership repair requires root')
+    def test_native_temporary_helper_links_survive_repeated_startup_without_touching_targets(self):
+        with tempfile.TemporaryDirectory(prefix='radius-volume-') as folder:
+            root = Path(folder) / 'codex'
+            helpers = root / 'home/tmp/arg0-linux/codex-arg0-example'
+            helpers.mkdir(parents=True)
+            outside = Path(folder) / 'outside'; outside.mkdir()
+            executable = outside / 'executable'; executable.write_text('synthetic runtime')
+            aliases = [helpers / name for name in ('apply_patch', 'applypatch', 'codex-linux-sandbox')]
+            for alias in aliases:
+                alias.symlink_to(executable)
+            (helpers / 'external-directory').symlink_to(outside, target_is_directory=True)
+            original = executable.stat()
+            with patch.dict(os.environ, {'RADIUS_CODEX_STATE_DIR': str(root)}):
+                entrypoint._prepare_codex_state()
+                entrypoint._prepare_codex_state()
+            self.assertTrue(all(alias.is_symlink() for alias in aliases))
+            self.assertEqual(helpers.stat().st_uid, entrypoint.APP_UID)
+            self.assertEqual(executable.stat().st_uid, original.st_uid)
+            self.assertEqual(executable.stat().st_gid, original.st_gid)
+            self.assertEqual(executable.stat().st_mode, original.st_mode)
+            self.assertEqual(executable.read_text(), 'synthetic runtime')
+
+    def test_persistent_state_and_temporary_cache_roots_cannot_be_links(self):
+        for relative in ('home', 'home/auth.json', 'home/tmp', 'runtime.lock'):
+            with self.subTest(relative=relative), tempfile.TemporaryDirectory(prefix='radius-volume-') as folder:
+                root = Path(folder) / 'codex'; root.mkdir()
+                outside = Path(folder) / 'outside'; outside.mkdir()
+                link = root / relative; link.parent.mkdir(parents=True, exist_ok=True)
+                link.symlink_to(outside, target_is_directory=True)
+                with patch.dict(os.environ, {'RADIUS_CODEX_STATE_DIR': str(root)}):
+                    with self.assertRaises(RuntimeError):
+                        entrypoint._prepare_codex_state()
+
 
 if __name__ == '__main__': unittest.main()
