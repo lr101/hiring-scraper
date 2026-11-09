@@ -80,3 +80,20 @@ try {
   server.closeAllConnections()
   await new Promise(resolve => server.close(resolve))
 }
+
+// Completed local results must refresh as background AI assessments arrive.
+const refreshEffectStart = component.indexOf('  // AI assessments can arrive')
+assert.ok(refreshEffectStart >= 0, 'Journey needs a background assessment refresh')
+const refreshEffect = component.slice(refreshEffectStart, component.indexOf('\n  useEffect(', refreshEffectStart + 100))
+let refreshTimer
+let reloaded = false
+let invalidated = false
+const refreshCache = { current: new Map([['local', {}]]) }
+new Function('useEffect', 'window', 'pageCacheRef', 'invalidateInFlightPageRequests', 'setReloadKey',
+  'profilesReady', 'activeProfileKey', 'hasSavingJob', 'loading', stripTypeScriptTypes(refreshEffect))(
+  callback => callback(), { setInterval: callback => { refreshTimer = callback }, clearInterval() {} },
+  refreshCache, () => { invalidated = true }, () => { reloaded = true }, true, '9', false, false)
+refreshTimer()
+assert.equal(refreshCache.current.size, 0)
+assert.equal(invalidated, true)
+assert.equal(reloaded, true)

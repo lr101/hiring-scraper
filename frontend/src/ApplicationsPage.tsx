@@ -356,6 +356,17 @@ export default function ApplicationsPage() {
     return () => window.clearTimeout(timer)
   }, [refreshingMatches, loading, error, hasSavingJob, queryKey, reloadKey])
 
+  // AI assessments can arrive after the local match index has finished.
+  useEffect(() => {
+    if (!profilesReady || !activeProfileKey || hasSavingJob || loading) return
+    const timer = window.setInterval(() => {
+      pageCacheRef.current.clear()
+      invalidateInFlightPageRequests()
+      setReloadKey(current => current + 1)
+    }, 30000)
+    return () => window.clearInterval(timer)
+  }, [profilesReady, activeProfileKey, hasSavingJob, loading])
+
   useEffect(() => {
     let active = true
     getApplicationMomentum().then(value => {
@@ -617,6 +628,7 @@ export default function ApplicationsPage() {
 
   return <div className="app-shell"><SiteHeader active="applications" />
     <main className="content applications-page journey-page">
+      <a href="/settings/ai-matching">AI matching status</a>
       {profilesReady && !profiles.length && <section className="journey-first-profile">
         <h2>Start with a profile</h2>
         <a href="/profile/new">Create a profile <span aria-hidden="true">→</span></a>

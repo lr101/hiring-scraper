@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Sort Journey by current fit scores while matching rebuilds and refresh saved pages as AI assessments arrive.
+
 - Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
 
 - Keep the opt-in application hillclimb runner and its tests in a separate experiments directory excluded from deployment build contexts.
@@ -35,6 +37,9 @@ no historical releases have been reconstructed.
 - Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
 
 ### Added
+
+- Only send eligible jobs with a local base score strictly over 35/100 for AI assessment.
+- Add an AI matching status page with queue counts, recent assessment activity, and subscription pause diagnostics.
 
 - A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
 

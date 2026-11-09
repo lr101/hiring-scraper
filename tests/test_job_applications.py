@@ -57,6 +57,22 @@ class JobApplicationTests(unittest.TestCase):
         self.assertTrue(page['matching_pending'])
         self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
 
+    def test_stale_production_journey_sorts_by_displayed_scores_before_pagination(self):
+        self.save(self.jobs[0], 'open')
+        self.save(self.jobs[1], 'open')
+        self.session.add_all([
+            models.ProfileJobMatch(profile_id=self.profile['id'], job_id=job.id,
+                                   match_score=score, match_tier='possible', match_uncertain=False)
+            for job, score in zip(self.jobs[:2], [99, 1])])
+        self.session.commit()
+        def current_match(job, *args):
+            return {'score': 2 if job.id == self.jobs[0].id else 59, 'score_source': 'local'}
+        with patch.object(api, 'IS_SQLITE', False), patch.object(api, '_profile_match', side_effect=current_match):
+            page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all',
+                                         sort='match', offset=0, limit=1, session=self.session)
+        self.assertEqual(page['items'][0]['id'], self.jobs[1].id)
+        self.assertEqual(page['items'][0]['profile_match']['score'], 59)
+
     def test_sqlite_journey_keeps_saved_roles_when_match_rebuild_conflicts(self):
         self.save(self.jobs[0], 'open')
         def conflict(session, profiles):
@@ -249,6 +265,11 @@ class JobApplicationTests(unittest.TestCase):
             if index != 0:
                 self.session.add(models.ProfileJobMatch(profile_id=self.profile['id'], job_id=job.id,
                     match_score=index * 10, match_tier='possible', match_uncertain=False))
+        self.session.commit()
+        # These explicit ranks represent a completed index; stale ranks are
+        # covered separately by the production rebuilding regression.
+        profile = self.session.get(models.UserProfile, self.profile['id'])
+        profile.match_index_version = job_search._profile_index_version(profile)
         self.session.commit()
         for sort, expected in [('match', [2, 1, 0]), ('posted', [2, 0, 1]), ('discovered', [0, 1, 2])]:
             with self.subTest(sort=sort):

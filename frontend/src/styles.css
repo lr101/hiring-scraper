@@ -1980,3 +1980,11 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 .connection-check .finish-spinner { margin-right: 0; }
 @keyframes finish-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .finish-spinner { animation: none; } }
+
+.matching-status-facts { margin: 1rem 0; }
+.matching-status-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding: .8rem 0; border-bottom: 1px solid var(--border, #68756b); }
+.matching-status-facts dt { font-weight: 600; }
+.matching-status-facts dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .matching-status-facts > div { grid-template-columns: 1fr; gap: .3rem; }
+}
