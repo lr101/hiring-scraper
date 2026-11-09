@@ -379,6 +379,41 @@ class PersistedAssessmentTests(unittest.TestCase):
                 with self.factory() as session:
                     self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
 
+    def test_worker_allows_usage_above_fifty(self):
+        self.assertTrue(self.refresh(generate=lambda *a, **kw: assessment(),
+                                    usage=lambda: {'allowed': True, 'used_percent': 75}))
+
+    def test_rematch_requeues_saved_assessments(self):
+        self.assertTrue(self.refresh())
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            result = service.requeue_all_assessments()
+        self.assertEqual(result['requeued_assessments'], 1)
+        with self.factory() as session:
+            self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+        self.assertTrue(self.refresh())
+
+    def test_rematch_rebuilds_local_scores_after_low_ai_score(self):
+        self.assertTrue(self.refresh(data=assessment(score=12)))
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            service.requeue_all_assessments()
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            self.assertIsNone(profile.match_index_version)
+            ensure_profile_match_indexes(session, [profile])
+            session.commit()
+        self.assertTrue(self.refresh())
+
+    def test_rematch_does_not_race_an_inflight_assessment(self):
+        service = self.service()
+        with self.factory() as session:
+            engine = session.get_bind()
+        with patch.object(service, 'SessionLocal', self.factory), service._inference_lease(engine):
+            with self.assertRaises(api.HTTPException) as raised:
+                service.requeue_all_assessments()
+        self.assertEqual(raised.exception.status_code, 409)
+
     def test_usage_block_and_disconnection_never_start_inference(self):
         def forbidden(*args, **kwargs):
             self.fail('Blocked quota must not start inference')
@@ -636,7 +671,7 @@ class PersistedAssessmentTests(unittest.TestCase):
     def test_inference_lease_prevents_concurrent_duplicate_work(self):
         def generate(prompt, schema, **kwargs):
             self.assertFalse(self.refresh(generate=lambda *a, **kw: self.fail('Duplicate inference')))
-            self.assertEqual(kwargs, {'model': 'gpt-6-luna', 'reasoning_effort': 'medium', 'usage_limit_percent': 50})
+            self.assertEqual(kwargs, {'model': 'gpt-6-luna', 'reasoning_effort': 'medium', 'usage_limit_percent': 100})
             return assessment()
         self.assertTrue(self.refresh(generate=generate))
 

@@ -457,7 +457,7 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
         if not acquired:
             return False
         quota = usage()
-        if not quota.get('allowed') or (quota.get('used_percent') is not None and quota['used_percent'] >= 50):
+        if not quota.get('allowed'):
             return False
         with SessionLocal() as session:
             audit_first = _AUDIT_NEXT.get(engine_key, False)
@@ -470,7 +470,7 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
         profile_id, job_id, digest, prompt = snapshot
         retry_key = (engine_key, profile_id, job_id, digest)
         try:
-            raw = generate(prompt, SCHEMA, model=MODEL, reasoning_effort=EFFORT, usage_limit_percent=50)
+            raw = generate(prompt, SCHEMA, model=MODEL, reasoning_effort=EFFORT, usage_limit_percent=100)
             sources = json.loads(prompt.split('\nDATA:\n', 1)[1])['evidence_sources']
             checked = validate_assessment(raw, sources)
             raw = {key: checked[key] for key in SCHEMA['properties']}
@@ -535,6 +535,25 @@ def _stale_assessment_pending(session):
         if not expiry(job)['expired'] and digest != source_hash(job, profile):
             return True
     return False
+
+
+def requeue_all_assessments():
+    """Invalidate saved AI assessments so the worker recomputes eligible pairs."""
+    from sqlalchemy import delete, update
+    from fastapi import HTTPException
+    with SessionLocal() as session:
+        engine = session.get_bind()
+        with _inference_lease(engine) as acquired:
+            if not acquired:
+                raise HTTPException(409, 'An AI assessment is running. Try rematching again shortly.')
+            session.scalars(select(UserProfile).order_by(UserProfile.id).with_for_update()).all()
+            result = session.execute(delete(ProfileLLMScore))
+            session.execute(update(UserProfile).values(match_index_version=None))
+            count = result.rowcount
+            session.commit()
+    _RETRIES.clear()
+    _CURSORS.clear()
+    return {'requeued_assessments': count}
 
 
 def matching_status():

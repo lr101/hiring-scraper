@@ -69,7 +69,7 @@ class CodexUsageTests(unittest.TestCase):
     def test_reads_subscription_five_hour_window_with_handshake_and_isolated_auth(self):
         usage = self.usage()
         self.assertEqual({key: usage[key] for key in ('available', 'allowed', 'reason', 'used_percent', 'window_minutes', 'limit_percent')},
-            {'available': True, 'allowed': True, 'reason': 'ready', 'used_percent': 49, 'window_minutes': 300, 'limit_percent': 50})
+            {'available': True, 'allowed': True, 'reason': 'ready', 'used_percent': 49, 'window_minutes': 300, 'limit_percent': 100})
         seen = json.loads((self.root / 'usage-seen.json').read_text())
         self.assertEqual([message['method'] for message in seen['messages']],
                          ['initialize', 'initialized', 'account/read', 'account/rateLimits/read'])
@@ -80,6 +80,13 @@ class CodexUsageTests(unittest.TestCase):
             self.assertNotIn(key, seen['env'])
         self.assertFalse((self.root / 'seen.json').exists(), 'Quota reads must not launch inference')
         self.assertNotIn('private@', json.dumps(usage))
+
+    def test_default_allows_usage_above_fifty_until_exhausted(self):
+        for used in (50, 75, 99):
+            self.configure(quota_payload=self.payload(self.window(used)))
+            self.assertTrue(self.usage()['allowed'])
+        self.configure(quota_payload=self.payload(self.window(100)))
+        self.assertFalse(self.usage()['allowed'])
 
     def test_accepts_secondary_five_hour_window_and_never_substitutes_other_windows(self):
         self.configure(quota_payload=self.payload(self.window(2, 15), self.window(45)))
@@ -108,7 +115,7 @@ class CodexUsageTests(unittest.TestCase):
         self.configure(quota_payload={'rateLimits': buckets['codex'], 'rateLimitsByLimitId': buckets})
         usage = self.usage()
         self.assertEqual(usage['used_percent'], 52)
-        self.assertEqual(usage['reason'], 'usage_limit_reached')
+        self.assertEqual(usage['reason'], 'ready')
         buckets['gpt-6-luna']['primary']['usedPercent'] = 40
         self.configure(quota_payload={'rateLimits': buckets['codex'], 'rateLimitsByLimitId': buckets})
         self.assertEqual(self.usage()['used_percent'], 40)

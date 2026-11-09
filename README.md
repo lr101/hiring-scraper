@@ -160,12 +160,11 @@ developer's Codex login or silently fall back to paid API billing.
 
 The worker reads subscription usage before each job. It starts another job only
 when a current five-hour (300-minute) usage window is available and total usage
-is below 50%. It pauses when the connection is missing, usage cannot be verified,
+is below the subscription exhaustion limit (100%). It pauses when the connection is missing, usage cannot be verified,
 the five-hour window is absent, or the limit has been reached. A weekly or other
 window is not substituted for the requested five-hour budget. Accounts without
 that window remain paused. Processing can resume after a reported reset; local
-matching continues while Luna is paused. An in-flight request can finish above
-50%, and other activity on the account also consumes the shared allowance.
+matching continues while Luna is paused. Other activity on the account also consumes the shared allowance.
 
 Assessments follow the functional-experience approach of
 [AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md):
