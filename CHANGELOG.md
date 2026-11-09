@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Ground tailored application examples in supplied role evidence, avoid inferred employer duties for title-only postings, and provide original CV macro budgets during drafting and review.
+
 - Keep saved applications available when a match rebuild conflicts with an inventory update.
 - Correct malformed generated CVs and cover letters once, and create cover-letter exports from the reviewed text.
 - Show the actual error when applying a suggested document revision and isolate draft state in development previews.
@@ -29,6 +31,8 @@ no historical releases have been reconstructed.
 - Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
 
 ### Added
+
+- A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
 
 - Shared, source-checked requirement evidence for matching and application drafting, separate fit/completeness breakdowns, and an independent final content review that blocks unsupported claims.
 

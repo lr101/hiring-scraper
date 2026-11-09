@@ -219,6 +219,16 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertEqual(provider.call_count, 2)
         self.assertIn('Built useful tools.', result['latex_documents']['cv'])
 
+    def test_macro_prompt_supplies_original_character_limits(self):
+        from test_tex_cv import source
+        m = self.module()
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}')
+        prompt = m._prompt({'original_cv_text': original})
+        self.assertIn('CV MACRO BUDGETS:\n', prompt)
+        budgets = json.loads(prompt.split('CV MACRO BUDGETS:\n', 1)[1].split('\n\n', 1)[0])
+        self.assertEqual(budgets['RadiusWorkOne'], {'max_characters': 21, 'recommended_max_characters': 17})
+
     def test_macro_cv_full_review_reconstructs_revised_source(self):
         from test_tex_cv import source
         m = self.module()
