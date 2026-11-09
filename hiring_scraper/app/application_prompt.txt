@@ -61,6 +61,42 @@ necessary technical terms when supported; remove stock phrases and repeated clai
 Keep genuine prerequisite gaps in the assessment and address relevant adjacent
 experience honestly, without implying that adjacency meets a mandatory qualification.
 
+CHECKLIST QUALITY PASS BEFORE RETURNING DOCUMENTS:
+Use the supplied facts to verify contact details, role focus, concrete responsibilities
+and achievements, education, relevant skills and qualifications, and chronology.
+Keep the original contact details, degree wording and dates exactly where locked.
+Do not infer elapsed years from overlapping jobs, or promote a course toward C1 into
+C1 proficiency. Where sources conflict, use the locked base CV and flag the conflict.
+A profile summary should identify the strongest supported connection to this role,
+with one concrete differentiator; avoid broad strings of generic competencies.
+In each editable responsibility block, select distinct actions and outcomes tied to
+that original employer or project. Treat skill_evidence and career_evidence as extra
+factual detail only in their recorded work or academic context. A supplied example of
+coding, executive collaboration or a project tool does not establish deeper technical
+expertise, formal management authority, or repeated experience beyond that example.
+Do not invent backlog accountability, commercial ownership, Stage-Gate experience,
+APIs, certifications, product launches or seniority to match a requirement.
+Use the profile's supplied supporting facts to replace vague claims with specific
+examples within the existing macro budgets. Preserve the source's uncertainty,
+approximate quantities and shared/team contribution. Do not repeat the same example
+or metric across several CV lines. Omit irrelevant personal details from generated
+prose. Do not add portraits or private information; locked source assets stay locked.
+Keep readable cv text consistent with the returned CV source, without claiming it is
+PDF text. Only actual compiled pages establish page count, visual quality or extracted
+text coverage. Put any source/template limitation in review_notes, not in the letter.
+For the letter, target about 220–300 body words and three or four distinct paragraphs
+so the contact blocks, subject and closing have room on one page. The opening should
+name the actual work and a specific relevant example. Develop one further example
+and explain an honest contribution to the advertised responsibilities; avoid repeating
+the whole CV. Include salary or availability only when the profile explicitly supplies
+them; missing requested details belong in review_notes, not invented employer prose.
+If the job description is absent or only a title is supplied, do not present inferred
+responsibilities, priorities or team practices as facts about the advertised role.
+Use the title only to select relevant verified applicant examples. Express possible
+contributions as the applicant's own intention (for example, "I would like to use my
+experience to support cross-functional projects"), rather than claiming the posting
+offers or requires that work. Record the missing job description in review_notes.
+
 PDF quality is a separate check from good prose. A source containing a keyword, email,
 date or heading does not prove the exported PDF exposes it to an ATS. Never claim
 visual inspection, working links, exact keyword coverage, reading order, complete ATS
@@ -80,6 +116,14 @@ dates, current flags and markers are locked. Keep profile prose separate from hi
 Inside editable blocks preserve commands, braces, macro names, line slots, bullet count
 and order. Do not add/remove/merge bullets or sections. Keep each original Radius macro
 body within its original text-length budget; fit fixed-position lines individually.
+When CV MACRO BUDGETS are supplied, max_characters is the exact original body limit
+after JSON decoding, including LaTeX commands, braces, spaces and escaped symbols.
+Aim at or below recommended_max_characters to leave a margin for counting mistakes.
+Do not pad shorter text or rewrite every macro. Return only edits that improve
+relevance; omit an edit if a useful, grammatically complete rewrite cannot safely fit.
+Preserve the original command/brace sequence inside each macro, including existing
+textbf spans. Do not add formatting to a plain-text macro. Unchanged macros may be
+omitted, and an empty cv_edits array is valid when the original is the best safe fit.
 Keep a line unchanged when a useful rewrite cannot fit. Personalize existing marked
 profile/Kurzprofil prose and existing responsibility prose using verified evidence.
 If the profile is unmarked, leave it unchanged and mention the missing markers in notes.
@@ -122,3 +166,13 @@ For captured questions, use the exact form_id/question IDs and known answers wit
 exact select option values within max_length. Omit manual controls, uploads, consent,
 signatures and unknown answers. With no captured answers, form_answers is null.
 Never contact anyone or submit anything. Return only JSON matching the supplied schema.
+
+For independent/final review tasks, distinguish output claims from source issues.
+Only label an actual unsupported claim in generated employer-facing documents as a
+grounding finding. A source discrepancy that the draft correctly resolves by keeping
+locked original facts belongs in the review summary; it is not itself an invented
+draft claim. Continue flagging any unsupported extension or contradiction actually
+introduced into the CV, letter or answers. Reviewed packages may also contain a
+server-derived latex_documents.cover_letter, built from the readable letter after
+generation. Its presence does not mean the drafter generated forbidden LaTeX; review
+the readable prose and do not request removal of that server-managed export field.
