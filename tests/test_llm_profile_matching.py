@@ -207,6 +207,32 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertEqual(match['score'], 0)
             self.assertTrue(match['uncertain'])
 
+    def test_saved_journey_role_is_assessed_without_derived_index(self):
+        with self.factory.begin() as session:
+            session.query(models.ProfileJobMatch).delete()
+            session.get(models.UserProfile, self.profile_id).match_index_version = None
+            session.query(models.JobApplication).filter_by(profile_id=self.profile_id, job_id=self.job_id).update({'status': 'open'})
+        self.assertTrue(self.refresh())
+        with self.factory() as session:
+            self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+
+    def test_saved_role_fallback_still_checks_eligibility_before_inference(self):
+        with self.factory.begin() as session:
+            session.query(models.ProfileJobMatch).delete()
+        service = self.service()
+        with patch.object(service, 'match_job', return_value={'eligible': False, 'score': 59}):
+            self.assertFalse(self.refresh(generate=lambda *args, **kwargs: self.fail('Ineligible role reached AI')))
+
+    def test_status_is_pending_while_match_index_is_missing(self):
+        with self.factory.begin() as session:
+            session.query(models.ProfileJobMatch).delete()
+            session.get(models.UserProfile, self.profile_id).match_index_version = None
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            status = service.matching_status()
+        self.assertEqual(status['state'], 'pending')
+        self.assertTrue(status['indexing_pending'])
+
     def test_status_exposes_queue_and_success_without_claiming_worker_health(self):
         service = self.service()
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):

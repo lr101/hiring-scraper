@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Review saved Journey roles even when their derived match index is missing, and report pending index rebuilds in AI matching status.
+
 - Remove the built-in 50% AI quota threshold, handle plain-text application save failures, and give multi-pass CV preparation a larger review budget.
 
 - Sort Journey by current fit scores while matching rebuilds and refresh saved pages as AI assessments arrive.
