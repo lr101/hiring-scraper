@@ -4,6 +4,7 @@ import SiteHeader from './SiteHeader'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 type MatchingStatus = {
   state: 'pending' | 'ready' | 'disconnected' | 'paused'
+  indexing_pending?: boolean
   queued_pairs: number; assessed_pairs: number; stale_assessments_pending: boolean
   last_assessed_at: string | null; checked_at: string
   model: string; usage: { allowed?: boolean; reason?: string; used_percent?: number | null; resets_at?: string | null }
@@ -13,11 +14,11 @@ function timestamp(value: string | null) {
   return new Date(value.endsWith('Z') || /[+-]\d\d:\d\d$/.test(value) ? value : `${value}Z`).toLocaleString()
 }
 export function MatchingStatusDetails({ data }: { data: MatchingStatus }) {
-  const title = { pending: 'Waiting for assessments', ready: 'Up to date', disconnected: 'Connect ChatGPT', paused: 'Paused' }[data.state]
+  const title = data.state === 'pending' && data.indexing_pending ? 'Preparing job matches' : { pending: 'Waiting for assessments', ready: 'Up to date', disconnected: 'Connect ChatGPT', paused: 'Paused' }[data.state]
   return <>
     <section className="detail-panel settings-card" aria-labelledby="matching-state">
       <h2 id="matching-state">{title}</h2>
-      <p>{data.state === 'pending' ? 'Jobs with a local base score over 35/100 are queued for AI review. Local estimates stay visible until assessments are saved.'
+      <p>{data.state === 'pending' && data.indexing_pending ? 'Local matches are still being rebuilt. The AI queue count is incomplete until this finishes.' : data.state === 'pending' ? 'Jobs with a local base score over 35/100 are queued for AI review. Local estimates stay visible until assessments are saved.'
         : data.state === 'ready' ? 'There are no pending assessments in the current queue.'
         : data.state === 'disconnected' ? 'Connect your ChatGPT subscription in Settings to enable AI job reviews.'
         : 'AI reviews are paused because subscription usage is unavailable or the usage limit has been reached.'}</p>
@@ -54,7 +55,7 @@ export default function MatchingStatusPage() {
         const body = await response.json().catch(() => null)
         throw new Error(typeof body?.detail === 'string' ? body.detail : 'Could not queue AI rematching. Please try again.')
       }
-      setMessage('All eligible jobs are queued for a fresh AI match. The background worker will process them.')
+      setMessage('AI rematching requested. The background worker will rebuild local matches and review eligible jobs.')
       setRevision(value => value + 1)
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not queue AI rematching. Please try again.') }
     finally { setRematching(false) }

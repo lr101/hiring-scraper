@@ -23,7 +23,7 @@ from hiring_scraper.app import codex_runtime, requirement_evidence
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import Job, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
+from hiring_scraper.app.models import Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job
 from hiring_scraper.semantic_matching import job_sections
@@ -386,12 +386,23 @@ def _inference_lease(engine):
             fcntl.flock(descriptor, fcntl.LOCK_UN)
 
 
+def _unassessed_candidates():
+    # Saved Journey roles survive profile edits that clear the derived index.
+    # Recheck their base score and eligibility below before spending AI quota.
+    indexed = select(ProfileJobMatch.profile_id, ProfileJobMatch.job_id).where(
+        ProfileJobMatch.match_score > MIN_AI_BASE_SCORE)
+    saved = select(JobApplication.profile_id, JobApplication.job_id).where(
+        ~exists(select(1).where(ProfileJobMatch.profile_id == JobApplication.profile_id,
+                               ProfileJobMatch.job_id == JobApplication.job_id)))
+    return indexed.union(saved).subquery()
+
+
 def _candidate_snapshot(session, engine_key, *, audit=False):
     """Walk an indexed queue; reject implausible/expired work before inference."""
     cursor_key = (engine_key, audit)
     cursor = _CURSORS.get(cursor_key, (0, 0))
     for _ in range(2):
-        model = ProfileLLMScore if audit else ProfileJobMatch
+        model = ProfileLLMScore if audit else _unassessed_candidates().c
         statement = (select(model.profile_id, model.job_id)
             .join(Job, Job.id == model.job_id)
             .where(Job.is_active.is_(True), or_(model.profile_id > cursor[0], and_(
@@ -402,9 +413,9 @@ def _candidate_snapshot(session, engine_key, *, audit=False):
             # ORM invalidation, including previous low scores or failed gates.
             statement = statement.where(ProfileLLMScore.version == VERSION)
         else:
-            statement = statement.where(ProfileJobMatch.match_score > MIN_AI_BASE_SCORE,
-                ~exists(select(1).where(ProfileLLMScore.profile_id == ProfileJobMatch.profile_id,
-                    ProfileLLMScore.job_id == ProfileJobMatch.job_id, ProfileLLMScore.version == VERSION)))
+            statement = statement.where(
+                ~exists(select(1).where(ProfileLLMScore.profile_id == model.profile_id,
+                    ProfileLLMScore.job_id == model.job_id, ProfileLLMScore.version == VERSION)))
         candidates = session.execute(statement).all()
         if not candidates:
             if cursor == (0, 0):
@@ -570,12 +581,14 @@ def matching_status():
             .select_from(ProfileLLMScore).join(Job, Job.id == ProfileLLMScore.job_id)
             .where(Job.is_active.is_(True), ProfileLLMScore.version == VERSION)).one()
         stale = _stale_assessment_pending(session) if assessed else False
-        pending = bool(queued or stale)
+        from hiring_scraper.app.job_search import profile_match_index_stale
+        indexing = any(profile_match_index_stale(profile) for profile in session.scalars(select(UserProfile)))
+        pending = bool(queued or stale or indexing)
     safe = {key: quota.get(key) for key in ('available', 'allowed', 'reason', 'used_percent',
                                            'resets_at', 'window_minutes', 'limit_percent')}
     return {'state': 'pending' if quota.get('allowed') and pending else 'ready' if quota.get('allowed') else
                      'disconnected' if quota.get('reason') == 'disconnected' else 'paused',
-            'pending': pending, 'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe,
+            'pending': pending, 'indexing_pending': indexing, 'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe,
             'queued_pairs': queued, 'assessed_pairs': assessed, 'stale_assessments_pending': stale,
             'last_assessed_at': last_assessed.isoformat() if last_assessed else None,
             'worker_health': 'unknown', 'checked_at': utcnow().isoformat()}
