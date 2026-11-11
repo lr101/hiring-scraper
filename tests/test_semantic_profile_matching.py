@@ -36,6 +36,16 @@ def vector(first, second=0):
 
 
 class SemanticSectionTests(unittest.TestCase):
+    def test_structured_optional_siblings_do_not_enter_required_semantic_evidence(self):
+        sem = engine(self)
+        parts = sem.job_sections({'raw_metadata': {'qualifications': {
+            'required': ['Experience coordinating technical delivery projects'],
+            'preferred': ['Experience designing quantum optical sensors']}}})
+        text = ' '.join(row['text'] for row in parts)
+        self.assertIn('coordinating technical delivery', text)
+        self.assertNotIn('quantum optical', text)
+        self.assertEqual(parts[0]['source'], 'structured.qualifications.required[0]')
+
     def test_duties_and_late_requirements_survive_long_intro_without_benefits_or_title(self):
         sem = engine(self)
         job = {'title': 'Python developer', 'description':
@@ -116,7 +126,8 @@ class SemanticScoreTests(unittest.TestCase):
             with self.subTest(requirement=requirement):
                 result = match_job({'title': 'Specialist', 'description': DESCRIPTION +
                                     '\nRequirements:\n' + requirement},
-                                   {**PROFILE, 'languages': ['English']}, semantic=self.evidence())
+                                   {**PROFILE, 'languages': ['English', 'German'],
+                                    'language_levels': {'German': 'B2'}}, semantic=self.evidence())
                 self.assertNotEqual(result['fit_tier'], 'recommended')
                 if requirement.startswith('German'):
                     self.assertFalse(result['eligible'])
@@ -145,7 +156,8 @@ class SemanticScoreTests(unittest.TestCase):
         profile = {**PROFILE, 'language_levels': {'German': 'C1', 'English': 'C1'}}
         baseline = match_job(job, profile)
         result = match_job(job, profile, semantic=self.evidence())
-        self.assertEqual(baseline['fit_tier'], 'recommended')
+        # The desired title adds no independent task evidence.
+        self.assertEqual(baseline['fit_tier'], 'possible')
         self.assertEqual(result['score'], baseline['score'])
         self.assertEqual(result['uncertain'], baseline['uncertain'])
 

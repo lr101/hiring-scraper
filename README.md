@@ -152,51 +152,98 @@ fresh slug. The adapter reserves a separate embedding port and owns both process
 
 ### Subscription-backed job scoring
 
-The profile matching worker also evaluates locally plausible active jobs with
-`gpt-6-luna` at medium reasoning through the private Radius ChatGPT connection.
+Only eligible jobs with a current local base score strictly over 35/100 can enter
+the AI pool. The profile matching worker evaluates active jobs with
+`gpt-6.1-sol` at high reasoning through the private Radius ChatGPT connection.
 Connect your subscription in **Settings → ChatGPT subscription**. This uses
 included Codex subscription capacity, not an API key. It does not reuse a
 developer's Codex login or silently fall back to paid API billing.
 
-The worker reads subscription usage before each job. It starts another job only
-when a current five-hour (300-minute) usage window is available and total usage
-is below the subscription exhaustion limit (100%). It pauses when the connection is missing, usage cannot be verified,
-the five-hour window is absent, or the limit has been reached. A weekly or other
-window is not substituted for the requested five-hour budget. Accounts without
-that window remain paused. Processing can resume after a reported reset; local
-matching continues while Luna is paused. Other activity on the account also consumes the shared allowance.
+AI is a selective second pass, not an eventual sweep of the inventory. For each
+profile the worker selects at most 10% of locally eligible jobs (rounded up),
+capped at ten jobs and two per employer. Roughly 80% of slots prioritize static
+fit; the rest prioritize task/static disagreement and uncertainty. Static scores
+and cached local embeddings select the pool; AI scores never feed back into its
+membership. Already-assessed jobs remain in the population, so checking or
+rejecting them does not move the worker on to every remaining job. Meaningful
+profile, source or inventory changes can change the selected pool. Known
+incompatibilities and closed/expired jobs remain excluded.
+
+`RADIUS_MATCH_AI_CALLS_PER_5H` defaults to **50 provider attempts per rolling five hours,
+globally across profiles and workers**. Set it to `0` to disable automatic AI
+matching. Failed calls and grounding/transport retries also count. Reservations
+are persisted before calls, survive restarts and cache deletion, and use a unique
+database slot to prevent replica overspend. Invalid values disable inference.
+Expired reservations are pruned when reserving a new call. The worker refreshes its static
+selection at most once a minute and persists only selected IDs and a profile fingerprint,
+so status reads do not rescore the inventory. Selected sources are verified before inference
+and before publishing a result.
+The status endpoint reports the five-hour limit, used calls and remaining calls in `call_budget`.
+This call cap is not a token or monetary guarantee. Cached assessments and static matching remain available.
+
+Explicit CV language sections can supply a missing language level without
+replacing a saved level; absence of a language claim remains unknown.
+Country-agnostic authorization flags are not country-specific eligibility evidence.
+
+Set `RADIUS_MATCH_AI_MODEL` and `RADIUS_MATCH_AI_REASONING_EFFORT` to override the
+matching model and effort. Changing either invalidates prior assessments; document
+preparation keeps its separate model setting. The call budget is unchanged, but
+model choice affects subscription capacity and latency.
+
+The worker reads subscription usage before each job. There is no 50% usage guard:
+matching can use the remaining subscription capacity. It pauses when the connection
+is missing, usage cannot be verified, the five-hour window is absent, or a provider
+quota is exhausted. The separate 50-calls-per-rolling-five-hours limit still applies.
+Cached assessments and local matching remain available while inference is paused.
 
 Assessments follow the functional-experience approach of
 [AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md):
-skills (30%), experience (25%), behavioral/work-preference fit (15%) and career
-alignment (30%), with separate location, language and eligibility gates.
-Unavailable dimensions remain unknown and weights are redistributed over the
-known dimensions. The prompt uses saved career facts and preferences, including
+skills (30%) and experience (25%) form the task-qualification score, renormalized
+over known task dimensions and capped by evidence for core work. Behavioral/work-preference
+fit (15%) and career alignment (30%) form a separate preference-fit score; they do
+not dilute demonstrated qualifications. Location, language and eligibility are
+separate gates. Unavailable dimensions remain unknown. The prompt uses saved career facts and preferences, including
 career goals and work preferences when supplied, rather than inferring abilities
 from desired job titles. It does not research companies or follow instructions
 embedded in job postings.
 
-Local scores are provisional shortlist estimates capped at 59/100 in Radius. A
-valid, current Luna assessment **replaces** that estimate and its
+Citation sources reserve space for career, CV, skill and logistics evidence, including
+original-language excerpts. Every scored AI dimension selects a bound profile citation;
+source paths and verbatim excerpts are checked before publishing or using cached results.
+Older assessments refresh under the new version while local estimates remain available. An assessment with unverifiable citations or unsupported
+gate failures receives one guarded repair attempt. Repeatedly ungrounded results are
+deferred rather than published with contradictory explanations. Mandatory unverified
+licenses or jurisdiction-specific work authorization keep the recommendation unlikely
+until verified; missing evidence is distinguished from an explicit incompatibility.
+
+Job details show a score graphic comparing task assessment, role-evidence ceiling and final
+qualification score, with preferences separate. Local task fit excludes desired-title
+preference; task evidence is required for a local recommendation.
+
+Local scores retain their evidence-based calibration and remain labelled as provisional shortlist estimates. A
+valid, current AI assessment **replaces** that estimate and its
 fit explanation, including lowering a score to zero. It is not blended with the
 local estimate. Its numerical score is capped by evidence for the job’s core work. Explicit local
 eligibility restrictions still apply. The same assessment drives job detail,
 Journey ranking and materialized profile matches; the detail page identifies a
-Luna assessment. Missing, invalid or stale assessments fall back to local matching.
+AI assessment. Missing, invalid or stale assessments fall back to local matching.
 
+Opening a job shows the weighted skills/experience calculation, its role-evidence ceiling,
+per-dimension reasons, requirement quotes, and eligibility checks.
 The job detail separates qualification fit (skills/experience), preference fit
 (behavior/career direction), assessed dimension weight, requirement coverage and
 requirement evidence completeness. The overall number remains a weighted fit index,
 not a hiring probability. The weighted dimension estimate is capped by demonstrated
 role evidence: core requirements control 85% and supporting requirements at most 15%
 (100% core when there are no supporting requirements). Unknown requirements add no
-demonstrated evidence; they do not establish inability. Required core gaps, unknowns
-or transferable-only evidence also cap the index at 59. No identified core work means
-zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
-These conservative initial budgets need calibration against judged jobs.
+demonstrated evidence; they do not establish inability. Individual core gaps and unknowns reduce the evidence-weighted score without a blanket cap;
+required unresolved capabilities still prevent a Recommended label. Atomic rows quoting the same employer clause share one weight, so splitting a
+duty cannot multiply its influence. No identified core work means zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
+The evidence distance is assessed from source excerpts and remains visible for review.
 Unknown dimensions are excluded rather than scored as zero;
 coverage excludes unknown requirements, so always read it alongside completeness.
-Preferred requirements have quarter weight and transferable evidence earns half credit.
+Preferred requirements have quarter weight. Documented close transfer at the required autonomy
+earns 80% evidence credit; adjacent transfer earns 50%. Neither clears a formal prerequisite.
 A required gap, unknown or transferable-only requirement prevents a Recommended label,
 even when the numerical index is high. Explicit eligibility conflicts still veto eligibility.
 
@@ -214,7 +261,7 @@ request. Inference runs outside database transactions, and publication verifies
 that the profile and job are still current. Existing acted application stages
 remain intact. API reads use only cached data and never start inference.
 
-For a preview of the rules/Luna worker without loading another local embedding
+For a preview of the rules/AI worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
 backfills; it enables the profile worker as well.

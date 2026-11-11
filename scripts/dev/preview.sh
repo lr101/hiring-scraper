@@ -410,9 +410,9 @@ PY
 
 reserve_port() {
   local role=$1 candidate marker owner
+  mkdir -p -- "$port_state_dir"
   exec {port_lock_fd}>"$port_lock_file"
   flock "$port_lock_fd"
-  mkdir -p -- "$port_state_dir"
   for _ in $(seq 1 100); do
     candidate=$(python3 - <<'PY'
 import socket
@@ -695,7 +695,7 @@ if [[ "$profile_matching" == true ]]; then
   profile_embedding_url="http://127.0.0.1:${semantic_port:-9}/embed"
   (
     cd "$repo_root"
-    exec setsid env DATABASE_URL="$database_url" SEMANTIC_EMBEDDING_URL="$profile_embedding_url" \
+    exec setsid env DATABASE_URL="$database_url" RADIUS_CODEX_STATE_DIR="$state_dir/codex" SEMANTIC_EMBEDDING_URL="$profile_embedding_url" \
       mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
   ) >> "$state_dir/profile-worker.log" 2>&1 < /dev/null &
   profile_worker_pid=$!

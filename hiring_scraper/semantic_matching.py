@@ -10,10 +10,11 @@ import json
 import numpy as np
 
 from hiring_scraper.matching import NON_REQUIREMENT, _UNSUPPORTED_PROFILE_CLAIM, profile_content_sources
-from hiring_scraper.requirements import scoped_sentences, structured_text
+from hiring_scraper.requirements import (scoped_sentences, structured_text,
+                                        structured_requirement_texts, structured_source_scope)
 
 MODEL_KEY = 'intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3'
-VERSION = MODEL_KEY + ':profile-sections-v2'
+VERSION = MODEL_KEY + ':profile-sections-v4-positioned-heading-scope'
 DIMENSIONS = 384
 CHUNK_CHARS = 900
 MAX_JOB_CHUNKS = 12
@@ -61,17 +62,17 @@ def _bounded_sections(groups: dict[tuple[str, str], list[str]], limit: int) -> l
 
 
 def job_sections(job: dict) -> list[dict]:
-    texts = [('description', job.get('description') or '', False)]
+    texts = [('description', job.get('description') or '')]
     raw = job.get('raw_metadata') or {}
     for prefix, values in [('structured', raw), ('detail', raw.get('detail_requirements') or {})]:
         for field in ('skills', 'qualifications', 'experienceRequirements', 'educationRequirements'):
             value = values.get(field)
             if value:
-                texts.append((prefix + '.' + field,
-                              value if isinstance(value, str) else json.dumps(value, ensure_ascii=False), True))
+                texts.extend(structured_requirement_texts({field: value}, prefix))
     groups = {}
-    for source, text, explicit in texts:
-        for sentence, scope in scoped_sentences(structured_text(text), structured=explicit):
+    for source, text in texts:
+        for sentence, scope in scoped_sentences(structured_text(text),
+                                                initial_scope=structured_source_scope(source)):
             if scope in {'benefits', 'optional'} or NON_REQUIREMENT.search(sentence):
                 continue
             # Headings alone carry no content and can otherwise inflate cosine similarity.

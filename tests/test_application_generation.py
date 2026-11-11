@@ -58,6 +58,7 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def requirements(self):
         return {'requirements': [{'requirement': 'Product requirements', 'priority': 'required', 'importance': 'core',
+            'category': 'capability', 'evidence_distance': 'adjacent',
             'status': 'transferable', 'job_source': 'job.description',
             'job_quote': 'Coordinate product requirements.', 'evidence_source': 'profile.summary',
             'evidence_quote': 'Product coordination', 'explanation': 'Adjacent coordination experience.'}]}
@@ -68,6 +69,8 @@ class ApplicationGenerationTests(unittest.TestCase):
         profile = self.session.get(models.UserProfile, self.profile_id)
         job = self.session.get(models.Job, self.job_id)
         raw = {**assessment(), **self.requirements()}
+        for dimension in raw['dimensions'].values():
+            dimension.update(evidence_source='profile.summary', evidence_quote='Product coordination')
         digest = profile_llm.source_hash(job, profile)
         row = self.session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
         if row is None:

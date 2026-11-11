@@ -8,6 +8,31 @@ from hiring_scraper.app import models, profiles
 from hiring_scraper.app.latex_documents import latex_source
 
 
+class CVLanguageEvidenceTests(unittest.TestCase):
+    def test_explicit_language_section_supplies_levels_without_header_or_duty_inference(self):
+        from hiring_scraper.app.tex_cv import parse_tex_languages
+        text = (r'\begin{document}' + '\nHeader: German C2.\n' +
+                r'\section*{Languages}' + '\nEnglish C1; French A2; Spanish native.\n' +
+                r'\section*{Experience}' + '\nTaught German C2 courses.\n' + r'\end{document}')
+        self.assertEqual(parse_tex_languages(text), {'English': 'C1', 'French': 'A2', 'Spanish': 'native'})
+
+    def test_hidden_or_commented_headings_do_not_establish_language_facts(self):
+        from hiring_scraper.app.tex_cv import parse_tex_languages
+        for prefix, suffix in ((r'\iffalse', r'\fi'), ('% ', ''),
+                               (r'\newcommand{\hidden}{', '}')):
+            with self.subTest(prefix=prefix):
+                text = (r'\begin{document}' + '\n' + prefix + r'\section{Languages}' +
+                        '\nGerman C2\n' + r'\section{Work}' + '\n' + suffix +
+                        '\n' + r'\end{document}')
+                self.assertEqual(parse_tex_languages(text), {})
+
+    def test_conflicting_levels_and_tex_comments_do_not_create_verified_language_claims(self):
+        from hiring_scraper.app.tex_cv import parse_tex_languages
+        text = (r'\begin{document}' + '\n' + r'\section*{Sprachen}' +
+                '\nDeutsch B1; Deutsch C1; Französisch A2.\n% English C2\n' + r'\end{document}')
+        self.assertEqual(parse_tex_languages(text), {'French': 'A2'})
+
+
 def source(language='en'):
     company = 'Labs'
     body = latex_source('Alex Example\n## Experience\nEngineer\n- ' + ('Built research tools.' if language == 'en' else 'Forschungswerkzeuge entwickelt.'))
@@ -39,6 +64,15 @@ class TexCVTests(unittest.TestCase):
         self.assertEqual(en['experiences'][0]['id'], 'work-1')
         self.assertEqual(set(profiles.profile_json(self.session.get(models.UserProfile, self.id))['cv']['languages']), {'en', 'de'})
         self.assertNotIn('experiences', self.session.get(models.UserProfile, self.id).preferences.get('application_details', {}))
+
+    def test_matching_projection_includes_cv_career_records_without_private_headers(self):
+        profiles.store_profile_cv(self.session, self.id, 'cv.tex', source().encode(), language='en')
+        profile = self.session.get(models.UserProfile, self.id)
+        facts = profile.matching_preferences.get('cv_career_facts', {})
+        self.assertEqual(facts.get('experiences', [{}])[0].get('description'), 'Built research tools.')
+        self.assertNotIn('id', facts['experiences'][0])
+        self.assertNotIn('Alex Example', json.dumps(facts))
+        self.assertNotIn('cv_career_facts', profile.preferences)
 
     def test_rejects_non_tex_and_malformed_history_without_replacing_saved_cv(self):
         profiles.store_profile_cv(self.session, self.id, 'cv.tex', source().encode(), language='en')

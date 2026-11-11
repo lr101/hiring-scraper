@@ -4,7 +4,7 @@ import SiteHeader from './SiteHeader'
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 type MatchingStatus = {
   state: 'pending' | 'ready' | 'disconnected' | 'paused'
-  indexing_pending?: boolean
+  indexing_pending?: boolean; selection_pending?: boolean
   queued_pairs: number; assessed_pairs: number; stale_assessments_pending: boolean
   last_assessed_at: string | null; checked_at: string
   model: string; usage: { allowed?: boolean; reason?: string; used_percent?: number | null; resets_at?: string | null }
@@ -18,7 +18,7 @@ export function MatchingStatusDetails({ data }: { data: MatchingStatus }) {
   return <>
     <section className="detail-panel settings-card" aria-labelledby="matching-state">
       <h2 id="matching-state">{title}</h2>
-      <p>{data.state === 'pending' && data.indexing_pending ? 'Local matches are still being rebuilt. The AI queue count is incomplete until this finishes.' : data.state === 'pending' ? 'Jobs with a local base score over 35/100 are queued for AI review. Local estimates stay visible until assessments are saved.'
+      <p>{data.state === 'pending' && data.indexing_pending ? 'Local matches are still being rebuilt. The AI queue count is incomplete until this finishes.' : data.state === 'pending' ? 'A shortlist of eligible jobs with a local base score over 35/100 is selected for AI review. Local estimates stay visible until assessments are saved.'
         : data.state === 'ready' ? 'There are no pending assessments in the current queue.'
         : data.state === 'disconnected' ? 'Connect your ChatGPT subscription in Settings to enable AI job reviews.'
         : 'AI reviews are paused because subscription usage is unavailable or the usage limit has been reached.'}</p>
@@ -36,6 +36,7 @@ export function MatchingStatusDetails({ data }: { data: MatchingStatus }) {
         <div><dt>Five-hour subscription usage</dt><dd>{data.usage.used_percent == null ? 'Unavailable' : `${data.usage.used_percent}%`} · pauses when exhausted</dd></div>
         <div><dt>Model</dt><dd>{data.model}</dd></div>
       </dl>
+      {data.selection_pending && <p>The background shortlist needs refreshing. The queue count currently shows candidates before shortlist caps are applied.</p>}
       <p>Counts cover all profiles and active jobs. Saved assessments may need reassessment after source changes; queued candidates are checked for eligibility before scoring.</p>
       <p>Last checked: {timestamp(data.checked_at)}</p>
     </section>

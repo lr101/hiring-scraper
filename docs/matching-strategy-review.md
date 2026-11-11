@@ -15,12 +15,16 @@ solve the missing job-side requirements.
 ## Decision
 
 Use local rules and semantic similarity for inexpensive candidate preselection,
-then AI requirement assessment for the final score. The existing worker visits
-locally plausible jobs at 30 or above. This is a recall-oriented shortlist, not
-proof of fit. Local numbers shown in Radius are provisional and capped at 59;
+then AI requirement assessment for selected jobs. The worker uses the bounded
+priority/exploration pool described below; it does not eventually assess every
+unassessed job. Exploration can include unfamiliar wording within that pool.
+Explicit known
+incompatibilities, closed/expired jobs, source checks and subscription limits
+remain enforced. This is a recall-oriented shortlist, not
+proof of fit. Local numbers shown in Radius retain their evidence-based calibration and remain provisional;
 the local/AI source and connection or quota status remain distinguishable.
-Saved minimum-score filters above 59 intentionally wait for AI results; these
-filters do not prevent the worker from considering the provisional shortlist. Local eligibility
+Saved minimum-score filters can admit grounded local estimates without waiting for AI.
+These filters do not prevent the worker from considering the provisional shortlist. Local eligibility
 restrictions continue to apply.
 
 The AI must identify the job's main responsibilities, domain expertise and
@@ -30,14 +34,48 @@ transferable evidence, explicit missing qualifications and unknowns. Goals,
 writing examples and desired titles cannot establish existing abilities. Literal
 source checks verify provenance, not interpretation or extraction completeness.
 
-The weighted dimension estimate cannot exceed demonstrated role evidence. Core
+The skills/experience qualification estimate cannot exceed demonstrated role
+evidence. Career/working-style preferences are scored separately. Core
 requirements have an 85-point budget and supporting requirements at most 15;
 without supporting requirements the core budget is 100. Within each group,
 preferred requirements have quarter weight, direct support earns full credit and
-transferable evidence half credit. Unknown and missing evidence add no demonstrated
-credit. Any unresolved mandatory core requirement caps the index at 59. Without
+close transferable evidence 80% credit and adjacent transfer half credit. Unknown and missing evidence add no demonstrated
+credit. Unresolved core tasks reduce aggregate evidence rather than imposing a blanket 59 cap.
+They still prevent a Recommended label. Without
 identified core work the evidence ceiling is zero. A list of matching generic
 tools or favorable preferences cannot lift that ceiling.
+
+Requirement category is separate from mandatory/preferred priority. Formal
+education, credentials, languages, location, work authorization and workplace
+conditions constrain eligibility rather than task evidence arithmetic. Unknown
+mandatory formal or legal prerequisites trigger explicit eligibility review; they
+do not establish an applicant incompatibility. A verified independent conflict
+cannot be cleared by supporting another prerequisite.
+
+Structured feed leaves retain their own source paths and required/preferred
+scope. HTML heading levels end sibling sections without erasing child scope.
+Both local and AI matching receive the same explicit CV work/study projection;
+contacts and CV headers remain excluded. Provider citation options retain parent
+scope and explicit degree completion state. One transient transport timeout may
+retry through the normal lock/quota guard, separately from one grounding repair.
+
+`task_alignment.py` adds a source-backed action/deliverable diagnostic alongside
+legacy local scoring. It compares actual work text rather than titles, preserves
+academic scope and distinguishes assistance from ownership. Coordinated duties
+are evaluated separately, so support for one duty cannot stand in for another.
+Multiple grounded duties can raise the local estimate. Partial supported duties
+or multiple transferable duties can surface a possible lead, capped at 59.
+The separate local `task_fit` field records capability overlap before mandatory
+qualification penalties and preferences; the final `score` remains the constrained
+shortlist estimate. Required degree evidence contributes to the eligibility gate,
+including completed degrees parsed from the saved CV. Current study does not
+establish degree completion. A past end date does not prove graduation: CV-derived
+degree proof requires an affirmative completion or award statement and must not
+contradict withdrawal or noncompletion evidence. Profile actions are split at the
+same predicate boundaries as job duties, so ownership of one object cannot prove
+ownership of an assisted duty elsewhere in that sentence. This diagnostic still needs broad
+calibration; neither literal action overlap nor embedding similarity proves
+professional tenure, formal prerequisites or regulated competence.
 
 These are explicit conservative starting rules, not empirically calibrated hiring
 probabilities. Evidence completeness is shown separately so absence of evidence is
@@ -56,7 +94,11 @@ this change keeps that arithmetic in code and uses AI for contextual interpretat
 AI also has failure modes: misclassifying a supporting skill as core, omitting a
 requirement, misreading a source quote, or overvaluing an adjacent project. A
 successful quote check cannot rule these out. No live-model quality improvement
-is claimed by synthetic transport tests.
+is claimed by synthetic transport tests. Provider citations select bound source/
+excerpt references; the application resolves and validates them before caching.
+An invalid semantic status or gate can receive one guarded reconciliation pass.
+Unscoped authorization flags are excluded from matching evidence; unknown legal
+eligibility cannot be inferred from a generic form answer.
 
 ## Remaining evaluation
 
@@ -75,3 +117,34 @@ matches cannot compensate for unknown core work, required gaps stay visible,
 stale assessments fall back to provisional estimates, and sparse postings can be
 processed without fabricating a requirement. They do not replace the judged-job
 benchmark.
+
+
+## Selective AI policy and combining scores
+
+Static matching and cached local embeddings process the inventory without paid
+inference. The automatic AI pool is at most 10% of locally eligible jobs, rounded
+up, capped at ten per profile and two per employer. About 80% are the highest
+static candidates; the balance samples task/static disagreement and uncertainty.
+Unknown eligibility is distinct from a known blocker. This is a relevance and
+value-of-information heuristic, still requiring independent quality evaluation.
+
+Compute pool membership from static evidence including jobs already assessed by
+AI. A rejected assessment must not free a slot for another job automatically;
+otherwise a small batch size eventually becomes an all-inventory AI sweep.
+Profile/job facts and inventory changes can legitimately change the pool. The
+persisted global rolling-five-hour provider-call budget defaults to 50, and counts
+repairs and unsuccessful attempts as well as successful assessments. There is no
+50% subscription usage cutoff. Connection, quota availability and provider
+exhaustion checks still apply. This controls automatic matching calls, not unrelated CV generation
+or other activity on the account.
+Actual quota exhaustion is rechecked under the runtime lock before every provider
+attempt, including repairs and timeout retries. Usage below 100% remains eligible;
+unavailable or exhausted quota does not start inference. A missing qualification
+score remains unknown when an academic-scope ceiling is applied.
+
+For unselected jobs retain the explicitly provisional static estimate and its
+uncertainty. For selected jobs use a current grounded AI requirement judgment;
+never average scores with different meanings or let favorable AI preferences
+clear known static incompatibilities. Separate task qualification, mandatory
+eligibility and uncertainty in the result. Cached judgments invalidate on relevant
+source changes; only jobs still in the bounded pool are automatically refreshed.

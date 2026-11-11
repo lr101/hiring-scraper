@@ -225,19 +225,19 @@ def logout():
     return status()
 
 
-def subscription_usage():
+def subscription_usage(*, limit_percent=100):
     """Read only Radius subscription limits; never start a model turn."""
     root = _root()
     try:
         with _lock(root):
-            return _subscription_usage(root)
+            return _subscription_usage(root, limit_percent=limit_percent)
     except HTTPException:
-        return evaluate(None)
+        return evaluate(None, limit_percent=limit_percent)
 
 
-def _subscription_usage(root):
+def _subscription_usage(root, *, limit_percent=100):
     # The caller owns the runtime lease, including throughout guarded generation.
-    unavailable = evaluate(None)
+    unavailable = evaluate(None, limit_percent=limit_percent)
     if not (root / 'home/auth.json').is_file():
         return {**unavailable, 'reason': 'disconnected'}
     process = None
@@ -290,7 +290,7 @@ def _subscription_usage(root):
             if (not isinstance(account, dict) or not isinstance(account.get('account'), dict) or
                     account['account'].get('type') != 'chatgpt'):
                 return {**unavailable, 'reason': 'disconnected'}
-            return evaluate(request(3, 'account/rateLimits/read'))
+            return evaluate(request(3, 'account/rateLimits/read'), limit_percent=limit_percent)
     except (OSError, ValueError, RecursionError, HTTPException):
         return unavailable
     finally:

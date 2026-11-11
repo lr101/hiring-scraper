@@ -330,6 +330,21 @@ class UserProfile(Base):
         }
         preferences = {key: value for key, value in (self.preferences or {}).items()
                        if key in matching_fields}
+        from hiring_scraper.app.tex_cv import cv_language_fallback, cv_career_fallback
+        cv_facts = cv_career_fallback(self.cv)
+        if cv_facts:
+            preferences['cv_career_facts'] = cv_facts
+        levels = dict(preferences.get('language_levels') or {})
+        cv_levels = cv_language_fallback(self.cv, levels)
+        if cv_levels:
+            preferences['language_levels'] = {**levels, **cv_levels}
+        logistics = ((self.preferences or {}).get('application_details') or {}).get('preferences') or {}
+        allowed_logistics = ('authorization_country', 'authorized_to_work', 'sponsorship_required',
+                             'willing_to_relocate', 'willing_to_work_onsite')
+        relevant_logistics = {key: logistics[key] for key in allowed_logistics
+                              if key in logistics and logistics[key] not in ('', None)}
+        if relevant_logistics:
+            preferences['application_preferences'] = relevant_logistics
         from hiring_scraper.matching import profile_content_sources
         sources = profile_content_sources(self.preferences or {})
         if sources:
@@ -461,6 +476,26 @@ class ProfileJobMatch(Base):
     match_score: Mapped[int] = mapped_column(Integer, nullable=False)
     match_tier: Mapped[str] = mapped_column(String(24), nullable=False)
     match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+
+
+class AIMatchingSelection(Base):
+    """Small background-selected pool for cheap cross-process status reads."""
+    __tablename__ = 'ai_matching_selections'
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    job_ids: Mapped[list] = mapped_column(JSON, nullable=False)
+    refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class AIMatchingCall(Base):
+    """Global provider attempt reservations, independent of deletable match caches."""
+    __tablename__ = 'ai_matching_calls'
+    __table_args__ = (Index('ix_ai_matching_calls_reserved_at', 'reserved_at'),)
+
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    slot: Mapped[int] = mapped_column(Integer, primary_key=True)
+    reserved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class ProfileLLMScore(Base):

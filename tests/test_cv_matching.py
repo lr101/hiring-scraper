@@ -67,11 +67,12 @@ class CvMatchingTests(unittest.TestCase):
                               'description': 'German C1 is a plus. Coordinate projects. ' * 15}, CV)
         self.assertTrue(optional['eligible'])
 
-    def test_fluency_c1_floor_conflicts_with_known_b2(self):
+    def test_estimated_fluency_floor_requires_review_for_known_b2(self):
         result = match_job({'title': 'Project Coordinator',
                             'description': 'Fluent German required. Coordinate projects. ' * 15}, CV)
-        self.assertFalse(result['eligible'])
-        self.assertTrue(any('German' in conflict and 'B2' in conflict for conflict in result['conflicts']))
+        self.assertTrue(result['eligible'])
+        self.assertEqual(result['gates']['language']['status'], 'unknown')
+        self.assertTrue(any('German' in note and 'B2' in note for note in result['unknowns']))
 
     def test_optional_experience_and_employer_history_are_not_requirements(self):
         job = {'title': 'Project Coordinator', 'description':
@@ -200,7 +201,8 @@ class CvMatchingTests(unittest.TestCase):
         result = match_job({'title': 'Project Coordinator', 'description':
                             'Our benefits include Excel training. Your duties require Excel reporting. ' * 12},
                            {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
-        self.assertEqual(result['fit_tier'], 'recommended')
+        self.assertLess(result['task_fit'], 65)
+        self.assertEqual(result['fit_tier'], 'possible')
 
     def test_german_tasks_heading_ends_requirement_section(self):
         enriched = enrich_job({'title': 'Project Coordinator', 'description':
@@ -255,7 +257,8 @@ class CvMatchingTests(unittest.TestCase):
         duty = match_job({'title': 'Learning and Development Coordinator',
                           'description': 'You deliver training and development programs to employees. ' * 12}, profile)
         self.assertEqual(benefit['fit_tier'], 'possible')
-        self.assertEqual(duty['fit_tier'], 'recommended')
+        self.assertLess(duty['task_fit'], 65)
+        self.assertEqual(duty['fit_tier'], 'possible')
         excel = match_job({'title': 'Project Coordinator',
                            'description': 'You receive Excel training as part of our perks. ' * 12},
                           {'desired_roles': ['Project coordinator'], 'skills': ['Excel']})
@@ -271,9 +274,10 @@ class CvMatchingTests(unittest.TestCase):
                 self.assertEqual(german['level'], 'C1')
                 self.assertEqual(german['level_range'], ['C1', 'C2'])
                 result = match_job(job, CV, enriched)
-                self.assertFalse(result['eligible'])
-                self.assertTrue(any('German' in conflict and 'B2' in conflict
-                                    for conflict in result['conflicts']))
+                self.assertTrue(result['eligible'])
+                self.assertEqual(result['gates']['language']['status'], 'unknown')
+                self.assertTrue(any('German' in note and 'B2' in note
+                                    for note in result['unknowns']))
 
     def test_benefit_clause_does_not_suppress_separate_required_language(self):
         for wording in ('We provide you with onboarding support, but German C1 is required.',
@@ -292,7 +296,8 @@ class CvMatchingTests(unittest.TestCase):
                           'description': 'You build services with Elixir. ' * 12}, profile)
         self.assertEqual(benefit['fit_tier'], 'possible')
         self.assertEqual(benefit['custom_skill_evidence'][0]['source'], 'title')
-        self.assertEqual(duty['fit_tier'], 'recommended')
+        self.assertLess(duty['task_fit'], 65)
+        self.assertEqual(duty['fit_tier'], 'possible')
         self.assertEqual(duty['custom_skill_evidence'][0]['source'], 'description')
 
     def test_block_sections_keep_optional_benefits_and_duties_out_of_requirements(self):
@@ -625,7 +630,9 @@ class CvMatchingTests(unittest.TestCase):
         project = match_job({'title': 'Project Manager', 'description':
                              'Project management, requirements gathering, customer service and onboarding. ' * 20},
                             {**CV, 'skills': CV['skills'] + ['Onboarding']})
-        self.assertEqual(customer['fit_tier'], 'recommended')
+        # A desired title cannot fill the remaining duty-evidence gap.
+        self.assertLess(customer['task_fit'], 65)
+        self.assertEqual(customer['fit_tier'], 'possible')
         self.assertEqual(project['fit_tier'], 'recommended')
 
     def test_required_language_list_stops_at_explicit_contrast(self):

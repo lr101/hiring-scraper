@@ -37,12 +37,15 @@ import json, sys
 from hiring_scraper.matching import match_job
 profiles = json.loads(sys.stdin.read())
 job = {'title': 'Project coordinator', 'description': 'German B2 required. Project management and coordination. ' * 12}
-print(json.dumps([match_job(job, profile)['conflicts'] for profile in profiles]))
+print(json.dumps([{'gate': match_job(job, profile)['gates']['language'],
+                   'review': match_job(job, profile)['language_review']} for profile in profiles]))
 `], { input: JSON.stringify([{ languages: Object.keys(levels), language_levels: levels }, saved]), encoding: 'utf8' })
 assert.equal(result.status, 0, result.stderr)
 const [before, after] = JSON.parse(result.stdout)
-assert.ok(!before.some(conflict => conflict.includes('German')))
-assert.ok(after.includes('Language requested: German'))
+assert.equal(before.gate.status, 'pass')
+assert.equal(after.gate.status, 'unknown')
+assert.equal(after.review, true)
+assert.match(after.gate.reason, /German/)
 console.log('Removed proficiency no longer satisfies real matcher language evidence')
 
 assert.equal(typeof helpers.boardLocationParams, 'function', 'Board requests must carry the same effective country as detail links')

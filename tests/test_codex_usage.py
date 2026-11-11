@@ -48,6 +48,25 @@ class CodexUsageTests(unittest.TestCase):
         self.assertTrue(hasattr(self.runtime, 'subscription_usage'), 'Public safe quota probe is missing')
         return self.runtime.subscription_usage()
 
+    def test_default_usage_has_no_half_capacity_guard(self):
+        self.configure(quota_payload=self.payload(self.window(75)))
+        usage = self.runtime.subscription_usage()
+        self.assertTrue(usage['allowed'])
+        self.assertEqual(usage['limit_percent'], 100)
+        self.configure(quota_payload=self.payload(self.window(100)))
+        self.assertFalse(self.runtime.subscription_usage()['allowed'])
+
+    def test_locked_generation_allows_99_but_never_invokes_provider_at_exhaustion(self):
+        self.configure(quota_payload=self.payload(self.window(99)))
+        self.assertEqual(self.runtime.generate('Rank', {}, usage_limit_percent=100),
+                         {'answer': 'prepared'})
+        self.configure(quota_payload=self.payload(self.window(100)))
+        with patch.object(self.runtime, '_command', wraps=self.runtime._command) as command:
+            with self.assertRaises(HTTPException) as caught:
+                self.runtime.generate('Rank', {}, usage_limit_percent=100)
+            self.assertEqual(caught.exception.status_code, 429)
+            self.assertNotIn('exec', [call.args[0] for call in command.call_args_list])
+
     @contextmanager
     def started_probe(self, *, child=False):
         # Time only the controlled stall after the fixture has started; heavily
