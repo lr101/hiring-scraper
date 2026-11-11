@@ -15,9 +15,10 @@ from hiring_scraper.task_alignment import align_tasks, other_actor, task_units
 from hiring_scraper.election_data import job_city_vote_results
 from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_source_scope, structured_requirement_texts, structured_text, scoped_sentences, qualification_rows,
-                                         education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
+                                         education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE,
+                                         requirement_polarity, is_source_instruction)
 
-VERSION = 'rules-v43-task-evidence'
+VERSION = 'rules-v44-quality-gates'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -94,7 +95,7 @@ ROLE_GROUPS = [
 # Immutable role groups make bounded query membership caching safe.
 ROLE_GROUPS = tuple(tuple(group) for group in ROLE_GROUPS)
 OPTIONAL = re.compile(r'nice.to.have|optional|preferred|idealerweise|wünschenswert|bevorzugt|willkommen|keine? voraussetzung|von vorteil|a plus|not required|nicht erforderlich', re.I)
-REQUIREMENT = re.compile(r'\b(required|requirement|requirements|your profile|your qualifications|must have|must possess|you need|needs?|need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|vorausgesetzt\w*|voraussetzung\w*|notwendig\w*|müssen\w*|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
+REQUIREMENT = re.compile(r'\b(required|mandatory|essential|requirement|requirements|your profile|your qualifications|must have|must possess|you need|needs?|need|ihr profil|dein profil|anforderungen|was sie mitbringen|was du mitbringst|wir erwarten|vorausgesetzt\w*|voraussetzung\w*|notwendig\w*|müssen\w*|erforderlich|zwingend|pflicht|mindestens|at least|minimum)\b', re.I)
 NON_REQUIREMENT = re.compile(r'\b(we have|our company|our team|we offer|benefits|perks|you receive|you get|you can take|we provide you with|du erhältst|sie erhalten|wir bieten|unser unternehmen|unsere firma|seit \d{4}|common among our clients|spoken by our clients|our clients speak|our customers speak|our team speaks)\b', re.I)
 QUANTIFIED_SCRIPTING_LIST = re.compile(
     r'\bmindestens eine dieser Skriptsprachen\s*\(([^()\n]{1,300})\)', re.I)
@@ -537,8 +538,11 @@ def _requirement_clauses(sentence: str) -> list[str]:
     return parts
 
 
-def _required_context(sentence: str, *, explicit: bool = False, duties: bool = False) -> bool:
-    if OPTIONAL.search(sentence) or NON_REQUIREMENT.search(sentence):
+def _required_context(sentence: str, *, explicit: bool = False, duties: bool = False, start=None, end=None) -> bool:
+    polarity = requirement_polarity(sentence, start, end) if start is not None else None
+    if is_source_instruction(sentence) or (polarity is not None and polarity != 'required'):
+        return False
+    if (polarity is None and OPTIONAL.search(sentence)) or NON_REQUIREMENT.search(sentence):
         return False
     if duties:
         # Requirements can be a deliverable ("gather requirements"), while
@@ -607,7 +611,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                 for exp in experience_matches:
                     minimum = bool(exp.group('range_max') or exp.group('marker') or
                                    exp.group('reverse_marker') or exp.group('plus'))
-                    if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum), duties=scope == 'duties'):
+                    if experience is None and _required_context(clause, explicit=requirement_section or (scope == 'neutral' and minimum), duties=scope == 'duties', start=exp.start(), end=exp.end()):
                         years = _experience_years(exp)
                         if years is not None:
                             experience = _evidence(years, clause, exp, source)
@@ -705,7 +709,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                                            _shared_language_requirement(clause, language_hits) or
                                            (requirement_section and _bare_language_clause(clause, language_hits)))
                     if not language_signal or not _required_context(
-                            clause, explicit=requirement_section or (scope == 'neutral' and language_signal), duties=scope == 'duties'):
+                            clause, explicit=requirement_section or (scope == 'neutral' and language_signal), duties=scope == 'duties', start=found.start(), end=found.end()):
                         continue
                     group = alternative_groups.get(index)
                     previous = next((row for row in languages if row['value'] == language
@@ -900,9 +904,13 @@ def profile_content_sources(profile: dict) -> tuple[tuple[str, str], ...]:
             text = entry.get('description') or ''
             if isinstance(text, str):
                 sources.append((f'cv_career_facts.{kind}[{index}].description', text[:10000]))
+    for name, evidence in (profile.get('skill_evidence') or {}).items():
+        note = evidence.get('note') if isinstance(evidence, dict) else None
+        if isinstance(note, str) and note.strip():
+            sources.append((f'skill_evidence.{name}.note', note))
     # Saved profiles pass this compact projection instead of personal details.
     sources.extend(tuple(row) for row in profile.get('content_sources') or [])
-    return tuple((source, text) for source, text in sources if text)
+    return tuple(dict.fromkeys((source, text) for source, text in sources if text))
 
 
 @lru_cache(maxsize=256)
@@ -995,8 +1003,8 @@ def _credential_evidence(text, hit, certifications):
     return None
 
 
-_LICENSE_CONDITION = re.compile(r'\b(?:Approbation|Berufszulassung|Staplerschein|Fahrerlaubnis)\b|\b(?:professional|pharmacist|medical|active|current)\s+(?:license|licence|registration)\b', re.I)
-_AUTHORIZATION_CONDITION = re.compile(r'work (?:authorization|authorisation|permit)|right to work|arbeitserlaubnis', re.I)
+_LICENSE_CONDITION = re.compile(r'\b(?:Approbation|Berufszulassung|Staplerschein|Fahrerlaubnis)\b|\bErlaubnis\s+nach\s+§\s*\d+[a-z]?\b|\b(?:professional|pharmacist|medical|active|current)\s+(?:license|licence|registration)\b', re.I)
+_AUTHORIZATION_CONDITION = re.compile(r'work (?:authorization|authorisation|permits?|rights?)|rights? to work|arbeitserlaubnis|arbeitsberechtigung', re.I)
 
 
 def _eligibility_conditions(text, preferences, certifications, mandatory):
@@ -1010,12 +1018,12 @@ def _eligibility_conditions(text, preferences, certifications, mandatory):
         license_hit = _LICENSE_CONDITION.search(part)
         authorization_hit = _AUTHORIZATION_CONDITION.search(part)
         recognized = False
-        if license_hit and not _condition_waived(part, license_hit):
+        if license_hit and requirement_polarity(part, license_hit.start(), license_hit.end()) == 'required' and not _condition_waived(part, license_hit):
             recognized = True
             source = _credential_evidence(part, license_hit, certifications)
             conditions.append({'kind': 'license', 'status': 'pass' if source else 'unknown',
                 'reason': 'Current same-scope saved credential: ' + source if source else 'Required active professional credential is unverified: ' + part})
-        if authorization_hit and not _condition_waived(part, authorization_hit):
+        if authorization_hit and requirement_polarity(part, authorization_hit.start(), authorization_hit.end()) == 'required' and not _condition_waived(part, authorization_hit):
             recognized = True
             country = str(preferences.get('authorization_country') or '').strip()
             same_scope = len(country) > 2 and bool(_pattern(country).search(part))
@@ -1074,6 +1082,25 @@ def _scoped_experience_rows(text, total_years):
     return rows
 
 
+def _formal_requirement_satisfied(requirement, profile):
+    kind = requirement.get('kind')
+    if kind == 'education':
+        return education_satisfied(requirement, profile)
+    if kind == 'enrolment':
+        entries = [*(profile.get('education') or []),
+                   *((profile.get('cv_career_facts') or {}).get('education') or [])]
+        return any((row.get('current') is True or str(row.get('status', '')).casefold().replace('-', '_') in
+                    {'in_progress', 'enrolled', 'ongoing'}) and row.get('current') is not False
+                   for row in entries)
+    if kind == 'certification':
+        value = str(requirement.get('value') or '')
+        generic = value.casefold() in {'certificate', 'certification', 'zertifikat', 'zertifizierung', 'zertifiziert'}
+        return any((_pattern(credential).search(requirement['evidence']) if generic else _pattern(value).search(credential))
+                   and not re.search(r'\b(?:expired|revoked|abgelaufen|not held|nicht vorhanden)\b', credential, re.I)
+                   for credential in profile.get('certifications') or [])
+    return False
+
+
 def _applicability_context(job, profile, enriched):
     """Explain unverified scope and mandatory logistics without inventing facts.
 
@@ -1112,19 +1139,30 @@ def _applicability_context(job, profile, enriched):
     observations, unknowns = [], []
     academic_bridge = False
     eligibility_conditions = []
-    gates = {'location': {'status': 'unknown', 'reason': 'Workplace compatibility not independently verified.'},
-             'eligibility': {'status': 'unknown', 'reason': 'No legal eligibility requirement verified.'}}
+    gates = {'location': {'status': 'pass', 'reason': 'No mandatory workplace condition was stated.'},
+             'eligibility': {'status': 'pass', 'reason': 'No mandatory formal or legal prerequisite was stated.'}}
     preferences = profile.get('application_preferences') or (profile.get('application_details') or {}).get('preferences') or {}
+    work_style = job.get('work_arrangement') or ('remote' if job.get('is_remote') else enriched.get('work_style'))
+    if work_style in {'onsite', 'hybrid'}:
+        refused = preferences.get('willing_to_work_onsite') is False
+        gates['location'] = {'status': 'fail' if refused else 'unknown',
+            'reason': ('Saved preferences explicitly decline required on-site attendance.' if refused else
+                       'Verify attendance, commuting or relocation for the stated ' + work_style + ' workplace: ' +
+                       str(job.get('location_text') or 'location not specified') + '.')}
+    elif work_style == 'remote' and re.search(r'\b(?:must reside|must live|payroll|resident|residency)\b', ' '.join(text for text, _ in clauses), re.I):
+        gates['location'] = {'status': 'unknown', 'reason': 'Remote employment has a residence or payroll restriction; verify the required location independently of work authorization.'}
     for text, scope in clauses:
         mandatory = scope == 'requirements' or bool(re.search(r'\bmandatory\b|\brequired\b|\bmust\b|\berforderlich\b|\bzwingend\b', text, re.I))
         if scope in {'benefits', 'optional'}:
             continue
+        if re.search(r'\b(?:portfolio|work samples?|Arbeitsproben?)\b', text, re.I) and not OPTIONAL.search(text):
+            unknowns.append('Prepare and verify the requested work samples or portfolio: ' + text)
         if OPTIONAL.search(text) and not re.search(r'\bmandatory\b|\bmust\b', text, re.I):
             continue
         conditions = _eligibility_conditions(text, preferences, profile.get('certifications') or [], mandatory)
         license_required = any(row['kind'] == 'license' for row in conditions)
         authorization = any(row['kind'] == 'authorization' for row in conditions)
-        scoped_tenure = mandatory and re.search(r'leadership|managing managers|department heads|budget|führung|führungsverantwortung', text, re.I)
+        scoped_tenure = mandatory and re.search(r'leadership|leading|managing managers|department heads|budget|commercial|clinical|paid|professional|engineering|research|führung|führungsverantwortung|berufserfahrung', text, re.I)
         academic = mandatory and re.search(r'academic (?:project )?exposure|university project', text, re.I)
         core_unknown = (scope == 'duties' and not direct and not adjacent and not OPTIONAL.search(text) and
                         bool(re.search(r'\b(?:own|manage|approve|design|build|deliver|maintain|respond|coordinate|assist|dispense|verify)\b', text, re.I)) and
@@ -1133,6 +1171,9 @@ def _applicability_context(job, profile, enriched):
             rows = _scoped_experience_rows(text, profile.get('experience_years'))
             observations.extend(rows)
             unknowns.extend('Verify scoped tenure: ' + row['requirement'] + ' — ' + row['explanation'] for row in rows)
+            eligibility_conditions.extend({'kind': 'experience', 'status': 'fail' if row['status'] == 'missing' else 'unknown',
+                'reason': ('Declared total tenure is below the required scoped minimum: ' if row['status'] == 'missing' else
+                           'Required responsibility-specific tenure is unverified: ') + row['requirement']} for row in rows)
         if academic:
             for skill in sorted(skills):
                 if not _pattern(skill).search(text):
@@ -1171,14 +1212,16 @@ def _applicability_context(job, profile, enriched):
         unknowns.append('Verify product-specific implementation knowledge; adjacent service work does not establish deployment or architecture ownership.')
     unknowns.extend('Verify uncovered specialist duties: ' + text for text in uncovered)
     for requirement in enriched.get('requirements', []):
-        if requirement.get('kind') != 'education':
+        kind = requirement.get('kind')
+        if kind not in {'education', 'certification', 'enrolment'}:
             continue
-        satisfied = education_satisfied(requirement, profile)
-        condition = {'kind': 'education', 'status': 'pass' if satisfied else 'unknown',
-                     'reason': ('Saved degree evidence supports: ' if satisfied else
-                                'Required degree is unverified: ') + requirement['evidence']}
+        satisfied = _formal_requirement_satisfied(requirement, profile)
+        label = {'education': 'degree', 'certification': 'certificate', 'enrolment': 'current student enrolment'}[kind]
+        condition = {'kind': kind, 'status': 'pass' if satisfied else 'unknown',
+                     'reason': ('Saved ' + label + ' evidence supports: ' if satisfied else
+                                'Required ' + label + ' is unverified: ') + requirement['evidence']}
         eligibility_conditions.append(condition)
-        observations.append({'kind': 'education', 'status': 'supported' if satisfied else 'unknown',
+        observations.append({'kind': kind, 'status': 'supported' if satisfied else 'unknown',
                              'requirement': requirement['evidence'],
                              'job_source': requirement['source'], 'job_quote': requirement['evidence'],
                              'explanation': condition['reason']})
@@ -1270,10 +1313,9 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
             if known_languages and name.casefold() not in known_languages:
                 outcomes.append(('unknown', name + ' required; profile language evidence not provided', inferred_level))
             elif level and candidate_level in CEFR_RANK and CEFR_RANK[candidate_level] < CEFR_RANK[level]:
-                # Business-level wording is contextual rather than an explicit
-                # CEFR minimum. Generic fluency retains its established C1 floor.
-                business_review = inferred_level and bool(re.search(
-                    r'\bbusiness[- ]level\b', language.get('evidence', ''), re.I))
+                # Qualitative fluency ranges are estimates, not employer-stated
+                # CEFR minima. Preserve the gap as review rather than a denial.
+                business_review = inferred_level
                 outcomes.append(('unknown' if business_review else 'conflict',
                     f'{level_label} required; profile has {candidate_level}' +
                     ('; verify the employer’s required proficiency' if business_review else ''), inferred_level))
@@ -1332,13 +1374,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
         kind = requirement.get('kind', 'qualification')
         evidence = evidence_by_skill.get(value.casefold())
         satisfied = False
-        if kind == 'education':
-            satisfied = education_satisfied(requirement, profile)
-        elif kind == 'certification':
-            satisfied = any(
-                (_pattern(value).search(credential) if value.casefold() not in {'certification', 'zertifizierung', 'zertifiziert'}
-                 else _pattern(credential).search(requirement['evidence']))
-                for credential in profile.get('certifications') or [])
+        if kind in {'education', 'certification', 'enrolment'}:
+            satisfied = _formal_requirement_satisfied(requirement, profile)
         elif kind not in {'enrolment', 'professional_experience'}:
             satisfied = value.casefold() in profile_skill_names or bool(
                 evidence and str(evidence.get('context', '')).casefold() == 'professional')
@@ -1359,7 +1396,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
             unknowns.append(gap)
         penalty = {'domain': 25, 'education': 20, 'certification': 15,
                    'enrolment': 30, 'professional_experience': 20, 'skill': 15, 'title_domain': 25}.get(kind, 15)
-        gap_penalties[gap] = max(gap_penalties.get(gap, 0), penalty)
+        if kind not in {'education', 'certification', 'enrolment'}:
+            gap_penalties[gap] = max(gap_penalties.get(gap, 0), penalty)
     if experience and profile.get('experience_years') is None:
         gap = f"Verify minimum relevant experience: {experience['value']:g} years; CV exact months not established"
         requirement_gaps.append(gap)
@@ -1435,11 +1473,20 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                           'career evidence' if row['profile_source'] == 'career_evidence' else 'summary')
                 reasons.append(f"{row['skill']} found in profile {source}; qualification evidence still needs checking")
     applicability = _applicability_context(job, profile, {**enriched, 'skills': list(job_evidence.values())})
-    task_alignment = align_tasks(job, profile_content_sources(profile))
+    task_alignment = align_tasks(job, profile_content_sources(profile), source_contexts={
+        f'skill_evidence.{name}.note': row.get('context', 'unspecified')
+        for name, row in (profile.get('skill_evidence') or {}).items() if isinstance(row, dict)})
+    academic_admissible = ((enriched.get('seniority') or {}).get('value') in {'junior', 'student'} or
+                           bool(re.search(r'\b(?:academic|university|student|coursework|Studienprojekte|Studierende)\b.{0,65}'
+                                          r'\b(?:accepted|welcome|count|accepted evidence|zählen|reichen|ausreichend|willkommen)\b',
+                                          str(job.get('description') or ''), re.I)))
     grounded_tasks = (len(task_alignment['requirements']) >= 2 and
                       (task_alignment['score'] or 0) >= 65 and
-                      any(row['status'] == 'supported' and row['evidence_context'] != 'academic'
-                          for row in task_alignment['requirements']))
+                      any(row['status'] == 'supported' for row in task_alignment['requirements']) and
+                      (any(row['status'] == 'supported' and row['evidence_context'] != 'academic'
+                           for row in task_alignment['requirements']) or
+                       (academic_admissible and (enriched.get('seniority') or {}).get('value') not in {'senior', 'lead'} and
+                        not any(row.get('kind') == 'professional_experience' for row in enriched.get('requirements', [])))))
     partial_tasks = (any(row['status'] == 'supported' for row in task_alignment['requirements']) or
                      sum(row['status'] == 'transferable' for row in task_alignment['requirements']) >= 2)
     if not grounded_tasks and task_alignment['score'] and partial_tasks:
@@ -1451,7 +1498,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
         score = max(score, min(85, task_alignment['score']))
         for row in task_alignment['requirements']:
             if row['status'] == 'supported':
-                reasons.append('Supported task evidence: ' + row['job_quote'] +
+                reasons.append(('Supported academic/project task evidence: ' if row['evidence_context'] == 'academic' else
+                                'Supported task evidence: ') + row['job_quote'] +
                                ' Source: ' + row['evidence_source'] + ' — ' + row['evidence_quote'])
     score = max(score, applicability['score_floor'])
     if applicability['direct_service']:
@@ -1462,8 +1510,9 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     for row in applicability['observations']:
         if row.get('kind') == 'experience' and row['status'] == 'missing':
             conflicts.append('Declared total tenure is below the scoped minimum: ' + row['requirement'])
-    if applicability['gates']['eligibility']['status'] == 'fail':
-        conflicts.append(applicability['gates']['eligibility']['reason'])
+    for gate in applicability['gates'].values():
+        if gate['status'] == 'fail':
+            conflicts.append(gate['reason'])
     content_skills = [row['skill'] for row in content['matches']]
     matched = list(dict.fromkeys([*[skill for skill in matched if skill not in incidental_matches], *content_skills]))
     missing = [skill for skill in missing if skill not in content_skills]
@@ -1511,8 +1560,9 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                            if average_vote_share is not None and location_weight else 0)
     def adjusted_score(value, *, include_language=True):
         value = min(100, round(value))
-        if requirement_gaps:
-            # Independent mandatory gaps retain the same penalties on both paths.
+        if gap_penalties:
+            # Scope gaps limit demonstrated role evidence; formal prerequisites
+            # are separate gates, not evidence that documented duties disappeared.
             value = max(0, min(value, 60) - min(40, sum(gap_penalties.values())))
         value += max(-10, min(5, experience_adjustment))
         if include_language:
@@ -1525,7 +1575,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                               (task_alignment['score'] or 0) if partial_tasks else 0)
     task_fit = max(0, min(29 if applicability['uncovered_specialist'] else 100,
                          round(task_evidence_score))) if applicability['substantive'] else 0
-    qualification_fit = adjusted_score(score, include_language=False) if applicability['substantive'] else 0
+    qualification_fit = min(85, task_fit) if applicability['substantive'] else 0
     score = adjusted_score(score)
     if semantic_boosted:
         baseline = adjusted_score(lexical_score)
@@ -1541,15 +1591,24 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
             f"Location preference {direction} this score by {abs(location_adjustment)} points using "
             f"the 2025 federal-election AfD second-vote results for {cities}."
         )
+    if not enriched['languages']:
+        for text, scope in scoped_sentences(structured_text(job.get('description'))):
+            if scope in {'optional', 'benefits'} or OPTIONAL.search(text):
+                continue
+            if not re.search(r'meetings?|minutes|communication|working language|Kundensitzungen|Protokolle|Besprechungen|Kommunikation', text, re.I):
+                continue
+            names = [name for name, pattern in LANGUAGE_PATTERNS.items() if pattern.search(text)]
+            if names:
+                unknowns.append('Verify working-language proficiency for ' + ', '.join(names) + '; no explicit CEFR minimum was stated.')
     language_names = [row['value'].casefold() for row in enriched['languages']]
     language_notes = [message for message in unknowns if 'language' in message.casefold() or
                       any(name in message.casefold() for name in language_names)]
     language_conflicts = [message for message in conflicts if 'language' in message.casefold() or
                           any(name in message.casefold() for name in language_names)]
-    language_gate = {'status': 'fail' if language_conflicts else 'unknown' if language_notes or not enriched['languages'] else 'pass',
+    language_gate = {'status': 'fail' if language_conflicts else 'unknown' if language_notes else 'pass',
                      'reason': '; '.join(language_conflicts or language_notes)[:500] or
                                ('Saved language evidence satisfies the extracted requirement.' if enriched['languages'] else 'No mandatory language requirement was stated.')}
-    language_review = bool(enriched['languages'] and language_gate['status'] == 'unknown')
+    language_review = language_gate['status'] == 'unknown'
     fit_tier = ('unlikely' if conflicts or score < 30 or applicability['blocking'] else
                 'recommended' if score >= 65 and task_fit >= 65 and not language_review and (enriched['quality'] != 'limited' or applicability['direct_service'] or grounded_tasks) and not requirement_gaps else
                 'possible')

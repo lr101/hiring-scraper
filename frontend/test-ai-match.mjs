@@ -31,7 +31,11 @@ try {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
     match: { score: 40, task_fit: 85, score_source: 'local', fit_tier: 'possible', eligible: true,
       mandatory_review: true, matched_skills: [], missing_skills: [], reasons: [], conflicts: [], unknowns: [],
-      gates: { eligibility: { status: 'unknown', reason: 'Required degree is unverified.' } } },
+      gates: { eligibility: { status: 'unknown', reason: 'Required degree is unverified.' } },
+      task_alignment: { score: 50, requirements: [{ job_quote: 'Maintain delivery schedules.',
+        status: 'transferable', explanation: 'Adjacent documented scheduling work; verify the requested scope.',
+        evidence_source: 'cv_career_facts.education[0].description', evidence_quote: 'Planned production timelines.',
+        evidence_context: 'academic' }] } },
   }))
   const calculation = renderToStaticMarkup(React.createElement(JobEvidence, {
     enrichment: { skills: [], languages: [], warnings: [], seniority: null, experience_years: null },
@@ -58,6 +62,10 @@ try {
   assert.match(localEvidence, /Task fit before mandatory requirements and preferences/)
   assert.match(localEvidence, /85\/100/)
   assert.match(localEvidence, /Required degree is unverified/)
+  assert.match(localEvidence, /Task evidence behind the local estimate/)
+  assert.match(localEvidence, /Planned production timelines/)
+  assert.match(localEvidence, /academic/)
+  assert.match(localEvidence, /Adjacent documented scheduling work/)
   assert.doesNotMatch(localEvidence, /capped at 59/)
 } finally {
   await server.close()

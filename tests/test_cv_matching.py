@@ -67,11 +67,12 @@ class CvMatchingTests(unittest.TestCase):
                               'description': 'German C1 is a plus. Coordinate projects. ' * 15}, CV)
         self.assertTrue(optional['eligible'])
 
-    def test_fluency_c1_floor_conflicts_with_known_b2(self):
+    def test_estimated_fluency_floor_requires_review_for_known_b2(self):
         result = match_job({'title': 'Project Coordinator',
                             'description': 'Fluent German required. Coordinate projects. ' * 15}, CV)
-        self.assertFalse(result['eligible'])
-        self.assertTrue(any('German' in conflict and 'B2' in conflict for conflict in result['conflicts']))
+        self.assertTrue(result['eligible'])
+        self.assertEqual(result['gates']['language']['status'], 'unknown')
+        self.assertTrue(any('German' in note and 'B2' in note for note in result['unknowns']))
 
     def test_optional_experience_and_employer_history_are_not_requirements(self):
         job = {'title': 'Project Coordinator', 'description':
@@ -273,9 +274,10 @@ class CvMatchingTests(unittest.TestCase):
                 self.assertEqual(german['level'], 'C1')
                 self.assertEqual(german['level_range'], ['C1', 'C2'])
                 result = match_job(job, CV, enriched)
-                self.assertFalse(result['eligible'])
-                self.assertTrue(any('German' in conflict and 'B2' in conflict
-                                    for conflict in result['conflicts']))
+                self.assertTrue(result['eligible'])
+                self.assertEqual(result['gates']['language']['status'], 'unknown')
+                self.assertTrue(any('German' in note and 'B2' in note
+                                    for note in result['unknowns']))
 
     def test_benefit_clause_does_not_suppress_separate_required_language(self):
         for wording in ('We provide you with onboarding support, but German C1 is required.',

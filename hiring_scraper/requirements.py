@@ -60,6 +60,11 @@ def structured_text(value) -> str:
     if isinstance(value, RequirementText):
         return value
     value = value.replace('\ue000', '').replace('\ue001', '')
+    # Imported quoted model directives are not employer facts. Leave ordinary
+    # quoted requirements literal and preserve offsets around removed payloads.
+    value = re.sub(r'[\"“]([^\"”]*)[\"”]',
+                   lambda hit: ' ' * len(hit.group()) if is_source_instruction(hit.group()) else hit.group(),
+                   value)
     chunks = [value] if len(value) <= 240000 else [value[:120000], value[-120000:]]
     texts, heading_levels = [], []
     for chunk in chunks:
@@ -221,6 +226,7 @@ _SOURCE_INSTRUCTION = re.compile(
     r'(?:copied\s+)?prompt[ -]injection\s*:)|'
     r'\b(?:ignore|disregard|override)\s+(?:(?:all|the)\s+)?'
     r'(?:previous|prior|system|developer)\s+(?:instructions?|prompts?)\b|'
+    r'\b(?:assistant|developer)\s+system\s+instructions?\s*:|'
     r'\b(?:assistant|developer)\s*:\s*you\s+(?:must|should)\s+require\b|'
     r'\b(?:ignoriere|ignorieren Sie)\s+(?:alle\s+)?(?:vorherigen|bisherigen)\s+Anweisungen\b', re.I)
 
@@ -241,10 +247,11 @@ _POLARITY_BOUNDARY = re.compile(
     r'(?:abgeschlossen\w*\s+)?Studium|Immatrikulation|GMP)\b)', re.I)
 _OPTIONAL_QUALIFICATION = re.compile(
     r'\b(?:optional|preferred|desired|nice.to.have|idealerweise|wünschenswert|'
-    r'bevorzugt|willkommen|von Vorteil|a plus)\b', re.I)
+    r'bevorzugt|willkommen|von Vorteil|a plus|an? advantage|beneficial)\b', re.I)
 _WAIVED_QUALIFICATION = re.compile(
     r'\b(?:not|nicht)\s+(?:strictly\s+|zwingend\s+)?'
-    r'(?:required|necessary|mandatory|essential|needed|erforderlich|notwendig|vorausgesetzt)\b|'
+    r'(?:required|necessary|mandatory|essential|needed|erforderlich|notwendig|vorausgesetzt|verlangt|gefordert|verpflichtend)\b|'
+    r'\bnever\s+(?:a\s+)?(?:requirement|prerequisite)\b|'
     r'\bkein\w*\s+(?:zwingende\s+)?Voraussetzung\b', re.I)
 _TRAILING_MODALITY = re.compile(
     r'\b(?:required|necessary|mandatory|essential|needed|optional|preferred|desired|'
@@ -285,6 +292,8 @@ def requirement_polarity(text: str, start: int = 0, end: int | None = None) -> s
         return 'waived'
     if (re.search(r'\bneither\b.+\bnor\b', local, re.I) and
             re.search(r'\b(?:required|necessary|mandatory|needed)\b', local, re.I)):
+        return 'waived'
+    if re.search(r'\bweder\b.+\bnoch\b.+\b(?:Voraussetzung|erforderlich|verlangt)\b', local, re.I):
         return 'waived'
     # A negative task verb ("prevent failures") is not a waiver.
     before, after = text[left:start], text[end:right]

@@ -4,6 +4,10 @@ export type ProfileMatch = {
   score_source?: 'local' | 'llm'
   mandatory_review?: boolean
   task_fit?: number
+  task_alignment?: { score: number | null; requirements: {
+    job_quote: string; status: 'supported' | 'transferable' | 'unknown'; explanation: string
+    evidence_source: string; evidence_quote: string; evidence_context: string
+  }[] }
   gates?: Record<string, { status: string; reason: string }>
   llm_match?: {
     weighted_task_fit?: number | null
@@ -81,6 +85,16 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
       {match.score_source !== 'llm' && match.task_fit != null && <>
         <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The shortlist score above also accounts for unresolved qualifications and constraints.</p>
       </>}
+      {match.score_source !== 'llm' && (match.task_alignment?.requirements.length ?? 0) > 0 && <details>
+        <summary>Task evidence behind the local estimate</summary>
+        <p className="muted">These comparisons use saved actions and work products. Academic and adjacent work can show relevant capability without proving professional tenure or independent responsibility.</p>
+        {match.task_alignment!.requirements.map((row, index) => <div className="evidence-note" key={index}>
+          <strong>{row.status} · {row.evidence_context}</strong>
+          <p>Job: <q>{row.job_quote}</q></p>
+          <p>{row.explanation}</p>
+          {row.evidence_quote && <p>Saved evidence ({row.evidence_source}): <q>{row.evidence_quote}</q></p>}
+        </div>)}
+      </details>}
       {match.score_source === 'llm' && match.llm_match && <>
         <h3>How your score was calculated</h3>
         {match.llm_match.weighted_task_fit != null && <p>
