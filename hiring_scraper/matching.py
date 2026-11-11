@@ -1104,14 +1104,22 @@ def _formal_requirement_satisfied(requirement, profile):
 
 
 def required_application_artifact(text, *, mandatory=False):
-    """Recognize requested application materials, preserving local waiver scope."""
-    hit = re.search(r'\b(?:portfolio(?!\s+(?:management|analysis|risk|strategy|software|website)\b)|work samples?|Arbeitsproben?)\b', text, re.I)
-    if not hit or requirement_polarity(text, hit.start(), hit.end()) != 'required':
-        return False
-    if re.search(r'\b(?:optional|if available|may bring|kann|freiwillig)\b', text, re.I):
-        return False
-    return mandatory or bool(re.search(
-        r'\b(?:required|mandatory|must|submit|provide|attach|bring|einreichen|vorlegen|mitbringen|erforderlich)\b', text, re.I))
+    """Recognize an application request within its own modality/actor clause."""
+    for sentence, _ in scoped_sentences(structured_text(text)):
+        for clause in _requirement_clauses(sentence):
+            hit = re.search(r'\b(?:portfolio(?!\s+(?:management|analysis|risk|strategy|software|website)\b)|work samples?|Arbeitsproben?)\b', clause, re.I)
+            if not hit or requirement_polarity(clause, hit.start(), hit.end()) != 'required':
+                continue
+            if re.search(r'\b(?:optional|if available|may bring|kann|freiwillig)\b', clause, re.I):
+                continue
+            # Managing customer/investment work is a capability, not a request
+            # to supply an applicant's work examples.
+            if re.search(r'\b(?:manage|managing|grow|own|oversee|review|analyse|analyze|verwalten|betreuen)'
+                         r'(?:\s+[\w-]+){0,4}\s*$', clause[:hit.start()], re.I):
+                continue
+            if mandatory or re.search(r'\b(?:required|mandatory|must|submit|provide|attach|bring|include|einreichen|vorlegen|mitbringen|beifügen|erforderlich)\b', clause, re.I):
+                return True
+    return False
 
 
 def _applicability_context(job, profile, enriched):

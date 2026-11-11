@@ -45,7 +45,7 @@ class AssessmentTests(unittest.TestCase):
     def overlay_prerequisite(self, condition='A completed bachelor degree in chemistry is mandatory.',
                              evidence='I graduated with a bachelor degree in chemistry.',
                              extra='', category='education', quote=None, source='profile.career_evidence',
-                             source_extras=None, profile_changes=None):
+                             source_extras=None, profile_changes=None, broad_job_quote=False):
         from datetime import datetime, timezone
         from types import SimpleNamespace
         from hiring_scraper.matching import match_job
@@ -55,7 +55,7 @@ class AssessmentTests(unittest.TestCase):
                    source: evidence, **(source_extras or {})}
         data = assessment()
         data['requirements'].append({**data['requirements'][0], 'category': category,
-            'requirement': quote or condition, 'job_quote': quote or condition,
+            'requirement': quote or condition, 'job_quote': description if broad_job_quote else quote or condition,
             'evidence_source': source, 'evidence_quote': evidence, 'status': 'supported'})
         local = match_job({'title': 'Assistant', 'description': description},
                           {**PROFILE, 'career_evidence': evidence, **(profile_changes or {})})
@@ -93,6 +93,30 @@ class AssessmentTests(unittest.TestCase):
                 result = self.overlay_prerequisite(**changes)
                 self.assertTrue(result['mandatory_review'])
                 self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+
+    def test_broad_citation_retains_matching_degree_clause_and_separate_completion(self):
+        result = self.overlay_prerequisite(broad_job_quote=True)
+        self.assertFalse(result['mandatory_review'])
+        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+        unrelated = self.overlay_prerequisite(
+            evidence='I graduated with a bachelor degree in history. I completed a short course in chemistry.')
+        self.assertTrue(unrelated['mandatory_review'])
+        self.assertEqual(unrelated['gates']['eligibility']['status'], 'unknown')
+
+    def test_broad_artifact_citation_ignores_unrelated_optional_material(self):
+        data = assessment()
+        text = 'Include a portfolio of three drawings; degree completion is not required. A cover letter is optional.'
+        data['requirements'].append({**data['requirements'][0], 'category': 'capability',
+            'requirement': 'Portfolio of drawings', 'job_quote': text, 'status': 'unknown',
+            'evidence_source': '', 'evidence_quote': ''})
+        result = self.service().validate_assessment(data)
+        self.assertTrue(result['mandatory_review'])
+        self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+        # The same broad job excerpt does not make every capability an artifact.
+        data['requirements'][-1].update(requirement='Build Python services', status='transferable',
+            evidence_source='profile.summary', evidence_quote=PROFILE['summary'])
+        ordinary = self.service().validate_assessment(data)
+        self.assertFalse(ordinary['mandatory_review'])
 
     def test_grounded_credential_clears_only_same_credential(self):
         result = self.overlay_prerequisite(condition='PMP certification is mandatory.',

@@ -27,7 +27,7 @@ from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job
 from hiring_scraper.app.models import AIMatchingSelection, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job, required_application_artifact
-from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity
+from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity, scoped_sentences, structured_text
 from hiring_scraper.semantic_matching import job_sections
 
 LOG = logging.getLogger(__name__)
@@ -276,7 +276,8 @@ def _required_prerequisite_row(row):
     if row['priority'] == 'preferred':
         return False
     if row['category'] == 'capability':
-        return required_application_artifact(row['job_quote'])
+        return (required_application_artifact(row['requirement'], mandatory=True) and
+                required_application_artifact(row['job_quote']))
     if row['category'] not in {'education', 'credential', 'work_authorization'}:
         return False
     pattern = {'education': DEGREE, 'credential': CERTIFICATE}.get(row['category'])
@@ -592,37 +593,46 @@ def _supported_local_condition(condition, rows, sources):
     for row in rows:
         if (row['category'] != category or row['status'] != 'supported' or
                 row['priority'] == 'preferred' or row['job_source'] != source or
-                normalize(row['job_quote']) != normalize(quote)):
+                not quote.strip() or normalize(quote) not in normalize(row['job_quote'])):
             continue
-        # A title or date range alone is not proof of an awarded qualification.
         evidence = row['evidence_quote']
         context = requirement_evidence.fact_context(row['evidence_source'], sources)
-        if re.search(r'\b(?:not|never|incomplete|unfinished|withdrawn|ongoing|enrolled|pursuing|expired|revoked|abgelaufen|kein\w*|nicht|abgebrochen)\b', evidence, re.I):
-            continue
         requirement = condition.get('qualification') or {}
-        if kind == 'education':
-            if context.get('completion') != 'completed' and not re.search(
-                    r'\b(?:graduated|completed|awarded|earned|abgeschlossen\w*|absolviert)\b', evidence, re.I):
+        # Completion, degree level and subject must belong to one factual
+        # statement; a second course cannot supply a degree's missing subject.
+        clauses = [clause for sentence, _ in scoped_sentences(structured_text(evidence))
+                   for clause in re.split(r'\b(?:and|und)\s+(?=(?:I|ich|completed|earned|graduated|am|bin|currently|derzeit)\b)', sentence, flags=re.I)]
+        matched = False
+        for clause in clauses:
+            if re.search(r'\b(?:not|never|incomplete|unfinished|withdrawn|ongoing|enrolled|pursuing|expired|revoked|abgelaufen|kein\w*|nicht|abgebrochen)\b', clause, re.I):
                 continue
-            if not re.search(r'\b(?:bachelor\w*|master\w*|doctorate|phd|promotion|ausbildung)\b', evidence, re.I):
-                continue
-            degrees = [entry for entry in qualification_rows(evidence, row['evidence_source'])
-                       if entry['kind'] == 'education']
-            ranks = {'vocational': 0, 'bachelor': 1, 'master': 2, 'doctorate': 3}
-            level = requirement.get('level', 'bachelor')
-            if not any(ranks.get(entry.get('level'), -1) >= ranks.get(level, 1) and
-                       (level != 'vocational' or entry.get('level') == 'vocational') for entry in degrees):
-                continue
-            fields = requirement.get('fields') or []
-            matches = [bool(re.search(r'\b(?:' + DEGREE_FIELDS[field] + r')\b', evidence, re.I)) for field in fields]
-            if matches and not (any(matches) if requirement.get('alternative') else all(matches)):
-                continue
-            if requirement.get('unknown_field') and normalize(requirement['unknown_field']) not in normalize(evidence):
-                continue
-        else:
-            value = requirement.get('value', '')
-            if not value or normalize(value) not in normalize(evidence):
-                continue
+            if kind == 'education':
+                if context.get('completion') != 'completed' and not re.search(
+                        r'\b(?:graduated|completed|awarded|earned|abgeschlossen\w*|absolviert)\b', clause, re.I):
+                    continue
+                if not re.search(r'\b(?:bachelor\w*|master\w*|doctorate|phd|promotion|ausbildung)\b', clause, re.I):
+                    continue
+                degrees = [entry for entry in qualification_rows(clause, row['evidence_source'])
+                           if entry['kind'] == 'education']
+                ranks = {'vocational': 0, 'bachelor': 1, 'master': 2, 'doctorate': 3}
+                level = requirement.get('level', 'bachelor')
+                if not any(ranks.get(entry.get('level'), -1) >= ranks.get(level, 1) and
+                           (level != 'vocational' or entry.get('level') == 'vocational') for entry in degrees):
+                    continue
+                fields = requirement.get('fields') or []
+                matches = [bool(re.search(r'\b(?:' + DEGREE_FIELDS[field] + r')\b', clause, re.I)) for field in fields]
+                if matches and not (any(matches) if requirement.get('alternative') else all(matches)):
+                    continue
+                if requirement.get('unknown_field') and normalize(requirement['unknown_field']) not in normalize(clause):
+                    continue
+            else:
+                value = requirement.get('value', '')
+                if not value or normalize(value) not in normalize(clause):
+                    continue
+            matched = True
+            break
+        if not matched:
+            continue
         return row
     return None
 
