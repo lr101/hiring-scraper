@@ -1064,6 +1064,8 @@ def _scoped_experience_rows(text, total_years):
                rf'(?P<scope>.*?)(?=\s+(?:and|und)\s+{EXPERIENCE_NUMBER}\s+{EXPERIENCE_UNIT}\b|[.;\n]|$)')
     rows = []
     for hit in re.finditer(pattern, text, re.I):
+        if requirement_polarity(text, hit.start(), hit.end()) != 'required':
+            continue
         token = hit['number'].casefold().replace(',', '.')
         number = float(token) if re.fullmatch(r'\d+(?:\.\d+)?', token) else EXPERIENCE_NUMBER_WORDS.get(token)
         if number is None:
@@ -1476,10 +1478,18 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     task_alignment = align_tasks(job, profile_content_sources(profile), source_contexts={
         f'skill_evidence.{name}.note': row.get('context', 'unspecified')
         for name, row in (profile.get('skill_evidence') or {}).items() if isinstance(row, dict)})
-    academic_admissible = ((enriched.get('seniority') or {}).get('value') in {'junior', 'student'} or
-                           bool(re.search(r'\b(?:academic|university|student|coursework|Studienprojekte|Studierende)\b.{0,65}'
-                                          r'\b(?:accepted|welcome|count|accepted evidence|zählen|reichen|ausreichend|willkommen)\b',
-                                          str(job.get('description') or ''), re.I)))
+    academic_policy = []
+    for sentence, _ in scoped_sentences(structured_text(job.get('description'))):
+        if is_source_instruction(sentence):
+            continue
+        hit = re.search(r'\b(?:academic|university|student|coursework|Studienprojekte|Studierende)\b.{0,65}'
+                        r'\b(?:accepted|welcome|count|sufficient|zählen|reichen|ausreichend|willkommen|anerkannt)\b',
+                        sentence, re.I)
+        if hit:
+            academic_policy.append(not bool(re.search(r'\b(?:not|never|nicht|keine?)\b', hit.group(), re.I)))
+    academic_admissible = (False not in academic_policy and
+                           ((enriched.get('seniority') or {}).get('value') in {'junior', 'student'} or
+                            True in academic_policy))
     grounded_tasks = (len(task_alignment['requirements']) >= 2 and
                       (task_alignment['score'] or 0) >= 65 and
                       any(row['status'] == 'supported' for row in task_alignment['requirements']) and

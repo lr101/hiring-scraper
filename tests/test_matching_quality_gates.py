@@ -122,6 +122,23 @@ class MatchingQualityGateTests(unittest.TestCase):
         self.assertEqual(result['gates']['eligibility']['status'], 'fail')
         self.assertTrue(any('seven years' in note for note in result['conflicts']))
 
+    def test_waived_scoped_tenure_does_not_become_a_failure(self):
+        for requirement in ('Five years working on paid industrial programs is not necessary.',
+                            'Five years of professional experience is preferred.'):
+            with self.subTest(requirement=requirement):
+                result = self.match('Requirements:\n' + requirement, experience_years=2)
+                self.assertTrue(result['eligible'])
+                self.assertFalse(result['conflicts'])
+
+    def test_rejected_academic_work_is_not_accepted_evidence(self):
+        academic = {'cv_career_facts': {'education': [{'description': PROFILE['summary']} ]}}
+        for policy in ('Academic projects are not accepted.', 'Academic projects do not count.',
+                       'University projects are not sufficient.'):
+            with self.subTest(policy=policy):
+                result = match_job({'title': 'Junior delivery support', 'description': TASKS + policy}, academic)
+                self.assertLess(result['score'], 65)
+                self.assertNotEqual(result['fit_tier'], 'recommended')
+
     def test_saved_skill_notes_supply_literal_task_evidence(self):
         result = match_job({'title': 'Delivery assistant', 'description':
             'Your tasks: Maintain delivery schedules. Create progress presentations.'},
