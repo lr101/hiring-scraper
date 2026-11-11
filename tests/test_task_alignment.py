@@ -449,3 +449,10 @@ class TaskAlignmentTests(unittest.TestCase):
             ('Maintain schedules and milestones.', 'Maintained notes: schedules and milestones.')):
             with self.subTest(fact=fact):
                 self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 100)
+
+    def test_personal_possession_of_notes_is_not_performed_work(self):
+        for duty, fact in (
+            ('Plan milestones.', 'I have notes: planning milestones.'),
+            ('Research customer needs.', 'I have notes: researching customer needs.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)

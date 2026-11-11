@@ -209,8 +209,11 @@ def task_units(job):
 def _document_subject(text):
     if not _DOCUMENT_CONTENT.search(text):
         return False
-    if _APPLICANT_ACTOR.search(text):
-        return False
+    personal = _APPLICANT_ACTOR.match(text)
+    if personal:
+        predicate = re.match(r'\s*(\w+)', text[personal.end():])
+        if predicate and _actions(predicate[1]):
+            return False
     first = re.match(r'\w+', text)
     if first:
         word = first.group().casefold()
