@@ -133,7 +133,8 @@ def _profile_actions(text):
             ('plan', r'planned|planning|planen|plante\w*'),
             ('research', r'researched|researching|recherchier\w*')):
         intro = r'^(?:[^.!?;:,]+[:,]\s*)?'
-        personal = r'(?:I|we|you|ich|wir)\s+(?:(?:am|was|were|have|had|been|bin|habe)\s+)*'
+        personal = (r'(?:I|we|you|ich|wir)\s+(?:(?:am|was|were|have|had|been|bin|habe)\s+)*'
+                    r'(?:(?:[a-z]+ly|eigenständig|selbstständig|aktiv|regelmäßig)\s+){0,2}')
         predicate = re.search(intro + r'(?:' + personal + r')?(?:' + performed + r')\b', text, re.I)
         predicate = predicate or re.search(
             intro + personal + action + r'\b', text, re.I)
@@ -205,6 +206,19 @@ def task_units(job):
     return rows
 
 
+def _document_subject(text):
+    if not _DOCUMENT_CONTENT.search(text):
+        return False
+    if _APPLICANT_ACTOR.search(text):
+        return False
+    first = re.match(r'\w+', text)
+    if first:
+        word = first.group().casefold()
+        if _actions(word) and (word.endswith(('ed', 'te', 'ten')) or word == 'built'):
+            return False
+    return True
+
+
 def _atomic_duties(text):
     """Split coordinated predicates, retaining literal source excerpts.
 
@@ -221,7 +235,7 @@ def _atomic_duties(text):
             applicant_scope = True
             for part in _COMPOUND_DUTY.split(sentence):
                 part = part.strip()
-                if other_actor(part) or _DOCUMENT_CONTENT.search(part) or _INTEREST.search(part):
+                if other_actor(part) or _document_subject(part) or _INTEREST.search(part):
                     applicant_scope = False
                 elif _APPLICANT_ACTOR.search(part):
                     applicant_scope = True

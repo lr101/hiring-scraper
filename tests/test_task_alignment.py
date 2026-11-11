@@ -440,3 +440,12 @@ class TaskAlignmentTests(unittest.TestCase):
         self.assertEqual(self.align('Maintain schedules.', [('summary', fact)])['score'], 0)
         fact = 'Documented SOPs and interested in researching customer needs.'
         self.assertEqual(self.align('Document SOPs.', [('summary', fact)])['score'], 100)
+
+    def test_explicit_predicates_keep_adverbs_and_note_object_colons(self):
+        for duty, fact in (
+            ('Plan milestones.', 'I independently planned milestones.'),
+            ('Research customer needs.', 'I actively researched customer needs.'),
+            ('Document SOPs.', 'I documented reports: SOPs.'),
+            ('Maintain schedules and milestones.', 'Maintained notes: schedules and milestones.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 100)
