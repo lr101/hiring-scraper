@@ -172,6 +172,7 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
     section_stack = []
     normalized = str(text) if isinstance(text, RequirementText) else '\n'.join(_logical_lines(text))
     cursor = 0
+    instruction_block = False
     for part in re.split(r'(?<=[.!?])(?<!mind\.)(?<!min\.)\s+|\s*[;\n]\s*', normalized, flags=re.I):
         start = normalized.find(part, cursor)
         cursor = start + len(part)
@@ -183,6 +184,16 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
             offset, candidate_level = positions.popleft()
             if offset >= start:
                 level = candidate_level
+        if _SOURCE_ROLE_HEADER.fullmatch(sentence):
+            instruction_block = True
+            continue
+        if instruction_block:
+            employer_heading = (_REQUIRED_HEADING.search(sentence) or
+                                _OTHER_HEADING.search(sentence) or
+                                _OPTIONAL_HEADING.search(sentence))
+            if not employer_heading:
+                continue
+            instruction_block = False
         if is_source_instruction(sentence):
             continue
         if level is not None:
@@ -204,11 +215,13 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
         yield sentence, scope
 
 
+_SOURCE_ROLE_HEADER = re.compile(r'(?:\[?system\]?|\[(?:assistant|developer)\])\s*:', re.I)
 _SOURCE_INSTRUCTION = re.compile(
-    r'(?:^|[\n.!?]\s*)(?:\[?(?:system|assistant|developer)\]?\s*:|'
+    r'(?:^|[\n.!?]\s*)(?:(?:\[?system\]?|\[(?:assistant|developer)\])\s*:|'
     r'(?:copied\s+)?prompt[ -]injection\s*:)|'
     r'\b(?:ignore|disregard|override)\s+(?:(?:all|the)\s+)?'
     r'(?:previous|prior|system|developer)\s+(?:instructions?|prompts?)\b|'
+    r'\b(?:assistant|developer)\s*:\s*you\s+(?:must|should)\s+require\b|'
     r'\b(?:ignoriere|ignorieren Sie)\s+(?:alle\s+)?(?:vorherigen|bisherigen)\s+Anweisungen\b', re.I)
 
 
@@ -233,11 +246,20 @@ _WAIVED_QUALIFICATION = re.compile(
     r'\b(?:not|nicht)\s+(?:strictly\s+|zwingend\s+)?'
     r'(?:required|necessary|mandatory|essential|needed|erforderlich|notwendig|vorausgesetzt)\b|'
     r'\bkein\w*\s+(?:zwingende\s+)?Voraussetzung\b', re.I)
+_TRAILING_MODALITY = re.compile(
+    r'\b(?:required|necessary|mandatory|essential|needed|optional|preferred|desired|'
+    r'erforderlich|notwendig|vorausgesetzt|wünschenswert|bevorzugt|willkommen|'
+    r'Voraussetzung|Vorteil|plus)\s*$', re.I)
 
 
 def _polarity_bounds(text: str, start: int, end: int) -> tuple[int, int]:
     left, right = 0, len(text)
     for boundary in _POLARITY_BOUNDARY.finditer(text):
+        # A trailing predicate can govern a coordinated noun list. Split
+        # coordination only after the first item has its own modality.
+        if (re.match(r'\s*(?:,|and\b|und\b)', boundary.group(), re.I) and
+                not _TRAILING_MODALITY.search(text[left:boundary.start()])):
+            continue
         if boundary.end() <= start:
             left = boundary.end()
         elif boundary.start() >= end:
