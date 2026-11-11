@@ -695,7 +695,7 @@ if [[ "$profile_matching" == true ]]; then
   profile_embedding_url="http://127.0.0.1:${semantic_port:-9}/embed"
   (
     cd "$repo_root"
-    exec setsid env DATABASE_URL="$database_url" SEMANTIC_EMBEDDING_URL="$profile_embedding_url" \
+    exec setsid env DATABASE_URL="$database_url" RADIUS_CODEX_STATE_DIR="$state_dir/codex" SEMANTIC_EMBEDDING_URL="$profile_embedding_url" \
       mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
   ) >> "$state_dir/profile-worker.log" 2>&1 < /dev/null &
   profile_worker_pid=$!

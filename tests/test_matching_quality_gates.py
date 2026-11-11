@@ -229,8 +229,10 @@ class MatchingQualityGateTests(unittest.TestCase):
     def test_artifact_request_is_scoped_separately_from_optional_material(self):
         result = self.match('Include a portfolio of sample drawings, but a cover letter is optional.')
         self.assertTrue(result['mandatory_review'])
-        ordinary = self.match('You must manage a portfolio of client accounts.')
-        self.assertFalse(ordinary['mandatory_review'])
+        for duty in ('You must manage a portfolio of client accounts.',
+                     'A portfolio of clients is required.'):
+            ordinary = self.match(duty)
+            self.assertFalse(ordinary['mandatory_review'])
 
     def test_portfolio_request_stays_visible_without_inventing_missing_work(self):
         result = self.match('Requirements:\nSubmit two work samples with your application.')

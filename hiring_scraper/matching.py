@@ -1110,6 +1110,8 @@ def required_application_artifact(text, *, mandatory=False):
             hit = re.search(r'\b(?:portfolio(?!\s+(?:management|analysis|risk|strategy|software|website)\b)|work samples?|Arbeitsproben?)\b', clause, re.I)
             if not hit or requirement_polarity(clause, hit.start(), hit.end()) != 'required':
                 continue
+            if re.search(r'\bportfolio\s+of\s+(?:clients?|customers?|accounts?|assets?|investments?|securities|loans?)\b', clause, re.I):
+                continue
             if re.search(r'\b(?:optional|if available|may bring|kann|freiwillig)\b', clause, re.I):
                 continue
             # Managing customer/investment work is a capability, not a request

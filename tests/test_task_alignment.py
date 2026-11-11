@@ -646,3 +646,8 @@ class TaskAlignmentTests(unittest.TestCase):
             [('experience.0', 'Prepared sales slide decks.')])['requirements']
         self.assertEqual(len(rows), 1)
         self.assertNotEqual(rows[0]['status'], 'supported')
+
+    def test_changed_domain_does_not_make_calendar_work_direct_proof(self):
+        row = self.align('Prepare clinical calendars and appointments.',
+                         [('summary', 'Wir bereiten Vertriebs-Kalender und Termine vor.')])['requirements'][0]
+        self.assertEqual(row['status'], 'transferable')

@@ -365,7 +365,8 @@ def align_tasks(job, profile_sources, *, source_contexts=None):
                              or 'support' in fact_actions)
             ownership_missing = ownership_missing or (bounded_scope and (
                 'own' in actions or task['independent_scope']))
-            direct = common_action and len(shared) >= min(2, len(objects)) and coverage >= .5 and not ownership_missing
+            direct = (common_action and len(shared) >= min(2, len(objects)) and coverage >= .5
+                      and not ownership_missing and not ((objects - shared) and (fact_objects - shared)))
             # A specific shared work product can establish adjacent lifecycle
             # exposure while retaining different main actions.
             adjacent_action = any(frozenset((action, fact_action)) in _ADJACENT_ACTIONS
