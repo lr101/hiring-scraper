@@ -589,6 +589,10 @@ def _supported_local_condition(condition, rows, sources):
     normalize = lambda value: ' '.join(value.split()).casefold()
     quote = condition.get('job_quote', '')
     source = condition.get('job_source', '')
+    if source.startswith('structured.'):
+        source = 'raw_metadata.' + source.removeprefix('structured.')
+    elif source.startswith('detail.'):
+        source = 'raw_metadata.detail_requirements.' + source.removeprefix('detail.')
     source = source if source.startswith('job.') else 'job.' + source
     for row in rows:
         if (row['category'] != category or row['status'] != 'supported' or

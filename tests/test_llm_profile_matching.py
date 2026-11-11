@@ -118,6 +118,25 @@ class AssessmentTests(unittest.TestCase):
         ordinary = self.service().validate_assessment(data)
         self.assertFalse(ordinary['mandatory_review'])
 
+    def test_structured_qualification_sources_reconcile_with_canonical_ai_paths(self):
+        service = self.service()
+        text = 'A completed bachelor degree in chemistry is mandatory.'
+        evidence = 'I graduated with a bachelor degree in chemistry.'
+        for local_source, ai_source in (
+            ('structured.qualifications[0]', 'job.raw_metadata.qualifications[0]'),
+            ('detail.qualifications[0]', 'job.raw_metadata.detail_requirements.qualifications[0]')):
+            with self.subTest(source=local_source):
+                condition = {'kind': 'education', 'status': 'unknown', 'job_quote': text,
+                    'job_source': local_source, 'qualification': {'level': 'bachelor', 'fields': ['chemistry']}}
+                row = {**assessment()['requirements'][0], 'category': 'education',
+                    'job_source': ai_source, 'job_quote': text, 'evidence_source': 'profile.career_evidence',
+                    'evidence_quote': evidence}
+                self.assertIsNotNone(service._supported_local_condition(condition, [row],
+                                     {'profile.career_evidence': evidence}))
+                row['job_source'] += '.unrelated'
+                self.assertIsNone(service._supported_local_condition(condition, [row],
+                                  {'profile.career_evidence': evidence}))
+
     def test_grounded_credential_clears_only_same_credential(self):
         result = self.overlay_prerequisite(condition='PMP certification is mandatory.',
                                           evidence='I hold current PMP certification.', category='credential')
