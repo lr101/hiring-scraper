@@ -185,6 +185,11 @@ class MatchingQualityGateTests(unittest.TestCase):
         degree = self.match('Requirements: A completed master degree in engineering is required.')
         self.assertEqual(degree['gates']['eligibility']['status'], 'unknown')
 
+    def test_german_master_genitive_retains_required_degree_level(self):
+        result = self.match('Requirements: Abschluss eines Masterstudiums in Informatik erforderlich.',
+                            education=[{'level': 'bachelor', 'field': 'computer science', 'completed': True}])
+        self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+
     def test_residency_is_reviewed_independently_of_work_authorization(self):
         result = self.match('Requirements: Employees must reside in France for payroll purposes.',
                             application_preferences={'authorization_country': 'France',
@@ -192,6 +197,14 @@ class MatchingQualityGateTests(unittest.TestCase):
         self.assertEqual(result['gates']['location']['status'], 'unknown')
         self.assertTrue(result['mandatory_review'])
         self.assertTrue(result['eligible'])
+
+    def test_residency_review_preserves_an_explicit_onsite_conflict(self):
+        result = match_job({'title': 'Delivery support', 'description': TASKS +
+                            'Requirements: Employees must reside in France.', 'work_arrangement': 'onsite'},
+                           {**PROFILE, 'application_preferences': {'willing_to_work_onsite': False}})
+        self.assertEqual(result['gates']['location']['status'], 'fail')
+        self.assertFalse(result['eligible'])
+        self.assertTrue(result['mandatory_review'])
 
     def test_required_artifact_has_review_but_optional_artifact_does_not(self):
         required = self.match('Requirements: Submit a portfolio with your application.')

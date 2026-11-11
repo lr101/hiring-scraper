@@ -1165,7 +1165,9 @@ def _applicability_context(job, profile, enriched):
         residence = re.search(r'\b(?:must reside|must live|residency is required|required residence|Wohnsitz erforderlich|Wohnsitz in)\b', text, re.I)
         if residence and requirement_polarity(text, residence.start(), residence.end()) == 'required' and (mandatory or re.search(r'\bmust\b', residence.group(), re.I)):
             location_review = True
-            gates['location'] = {'status': 'unknown', 'reason': 'Verify the required residence or payroll jurisdiction separately from work authorization: ' + text}
+            gates['location'] = {'status': 'fail' if gates['location']['status'] == 'fail' else 'unknown',
+                'reason': (gates['location']['reason'] + ' ' if gates['location']['status'] == 'fail' else '') +
+                          'Verify the required residence or payroll jurisdiction separately from work authorization: ' + text}
             unknowns.append(gates['location']['reason'])
         if OPTIONAL.search(text) and not re.search(r'\bmandatory\b|\bmust\b', text, re.I):
             continue
