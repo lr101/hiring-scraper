@@ -1487,8 +1487,8 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                         sentence, re.I)
         if hit:
             negative_policy = re.search(
-                r'\b(?:not|never)\s+(?!(?:only|just)\b)(?:\w+\s+){0,2}(?:accepted|welcome|count|sufficient)\b|'
-                r'\bnicht\s+(?!nur\b)(?:\w+\s+){0,2}(?:anerkannt|ausreichend|willkommen)\b|'
+                r'\b(?:not|never)\s+(?!(?:only|just)\b)[^.;!?]{0,100}?\b(?:accepted|welcome|count|sufficient)\b|'
+                r'\bnicht\s+(?!nur\b)[^.;!?]{0,100}?\b(?:anerkannt|ausreichend|willkommen)\b|'
                 r'\b(?:zählen|reichen)\s+nicht\b', sentence, re.I)
             academic_policy.append(not bool(negative_policy))
     academic_admissible = (False not in academic_policy and

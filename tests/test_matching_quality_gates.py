@@ -133,7 +133,8 @@ class MatchingQualityGateTests(unittest.TestCase):
     def test_rejected_academic_work_is_not_accepted_evidence(self):
         academic = {'cv_career_facts': {'education': [{'description': PROFILE['summary']} ]}}
         for policy in ('Academic projects are not accepted.', 'Academic projects do not count.',
-                       'University projects are not sufficient.'):
+                       'University projects are not sufficient.',
+                       'University projects are not considered to be sufficient.'):
             with self.subTest(policy=policy):
                 result = match_job({'title': 'Junior delivery support', 'description': TASKS + policy}, academic)
                 self.assertLess(result['score'], 65)
