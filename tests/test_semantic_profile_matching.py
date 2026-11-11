@@ -156,7 +156,8 @@ class SemanticScoreTests(unittest.TestCase):
         profile = {**PROFILE, 'language_levels': {'German': 'C1', 'English': 'C1'}}
         baseline = match_job(job, profile)
         result = match_job(job, profile, semantic=self.evidence())
-        self.assertEqual(baseline['fit_tier'], 'recommended')
+        # The desired title adds no independent task evidence.
+        self.assertEqual(baseline['fit_tier'], 'possible')
         self.assertEqual(result['score'], baseline['score'])
         self.assertEqual(result['uncertain'], baseline['uncertain'])
 

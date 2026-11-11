@@ -51,6 +51,9 @@ const server = createServer(async (request, response) => {
       response.writeHead(422)
       response.end(JSON.stringify({ detail: [{ msg: 'Invalid status' }] }))
     } else response.end(JSON.stringify({ profile_id: 9, job_id: 42, status: payload.status }))
+  } else if (request.url.endsWith('/500')) {
+    response.writeHead(500)
+    response.end('Internal Server Error')
   } else {
     response.writeHead(404)
     response.end(JSON.stringify({ detail: 'Job not found' }))
@@ -75,8 +78,26 @@ try {
   }
   await assert.rejects(helpers.saveApplication(base, 9, 999, 'open'), /Job not found/)
   await assert.rejects(helpers.saveApplication(base, 9, 42, 'invalid'), /Could not save application status/)
+  await assert.rejects(helpers.saveApplication(base, 9, 500, 'not_interested'), /Could not save application status/)
   console.log('Application status requests and actionable API errors passed')
 } finally {
   server.closeAllConnections()
   await new Promise(resolve => server.close(resolve))
 }
+
+// Completed local results must refresh as background AI assessments arrive.
+const refreshEffectStart = component.indexOf('  // AI assessments can arrive')
+assert.ok(refreshEffectStart >= 0, 'Journey needs a background assessment refresh')
+const refreshEffect = component.slice(refreshEffectStart, component.indexOf('\n  useEffect(', refreshEffectStart + 100))
+let refreshTimer
+let reloaded = false
+let invalidated = false
+const refreshCache = { current: new Map([['local', {}]]) }
+new Function('useEffect', 'window', 'pageCacheRef', 'invalidateInFlightPageRequests', 'setReloadKey',
+  'profilesReady', 'activeProfileKey', 'hasSavingJob', 'loading', stripTypeScriptTypes(refreshEffect))(
+  callback => callback(), { setInterval: callback => { refreshTimer = callback }, clearInterval() {} },
+  refreshCache, () => { invalidated = true }, () => { reloaded = true }, true, '9', false, false)
+refreshTimer()
+assert.equal(refreshCache.current.size, 0)
+assert.equal(invalidated, true)
+assert.equal(reloaded, true)

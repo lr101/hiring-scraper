@@ -5,11 +5,14 @@ Excerpt checks establish provenance, not that a model's interpretation is correc
 from __future__ import annotations
 
 import re
-from collections import deque
+from collections import defaultdict, deque
 from itertools import islice
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+SCORING_VERSION = 'requirement-score-v2-clause-weighted'
 
 
 class RequirementEvidence(BaseModel):
@@ -275,26 +278,38 @@ def requirement_summary(rows):
             'required_gaps': gaps}
 
 
-def role_relevance_score(rows):
-    """Conservative evidence ceiling: incidental tools cannot substitute for core work.
+def role_relevance_breakdown(rows):
+    """Share one employer-clause weight across its atomic requirement rows.
 
-    Unknown is zero *demonstrated evidence*, not an assertion of inability. Initial
-    85/15 budgets need calibration against judged applications. A single unknown
-    duty must not erase otherwise strong demonstrated coverage.
+    Otherwise decomposition can manufacture either extra credit or extra gaps.
+    Unknown is zero demonstrated evidence, not an assertion of inability.
     """
-    rows = [row for row in rows if row.get('category', 'capability') not in
-            {'education', 'credential', 'language', 'location', 'work_authorization', 'work_style'}]
+    grouped = defaultdict(list)
+    for row in rows:
+        if row.get('category', 'capability') in {
+                'education', 'credential', 'language', 'location', 'work_authorization', 'work_style'}:
+            continue
+        if row['priority'] == 'logistics':
+            continue
+        key = (row['importance'], row['priority'], _text(row['job_quote']))
+        grouped[key].append(row)
+    details = [{'importance': importance, 'priority': priority,
+                'job_quote': members[0]['job_quote'], 'requirement_count': len(members),
+                'weight': .25 if priority == 'preferred' else 1.,
+                'credit': sum(evidence_credit(row) for row in members) / len(members)}
+               for (importance, priority, _), members in grouped.items()]
     groups = {}
     for importance in ('core', 'supporting'):
-        selected = [row for row in rows if row['importance'] == importance and row['priority'] != 'logistics']
-        total = sum(.25 if row['priority'] == 'preferred' else 1 for row in selected)
-        demonstrated = sum((.25 if row['priority'] == 'preferred' else 1) *
-                           evidence_credit(row)
-                           for row in selected)
-        groups[importance] = demonstrated / total if total else None
+        selected = [group for group in details if group['importance'] == importance]
+        total = sum(group['weight'] for group in selected)
+        groups[importance] = sum(group['weight'] * group['credit'] for group in selected) / total if total else None
     if groups['core'] is None:
-        return 0
+        return {'score': 0, 'groups': details}
     value = groups['core'] * (85 if groups['supporting'] is not None else 100)
     if groups['supporting'] is not None:
         value += groups['supporting'] * 15
-    return round(value)
+    return {'score': round(value), 'groups': details}
+
+
+def role_relevance_score(rows):
+    return role_relevance_breakdown(rows)['score']

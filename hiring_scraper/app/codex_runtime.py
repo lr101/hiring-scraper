@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 
 DEVICE_URL = 'https://auth.openai.com/codex/device'
 LOGIN_SECONDS = 900
-GENERATION_SECONDS = 300
+GENERATION_SECONDS = 600
 USAGE_SECONDS = 8
 USAGE_MAX_BYTES = 128 * 1024
 _ansi = re.compile(r'\x1b\[[0-?]*[ -/]*[@-~]')

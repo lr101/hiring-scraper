@@ -62,9 +62,9 @@ most 100 expired files checked per cleanup pass, so records can remain longer th
 seven days while the instance is idle. Deleting the saved application removes it.
 Review all claims before using the result; no employer form is submitted.
 
-Preparation uses **three Codex requests** from the connected subscription. Each is
-ephemeral and isolated. The native calls share a 15-minute overall budget, with
-at most 300 seconds per call; local PDF checks may take additional time. The page
+Preparation usually uses **five Codex requests** (fewer when assessments are cached, more when repairs are needed) from the connected subscription. Each is
+ephemeral and isolated. The native calls share a 120-minute overall budget, with
+at most 600 seconds per call; local PDF checks may take additional time. The page
 polls a backend job, so reloading or closing it does not cancel preparation. It
 shows the current stage and can recover the result when reopened. Cancel stops
 queued or active model work. Retry reuses validated checkpoints only when the
@@ -156,7 +156,7 @@ documents for the 25 highest-ranked New applications of each profile with a
 CV. It chooses German or English from the job posting, using an available CV
 language if necessary. Existing saved drafts are left alone. Preparation runs
 one application at a time and pauses when subscription usage is unavailable or
-at least 50%; failures are retried after a delay. Completed automatic results
+exhausted; failures are retried after a delay. Completed automatic results
 remain in the private Codex volume until the application draft is deleted.
 Open the application to review its documents before applying. Form-specific
 answers still require capturing the application form.
@@ -170,7 +170,7 @@ conversation history, memory or Canvas access. Each generation uses an isolated
 temporary directory, an ephemeral session, an explicit JSON schema and a read-only
 sandbox. Shell, file, browser, plugin and agent tools are disabled. A file lock
 serializes native login, generation and disconnect across API processes. Each call
-has a maximum 300-second timeout within the workflow budget; Radius waits for a busy
+has a maximum 600-second timeout within the workflow budget; Radius waits for a busy
 connection but does not retry failed model calls, although
 Codex may reconnect its transport. Native ChatGPT/Codex data handling policies
 apply to the signed-in account.

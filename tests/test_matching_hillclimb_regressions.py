@@ -5,6 +5,20 @@ from hiring_scraper.matching import enrich_job, match_job
 
 
 class StructuredApplicabilityTests(unittest.TestCase):
+    def test_one_shared_tool_cannot_recommend_a_desired_title(self):
+        result = match_job({'title': 'Product Owner', 'description':
+            'Your responsibilities: Use Python. ' * 20},
+            {'desired_roles': ['Product Owner'], 'skills': ['Python']})
+        self.assertLess(result['task_fit'], 65)
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
+    def test_desired_title_is_not_documented_task_fit(self):
+        result = match_job({'title': 'Product Owner', 'description':
+            'Your responsibilities: Evaluate customer requests and coordinate delivery schedules. ' * 10},
+            {'desired_roles': ['Product Owner'], 'skills': [], 'summary': ''})
+        self.assertEqual(result['task_fit'], 0)
+        self.assertNotEqual(result['fit_tier'], 'recommended')
+
     def test_academic_only_tasks_remain_a_possible_lead_without_proving_professional_fit(self):
         result = match_job({'title': 'Prototype coordinator', 'description':
             'Your tasks: Design physical prototypes. Coordinate laboratory handovers.'},

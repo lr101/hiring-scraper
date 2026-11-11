@@ -14,7 +14,7 @@ def _number(value):
         return False
 
 
-def evaluate(payload, limit_percent=50):
+def evaluate(payload, limit_percent=100):
     result = {'available': False, 'allowed': False, 'reason': 'usage_unavailable',
               'used_percent': None, 'resets_at': None, 'window_minutes': 300,
               'limit_percent': limit_percent}

@@ -55,7 +55,7 @@ class SchedulerTests(unittest.TestCase):
             real_start = jobs.start
             with patch.object(auto, 'SessionLocal', factory), patch.object(auto.codex_runtime, '_root', return_value=root), \
                  patch.object(auto.codex_runtime, 'status', return_value={'enabled': True}), \
-                 patch.object(auto.codex_runtime, 'subscription_usage', return_value={'allowed': True, 'used_percent': 10}), \
+                 patch.object(auto.codex_runtime, 'subscription_usage', return_value={'allowed': True, 'used_percent': 75}), \
                  patch.object(auto.codex_runtime, 'selected_model', return_value=None), \
                  patch.object(auto, 'profile_match_index_stale', return_value=False), \
                  patch.object(auto.generation, '_snapshot', return_value=({}, 'revision')), \
@@ -83,5 +83,5 @@ class SchedulerTests(unittest.TestCase):
                             break
                         time.sleep(.01)
                     self.assertEqual(result['result']['package']['cv'], 'ready')
-                    self.assertEqual(prepare.call_args.kwargs['progress'].usage_limit_percent, 50)
+                    self.assertIsNone(prepare.call_args.kwargs['progress'].usage_limit_percent)
             engine.dispose()

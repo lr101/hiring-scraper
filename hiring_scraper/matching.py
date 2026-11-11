@@ -17,7 +17,7 @@ from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_source_scope, structured_requirement_texts, structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE)
 
-VERSION = 'rules-v42-language-estimates'
+VERSION = 'rules-v43-task-evidence'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -1520,7 +1520,11 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
         value = max(0, min(score_limit, value))
         return max(0, min(score_limit, value + location_adjustment))
 
-    task_fit = max(0, min(29 if applicability['uncovered_specialist'] else 100, round(score))) if applicability['substantive'] else 0
+    # Desired titles, language and location preferences do not demonstrate duties.
+    task_evidence_score = max(content['score'], applicability['score_floor'],
+                              (task_alignment['score'] or 0) if partial_tasks else 0)
+    task_fit = max(0, min(29 if applicability['uncovered_specialist'] else 100,
+                         round(task_evidence_score))) if applicability['substantive'] else 0
     qualification_fit = adjusted_score(score, include_language=False) if applicability['substantive'] else 0
     score = adjusted_score(score)
     if semantic_boosted:
@@ -1547,7 +1551,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                                ('Saved language evidence satisfies the extracted requirement.' if enriched['languages'] else 'No mandatory language requirement was stated.')}
     language_review = bool(enriched['languages'] and language_gate['status'] == 'unknown')
     fit_tier = ('unlikely' if conflicts or score < 30 or applicability['blocking'] else
-                'recommended' if score >= 65 and not language_review and (enriched['quality'] != 'limited' or applicability['direct_service'] or grounded_tasks) and not requirement_gaps else
+                'recommended' if score >= 65 and task_fit >= 65 and not language_review and (enriched['quality'] != 'limited' or applicability['direct_service'] or grounded_tasks) and not requirement_gaps else
                 'possible')
     return {'score': score, 'eligible': not conflicts, 'uncertain': bool(unknowns),
             'mandatory_review': applicability['blocking'],

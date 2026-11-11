@@ -43,6 +43,13 @@ try {
         weights: { skills: 0.30, experience: 0.25 }, role_evidence_score: 50,
         dimension_completeness: 55, requirement_completeness: 50, requirement_coverage: 100, requirements: [] } },
   }))
+  assert.match(calculation, /aria-label="Job score breakdown"/)
+  assert.match(calculation, /aria-label="Task assessment"[^>]*aria-valuenow="85"/)
+  assert.match(calculation, /aria-label="Role evidence ceiling"[^>]*aria-valuenow="50"/)
+  assert.match(calculation, /aria-label="Final qualification score"[^>]*aria-valuenow="50"/)
+  assert.match(calculation, /Preference fit.*Unknown/s)
+  assert.match(localEvidence, /aria-label="Local shortlist score"[^>]*aria-valuenow="40"/)
+  assert.match(localEvidence, /aria-label="Task fit"[^>]*aria-valuenow="85"/)
   assert.match(calculation, /90 × 30%/)
   assert.match(calculation, /80 × 25%/)
   assert.match(calculation, /85.*50.*50/s)

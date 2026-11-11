@@ -2872,10 +2872,27 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     applications = [application for application in canonical_states
                     if not selected_statuses or application.status in selected_statuses]
     total = len(applications)
+    # A worker may still be rebuilding the stored ranks after a matcher/profile
+    # change. Rank tracked roles using the same current scores as their cards,
+    # before slicing the page. Reads never perform model inference.
+    current_scores = {}
+    if matching_pending and sort == 'match':
+        profiles_by_id = {profile.id: profile for profile in profiles}
+        from hiring_scraper.app.profile_llm import load_matching_documents
+        for start in range(0, len(applications), 200):
+            batch = applications[start:start + 200]
+            batch_jobs = session.scalars(select(Job).where(Job.id.in_({row.job_id for row in batch})).options(
+                joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
+                selectinload(Job.locations))).unique().all()
+            documents = load_matching_documents(session, batch_jobs, profiles)
+            jobs_by_id = {job.id: job for job in batch_jobs}
+            for row in batch:
+                current_scores[row.id] = _profile_match(
+                    jobs_by_id[row.job_id], profiles_by_id[row.profile_id], None, documents)['score']
     order = {
         'posted': lambda row: (row.posted_rank, row.match_rank, row.discovered_rank, row.id),
         'discovered': lambda row: (row.discovered_rank, row.match_rank, row.posted_rank, row.id),
-        'match': lambda row: (row.match_rank, row.discovered_rank, row.posted_rank, row.id),
+        'match': lambda row: (current_scores.get(row.id, row.match_rank), row.discovered_rank, row.posted_rank, row.id),
     }[sort]
     applications = sorted(applications, key=order, reverse=True)[offset:offset + limit]
     # Bind only this page's stable job IDs, regardless of the full Journey size.
@@ -3355,6 +3372,12 @@ def summary(latitude: float = Query(49.0068705, ge=-90, le=90),
             "jobs_for_location": job_page["total"],
             "remote_jobs_in_result": remote_job_page["total"],
             "as_of": datetime.now(timezone.utc).isoformat()}
+
+
+@app.post('/api/v1/profile-matching/rematch')
+def rematch_all_jobs():
+    from hiring_scraper.app.profile_llm import requeue_all_assessments
+    return requeue_all_assessments()
 
 
 @app.get('/api/v1/profile-matching/status')

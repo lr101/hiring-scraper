@@ -16,7 +16,7 @@ import tempfile
 import time
 
 from fastapi import HTTPException
-from sqlalchemy import and_, exists, or_, select, text
+from sqlalchemy import and_, exists, func, or_, select, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import selectinload
 
@@ -24,7 +24,7 @@ from hiring_scraper.app import codex_runtime, requirement_evidence
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import AIMatchingSelection, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
+from hiring_scraper.app.models import AIMatchingSelection, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job
 from hiring_scraper.semantic_matching import job_sections
@@ -38,7 +38,8 @@ if EFFORT not in {'low', 'medium', 'high', 'xhigh', 'max', 'ultra'}:
     raise ValueError('RADIUS_MATCH_AI_REASONING_EFFORT must be a valid reasoning effort.')
 # Configuration is part of cache identity: changing models never reuses a prior
 # provider judgment or publishes it under the new model's name.
-VERSION = f'profile-v17-support-autonomy:{MODEL}:{EFFORT}'
+VERSION = f'profile-v18-dimension-citations:{MODEL}:{EFFORT}'
+MIN_AI_BASE_SCORE = 35
 WEIGHTS = {'skills': .30, 'experience': .25, 'behavioral': .15, 'career_alignment': .30}
 GATES = ('location', 'language', 'eligibility')
 JOB_FIELDS = (*SOURCE_FIELDS, 'department', 'date_posted', 'is_active', 'closed_at')
@@ -60,7 +61,9 @@ _SHORT_TEXT = {'type': 'string', 'minLength': 1, 'maxLength': 500}
 _LIST = {'type': 'array', 'items': _SHORT_TEXT, 'maxItems': 8}
 SCHEMA = _object({
     'dimensions': _object({name: _object({'score': {'type': ['number', 'null'], 'minimum': 0, 'maximum': 100},
-                                        'evidence': _SHORT_TEXT}) for name in WEIGHTS}),
+                                        'evidence': _SHORT_TEXT,
+                                        'evidence_source': {'type': 'string', 'maxLength': 200},
+                                        'evidence_quote': {'type': 'string', 'maxLength': 1000}}) for name in WEIGHTS}),
     'gates': _object({name: _object({'status': {'type': 'string', 'enum': ['pass', 'fail', 'unknown']},
                                     'reason': _SHORT_TEXT}) for name in GATES}),
     'strengths': _LIST, 'gaps': _LIST, 'unknowns': _LIST,
@@ -232,6 +235,9 @@ def build_prompt(job, profile):
         'skills, language levels, behavioral traits, goals, qualifications or eligibility. '
         'Score skills, experience, behavioral fit and career_alignment from 0 to 100; use null '
         'when the facts do not support judging a dimension (especially absent behavior or career goals). '
+        'Each scored dimension must include evidence_source from the profile evidence_sources map and '
+        'a short verbatim evidence_quote supporting the judgment. For null scores use empty citation fields. '
+        'Evidence prose explains the interpretation; a citation establishes provenance, not numeric certainty. '
         'The application calculates task qualification from skills 30% and experience 25%, '
         'renormalized over known task dimensions and capped by core requirement evidence. '
         'Behavioral 15% and career_alignment 30% produce a separate preference-fit score; '
@@ -277,13 +283,23 @@ def validate_assessment(data, sources=None):
     weight = 0.
     missing = []
     for name, value in data['dimensions'].items():
-        keys(value, ('score', 'evidence')); prose(value['evidence'])
+        if set(value) not in ({'score', 'evidence'}, {'score', 'evidence', 'evidence_source', 'evidence_quote'}):
+            raise ValueError('Invalid assessment dimension fields')
+        prose(value['evidence'])
         score = value['score']
         if score is None:
             missing.append(name)
             continue
         if type(score) not in (int, float) or not math.isfinite(score) or not 0 <= score <= 100:
             raise ValueError('Invalid assessment score')
+        if sources is not None:
+            source = value.get('evidence_source', '')
+            quote = value.get('evidence_quote', '')
+            normalize = lambda text: ' '.join(text.split())
+            if (not isinstance(source, str) or not source.startswith('profile.') or
+                    not isinstance(quote, str) or not quote.strip() or len(quote) > 1000 or
+                    normalize(quote) not in normalize(sources.get(source, ''))):
+                raise ValueError('Invalid dimension citation')
         weight += WEIGHTS[name]
     keys(data['gates'], GATES)
     for value in data['gates'].values():
@@ -332,10 +348,11 @@ def validate_assessment(data, sources=None):
         known = [name for name in names if data['dimensions'][name]['score'] is not None]
         return round(sum(data['dimensions'][name]['score'] * WEIGHTS[name] for name in known) /
                      sum(WEIGHTS[name] for name in known)) if known else None
-    role_score = requirement_evidence.role_relevance_score(rows)
+    role_breakdown = requirement_evidence.role_relevance_breakdown(rows)
+    role_score = role_breakdown['score']
     qualifications = component(('skills', 'experience'))
     result.update(weighted_task_fit=qualifications, qualification_fit=min(qualifications, role_score) if qualifications is not None else None,
-                  role_evidence_score=role_score,
+                  role_evidence_score=role_score, role_evidence_groups=role_breakdown['groups'],
                   preference_fit=component(('behavioral', 'career_alignment')),
                   dimension_completeness=round(100 * weight),
                   requirement_coverage=summary['coverage'], requirement_completeness=summary['completeness'])
@@ -400,6 +417,15 @@ def _citation_options(sources, prefix, limit):
 def _resolve_citations(raw, catalog):
     """Resolve bound provider references; legacy caller generators stay validated."""
     result = deepcopy(raw)
+    for dimension in result.get('dimensions', {}).values():
+        if 'evidence_ref' not in dimension:
+            continue
+        reference = dimension.pop('evidence_ref')
+        evidence = catalog.get(reference) if reference else None
+        if reference and (not evidence or not evidence['source'].startswith('profile.')):
+            raise ValueError('Invalid dimension citation reference')
+        dimension.update(evidence_source=evidence['source'] if evidence else '',
+                         evidence_quote=evidence['quote'] if evidence else '')
     for row in result.get('requirements', []):
         row.setdefault('category', 'capability')
         if 'job_ref' not in row and 'evidence_ref' not in row:
@@ -434,6 +460,11 @@ def generate_assessment(prompt, *, generate):
     job_catalog = _citation_catalog(sources, 'job.', 64)
     profile_catalog = _citation_catalog(sources, 'profile.', 192)
     catalog = {**job_catalog, **profile_catalog}
+    for dimension in schema['properties']['dimensions']['properties'].values():
+        dimension['properties'].pop('evidence_source')
+        dimension['properties'].pop('evidence_quote')
+        dimension['properties']['evidence_ref'] = {'type': 'string', 'enum': ['', *profile_catalog]}
+        dimension['required'] = list(dimension['properties'])
     if not job_catalog:
         raise ValueError('No citable job facts')
     for key in ('job_source', 'job_quote', 'evidence_source', 'evidence_quote'):
@@ -461,7 +492,7 @@ def generate_assessment(prompt, *, generate):
     provider_prompt = (preamble + '\nCITATION PROTOCOL: select job_ref and evidence_ref from citation_catalog '
                        'in the response schema. Each reference binds an exact source path and original-language '
                        'quote; the application fills those fields without rewriting them. Never construct quotes '
-                       'or source names. An unknown requirement uses empty evidence_ref. Citation existence does '
+                       'or source names. Every scored dimension also selects a profile evidence_ref; null dimensions use an empty reference. An unknown requirement uses empty evidence_ref. Citation existence does '
                        'not establish semantic support: preserve work/study scope and distinguish adjacent work. '
                        'Citation context retains its parent record and conservative work/study scope. A declared skill '
                        'does not prove academic or professional exposure. '
@@ -588,11 +619,12 @@ def apply_cached_assessment(local, job, profile, documents):
                   label='Requirement or preference conflict' if not eligible else 'Verify mandatory eligibility' if mandatory_review else 'Strong overlap' if tier == 'recommended' else
                         'Some overlap' if score >= 30 else 'Little evidence of a match',
                   llm_match={'model': MODEL, 'reasoning_effort': EFFORT, 'version': row.version,
+                             'scoring_version': requirement_evidence.SCORING_VERSION,
                              'source_hash': row.source_hash, 'scored_at': row.scored_at.isoformat(),
                              'dimensions': assessment['dimensions'], 'gates': assessment['gates'],
                              'weights': dict(WEIGHTS), 'score': score,
                              **{key: assessment[key] for key in ('weighted_task_fit', 'qualification_fit', 'preference_fit',
-                                 'dimension_completeness', 'role_evidence_score', 'requirement_coverage', 'requirement_completeness', 'requirements')}})
+                                 'dimension_completeness', 'role_evidence_score', 'role_evidence_groups', 'requirement_coverage', 'requirement_completeness', 'requirements')}})
     return result
 
 
@@ -678,8 +710,7 @@ def _compute_selected_job_ids(session, profile):
             semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
             baseline = match_job(source, profile.matching_preferences, current_enrichment(job),
                                  **({'semantic': semantic} if semantic else {}))
-            if (not baseline['eligible'] or (baseline['score'] == 0 and
-                    (baseline.get('task_alignment') or {}).get('score') is None and not semantic)):
+            if not baseline['eligible'] or baseline['score'] <= MIN_AI_BASE_SCORE:
                 continue
             rows.append({'id': job.id, 'company': job.feed.company_id,
                          'score': baseline['score'], 'uncertain': baseline.get('uncertain'),
@@ -706,14 +737,27 @@ def _candidate_snapshot(session, engine_key, *, advance=True):
             ProfileLLMScore.profile_id == profile.id, ProfileLLMScore.job_id.in_(selected)))}
         for job_id in selected:
             job = jobs.get(job_id)
-            if job is None:
-                continue  # Physically deleted since the static selection was cached.
+            if job is None or not job.is_active or expiry(job)['expired']:
+                continue
             digest = source_hash(job, profile)
             old = cached.get(job_id)
             if old is not None and old.version == VERSION and old.source_hash == digest:
                 continue
             retry = _RETRIES.get((engine_key, profile.id, job_id, digest))
             if retry and retry[1] > time.monotonic():
+                continue
+            # Pool membership may be cached for a minute, but facts can change
+            # immediately. Recheck only this candidate before spending a call.
+            from hiring_scraper.app.ai_match_selection import in_search_area
+            from hiring_scraper.app.profile_semantics import cached_semantic_evidence
+            if not in_search_area(job, profile.matching_preferences):
+                continue
+            source = job_input(job)
+            documents = _load_semantic_documents(session, [job], [profile])
+            semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
+            baseline = match_job(source, profile.matching_preferences, current_enrichment(job),
+                                 **({'semantic': semantic} if semantic else {}))
+            if not baseline['eligible'] or baseline['score'] <= MIN_AI_BASE_SCORE:
                 continue
             if advance:
                 _CURSORS[key] = (index + 1) % len(profiles)
@@ -821,34 +865,78 @@ def _stale_assessment_pending(session):
     return False
 
 
-def _selection_pending(session):
-    """Only inspect the worker's small cached pool; never match inventory on GET.
+def requeue_all_assessments():
+    """Invalidate saved AI assessments so the worker recomputes eligible pairs."""
+    from sqlalchemy import delete, update
+    from fastapi import HTTPException
+    with SessionLocal() as session:
+        engine = session.get_bind()
+        with _inference_lease(engine) as acquired:
+            if not acquired:
+                raise HTTPException(409, 'An AI assessment is running. Try rematching again shortly.')
+            session.scalars(select(UserProfile).order_by(UserProfile.id).with_for_update()).all()
+            result = session.execute(delete(ProfileLLMScore))
+            session.execute(delete(AIMatchingSelection))
+            session.execute(update(UserProfile).values(match_index_version=None))
+            count = result.rowcount
+            session.commit()
+    _RETRIES.clear()
+    _CURSORS.clear()
+    _SELECTION_CACHE.clear()
+    return {'requeued_assessments': count}
 
-    A cold/expired pool reports selection pending until the background worker
-    refreshes it. At most ten jobs per profile require source-hash checks.
+
+def _queue_diagnostics(session):
+    """Use the worker's small persisted pool; a cold pool uses indexed counts.
+
+    Status never matches inventory or builds a prompt. Counts on a cold pool
+    describe candidates before the background selector applies shortlist caps.
     """
+    queued = 0
+    selection_pending = False
     for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)):
         cached = session.get(AIMatchingSelection, profile.id)
-        refreshed = cached.refreshed_at.replace(tzinfo=timezone.utc) if cached and cached.refreshed_at.tzinfo is None else cached.refreshed_at if cached else None
-        if (cached is None or cached.source_hash != _hash([VERSION, profile.matching_preferences]) or
-                (utcnow() - refreshed).total_seconds() >= _SELECTION_TTL_SECONDS):
-            return session.scalar(select(exists().where(Job.is_active.is_(True))))
-        selected = cached.job_ids
-        jobs = session.scalars(select(Job).where(Job.id.in_(selected), Job.is_active.is_(True))
-                               .options(selectinload(Job.locations))).all() if selected else []
-        for job in jobs:
-            row = session.get(ProfileLLMScore, (profile.id, job.id))
-            if not expiry(job)['expired'] and (row is None or row.version != VERSION or
-                                               row.source_hash != source_hash(job, profile)):
-                return True
-    return False
+        refreshed = cached.refreshed_at if cached else None
+        if refreshed is not None and refreshed.tzinfo is None:
+            refreshed = refreshed.replace(tzinfo=timezone.utc)
+        fresh = (cached is not None and cached.source_hash == _hash([VERSION, profile.matching_preferences]) and
+                 (utcnow() - refreshed).total_seconds() < _SELECTION_TTL_SECONDS)
+        if fresh:
+            selected = cached.job_ids
+            jobs = session.scalars(select(Job).where(Job.id.in_(selected), Job.is_active.is_(True))
+                                   .options(selectinload(Job.locations))).all() if selected else []
+            for job in jobs:
+                row = session.get(ProfileLLMScore, (profile.id, job.id))
+                if not expiry(job)['expired'] and (row is None or row.version != VERSION):
+                    queued += 1
+        else:
+            selection_pending = True
+            indexed = select(ProfileJobMatch.job_id).where(ProfileJobMatch.profile_id == profile.id,
+                                                            ProfileJobMatch.match_score > MIN_AI_BASE_SCORE)
+            saved = select(JobApplication.job_id).where(JobApplication.profile_id == profile.id,
+                ~exists(select(1).where(ProfileJobMatch.profile_id == profile.id,
+                                       ProfileJobMatch.job_id == JobApplication.job_id)))
+            ids = indexed.union(saved)
+            jobs = session.scalars(select(Job).where(Job.id.in_(ids), Job.is_active.is_(True),
+                ~exists(select(1).where(ProfileLLMScore.profile_id == profile.id,
+                                       ProfileLLMScore.job_id == Job.id, ProfileLLMScore.version == VERSION)))
+                .execution_options(yield_per=200))
+            queued += sum(not expiry(job)['expired'] for job in jobs)
+    return queued, selection_pending
 
 
 def matching_status():
     """Public quota diagnostics contain no prompts, credentials or personal data."""
     quota = codex_runtime.subscription_usage()
     with SessionLocal() as session:
-        pending = bool(_selection_pending(session))
+        queued, selecting = _queue_diagnostics(session)
+        assessed, last_assessed = session.execute(select(func.count(), func.max(ProfileLLMScore.scored_at))
+            .select_from(ProfileLLMScore).join(Job, Job.id == ProfileLLMScore.job_id)
+            .where(Job.is_active.is_(True), ProfileLLMScore.version == VERSION)).one()
+        stale = _stale_assessment_pending(session) if assessed else False
+        from hiring_scraper.app.job_search import profile_match_index_stale
+        indexing = any(profile_match_index_stale(profile) for profile in session.scalars(select(UserProfile)))
+        pending = bool(queued or stale or indexing)
     from hiring_scraper.app.ai_matching_budget import status as budget_status
     budget = budget_status(SessionLocal)
     allowed = bool(_subscription_allows_matching(quota) and budget['remaining'])
@@ -856,4 +944,8 @@ def matching_status():
                                            'resets_at', 'window_minutes', 'limit_percent')}
     return {'state': 'pending' if allowed and pending else 'paused' if not budget['remaining'] else 'ready' if allowed else
                      'disconnected' if quota.get('reason') == 'disconnected' else 'paused',
-            'pending': pending, 'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe, 'call_budget': budget}
+            'pending': pending, 'indexing_pending': indexing, 'selection_pending': selecting,
+            'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe, 'call_budget': budget,
+            'queued_pairs': queued, 'assessed_pairs': assessed, 'stale_assessments_pending': stale,
+            'last_assessed_at': last_assessed.isoformat() if last_assessed else None,
+            'worker_health': 'unknown', 'checked_at': utcnow().isoformat()}

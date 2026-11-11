@@ -410,9 +410,9 @@ PY
 
 reserve_port() {
   local role=$1 candidate marker owner
+  mkdir -p -- "$port_state_dir"
   exec {port_lock_fd}>"$port_lock_file"
   flock "$port_lock_fd"
-  mkdir -p -- "$port_state_dir"
   for _ in $(seq 1 100); do
     candidate=$(python3 - <<'PY'
 import socket

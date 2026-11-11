@@ -12,7 +12,14 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Show an accessible score graphic on job details, separate task evidence from desired titles, and require exact saved-source citations for AI dimension scores. Existing assessments refresh under the new scoring version.
+
 - Match documented core duties across job titles while preserving academic scope, formal qualifications, language requirements and source-backed evidence.
+- Review saved Journey roles even when their derived match index is missing, and report pending index rebuilds in AI matching status.
+
+- Remove the built-in 50% AI quota threshold, handle plain-text application save failures, and give multi-pass CV preparation a larger review budget.
+
+- Sort Journey by current fit scores while matching rebuilds and refresh saved pages as AI assessments arrive.
 
 - Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
 
@@ -40,6 +47,10 @@ no historical releases have been reconstructed.
 
 - Explain job scores with weighted task dimensions, evidence ceilings, requirement quotes and separate eligibility checks.
 - Bound automatic AI matching to a stable shortlist and durable rolling call budget. Migration `0036_ai_matching_budget` adds call accounting and selected-pool status tables; apply migrations before starting updated workers.
+- Queue fresh AI assessments across profiles from the AI matching status page.
+
+- Only send eligible jobs with a local base score strictly over 35/100 for AI assessment.
+- Add an AI matching status page with queue counts, recent assessment activity, and subscription pause diagnostics.
 
 - A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
 

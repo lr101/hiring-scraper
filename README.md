@@ -152,7 +152,8 @@ fresh slug. The adapter reserves a separate embedding port and owns both process
 
 ### Subscription-backed job scoring
 
-The profile matching worker evaluates active jobs with
+Only eligible jobs with a current local base score strictly over 35/100 can enter
+the AI pool. The profile matching worker evaluates active jobs with
 `gpt-6.1-sol` at high reasoning through the private Radius ChatGPT connection.
 Connect your subscription in **Settings → ChatGPT subscription**. This uses
 included Codex subscription capacity, not an API key. It does not reuse a
@@ -207,11 +208,17 @@ from desired job titles. It does not research companies or follow instructions
 embedded in job postings.
 
 Citation sources reserve space for career, CV, skill and logistics evidence, including
-original-language excerpts. An assessment with unverifiable citations or unsupported
+original-language excerpts. Every scored AI dimension selects a bound profile citation;
+source paths and verbatim excerpts are checked before publishing or using cached results.
+Older assessments refresh under the new version while local estimates remain available. An assessment with unverifiable citations or unsupported
 gate failures receives one guarded repair attempt. Repeatedly ungrounded results are
 deferred rather than published with contradictory explanations. Mandatory unverified
 licenses or jurisdiction-specific work authorization keep the recommendation unlikely
 until verified; missing evidence is distinguished from an explicit incompatibility.
+
+Job details show a score graphic comparing task assessment, role-evidence ceiling and final
+qualification score, with preferences separate. Local task fit excludes desired-title
+preference; task evidence is required for a local recommendation.
 
 Local scores retain their evidence-based calibration and remain labelled as provisional shortlist estimates. A
 valid, current AI assessment **replaces** that estimate and its
@@ -230,8 +237,8 @@ not a hiring probability. The weighted dimension estimate is capped by demonstra
 role evidence: core requirements control 85% and supporting requirements at most 15%
 (100% core when there are no supporting requirements). Unknown requirements add no
 demonstrated evidence; they do not establish inability. Individual core gaps and unknowns reduce the evidence-weighted score without a blanket cap;
-required unresolved capabilities still prevent a Recommended label. No identified core work means
-zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
+required unresolved capabilities still prevent a Recommended label. Atomic rows quoting the same employer clause share one weight, so splitting a
+duty cannot multiply its influence. No identified core work means zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
 The evidence distance is assessed from source excerpts and remains visible for review.
 Unknown dimensions are excluded rather than scored as zero;
 coverage excludes unknown requirements, so always read it alongside completeness.
@@ -254,7 +261,7 @@ request. Inference runs outside database transactions, and publication verifies
 that the profile and job are still current. Existing acted application stages
 remain intact. API reads use only cached data and never start inference.
 
-For a preview of the rules/Luna worker without loading another local embedding
+For a preview of the rules/AI worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
 backfills; it enables the profile worker as well.

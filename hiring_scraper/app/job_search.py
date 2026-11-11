@@ -24,6 +24,7 @@ from hiring_scraper.app.profile_semantics import cached_semantic_evidence
 from hiring_scraper.app.profile_llm import (VERSION as LLM_VERSION, apply_cached_assessment,
     load_matching_documents as load_semantic_documents, profile_data)
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
+from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
 
 _PENDING_MATCH_MAX_BYTES = 1_048_576
 _MATCH_JOB_BATCH_SIZE = 500
@@ -94,6 +95,7 @@ def _profile_index_version(profile: UserProfile) -> str:
         "matcher": VERSION,
         "semantic": SEMANTIC_VERSION,
         "llm": LLM_VERSION,
+        "requirement_scoring": REQUIREMENT_SCORING_VERSION,
         "llm_preferences": profile_data(profile),
         "preferences": profile.matching_preferences,
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)

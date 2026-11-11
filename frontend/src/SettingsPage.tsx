@@ -11,6 +11,7 @@ const themeOptions: { value: ThemePreference; label: string; detail: string }[] 
 ]
 
 const settingsLinks = [
+  { href: '/settings/ai-matching', symbol: '◎', label: 'AI matching status', detail: 'Check queued reviews, subscription usage, and recent assessment activity.' },
   { href: '/discover', symbol: '⌕', label: 'Find companies & jobs', detail: 'Search the full directory of employers and open roles.' },
   { href: '/locations', symbol: '⌖', label: 'Search areas', detail: 'Configure the places used to find local jobs.' },
   { href: '/feeds', symbol: '≋', label: 'Job feeds', detail: 'Manage employer websites and other job sources.' },
@@ -111,7 +112,7 @@ export default function SettingsPage() {
         </div>
         <ChatGPTConnection refreshKey={modelRevision} />
         <ApplicationModelSettings onSaved={() => setModelRevision(value => value + 1)} />
-        <p className="finish-help">Background job reviews use Luna and pause at 50% of your five-hour allowance, or whenever that usage cannot be checked.</p>
+        <p className="finish-help">Background job reviews use Luna and pause when your subscription allowance is exhausted or usage cannot be checked.</p>
       </section>
 
       <section className="detail-panel settings-card" aria-labelledby="companion-heading">

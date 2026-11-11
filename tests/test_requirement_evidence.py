@@ -44,6 +44,16 @@ class RequirementEvidenceTests(unittest.TestCase):
         summary = evidence.requirement_summary([row])
         self.assertEqual(summary['coverage'], 80)
 
+    def test_splitting_one_unknown_employer_clause_does_not_multiply_its_penalty(self):
+        rows = [self.row, *[{**self.row, 'requirement': f'Part {i}',
+            'job_quote': 'Coordinate campaigns, tests, reports and events.', 'status': 'unknown'} for i in range(4)]]
+        self.assertEqual(evidence.role_relevance_score(rows), 50)
+
+    def test_splitting_one_supported_employer_clause_does_not_inflate_its_credit(self):
+        rows = [*[{**self.row, 'requirement': f'Part {i}'} for i in range(4)],
+                {**self.row, 'job_quote': 'Own regulatory approval.', 'status': 'unknown'}]
+        self.assertEqual(evidence.role_relevance_score(rows), 50)
+
     def test_sparse_job_can_have_no_requirements_without_fabrication(self):
         self.assertEqual(evidence.ground_requirements([], self.sources), [])
         self.assertEqual(evidence.role_relevance_score([]), 0)

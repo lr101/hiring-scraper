@@ -6,6 +6,7 @@ import SiteHeader from './SiteHeader'
 import ProfilesPage from './ProfilesPage'
 import ApplicationsPage from './ApplicationsPage'
 import SettingsPage from './SettingsPage'
+import MatchingStatusPage from './MatchingStatusPage'
 import ApplicationPreparationPage from './ApplicationPreparationPage'
 import JobFeedCard from './JobFeedCard'
 import { applicationStatusLabel, applicationStatuses, saveApplication, trackJobInteraction } from './applications'
@@ -911,6 +912,7 @@ function App() {
   if (path === '/profile' || path.startsWith('/profile/')) return <ProfilesPage />
   if (path === '/applications' || path === '/applications/') return <ApplicationsPage />
   if (path === '/discover' || path === '/discover/') return <DirectoryPage />
+  if (path === '/settings/ai-matching' || path === '/settings/ai-matching/') return <MatchingStatusPage />
   if (path === '/settings' || path === '/settings/') return <SettingsPage />
   if (path === '/locations' || path === '/locations/') return <LocationsPage />
   if (path === '/feeds' || path === '/feeds/') return <FeedSourcesPage />

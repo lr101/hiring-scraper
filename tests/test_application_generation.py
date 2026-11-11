@@ -69,6 +69,8 @@ class ApplicationGenerationTests(unittest.TestCase):
         profile = self.session.get(models.UserProfile, self.profile_id)
         job = self.session.get(models.Job, self.job_id)
         raw = {**assessment(), **self.requirements()}
+        for dimension in raw['dimensions'].values():
+            dimension.update(evidence_source='profile.summary', evidence_quote='Product coordination')
         digest = profile_llm.source_hash(job, profile)
         row = self.session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
         if row is None:
@@ -685,6 +687,23 @@ class ApplicationGenerationTests(unittest.TestCase):
                 with self.assertRaises(HTTPException) as raised: self.generate(form=form)
                 self.assertEqual(raised.exception.status_code, 502)
 
+
+    def test_long_successful_turns_leave_time_for_final_review(self):
+        m = self.module()
+        self.cache_assessment()
+        data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        elapsed = [0]
+        review = {'recommendation': 'possible', 'summary': 'Relevant experience.',
+                  'requirements': [{'requirement': 'Coordination', 'priority': 'required', 'status': 'supported', 'evidence': 'Saved experience'}], 'findings': [], 'keywords': []}
+        outputs = iter([self.documents(), review, self.documents(),
+                        {'summary': 'Revised wording is grounded.', 'findings': []}])
+        def generate(*args, **kwargs):
+            self.assertGreaterEqual(kwargs['timeout'], 400)
+            elapsed[0] += 400
+            return next(outputs)
+        with patch.object(m.time, 'monotonic', side_effect=lambda: elapsed[0]), patch.object(m.codex_runtime, 'generate', side_effect=generate) as provider, patch.object(m, '_validated_generation', side_effect=lambda doc, *args: doc.model_dump()), patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
+            m._workflow(data, None)
+        self.assertEqual(provider.call_count, 4)
 
     def test_retry_reuses_validated_draft_after_review_timeout(self):
         m = self.module()
