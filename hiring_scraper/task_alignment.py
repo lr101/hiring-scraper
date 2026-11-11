@@ -14,7 +14,7 @@ from hiring_scraper.requirements import (
     structured_requirement_texts, structured_text,
 )
 
-VERSION = 'task-alignment-v5-bilingual-deliverables'
+VERSION = 'task-alignment-v6-scoped-bilingual-evidence'
 _ACTIONS = {
     'maintain': r'maintain(?:s|ed|ing)?|maintenance|pfleg\w*|wart\w*',
     'coordinate': r'coordinat(?:e|es|ed|ing|ion)|koordinier\w*|organis\w*',
@@ -48,17 +48,26 @@ _STOP.update('evaluation support excel powerpoint word microsoft office tools to
              'pflege erstellung durchführung unterstützung koordination'.split())
 _NEGATIVE = re.compile(r'\b(?:never|not|no|cannot|without|lack\w*|kein\w*|nicht|ohne|wish\w*|aspir\w*|want\w*|möcht\w*)\b', re.I)
 _OTHER_ACTOR = re.compile(r'^(?:(?:our|the|a|another|other)\s+)?(?:finance|people|HR|recruiting|legal|design|innovation)\s+(?:team|department)\b|'
-                          r'^(?:our|the|my|their|meine?\w*|unsere?\w*|die|das|der)\s+(?:(?:[\w-]+)\s+){0,2}'
+                          r'^(?:our|the|a|an|another|other|my|their|ein\w*|meine?\w*|unsere?\w*|die|das|der)\s+(?:(?:[\w-]+)\s+){0,2}'
                           r'(?:team|department|manager|colleague\w*|kolleg\w*|abteilung)\b|'
                           r'^(?:(?:(?:a|the|our|ein\w*|der|die)\s+)?senior\s+(?:colleague\w*|manager\w*|kolleg\w*)|the director|die personalabteilung|unsere personalabteilung)\b|'
                           r'^(?:(?:this|the|our|diese\w*)\s+)?(?:vacancy|posting|advertisement|job ad|stellenanzeige|ausschreibung)\b', re.I)
 # A local explicit subject switch ends the applicant's predicate scope.
+_APPLICANT_ACTOR = re.compile(r'^(?:I|we|you|ich|wir)\s+(?:(?:have|had|will|habe|haben)\s+)?'
+                              r'(?=(?:' + '|'.join(_ACTIONS.values()) + r')\b)', re.I)
 _COMPOUND_DUTY = re.compile(
     r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
-    r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r'))', re.I)
+    r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r')|(?:' +
+    _APPLICANT_ACTOR.pattern.removeprefix('^') + r'))', re.I)
 _GOAL = re.compile(r'\b(?:goal|aim|ambition|objective|ziel)\s+(?:is|was|ist|war)\b|\b(?:hope|plan|intend|aim)\s+to\b', re.I)
 _BOUNDED = re.compile(r'\b(?:under supervision|supervised|assist(?:s|ed|ing)?|support(?:s|ed|ing)?|unterstütz\w*|unter Anleitung|unter Aufsicht|student\w*|university|universit\w*|academic|akademisch\w*)\b', re.I)
 _INDEPENDENT = re.compile(r'\b(?:independent\w*|eigenständig\w*|selbst[äa]ndig\w*|senior|strategic\w*)\b', re.I)
+_INTEREST = re.compile(r'\b(?:interested\s+in|interests?(?=\s*:)|research interests?|'
+                       r'Interesse\s+an|Forschungsinteressen)\b', re.I)
+_DOCUMENT_CONTENT = re.compile(
+    r'^(?:the|a|an|this|our|my|der|die|das|ein\w*)\s+(?:[\w-]+\s+){0,2}'
+    r'(?:plan|document|report|article|paper|Dokument|Bericht)\s+'
+    r'(?:contains?|describes?|covers?|includes?|outlines?|lists?|details?|enthält|beschreibt)\b', re.I)
 
 # Work-product concepts, not titles or broad domain words. Canonicalization is
 # internal only; citations and shared literal words always retain their source.
@@ -109,6 +118,25 @@ def _objects(text):
         text = pattern.sub(' ', text)
     words = set(re.findall(r'[^\W\d_][\w-]*', text, re.U)) - _STOP
     return {word[:-1] if len(word) > 4 and word.endswith('s') else word for word in words if len(word) > 2}
+
+
+def _profile_actions(text):
+    """Profile facts need predicates, not ambiguous plan/research nouns.
+
+    Jobs retain nominal duty extraction; profiles accept performed/ongoing
+    forms or a personal/implicit task predicate for these ambiguous families.
+    """
+    actions = _actions(text)
+    for action, performed in (
+            ('plan', r'plans|planned|planning|planen|plant|plante\w*|Planung'),
+            ('research', r'researches|researched|researching|recherchier\w*')):
+        predicate = re.search(r'\b(?:' + performed + r')\b', text, re.I)
+        predicate = predicate or re.search(
+            r'^(?:(?:I|we|you)\s+(?:(?:have|had|will)\s+)?)?' + action +
+            r'\s+(?!(?:on|for|into|about|of|interests?|report|document)\b)', text, re.I)
+        if not predicate:
+            actions.discard(action)
+    return actions
 
 
 def _semantic_objects(text):
@@ -184,12 +212,18 @@ def _atomic_duties(text):
     for sentence, scope in _sentences(text):
         if is_source_instruction(sentence):
             continue
-        if _excluded(sentence):
+        if _excluded(sentence) and not other_actor(sentence):
             yield sentence, scope
         else:
+            applicant_scope = True
             for part in _COMPOUND_DUTY.split(sentence):
-                if part.strip():
-                    yield part.strip(), scope
+                part = part.strip()
+                if other_actor(part):
+                    applicant_scope = False
+                elif _APPLICANT_ACTOR.search(part):
+                    applicant_scope = True
+                if part and applicant_scope:
+                    yield part, scope
 
 
 def align_tasks(job, profile_sources):
@@ -198,6 +232,8 @@ def align_tasks(job, profile_sources):
         if not isinstance(text, str):
             continue
         for full_sentence, _ in _sentences(text[:12000]):
+            if _INTEREST.search(full_sentence) or _DOCUMENT_CONTENT.search(full_sentence):
+                continue
             # An academic/supervision prefix governs coordinated predicates.
             # Retain it in the literal citation while matching only the atomic
             # action, so neither autonomy nor ownership leaks across clauses.
@@ -206,7 +242,7 @@ def align_tasks(job, profile_sources):
             for sentence, _ in _atomic_duties(full_sentence):
                 if _excluded(sentence):
                     continue
-                actions, objects = _actions(sentence), _semantic_objects(sentence)
+                actions, objects = _profile_actions(sentence), _semantic_objects(sentence)
                 if actions and objects:
                     quote = full_sentence if bounded else sentence
                     facts.append((source, quote, actions, objects))

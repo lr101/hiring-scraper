@@ -337,3 +337,46 @@ class TaskAlignmentTests(unittest.TestCase):
         row = self.align('Maintain schedules and a senior colleague approves budgets.',
                          [('cv_career_facts.education[0].description', 'Maintained schedules.')])['requirements'][0]
         self.assertEqual(row['status'], 'supported')
+
+    def test_other_actor_scope_continues_until_applicant_or_sentence_reset(self):
+        for fact in (
+            'Maintained schedules and my manager created slide decks and documented SOPs.',
+            'Maintained schedules and a colleague created slide decks and documented SOPs.',
+            'Pflegte Terminpläne und eine Kollegin erstellte Präsentationen und dokumentierte Arbeitsanweisungen.'):
+            with self.subTest(fact=fact):
+                rows = self.align('Maintain schedules. Create slide decks. Document SOPs.',
+                                  [('experience.0', fact)])['requirements']
+                self.assertEqual([row['status'] for row in rows], ['supported', 'unknown', 'unknown'])
+        for fact in (
+            'My manager created slide decks and I documented SOPs.',
+            'My manager created slide decks. Documented SOPs.',
+            'Meine Kollegin erstellte Präsentationen und ich dokumentierte Arbeitsanweisungen.'):
+            with self.subTest(fact=fact):
+                row = self.align('Document SOPs.', [('experience.0', fact)])['requirements'][0]
+                self.assertEqual(row['status'], 'supported')
+                self.assertIn(row['evidence_quote'], fact)
+
+    def test_document_contents_and_research_interests_assert_no_work(self):
+        for duty, fact in (
+            ('Maintain schedules.', 'The annual plan contains schedules.'),
+            ('Plan milestones.', 'The annual plan contains milestones.'),
+            ('Research customer needs.', 'Research interests: customer needs.'),
+            ('Research customer needs.', 'Interested in researching customer needs.'),
+            ('Plan milestones.', 'Interested in planning milestones.'),
+            ('Maintain schedules.', 'The planning document describes schedules.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+
+    def test_bare_plan_and_research_document_nouns_are_not_actions(self):
+        for duty, fact in (
+            ('Plan milestones.', 'My plan for milestones.'),
+            ('Research customer needs.', 'My research report lists customer needs.'),
+            ('Research customer needs.', 'Research on customer needs.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+
+    def test_document_subject_does_not_turn_gerund_into_profile_action(self):
+        self.assertEqual(self.align('Plan milestones.',
+            [('experience.0', 'My planning document lists milestones.')])['score'], 0)
+        self.assertEqual(self.align('Research customer needs.',
+            [('experience.0', 'The research report describes customer needs.')])['score'], 0)
