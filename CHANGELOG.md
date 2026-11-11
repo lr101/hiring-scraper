@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Match documented core duties across job titles while preserving academic scope, formal qualifications, language requirements and source-backed evidence.
+
 - Allow application startup with native Codex temporary helper symlinks without following their targets during private-volume ownership repair.
 
 - Keep the opt-in application hillclimb runner and its tests in a separate experiments directory excluded from deployment build contexts.
@@ -35,6 +37,9 @@ no historical releases have been reconstructed.
 - Journey loading no longer rebuilds every profile/job match after editing application wording, translations or contact details. Concurrent and repeated reads share requirement extraction while checking the source hash and matcher version. Journey retries once if a background inventory update interrupts its match rebuild.
 
 ### Added
+
+- Explain job scores with weighted task dimensions, evidence ceilings, requirement quotes and separate eligibility checks.
+- Bound automatic AI matching to a stable shortlist and durable rolling call budget. Migration `0036_ai_matching_budget` adds call accounting and selected-pool status tables; apply migrations before starting updated workers.
 
 - A private application-generation benchmark runner and provenance-checked comparison of independent fit and checklist scores against frozen baselines.
 

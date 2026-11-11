@@ -6,19 +6,49 @@ an optional bullet or employer benefit cannot change the next applicant clause.
 from __future__ import annotations
 
 import re
+from collections import deque
+from itertools import islice
 from hiring_scraper.pages import Document
+
+
+class RequirementText(str):
+    """Display-compatible text retaining bounded HTML heading structure."""
+    def __new__(cls, value, heading_levels=(), heading_positions=()):
+        result = super().__new__(cls, value)
+        result.heading_levels = tuple(heading_levels)
+        result.heading_positions = tuple(heading_positions)
+        return result
 
 
 class _Blocks(Document):
     BLOCKS = {'p', 'div', 'li', 'ul', 'ol', 'section', 'article', 'main',
               'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'tr'}
 
+    def __init__(self):
+        super().__init__()
+        self.heading_levels = []
+        self.active_heading = None
+
     def handle_starttag(self, tag, attrs):
+        if re.fullmatch(r'h[1-6]', tag) and not self.hidden:
+            self.active_heading = (int(tag[1]), [])
         if tag in self.BLOCKS and not self.hidden:
             self.text.append('\n')
+        if re.fullmatch(r'h[1-6]', tag) and not self.hidden:
+            self.text.append('\ue000' + tag[1] + '\ue001')
         super().handle_starttag(tag, attrs)
 
+    def handle_data(self, data):
+        data = data.replace('\ue000', '').replace('\ue001', '')
+        if self.active_heading is not None and not self.hidden:
+            self.active_heading[1].append(data)
+        super().handle_data(data)
+
     def handle_endtag(self, tag):
+        if re.fullmatch(r'h[1-6]', tag) and self.active_heading is not None:
+            level, words = self.active_heading
+            self.heading_levels.append((' '.join(''.join(words).split()), level))
+            self.active_heading = None
         super().handle_endtag(tag)
         if tag in self.BLOCKS and not self.hidden:
             self.text.append('\n')
@@ -27,40 +57,102 @@ class _Blocks(Document):
 def structured_text(value) -> str:
     if not isinstance(value, str):
         return ''
+    if isinstance(value, RequirementText):
+        return value
+    value = value.replace('\ue000', '').replace('\ue001', '')
     chunks = [value] if len(value) <= 240000 else [value[:120000], value[-120000:]]
-    texts = []
+    texts, heading_levels = [], []
     for chunk in chunks:
         doc = _Blocks()
         doc.feed(chunk)
         texts.append(''.join(doc.text))
+        heading_levels.extend(doc.heading_levels)
     lines = [' '.join(line.split()) for line in '\n'.join(texts).splitlines()]
     result = re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
-    result = '\n'.join(_logical_lines(result))
-    return result if len(result) <= 240000 else result[:120000] + '\n' + result[-120000:]
+    marked_headings = {line.strip() for line in result.splitlines() if '\ue000' in line}
+    result = '\n'.join(_logical_lines(result, marked_headings))
+    # Track the actual heading occurrence through normalization. Equal body text
+    # and punctuation-bearing headings must never borrow one another's metadata.
+    parts, heading_positions, cursor, length = [], [], 0, 0
+    for marker in re.finditer(r'\ue000([1-6])\ue001', result):
+        part = result[cursor:marker.start()]
+        parts.append(part)
+        length += len(part)
+        heading_positions.append((length, int(marker[1])))
+        cursor = marker.end()
+    parts.append(result[cursor:])
+    result = ''.join(parts)
+    if len(result) > 240000:
+        tail_start = len(result) - 120000
+        heading_positions = [(offset if offset < 120000 else offset - tail_start + 120001, level)
+                             for offset, level in heading_positions
+                             if offset < 120000 or offset >= tail_start]
+        result = result[:120000] + '\n' + result[-120000:]
+    return RequirementText(result, heading_levels, heading_positions)
+
+
+
+def structured_requirement_texts(metadata: dict, prefix: str):
+    """Retain leaf provenance and required/preferred scope in structured feeds.
+
+    Unknown fields retain inherited scope; they are never promoted to mandatory.
+    Traversal is bounded independently of the scraper's metadata size.
+    """
+    stack = [(metadata, prefix, 0)]
+    visited = 0
+    while stack and visited < 512:
+        value, path, depth = stack.pop()
+        visited += 1
+        if depth > 10:
+            continue
+        if isinstance(value, dict):
+            children = []
+            for key, child in islice(value.items(), 80):
+                children.append((child, path + '.' + str(key), depth + 1))
+            stack.extend(reversed(children))
+        elif isinstance(value, list):
+            stack.extend(reversed([(child, f'{path}[{index}]', depth + 1)
+                                   for index, child in enumerate(value[:80])]))
+        elif isinstance(value, str) and value.strip():
+            yield path, structured_text(value)
+
+
+
+def structured_source_scope(source: str) -> str:
+    """Decode recognized structured-feed modality without changing source text."""
+    parts = set(re.sub(r'\[\d+\]', '', source).casefold().split('.'))
+    if parts & {'preferred', 'optional', 'nice_to_have', 'desired'}:
+        return 'optional'
+    if parts & {'required', 'mandatory', 'must_have', 'qualifications',
+                'educationrequirements', 'experiencerequirements'}:
+        return 'requirements'
+    if parts & {'responsibilities', 'duties'}:
+        return 'duties'
+    return 'neutral'
 
 
 _REQUIRED_HEADING = re.compile(
     r'^(?:(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
-    r'(?:ihre|deine)\s+qualifikation(?:en)?|required qualifications|damit begeistern sie uns|must.have|requirements|qualifications|anforderungen|'
+    r'zwingend\w*(?:\s+voraussetzungen)?|voraussetzung(?:en)?|mandatory qualifications|essential requirements|was zählt|(?:ihre|deine)\s+qualifikation(?:en)?|required qualifications|damit begeistern sie uns|must.have|requirements|qualifications|anforderungen|'
     r'(?:das|was)\s+(?:sie|du)\s+mitbring(?:en|st)|was wir erwarten|'
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)
 _OTHER_HEADING = re.compile(
     r'^(?:(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
-    r'responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|was wir bieten|dafür bieten wir ihnen|'
-    r'das bieten wir|unser angebot|über uns|about us|kontakt|contact|bewerbung|tasks|'
+    r'aufgaben|responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|was wir bieten|dafür bieten wir ihnen|'
+    r'das bieten wir|unser angebot|über uns|about us|about (?:the|our) company|core work|your role|kontakt|contact|bewerbung|tasks|'
     r'das sind (?:deine|ihre) aufgaben|diese herausforderungen|' 
     r'ihre vorteile|deine vorteile|deine benefits|ihre benefits|das erwartet (?:sie|dich))\b', re.I)
 _OPTIONAL_HEADING = re.compile(r'^(?:preferred qualifications|nice.to.have|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
 
 
-def _logical_lines(text: str) -> list[str]:
+def _logical_lines(text: str, heading_names=()) -> list[str]:
     # Join source soft-wraps only inside a bullet; blank lines/headings retain
     # their boundaries. This is distinct from flattening separate requirements.
     logical_lines = []
     bullet = False
     for line in text.splitlines():
         stripped = line.strip()
-        heading = bool(_REQUIRED_HEADING.search(stripped.strip('*# ')) or
+        heading = stripped in heading_names or bool(_REQUIRED_HEADING.search(stripped.strip('*# ')) or
                        _OTHER_HEADING.search(stripped.strip('*# ')) or
                        _OPTIONAL_HEADING.search(stripped.strip('*# ')))
         starts_bullet = bool(re.match(r'^[-*•]\s+', stripped))
@@ -74,20 +166,39 @@ def _logical_lines(text: str) -> list[str]:
     return logical_lines
 
 
-def scoped_sentences(text: str, *, structured: bool = False):
-    scope = 'requirements' if structured else 'neutral'
-    for part in re.split(r'(?<=[.!?])(?<!mind\.)(?<!min\.)\s+|\s*[;\n]\s*', '\n'.join(_logical_lines(text)), flags=re.I):
+def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str | None = None):
+    scope = initial_scope or ('requirements' if structured else 'neutral')
+    positions = deque(getattr(text, 'heading_positions', ()))
+    section_stack = []
+    normalized = str(text) if isinstance(text, RequirementText) else '\n'.join(_logical_lines(text))
+    cursor = 0
+    for part in re.split(r'(?<=[.!?])(?<!mind\.)(?<!min\.)\s+|\s*[;\n]\s*', normalized, flags=re.I):
+        start = normalized.find(part, cursor)
+        cursor = start + len(part)
         sentence = re.sub(r'^[\s#*•\-]+|[*#]+$', '', part).strip()
         if not sentence:
             continue
+        level = None
+        while positions and positions[0][0] < cursor:
+            offset, candidate_level = positions.popleft()
+            if offset >= start:
+                level = candidate_level
+        if level is not None:
+            while section_stack and section_stack[-1][0] >= level:
+                section_stack.pop()
+            scope = section_stack[-1][1] if section_stack else (initial_scope or 'neutral')
         if _REQUIRED_HEADING.search(sentence):
             scope = 'requirements'
         elif _OTHER_HEADING.search(sentence):
-            scope = 'duties' if re.search(r'aufgaben|tasks|responsibilities|duties', sentence, re.I) else 'benefits'
+            task_heading = (not re.match(r'^(?:contact|kontakt|bewerbung)\b', sentence, re.I) and
+                            re.search(r'aufgaben|tasks|responsibilities|duties|^core work|^your role', sentence, re.I))
+            scope = 'duties' if task_heading else 'benefits'
         elif _OPTIONAL_HEADING.search(sentence):
             scope = 'optional'
         elif scope == 'neutral' and re.match(r'^abgeschlossen\w*\b', sentence, re.I) and APPLICANT_CUE.search(sentence):
             scope = 'requirements'
+        if level is not None:
+            section_stack.append((level, scope))
         yield sentence, scope
 
 
@@ -110,6 +221,10 @@ DOMAIN = re.compile(
     r'insurance|underwriting|versicher\w*|pharma\w*|GMP|GCP|GxP|gebäudeautomation|steuer. und regelungstechnik|HKL|VOB|energietechnik|automatisierungstechnik|EMSR|SCADA|versorgungstechnik|SHK|hochbau|tiefbau|ingenieurbau|verkehrsplanung|sicherheitstechnik|SAP(?:\s+[A-Z]{2,5})?|'
     r'S/4HANA|HANA|cloud infrastructure|rechenzentrum)\b', re.I)
 CERTIFICATE = re.compile(r'\b(?:PMP|PRINCE2|Scrum\s+(?:Master|certification)|certification|zertifizier(?:ung|t))\b', re.I)
+WAIVED_CERTIFICATE = re.compile(
+    r'\b(?:no|kein\w*)\s+(?:[\w-]+\s+){0,3}'
+    r'(?:certification|zertifizierung)\s+(?:(?:is|are|ist|sind)\s+)?'
+    r'(?:required|necessary|erforderlich|notwendig)\b', re.I)
 TENURE = re.compile(r'\b(?:professional\s+(?:experience|\w+\s+experience)|berufserfahrung|mehrjährige\w*\s+erfahrung|extensive\s+experience|langjährige\w*\s+erfahrung)\b', re.I)
 APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|hochschulstudium|masterstudium|bachelorstudium|ausbildung)|(?:you have|you possess|sie verfügen|du verfügst|verfügst über|verfügen über)\s+(?:\w+\s+){0,4}(?:experience|erfahrung|berufserfahrung|kenntnisse))\b', re.I)
 ENROLMENT = re.compile(r'\b(?:immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
@@ -143,7 +258,9 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
     if re.search(r'\bSprachniveau\s+(?:C1|C2)\b', clause, re.I):
         row('qualification', 'Unspecified language level', None)
     for hit in CERTIFICATE.finditer(clause):
-        row('certification', hit.group(), hit)
+        if not any(waiver.start() <= hit.start() and hit.end() <= waiver.end()
+                   for waiver in WAIVED_CERTIFICATE.finditer(clause)):
+            row('certification', hit.group(), hit)
     for hit in DOMAIN.finditer(clause):
         # Suppress only the domain token inside a recognized degree subject; a
         # separate qualification such as GMP experience must remain a gap.
@@ -159,7 +276,33 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
 def education_satisfied(requirement: dict, profile: dict) -> bool:
     ranks = {'vocational': 0, 'bachelor': 1, 'master': 2, 'doctorate': 3}
     required = requirement.get('level', 'bachelor')
-    for education in profile.get('education') or []:
+    entries = list(profile.get('education') or [])
+    for entry in (profile.get('cv_career_facts') or {}).get('education') or []:
+        title = str(entry.get('title') or '')
+        evidence = title + ' ' + str(entry.get('description') or '')
+        if (entry.get('current') is not False or not entry.get('end') or
+                re.search(r'incomplete|withdrawn|withdrew|'
+                          r'\b(?:not|never)\s+(?:\w+\s+){0,2}(?:graduat\w*|complet\w*|earn\w*|award\w*)|'
+                          r'\bno\s+(?:completed\s+)?degree|without.*degree|nicht abgeschlossen|abgebrochen|kein|ohne', evidence, re.I)):
+            continue
+        if entry.get('completed') is not True and not re.search(
+                r'\b(?:graduated|(?:awarded|earned)\s+(?:(?:this|the|a|an|my)\s+)?'
+                r'(?:degree|bachelor|master|doctorate|phd)|'
+                r'(?:successfully\s+)?completed\s+(?:(?:this|the|my)\s+)?(?:degree|studies|bachelor|master)|'
+                r'degree\s+(?:(?:was|is)\s+)?(?:completed|awarded)|'
+                r'(?:studium|abschluss)\s+(?:erfolgreich\s+)?(?:abgeschlossen|absolviert)|'
+                r'abgeschlossen\w*\s+(?:studium|hochschulstudium))\b', evidence, re.I):
+            continue
+        level = next((level for level, pattern in (
+            ('doctorate', r'\b(?:phd|doctorate)\b'), ('master', r'\bmaster\b'),
+            ('bachelor', r'\bbachelor\b')) if re.search(pattern, title, re.I)), None)
+        if level:
+            entries.append({**entry, 'level': level, 'field': title})
+    for education in entries:
+        status = str(education.get('status', '')).casefold().replace('-', '_').replace(' ', '_')
+        if (education.get('completed') is False or education.get('current') is True or
+                status in {'in_progress', 'ongoing', 'enrolled', 'withdrawn', 'incomplete', 'planned'}):
+            continue
         level = education.get('level')
         if required == 'vocational' and level != 'vocational':
             continue

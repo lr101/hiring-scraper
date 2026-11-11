@@ -40,10 +40,43 @@ def assessment(score=90):
 
 
 class AssessmentTests(unittest.TestCase):
+    def test_local_fallback_preserves_calibrated_fit_without_claiming_ai(self):
+        from types import SimpleNamespace
+        service = self.service()
+        result = service.apply_cached_assessment(
+            {'score': 82, 'eligible': True, 'fit_tier': 'recommended'},
+            SimpleNamespace(id=1), SimpleNamespace(id=1), SimpleNamespace(llm_scores={}))
+        self.assertEqual(result['score'], 82)
+        self.assertEqual(result['score_source'], 'local')
+        self.assertIsNone(result['llm_match'])
+        self.assertEqual(result['fit_tier'], 'possible')
+
     def service(self):
         self.assertIsNotNone(importlib.util.find_spec('hiring_scraper.app.profile_llm'),
                              'Persisted profile LLM assessments are not implemented')
         return importlib.import_module('hiring_scraper.app.profile_llm')
+
+    def test_helper_requires_explicit_provider_instead_of_unbudgeted_default(self):
+        with self.assertRaises(TypeError):
+            self.service().generate_assessment('No implicit provider permitted')
+
+    def test_unverified_formal_prerequisite_changes_eligibility_not_task_fit(self):
+        data = assessment()
+        data['requirements'].append({**data['requirements'][0], 'category': 'education',
+            'requirement': 'Completed doctorate', 'status': 'unknown',
+            'evidence_source': '', 'evidence_quote': ''})
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['qualification_fit'], 90)
+        self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+        self.assertTrue(result['mandatory_review'])
+
+    def test_supported_formal_row_cannot_erase_an_independent_eligibility_failure(self):
+        data = assessment()
+        data['requirements'].append({**data['requirements'][0], 'category': 'education',
+            'requirement': 'Completed doctorate'})
+        data['gates']['eligibility'] = {'status': 'fail', 'reason': 'Independent condition conflicts.'}
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['gates']['eligibility']['status'], 'fail')
 
     def test_unknown_dimensions_renormalize_without_inventing_neutral_scores(self):
         service = self.service()
@@ -67,6 +100,146 @@ class AssessmentTests(unittest.TestCase):
         self.assertEqual(result['qualification_fit'], 73)
         self.assertEqual(result['preference_fit'], 20)
         self.assertEqual(result['dimension_completeness'], 85)
+
+    def test_calculation_exposes_weighted_task_fit_before_evidence_ceiling(self):
+        data = assessment()
+        data['dimensions']['skills']['score'] = 90
+        data['dimensions']['experience']['score'] = 80
+        data['requirements'].append({**data['requirements'][0],
+            'requirement': 'Additional core task', 'status': 'unknown',
+            'evidence_source': '', 'evidence_quote': ''})
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['weighted_task_fit'], 85)
+        self.assertEqual(result['role_evidence_score'], 50)
+        self.assertEqual(result['score'], 50)
+
+    def test_career_preferences_do_not_dilute_supported_task_qualification(self):
+        data = assessment(90)
+        data['dimensions']['behavioral']['score'] = 0
+        data['dimensions']['career_alignment']['score'] = 0
+        result = self.service().validate_assessment(data)
+        self.assertEqual(result['score'], 90)
+        self.assertEqual(result['qualification_fit'], 90)
+        self.assertEqual(result['preference_fit'], 0)
+
+    def test_unquoted_gate_failure_becomes_unknown_when_sources_are_verified(self):
+        data = assessment()
+        data['gates']['eligibility'] = {'status': 'fail', 'reason': 'Authorization is not stated.'}
+        sources = {'job.description': 'Build Python services and SQL databases.',
+                   'profile.summary': 'Build Python services and SQL databases.'}
+        result = self.service().validate_assessment(data, sources)
+        self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+        self.assertTrue(result['eligible'])
+
+    def test_unrelated_missing_capability_cannot_establish_logistics_failures(self):
+        sources = {'job.description': 'Build Python services. Work authorization in Germany required. German C1 required. Onsite location required.',
+                   'profile.summary': 'I have no Python experience.'}
+        for gate in ('eligibility', 'language', 'location'):
+            with self.subTest(gate=gate):
+                data = assessment()
+                data['requirements'][0].update(category='capability', status='missing',
+                    job_quote=sources['job.description'], evidence_quote=sources['profile.summary'])
+                data['gates'][gate] = {'status': 'fail', 'reason': 'Explicit incompatibility.'}
+                result = self.service().validate_assessment(data, sources)
+                self.assertEqual(result['gates'][gate]['status'], 'unknown')
+                self.assertTrue(result['eligible'])
+
+    def test_generation_repairs_unverifiable_quotes_before_returning_publishable_rows(self):
+        service = self.service()
+        invalid = assessment()
+        invalid['requirements'][0]['evidence_quote'] = 'An invented translated quotation.'
+        replies = iter([invalid, assessment()])
+        sources = {'job.description': 'Build Python services and SQL databases.',
+                   'profile.summary': 'Build Python services and SQL databases.'}
+        prompt = 'Evaluate supplied facts.\nDATA:\n' + json.dumps({'evidence_sources': sources})
+        result = service.generate_assessment(prompt, generate=lambda *args, **kwargs: next(replies))
+        checked = service.validate_assessment(result, sources)
+        self.assertEqual(checked['requirements'][0]['status'], 'supported')
+        self.assertEqual(checked['score'], 90)
+
+    def test_one_transport_timeout_can_recover_with_same_grounded_contract(self):
+        from fastapi import HTTPException
+        sources = {'job.description': 'Build Python services and SQL databases.',
+                   'profile.summary': 'Build Python services and SQL databases.'}
+        replies = iter([HTTPException(504, 'Timed out'), assessment()])
+        def provider(*args, **kwargs):
+            reply = next(replies)
+            if isinstance(reply, Exception):
+                raise reply
+            return reply
+        result = self.service().generate_assessment('Evaluate.\nDATA:\n' +
+            json.dumps({'evidence_sources': sources}), generate=provider)
+        self.assertEqual(self.service().validate_assessment(result, sources)['score'], 90)
+
+    def test_quota_rejection_is_never_retried(self):
+        from fastapi import HTTPException
+        sources = {'job.description': 'Build Python services and SQL databases.'}
+        calls = []
+        def provider(*args, **kwargs):
+            calls.append(True)
+            raise HTTPException(429, 'Quota guard')
+        with self.assertRaises(HTTPException) as caught:
+            self.service().generate_assessment('Evaluate.\nDATA:\n' +
+                json.dumps({'evidence_sources': sources}), generate=provider)
+        self.assertEqual(caught.exception.status_code, 429)
+        self.assertEqual(len(calls), 1)
+
+    def test_generation_does_not_publish_repeatedly_ungrounded_claims(self):
+        service = self.service()
+        invalid = assessment()
+        invalid['requirements'][0]['evidence_quote'] = 'Invented.'
+        sources = {'job.description': 'Build Python services and SQL databases.',
+                   'profile.summary': 'Build Python services and SQL databases.'}
+        prompt = 'Evaluate supplied facts.\nDATA:\n' + json.dumps({'evidence_sources': sources})
+        with self.assertRaises(ValueError):
+            service.generate_assessment(prompt, generate=lambda *args, **kwargs: copy.deepcopy(invalid))
+
+    def test_bounded_quote_options_preserve_late_fact_sections_and_original_text(self):
+        sources = {f'profile.skills[{i}]': f'Tool {i}' for i in range(100)}
+        sources.update({'profile.career_evidence': 'Maintained customer records.',
+                        'profile.language_levels.German': 'B2'})
+        keys, quotes = self.service()._citation_options(sources, 'profile.', 8)
+        self.assertIn('profile.career_evidence', keys)
+        self.assertIn('B2', quotes)
+        self.assertLessEqual(len(keys), 8)
+        self.assertLessEqual(len(quotes), 8)
+        self.assertTrue(all(any(quote in value for value in sources.values()) for quote in quotes))
+
+    def test_citation_options_retain_parent_scope_and_education_completion(self):
+        sources = {'profile.cv_career_facts.education[0].title': 'Master of Chemistry',
+                   'profile.cv_career_facts.education[0].current': 'True',
+                   'profile.skill_evidence.Python.note': 'Built an assignment.',
+                   'profile.skill_evidence.Python.context': 'academic',
+                   'profile.skill_evidence.SQL.note': 'Mixed practice.',
+                   'profile.skill_evidence.SQL.context': 'professional and academic',
+                   'profile.skills[0]': 'Python'}
+        catalog = self.service()._citation_catalog(sources, 'profile.', 32)
+        by_source = {row['source']: row for row in catalog.values()}
+        self.assertEqual(by_source['profile.cv_career_facts.education[0].title']['context']['completion'],
+                         'in_progress')
+        self.assertEqual(by_source['profile.skill_evidence.Python.note']['context']['scope'], 'academic')
+        self.assertEqual(by_source['profile.skill_evidence.SQL.note']['context']['scope'], 'unspecified')
+        self.assertEqual(by_source['profile.skills[0]']['context']['scope'], 'declared')
+
+    def test_bound_citation_reference_resolves_original_source_and_quote_together(self):
+        sources = {'job.description': 'Build Python services and SQL databases.',
+                   'profile.summary': 'Build Python services and SQL databases.'}
+        prompt = 'Evaluate supplied facts.\nDATA:\n' + json.dumps({'evidence_sources': sources})
+        def provider(request, schema, **kwargs):
+            catalog = json.loads(request.split('\nDATA:\n')[1])['citation_catalog']
+            job_ref = next(key for key, value in catalog.items() if value['source'] == 'job.description')
+            profile_ref = next(key for key, value in catalog.items() if value['source'] == 'profile.summary')
+            raw = assessment()
+            row = raw['requirements'][0]
+            for key in ('job_source', 'job_quote', 'evidence_source', 'evidence_quote'):
+                row.pop(key)
+            row.update(job_ref=job_ref, evidence_ref=profile_ref)
+            return raw
+        result = self.service().generate_assessment(prompt, generate=provider)
+        row = result['requirements'][0]
+        self.assertEqual(row['job_source'], 'job.description')
+        self.assertEqual(row['evidence_source'], 'profile.summary')
+        self.assertEqual(row['evidence_quote'], 'Build Python services and SQL databases.')
 
     def test_incidental_skills_cannot_produce_high_overall_match(self):
         data = assessment(95)
@@ -126,6 +299,64 @@ class PersistedAssessmentTests(unittest.TestCase):
                 generate=generate or (lambda prompt, schema, **kwargs: copy.deepcopy(data or assessment())),
                 usage=usage or (lambda: dict(USAGE)))
 
+    def test_deleted_job_in_cached_selection_is_skipped_without_inference(self):
+        self.assertTrue(self.refresh())
+        with self.factory.begin() as session:
+            session.delete(session.get(models.Job, self.job_id))
+        def unexpected_provider(*args, **kwargs):
+            self.fail('Deleted jobs must not invoke the provider')
+        self.assertFalse(self.refresh(generate=unexpected_provider))
+
+    def test_repeated_worker_passes_do_not_drain_inventory_after_ai_rejection(self):
+        with self.factory.begin() as session:
+            original = session.get(models.Job, self.job_id)
+            for i in range(29):
+                session.add(models.Job(feed_id=original.feed_id, title='Software developer',
+                    description=DESCRIPTION, external_id=f'selective-{i}',
+                    url=f'https://example.org/jobs/selective-{i}', is_remote=True))
+        with self.factory() as session:
+            before = self.service()._selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
+        self.assertEqual(len(before), 2)  # Employer diversity cap, within the 10% pool.
+        for _ in before:
+            self.assertTrue(self.refresh(assessment(0)))
+        for _ in range(3):
+            self.assertFalse(self.refresh())
+        with self.factory() as session:
+            after = self.service()._selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
+            self.assertEqual(before, after)
+            self.assertEqual(len(session.scalars(select(models.ProfileLLMScore)).all()), 2)
+
+    def test_ai_selection_does_not_spend_on_known_out_of_area_job(self):
+        with self.factory.begin() as session:
+            job = session.get(models.Job, self.job_id)
+            job.is_remote = False
+            job.work_arrangement = 'onsite'
+            session.add(models.JobLocation(job_id=job.id, label='Berlin', country_code='DE',
+                                           latitude=52.52, longitude=13.405))
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'search_area': {
+                'latitude': 49.0069, 'longitude': 8.4034, 'radius_km': 15, 'city': 'Karlsruhe', 'country_code': 'DE'}}
+        calls = []
+        self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(True)))
+        self.assertEqual(calls, [])
+
+    def test_disabled_rolling_budget_never_calls_provider(self):
+        calls = []
+        with patch.dict('os.environ', {'RADIUS_MATCH_AI_CALLS_PER_5H': '0'}):
+            self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(True)))
+        self.assertEqual(calls, [])
+
+    def test_repair_attempts_consume_rolling_budget_before_provider_call(self):
+        calls = []
+        def provider(*args, **kwargs):
+            calls.append(True)
+            return {'invalid': 'response'}
+        with patch.dict('os.environ', {'RADIUS_MATCH_AI_CALLS_PER_5H': '1'}):
+            self.assertFalse(self.refresh(generate=provider))
+        self.assertEqual(len(calls), 1)
+        with self.factory() as session:
+            self.assertEqual(len(session.scalars(select(models.AIMatchingCall)).all()), 1)
+
     def test_persisted_high_low_and_zero_scores_replace_detail_journey_and_index(self):
         for score in [91, 12, 0]:
             with self.subTest(score=score):
@@ -142,7 +373,7 @@ class PersistedAssessmentTests(unittest.TestCase):
                     match = detail['profile_match']
                     self.assertEqual(match['score'], score)
                     self.assertEqual(match['score_source'], 'llm')
-                    self.assertEqual(match['llm_match']['model'], 'gpt-6-luna')
+                    self.assertEqual(match['llm_match']['model'], 'gpt-6.1-sol')
                     row = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
                     self.assertEqual(row.match_score, score)
                     if score == 91:
@@ -152,14 +383,53 @@ class PersistedAssessmentTests(unittest.TestCase):
                     else:
                         self.assertEqual(detail['application']['status'], 'open')
 
-    def test_persisted_assessment_exposes_grounded_requirements_and_unknowns(self):
+    def test_high_ai_task_score_cannot_erase_unresolved_mandatory_authorization(self):
+        with self.factory() as session:
+            job = session.get(models.Job, self.job_id)
+            job.description += '\nApplicant must already hold New Zealand work authorization.'
+            session.commit()
+            ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
+            session.commit()
+        self.assertTrue(self.refresh(assessment(91)))
+        with self.factory() as session:
+            result = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+        self.assertEqual(result['score_source'], 'llm')
+        self.assertEqual(result['score'], 91)
+        self.assertTrue(result['eligible'])
+        self.assertEqual(result['fit_tier'], 'unlikely')
+        self.assertTrue(any('authorization' in item.lower() for item in result['unknowns']))
+
+    def test_ai_pass_cannot_contradict_known_local_language_threshold_failure(self):
+        service = self.service()
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'language_levels': {'German': 'B2'}}
+            job = session.get(models.Job, self.job_id)
+            job.description += '\nGerman C1 required.'
+            session.commit()
+            ensure_profile_match_indexes(session, [profile])
+            session.commit()
+            session.add(models.ProfileLLMScore(profile_id=self.profile_id, job_id=self.job_id,
+                source_hash=service.source_hash(job, profile), version=service.VERSION, assessment=assessment(91)))
+            session.commit()
+        with self.factory() as session:
+            result = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+        self.assertFalse(result['eligible'])
+        self.assertEqual(result['llm_match']['gates']['language']['status'], 'fail')
+
+    def test_repaired_unknowns_are_persisted_instead_of_uncited_claims(self):
         data = assessment()
         data['requirements'] = [{
             'requirement': 'Python services', 'priority': 'required', 'importance': 'core', 'status': 'supported',
             'job_source': 'job.description', 'job_quote': 'Build Python services and SQL databases.',
             'evidence_source': 'profile.summary', 'evidence_quote': 'Invented achievement.',
             'explanation': 'Unverifiable claim.'}]
-        self.assertTrue(self.refresh(data))
+        repaired = copy.deepcopy(data)
+        repaired['requirements'][0].update(status='unknown', evidence_source='', evidence_quote='',
+                                            explanation='No verified applicant excerpt was supplied.')
+        repaired['strengths'] = []
+        replies = iter([data, repaired])
+        self.assertTrue(self.refresh(generate=lambda *args, **kwargs: next(replies)))
         with self.factory() as session:
             match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
             self.assertEqual(match['llm_match']['requirements'][0]['status'], 'unknown')
@@ -176,13 +446,15 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertLess(match['score'], 65)
             self.assertEqual(match['fit_tier'], 'unlikely')
 
-    def test_high_saved_minimum_waits_for_ai_but_does_not_block_ai_preselection(self):
+    def test_high_saved_minimum_allows_grounded_local_fit_and_ai_preselection(self):
         with self.factory() as session:
             profiles.update_profile(self.profile_id, profiles.ProfileRequest(**{
                 **PROFILE, 'matching_defaults': {'min_match_score': 65}}), session)
             page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
                                          offset=0, limit=40, session=session)
-            self.assertEqual(page['items'], [])
+            self.assertEqual(len(page['items']), 1)
+            self.assertGreaterEqual(page['items'][0]['profile_match']['score'], 65)
+            self.assertEqual(page['items'][0]['profile_match']['score_source'], 'local')
         self.assertTrue(self.refresh(assessment(91)))
         with self.factory() as session:
             page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
@@ -193,8 +465,39 @@ class PersistedAssessmentTests(unittest.TestCase):
         with self.factory() as session:
             match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
             self.assertEqual(match['score_source'], 'local')
-            self.assertLessEqual(match['score'], 59)
+            self.assertGreaterEqual(match['score'], 65)
             self.assertNotEqual(match['fit_tier'], 'recommended')
+
+    def test_ai_cannot_clear_unverified_required_academic_scope(self):
+        self.assertTrue(self.refresh(assessment(91)))
+        with self.factory() as session:
+            service = self.service()
+            job = session.get(models.Job, self.job_id)
+            profile = session.get(models.UserProfile, self.profile_id)
+            documents = service.load_matching_documents(session, [job], [profile])
+            result = service.apply_cached_assessment({'score': 40, 'eligible': True,
+                'fit_tier': 'possible', 'requirement_observations': [
+                    {'kind': 'academic', 'status': 'unknown', 'requirement': 'Required academic tool exposure'}]},
+                job, profile, documents)
+            self.assertLessEqual(result['score'], 59)
+            self.assertNotEqual(result['fit_tier'], 'recommended')
+            self.assertTrue(result['uncertain'])
+
+    def test_unknown_task_dimensions_survive_academic_scope_ceiling(self):
+        data = assessment()
+        for dimension in data['dimensions'].values():
+            dimension['score'] = None
+        self.assertTrue(self.refresh(data))
+        with self.factory() as session:
+            service = self.service()
+            job = session.get(models.Job, self.job_id)
+            profile = session.get(models.UserProfile, self.profile_id)
+            documents = service.load_matching_documents(session, [job], [profile])
+            result = service.apply_cached_assessment({'score': 40, 'eligible': True,
+                'fit_tier': 'possible', 'requirement_observations': [
+                    {'kind': 'academic', 'status': 'unknown'}]}, job, profile, documents)
+            self.assertIsNone(result['llm_match']['qualification_fit'])
+            self.assertNotEqual(result['fit_tier'], 'recommended')
 
     def test_sparse_ai_assessment_does_not_invent_requirements(self):
         with self.factory.begin() as session:
@@ -206,6 +509,42 @@ class PersistedAssessmentTests(unittest.TestCase):
             match = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
             self.assertEqual(match['score'], 0)
             self.assertTrue(match['uncertain'])
+
+    def test_model_configuration_change_cannot_relabel_a_cached_provider_judgment(self):
+        self.assertTrue(self.refresh())
+        service = self.service()
+        spec = importlib.util.spec_from_file_location('isolated_matching_model', service.__file__)
+        other = importlib.util.module_from_spec(spec)
+        with patch.dict('os.environ', {'RADIUS_MATCH_AI_MODEL': 'gpt-6-luna',
+                                      'RADIUS_MATCH_AI_REASONING_EFFORT': 'medium'}):
+            spec.loader.exec_module(other)
+        with self.factory() as session:
+            job = session.get(models.Job, self.job_id)
+            profile = session.get(models.UserProfile, self.profile_id)
+            docs = other.load_matching_documents(session, [job], [profile])
+            result = other.apply_cached_assessment({'score': 40, 'eligible': True}, job, profile, docs)
+        self.assertEqual(result['score_source'], 'local')
+        self.assertIsNone(result['llm_match'])
+
+    def test_status_uses_the_persisted_worker_selection_after_process_cache_is_lost(self):
+        self.assertTrue(self.refresh())
+        service = self.service()
+        service._SELECTION_CACHE.clear()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')):
+            status = service.matching_status()
+        self.assertFalse(status['pending'])
+        self.assertEqual(status['state'], 'ready')
+
+    def test_status_never_runs_inventory_matching_or_builds_a_prompt(self):
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')), patch.object(service, 'build_prompt', side_effect=AssertionError('Prompt on status read')):
+            self.assertTrue(service.matching_status()['pending'])
+
+    def test_status_allows_matching_above_half_subscription_usage(self):
+        service = self.service()
+        quota = {**USAGE, 'allowed': True, 'used_percent': 75}
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=quota):
+            self.assertEqual(service.matching_status()['state'], 'pending')
 
     def test_status_reports_pending_for_stale_cache_even_without_uncached_jobs(self):
         self.assertTrue(self.refresh())
@@ -233,8 +572,8 @@ class PersistedAssessmentTests(unittest.TestCase):
         service = self.service()
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
             self.assertTrue(service.matching_status()['pending'])
-        for _ in range(2):
-            self.assertTrue(self.refresh(assessment(82)))
+        self.assertTrue(self.refresh(assessment(82)))
+        self.assertFalse(self.refresh(assessment(82)))
         with self.factory() as session:
             row = session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
             self.assertEqual(row.source_hash, service.source_hash(session.get(models.Job, self.job_id),
@@ -372,7 +711,7 @@ class PersistedAssessmentTests(unittest.TestCase):
                 'application_details': {'email': 'secret@example.org', 'birth_date': '1970-01-01',
                     'additional_information': 'Unrelated confidential note',
                     'experiences': [{'title': 'Engineer', 'description': 'Built services'}],
-                    'preferences': {'sponsorship_required': True}},
+                    'preferences': {'authorization_country': 'Germany', 'sponsorship_required': True}},
                 'application_personalization': {'career_goals': 'Grow as an engineer', 'writing_samples': 'PRIVATE SAMPLE'}}
             job = session.get(models.Job, self.job_id)
             job.description = 'About us:\n' + 'A large company. ' * 10000 + '\nRequirements:\nGerman C1 required.'
@@ -390,6 +729,11 @@ class PersistedAssessmentTests(unittest.TestCase):
             job = models.Job(feed_id=original.feed_id, title='Software developer', description=DESCRIPTION,
                 external_id='two', url='https://example.org/jobs/two', is_remote=True)
             session.add(job); session.commit(); second_id = job.id
+            for i in range(18):
+                session.add(models.Job(feed_id=original.feed_id, title='Software developer',
+                    description=DESCRIPTION, external_id=f'pool-{i}',
+                    url=f'https://example.org/jobs/pool-{i}', is_remote=True))
+            session.commit()
             ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
             # Source addition requires incremental refresh when profile is already indexed.
             from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
@@ -400,7 +744,9 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertFalse(self.refresh(generate=malformed))
         self.assertTrue(self.refresh())
         with self.factory() as session:
-            self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, second_id)))
+            rows = session.scalars(select(models.ProfileLLMScore)).all()
+            self.assertEqual(len(rows), 1)
+            self.assertNotEqual(rows[0].job_id, self.job_id)
 
     def test_ineligible_closed_and_implausible_candidates_are_not_scored(self):
         with self.factory() as session:
@@ -412,6 +758,88 @@ class PersistedAssessmentTests(unittest.TestCase):
         def forbidden(*args, **kwargs):
             self.fail('No plausible active candidate')
         self.assertFalse(self.refresh(generate=forbidden))
+
+    def test_low_local_score_does_not_permanently_exclude_semantically_related_work(self):
+        description = 'Your responsibilities:\nImprove relational query plans and diagnose data access bottlenecks.'
+        with self.factory() as session:
+            job = session.get(models.Job, self.job_id)
+            job.title, job.description = 'Data Operations Specialist', description
+            session.commit()
+            ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
+            session.commit()
+            from hiring_scraper.app.enrichment import job_input
+            profile = session.get(models.UserProfile, self.profile_id)
+            self.assertLess(self.service().match_job(job_input(job), profile.matching_preferences)['score'], 30)
+        data = assessment()
+        data['requirements'][0].update(requirement='Relational query tuning',
+            job_quote='Improve relational query plans and diagnose data access bottlenecks.')
+        self.assertTrue(self.refresh(data))
+        with self.factory() as session:
+            self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+
+    def test_exploration_still_respects_known_language_incompatibility(self):
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'language_levels': {'German': 'B2'}}
+            job = session.get(models.Job, self.job_id)
+            job.description = 'German C1 required. Handle specialized platform setup requests.'
+            job.title = 'Platform Liaison'
+            session.commit()
+            ensure_profile_match_indexes(session, [profile])
+            session.commit()
+        def forbidden(*args, **kwargs):
+            self.fail('Explicit incompatibility must not consume inference capacity')
+        self.assertFalse(self.refresh(generate=forbidden))
+
+    def test_country_agnostic_authorization_flags_are_not_matching_evidence(self):
+        service = self.service()
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'application_details': {'preferences': {
+                'authorized_to_work': True, 'sponsorship_required': True, 'willing_to_work_onsite': True}}}
+            prompt = service.build_prompt(session.get(models.Job, self.job_id), profile)
+            data = json.loads(prompt.split('\nDATA:\n')[1])
+            self.assertNotIn('authorized_to_work', data['profile']['application_preferences'])
+            self.assertNotIn('profile.application_preferences.sponsorship_required', data['evidence_sources'])
+            self.assertTrue(data['profile']['application_preferences']['willing_to_work_onsite'])
+            self.assertTrue(profile.preferences['application_details']['preferences']['sponsorship_required'])
+
+    def test_named_authorization_remains_citable_in_matching_context(self):
+        service = self.service()
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'application_details': {'preferences': {
+                'authorization_country': 'New Zealand', 'authorized_to_work': True, 'sponsorship_required': False}}}
+            data = json.loads(service.build_prompt(session.get(models.Job, self.job_id), profile).split('\nDATA:\n')[1])
+            self.assertEqual(data['evidence_sources']['profile.application_preferences.authorization_country'], 'New Zealand')
+            self.assertEqual(data['evidence_sources']['profile.application_preferences.authorized_to_work'], 'True')
+
+    def test_cv_language_evidence_is_citable_and_invalidates_assessment_hash(self):
+        service = self.service()
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, self.profile_id)
+            text = r'\begin{document}\section*{Languages}French A2.\end{document}'
+            profile.cv = models.ProfileCV(filename='cv.tex', content_type='application/x-tex', size_bytes=len(text),
+                data=text.encode(), extracted_text=text, variants={'en': {'text': text}})
+            job = session.get(models.Job, self.job_id)
+            before = service.source_hash(job, profile)
+            self.assertEqual(service.assessment_sources(job, profile)['profile.cv_language_levels.French'], 'A2')
+            profile.cv.variants = {'en': {'text': text.replace('A2', 'B1')}}
+            self.assertNotEqual(service.source_hash(job, profile), before)
+            self.assertNotIn('French', profile.preferences.get('language_levels', {}))
+
+    def test_ai_pass_cannot_clear_unverified_required_language_level(self):
+        with self.factory() as session:
+            job = session.get(models.Job, self.job_id)
+            job.description += '\nDutch B2 required.'
+            session.commit()
+            ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
+            session.commit()
+        self.assertTrue(self.refresh(assessment(91)))
+        with self.factory() as session:
+            result = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+        self.assertEqual(result['gates']['language']['status'], 'unknown')
+        self.assertEqual(result['fit_tier'], 'possible')
 
     def test_assessment_reads_are_batched_on_unindexed_cards(self):
         self.assertTrue(self.refresh())
@@ -591,11 +1019,13 @@ class PersistedAssessmentTests(unittest.TestCase):
                 first.dispose(); second.dispose()
 
     def test_inference_lease_prevents_concurrent_duplicate_work(self):
+        calls = []
         def generate(prompt, schema, **kwargs):
+            calls.append(kwargs)
             self.assertFalse(self.refresh(generate=lambda *a, **kw: self.fail('Duplicate inference')))
-            self.assertEqual(kwargs, {'model': 'gpt-6-luna', 'reasoning_effort': 'medium', 'usage_limit_percent': 50})
             return assessment()
         self.assertTrue(self.refresh(generate=generate))
+        self.assertEqual(calls, [{'model': 'gpt-6.1-sol', 'reasoning_effort': 'high', 'usage_limit_percent': 100}])
 
     def test_full_rebuild_rejects_concurrently_changed_assessment(self):
         self.assertTrue(self.refresh())
@@ -681,10 +1111,11 @@ class ManagedWorkerTests(unittest.TestCase):
         with patch.object(worker, 'refresh_profile_match_indexes_once', lambda: events.append('rules')), \
              patch.object(worker, 'refresh_semantic_documents_once', lambda: events.append('semantics')), \
              patch.object(worker, 'refresh_llm_scores_once', lambda: events.append('llm') or False), \
+             patch.object(worker, 'prepare_once', lambda: events.append('preparation')), \
              patch.object(worker.time, 'sleep', stop):
             with self.assertRaises(InterruptedError):
                 worker.main()
-        self.assertEqual(events, ['rules', 'semantics', 'llm'])
+        self.assertEqual(events, ['rules', 'semantics', 'llm', 'preparation'])
 
 class FurtherSourceTests(unittest.TestCase):
     setUp = PersistedAssessmentTests.setUp
@@ -768,7 +1199,7 @@ class FurtherSourceTests(unittest.TestCase):
             page = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                 indexed_matches={job.id: indexed}, precomputed_scopes={job.id: {
                     'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'remote'}})
-            self.assertEqual(page['items'][0]['profile_match']['score'], 59)
+            self.assertGreaterEqual(page['items'][0]['profile_match']['score'], 65)
             self.assertEqual(page['items'][0]['profile_match']['score_source'], 'local')
 
     def test_late_requirement_before_long_benefits_is_retained_in_prompt(self):

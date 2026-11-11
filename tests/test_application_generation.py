@@ -58,6 +58,7 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def requirements(self):
         return {'requirements': [{'requirement': 'Product requirements', 'priority': 'required', 'importance': 'core',
+            'category': 'capability', 'evidence_distance': 'adjacent',
             'status': 'transferable', 'job_source': 'job.description',
             'job_quote': 'Coordinate product requirements.', 'evidence_source': 'profile.summary',
             'evidence_quote': 'Product coordination', 'explanation': 'Adjacent coordination experience.'}]}

@@ -1,6 +1,67 @@
 """Read explicit history markers as data; never execute uploaded TeX."""
 import json
 import re
+from functools import lru_cache
+
+
+@lru_cache(maxsize=128)
+def _tex_language_pairs(source):
+    """Read explicit language sections only; never execute or infer from duties."""
+    from hiring_scraper.matching import LANGUAGE_PATTERNS, LANGUAGE_LEVEL
+    if not isinstance(source, str) or len(source) > 100000:
+        return ()
+    source = re.sub(r'(?<!\\)%[^\n]*', '', source)
+    sections = list(re.finditer(r'\\(?:cvsection|(?:sub)?section)\*?\s*\{([^{}\n]+)\}', source, re.I))
+    found = {}
+    allowed = {'textbf', 'emph', 'textit', 'textnormal', 'textsf', 'textrm', 'small',
+               'footnotesize', 'normalsize', 'quad', 'qquad', 'hfill', 'hspace',
+               'vspace', 'par', 'noindent', 'textbar'}
+    for index, heading in enumerate(sections):
+        # A heading inside a conditional or macro/group cannot establish visible
+        # text without executing TeX. Keep this data-only fallback conservative.
+        prefix = source[:heading.start()]
+        depth = 0
+        for command in re.findall(r'\\(?:if[A-Za-z]*|fi)\b', prefix):
+            depth = max(0, depth - 1) if command == r'\fi' else depth + 1
+        braces = re.sub(r'\\[{}]', '', prefix)
+        if depth or braces.count('{') != braces.count('}'):
+            continue
+        if heading[1].strip().casefold() not in {'languages', 'language skills', 'sprachen', 'sprachkenntnisse', 'idiomas', 'langues'}:
+            continue
+        end = sections[index + 1].start() if index + 1 < len(sections) else len(source)
+        document_end = source.find(r'\end{document}', heading.end())
+        if document_end >= 0:
+            end = min(end, document_end)
+        text = re.sub(r'(?<!\\)%[^\n]*', '', source[heading.end():end])
+        commands = set(re.findall(r'\\([A-Za-z]+)', text))
+        if commands - allowed:
+            continue  # Hidden conditionals/macros cannot establish a fact.
+        text = re.sub(r'\\[A-Za-z]+\*?(?:\[[^\]]*\])?', ' ', text)
+        text = re.sub(r'[{}~\\|&]', ' ', text)
+        hits = sorted((hit.start(), hit.end(), name) for name, pattern in LANGUAGE_PATTERNS.items()
+                      for hit in pattern.finditer(text))
+        for offset, (_, stop, name) in enumerate(hits):
+            next_start = hits[offset + 1][0] if offset + 1 < len(hits) else len(text)
+            level = LANGUAGE_LEVEL.search(text[stop:next_start])
+            if level:
+                value = level.group().upper()
+                value = value if re.fullmatch(r'[ABC][12]', value) else 'native'
+                found.setdefault(name, set()).add(value)
+    return tuple((name, next(iter(values))) for name, values in found.items() if len(values) == 1)
+
+
+def parse_tex_languages(source):
+    return dict(_tex_language_pairs(source))
+
+
+def cv_language_fallback(cv, declared_levels):
+    if cv is None:
+        return {}
+    variants = cv.variants or {}
+    canonical = variants.get('en') or variants.get('de')
+    source = canonical.get('text', '') if canonical else cv.extracted_text
+    declared = {name.casefold() for name in (declared_levels or {})}
+    return {name: level for name, level in parse_tex_languages(source).items() if name.casefold() not in declared}
 
 
 def _description(text):
@@ -169,3 +230,28 @@ def validate_tailored_cv(original, tailored):
     if len(before) != len(after) or any(len(new[1]) > len(old[1]) for old, new in zip(before, after)):
         raise ValueError('Returned CV description exceeds its original text-length budget. Shorten it to fit the existing layout.')
     return history
+
+
+@lru_cache(maxsize=128)
+def _career_facts_json(source):
+    try:
+        facts = parse_tex_cv(source)
+    except ValueError:
+        return '{}'
+    return json.dumps({kind: [{key: value for key, value in row.items()
+                              if key not in ('id', 'cv_bullet_ids')} for row in rows]
+                       for kind, rows in facts.items() if rows}, ensure_ascii=False)
+
+
+def career_facts_from_tex(source):
+    """Explicit work/study records only; return a fresh projection of cached data."""
+    return json.loads(_career_facts_json(source))
+
+
+def cv_career_fallback(cv):
+    if cv is None:
+        return {}
+    variants = cv.variants or {}
+    canonical = variants.get('en') or variants.get('de')
+    source = canonical.get('text', '') if canonical else cv.extracted_text
+    return career_facts_from_tex(source)

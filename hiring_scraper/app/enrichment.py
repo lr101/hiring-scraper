@@ -30,6 +30,10 @@ SOURCE_FIELDS = ('title','url','description','raw_metadata','seniority','employm
 
 def job_input(job: Job) -> dict:
     source = {field: getattr(job, field) for field in SOURCE_FIELDS}
+    # The database's historical False default is not evidence of an onsite
+    # requirement. Preserve unknown workplace scope for matching and AI inputs.
+    if source['is_remote'] is False and not source.get('work_arrangement'):
+        source['is_remote'] = None
     source["locations"] = [{"label": row.label, "country_code": row.country_code}
                             for row in job.locations]
     return source

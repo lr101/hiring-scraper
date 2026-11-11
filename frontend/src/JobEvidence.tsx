@@ -2,10 +2,17 @@ import type { CityElectionResult } from './profile'
 
 export type ProfileMatch = {
   score_source?: 'local' | 'llm'
+  mandatory_review?: boolean
+  task_fit?: number
+  gates?: Record<string, { status: string; reason: string }>
   llm_match?: {
+    weighted_task_fit?: number | null
+    dimensions?: Record<string, { score: number | null; evidence: string }>
+    weights?: Record<string, number>
     qualification_fit: number | null; preference_fit: number | null; dimension_completeness: number
     role_evidence_score: number; requirement_coverage: number | null; requirement_completeness: number
     requirements: { requirement: string; priority: 'required' | 'preferred' | 'logistics'; importance: 'core' | 'supporting'
+      evidence_distance?: 'close' | 'adjacent'
       status: 'supported' | 'transferable' | 'missing' | 'unknown'; explanation: string
       job_source: string; job_quote: string; evidence_quote: string; evidence_source: string }[]
   } | null
@@ -35,11 +42,31 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
   return <section className="detail-panel evidence-panel">
     <p className="eyebrow">How this job fits</p>
     {match ? <>
-      <h2>{match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
+      <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
       <p className="muted">{match.score_source === 'llm'
-        ? 'AI fit index based on your saved facts and preferences. It replaces the local estimate and is not a probability of getting hired.'
-        : 'Provisional local shortlist estimate, capped at 59/100 until AI assessment. Shared tools may be incidental; verify the main work before applying. This is not a prediction of hiring success.'}</p>
+        ? 'AI qualification index based on your saved career evidence. Preferences and eligibility are assessed separately. It replaces the local estimate and is not a probability of getting hired.'
+        : 'Provisional local shortlist estimate based on saved task and skill evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.'}</p>
+      {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The qualification score does not clear that requirement.</p>}
+      {match.score_source !== 'llm' && match.task_fit != null && <>
+        <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The shortlist score above also accounts for unresolved qualifications and constraints.</p>
+      </>}
       {match.score_source === 'llm' && match.llm_match && <>
+        <h3>How your score was calculated</h3>
+        {match.llm_match.weighted_task_fit != null && <p>
+          Weighted skills and experience: <strong>{match.llm_match.weighted_task_fit}/100</strong>.
+          {' '}Limited by role evidence: <strong>{match.llm_match.role_evidence_score}/100</strong>.
+          {' '}Final score: <strong>{match.score}/100</strong>.
+        </p>}
+        {match.llm_match.dimensions && <dl>{Object.entries(match.llm_match.dimensions).map(([name, dimension]) => <div key={name}>
+          <dt>{name.replaceAll('_', ' ')} · {dimension.score == null ? 'Unknown' : `${dimension.score}/100`}</dt>
+          <dd>{dimension.evidence}</dd>
+        </div>)}</dl>}
+        {match.llm_match.dimensions && match.llm_match.weights && <p className="muted">
+          Task calculation: {['skills', 'experience'].filter(name => match.llm_match!.dimensions![name]?.score != null).map(name =>
+            `${match.llm_match!.dimensions![name].score} × ${Math.round(match.llm_match!.weights![name] * 100)}%`).join(' + ') || 'No scored task dimensions'}.
+          {' '}Divide by the total weight of the known task dimensions, then round. The role evidence ceiling can lower that result.
+          {' '}Preferences are shown separately; language and eligibility checks may still require review.
+        </p>}
         <h3>Match breakdown</h3>
         <dl>
           <dt>Qualification fit · role-relevant evidence</dt><dd>{match.llm_match.qualification_fit == null ? 'Unknown' : `${match.llm_match.qualification_fit}/100`}</dd>
@@ -49,16 +76,20 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
           <dt>Requirement evidence completeness</dt><dd>{match.llm_match.requirement_completeness}% of assessed requirement weight has evidence</dd>
           <dt>Requirement coverage · known evidence only</dt><dd>{match.llm_match.requirement_coverage == null ? 'Unknown' : `${match.llm_match.requirement_coverage}/100`}</dd>
         </dl>
-        <p className="muted">Core work controls 85% of the evidence ceiling (100% when there are no supporting requirements); supporting skills control at most 15%. Unknown requirements are excluded from coverage, so high coverage with low completeness needs checking. Preferred requirements have one quarter of the weight; transferable evidence earns half credit. Quotes establish the source, not the correctness of the AI interpretation.</p>
+        <p className="muted">Core work controls 85% of the evidence ceiling (100% when there are no supporting requirements); supporting skills control at most 15%. Unknown requirements are excluded from coverage, so high coverage with low completeness needs checking. Preferred requirements have one quarter of the weight; close transfer earns 80% credit and adjacent transfer earns 50%. Quotes establish the source, not the correctness of the AI interpretation.</p>
         <details>
           <summary>Requirements and saved evidence</summary>
           {match.llm_match.requirements.map((row, index) => <div className="evidence-note" key={index}>
-            <strong>{row.requirement} · {row.priority} · {row.importance} · {row.status}</strong>
+            <strong>{row.requirement} · {row.priority} · {row.importance} · {row.status}{row.status === 'transferable' && row.evidence_distance === 'close' ? ' (close transfer)' : ''}</strong>
             <p>{row.explanation}</p>
             <p>Job ({row.job_source}): <q>{row.job_quote}</q></p>
             {row.evidence_quote && <p>Saved evidence ({row.evidence_source}): <q>{row.evidence_quote}</q></p>}
           </div>)}
         </details>
+      </>}
+      {match.gates && <>
+        <h3>Eligibility and location checks</h3>
+        <dl>{Object.entries(match.gates).map(([name, gate]) => <div key={name}><dt>{name} · {gate.status}</dt><dd>{gate.reason}</dd></div>)}</dl>
       </>}
       {match.score_source !== 'llm' && match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
