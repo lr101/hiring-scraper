@@ -107,6 +107,14 @@ class QualificationPolarityTests(unittest.TestCase):
             with self.subTest(clause=clause):
                 self.assertEqual(qualification_rows(clause, 'description'), [])
 
+    def test_predicate_modifier_keeps_independent_mandatory_sibling(self):
+        for clause in ('A bachelor degree is preferred for this role and PMP certification is required.',
+                       'A bachelor degree is not required for this role and PMP certification is mandatory.'):
+            with self.subTest(clause=clause):
+                rows = qualification_rows(clause, 'description')
+                self.assertFalse(any(r['kind'] == 'education' for r in rows))
+                self.assertTrue(any(r['value'] == 'PMP' for r in rows))
+
     def test_developer_occupational_label_keeps_real_requirements(self):
         for role in ('Developer', 'Assistant'):
             clause = role + ': A bachelor degree is required.'
