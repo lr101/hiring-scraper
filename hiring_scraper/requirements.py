@@ -183,6 +183,8 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
             offset, candidate_level = positions.popleft()
             if offset >= start:
                 level = candidate_level
+        if is_source_instruction(sentence):
+            continue
         if level is not None:
             while section_stack and section_stack[-1][0] >= level:
                 section_stack.pop()
@@ -200,6 +202,75 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
         if level is not None:
             section_stack.append((level, scope))
         yield sentence, scope
+
+
+_SOURCE_INSTRUCTION = re.compile(
+    r'(?:^|[\n.!?]\s*)(?:\[?(?:system|assistant|developer)\]?\s*:|'
+    r'(?:copied\s+)?prompt[ -]injection\s*:)|'
+    r'\b(?:ignore|disregard|override)\s+(?:(?:all|the)\s+)?'
+    r'(?:previous|prior|system|developer)\s+(?:instructions?|prompts?)\b|'
+    r'\b(?:ignoriere|ignorieren Sie)\s+(?:alle\s+)?(?:vorherigen|bisherigen)\s+Anweisungen\b', re.I)
+
+
+def is_source_instruction(text: str) -> bool:
+    """Identify source text addressing the evaluator, not the applicant."""
+    return bool(_SOURCE_INSTRUCTION.search(text))
+
+
+_POLARITY_BOUNDARY = re.compile(
+    r'[;\n]|(?<=[.!?])\s+|\b(?:but|aber|while|whereas|jedoch)\b|'
+    r'(?:,\s*|\b(?:and|und)\s+)(?=(?:[\w-]+\s+){1,8}'
+    r'(?:is|are|ist|sind)\s+(?:(?:not|nicht)\s+)?'
+    r'(?:required|necessary|mandatory|optional|preferred|erforderlich|notwendig|wünschenswert)\b)|'
+    r'(?:,\s*|\b(?:and|und)\s+)(?=(?:(?:a|an|the|eine?|ein|der|die|das)\s+)?'
+    r'(?:PMP|PRINCE2|Scrum|certificat\w*|zertifizier\w*|'
+    r'(?:completed\s+)?(?:bachelor|master|degree)|'
+    r'(?:abgeschlossen\w*\s+)?Studium|Immatrikulation|GMP)\b)', re.I)
+_OPTIONAL_QUALIFICATION = re.compile(
+    r'\b(?:optional|preferred|desired|nice.to.have|idealerweise|wünschenswert|'
+    r'bevorzugt|willkommen|von Vorteil|a plus)\b', re.I)
+_WAIVED_QUALIFICATION = re.compile(
+    r'\b(?:not|nicht)\s+(?:strictly\s+|zwingend\s+)?'
+    r'(?:required|necessary|mandatory|essential|needed|erforderlich|notwendig|vorausgesetzt)\b|'
+    r'\bkein\w*\s+(?:zwingende\s+)?Voraussetzung\b', re.I)
+
+
+def _polarity_bounds(text: str, start: int, end: int) -> tuple[int, int]:
+    left, right = 0, len(text)
+    for boundary in _POLARITY_BOUNDARY.finditer(text):
+        if boundary.end() <= start:
+            left = boundary.end()
+        elif boundary.start() >= end:
+            right = boundary.start()
+            break
+    return left, right
+
+
+def requirement_polarity(text: str, start: int = 0, end: int | None = None) -> str:
+    """Classify modality around a literal match, retaining independent siblings.
+
+    ``required`` means no local waiver/preference was found; callers still need
+    their normal applicant/section requirement checks. Offsets refer to the
+    original text; this helper never rewrites citable evidence.
+    """
+    if is_source_instruction(text):
+        return 'instruction'
+    end = start if end is None else end
+    left, right = _polarity_bounds(text, start, end)
+    local = text[left:right]
+    if _WAIVED_QUALIFICATION.search(local):
+        return 'waived'
+    if (re.search(r'\bneither\b.+\bnor\b', local, re.I) and
+            re.search(r'\b(?:required|necessary|mandatory|needed)\b', local, re.I)):
+        return 'waived'
+    # A negative task verb ("prevent failures") is not a waiver.
+    before, after = text[left:start], text[end:right]
+    if (re.search(r'\b(?:no|kein\w*)\s+(?:[\w-]+\s+){0,6}$', before, re.I) and
+            re.search(r'\b(?:required|necessary|mandatory|needed|erforderlich|notwendig|vorausgesetzt)\b', after, re.I)):
+        return 'waived'
+    if _OPTIONAL_QUALIFICATION.search(local):
+        return 'optional'
+    return 'required'
 
 
 DEGREE = re.compile(r'\b(?:degree|bachelor\w*|master\w*|doctorate|phd|studium|hochschulstudium|hochschulabschluss|abschluss|ausbildung)\b', re.I)
@@ -220,39 +291,49 @@ DOMAIN = re.compile(
     r'electrical|elektrotechnik|construction|bauwesen|bauleitung|bauingenieur\w*|'
     r'insurance|underwriting|versicher\w*|pharma\w*|GMP|GCP|GxP|gebäudeautomation|steuer. und regelungstechnik|HKL|VOB|energietechnik|automatisierungstechnik|EMSR|SCADA|versorgungstechnik|SHK|hochbau|tiefbau|ingenieurbau|verkehrsplanung|sicherheitstechnik|SAP(?:\s+[A-Z]{2,5})?|'
     r'S/4HANA|HANA|cloud infrastructure|rechenzentrum)\b', re.I)
-CERTIFICATE = re.compile(r'\b(?:PMP|PRINCE2|Scrum\s+(?:Master|certification)|certification|zertifizier(?:ung|t))\b', re.I)
+CERTIFICATE = re.compile(r'\b(?:PMP|PRINCE2|Scrum\s+(?:Master|certification)|certificate|certification|zertifikat\w*|zertifizier(?:ung|t))\b', re.I)
 WAIVED_CERTIFICATE = re.compile(
     r'\b(?:no|kein\w*)\s+(?:[\w-]+\s+){0,3}'
     r'(?:certification|zertifizierung)\s+(?:(?:is|are|ist|sind)\s+)?'
     r'(?:required|necessary|erforderlich|notwendig)\b', re.I)
 TENURE = re.compile(r'\b(?:professional\s+(?:experience|\w+\s+experience)|berufserfahrung|mehrjährige\w*\s+erfahrung|extensive\s+experience|langjährige\w*\s+erfahrung)\b', re.I)
 APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|hochschulstudium|masterstudium|bachelorstudium|ausbildung)|(?:you have|you possess|sie verfügen|du verfügst|verfügst über|verfügen über)\s+(?:\w+\s+){0,4}(?:experience|erfahrung|berufserfahrung|kenntnisse))\b', re.I)
-ENROLMENT = re.compile(r'\b(?:immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
+ENROLMENT = re.compile(r'\b(?:immatrikulation|immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
 
 
 def qualification_rows(clause: str, source: str) -> list[dict]:
     rows = []
+    if is_source_instruction(clause):
+        return rows
 
     def row(kind, value, hit, **extra):
+        if requirement_polarity(clause, hit.start() if hit else 0, hit.end() if hit else 0) != 'required':
+            return
         rows.append({'kind': kind, 'value': value, 'source': source,
                      'evidence': clause[:500], **extra})
 
     if (hit := ENROLMENT.search(clause)):
         row('enrolment', 'Current student enrolment', hit)
-    if (hit := DEGREE.search(clause)):
-        level = ('doctorate' if re.search(r'phd|doctorate|promotion', clause, re.I) else
-                 'bachelor' if re.search(r'bachelor', clause, re.I) and re.search(r'\b(?:or|oder)\b', clause, re.I) else
-                 'master' if re.search(r'master', clause, re.I) else
-                 'vocational' if re.search(r'ausbildung', clause, re.I) and not re.search(r'studium|degree|bachelor|master', clause, re.I) else 'bachelor')
+    degree_spans = set()
+    for hit in DEGREE.finditer(clause):
+        bounds = _polarity_bounds(clause, hit.start(), hit.end())
+        if bounds in degree_spans:
+            continue
+        degree_spans.add(bounds)
+        degree_clause = clause[bounds[0]:bounds[1]]
+        level = ('doctorate' if re.search(r'phd|doctorate|promotion', degree_clause, re.I) else
+                 'bachelor' if re.search(r'bachelor', degree_clause, re.I) and re.search(r'\b(?:or|oder)\b', degree_clause, re.I) else
+                 'master' if re.search(r'master', degree_clause, re.I) else
+                 'vocational' if re.search(r'ausbildung', degree_clause, re.I) and not re.search(r'studium|degree|bachelor|master', degree_clause, re.I) else 'bachelor')
         # Broad engineering is not a second alternative to electrical engineering.
         fields = [name for name, pattern in DEGREE_FIELDS.items()
-                  if re.search(r'\b(?:' + pattern + r')\b', clause, re.I)]
+                  if re.search(r'\b(?:' + pattern + r')\b', degree_clause, re.I)]
         if len(fields) > 1 and 'engineering' in fields:
             fields.remove('engineering')
-        field_phrase = re.search(r'(?:degree\s+in|studium\s+(?:in|der|im Bereich|in der Fachrichtung))\s+(.+)', clause, re.I)
+        field_phrase = re.search(r'(?:degree\s+in|studium\s+(?:in|der|im Bereich|in der Fachrichtung))\s+(.+)', degree_clause, re.I)
         unknown_field = field_phrase.group(1).strip(' .') if field_phrase and not fields else None
         row('education', 'Degree', hit, level=level, fields=fields, unknown_field=unknown_field,
-            alternative=bool(re.search(r'\b(?:or|oder|alternativ)\b', clause, re.I)))
+            alternative=bool(re.search(r'\b(?:or|oder|alternativ)\b', degree_clause, re.I)))
     if re.match(r'^(?:Meister|Techniker|Ingenieur)\b', clause, re.I) and re.search(r'im Bereich', clause, re.I):
         row('qualification', 'Specialist technical qualification', None)
     if re.search(r'\bSprachniveau\s+(?:C1|C2)\b', clause, re.I):
@@ -264,7 +345,8 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
     for hit in DOMAIN.finditer(clause):
         # Suppress only the domain token inside a recognized degree subject; a
         # separate qualification such as GMP experience must remain a gap.
-        degree_subject = bool(DEGREE.search(clause)) and any(
+        left, right = _polarity_bounds(clause, hit.start(), hit.end())
+        degree_subject = bool(DEGREE.search(clause[left:right])) and any(
             subject.start() <= hit.start() and hit.end() <= subject.end()
             for pattern in DEGREE_FIELDS.values()
             for subject in re.finditer(r'\b(?:' + pattern + r')\b', clause, re.I))
