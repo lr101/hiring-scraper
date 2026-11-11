@@ -18,7 +18,7 @@ from hiring_scraper.requirements import (structured_source_scope, structured_req
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE,
                                          requirement_polarity, is_source_instruction)
 
-VERSION = 'rules-v44-quality-gates'
+VERSION = 'rules-v45-proportional-task-evidence'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -1141,6 +1141,8 @@ def _applicability_context(job, profile, enriched):
     observations, unknowns = [], []
     academic_bridge = False
     eligibility_conditions = []
+    application_review = False
+    location_review = False
     gates = {'location': {'status': 'pass', 'reason': 'No mandatory workplace condition was stated.'},
              'eligibility': {'status': 'pass', 'reason': 'No mandatory formal or legal prerequisite was stated.'}}
     preferences = profile.get('application_preferences') or (profile.get('application_details') or {}).get('preferences') or {}
@@ -1157,8 +1159,14 @@ def _applicability_context(job, profile, enriched):
         mandatory = scope == 'requirements' or bool(re.search(r'\bmandatory\b|\brequired\b|\bmust\b|\berforderlich\b|\bzwingend\b', text, re.I))
         if scope in {'benefits', 'optional'}:
             continue
-        if re.search(r'\b(?:portfolio|work samples?|Arbeitsproben?)\b', text, re.I) and not OPTIONAL.search(text):
+        if re.search(r'\b(?:portfolio|work samples?|Arbeitsproben?)\b', text, re.I) and not OPTIONAL.search(text) and requirement_polarity(text) == 'required':
             unknowns.append('Prepare and verify the requested work samples or portfolio: ' + text)
+            application_review = application_review or mandatory or bool(re.search(r'\b(?:submit|provide|attach|einreichen|vorlegen)\b', text, re.I))
+        residence = re.search(r'\b(?:must reside|must live|residency is required|required residence|Wohnsitz erforderlich|Wohnsitz in)\b', text, re.I)
+        if residence and requirement_polarity(text, residence.start(), residence.end()) == 'required' and (mandatory or re.search(r'\bmust\b', residence.group(), re.I)):
+            location_review = True
+            gates['location'] = {'status': 'unknown', 'reason': 'Verify the required residence or payroll jurisdiction separately from work authorization: ' + text}
+            unknowns.append(gates['location']['reason'])
         if OPTIONAL.search(text) and not re.search(r'\bmandatory\b|\bmust\b', text, re.I):
             continue
         conditions = _eligibility_conditions(text, preferences, profile.get('certifications') or [], mandatory)
@@ -1230,7 +1238,7 @@ def _applicability_context(job, profile, enriched):
     if eligibility_conditions:
         status = 'fail' if any(row['status'] == 'fail' for row in eligibility_conditions) else 'unknown' if any(row['status'] == 'unknown' for row in eligibility_conditions) else 'pass'
         gates['eligibility'] = {'status': status, 'reason': ' '.join(dict.fromkeys(row['reason'] for row in eligibility_conditions if row['status'] == status))[:500]}
-    blocking = any(row['status'] != 'pass' for row in eligibility_conditions)
+    blocking = any(row['status'] != 'pass' for row in eligibility_conditions) or application_review or location_review
     substantive = bool(mentions or duties)
     return {'score_floor': 85 if direct else 40 if adjacent or academic_bridge else 0,
             'transferable': adjacent, 'direct_service': direct, 'substantive': substantive,
@@ -1501,20 +1509,19 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                            for row in task_alignment['requirements']) or
                        (academic_admissible and (enriched.get('seniority') or {}).get('value') not in {'senior', 'lead'} and
                         not any(row.get('kind') == 'professional_experience' for row in enriched.get('requirements', [])))))
-    partial_tasks = (any(row['status'] == 'supported' for row in task_alignment['requirements']) or
-                     sum(row['status'] == 'transferable' for row in task_alignment['requirements']) >= 2)
+    partial_tasks = any(row['status'] in {'supported', 'transferable'} for row in task_alignment['requirements'])
     if not grounded_tasks and task_alignment['score'] and partial_tasks:
-        # Partial core-work evidence is a possible lead even without vocabulary
-        # or title overlap. Remaining duties stay unknown; this cannot recommend.
+        # Proportional partial evidence cannot recommend a role on its own.
         score = max(score, min(59, task_alignment['score']))
         reasons.append('Partial task evidence overlaps documented work; verify the remaining duties and qualifications.')
     if grounded_tasks:
         score = max(score, min(85, task_alignment['score']))
-        for row in task_alignment['requirements']:
-            if row['status'] == 'supported':
-                reasons.append(('Supported academic/project task evidence: ' if row['evidence_context'] == 'academic' else
-                                'Supported task evidence: ') + row['job_quote'] +
-                               ' Source: ' + row['evidence_source'] + ' — ' + row['evidence_quote'])
+    for row in task_alignment['requirements']:
+        if row['status'] in {'supported', 'transferable'}:
+            label = ('Transferable task evidence (complete scope unverified): ' if row['status'] == 'transferable' else
+                     'Supported academic/project task evidence: ' if row['evidence_context'] == 'academic' else
+                     'Supported task evidence: ')
+            reasons.append(label + row['job_quote'] + ' Source: ' + row['evidence_source'] + ' — ' + row['evidence_quote'])
     score = max(score, applicability['score_floor'])
     if applicability['direct_service']:
         reasons.append('Service and onboarding capabilities overlap the core support duties; specialist ownership is not implied.')

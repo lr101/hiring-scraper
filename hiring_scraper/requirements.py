@@ -305,7 +305,7 @@ def requirement_polarity(text: str, start: int = 0, end: int | None = None) -> s
     return 'required'
 
 
-DEGREE = re.compile(r'\b(?:degree|bachelor\w*|master\w*|doctorate|phd|studium|hochschulstudium|hochschulabschluss|abschluss|ausbildung)\b', re.I)
+DEGREE = re.compile(r"\b(?:degree|bachelor\w*|master(?:['’]s|s|studium|abschluss|studiengang)?|doctorate|phd|studium|hochschulstudium|hochschulabschluss|abschluss|ausbildung)\b", re.I)
 DEGREE_FIELDS = {
     'electrical engineering': r'elektrotechnik|electrical engineering|elektroingenieur\w*',
     'mechanical engineering': r'maschinenbau|mechanical engineering',
@@ -355,7 +355,7 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
         degree_clause = clause[bounds[0]:bounds[1]]
         level = ('doctorate' if re.search(r'phd|doctorate|promotion', degree_clause, re.I) else
                  'bachelor' if re.search(r'bachelor', degree_clause, re.I) and re.search(r'\b(?:or|oder)\b', degree_clause, re.I) else
-                 'master' if re.search(r'master', degree_clause, re.I) else
+                 'master' if re.search(r'\bmaster(?:[’\']s|s|studium|abschluss|studiengang)?\b', degree_clause, re.I) else
                  'vocational' if re.search(r'ausbildung', degree_clause, re.I) and not re.search(r'studium|degree|bachelor|master', degree_clause, re.I) else 'bachelor')
         # Broad engineering is not a second alternative to electrical engineering.
         fields = [name for name, pattern in DEGREE_FIELDS.items()

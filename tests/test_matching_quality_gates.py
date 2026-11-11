@@ -164,6 +164,42 @@ class MatchingQualityGateTests(unittest.TestCase):
         self.assertEqual(row['evidence_context'], 'academic')
         self.assertNotEqual(row['status'], 'supported')
 
+    def test_single_transferable_duty_retains_proportional_task_credit(self):
+        job = {'title': 'Operations assistant', 'description':
+               'Your tasks: Maintain delivery schedules. Create loading diagrams.'}
+        profile = {'summary': 'Planned delivery schedules.'}
+        result = match_job(job, profile)
+        self.assertGreater(result['task_fit'], 0)
+        self.assertLess(result['score'], 65)
+        self.assertTrue(any('Planned delivery schedules.' in reason and 'transfer' in reason.lower()
+                            for reason in result['reasons']))
+        rejected = match_job({**job, 'description': job['description'] + '\nRequirements: German C2 is required.'},
+                             {**profile, 'language_levels': {'German': 'B1'}})
+        self.assertFalse(rejected['eligible'])
+        self.assertEqual(rejected['task_fit'], result['task_fit'])
+
+    def test_language_mastery_is_not_a_master_degree(self):
+        result = self.match('Requirements: Mastery of German is required.')
+        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+        self.assertFalse(any(row['kind'] == 'education' for row in result['requirement_observations']))
+        degree = self.match('Requirements: A completed master degree in engineering is required.')
+        self.assertEqual(degree['gates']['eligibility']['status'], 'unknown')
+
+    def test_residency_is_reviewed_independently_of_work_authorization(self):
+        result = self.match('Requirements: Employees must reside in France for payroll purposes.',
+                            application_preferences={'authorization_country': 'France',
+                                'authorized_to_work': True, 'sponsorship_required': False})
+        self.assertEqual(result['gates']['location']['status'], 'unknown')
+        self.assertTrue(result['mandatory_review'])
+        self.assertTrue(result['eligible'])
+
+    def test_required_artifact_has_review_but_optional_artifact_does_not(self):
+        required = self.match('Requirements: Submit a portfolio with your application.')
+        self.assertTrue(required['mandatory_review'])
+        self.assertTrue(required['eligible'])
+        optional = self.match('A portfolio is optional and not required.')
+        self.assertFalse(optional['mandatory_review'])
+
     def test_portfolio_request_stays_visible_without_inventing_missing_work(self):
         result = self.match('Requirements:\nSubmit two work samples with your application.')
         self.assertTrue(any('sample' in note.lower() for note in result['unknowns']))
