@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
-SCORING_VERSION = 'requirement-score-v2-clause-weighted'
+SCORING_VERSION = 'requirement-score-v3-prerequisite-reconciliation'
 
 
 class RequirementEvidence(BaseModel):

@@ -26,7 +26,8 @@ from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
 from hiring_scraper.app.models import AIMatchingSelection, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
-from hiring_scraper.matching import match_job
+from hiring_scraper.matching import match_job, required_application_artifact
+from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity
 from hiring_scraper.semantic_matching import job_sections
 
 LOG = logging.getLogger(__name__)
@@ -271,6 +272,19 @@ def build_prompt(job, profile):
         requirement_evidence.INSTRUCTIONS + '\nDATA:\n' + _json(payload))
 
 
+def _required_prerequisite_row(row):
+    if row['priority'] == 'preferred':
+        return False
+    if row['category'] == 'capability':
+        return required_application_artifact(row['job_quote'])
+    if row['category'] not in {'education', 'credential', 'work_authorization'}:
+        return False
+    pattern = {'education': DEGREE, 'credential': CERTIFICATE}.get(row['category'])
+    hit = pattern.search(row['job_quote']) if pattern else None
+    return requirement_polarity(row['job_quote'], hit.start() if hit else 0,
+                                hit.end() if hit else 0) == 'required'
+
+
 def validate_assessment(data, sources=None):
     def keys(value, expected):
         if not isinstance(value, dict) or set(value) != set(expected):
@@ -329,8 +343,7 @@ def validate_assessment(data, sources=None):
                     re.search(gate_patterns[name], row['requirement'], re.I) and
                     re.search(gate_patterns[name], row['job_quote'], re.I) for row in rows):
                 gate.update(status='unknown', reason='No grounded, jurisdiction- and requirement-specific applicant incompatibility was supplied. Verify the required condition.')
-    prerequisite_rows = [row for row in rows if row['priority'] != 'preferred' and
-                         row['category'] in {'education', 'credential', 'work_authorization'}]
+    prerequisite_rows = [row for row in rows if _required_prerequisite_row(row)]
     mandatory_review = any(row['status'] in {'unknown', 'transferable'} for row in prerequisite_rows)
     if prerequisite_rows:
         status = ('fail' if any(row['status'] == 'missing' for row in prerequisite_rows) else
@@ -566,6 +579,88 @@ def load_matching_documents(session, jobs, profiles):
     return documents
 
 
+def _supported_local_condition(condition, rows, sources):
+    """Discharge a local unknown only with same-condition, semantic support."""
+    kind = condition.get('kind')
+    category = {'education': 'education', 'certification': 'credential'}.get(kind)
+    if not category or condition.get('status') != 'unknown':
+        return None
+    normalize = lambda value: ' '.join(value.split()).casefold()
+    quote = condition.get('job_quote', '')
+    source = condition.get('job_source', '')
+    source = source if source.startswith('job.') else 'job.' + source
+    for row in rows:
+        if (row['category'] != category or row['status'] != 'supported' or
+                row['priority'] == 'preferred' or row['job_source'] != source or
+                normalize(row['job_quote']) != normalize(quote)):
+            continue
+        # A title or date range alone is not proof of an awarded qualification.
+        evidence = row['evidence_quote']
+        context = requirement_evidence.fact_context(row['evidence_source'], sources)
+        if re.search(r'\b(?:not|never|incomplete|unfinished|withdrawn|ongoing|enrolled|pursuing|expired|revoked|abgelaufen|kein\w*|nicht|abgebrochen)\b', evidence, re.I):
+            continue
+        requirement = condition.get('qualification') or {}
+        if kind == 'education':
+            if context.get('completion') != 'completed' and not re.search(
+                    r'\b(?:graduated|completed|awarded|earned|abgeschlossen\w*|absolviert)\b', evidence, re.I):
+                continue
+            if not re.search(r'\b(?:bachelor\w*|master\w*|doctorate|phd|promotion|ausbildung)\b', evidence, re.I):
+                continue
+            degrees = [entry for entry in qualification_rows(evidence, row['evidence_source'])
+                       if entry['kind'] == 'education']
+            ranks = {'vocational': 0, 'bachelor': 1, 'master': 2, 'doctorate': 3}
+            level = requirement.get('level', 'bachelor')
+            if not any(ranks.get(entry.get('level'), -1) >= ranks.get(level, 1) and
+                       (level != 'vocational' or entry.get('level') == 'vocational') for entry in degrees):
+                continue
+            fields = requirement.get('fields') or []
+            matches = [bool(re.search(r'\b(?:' + DEGREE_FIELDS[field] + r')\b', evidence, re.I)) for field in fields]
+            if matches and not (any(matches) if requirement.get('alternative') else all(matches)):
+                continue
+            if requirement.get('unknown_field') and normalize(requirement['unknown_field']) not in normalize(evidence):
+                continue
+        else:
+            value = requirement.get('value', '')
+            if not value or normalize(value) not in normalize(evidence):
+                continue
+        return row
+    return None
+
+
+def _reconcile_local_prerequisites(local, assessment, sources):
+    # Older cached local results lack causes: retain their conservative behavior.
+    if 'prerequisite_conditions' not in local:
+        return local
+    result = deepcopy(local)
+    removed_messages = set()
+    for condition in result['prerequisite_conditions']:
+        supported = _supported_local_condition(condition, assessment['requirements'], sources)
+        if supported is None:
+            continue
+        condition.update(status='pass', reason=supported['explanation'],
+                         evidence_source=supported['evidence_source'], evidence_quote=supported['evidence_quote'])
+        removed_messages.update(condition.get('unknown_messages', []))
+        for observation in result.get('requirement_observations', []):
+            if (observation.get('kind') == condition['kind'] and observation.get('status') == 'unknown' and
+                    observation.get('job_quote') == condition.get('job_quote')):
+                observation.update(status='supported', evidence_source=supported['evidence_source'],
+                                   evidence_quote=supported['evidence_quote'], explanation=supported['explanation'])
+    unresolved = [condition for condition in result['prerequisite_conditions'] if condition['status'] != 'pass']
+    removed_messages.difference_update(message for condition in unresolved for message in condition.get('unknown_messages', []))
+    result['unknowns'] = [message for message in result.get('unknowns', []) if message not in removed_messages]
+    result['mandatory_review'] = bool(unresolved)
+    for name in ('eligibility', 'location'):
+        conditions = [condition for condition in result['prerequisite_conditions'] if condition.get('gate', 'eligibility') == name]
+        if not conditions or result.get('gates', {}).get(name, {}).get('status') == 'fail':
+            continue
+        status = ('fail' if any(condition['status'] == 'fail' for condition in conditions) else
+                  'unknown' if any(condition['status'] == 'unknown' for condition in conditions) else 'pass')
+        result['gates'][name] = {'status': status, 'reason': ' '.join(
+            condition['reason'] for condition in conditions if condition['status'] == status)[:500]
+            if status != 'pass' else 'The individual local prerequisites are supported by grounded evidence.'}
+    return result
+
+
 def apply_cached_assessment(local, job, profile, documents):
     result = {**local, 'score_source': 'local', 'llm_match': None}
     if result.get('eligible') and result.get('fit_tier') == 'recommended':
@@ -578,9 +673,12 @@ def apply_cached_assessment(local, job, profile, documents):
     if digest != row.source_hash:
         return result
     try:
-        assessment = validate_assessment(row.assessment, assessment_sources(job, profile))
+        sources = assessment_sources(job, profile)
+        assessment = validate_assessment(row.assessment, sources)
     except (ValueError, TypeError):
         return result
+    local = _reconcile_local_prerequisites(local, assessment, sources)
+    result.update({key: local[key] for key in ('requirement_observations', 'prerequisite_conditions') if key in local})
     eligible = bool(local.get('eligible') and assessment['eligible'])
     conflicts = list(local.get('conflicts') or []) + [f'{name}: {value["reason"]}'
         for name, value in assessment['gates'].items() if value['status'] == 'fail']
@@ -604,11 +702,13 @@ def apply_cached_assessment(local, job, profile, documents):
     for name, gate in (local.get('gates') or {}).items():
         if gate['status'] == 'fail':
             assessment['gates'][name] = deepcopy(gate)
-    if mandatory_review and assessment['gates']['eligibility']['status'] == 'pass':
-        assessment['gates']['eligibility'] = deepcopy(local['gates']['eligibility'])
+    if mandatory_review:
+        for name, gate in (local.get('gates') or {}).items():
+            if gate['status'] == 'unknown' and assessment['gates'][name]['status'] == 'pass':
+                assessment['gates'][name] = deepcopy(gate)
     if language_review and assessment['gates']['language']['status'] == 'pass':
         assessment['gates']['language'] = deepcopy(local['gates']['language'])
-    tier = 'unlikely' if not eligible or score < 30 or mandatory_review else 'recommended' if score >= 65 and not language_review and not unresolved_required else 'possible'
+    tier = 'unlikely' if not eligible or score < 30 else 'recommended' if score >= 65 and not mandatory_review and not language_review and not unresolved_required else 'possible'
     gaps = list(dict.fromkeys(assessment['gaps'] + requirement_evidence.requirement_summary(assessment['requirements'])['required_gaps']))
     result.update(score=score, score_source='llm', eligible=eligible, fit_tier=tier,
                   mandatory_review=mandatory_review, language_review=language_review,

@@ -42,6 +42,114 @@ def assessment(score=90):
 
 
 class AssessmentTests(unittest.TestCase):
+    def overlay_prerequisite(self, condition='A completed bachelor degree in chemistry is mandatory.',
+                             evidence='I graduated with a bachelor degree in chemistry.',
+                             extra='', category='education', quote=None, source='profile.career_evidence',
+                             source_extras=None, profile_changes=None):
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+        from hiring_scraper.matching import match_job
+        service = self.service()
+        description = DESCRIPTION + '\nRequirements:\n' + condition + '\n' + extra
+        sources = {'job.description': description, 'profile.summary': PROFILE['summary'],
+                   source: evidence, **(source_extras or {})}
+        data = assessment()
+        data['requirements'].append({**data['requirements'][0], 'category': category,
+            'requirement': quote or condition, 'job_quote': quote or condition,
+            'evidence_source': source, 'evidence_quote': evidence, 'status': 'supported'})
+        local = match_job({'title': 'Assistant', 'description': description},
+                          {**PROFILE, 'career_evidence': evidence, **(profile_changes or {})})
+        job, profile = SimpleNamespace(id=1), SimpleNamespace(id=2)
+        row = SimpleNamespace(version=service.VERSION, source_hash=service._hash([service.VERSION, 'j', 'p']),
+                              assessment=data, scored_at=datetime.now(timezone.utc))
+        docs = SimpleNamespace(llm_scores={(2, 1): row}, llm_job_hashes={1: 'j'}, llm_profile_hashes={2: 'p'})
+        with patch.object(service, 'assessment_sources', return_value=sources):
+            return service.apply_cached_assessment(local, job, profile, docs)
+
+    def test_grounded_completed_degree_discharges_only_corresponding_local_unknown(self):
+        result = self.overlay_prerequisite()
+        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+        self.assertFalse(result['mandatory_review'])
+        self.assertNotEqual(result['fit_tier'], 'unlikely')
+        self.assertFalse(any('degree' in note.lower() and 'unverified' in note.lower()
+                             for note in result['unknowns']))
+        self.assertTrue(any(row.get('kind') == 'education' and row['status'] == 'supported'
+                            for row in result['requirement_observations']))
+
+    def test_unrelated_or_insufficient_degree_evidence_cannot_discharge_unknown(self):
+        for changes in (
+            {'quote': 'Build Python services and SQL databases.'},
+            {'category': 'capability'},
+            {'evidence': 'Bachelor degree in chemistry, 2018–2022.'},
+            {'evidence': 'I completed a degree in chemistry.'},
+            {'evidence': 'I graduated in history. I am pursuing a bachelor degree in chemistry.'},
+            {'evidence': 'I graduated with a bachelor degree in history.'},
+            {'condition': 'A completed master degree in chemistry is mandatory.'},
+            {'evidence': 'I have not completed my bachelor degree in chemistry.'},
+            {'source': 'profile.education[0].title', 'evidence': 'Bachelor degree in chemistry',
+             'source_extras': {'profile.education[0].status': 'in_progress'}},
+        ):
+            with self.subTest(changes=changes):
+                result = self.overlay_prerequisite(**changes)
+                self.assertTrue(result['mandatory_review'])
+                self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+
+    def test_grounded_credential_clears_only_same_credential(self):
+        result = self.overlay_prerequisite(condition='PMP certification is mandatory.',
+                                          evidence='I hold current PMP certification.', category='credential')
+        self.assertFalse(result['mandatory_review'])
+        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+        other = self.overlay_prerequisite(condition='PMP certification is mandatory.',
+                                         evidence='I hold current PRINCE2 certification.', category='credential')
+        self.assertTrue(other['mandatory_review'])
+
+    def test_waived_education_row_does_not_create_mandatory_review(self):
+        data = assessment()
+        data['requirements'].append({**data['requirements'][0], 'category': 'education',
+            'requirement': 'Degree completion', 'job_quote': 'Degree completion is not required.',
+            'status': 'unknown', 'evidence_source': '', 'evidence_quote': ''})
+        result = self.service().validate_assessment(data)
+        self.assertFalse(result['mandatory_review'])
+        self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+
+    def test_independent_prerequisites_survive_degree_reconciliation(self):
+        for extra in ('Current student enrollment is mandatory.',
+                      'A valid PMP certificate is mandatory.',
+                      'You must hold existing UK work rights.',
+                      'Bring a portfolio of sample work.',
+                      'You must reside in the UK.'):
+            with self.subTest(extra=extra):
+                result = self.overlay_prerequisite(extra=extra)
+                self.assertTrue(result['mandatory_review'])
+                self.assertEqual(result['fit_tier'], 'possible')
+                self.assertEqual(result['label'], 'Verify mandatory eligibility')
+        language = self.overlay_prerequisite(extra='Excellent German is required.')
+        self.assertTrue(language['language_review'])
+        self.assertEqual(language['gates']['language']['status'], 'unknown')
+        failed = self.overlay_prerequisite(extra='Mandatory: seven years leading paid industrial programs.',
+                                          profile_changes={'experience_years': 2})
+        self.assertEqual(failed['gates']['eligibility']['status'], 'fail')
+        self.assertFalse(failed['eligible'])
+        self.assertEqual(failed['fit_tier'], 'unlikely')
+
+    def test_required_artifact_capability_gets_review_without_gating_ordinary_capabilities(self):
+        for text, priority, review in (
+            ('Bring a portfolio of sample work.', 'required', True),
+            ('A portfolio is optional.', 'required', False),
+            ('No portfolio is required.', 'required', False),
+            ('Bring a portfolio of sample work.', 'preferred', False),
+            ('Build Python services.', 'required', False),
+            ('Portfolio management experience is required.', 'required', False),
+        ):
+            with self.subTest(text=text, priority=priority):
+                data = assessment()
+                data['requirements'].append({**data['requirements'][0], 'category': 'capability',
+                    'requirement': text, 'job_quote': text, 'status': 'unknown',
+                    'priority': priority, 'evidence_source': '', 'evidence_quote': ''})
+                result = self.service().validate_assessment(data)
+                self.assertEqual(result['mandatory_review'], review)
+                self.assertEqual(result['gates']['eligibility']['status'], 'unknown' if review else 'pass')
+
     def test_scored_dimensions_require_exact_profile_citations(self):
         data = assessment()
         sources = {'profile.summary': 'Build Python services and SQL databases.',
@@ -450,7 +558,8 @@ class PersistedAssessmentTests(unittest.TestCase):
         self.assertEqual(result['score_source'], 'llm')
         self.assertEqual(result['score'], 91)
         self.assertTrue(result['eligible'])
-        self.assertEqual(result['fit_tier'], 'unlikely')
+        self.assertEqual(result['fit_tier'], 'possible')
+        self.assertTrue(result['mandatory_review'])
         self.assertTrue(any('authorization' in item.lower() for item in result['unknowns']))
 
     def test_ai_pass_cannot_contradict_known_local_language_threshold_failure(self):

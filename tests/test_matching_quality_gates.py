@@ -17,6 +17,19 @@ class MatchingQualityGateTests(unittest.TestCase):
         return match_job({'title': 'Delivery support', 'description': TASKS + requirement},
                          {**PROFILE, **profile_changes})
 
+    def test_requested_portfolio_outside_requirements_is_a_prerequisite(self):
+        result = self.match('Bring a portfolio of sample work. Degree completion is not required.')
+        self.assertTrue(result['mandatory_review'])
+        self.assertEqual(result['gates']['eligibility']['status'], 'unknown')
+
+    def test_optional_or_waived_portfolio_does_not_require_review(self):
+        for text in ('A portfolio is optional.', 'No portfolio is required.',
+                     'You may bring work samples if available.'):
+            with self.subTest(text=text):
+                result = self.match(text)
+                self.assertFalse(result['mandatory_review'])
+                self.assertEqual(result['gates']['eligibility']['status'], 'pass')
+
     def test_absent_prerequisites_are_not_unknown_mandatory_gates(self):
         result = self.match()
         self.assertEqual(result['gates']['eligibility']['status'], 'pass')

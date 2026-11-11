@@ -1103,6 +1103,17 @@ def _formal_requirement_satisfied(requirement, profile):
     return False
 
 
+def required_application_artifact(text, *, mandatory=False):
+    """Recognize requested application materials, preserving local waiver scope."""
+    hit = re.search(r'\b(?:portfolio(?!\s+(?:management|analysis|risk|strategy|software|website)\b)|work samples?|Arbeitsproben?)\b', text, re.I)
+    if not hit or requirement_polarity(text, hit.start(), hit.end()) != 'required':
+        return False
+    if re.search(r'\b(?:optional|if available|may bring|kann|freiwillig)\b', text, re.I):
+        return False
+    return mandatory or bool(re.search(
+        r'\b(?:required|mandatory|must|submit|provide|attach|bring|einreichen|vorlegen|mitbringen|erforderlich)\b', text, re.I))
+
+
 def _applicability_context(job, profile, enriched):
     """Explain unverified scope and mandatory logistics without inventing facts.
 
@@ -1159,9 +1170,12 @@ def _applicability_context(job, profile, enriched):
         mandatory = scope == 'requirements' or bool(re.search(r'\bmandatory\b|\brequired\b|\bmust\b|\berforderlich\b|\bzwingend\b', text, re.I))
         if scope in {'benefits', 'optional'}:
             continue
-        if re.search(r'\b(?:portfolio|work samples?|Arbeitsproben?)\b', text, re.I) and not OPTIONAL.search(text) and requirement_polarity(text) == 'required':
-            unknowns.append('Prepare and verify the requested work samples or portfolio: ' + text)
-            application_review = application_review or mandatory or bool(re.search(r'\b(?:submit|provide|attach|einreichen|vorlegen)\b', text, re.I))
+        if required_application_artifact(text, mandatory=mandatory):
+            reason = 'Prepare and verify the requested work samples or portfolio: ' + text
+            unknowns.append(reason)
+            eligibility_conditions.append({'kind': 'application_artifact', 'status': 'unknown',
+                                           'reason': reason, 'job_quote': text})
+            application_review = True
         residence = re.search(r'\b(?:must reside|must live|residency is required|required residence|Wohnsitz erforderlich|Wohnsitz in)\b', text, re.I)
         if residence and requirement_polarity(text, residence.start(), residence.end()) == 'required' and (mandatory or re.search(r'\bmust\b', residence.group(), re.I)):
             location_review = True
@@ -1232,6 +1246,9 @@ def _applicability_context(job, profile, enriched):
         condition = {'kind': kind, 'status': 'pass' if satisfied else 'unknown',
                      'reason': ('Saved ' + label + ' evidence supports: ' if satisfied else
                                 'Required ' + label + ' is unverified: ') + requirement['evidence']}
+        condition.update(qualification=dict(requirement), job_source=requirement['source'],
+                         job_quote=requirement['evidence'],
+                         unknown_messages=['Verify requirement: ' + requirement['evidence']])
         eligibility_conditions.append(condition)
         observations.append({'kind': kind, 'status': 'supported' if satisfied else 'unknown',
                              'requirement': requirement['evidence'],
@@ -1245,7 +1262,9 @@ def _applicability_context(job, profile, enriched):
     return {'score_floor': 85 if direct else 40 if adjacent or academic_bridge else 0,
             'transferable': adjacent, 'direct_service': direct, 'substantive': substantive,
             'observations': observations, 'unknowns': unknowns, 'gates': gates, 'blocking': blocking,
-            'uncovered_specialist': bool(uncovered)}
+            'uncovered_specialist': bool(uncovered),
+            'prerequisite_conditions': eligibility_conditions + ([{'kind': 'residence', 'gate': 'location',
+                **gates['location']}] if location_review else [])}
 
 
 def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, semantic: dict | None = None) -> dict:
@@ -1643,6 +1662,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
             'task_alignment': task_alignment,
             'gates': {**applicability['gates'], 'language': language_gate},
             'requirement_observations': applicability['observations'],
+            'prerequisite_conditions': applicability['prerequisite_conditions'],
             'profile_skill_context': {skill: _skill_context(profile, skill) for skill in matched},
             'fit_tier': fit_tier, 'requirement_gaps': requirement_gaps,
             'matched_skills': matched, 'missing_skills': missing, 'reasons': reasons,
