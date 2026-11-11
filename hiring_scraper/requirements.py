@@ -250,7 +250,7 @@ _TRAILING_MODALITY = re.compile(
     r'\b(?:required|necessary|mandatory|essential|needed|optional|preferred|desired|'
     r'erforderlich|notwendig|vorausgesetzt|wünschenswert|bevorzugt|willkommen|'
     r'Voraussetzung|Vorteil|plus)(?:\s+(?:for|in|at|für|bei)\s+'
-    r'(?:[\w-]+\s*){1,6})?\s*$', re.I)
+    r'(?:(?!(?:is|are|ist|sind)\b)[\w-]+\s*){1,6})?\s*$', re.I)
 
 
 def _polarity_bounds(text: str, start: int, end: int) -> tuple[int, int]:

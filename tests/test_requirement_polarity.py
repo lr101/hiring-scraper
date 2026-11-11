@@ -115,6 +115,10 @@ class QualificationPolarityTests(unittest.TestCase):
                 self.assertFalse(any(r['kind'] == 'education' for r in rows))
                 self.assertTrue(any(r['value'] == 'PMP' for r in rows))
 
+    def test_leading_modality_does_not_consume_first_noun_as_modifier(self):
+        clause = 'Preferred for this role are a bachelor degree and PMP certification.'
+        self.assertEqual(qualification_rows(clause, 'description'), [])
+
     def test_developer_occupational_label_keeps_real_requirements(self):
         for role in ('Developer', 'Assistant'):
             clause = role + ': A bachelor degree is required.'
