@@ -110,7 +110,7 @@ def _actions(text):
     # "Inspection records" is an object; "record observations" is a duty.
     if 'record' in result and not re.search(
             r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b|'
-            r'^(?:(?:I|we|you)\s+)?records?\s+(?!:)', text, re.I):
+            r'^(?:(?:I|we|you)\s+)?(?:(?:will|can|must|should)\s+)?(?:\w+ly\s+){0,2}records?\s+(?!:)', text, re.I):
         result.remove('record')
     if re.search(r'(?:^|[,;]|\b(?:you|we|will|and|und)\s+)\s*(?:lead(?:s|ing)?|led)\b', text, re.I):
         result.add('own')
@@ -157,7 +157,7 @@ def _profile_actions(text):
     # in an applicant inventory. Keep genuine verb forms in the same sentence.
     predicate_text = re.sub(
         r'\b(?:maintenance|creation|coordination|documentation|preparation|collection|comparison|'
-        r'Pflege|Erstellung|Koordination|Dokumentation|Vorbereitung|Sammlung|Vergleich)\b',
+        r'Pflege|Erstellung|Koordination|Dokumentation|Vorbereitung|Sammlung|Vergleich|Erfassung\w*|Zeichnung\w*|Zusammenfassung\w*)\b',
         ' ', text, flags=re.I)
     actions = _actions(predicate_text)
     for action, performed in (
@@ -190,6 +190,9 @@ def _semantic_objects(text):
 # These describe posting administration or attendance, rather than an actor's
 # work product. Active recruiting and scheduling duties remain available.
 _NON_DUTY_CONTEXT = re.compile(
+    r'^(?:\w+\s+){0,3}(?:job posting|job advertisement|vacancy|Stellenausschreibung)\s+'
+    r'(?:(?:was|is|were|wurde|wird|werden)\s+)?(?:created|composed|erstellt)\b|'
+    r'^(?:English|German|French|Spanish|Deutsch|Englisch|Französisch|Spanisch)\s+[ABC][12]\b|'
     r'^(?:applications?|Bewerbungen)\s+(?:are|will be|werden)\s+'
     r'(?:reviewed|evaluated|geprüft|bewertet)\b.*\b(?:recruitment|recruiting|Personalabteilung)\b|'
     r'^(?:we|wir)\s+(?:review|evaluate|prüfen|bewerten)\s+(?:your application|Ihre Bewerbung)\b|'

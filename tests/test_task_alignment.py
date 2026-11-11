@@ -546,3 +546,23 @@ class TaskAlignmentTests(unittest.TestCase):
             'Applications are developed for hospital logistics.'})), 1)
         self.assertEqual(len(task_units({'description':
             'Applications are reviewed for customers.'})), 1)
+
+    def test_german_action_nouns_alone_are_not_performed_work(self):
+        for duty, fact in [('Erfassen Sie Montagebeobachtungen.', 'Erfassung von Montagebeobachtungen.'),
+                           ('Create process maps.', 'Zeichnung von Prozesslandkarten.')]:
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('summary', fact)])['score'], 0)
+
+    def test_posting_creation_and_cefr_statements_are_not_duties(self):
+        from hiring_scraper.task_alignment import task_units
+        for text in ('A fictional job advertisement was created for recruitment testing.',
+                     'German B2 is expected for occasional documentation.'):
+            with self.subTest(text=text):
+                self.assertEqual(task_units({'description': text}), [])
+
+    def test_record_duties_allow_modal_and_adverb_predicates(self):
+        for duty in ('You will record assembly observations.', 'You regularly record assembly observations.'):
+            with self.subTest(duty=duty):
+                rows = self.align(duty, [('experience.0', 'Recorded assembly observations.')])['requirements']
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]['status'], 'supported')
