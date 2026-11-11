@@ -139,6 +139,12 @@ class MatchingQualityGateTests(unittest.TestCase):
                 self.assertLess(result['score'], 65)
                 self.assertNotEqual(result['fit_tier'], 'recommended')
 
+    def test_not_only_accepted_keeps_positive_academic_policy(self):
+        academic = {'cv_career_facts': {'education': [{'description': PROFILE['summary']} ]}}
+        result = match_job({'title': 'Delivery support', 'description': TASKS +
+            'Academic projects are not only accepted but welcome.'}, academic)
+        self.assertGreaterEqual(result['score'], 65)
+
     def test_saved_skill_notes_supply_literal_task_evidence(self):
         result = match_job({'title': 'Delivery assistant', 'description':
             'Your tasks: Maintain delivery schedules. Create progress presentations.'},

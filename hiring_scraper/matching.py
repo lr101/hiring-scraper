@@ -1486,7 +1486,11 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                         r'\b(?:accepted|welcome|count|sufficient|zählen|reichen|ausreichend|willkommen|anerkannt)\b',
                         sentence, re.I)
         if hit:
-            academic_policy.append(not bool(re.search(r'\b(?:not|never|nicht|keine?)\b', hit.group(), re.I)))
+            negative_policy = re.search(
+                r'\b(?:not|never)\s+(?!(?:only|just)\b)(?:\w+\s+){0,2}(?:accepted|welcome|count|sufficient)\b|'
+                r'\bnicht\s+(?!nur\b)(?:\w+\s+){0,2}(?:anerkannt|ausreichend|willkommen)\b|'
+                r'\b(?:zählen|reichen)\s+nicht\b', sentence, re.I)
+            academic_policy.append(not bool(negative_policy))
     academic_admissible = (False not in academic_policy and
                            ((enriched.get('seniority') or {}).get('value') in {'junior', 'student'} or
                             True in academic_policy))
