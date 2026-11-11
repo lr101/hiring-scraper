@@ -380,3 +380,63 @@ class TaskAlignmentTests(unittest.TestCase):
             [('experience.0', 'My planning document lists milestones.')])['score'], 0)
         self.assertEqual(self.align('Research customer needs.',
             [('experience.0', 'The research report describes customer needs.')])['score'], 0)
+
+    def test_topic_and_note_subjects_are_not_performed_work(self):
+        for duty, fact in (('Research customer needs.', 'Research topics: customer needs.'),
+                           ('Plan milestones.', 'My planning notes cover milestones.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+
+    def test_non_work_clause_does_not_erase_explicit_performed_work(self):
+        for duty, fact in (
+            ('Document SOPs.', 'Documented SOPs and my research interests include customer needs.'),
+            ('Maintain schedules.', 'The annual plan contains milestones and I maintained schedules.'),
+            ('Maintain schedules.', 'My planning notes cover milestones and I maintained schedules.')):
+            with self.subTest(fact=fact):
+                row = self.align(duty, [('experience.0', fact)])['requirements'][0]
+                self.assertEqual(row['status'], 'supported')
+                self.assertIn(row['evidence_quote'], fact)
+
+    def test_declared_note_context_bounds_authority_without_changing_source(self):
+        from hiring_scraper.task_alignment import align_tasks
+        for context in ('academic', 'research', 'professional'):
+            with self.subTest(context=context):
+                source, quote = 'skill_evidence.task.note', 'Maintained schedules.'
+                row = align_tasks({'description': 'Independently maintain schedules.'},
+                    [(source, quote)], source_contexts={source: context})['requirements'][0]
+                self.assertEqual(row['status'], 'supported' if context == 'professional' else 'transferable')
+                self.assertEqual(row['evidence_context'], context)
+                self.assertEqual(row['evidence_source'], source)
+                self.assertEqual(row['evidence_quote'], quote)
+        row = align_tasks({'description': 'Own schedules.'},
+            [('skill_evidence.task.note', 'Maintained schedules.')],
+            source_contexts={'skill_evidence.task.note': 'professional'})['requirements'][0]
+        self.assertNotEqual(row['status'], 'supported')
+
+    def test_profile_plan_research_require_predicates_beyond_surface_nouns(self):
+        for duty, fact in (
+            ('Research customer needs.', 'Research questions: customer needs.'),
+            ('Plan milestones.', 'My planning notebook concerns milestones.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+        for duty, fact in (
+            ('Plan milestones.', 'During the internship, I planned milestones.'),
+            ('Research customer needs.', 'I researched customer needs.'),
+            ('Research customer needs.', 'Researching customer needs.')):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 100)
+
+    def test_personal_interest_clause_preserves_sibling_work_and_actor_reset(self):
+        for fact in ('Documented SOPs and I am interested in researching customer needs.',
+                     'I am interested in researching customer needs and I documented SOPs.'):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align('Document SOPs.', [('experience.0', fact)])['score'], 100)
+        result = self.align('Research customer needs.', [('experience.0',
+            'My manager maintained schedules and I am researching customer needs.')])
+        self.assertEqual(result['score'], 100)
+
+    def test_interest_scope_cannot_turn_coordinated_intents_into_work(self):
+        fact = 'Interested in creating presentations and maintaining schedules.'
+        self.assertEqual(self.align('Maintain schedules.', [('summary', fact)])['score'], 0)
+        fact = 'Documented SOPs and interested in researching customer needs.'
+        self.assertEqual(self.align('Document SOPs.', [('summary', fact)])['score'], 100)

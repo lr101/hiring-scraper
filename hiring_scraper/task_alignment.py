@@ -14,7 +14,7 @@ from hiring_scraper.requirements import (
     structured_requirement_texts, structured_text,
 )
 
-VERSION = 'task-alignment-v6-scoped-bilingual-evidence'
+VERSION = 'task-alignment-v7-clause-scoped-evidence'
 _ACTIONS = {
     'maintain': r'maintain(?:s|ed|ing)?|maintenance|pfleg\w*|wart\w*',
     'coordinate': r'coordinat(?:e|es|ed|ing|ion)|koordinier\w*|organis\w*',
@@ -53,21 +53,22 @@ _OTHER_ACTOR = re.compile(r'^(?:(?:our|the|a|another|other)\s+)?(?:finance|peopl
                           r'^(?:(?:(?:a|the|our|ein\w*|der|die)\s+)?senior\s+(?:colleague\w*|manager\w*|kolleg\w*)|the director|die personalabteilung|unsere personalabteilung)\b|'
                           r'^(?:(?:this|the|our|diese\w*)\s+)?(?:vacancy|posting|advertisement|job ad|stellenanzeige|ausschreibung)\b', re.I)
 # A local explicit subject switch ends the applicant's predicate scope.
-_APPLICANT_ACTOR = re.compile(r'^(?:I|we|you|ich|wir)\s+(?:(?:have|had|will|habe|haben)\s+)?'
-                              r'(?=(?:' + '|'.join(_ACTIONS.values()) + r')\b)', re.I)
-_COMPOUND_DUTY = re.compile(
-    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
-    r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r')|(?:' +
-    _APPLICANT_ACTOR.pattern.removeprefix('^') + r'))', re.I)
+_APPLICANT_ACTOR = re.compile(r'^(?:I|we|you|ich|wir)\s+', re.I)
 _GOAL = re.compile(r'\b(?:goal|aim|ambition|objective|ziel)\s+(?:is|was|ist|war)\b|\b(?:hope|plan|intend|aim)\s+to\b', re.I)
 _BOUNDED = re.compile(r'\b(?:under supervision|supervised|assist(?:s|ed|ing)?|support(?:s|ed|ing)?|unterstütz\w*|unter Anleitung|unter Aufsicht|student\w*|university|universit\w*|academic|akademisch\w*)\b', re.I)
 _INDEPENDENT = re.compile(r'\b(?:independent\w*|eigenständig\w*|selbst[äa]ndig\w*|senior|strategic\w*)\b', re.I)
 _INTEREST = re.compile(r'\b(?:interested\s+in|interests?(?=\s*:)|research interests?|'
                        r'Interesse\s+an|Forschungsinteressen)\b', re.I)
 _DOCUMENT_CONTENT = re.compile(
-    r'^(?:the|a|an|this|our|my|der|die|das|ein\w*)\s+(?:[\w-]+\s+){0,2}'
-    r'(?:plan|document|report|article|paper|Dokument|Bericht)\s+'
-    r'(?:contains?|describes?|covers?|includes?|outlines?|lists?|details?|enthält|beschreibt)\b', re.I)
+    r'^(?:(?:the|a|an|this|our|my|der|die|das|ein\w*)\s+)?(?:[\w-]+\s+){0,2}'
+    r'(?:plan|documents?|reports?|articles?|papers?|notes?|topics?|interests?|Dokument|Bericht)\s*'
+    r'(?::|(?:contains?|describes?|covers?|includes?|outlines?|lists?|details?|enthält|beschreibt)\b)', re.I)
+
+_COMPOUND_DUTY = re.compile(
+    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
+    r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r')|(?:' +
+    _APPLICANT_ACTOR.pattern.removeprefix('^') + r')|(?:' +
+    _DOCUMENT_CONTENT.pattern.removeprefix('^') + r')|(?:' + _INTEREST.pattern + r'))', re.I)
 
 # Work-product concepts, not titles or broad domain words. Canonicalization is
 # internal only; citations and shared literal words always retain their source.
@@ -124,16 +125,18 @@ def _profile_actions(text):
     """Profile facts need predicates, not ambiguous plan/research nouns.
 
     Jobs retain nominal duty extraction; profiles accept performed/ongoing
-    forms or a personal/implicit task predicate for these ambiguous families.
+    forms at predicate position or a personal task predicate for these
+    ambiguous families. A topic noun inside a document subject is not a verb.
     """
     actions = _actions(text)
     for action, performed in (
-            ('plan', r'plans|planned|planning|planen|plant|plante\w*|Planung'),
-            ('research', r'researches|researched|researching|recherchier\w*')):
-        predicate = re.search(r'\b(?:' + performed + r')\b', text, re.I)
+            ('plan', r'planned|planning|planen|plante\w*'),
+            ('research', r'researched|researching|recherchier\w*')):
+        intro = r'^(?:[^.!?;:,]+[:,]\s*)?'
+        personal = r'(?:I|we|you|ich|wir)\s+(?:(?:am|was|were|have|had|been|bin|habe)\s+)*'
+        predicate = re.search(intro + r'(?:' + personal + r')?(?:' + performed + r')\b', text, re.I)
         predicate = predicate or re.search(
-            r'^(?:(?:I|we|you)\s+(?:(?:have|had|will)\s+)?)?' + action +
-            r'\s+(?!(?:on|for|into|about|of|interests?|report|document)\b)', text, re.I)
+            intro + personal + action + r'\b', text, re.I)
         if not predicate:
             actions.discard(action)
     return actions
@@ -218,7 +221,7 @@ def _atomic_duties(text):
             applicant_scope = True
             for part in _COMPOUND_DUTY.split(sentence):
                 part = part.strip()
-                if other_actor(part):
+                if other_actor(part) or _DOCUMENT_CONTENT.search(part) or _INTEREST.search(part):
                     applicant_scope = False
                 elif _APPLICANT_ACTOR.search(part):
                     applicant_scope = True
@@ -226,26 +229,35 @@ def _atomic_duties(text):
                     yield part, scope
 
 
-def align_tasks(job, profile_sources):
+def align_tasks(job, profile_sources, *, source_contexts=None):
+    """Align literal source pairs, optionally retaining declared source context.
+
+    Context labels bound task scope; they never grant an action or authority
+    absent from the actual source. Source paths remain caller-owned strings.
+    """
+    source_contexts = source_contexts or {}
     facts = []
     for source, text in islice(profile_sources, 80):
         if not isinstance(text, str):
             continue
         for full_sentence, _ in _sentences(text[:12000]):
-            if _INTEREST.search(full_sentence) or _DOCUMENT_CONTENT.search(full_sentence):
-                continue
             # An academic/supervision prefix governs coordinated predicates.
             # Retain it in the literal citation while matching only the atomic
             # action, so neither autonomy nor ownership leaks across clauses.
             full_sentence = full_sentence[:1000]
             bounded = bool(_BOUNDED.search(full_sentence))
             for sentence, _ in _atomic_duties(full_sentence):
-                if _excluded(sentence):
+                if _excluded(sentence) or _INTEREST.search(sentence):
                     continue
                 actions, objects = _profile_actions(sentence), _semantic_objects(sentence)
                 if actions and objects:
                     quote = full_sentence if bounded else sentence
-                    facts.append((source, quote, actions, objects))
+                    declared = source_contexts.get(source)
+                    context = ('academic' if _academic(source, quote) else
+                               declared if declared in {'academic', 'research', 'professional', 'unspecified'} else
+                               'professional' if source.startswith(('experience.', 'cv_career_facts.experiences[')) else
+                               'unspecified')
+                    facts.append((source, quote, actions, objects, context))
                 if len(facts) >= 240:
                     break
             if len(facts) >= 240:
@@ -256,12 +268,12 @@ def align_tasks(job, profile_sources):
     for task in task_units(job):
         best, best_rank = None, (0, 0.)
         actions, objects = set(task['actions']), _semantic_objects(task['job_quote'])
-        for source, quote, fact_actions, fact_objects in facts:
+        for source, quote, fact_actions, fact_objects, context in facts:
             shared = objects & fact_objects
             coverage = len(shared) / max(1, len(objects))
             common_action = bool(actions & fact_actions)
             ownership_missing = 'own' in actions and 'own' not in fact_actions
-            bounded_scope = (_academic(source, quote) or bool(_BOUNDED.search(quote))
+            bounded_scope = (context in {'academic', 'research'} or bool(_BOUNDED.search(quote))
                              or 'support' in fact_actions)
             ownership_missing = ownership_missing or (bounded_scope and (
                 'own' in actions or task['independent_scope']))
@@ -275,12 +287,11 @@ def align_tasks(job, profile_sources):
             strength = 1 if direct else .5 if adjacent else 0
             if (strength, coverage) > best_rank:
                 best_rank = (strength, coverage)
-                best = (source, quote, sorted(set(task['objects']) & _objects(quote)))
+                best = (source, quote, sorted(set(task['objects']) & _objects(quote)), context)
         status = 'supported' if best_rank[0] == 1 else 'transferable' if best_rank[0] else 'unknown'
-        source, quote, shared = best or ('', '', [])
+        source, quote, shared, context = best or ('', '', [], 'unspecified')
         rows.append({**task, 'status': status, 'evidence_source': source, 'evidence_quote': quote,
-                     'evidence_context': 'academic' if _academic(source, quote) else
-                                         'professional' if source.startswith(('experience.', 'cv_career_facts.experiences[')) else 'unspecified',
+                     'evidence_context': context,
                      'shared_objects': shared,
                       'explanation': {'supported': 'Same documented action and equivalent deliverable; verify any separate authority, domain or tenure prerequisites.',
                                      'transferable': 'Adjacent action or deliverable evidence; complete task scope is not established.',
