@@ -28,11 +28,13 @@ _ACTIONS = {
     'interview': r'interview(?:s|ed|ing)?|befrag\w*',
     'build': r'build(?:s|ing)?|built|erstell\w*|bau\w*',
     'review': r'review(?:s|ed|ing)?|evaluat(?:e|es|ed|ing)|bewert\w*|prüf\w*',
+    'plan': r'plan(?:s|ned|ning)?|planen|plant|plante\w*|Planung',
+    'prepare': r'prepar(?:e|es|ed|ing|ation)|vorbereit\w*',
+    'track': r'track(?:s|ed|ing)?|nachverfolg\w*',
+    'schedule': r'schedul(?:e|ed|ing)|terminier\w*',
+    'research': r'research(?:es|ed|ing)?|recherch\w*',
 }
 _PATTERNS = {name: re.compile(r'\b(?:' + pattern + r')\b', re.I) for name, pattern in _ACTIONS.items()}
-_COMPOUND_DUTY = re.compile(
-    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
-    r')\b|(?:(?:a|the|ein\w*|der|die)\s+)?senior\b)', re.I)
 _STOP = set('a an the and or of to for with in on at by from as is are was were be been this that these those '
             'your our their you we they it its into through across using used use work works team teams '
             'project projects process processes responsibility responsibilities task tasks role core '
@@ -50,13 +52,20 @@ _OTHER_ACTOR = re.compile(r'^(?:(?:our|the|a|another|other)\s+)?(?:finance|peopl
                           r'(?:team|department|manager|colleague\w*|kolleg\w*|abteilung)\b|'
                           r'^(?:(?:(?:a|the|our|ein\w*|der|die)\s+)?senior\s+(?:colleague\w*|manager\w*|kolleg\w*)|the director|die personalabteilung|unsere personalabteilung)\b|'
                           r'^(?:(?:this|the|our|diese\w*)\s+)?(?:vacancy|posting|advertisement|job ad|stellenanzeige|ausschreibung)\b', re.I)
+# A local explicit subject switch ends the applicant's predicate scope.
+_COMPOUND_DUTY = re.compile(
+    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
+    r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r'))', re.I)
 _GOAL = re.compile(r'\b(?:goal|aim|ambition|objective|ziel)\s+(?:is|was|ist|war)\b|\b(?:hope|plan|intend|aim)\s+to\b', re.I)
-_BOUNDED = re.compile(r'\b(?:under supervision|supervised|unter Anleitung|unter Aufsicht|student\w*|university|universit\w*|academic|akademisch\w*)\b', re.I)
+_BOUNDED = re.compile(r'\b(?:under supervision|supervised|assist(?:s|ed|ing)?|support(?:s|ed|ing)?|unterstütz\w*|unter Anleitung|unter Aufsicht|student\w*|university|universit\w*|academic|akademisch\w*)\b', re.I)
 _INDEPENDENT = re.compile(r'\b(?:independent\w*|eigenständig\w*|selbst[äa]ndig\w*|senior|strategic\w*)\b', re.I)
 
 # Work-product concepts, not titles or broad domain words. Canonicalization is
 # internal only; citations and shared literal words always retain their source.
 _DELIVERABLES = {
+    'project_charter': r'project charters?|Projektauftrag\w*',
+    'work_breakdown': r'work breakdown structures?|Projektstrukturpl[äa]n\w*',
+    'milestone': r'milestones?|Meilenstein\w*',
     'schedule': r'schedules?|timelines?|Terminpl[äa]n\w*|Zeitpl[äa]n\w*',
     'action_register': r'action (?:registers?|logs?|trackers?)|Ma[ßs]nahmenlist\w*|Maßnahmenverfolgung',
     'procedure': r'SOPs?|standard operating procedures?|Arbeitsanweisung\w*|Verfahrensanweisung\w*',
@@ -68,6 +77,12 @@ _DELIVERABLES = {
 }
 _DELIVERABLE_PATTERNS = {name: re.compile(r'\b(?:' + pattern + r')\b', re.I)
                          for name, pattern in _DELIVERABLES.items()}
+_ADJACENT_ACTIONS = {frozenset(pair) for pair in (
+    ('maintain', 'create'), ('maintain', 'document'), ('maintain', 'prepare'),
+    ('maintain', 'plan'), ('maintain', 'schedule'), ('maintain', 'track'),
+    ('maintain', 'review'), ('create', 'prepare'), ('plan', 'schedule'),
+    ('coordinate', 'plan'), ('coordinate', 'schedule'), ('analyse', 'research'),
+)}
 
 
 def _actions(text):
@@ -81,6 +96,10 @@ def _actions(text):
     if 'build' in result:
         result.remove('build')
         result.add('create')
+    # The noun in "maintain the schedule" is not a second predicate.
+    if 'schedule' in result and not re.search(
+            r'\b(?:scheduled|scheduling|terminier\w*)\b|(?:^|:\s*|\b(?:we|I|you|will)\s+)schedule\b', text, re.I):
+        result.remove('schedule')
     return result
 
 
@@ -93,6 +112,10 @@ def _objects(text):
 
 
 def _semantic_objects(text):
+    # Imperative "schedule workshops" names an action, not two deliverables.
+    text = re.sub(r'^(?:(?:you|we|I)\s+)?schedule\b', ' ', text, flags=re.I)
+    # Descriptive detail does not change a deliverable's domain or autonomy.
+    text = re.sub(r'\b(?:detailed|detailliert\w*)\b', ' ', text, flags=re.I)
     concepts = set()
     for name, pattern in _DELIVERABLE_PATTERNS.items():
         if pattern.search(text):
@@ -128,21 +151,26 @@ def task_units(job):
                 texts.append((source, text, True))
     rows, seen = [], set()
     for source, text, explicit in texts:
-        for sentence, scope in _atomic_duties(text):
-            if scope in {'requirements', 'optional', 'benefits'} and not explicit:
-                continue
-            if _excluded(sentence):
-                continue
-            sentence = sentence[:1000]
-            actions, objects = _actions(sentence), _objects(sentence)
-            key = ' '.join(sentence.casefold().split())
-            if not actions or not _semantic_objects(sentence) or key in seen:
-                continue
-            seen.add(key)
-            rows.append({'id': hashlib.sha256(key.encode()).hexdigest()[:12], 'job_source': source,
-                         'job_quote': sentence[:1000], 'actions': sorted(actions), 'objects': sorted(objects)})
-            if len(rows) >= 40:
-                return rows
+        for full_sentence, scope in _sentences(text):
+            governing_clause = _COMPOUND_DUTY.split(full_sentence)[0]
+            for sentence, _ in _atomic_duties(full_sentence):
+                if scope in {'requirements', 'optional', 'benefits'} and not explicit:
+                    continue
+                if _excluded(sentence):
+                    continue
+                sentence = sentence[:1000]
+                actions, objects = _actions(sentence), _objects(sentence)
+                key = ' '.join(sentence.casefold().split())
+                if not actions or not _semantic_objects(sentence) or key in seen:
+                    continue
+                seen.add(key)
+                rows.append({'id': hashlib.sha256(key.encode()).hexdigest()[:12], 'job_source': source,
+                             'job_quote': sentence[:1000],
+                             'independent_scope': bool(_INDEPENDENT.search(governing_clause)
+                                                       or _INDEPENDENT.search(sentence)),
+                             'actions': sorted(actions), 'objects': sorted(objects)})
+                if len(rows) >= 40:
+                    return rows
     return rows
 
 
@@ -200,9 +228,14 @@ def align_tasks(job, profile_sources):
             bounded_scope = (_academic(source, quote) or bool(_BOUNDED.search(quote))
                              or 'support' in fact_actions)
             ownership_missing = ownership_missing or (bounded_scope and (
-                'own' in actions or bool(_INDEPENDENT.search(task['job_quote']))))
+                'own' in actions or task['independent_scope']))
             direct = common_action and len(shared) >= min(2, len(objects)) and coverage >= .5 and not ownership_missing
-            adjacent = bool(shared) and (common_action or len(shared) >= 2)
+            # A specific shared work product can establish adjacent lifecycle
+            # exposure while retaining different main actions.
+            adjacent_action = any(frozenset((action, fact_action)) in _ADJACENT_ACTIONS
+                                  for action in actions for fact_action in fact_actions)
+            adjacent = bool(shared) and (common_action or len(shared) >= 2 or (
+                any(obj.startswith('concept:') for obj in shared) and adjacent_action))
             strength = 1 if direct else .5 if adjacent else 0
             if (strength, coverage) > best_rank:
                 best_rank = (strength, coverage)

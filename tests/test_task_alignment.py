@@ -274,3 +274,66 @@ class TaskAlignmentTests(unittest.TestCase):
         self.assertEqual(row['status'], 'transferable')
         self.assertEqual(row['evidence_context'], 'academic')
         self.assertIn('student project', row['evidence_quote'])
+
+    def test_assistance_scope_governs_later_conjoined_profile_actions(self):
+        for fact in ('Assisted with creating slide decks and maintaining schedules.',
+                     'Supported creating slide decks and maintaining schedules.'):
+            with self.subTest(fact=fact):
+                row = self.align('Independently maintain schedules.', [('experience.0', fact)])['requirements'][0]
+                self.assertEqual(row['status'], 'transferable')
+                self.assertEqual(row['evidence_quote'], fact)
+
+    def test_independent_job_scope_governs_every_conjoined_duty(self):
+        for fact in ('Created schedules and maintained action registers in a university project.',
+                     'Created schedules and maintained action registers under supervision.'):
+            with self.subTest(fact=fact):
+                result = self.align('Independently create schedules and maintain action registers.',
+                                    [('summary', fact)])
+                self.assertEqual([row['status'] for row in result['requirements']],
+                                 ['transferable', 'transferable'])
+
+    def test_explicit_actor_switch_is_not_applicant_evidence(self):
+        for fact in ('Maintained schedules and my manager created slide decks.',
+                     'Maintained schedules and a senior colleague approved slide decks.',
+                     'Pflegte Terminpläne und meine Kollegin erstellte Präsentationen.'):
+            with self.subTest(fact=fact):
+                result = self.align('Maintain schedules. Create slide decks.', [('experience.0', fact)])
+                self.assertEqual([row['status'] for row in result['requirements']], ['supported', 'unknown'])
+
+    def test_planning_work_products_offer_adjacent_maintenance_evidence(self):
+        result = self.align('Maintain the schedule and project charter.', [('summary',
+            'Project planning: created a project charter and work breakdown structure; '
+            'scheduled milestones using a Gantt chart')])
+        self.assertEqual(result['requirements'][0]['status'], 'transferable')
+
+    def test_documented_procedures_offer_adjacent_maintenance_evidence(self):
+        result = self.align('Pflege von Arbeitsanweisungen.',
+                            [('experience.0', 'Documented standard operating procedures.')])
+        self.assertEqual(result['requirements'][0]['status'], 'transferable')
+
+    def test_generic_action_families_enter_source_backed_evidence(self):
+        for duty, fact in (
+            ('Plan project milestones.', 'Planned project milestones.'),
+            ('Prepare training materials.', 'Prepared training materials.'),
+            ('Track action items.', 'Tracked action items.'),
+            ('Schedule workshops.', 'Scheduled workshops.'),
+            ('Research customer needs.', 'Researched customer needs.'),
+            ('Maintain schedules.', 'Maintained detailed schedules.')):
+            with self.subTest(duty=duty):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['requirements'][0]['status'],
+                                 'supported')
+
+    def test_incidental_modifier_does_not_hide_specific_deliverable(self):
+        row = self.align('Maintain detailed schedules.',
+                         [('experience.0', 'Maintained schedules.')])['requirements'][0]
+        self.assertEqual(row['status'], 'supported')
+
+    def test_work_product_equivalence_does_not_establish_domain_scope(self):
+        row = self.align('Maintain clinical schedules.',
+                         [('experience.0', 'Maintained sales schedules.')])['requirements'][0]
+        self.assertNotEqual(row['status'], 'supported')
+
+    def test_senior_second_actor_does_not_change_applicant_autonomy_scope(self):
+        row = self.align('Maintain schedules and a senior colleague approves budgets.',
+                         [('cv_career_facts.education[0].description', 'Maintained schedules.')])['requirements'][0]
+        self.assertEqual(row['status'], 'supported')
