@@ -14,7 +14,7 @@ from hiring_scraper.requirements import (
     structured_requirement_texts, structured_text,
 )
 
-VERSION = 'task-alignment-v7-clause-scoped-evidence'
+VERSION = 'task-alignment-v8-responsibility-context'
 _ACTIONS = {
     'maintain': r'maintain(?:s|ed|ing)?|maintenance|pfleg\w*|wart\w*',
     'coordinate': r'coordinat(?:e|es|ed|ing|ion)|koordinier\w*|organis\w*',
@@ -27,12 +27,18 @@ _ACTIONS = {
     'own': r'own(?:s|ed|ing)?|approv(?:e|es|ed|ing)|verantwort(?:en|et|est)',
     'interview': r'interview(?:s|ed|ing)?|befrag\w*',
     'build': r'build(?:s|ing)?|built|erstell\w*|bau\w*',
-    'review': r'review(?:s|ed|ing)?|evaluat(?:e|es|ed|ing)|bewert\w*|prüf\w*',
+    'review': r'review(?:s|ed|ing)?|evaluat(?:e|es|ed|ing)|bewert\w*|prüf(?:e|en|t|te|ten|end|ung)?',
     'plan': r'plan(?:s|ned|ning)?|planen|plant|plante\w*|Planung',
     'prepare': r'prepar(?:e|es|ed|ing|ation)|vorbereit\w*',
     'track': r'track(?:s|ed|ing)?|nachverfolg\w*',
     'schedule': r'schedul(?:e|ed|ing)|terminier\w*',
     'research': r'research(?:es|ed|ing)?|recherch\w*',
+    'record': r'record(?:s|ed|ing)?|erfass\w*|protokollier\w*',
+    'collect': r'collect(?:s|ed|ing|ion)?|sammel\w*|samml\w*',
+    'draw': r'draw(?:s|ing|n)?|drew|zeichn\w*',
+    'compare': r'compar(?:e|es|ed|ing|ison)|vergleich\w*|verglich\w*',
+    'summarize': r'summari[sz](?:e|es|ed|ing)|zusammenfass\w*|fass\w*',
+    'present': r'present(?:s|ed|ing)?|präsentier\w*',
 }
 _PATTERNS = {name: re.compile(r'\b(?:' + pattern + r')\b', re.I) for name, pattern in _ACTIONS.items()}
 _STOP = set('a an the and or of to for with in on at by from as is are was were be been this that these those '
@@ -51,7 +57,7 @@ _OTHER_ACTOR = re.compile(r'^(?:(?:our|the|a|another|other)\s+)?(?:finance|peopl
                           r'^(?:our|the|a|an|another|other|my|their|ein\w*|meine?\w*|unsere?\w*|die|das|der)\s+(?:(?:[\w-]+)\s+){0,2}'
                           r'(?:team|department|manager|colleague\w*|kolleg\w*|abteilung)\b|'
                           r'^(?:(?:(?:a|the|our|ein\w*|der|die)\s+)?senior\s+(?:colleague\w*|manager\w*|kolleg\w*)|the director|die personalabteilung|unsere personalabteilung)\b|'
-                          r'^(?:(?:this|the|our|diese\w*)\s+)?(?:vacancy|posting|advertisement|job ad|stellenanzeige|ausschreibung)\b', re.I)
+                          r'^(?:(?:this|the|our|diese\w*)\s+)?(?:vacancy|posting|advertisement|job ad|job description|stellenanzeige|stellenbeschreibung|ausschreibung)\b', re.I)
 # A local explicit subject switch ends the applicant's predicate scope.
 _APPLICANT_ACTOR = re.compile(r'^(?:I|we|you|ich|wir)\s+', re.I)
 _GOAL = re.compile(r'\b(?:goal|aim|ambition|objective|ziel)\s+(?:is|was|ist|war)\b|\b(?:hope|plan|intend|aim)\s+to\b', re.I)
@@ -74,13 +80,17 @@ _COMPOUND_DUTY = re.compile(
 # internal only; citations and shared literal words always retain their source.
 _DELIVERABLES = {
     'project_charter': r'project charters?|Projektauftrag\w*',
-    'work_breakdown': r'work breakdown structures?|Projektstrukturpl[äa]n\w*',
+    'work_breakdown': r'work breakdown structures?|WBS|Projektstrukturpl[äa]n\w*',
     'milestone': r'milestones?|Meilenstein\w*',
     'schedule': r'schedules?|timelines?|Terminpl[äa]n\w*|Zeitpl[äa]n\w*',
     'action_register': r'action (?:registers?|logs?|trackers?)|Ma[ßs]nahmenlist\w*|Maßnahmenverfolgung',
-    'procedure': r'SOPs?|standard operating procedures?|Arbeitsanweisung\w*|Verfahrensanweisung\w*',
-    'presentation': r'slide decks?|presentations?|Präsentation\w*',
-    'process_map': r'process maps?|process flows?|Prozessabl[äa]uf\w*|Ablaufdiagramm\w*',
+    'issue_register': r'issue (?:registers?|logs?|trackers?)|Problemlist\w*',
+    'raci': r'RACI(?: matrices| matrix|-Matriz\w*)?',
+    'procedure': r'SOPs?|standard operating procedures?|work instructions?|Arbeitsanweisung\w*|Verfahrensanweisung\w*',
+    'presentation': r'slide decks?|(?:progress )?slides?|presentations?|Fortschrittsfoli\w*|Präsentation\w*',
+    'as_is_process_map': r'as-is process maps?|Ist-Prozesslandkart\w*',
+    'to_be_process_map': r'to-be process maps?|Soll-Prozesslandkart\w*',
+    'process_map': r'process maps?|process mapping|process flows?|Prozesslandkart\w*|Prozessabl[äa]uf\w*|Ablaufdiagramm\w*',
     'workflow': r'workflows?|Arbeitsabl[äa]uf\w*',
     'project_team': r'project teams?|Projektteam\w*',
     'training_session': r'training sessions?|workshops?|Schulung\w*',
@@ -97,6 +107,11 @@ _ADJACENT_ACTIONS = {frozenset(pair) for pair in (
 
 def _actions(text):
     result = {name for name, pattern in _PATTERNS.items() if pattern.search(text)}
+    # "Inspection records" is an object; "record observations" is a duty.
+    if 'record' in result and not re.search(
+            r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b|'
+            r'^(?:(?:I|we|you)\s+)?records?\s+(?!:)', text, re.I):
+        result.remove('record')
     if re.search(r'(?:^|[,;]|\b(?:you|we|will|and|und)\s+)\s*(?:lead(?:s|ing)?|led)\b', text, re.I):
         result.add('own')
     for name, pattern in (('coordinate', r'Koordination'), ('deliver', r'Durchführung'),
@@ -105,6 +120,11 @@ def _actions(text):
             result.add(name)
     if 'build' in result:
         result.remove('build')
+        result.add('create')
+    # Drawing a concrete map/diagram creates that work product; it does not
+    # confer ownership or independent engineering authority.
+    if 'draw' in result and re.search(
+            r'\b(?:maps?|diagrams?|Prozesslandkart\w*|Ablaufdiagramm\w*)\b', text, re.I):
         result.add('create')
     # The noun in "maintain the schedule" is not a second predicate.
     if 'schedule' in result and not re.search(
@@ -115,8 +135,13 @@ def _actions(text):
 
 def _objects(text):
     text = text.casefold()
-    for pattern in _PATTERNS.values():
-        text = pattern.sub(' ', text)
+    for name, pattern in _PATTERNS.items():
+        if name == 'record':
+            # Retain object nouns when removing action vocabulary.
+            text = re.sub(r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b', ' ', text)
+            text = re.sub(r'^(?:(?:i|we|you)\s+)?records?\s+', ' ', text)
+        else:
+            text = pattern.sub(' ', text)
     words = set(re.findall(r'[^\W\d_][\w-]*', text, re.U)) - _STOP
     return {word[:-1] if len(word) > 4 and word.endswith('s') else word for word in words if len(word) > 2}
 
@@ -128,7 +153,13 @@ def _profile_actions(text):
     forms at predicate position or a personal task predicate for these
     ambiguous families. A topic noun inside a document subject is not a verb.
     """
-    actions = _actions(text)
+    # Nominal duty labels can describe a job, but do not assert performed work
+    # in an applicant inventory. Keep genuine verb forms in the same sentence.
+    predicate_text = re.sub(
+        r'\b(?:maintenance|creation|coordination|documentation|preparation|collection|comparison|'
+        r'Pflege|Erstellung|Koordination|Dokumentation|Vorbereitung|Sammlung|Vergleich)\b',
+        ' ', text, flags=re.I)
+    actions = _actions(predicate_text)
     for action, performed in (
             ('plan', r'planned|planning|planen|plante\w*'),
             ('research', r'researched|researching|recherchier\w*')):
@@ -156,8 +187,22 @@ def _semantic_objects(text):
     return _objects(text) | concepts
 
 
+# These describe posting administration or attendance, rather than an actor's
+# work product. Active recruiting and scheduling duties remain available.
+_NON_DUTY_CONTEXT = re.compile(
+    r'^(?:applications?|Bewerbungen)\s+(?:are|will be|werden)\s+'
+    r'(?:reviewed|evaluated|geprüft|bewertet)\b.*\b(?:recruitment|recruiting|Personalabteilung)\b|'
+    r'^(?:we|wir)\s+(?:review|evaluate|prüfen|bewerten)\s+(?:your application|Ihre Bewerbung)\b|'
+    r'\b(?:you are|you will be|Sie sind|Sie werden)\s+(?:scheduled|eingeplant)\s+(?:to work|to attend|im Büro)\b|'
+    r'^(?:(?:the|die)\s+)?(?:documentation|Dokumentation)\s+'
+    r'(?:is|will be|erfolgt|wird)\s+(?:(?:maintained|written|prepared|geführt|erstellt)\s+)?in\s+'
+    r'(?:fluent\w*|fließend\w*|English|German|French|Spanish|Portuguese|Danish|Dutch|Italian|'
+    r'Deutsch|Englisch|Französisch|Spanisch|Portugiesisch|Dänisch|Niederländisch|Italienisch)\b', re.I)
+
+
 def _excluded(text):
-    return (other_actor(text) or bool(_NEGATIVE.search(text)) or bool(_GOAL.search(text))
+    return (other_actor(text) or bool(_NON_DUTY_CONTEXT.search(text))
+            or bool(_NEGATIVE.search(text)) or bool(_GOAL.search(text))
             or requirement_polarity(text, 0, len(text)) in {'instruction', 'waived'})
 
 
@@ -299,8 +344,8 @@ def align_tasks(job, profile_sources, *, source_contexts=None):
             # exposure while retaining different main actions.
             adjacent_action = any(frozenset((action, fact_action)) in _ADJACENT_ACTIONS
                                   for action in actions for fact_action in fact_actions)
-            adjacent = bool(shared) and (common_action or len(shared) >= 2 or (
-                any(obj.startswith('concept:') for obj in shared) and adjacent_action))
+            adjacent = bool(shared) and ((common_action and objects == fact_objects) or len(shared) >= 2 or (
+                any(obj.startswith('concept:') for obj in shared) and (common_action or adjacent_action)))
             strength = 1 if direct else .5 if adjacent else 0
             if (strength, coverage) > best_rank:
                 best_rank = (strength, coverage)

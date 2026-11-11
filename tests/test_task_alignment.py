@@ -456,3 +456,93 @@ class TaskAlignmentTests(unittest.TestCase):
             ('Research customer needs.', 'I have notes: researching customer needs.')):
             with self.subTest(fact=fact):
                 self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+
+    def test_posting_language_and_attendance_statements_are_not_duties(self):
+        from hiring_scraper.task_alignment import task_units
+        for text in (
+            'This job description documents the selection criteria.',
+            'Applications are reviewed by the recruitment office.',
+            'You are scheduled to work in the office on Tuesdays.',
+            'Documentation is maintained in fluent Danish.',
+            'Die Dokumentation erfolgt in fließendem Dänisch.',
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(task_units({'description': text}), [])
+        self.assertEqual(len(task_units({'description': 'Review customer applications.'})), 1)
+        self.assertEqual(len(task_units({'description': 'Maintain Danish training documentation.'})), 1)
+
+    def test_routine_performed_actions_have_bilingual_task_evidence(self):
+        for duty, fact in (
+            ('Record assembly observations.', 'Recorded assembly observations.'),
+            ('Erfassen Sie Montagebeobachtungen.', 'Erfasste Montagebeobachtungen.'),
+            ('Collect supplier feedback.', 'Collected supplier feedback.'),
+            ('Sammeln Sie Lieferantenrückmeldungen.', 'Sammelte Lieferantenrückmeldungen.'),
+            ('Draw process maps.', 'Zeichnete Prozesslandkarten.'),
+            ('Compare inspection results.', 'Compared inspection results.'),
+            ('Vergleichen Sie Prüfergebnisse.', 'Verglich Prüfergebnisse.'),
+            ('Summarize interview findings.', 'Summarized interview findings.'),
+            ('Fassen Sie Befragungsergebnisse zusammen.', 'Fasste Befragungsergebnisse zusammen.'),
+            ('Present progress slides.', 'Präsentierte Fortschrittsfolien.'),
+        ):
+            with self.subTest(duty=duty):
+                rows = self.align(duty, [('experience.0', fact)])['requirements']
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]['status'], 'supported')
+                self.assertEqual(rows[0]['evidence_quote'], fact)
+
+    def test_specific_work_products_match_nominal_duties_to_performed_work(self):
+        for duty, fact in (
+            ('Erstellung von Ist-Prozesslandkarten.', 'Created as-is process maps.'),
+            ('Erstellung von Soll-Prozesslandkarten.', 'Created to-be process maps.'),
+            ('Pflege von Arbeitsanweisungen.', 'Maintained work instructions.'),
+            ('Pflege von Problemlisten.', 'Maintained issue logs.'),
+            ('Erstellung von RACI-Matrizen.', 'Created RACI matrices.'),
+            ('Erstellung von Projektstrukturplänen.', 'Created a WBS.'),
+        ):
+            with self.subTest(duty=duty):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['requirements'][0]['status'],
+                                 'supported')
+
+    def test_nominal_profile_inventory_does_not_prove_performed_work(self):
+        for fact in ('Documentation: work instructions.', 'Creation of process maps.',
+                     'Records: assembly observations.', 'Presentation: progress slides.'):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align('Document work instructions. Create process maps. '
+                    'Record assembly observations. Present progress slides.', [('summary', fact)])['score'], 0)
+
+    def test_one_shared_generic_object_does_not_establish_domain_transfer(self):
+        self.assertEqual(self.align('Maintain hydraulic equipment.',
+            [('experience.0', 'Maintained kitchen equipment.')])['score'], 0)
+
+    def test_process_map_creation_does_not_prove_engineering_authority(self):
+        row = self.align('Independently own process maps.', [('summary',
+            'Drew process maps in a university project.')])['requirements'][0]
+        self.assertNotEqual(row['status'], 'supported')
+
+
+    def test_language_medium_filter_keeps_concrete_document_storage_work(self):
+        from hiring_scraper.task_alignment import task_units
+        self.assertEqual(len(task_units({'description':
+            'Documentation is maintained in a shared archive.'})), 1)
+        self.assertEqual(task_units({'description':
+            'Documentation is maintained in Portuguese.'}), [])
+        self.assertEqual(task_units({'description':
+            'We review your application after submission.'}), [])
+
+    def test_drawing_a_map_is_creation_evidence_with_bounded_authority(self):
+        result = self.align('Create process maps. Independently own process maps.',
+            [('cv_career_facts.education[0].description', 'Drew process maps.')])
+        self.assertEqual([row['status'] for row in result['requirements']],
+                         ['supported', 'unknown'])
+        self.assertTrue(all(row['evidence_context'] == 'academic' for row in result['requirements']))
+
+    def test_map_phase_does_not_disappear_during_deliverable_canonicalization(self):
+        self.assertNotEqual(self.align('Create to-be process maps.',
+            [('experience.0', 'Created as-is process maps.')])['requirements'][0]['status'], 'supported')
+
+    def test_passive_application_work_is_distinct_from_recruiting_metadata(self):
+        from hiring_scraper.task_alignment import task_units
+        self.assertEqual(len(task_units({'description':
+            'Applications are developed for hospital logistics.'})), 1)
+        self.assertEqual(len(task_units({'description':
+            'Applications are reviewed for customers.'})), 1)
