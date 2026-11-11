@@ -14,7 +14,7 @@ from hiring_scraper.requirements import (
     structured_requirement_texts, structured_text,
 )
 
-VERSION = 'task-alignment-v8-responsibility-context'
+VERSION = 'task-alignment-v9-support-lifecycle'
 _ACTIONS = {
     'maintain': r'maintain(?:s|ed|ing)?|maintenance|pfleg\w*|wart\w*',
     'coordinate': r'coordinat(?:e|es|ed|ing|ion)|koordinier\w*|organis\w*',
@@ -41,6 +41,20 @@ _ACTIONS = {
     'present': r'present(?:s|ed|ing)?|präsentier\w*',
 }
 _PATTERNS = {name: re.compile(r'\b(?:' + pattern + r')\b', re.I) for name, pattern in _ACTIONS.items()}
+# Finite separable predicates must begin a clause, rather than appear inside
+# an inventory or document topic. Only the verb and particle are vocabulary;
+# the intervening words remain available as deliverables and qualifiers.
+_SEPARABLE_VERBS = {'prepare': r'bereit(?:e|en|et|est|ete|eten|etest|etet)',
+                   'coordinate': r'stimm(?:e|en|t|st|te|ten|test|tet)'}
+_SEPARABLE_PATTERNS = {
+    name: re.compile(r'^(?:(?:ich|wir|sie|du|ihr)\s+)?'
+                     r'(?:(?:regelmäßig|aktiv|eigenständig|selbstständig)\s+){0,2}'
+                     r'(?P<verb>' + verb + r')\b(?P<object>[^.!?;:]{1,300}?)'
+                     r'\b(?P<particle>' + particle + r')\b(?=\s*(?:[.!?;:]|$))', re.I)
+    for name, verb, particle in (
+        ('prepare', _SEPARABLE_VERBS['prepare'], 'vor'),
+        ('coordinate', _SEPARABLE_VERBS['coordinate'], 'ab'))
+}
 _STOP = set('a an the and or of to for with in on at by from as is are was were be been this that these those '
             'your our their you we they it its into through across using used use work works team teams '
             'project projects process processes responsibility responsibilities task tasks role core '
@@ -71,7 +85,7 @@ _DOCUMENT_CONTENT = re.compile(
     r'(?::|(?:contains?|describes?|covers?|includes?|outlines?|lists?|details?|enthält|beschreibt)\b)', re.I)
 
 _COMPOUND_DUTY = re.compile(
-    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join(_ACTIONS.values()) +
+    r'\s+\b(?:and|und)\s+(?=(?:' + '|'.join((*_ACTIONS.values(), *_SEPARABLE_VERBS.values())) +
     r')\b|(?:' + _OTHER_ACTOR.pattern.replace('^', '') + r')|(?:' +
     _APPLICANT_ACTOR.pattern.removeprefix('^') + r')|(?:' +
     _DOCUMENT_CONTENT.pattern.removeprefix('^') + r')|(?:' + _INTEREST.pattern + r'))', re.I)
@@ -83,6 +97,11 @@ _DELIVERABLES = {
     'work_breakdown': r'work breakdown structures?|WBS|Projektstrukturpl[äa]n\w*',
     'milestone': r'milestones?|Meilenstein\w*',
     'schedule': r'schedules?|timelines?|Terminpl[äa]n\w*|Zeitpl[äa]n\w*',
+    'calendar': r'calendars?|Kalendern?',
+    'appointment': r'appointments?|Termin(?:e|en)?',
+    'risk_register': r'risk (?:registers?|logs?|trackers?)|Risikoregister\w*|Risikoliste\w*',
+    'action_plan': r'action plans?|Ma[ßs]nahmenpl[äa]n\w*',
+    'work_plan': r'work plans?|Arbeitspl[äa]n\w*',
     'action_register': r'action (?:registers?|logs?|trackers?)|Ma[ßs]nahmenlist\w*|Maßnahmenverfolgung',
     'issue_register': r'issue (?:registers?|logs?|trackers?)|Problemlist\w*',
     'raci': r'RACI(?: matrices| matrix|-Matriz\w*)?',
@@ -107,6 +126,7 @@ _ADJACENT_ACTIONS = {frozenset(pair) for pair in (
 
 def _actions(text):
     result = {name for name, pattern in _PATTERNS.items() if pattern.search(text)}
+    result.update(name for name, pattern in _SEPARABLE_PATTERNS.items() if pattern.search(text))
     # "Inspection records" is an object; "record observations" is a duty.
     if 'record' in result and not re.search(
             r'\b(?:recorded|recording|erfass\w*|protokollier\w*)\b|'
@@ -135,6 +155,9 @@ def _actions(text):
 
 def _objects(text):
     text = text.casefold()
+    for pattern in _SEPARABLE_PATTERNS.values():
+        text = pattern.sub(lambda match: re.sub(
+            r'\b(?:regelmäßig|aktiv)\b', ' ', match['object']), text)
     for name, pattern in _PATTERNS.items():
         if name == 'record':
             # Retain object nouns when removing action vocabulary.
@@ -349,6 +372,15 @@ def align_tasks(job, profile_sources, *, source_contexts=None):
                                   for action in actions for fact_action in fact_actions)
             adjacent = bool(shared) and ((common_action and objects == fact_objects) or len(shared) >= 2 or (
                 any(obj.startswith('concept:') for obj in shared) and (common_action or adjacent_action)))
+            # Directional, bounded transfer: performing a deliverable's
+            # lifecycle can help with supporting that same deliverable.
+            # A generic shared noun, mismatched domain or reverse support
+            # claim cannot establish this relation.
+            support_lifecycle = ('support' in actions
+                                 and bool(fact_actions & {'create', 'prepare', 'maintain'})
+                                 and any(obj.startswith('concept:') for obj in shared)
+                                 and objects <= fact_objects)
+            adjacent = adjacent or support_lifecycle
             strength = 1 if direct else .5 if adjacent else 0
             if (strength, coverage) > best_rank:
                 best_rank = (strength, coverage)

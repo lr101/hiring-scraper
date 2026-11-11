@@ -566,3 +566,83 @@ class TaskAlignmentTests(unittest.TestCase):
                 rows = self.align(duty, [('experience.0', 'Recorded assembly observations.')])['requirements']
                 self.assertEqual(len(rows), 1)
                 self.assertEqual(rows[0]['status'], 'supported')
+
+    def test_support_receives_bounded_same_work_product_lifecycle_transfer(self):
+        for duty, fact in (
+            ('Support schedules.', 'Created schedules.'),
+            ('Support presentations.', 'Prepared slide decks.'),
+            ('Unterstützung bei Maßnahmenlisten.', 'Maintained action registers.'),
+        ):
+            with self.subTest(duty=duty):
+                row = self.align(duty, [('experience.0', fact)])['requirements'][0]
+                self.assertEqual(row['status'], 'transferable')
+                self.assertEqual(row['evidence_quote'], fact)
+
+    def test_support_lifecycle_transfer_needs_concrete_compatible_deliverables(self):
+        for duty, fact in (
+            ('Support clinical schedules.', 'Created sales schedules.'),
+            ('Support hydraulic equipment.', 'Created kitchen equipment.'),
+            ('Support schedules with Excel.', 'Excel and calendars.'),
+            ('Support schedules.', 'My goal is to create schedules.'),
+        ):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('summary', fact)])['score'], 0)
+        row = self.align('Independently own schedules.',
+                         [('summary', 'Supported schedules.')])['requirements'][0]
+        self.assertNotEqual(row['status'], 'supported')
+
+    def test_german_separable_predicates_keep_objects_and_literal_citations(self):
+        for duty, fact in (
+            ('Bereiten Sie Präsentationen vor.', 'Prepared slide decks.'),
+            ('Prepare slide decks.', 'Ich bereitete regelmäßig Präsentationen vor.'),
+            ('Stimmen Sie Terminpläne ab.', 'Coordinated schedules.'),
+            ('Coordinate schedules.', 'Wir stimmten regelmäßig Terminpläne ab.'),
+        ):
+            with self.subTest(duty=duty):
+                rows = self.align(duty, [('experience.0', fact)])['requirements']
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]['status'], 'supported')
+                self.assertEqual(rows[0]['job_quote'], duty)
+                self.assertEqual(rows[0]['evidence_quote'], fact)
+
+    def test_separable_predicate_keeps_domain_actor_and_inventory_guards(self):
+        for duty, fact in (
+            ('Prepare clinical presentations.', 'Ich bereitete Vertriebspräsentationen vor.'),
+            ('Prepare slide decks.', 'Meine Kollegin bereitete Präsentationen vor.'),
+            ('Prepare slide decks.', 'Vorbereitung: Präsentationen.'),
+            ('Prepare slide decks.', 'Ich möchte Präsentationen vorbereiten.'),
+            ('Prepare slide decks.', 'Ich bereitete keine Präsentationen vor.'),
+            ('Prepare slide decks.', 'Notizen: bereiten Präsentationen vor.'),
+        ):
+            with self.subTest(fact=fact):
+                self.assertEqual(self.align(duty, [('summary', fact)])['score'], 0)
+
+    def test_routine_planning_products_have_bounded_bilingual_equivalence(self):
+        for duty, fact in (
+            ('Support calendars.', 'Maintained Kalender.'),
+            ('Support appointments.', 'Prepared Termine.'),
+            ('Support risk registers.', 'Maintained Risikoregister.'),
+            ('Support action plans.', 'Created Maßnahmenpläne.'),
+            ('Support work plans.', 'Prepared Arbeitspläne.'),
+        ):
+            with self.subTest(duty=duty):
+                self.assertEqual([row['status'] for row in
+                    self.align(duty, [('experience.0', fact)])['requirements']], ['transferable'])
+        for duty, fact in (
+            ('Support risk registers.', 'Created action registers.'),
+            ('Support work plans.', 'Created schedules.'),
+            ('Support as-is process maps.', 'Created to-be process maps.'),
+        ):
+            with self.subTest(duty=duty):
+                self.assertEqual(self.align(duty, [('experience.0', fact)])['score'], 0)
+
+    def test_conjoined_separable_duties_preserve_each_object(self):
+        duty = 'Bereiten Sie Präsentationen vor und stimmen Sie Terminpläne ab.'
+        rows = self.align(duty, [('experience.0',
+            'Prepared slide decks. Coordinated schedules.')])['requirements']
+        self.assertEqual([row['status'] for row in rows], ['supported', 'supported'])
+        self.assertTrue(all(row['job_quote'] in duty for row in rows))
+        rows = self.align('Bereiten Sie klinische Präsentationen vor.',
+            [('experience.0', 'Prepared sales slide decks.')])['requirements']
+        self.assertEqual(len(rows), 1)
+        self.assertNotEqual(rows[0]['status'], 'supported')
