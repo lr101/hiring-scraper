@@ -10,7 +10,7 @@ from alembic.operations import Operations
 
 from fastapi import HTTPException
 from pydantic import ValidationError
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import create_engine, event, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from hiring_scraper.app import api, job_search, models, profiles
@@ -400,6 +400,74 @@ class JobApplicationTests(unittest.TestCase):
         self.assertEqual(page['counts']['interview'], 1)
         self.assertEqual(page['counts']['new'], 7)
         self.assertEqual(page['total'], 8)
+
+    def test_busy_identity_writer_rolls_back_background_work_for_retry(self):
+        self.save(self.jobs[0], 'interview')
+        saved_job_id = self.jobs[0].id
+        self.session.close()
+        factory = sessionmaker(bind=self.engine)
+        with factory() as session:
+            revisions = dict(session.execute(select(models.MatchDirtyJob.job_id,
+                                                    models.MatchDirtyJob.revision)).all())
+            groups = session.execute(select(models.JobVacancyGroup.job_id,
+                                           models.JobVacancyGroup.vacancy_group_id)).all()
+
+        # Emulate only PostgreSQL's advisory-lock boundary; all queue,
+        # checkpoint, match and application writes use the real database.
+        busy = True
+        def advisory_result(_connection, _cursor, statement, parameters, _context, _many):
+            if 'pg_' in statement and 'advisory' in statement:
+                acquired = not (busy and '85793011, 6' in statement)
+                return f'SELECT {int(acquired)}', ()
+            return statement, parameters
+
+        event.listen(self.engine, 'before_cursor_execute', advisory_result, retval=True)
+        try:
+            with patch.object(self.engine.dialect, 'name', 'postgresql'), \
+                    patch.object(job_search, 'SessionLocal', factory):
+                for refresh in (job_search.refresh_dirty_job_matches_once,
+                                job_search.refresh_profile_match_indexes_once):
+                    with self.subTest(worker=refresh.__name__):
+                        with self.assertRaises(job_search.ProfileIndexChanged):
+                            refresh()
+                        with factory() as session:
+                            self.assertEqual(dict(session.execute(select(models.MatchDirtyJob.job_id,
+                                models.MatchDirtyJob.revision)).all()), revisions)
+                            self.assertEqual(session.scalars(select(models.ProfileJobMatch)).all(), [])
+                            self.assertEqual(session.scalars(select(models.ProfileMatchProgress)).all(), [])
+                            self.assertIsNone(session.get(models.UserProfile, self.profile['id']).match_index_version)
+                            self.assertEqual(session.execute(select(models.JobVacancyGroup.job_id,
+                                models.JobVacancyGroup.vacancy_group_id)).all(), groups)
+                busy = False
+                self.assertTrue(job_search.refresh_dirty_job_matches_once())
+                self.assertTrue(job_search.refresh_profile_match_indexes_once())
+            with factory() as session:
+                self.assertEqual(session.scalars(select(models.MatchDirtyJob)).all(), [])
+                saved = session.scalar(select(models.JobApplication).where(
+                    models.JobApplication.profile_id == self.profile['id'],
+                    models.JobApplication.job_id == saved_job_id))
+                self.assertEqual(saved.status, 'interview')
+                self.assertEqual(len(session.scalars(select(models.ProfileJobMatch)).all()), 16)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', advisory_result)
+
+    def test_repeated_identity_indexing_reads_retained_keys_in_batches(self):
+        from hiring_scraper.app.application_deduplication import index_vacancy_identities
+        ids = [job.id for job in self.jobs]
+        expected = set(ids)
+        self.assertEqual(index_vacancy_identities(self.session, ids), expected)
+        self.session.commit()
+        reads = []
+        def record_reads(_connection, _cursor, statement, *_args):
+            if statement.lstrip().upper().startswith('SELECT') and any(
+                    table in statement for table in ('job_vacancy_identities', 'job_vacancy_groups')):
+                reads.append(statement)
+        event.listen(self.engine, 'before_cursor_execute', record_reads)
+        try:
+            self.assertEqual(index_vacancy_identities(self.session, ids), expected)
+        finally:
+            event.remove(self.engine, 'before_cursor_execute', record_reads)
+        self.assertLessEqual(len(reads), 6, 'Unchanged identities should not require per-job lookups')
 
     def test_every_status_roundtrips_without_creating_duplicate_applications(self):
         for status in ['new', 'open', 'in_gots_hand', 'not_interested', 'waiting_for_reply', 'automated_application', 'interview', 'rejected', 'accepted', 'closed']:

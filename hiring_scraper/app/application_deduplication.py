@@ -23,11 +23,10 @@ def migrate_existing_application_duplicates(session):
     """Record completion in the same transaction as the historical cleanup."""
     if session.get(AppDataMigration, MIGRATION_KEY) is not None:
         return
-    # Acquire every profile before the shared inventory lock, matching normal
-    # publisher lock order even when the migration spans several batches.
-    session.execute(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
     job_ids = session.scalars(select(JobApplication.job_id).distinct()).all()
+    # Identity writers serialize before acquiring any profile locks.
     index_vacancy_identities(session, job_ids)
+    session.execute(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
     consolidate_application_duplicates(session, archive=True)
     # Search rows predate retained vacancy groups. Drop this disposable cache so
     # the next materialization can link untracked copies to saved application IDs.
@@ -37,13 +36,27 @@ def migrate_existing_application_duplicates(session):
     session.execute(insert(AppDataMigration).values(key=MIGRATION_KEY, applied_at=utcnow()))
 
 
+def reserve_vacancy_identity_writer(session, *, wait=True):
+    """Serialize unions separately from the short search-generation commit fence.
+
+    Call before job/profile row locks. Background publishers must use wait=False
+    and roll back their page when busy, retaining its durable work for retry.
+    """
+    if session.get_bind().dialect.name != 'postgresql':
+        return True
+    if wait:
+        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 6)'))
+        return True
+    return bool(session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 6)')))
+
+
 def index_vacancy_identities(session, job_ids):
     """Union retained vacancy keys for changed jobs; return affected group IDs."""
     ids = sorted(set(job_ids))
     if not ids:
         return set()
     if session.get_bind().dialect.name == 'postgresql':
-        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 2)'))
+        reserve_vacancy_identity_writer(session)
     else:
         # SQLite has no advisory locks. Take its single-writer lock before
         # reading identities so concurrent indexers cannot race on unique keys.
@@ -54,9 +67,27 @@ def index_vacancy_identities(session, job_ids):
         jobs = session.scalars(select(Job).where(Job.id.in_(ids[start:start + 200])).options(
             joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations),
         ).execution_options(populate_existing=True)).all()
+        hashes_by_job = {job.id: {
+            hashlib.sha256(json.dumps(key, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+            for key in vacancy_keys(job) if key[0] != 'retained-vacancy'
+        } for job in jobs}
+        all_hashes = sorted({key_hash for hashes in hashes_by_job.values() for key_hash in hashes})
+        retained = {}
+        for hash_start in range(0, len(all_hashes), 500):
+            retained.update(session.execute(select(JobVacancyIdentity.key_hash,
+                JobVacancyIdentity.vacancy_group_id).where(
+                    JobVacancyIdentity.key_hash.in_(all_hashes[hash_start:hash_start + 500]))).all())
+        # Every profile backfill revisits the same inventory. Already retained
+        # keys need no per-job queries or writes. Later unions in this batch can
+        # only merge these complete groups, so the initial check remains safe.
+        unchanged = {job.id for job in jobs if job.vacancy_group_id is not None
+            and job.vacancy_group_id <= job.id
+            and all(retained.get(key_hash) == job.vacancy_group_id
+                    for key_hash in hashes_by_job[job.id])}
         for job in jobs:
-            hashes = {hashlib.sha256(json.dumps(key, ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
-                      for key in vacancy_keys(job) if key[0] != 'retained-vacancy'}
+            if job.id in unchanged:
+                continue
+            hashes = hashes_by_job[job.id]
             existing = session.execute(select(JobVacancyIdentity.key_hash, JobVacancyIdentity.vacancy_group_id)
                                        .where(JobVacancyIdentity.key_hash.in_(hashes))).all()
             groups = {group_id for _, group_id in existing}
