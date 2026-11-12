@@ -246,7 +246,7 @@ def _snapshot(profile_id, request, session):
     data['evidence_sources'] = requirement_evidence.evidence_sources(resolved_facts, profile_llm.job_data(job))
     data['shared_requirements'] = None
     cached = session.get(ProfileLLMScore, (profile_id, job.id))
-    if (cached and cached.version == profile_llm.VERSION and cached.source_hash == profile_llm.source_hash(job, profile)
+    if (cached and cached.version == profile_llm.matching_version(session) and cached.source_hash == profile_llm.source_hash(job, profile, session=session)
             and data['evidence_sources'] == profile_llm.assessment_sources(job, profile)):
         try:
             data['shared_requirements'] = profile_llm.validate_assessment(

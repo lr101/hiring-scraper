@@ -3367,6 +3367,19 @@ def rematch_all_jobs():
     return requeue_all_assessments()
 
 
+class MatchingModelSetting(BaseModel):
+    model: str = Field(min_length=1, max_length=100)
+
+
+@app.put('/api/v1/profile-matching/model')
+def set_profile_matching_model(request: MatchingModelSetting):
+    from hiring_scraper.app.profile_llm import set_matching_model
+    try:
+        return set_matching_model(request.model)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+
+
 @app.get('/api/v1/profile-matching/status')
 def profile_matching_status():
     from hiring_scraper.app.profile_llm import matching_status

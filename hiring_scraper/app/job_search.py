@@ -8,7 +8,7 @@ from tempfile import SpooledTemporaryFile
 from typing import Callable
 
 from sqlalchemy import delete, func, select, text
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, joinedload, object_session, selectinload
 
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
@@ -23,7 +23,7 @@ from hiring_scraper.app.models import (
 )
 from hiring_scraper.matching import VERSION, match_job
 from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-from hiring_scraper.app.profile_llm import (VERSION as LLM_VERSION, apply_cached_assessment,
+from hiring_scraper.app.profile_llm import (apply_cached_assessment, matching_version,
     load_matching_documents as load_semantic_documents, profile_data)
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
@@ -97,7 +97,7 @@ def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
         "matcher": VERSION,
         "semantic": SEMANTIC_VERSION,
-        "llm": LLM_VERSION,
+        "llm": matching_version(object_session(profile)),
         "requirement_scoring": REQUIREMENT_SCORING_VERSION,
         "llm_preferences": profile_data(profile),
         "preferences": profile.matching_preferences,

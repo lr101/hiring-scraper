@@ -17,13 +17,13 @@ import time
 
 from fastapi import HTTPException
 from sqlalchemy import and_, exists, func, or_, select, text
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import object_session, selectinload
 
 from hiring_scraper.app import codex_runtime, requirement_evidence
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import AIMatchingSelection, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
+from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job, required_application_artifact
 from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity, scoped_sentences, structured_text
@@ -39,6 +39,7 @@ if EFFORT not in {'low', 'medium', 'high', 'xhigh', 'max', 'ultra'}:
 # Configuration is part of cache identity: changing models never reuses a prior
 # provider judgment or publishes it under the new model's name.
 VERSION = f'profile-v18-dimension-citations:{MODEL}:{EFFORT}'
+AVAILABLE_MODELS = ('gpt-6.1-sol', 'gpt-6-luna')
 MIN_AI_BASE_SCORE = 35
 WEIGHTS = {'skills': .30, 'experience': .25, 'behavioral': .15, 'career_alignment': .30}
 GATES = ('location', 'language', 'eligibility')
@@ -51,6 +52,53 @@ _CURSORS = {}
 _QUEUE_NEXT = {}
 _SELECTION_CACHE = {}
 _SELECTION_TTL_SECONDS = 60
+
+
+class MatchingConfig:
+    __slots__ = ('model', 'effort')
+
+    def __init__(self, model, effort):
+        self.model, self.effort = model, effort
+
+    def __eq__(self, other):
+        return isinstance(other, MatchingConfig) and (self.model, self.effort) == (other.model, other.effort)
+
+    @property
+    def version(self):
+        return f'profile-v18-dimension-citations:{self.model}:{self.effort}'
+
+
+def matching_config(session=None):
+    """Read a per-call immutable configuration, falling back to environment defaults."""
+    if session is None:
+        return MatchingConfig(MODEL, EFFORT)
+    # Do not reuse an identity-map copy after a long provider call: another
+    # process can save a new choice while this session remains open.
+    saved = session.scalar(select(AIMatchingSetting).where(AIMatchingSetting.id == 1)
+                           .execution_options(populate_existing=True))
+    return MatchingConfig(saved.model if saved else MODEL, EFFORT)
+
+
+def matching_version(session=None):
+    return matching_config(session).version
+
+
+def set_matching_model(model):
+    if model not in AVAILABLE_MODELS:
+        raise ValueError('Choose one of the supported AI matching models.')
+    with SessionLocal() as session:
+        if session.get_bind().dialect.name == 'postgresql':
+            from sqlalchemy.dialects.postgresql import insert
+        else:
+            from sqlalchemy.dialects.sqlite import insert
+        session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=utcnow())
+            .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': utcnow()}))
+        # A model change invalidates derived ranks and forces workers in every
+        # process to observe the new cache provenance on their next snapshot.
+        session.query(UserProfile).update({UserProfile.match_index_version: None})
+        session.commit()
+    _SELECTION_CACHE.clear()
+    return {'model': model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': EFFORT}
 
 
 def _object(properties):
@@ -181,8 +229,14 @@ def _matching_profile_facts(profile):
     return facts
 
 
-def source_hash(job, profile):
-    return _hash([VERSION, _hash(job_data(job)), _hash(profile_data(profile))])
+def source_hash(job, profile, *, session=None, config=None):
+    if session is None:
+        try:
+            session = object_session(profile)
+        except Exception:
+            session = None
+    config = config or matching_config(session)
+    return _hash([config.version, _hash(job_data(job)), _hash(profile_data(profile))])
 
 
 def _bounded(value, budget=16000):
@@ -456,7 +510,7 @@ def _resolve_citations(raw, catalog):
     return result
 
 
-def generate_assessment(prompt, *, generate):
+def generate_assessment(prompt, *, generate, config=None):
     """Allow one grounded repair and one transport-timeout retry before publishing.
 
     Invalid quotes used to be downgraded while retaining contradictory strengths
@@ -521,7 +575,8 @@ def generate_assessment(prompt, *, generate):
     timeout_retried = repaired = False
     for attempt in range(3):
         try:
-            provider_raw = generate(request, schema, model=MODEL, reasoning_effort=EFFORT, usage_limit_percent=100)
+            config = config or MatchingConfig(MODEL, EFFORT)
+            provider_raw = generate(request, schema, model=config.model, reasoning_effort=config.effort, usage_limit_percent=100)
         except HTTPException as error:
             if error.status_code != 504 or timeout_retried:
                 raise
@@ -564,12 +619,15 @@ def load_matching_documents(session, jobs, profiles):
     documents.llm_profile_hashes = {}
     if session is None or not jobs or not profiles:
         return documents
+    config = matching_config(session)
+    version = config.version
+    documents.llm_config = config
     for start in range(0, len(jobs), 400):
         for offset in range(0, len(profiles), 400):
             rows = session.scalars(select(ProfileLLMScore).where(
                 ProfileLLMScore.job_id.in_([row.id for row in jobs[start:start + 400]]),
                 ProfileLLMScore.profile_id.in_([row.id for row in profiles[offset:offset + 400]]),
-                ProfileLLMScore.version == VERSION)).all()
+                ProfileLLMScore.version == version)).all()
             documents.llm_scores.update({(row.profile_id, row.job_id): row for row in rows})
     job_ids = {job_id for _, job_id in documents.llm_scores}
     profile_ids = {profile_id for profile_id, _ in documents.llm_scores}
@@ -680,9 +738,17 @@ def apply_cached_assessment(local, job, profile, documents):
         result.update(fit_tier='possible', label='Local shortlist estimate')
     scores = getattr(documents, 'llm_scores', {})
     row = scores.get((profile.id, job.id))
-    if row is None or row.version != VERSION:
+    config = getattr(documents, 'llm_config', None)
+    if config is None:
+        try:
+            session = object_session(profile)
+        except Exception:
+            session = None
+        config = matching_config(session)
+    version = config.version
+    if row is None or row.version != version:
         return result
-    digest = _hash([VERSION, documents.llm_job_hashes.get(job.id), documents.llm_profile_hashes.get(profile.id)])
+    digest = _hash([version, documents.llm_job_hashes.get(job.id), documents.llm_profile_hashes.get(profile.id)])
     if digest != row.source_hash:
         return result
     try:
@@ -731,7 +797,7 @@ def apply_cached_assessment(local, job, profile, documents):
                   conflicts=conflicts, unknowns=list(dict.fromkeys(unknowns)),
                   label='Requirement or preference conflict' if not eligible else 'Verify mandatory eligibility' if mandatory_review else 'Strong overlap' if tier == 'recommended' else
                         'Some overlap' if score >= 30 else 'Little evidence of a match',
-                  llm_match={'model': MODEL, 'reasoning_effort': EFFORT, 'version': row.version,
+                  llm_match={'model': config.model, 'reasoning_effort': config.effort, 'version': row.version,
                              'scoring_version': requirement_evidence.SCORING_VERSION,
                              'source_hash': row.source_hash, 'scored_at': row.scored_at.isoformat(),
                              'dimensions': assessment['dimensions'], 'gates': assessment['gates'],
@@ -778,14 +844,15 @@ def _inference_lease(engine):
             fcntl.flock(descriptor, fcntl.LOCK_UN)
 
 
-def _selection_key(session, profile):
-    return (session.get_bind(), profile.id, _hash(profile.matching_preferences), VERSION)
+def _selection_key(session, profile, config):
+    return (session.get_bind(), profile.id, _hash(profile.matching_preferences), config.version)
 
 
-def _selected_job_ids(session, profile):
+def _selected_job_ids(session, profile, config=None):
     # AI outcomes do not change this static-only pool. Bound inventory rescans
     # to once a minute; source_hash still verifies each selected job before use.
-    key = _selection_key(session, profile)
+    config = config or matching_config(session)
+    key = _selection_key(session, profile, config)
     cached = _SELECTION_CACHE.get(key)
     if cached is not None and time.monotonic() - cached[0] < _SELECTION_TTL_SECONDS:
         return list(cached[1])
@@ -796,7 +863,7 @@ def _selected_job_ids(session, profile):
     # The API and worker have separate processes. Persist only IDs/fingerprint,
     # never prompts or applicant facts, for inexpensive status diagnostics.
     session.merge(AIMatchingSelection(profile_id=profile.id,
-        source_hash=_hash([VERSION, profile.matching_preferences]),
+        source_hash=_hash([config.version, profile.matching_preferences]),
         job_ids=selected, refreshed_at=utcnow()))
     session.commit()
     return selected
@@ -831,7 +898,7 @@ def _compute_selected_job_ids(session, profile):
     return select_cases(rows)
 
 
-def _candidate_snapshot(session, engine_key, *, advance=True):
+def _candidate_snapshot(session, engine_key, config, *, advance=True):
     """Refresh only a stable bounded pool, fairly rotating among profiles."""
     profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
     if not profiles:
@@ -841,7 +908,7 @@ def _candidate_snapshot(session, engine_key, *, advance=True):
     for offset in range(len(profiles)):
         index = (cursor + offset) % len(profiles)
         profile = profiles[index]
-        selected = _selected_job_ids(session, profile)
+        selected = _selected_job_ids(session, profile, config)
         if not selected:
             continue
         jobs = {job.id: job for job in session.scalars(select(Job).where(Job.id.in_(selected))
@@ -852,9 +919,9 @@ def _candidate_snapshot(session, engine_key, *, advance=True):
             job = jobs.get(job_id)
             if job is None or not job.is_active or expiry(job)['expired']:
                 continue
-            digest = source_hash(job, profile)
+            digest = source_hash(job, profile, config=config)
             old = cached.get(job_id)
-            if old is not None and old.version == VERSION and old.source_hash == digest:
+            if old is not None and old.version == config.version and old.source_hash == digest:
                 continue
             retry = _RETRIES.get((engine_key, profile.id, job_id, digest))
             if retry and retry[1] > time.monotonic():
@@ -874,7 +941,7 @@ def _candidate_snapshot(session, engine_key, *, advance=True):
                 continue
             if advance:
                 _CURSORS[key] = (index + 1) % len(profiles)
-            return profile.id, job_id, digest, build_prompt(job, profile)
+            return profile.id, job_id, digest, build_prompt(job, profile), config
     return None
 
 
@@ -899,10 +966,11 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
         if not _subscription_allows_matching(quota):
             return False
         with SessionLocal() as session:
-            snapshot = _candidate_snapshot(session, engine_key)
+            config = matching_config(session)
+            snapshot = _candidate_snapshot(session, engine_key, config)
         if snapshot is None:
             return False
-        profile_id, job_id, digest, prompt = snapshot
+        profile_id, job_id, digest, prompt, config = snapshot
         retry_key = (engine_key, profile_id, job_id, digest)
         try:
             def budgeted_generate(*args, **kwargs):
@@ -911,7 +979,7 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
                 if not reserve(SessionLocal):
                     raise HTTPException(429, 'Five-hour AI matching call budget exhausted.')
                 return generate(*args, **kwargs)
-            raw = generate_assessment(prompt, generate=budgeted_generate)
+            raw = generate_assessment(prompt, generate=budgeted_generate, config=config)
             sources = json.loads(prompt.split('\nDATA:\n', 1)[1])['evidence_sources']
             checked = validate_assessment(raw, sources)
             raw = {key: checked[key] for key in SCHEMA['properties']}
@@ -934,7 +1002,10 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
             profile = session.scalar(select(UserProfile).where(UserProfile.id == profile_id).with_for_update())
             if profile is None:
                 return False
-            if job is None or not job.is_active or expiry(job)['expired'] or source_hash(job, profile) != digest:
+            # Re-read configuration while holding the source rows: never publish
+            # an old-model answer after a different process saved a new choice.
+            if (job is None or not job.is_active or expiry(job)['expired'] or
+                    matching_config(session) != config or source_hash(job, profile, config=config) != digest):
                 return False
             previous_index_version = profile.match_index_version
             from hiring_scraper.app.job_search import _profile_index_version, refresh_application_matches_for_jobs
@@ -943,9 +1014,9 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
             if score is None:
                 score = ProfileLLMScore(profile_id=profile_id, job_id=job_id)
                 session.add(score)
-            elif score.version == VERSION and score.source_hash == digest:
+            elif score.version == config.version and score.source_hash == digest:
                 return False
-            score.source_hash, score.version, score.assessment, score.scored_at = digest, VERSION, raw, utcnow()
+            score.source_hash, score.version, score.assessment, score.scored_at = digest, config.version, raw, utcnow()
             session.flush()
             refresh_application_matches_for_jobs(session, [job_id])
             if was_current:
@@ -958,14 +1029,15 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
 def _stale_assessment_pending(session):
     # Stream cached rows and eagerly batch relationships: no per-job API/model
     # calls and no all-inventory result list in the settings endpoint.
+    config = matching_config(session)
     statement = (select(ProfileLLMScore.source_hash, Job, UserProfile)
         .join(Job, Job.id == ProfileLLMScore.job_id)
         .join(UserProfile, UserProfile.id == ProfileLLMScore.profile_id)
-        .where(Job.is_active.is_(True), ProfileLLMScore.version == VERSION)
+        .where(Job.is_active.is_(True), ProfileLLMScore.version == config.version)
         .options(selectinload(Job.locations), selectinload(UserProfile.cv))
         .execution_options(yield_per=100))
     for digest, job, profile in session.execute(statement):
-        if not expiry(job)['expired'] and digest != source_hash(job, profile):
+        if not expiry(job)['expired'] and digest != source_hash(job, profile, config=config):
             return True
     return False
 
@@ -999,6 +1071,7 @@ def _queue_diagnostics(session):
     Status never matches inventory or builds a prompt. Counts on a cold pool
     describe candidates before the background selector applies shortlist caps.
     """
+    config = matching_config(session)
     queued = 0
     selection_pending = False
     for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)):
@@ -1006,7 +1079,7 @@ def _queue_diagnostics(session):
         refreshed = cached.refreshed_at if cached else None
         if refreshed is not None and refreshed.tzinfo is None:
             refreshed = refreshed.replace(tzinfo=timezone.utc)
-        fresh = (cached is not None and cached.source_hash == _hash([VERSION, profile.matching_preferences]) and
+        fresh = (cached is not None and cached.source_hash == _hash([config.version, profile.matching_preferences]) and
                  (utcnow() - refreshed).total_seconds() < _SELECTION_TTL_SECONDS)
         if fresh:
             selected = cached.job_ids
@@ -1014,7 +1087,7 @@ def _queue_diagnostics(session):
                                    .options(selectinload(Job.locations))).all() if selected else []
             for job in jobs:
                 row = session.get(ProfileLLMScore, (profile.id, job.id))
-                if not expiry(job)['expired'] and (row is None or row.version != VERSION):
+                if not expiry(job)['expired'] and (row is None or row.version != config.version):
                     queued += 1
         else:
             selection_pending = True
@@ -1026,7 +1099,7 @@ def _queue_diagnostics(session):
             ids = indexed.union(saved)
             jobs = session.scalars(select(Job).where(Job.id.in_(ids), Job.is_active.is_(True),
                 ~exists(select(1).where(ProfileLLMScore.profile_id == profile.id,
-                                       ProfileLLMScore.job_id == Job.id, ProfileLLMScore.version == VERSION)))
+                                       ProfileLLMScore.job_id == Job.id, ProfileLLMScore.version == config.version)))
                 .execution_options(yield_per=200))
             queued += sum(not expiry(job)['expired'] for job in jobs)
     return queued, selection_pending
@@ -1036,10 +1109,11 @@ def matching_status():
     """Public quota diagnostics contain no prompts, credentials or personal data."""
     quota = codex_runtime.subscription_usage()
     with SessionLocal() as session:
+        config = matching_config(session)
         queued, selecting = _queue_diagnostics(session)
         assessed, last_assessed = session.execute(select(func.count(), func.max(ProfileLLMScore.scored_at))
             .select_from(ProfileLLMScore).join(Job, Job.id == ProfileLLMScore.job_id)
-            .where(Job.is_active.is_(True), ProfileLLMScore.version == VERSION)).one()
+            .where(Job.is_active.is_(True), ProfileLLMScore.version == config.version)).one()
         stale = _stale_assessment_pending(session) if assessed else False
         from hiring_scraper.app.job_search import profile_match_index_stale
         indexing = any(profile_match_index_stale(profile) for profile in session.scalars(select(UserProfile)))
@@ -1052,7 +1126,7 @@ def matching_status():
     return {'state': 'pending' if allowed and pending else 'paused' if not budget['remaining'] else 'ready' if allowed else
                      'disconnected' if quota.get('reason') == 'disconnected' else 'paused',
             'pending': pending, 'indexing_pending': indexing, 'selection_pending': selecting,
-            'model': MODEL, 'reasoning_effort': EFFORT, 'usage': safe, 'call_budget': budget,
+            'model': config.model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': config.effort, 'usage': safe, 'call_budget': budget,
             'queued_pairs': queued, 'assessed_pairs': assessed, 'stale_assessments_pending': stale,
             'last_assessed_at': last_assessed.isoformat() if last_assessed else None,
             'worker_health': 'unknown', 'checked_at': utcnow().isoformat()}

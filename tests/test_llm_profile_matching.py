@@ -744,6 +744,45 @@ class PersistedAssessmentTests(unittest.TestCase):
         self.assertEqual(result['score_source'], 'local')
         self.assertIsNone(result['llm_match'])
 
+    def test_selected_model_is_persisted_and_changes_cache_provenance(self):
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            saved = service.set_matching_model('gpt-6-luna')
+            self.assertEqual(saved['model'], 'gpt-6-luna')
+            self.assertEqual(service.matching_status()['model'], 'gpt-6-luna')
+        with self.factory() as session:
+            job = session.get(models.Job, self.job_id)
+            profile = session.get(models.UserProfile, self.profile_id)
+            luna_hash = service.source_hash(job, profile, session=session)
+            self.assertNotEqual(luna_hash, service._hash([service.VERSION, service._hash(service.job_data(job)), service._hash(service.profile_data(profile))]))
+
+    def test_invalid_selected_model_is_rejected_without_persisting(self):
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            with self.assertRaises(ValueError):
+                service.set_matching_model('not-a-supported-model')
+            self.assertEqual(service.matching_status()['model'], 'gpt-6.1-sol')
+
+    def test_model_setting_api_persists_only_supported_ids(self):
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            response = api.set_profile_matching_model(api.MatchingModelSetting(model='gpt-6-luna'))
+            self.assertEqual(response['model'], 'gpt-6-luna')
+            with self.assertRaises(Exception) as raised:
+                api.set_profile_matching_model(api.MatchingModelSetting(model='unsupported'))
+        self.assertEqual(getattr(raised.exception, 'status_code', None), 422)
+
+    def test_model_change_drops_an_in_flight_old_model_result(self):
+        service = self.service()
+        def generate(prompt, schema, **kwargs):
+            self.assertEqual(kwargs['model'], 'gpt-6.1-sol')
+            with patch.object(service, 'SessionLocal', self.factory):
+                service.set_matching_model('gpt-6-luna')
+            return assessment()
+        self.assertFalse(self.refresh(generate=generate))
+        with self.factory() as session:
+            self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+
     def test_status_uses_the_persisted_worker_selection_after_process_cache_is_lost(self):
         self.assertTrue(self.refresh())
         service = self.service()
