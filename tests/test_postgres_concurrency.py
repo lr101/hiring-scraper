@@ -1853,6 +1853,11 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(checked, [True, True])
             self.assertTrue(job_search.refresh_profile_match_indexes_once())
             self.assertTrue(job_search.refresh_dirty_job_matches_once())
+            with self.factory() as session:
+                remaining = dict(session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)).all())
+                self.assertEqual(len(remaining), 2)
+                self.assertTrue(remaining.items() <= revisions.items())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
         with self.factory() as session:
             self.assertEqual(session.scalars(select(MatchDirtyJob)).all(), [])
             self.assertIsNone(session.get(ProfileMatchProgress, profile_id))
