@@ -123,6 +123,22 @@ class MatchProgressTests(unittest.TestCase):
             self.assertEqual(session.scalars(select(models.ProfileJobMatch)).all(), [])
             self.assertFalse(job_search.profile_match_index_stale(session.get(models.UserProfile, self.profile_id)))
 
+    def test_preference_round_trip_restarts_cleared_pages(self):
+        self.step()
+        with self.factory.begin() as session:
+            session.query(models.MatchDirtyJob).delete()
+        for preferences in ({'excluded_terms': ['Developer']}, {'desired_roles': ['Developer']}):
+            with self.factory.begin() as session:
+                profile = session.get(models.UserProfile, self.profile_id)
+                profile.preferences = preferences
+                profile.match_index_version = None
+                session.flush()
+                job_search.clear_profile_match_scores(session, self.profile_id)
+        self.step(); self.step(); self.step()
+        with self.factory() as session:
+            self.assertEqual(set(session.scalars(select(models.ProfileJobMatch.job_id))), set(self.job_ids))
+            self.assertFalse(job_search.profile_match_index_stale(session.get(models.UserProfile, self.profile_id)))
+
     def test_rematch_all_restarts_same_version_checkpoint(self):
         from hiring_scraper.app import profile_llm
         with patch.object(job_search, 'match_job', return_value={

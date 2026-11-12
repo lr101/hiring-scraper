@@ -596,6 +596,7 @@ def _refresh_application_matches_for_jobs(
 
 def clear_profile_match_scores(session: Session, profile_id: int) -> None:
     """Remove derived matches and untouched New rows after profile edits."""
+    session.execute(delete(ProfileMatchProgress).where(ProfileMatchProgress.profile_id == profile_id))
     session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id == profile_id))
     session.execute(delete(JobApplication).where(
         JobApplication.profile_id == profile_id,

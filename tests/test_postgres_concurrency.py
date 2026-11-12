@@ -1499,7 +1499,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(session.get(Job, job_id).description,
                              'New verified description from the feed')
 
-    def test_enrichment_backfill_updates_job_rows_before_locking_profiles(self):
+    def test_enrichment_backfill_queues_without_locking_profiles(self):
         with self.factory.begin() as session:
             company = Company(source='managed_feed', source_id='enrichment-cache-lock-order', name='Employer')
             feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml',
@@ -1508,6 +1508,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.flush()
             session.add(Job(feed_id=feed.id, external_id='role', title='Developer',
                             url='https://example.test/jobs/role', is_active=True))
+
+        from hiring_scraper.app.models import MatchDirtyJob
+        with self.factory.begin() as session:
+            session.query(MatchDirtyJob).delete()
 
         lock_order = []
 
@@ -1525,7 +1529,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
         finally:
             event.remove(self.engine, 'before_cursor_execute', record)
 
-        self.assertLess(lock_order.index('jobs'), lock_order.index('profiles'))
+        self.assertIn('jobs', lock_order)
+        self.assertNotIn('profiles', lock_order)
+        with self.factory() as session:
+            self.assertTrue(session.scalars(select(MatchDirtyJob)).all())
 
     def test_job_application_uses_no_key_lock_while_index_publication_holds_profile(self):
         with self.factory.begin() as session:
