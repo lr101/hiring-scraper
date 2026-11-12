@@ -14,6 +14,7 @@ import re
 from pathlib import Path
 import tempfile
 import time
+from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import and_, exists, func, or_, select, text
@@ -949,6 +950,18 @@ def _subscription_allows_matching(quota):
     return bool(quota.get('allowed'))
 
 
+def _engine_cache_key(engine):
+    database = engine.url.database or ''
+    memory = database in ('', ':memory:') or (
+        database.startswith('file:') and (
+            database.startswith('file::memory:') or engine.url.query.get('mode') == 'memory'))
+    if engine.dialect.name == 'sqlite' and memory:
+        # Object addresses can be recycled after disposal. A token owned by the
+        # engine keeps independent memory databases out of each other's backoff.
+        return engine.__dict__.setdefault('_radius_matching_cache_key', uuid4().hex)
+    return str(engine.url)
+
+
 def refresh_llm_scores_once(*, generate=None, usage=None):
     """Assess one prioritized/exploratory job, then verify locked sources before publishing."""
     from hiring_scraper.app.ai_matching_budget import status as budget_status
@@ -958,7 +971,7 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
     usage = usage or codex_runtime.subscription_usage
     with SessionLocal() as session:
         engine = session.get_bind()
-    engine_key = str(engine.url) if engine.url.database else str(id(engine))
+    engine_key = _engine_cache_key(engine)
     with _inference_lease(engine) as acquired:
         if not acquired:
             return False

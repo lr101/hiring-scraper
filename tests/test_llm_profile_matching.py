@@ -1026,6 +1026,20 @@ class PersistedAssessmentTests(unittest.TestCase):
             session.commit()
         self.assertTrue(self.refresh())
 
+    def test_recycled_memory_engine_id_does_not_inherit_retry_backoff(self):
+        service = self.service()
+        # Simulate allocator reuse without depending on garbage collection.
+        with patch.object(service, 'id', return_value=12345, create=True):
+            def unavailable(*args, **kwargs):
+                raise RuntimeError('Offline fixture provider')
+            self.assertFalse(self.refresh(generate=unavailable))
+            independent = PersistedAssessmentTests()
+            independent.setUp()
+            try:
+                self.assertTrue(independent.refresh())
+            finally:
+                independent.tearDown()
+
     def test_rematch_does_not_race_an_inflight_assessment(self):
         service = self.service()
         with self.factory() as session:
