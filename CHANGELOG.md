@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Separate Journey vacancy identity unions from the short search-generation commit fence, defer busy background pages before row locks, and batch unchanged identity checks. Deploy with a coordinated application/worker restart so old and new identity writers do not overlap.
+
 - Queue production Journey updates transactionally, commit restartable 100-job profile backfill pages, and keep saved Journey pages usable while matching catches up. Migration `0037_journey_match_progress` adds durable queue and progress state.
 
 - Show an accessible score graphic on job details, separate task evidence from desired titles, and require exact saved-source citations for AI dimension scores. Existing assessments refresh under the new scoring version.

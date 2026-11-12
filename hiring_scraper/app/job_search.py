@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.application_deduplication import (
-    consolidate_application_duplicates, index_vacancy_identities,
+    consolidate_application_duplicates, index_vacancy_identities, reserve_vacancy_identity_writer,
 )
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
@@ -393,9 +393,16 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         for row in pending_states:
             _write_pending(state_spool, row)
 
-        # Do not publish a backfill if preferences or the job inventory changed
-        # during the scan. Writers take profile locks before the shared search
-        # generation lock, so acquire them in the same order.
+        # Keep the legacy full rebuild safe for explicit PostgreSQL callers too.
+        # Serialize identity unions before row locks; never hold the generation
+        # commit fence through derived publication. New inventory is durably
+        # queued, while existing source/evidence writers share these row locks.
+        if session.get_bind().dialect.name == 'postgresql':
+            if not reserve_vacancy_identity_writer(session, wait=False):
+                raise ProfileIndexChanged('Vacancy identities are being indexed')
+            index_vacancy_identities(session, active_job_ids)
+            reserve_job_source_rows(session, active_job_ids)
+        # Do not publish if preferences or inventory changed during computation.
         locked_profiles = session.scalars(
             select(UserProfile).where(UserProfile.id.in_(list(expected_versions))).order_by(UserProfile.id)
             .with_for_update().execution_options(populate_existing=True)
@@ -412,8 +419,6 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
             if profile is None or _profile_index_version(profile) != expected_version:
                 raise ProfileIndexChanged("Profile changed while its matches were being rebuilt")
 
-        if session.get_bind().dialect.name == "postgresql":
-            session.execute(text("SELECT pg_advisory_xact_lock(85793011, 2)"))
         current_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
         if current_generation != search_generation:
             raise ProfileIndexChanged("Job inventory changed while profile matches were being rebuilt")
@@ -467,6 +472,8 @@ def _refresh_application_matches_for_jobs(
         profile_query = profile_query.where(UserProfile.id.in_(profile_ids))
     profiles = session.scalars(profile_query).all()
     if not profiles:
+        if not reserve_vacancy_identity_writer(session, wait=False):
+            raise ProfileIndexChanged('Vacancy identities are being indexed')
         index_vacancy_identities(session, ids)
         if before_publish is not None:
             before_publish(session)
@@ -532,7 +539,11 @@ def _refresh_application_matches_for_jobs(
                 })
 
         # One invocation can span many batches. Keep the profile rows unlocked
-        # through every matching pass, then serialize the derived writes together.
+        # through computation and identity indexing. A busy union writer defers
+        # this transaction before it can block source editors or saved stages.
+        if not reserve_vacancy_identity_writer(session, wait=False):
+            raise ProfileIndexChanged('Vacancy identities are being indexed')
+        affected_vacancy_groups = index_vacancy_identities(session, ids)
         if verify_sources:
             reserve_job_source_rows(session, ids)
         current_profiles = session.scalars(select(UserProfile).where(
@@ -542,7 +553,6 @@ def _refresh_application_matches_for_jobs(
             # Source retirement must update application rows only after profile
             # locks are held, and before stale automatic New rows are retracted.
             before_publish(session)
-        affected_vacancy_groups = index_vacancy_identities(session, ids)
         # Assessment publication also owns profile locks, so a committed change
         # observed here cannot race past the derived writes that follow.
         if verify_sources:

@@ -55,8 +55,12 @@ existing inactive postings. Local SQLite startup performs the same upgrade once.
 
 Production source ingestion stores coalesced invalidations in `match_dirty_jobs`
 in the source transaction. The profile match worker computes scores without job
-or profile row locks, then locks the affected jobs, profiles and shared search
-marker in that order to verify sources and publish a bounded page. A changed
+or profile row locks, then tries the vacancy identity union guard
+`(85793011, 6)`. If another identity writer owns it, the page rolls back and
+retries from its durable queue/checkpoint on the next worker pass. It indexes
+identities before locking affected jobs and profiles to verify sources and
+publish a bounded page. Already retained identity keys are checked in batches.
+A changed
 source or cached assessment rejects the page; its invalidation remains queued.
 Acknowledgements include the invalidation revision so a newer event is never
 removed by an older worker pass. Existing saved stages remain available.
@@ -86,3 +90,54 @@ invalidations and checkpoints survive restarts, but cannot progress while it is
 stopped. Normal job search snapshot invalidation keeps its global generation;
 Journey page publication verifies only its batch, so unrelated ingestion cannot
 restart a whole inventory scan.
+
+### Lock ordering and rollout
+
+Vacancy identity writers (background pages, search-copy linking, manual
+tracking, and historical deduplication) share transaction guard `(85793011, 6)`
+so concurrent unions cannot split retained groups. Acquire it before job or
+profile row locks. Background pages always try without waiting, including when
+there are no profiles. Manual tracking commits identity indexing in its own
+transaction before taking the job and profile locks for a saved-stage change.
+Search-copy linking acquires the guard without taking profile row locks.
+Historical deduplication indexes before reserving profiles. An explicit full
+PostgreSQL rebuild follows identity guard, source jobs, then profiles; the API
+uses that legacy synchronous rebuild only for SQLite.
+
+The search-generation fence `(85793011, 2)` belongs only to the final
+source/evidence commit hook: finish domain writes, acquire the fence, allocate
+and prune the generation marker, then commit. Keep this short fence even though
+the identity guard is separate. Sequence values alone do not follow commit
+order; allowing an earlier, lower marker to commit after a higher marker would
+leave cached searches unaware of that source change. Heavy identity union and
+match publication never hold this fence. Writers of the same source or saved
+profile can still wait for each other; unrelated source commits can proceed
+while an identity transaction is open.
+
+This repair changes the identity advisory key. **Stop all old application and
+worker processes that can write identities before starting any updated
+processes.** Drain their transactions, then restart the complete application
+and workers together; do not use a rolling deployment or hot reload across
+versions. Old and new identity guards do not coordinate. This repair adds no
+schema migration beyond the existing `0037_journey_match_progress` prerequisite.
+Queued revisions and profile checkpoints survive the coordinated restart.
+
+For a read-only blocking check, use a monitoring connection and inspect process
+IDs, transaction ages and blocking edges without logging SQL or profile data:
+
+```sql
+SELECT pid, clock_timestamp() - xact_start AS transaction_age,
+       wait_event_type, wait_event, pg_blocking_pids(pid) AS blocking_pids
+FROM pg_stat_activity
+WHERE datname = current_database()
+  AND (wait_event_type = 'Lock' OR cardinality(pg_blocking_pids(pid)) > 0)
+ORDER BY xact_start;
+
+SELECT pid, classid, objid, granted
+FROM pg_locks
+WHERE locktype = 'advisory' AND classid = 85793011
+ORDER BY objid, granted, pid;
+```
+
+Key 2 should appear only around commits; key 6 may span identity indexing and
+page publication. Worker ownership is key 4, and LLM process ownership is key 5.

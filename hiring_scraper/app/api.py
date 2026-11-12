@@ -2718,7 +2718,7 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
         # End the read transaction before SQLite's no-op inventory write lock.
         session.commit()
     # Index in its own transaction before taking row locks, then release the
-    # shared inventory lock before taking the profile lock used by publishers.
+    # identity union guard before taking the profile lock used by publishers.
     index_vacancy_identities(session, [job_id])
     session.commit()
     # Serialize tracking with source closure before reading the posting state.
