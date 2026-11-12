@@ -1438,6 +1438,7 @@ class ManagedWorkerTests(unittest.TestCase):
         def stop(_seconds):
             raise InterruptedError('Stop managed loop')
         with patch.object(worker, 'refresh_profile_match_indexes_once', lambda: events.append('rules')), \
+             patch.object(worker, 'refresh_dirty_job_matches_once', lambda: False), \
              patch.object(worker, 'refresh_semantic_documents_once', lambda: events.append('semantics')), \
              patch.object(worker, 'refresh_llm_scores_once', lambda: events.append('llm') or False), \
              patch.object(worker, 'prepare_once', lambda: events.append('preparation')), \

@@ -466,7 +466,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             elif not board.get("complete"):
                 continue
             source_job_ids.update(session.scalars(source_query.order_by(Job.id)).all())
-        reserve_job_source_rows(session, source_job_ids)
+        reserve_job_source_rows(session, source_job_ids, reserve_match_owners=True)
         # Career listings with no current postings still need direct future checks.
         # Do not turn individual vacancy pages or untrusted pages into listings.
         if not parsed_boards:

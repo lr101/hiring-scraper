@@ -57,7 +57,7 @@ class JobApplicationTests(unittest.TestCase):
         self.assertTrue(page['matching_pending'])
         self.assertIsNone(self.session.get(models.UserProfile, self.profile['id']).match_index_version)
 
-    def test_stale_production_journey_sorts_by_displayed_scores_before_pagination(self):
+    def test_stale_production_journey_uses_stored_ranks_and_matches_only_the_page(self):
         self.save(self.jobs[0], 'open')
         self.save(self.jobs[1], 'open')
         self.session.add_all([
@@ -65,13 +65,33 @@ class JobApplicationTests(unittest.TestCase):
                                    match_score=score, match_tier='possible', match_uncertain=False)
             for job, score in zip(self.jobs[:2], [99, 1])])
         self.session.commit()
+        matched_ids = []
         def current_match(job, *args):
+            matched_ids.append(job.id)
             return {'score': 2 if job.id == self.jobs[0].id else 59, 'score_source': 'local'}
         with patch.object(api, 'IS_SQLITE', False), patch.object(api, '_profile_match', side_effect=current_match):
             page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all',
                                          sort='match', offset=0, limit=1, session=self.session)
-        self.assertEqual(page['items'][0]['id'], self.jobs[1].id)
-        self.assertEqual(page['items'][0]['profile_match']['score'], 59)
+        self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
+        self.assertEqual(page['items'][0]['profile_match']['score'], 2)
+        self.assertEqual(matched_ids, [self.jobs[0].id])
+        self.assertTrue(page['matching_pending'])
+
+    def test_production_journey_reports_dirty_work_for_a_current_profile(self):
+        job_search.ensure_profile_match_indexes(self.session,
+            [self.session.get(models.UserProfile, self.profile['id'])])
+        self.session.commit()
+        with patch.object(api, 'IS_SQLITE', False):
+            pending = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertTrue(pending['matching_pending'])
+        self.assertFalse(job_search.profile_match_index_stale(
+            self.session.get(models.UserProfile, self.profile['id'])))
+        with patch.object(job_search, 'SessionLocal', sessionmaker(bind=self.engine)):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        self.session.expire_all()
+        with patch.object(api, 'IS_SQLITE', False):
+            ready = api.list_applications(profile_ids=str(self.profile['id']), statuses='all', session=self.session)
+        self.assertFalse(ready['matching_pending'])
 
     def test_sqlite_journey_keeps_saved_roles_when_match_rebuild_conflicts(self):
         self.save(self.jobs[0], 'open')
@@ -371,6 +391,7 @@ class JobApplicationTests(unittest.TestCase):
             # The other saved profile is also stale and is processed next.
             self.assertTrue(refresh())
             self.assertFalse(refresh())
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
         self.session.expire_all()
         with patch.object(api, 'IS_SQLITE', False):
             page = api.list_applications(profile_ids=str(self.profile['id']),

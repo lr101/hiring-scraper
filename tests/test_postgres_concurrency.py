@@ -392,7 +392,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 discovery_thread.join(8)
             event.remove(self.engine, 'before_cursor_execute', before_cursor)
 
-    def test_job_and_location_changes_reserve_all_profiles_before_invalidation(self):
+    def test_job_and_location_changes_reserve_cached_owners_before_invalidation(self):
         _, feed_id, _ = self.seed_feed()
         with self.factory.begin() as session:
             profiles = [UserProfile(name=f'Lock order profile {index}', preferences={}) for index in range(3)]
@@ -406,7 +406,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 source_hash='source', version='test', assessment={}))
             session.add(JobLocation(job_id=job_id, label='Berlin', country_code='DE'))
 
-        def assert_all_profile_locks_precede_invalidation(mutate):
+        def assert_cached_owner_locks_precede_invalidation(mutate):
             statements = []
 
             def record(_connection, _cursor, statement, _parameters, _context, _many):
@@ -431,8 +431,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
             reservation = reservations[0]
             self.assertLess(statements.index(reservation), statements.index(invalidations[0]))
             self.assertIn('ORDER BY USER_PROFILES.ID', reservation)
-            self.assertNotIn(' WHERE ', reservation,
-                             'Source writes must reserve the complete profile set, not only cached-score owners')
+            self.assertIn(' WHERE ', reservation)
+            self.assertIn('PROFILE_LLM_SCORES', reservation)
 
         def change_job(session):
             session.get(Job, job_id).salary = '100000 USD'
@@ -441,8 +441,12 @@ class PostgresConcurrencyTests(unittest.TestCase):
             location = session.scalar(select(JobLocation).where(JobLocation.job_id == job_id))
             location.label = 'Hamburg'
 
-        assert_all_profile_locks_precede_invalidation(change_job)
-        assert_all_profile_locks_precede_invalidation(change_location)
+        assert_cached_owner_locks_precede_invalidation(change_job)
+        # Recreate the cached owner deleted by the first mutation.
+        with self.factory.begin() as session:
+            session.add(ProfileLLMScore(profile_id=profile_ids[1], job_id=job_id,
+                source_hash='second', version='test', assessment={}))
+        assert_cached_owner_locks_precede_invalidation(change_location)
 
     def test_source_change_reserves_every_job_updated_in_the_flush_before_profiles(self):
         _, feed_id, _ = self.seed_feed()
@@ -591,11 +595,18 @@ class PostgresConcurrencyTests(unittest.TestCase):
             if thread_name == 'salary-editor' and normalized.startswith('UPDATE USER_PROFILES'):
                 editor_updated_profile.set()
             if ('FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized and
-                    ((competitor_kind == 'application' and thread_name == 'application-save') or
-                     (competitor_kind == 'semantic' and thread_name == 'semantic-publisher'))):
+                    competitor_kind == 'application' and thread_name == 'application-save'):
                 competitor_at_profile.set()
                 if not release_competitor.wait(5):
                     raise TimeoutError('Competing writer was not released')
+
+        def after_cursor(_connection, _cursor, statement, _parameters, _context, _many):
+            normalized = ' '.join(statement.upper().split())
+            if (competitor_kind == 'semantic' and threading.current_thread().name == 'semantic-publisher'
+                    and 'FROM JOBS' in normalized and 'FOR NO KEY UPDATE' in normalized):
+                competitor_at_profile.set()
+                if not release_competitor.wait(5):
+                    raise TimeoutError('Semantic source publisher was not released')
 
         def run_competitor():
             try:
@@ -625,6 +636,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         competitor = threading.Thread(target=run_competitor, name=competitor_name, daemon=True)
         editor = threading.Thread(target=edit_salary, name='salary-editor', daemon=True)
         event.listen(self.engine, 'before_cursor_execute', before_cursor)
+        event.listen(self.engine, 'after_cursor_execute', after_cursor)
         try:
             competitor.start()
             self.assertTrue(competitor_at_profile.wait(3),
@@ -650,6 +662,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             if editor.is_alive():
                 editor.join(8)
             event.remove(self.engine, 'before_cursor_execute', before_cursor)
+            event.remove(self.engine, 'after_cursor_execute', after_cursor)
 
     def assert_job_writer_compatible_with_profile_index(self, writer_kind):
         from hiring_scraper.app import profile_semantics
@@ -703,11 +716,14 @@ class PostgresConcurrencyTests(unittest.TestCase):
                     raise TimeoutError('Index publisher was not released')
             if (thread_name in {'job-editor', 'semantic-publisher'} and 'FROM JOBS' in normalized and
                     ('FOR UPDATE' in normalized or 'FOR NO KEY UPDATE' in normalized)):
-                writer_holds_job.set()
+                pass
 
         def before_cursor(_connection, _cursor, statement, _parameters, _context, _many):
             normalized = ' '.join(statement.upper().split())
             thread_name = threading.current_thread().name
+            if (thread_name in {'job-editor', 'semantic-publisher'} and 'FROM JOBS' in normalized and
+                    ('FOR UPDATE' in normalized or 'FOR NO KEY UPDATE' in normalized)):
+                writer_holds_job.set()
             if thread_name == 'profile-index-rebuild' and 'INSERT INTO PROFILE_JOB_MATCHES' in normalized:
                 index_inserts_matches.set()
             if (thread_name == 'job-editor' and (
@@ -757,7 +773,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertTrue(index_holds_profile.wait(3), 'Index rebuild did not lock the profile before publishing')
             writer_thread.start()
             self.assertTrue(writer_holds_job.wait(3), 'Job writer did not lock its source row')
-            self.assertTrue(writer_waits_for_profile.wait(3), 'Job writer did not reach the profile publication lock')
+            self.assertFalse(writer_waits_for_profile.is_set(), 'Job writer must reserve the job before profiles')
             continue_index.set()
             self.assertTrue(index_inserts_matches.wait(3), 'Full index did not publish the job match')
             index_thread.join(6)
@@ -806,6 +822,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 feed_initializer.execute(text('SELECT pg_advisory_xact_lock(85793011, 3)'))
                 self.assertTrue(job_search.refresh_profile_match_indexes_once())
                 self.assertFalse(job_search.refresh_profile_match_indexes_once())
+                self.assertTrue(job_search.refresh_dirty_job_matches_once())
             with self.factory() as session:
                 ready = api.list_applications(profile_ids=str(profile_id), statuses='all', session=session)
             self.assertFalse(ready['matching_pending'])
@@ -1197,6 +1214,8 @@ class PostgresConcurrencyTests(unittest.TestCase):
         self.assertFalse(index_thread.is_alive())
         self.assertFalse(retirement_thread.is_alive())
         self.assertEqual(errors, [])
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
         with self.factory() as session:
             self.assertFalse(session.get(Job, job_id).is_active)
             self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))
@@ -1415,7 +1434,9 @@ class PostgresConcurrencyTests(unittest.TestCase):
                     raise AssertionError('detail request did not resume')
                 return {'state': 'network_error'}, b''
 
-        def pause_worker_match(*args):
+        original_refresh = worker.refresh_application_matches_for_jobs
+        def pause_worker_match(*args, **kwargs):
+            original_refresh(*args, **kwargs)
             if threading.current_thread().name == 'feed-worker':
                 worker_matching.set()
                 if not release_worker_matching.wait(6):
@@ -1454,7 +1475,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         try:
             detail_thread.start()
             self.assertTrue(detail_fetch_started.wait(3), 'detail enrichment did not fetch its candidate')
-            with patch.object(job_search, 'match_job', side_effect=pause_worker_match):
+            with patch.object(worker, 'refresh_application_matches_for_jobs', side_effect=pause_worker_match):
                 worker_thread.start()
                 self.assertTrue(worker_matching.wait(3), 'feed worker did not begin match refresh')
                 release_detail_fetch.set()
@@ -1478,7 +1499,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(session.get(Job, job_id).description,
                              'New verified description from the feed')
 
-    def test_enrichment_backfill_updates_job_rows_before_locking_profiles(self):
+    def test_enrichment_backfill_queues_without_locking_profiles(self):
         with self.factory.begin() as session:
             company = Company(source='managed_feed', source_id='enrichment-cache-lock-order', name='Employer')
             feed = JobFeed(company=company, provider='rss', feed_url='https://example.test/jobs.xml',
@@ -1488,11 +1509,16 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(Job(feed_id=feed.id, external_id='role', title='Developer',
                             url='https://example.test/jobs/role', is_active=True))
 
+        from hiring_scraper.app.models import MatchDirtyJob
+        with self.factory.begin() as session:
+            session.query(MatchDirtyJob).delete()
+
         lock_order = []
 
         def record(_conn, _cursor, statement, *_args):
             normalized = ' '.join(statement.upper().split())
-            if normalized.startswith('UPDATE JOBS'):
+            if (normalized.startswith('UPDATE JOBS') or ('FROM JOBS' in normalized and
+                    ('FOR NO KEY UPDATE' in normalized or 'FOR UPDATE' in normalized))):
                 lock_order.append('jobs')
             elif 'FROM USER_PROFILES' in normalized and 'FOR UPDATE' in normalized:
                 lock_order.append('profiles')
@@ -1503,7 +1529,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
         finally:
             event.remove(self.engine, 'before_cursor_execute', record)
 
-        self.assertLess(lock_order.index('jobs'), lock_order.index('profiles'))
+        self.assertIn('jobs', lock_order)
+        self.assertNotIn('profiles', lock_order)
+        with self.factory() as session:
+            self.assertTrue(session.scalars(select(MatchDirtyJob)).all())
 
     def test_job_application_uses_no_key_lock_while_index_publication_holds_profile(self):
         with self.factory.begin() as session:
@@ -1612,11 +1641,13 @@ class PostgresConcurrencyTests(unittest.TestCase):
 
         def backfill():
             try:
-                enrichment.backfill(1, fetch_details=False)
+                job_search.refresh_dirty_job_matches_once()
             except Exception as error:
                 errors.append(error)
 
-        with patch.object(job_search, 'match_job', side_effect=slow_match):
+        enrichment.backfill(1, fetch_details=False)
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', side_effect=slow_match):
             thread = threading.Thread(target=backfill, name='cached-enrichment')
             thread.start()
             try:
@@ -1696,3 +1727,87 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 self.assertEqual(recovered.scalar(text('SELECT 1')), 1)
         finally:
             bounded.dispose()
+
+    def seed_match_page(self):
+        _, feed_id, run_id = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Page profile', preferences={})
+            jobs = [Job(feed_id=feed_id, external_id=f'page-{i}', title='Developer',
+                        url=f'https://example.test/page-{i}', is_remote=True) for i in range(4)]
+            session.add_all([profile, *jobs]); session.flush()
+            return feed_id, run_id, profile.id, [job.id for job in jobs]
+
+    def test_ingestion_queues_matching_and_worker_computes_without_profile_locks(self):
+        feed_id, run_id, profile_id, job_ids = self.seed_match_page()
+        with patch.object(job_search, 'match_job', side_effect=AssertionError('Matching during ingestion')):
+            worker._persist_result(feed_id, run_id, {
+                'state': 'ok', 'status': 200, 'parsed_feed': {'complete': False, 'jobs': [{
+                    'id': 'page-0', 'title': 'Developer', 'url': 'https://example.test/page-0',
+                    'description': 'Updated source',
+                }]}}, b'', 1)
+        checked = []
+        def match_without_locks(*_args, **_kwargs):
+            with self.factory.begin() as editor:
+                self.assertIsNotNone(editor.scalar(select(UserProfile).where(
+                    UserProfile.id == profile_id).with_for_update(nowait=True)))
+            checked.append(True)
+            return {'eligible': True, 'score': 65, 'fit_tier': 'possible'}
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', side_effect=match_without_locks):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        self.assertEqual(len(checked), 4)
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileJobMatch, (profile_id, job_ids[0])).match_score, 65)
+
+    def test_bounded_backfill_commits_with_unrelated_continuous_ingestion(self):
+        from hiring_scraper.app.models import ProfileMatchProgress
+        feed_id, _, profile_id, job_ids = self.seed_match_page()
+        def match_during_ingestion(*_args, **_kwargs):
+            with self.factory.begin() as writer:
+                job = writer.get(Job, job_ids[-1])
+                job.description = (job.description or '') + 'source update'
+                writer.get(JobFeed, feed_id).last_checked_at = utcnow()
+            return {'eligible': True, 'score': 65, 'fit_tier': 'possible'}
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
+                patch.object(job_search, 'match_job', side_effect=match_during_ingestion):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileMatchProgress, profile_id).cursor, job_ids[1])
+            self.assertIsNone(session.get(UserProfile, profile_id).match_index_version)
+            self.assertEqual(len(session.scalars(select(ProfileJobMatch)).all()), 2)
+        with patch.object(job_search, 'SessionLocal', self.factory):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())
+        with self.factory() as session:
+            self.assertFalse(job_search.profile_match_index_stale(session.get(UserProfile, profile_id)))
+            self.assertEqual(len(session.scalars(select(ProfileJobMatch)).all()), 4)
+
+    def test_dirty_worker_retains_source_and_profile_races_for_retry(self):
+        from hiring_scraper.app.models import MatchDirtyJob
+        _, _, profile_id, job_ids = self.seed_match_page()
+        for kind in ['source', 'profile']:
+            changed = False
+            def stale_match(*_args, **_kwargs):
+                nonlocal changed
+                if not changed:
+                    changed = True
+                    with self.factory.begin() as editor:
+                        if kind == 'source':
+                            editor.get(Job, job_ids[0]).description = 'Concurrent source replacement'
+                        else:
+                            editor.get(UserProfile, profile_id).preferences = {'skills': ['Python']}
+                return {'eligible': True, 'score': 99, 'fit_tier': 'recommended'}
+            with patch.object(job_search, 'SessionLocal', self.factory), \
+                    patch.object(job_search, 'match_job', side_effect=stale_match):
+                with self.assertRaises(job_search.ProfileIndexChanged):
+                    job_search.refresh_dirty_job_matches_once()
+            with self.factory() as session:
+                self.assertIsNotNone(session.get(MatchDirtyJob, job_ids[0]))
+                self.assertEqual(session.scalars(select(ProfileJobMatch)).all(), [])
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+                patch.object(job_search, 'match_job', return_value={
+                    'eligible': True, 'score': 42, 'fit_tier': 'possible'}):
+            self.assertTrue(job_search.refresh_dirty_job_matches_once())
+        with self.factory() as session:
+            self.assertEqual(session.get(ProfileJobMatch, (profile_id, job_ids[0])).match_score, 42)
+            self.assertEqual(session.scalars(select(MatchDirtyJob)).all(), [])

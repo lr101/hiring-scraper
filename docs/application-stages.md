@@ -50,3 +50,39 @@ outcome again. If the posting reappears, its saved Journey outcome remains.
 
 Migration `0030_closed_application_stage` adds Closed and applies these rules to
 existing inactive postings. Local SQLite startup performs the same upgrade once.
+
+## Background matching
+
+Production source ingestion stores coalesced invalidations in `match_dirty_jobs`
+in the source transaction. The profile match worker computes scores without job
+or profile row locks, then locks the affected jobs, profiles and shared search
+marker in that order to verify sources and publish a bounded page. A changed
+source or cached assessment rejects the page; its invalidation remains queued.
+Acknowledgements include the invalidation revision so a newer event is never
+removed by an older worker pass. Existing saved stages remain available.
+
+Profile backfills commit at most 100 jobs per step. `profile_match_progress`
+stores the target matching version, job-ID cursor and initial high-water mark;
+new arrivals and later source updates are handled by the dirty-job queue. Stale
+profiles rotate between steps. Profile preference changes restart their scan;
+manual rematch and refreshed profile vectors reset the checkpoint even when the
+target preference hash is unchanged. Publication checks both the source snapshot
+and the persisted checkpoint before advancing. Only automatic untouched New
+entries can be retracted by changed matching results.
+
+While work is pending, Journey returns `matching_pending: true`, uses persisted
+ranks for sorting, and computes current card details only for the requested page.
+The client continues polling until background work finishes. Unfinished profile backfills
+have priority over semantic inference, AI selection and automatic preparation.
+After backfill, one dirty batch runs before each regular inference cycle so
+continuous ingestion cannot starve inference. SQLite keeps synchronous source/manual refresh compatibility.
+
+Apply migration `0037_journey_match_progress` before starting updated PostgreSQL
+processes. It adds the queue/checkpoint tables and requests one bounded
+reconciliation of existing profiles. Tables inherit the application's default
+migration grants; no new sequence privileges are needed. SQLite startup adds the
+tables with `create_all`. Run the profile match worker continuously: queued
+invalidations and checkpoints survive restarts, but cannot progress while it is
+stopped. Normal job search snapshot invalidation keeps its global generation;
+Journey page publication verifies only its batch, so unrelated ingestion cannot
+restart a whole inventory scan.
