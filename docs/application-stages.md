@@ -141,3 +141,25 @@ ORDER BY objid, granted, pid;
 
 Key 2 should appear only around commits; key 6 may span identity indexing and
 page publication. Worker ownership is key 4, and LLM process ownership is key 5.
+
+### Choosing the AI matching model
+
+Open **Settings → AI matching status**, choose the matching model and save.
+The setting applies to all profiles and matching workers on this server; it does
+not change the separate application-document model. The choices are GPT-6.1 Sol
+and GPT-6 Luna. Account access and subscription limits still apply. Until a
+choice is saved, `RADIUS_MATCH_AI_MODEL` remains the default.
+
+Apply migration `0038_ai_matching_model_setting` before starting the updated
+API and workers. The choice survives restarts. Model changes invalidate derived
+matching indexes and model-specific cache identities; an old in-flight model
+answer cannot become a current assessment after the switch. Usage counters are
+preserved.
+
+New AI assessments require an eligible, active, non-expired job in the saved
+search area with a local base score **strictly above 35/100** (36 or more for
+integer scores). The shortlist selects at most ten jobs or 10% of candidates
+rounded up, whichever is smaller, and at most two per employer. Subscription
+and call-budget limits also apply. A score above 35 therefore does not guarantee
+an AI review. Valid saved AI assessments are reused according to their source
+and model identity; the threshold governs new inference selection.

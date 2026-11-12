@@ -158,6 +158,17 @@ def status():
         elif login.get('state') == 'expired': data['login_state'] = 'expired'
         elif login.get('state') == 'error':
             data.update(login_state='error', login_error='Sign-in did not complete. Enable device code login in ChatGPT security settings, then try again.')
+        if data['login_state'] == 'expired':
+            # The deadline can pass before the monitor kills the child and
+            # releases its inherited lease. Do not offer retry until cleanup
+            # finishes, including the brief interval after writing "expired".
+            try:
+                with _lock(root):
+                    pass
+            except HTTPException as error:
+                if error.status_code != 409:
+                    raise
+                data['login_state'] = 'starting'
     return data
 
 

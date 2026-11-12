@@ -110,6 +110,17 @@ class CodexRuntimeTests(unittest.TestCase):
         self.assertFalse(runtime.status()['enabled'])
         self.assertFalse((self.root/'home/auth.json').exists())
 
+    def test_expiration_waits_for_login_runtime_cleanup(self):
+        runtime = self.module()
+        for state in ('pending', 'expired'):
+            with self.subTest(state=state):
+                with runtime._lock(self.root):
+                    runtime._write(self.root, {'state': state, 'expires_at': time.time() - 1})
+                    status = runtime.status()
+                    self.assertEqual(status['login_state'], 'starting')
+                    self.assertNotIn('user_code', status)
+                self.assertEqual(runtime.status()['login_state'], 'expired')
+
     def test_expired_sign_in_releases_the_runtime_for_a_new_attempt(self):
         runtime=self.module()
         with patch.object(runtime,'LOGIN_SECONDS',.2):

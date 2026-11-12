@@ -488,6 +488,15 @@ class AIMatchingSelection(Base):
     refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
+class AIMatchingSetting(Base):
+    """One durable matching configuration shared by the API and workers."""
+    __tablename__ = 'ai_matching_settings'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
 class AIMatchingCall(Base):
     """Global provider attempt reservations, independent of deletable match caches."""
     __tablename__ = 'ai_matching_calls'

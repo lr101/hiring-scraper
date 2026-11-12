@@ -7,7 +7,7 @@ type MatchingStatus = {
   indexing_pending?: boolean; selection_pending?: boolean
   queued_pairs: number; assessed_pairs: number; stale_assessments_pending: boolean
   last_assessed_at: string | null; checked_at: string
-  model: string; usage: { allowed?: boolean; reason?: string; used_percent?: number | null; resets_at?: string | null }
+  model: string; available_models?: string[]; usage: { allowed?: boolean; reason?: string; used_percent?: number | null; resets_at?: string | null }
 }
 function timestamp(value: string | null) {
   if (!value) return 'No successful assessment recorded'
@@ -47,6 +47,9 @@ export default function MatchingStatusPage() {
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
   const [rematching, setRematching] = useState(false)
+  const [model, setModel] = useState('')
+  const [savingModel, setSavingModel] = useState(false)
+  const [modelMessage, setModelMessage] = useState('')
   const [message, setMessage] = useState('')
   async function rematchAll() {
     setRematching(true); setMessage('')
@@ -61,6 +64,21 @@ export default function MatchingStatusPage() {
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Could not queue AI rematching. Please try again.') }
     finally { setRematching(false) }
   }
+  async function saveModel() {
+    setSavingModel(true); setModelMessage('')
+    try {
+      const response = await fetch(`${API}/api/v1/profile-matching/model`, {
+        method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ model })
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(typeof body?.detail === 'string' ? body.detail : 'Could not save the matching model. Please try again.')
+      }
+      setModelMessage('Matching model saved. New assessments will use it; eligible assessments are requeued without resetting the quota.')
+      setRevision(value => value + 1)
+    } catch (error) { setModelMessage(error instanceof Error ? error.message : 'Could not save the matching model. Please try again.') }
+    finally { setSavingModel(false) }
+  }
   useEffect(() => {
     const controller = new AbortController()
     let timer: ReturnType<typeof setTimeout>
@@ -69,7 +87,7 @@ export default function MatchingStatusPage() {
         const response = await fetch(`${API}/api/v1/profile-matching/status`, { cache: 'no-store', signal: controller.signal })
         if (!response.ok) throw new Error('Could not check AI matching status.')
         const value = await response.json() as MatchingStatus
-        if (!controller.signal.aborted) { setData(value); setError('') }
+        if (!controller.signal.aborted) { setData(value); setModel(current => current || value.model); setError('') }
       } catch { if (!controller.signal.aborted) setError('Could not check AI matching status. The information below may be out of date.') }
       finally { if (!controller.signal.aborted) timer = setTimeout(refresh, 30000) }
     }
@@ -85,6 +103,15 @@ export default function MatchingStatusPage() {
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p role="status">Checking AI matching…</p>}
       {data && <MatchingStatusDetails data={data} />}
+      {data && <section className="detail-panel settings-card" aria-labelledby="matching-model">
+        <h2 id="matching-model">AI matching model</h2>
+        <p>Choose the model used for new AI assessments. Existing eligible assessments are requeued as needed; this does not reset the five-hour quota.</p>
+        <label>Model <select aria-label="Model" value={model} disabled={savingModel} onChange={event => setModel(event.target.value)}>
+          {(data.available_models ?? [data.model]).map(option => <option key={option} value={option}>{option}</option>)}
+        </select></label>
+        <button type="button" disabled={savingModel || model === data.model} onClick={() => void saveModel()}>{savingModel ? 'Saving…' : 'Save model'}</button>
+        {modelMessage && <p role="status">{modelMessage}</p>}
+      </section>}
       <a href="/">Back to Journey</a>
     </main></div>
 }

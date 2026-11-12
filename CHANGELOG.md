@@ -10,7 +10,13 @@ no historical releases have been reconstructed.
 
 ## [Unreleased]
 
+### Added
+
+- Select the server-wide AI matching model in Settings → AI matching status. Migration `0038_ai_matching_model_setting` persists the choice across API and worker restarts; changing models refreshes matching without resetting usage budgets.
+
 ### Fixed
+
+- Keep expired ChatGPT sign-ins in a waiting state until runtime cleanup releases the connection, so an immediate sign-in retry can proceed.
 
 - Separate Journey vacancy identity unions from the short search-generation commit fence, defer busy background pages before row locks, and batch unchanged identity checks. Deploy with a coordinated application/worker restart so old and new identity writers do not overlap.
 
