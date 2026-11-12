@@ -659,6 +659,10 @@ def _persist_result(feed_id: int, run_id: int, metadata: dict, body: bytes,
             _requeue_search_scope(feed, run, _backoff(1, incomplete=True))
         current = {job.external_id: job for job in session.scalars(
             select(Job).where(Job.feed_id == feed.id).options(selectinload(Job.locations))).all()}
+        # Employer/new-row upserts can flush before the entire feed is staged.
+        # Reserve the full existing source/owner union in ascending order first.
+        from hiring_scraper.app.models import reserve_job_source_rows
+        reserve_job_source_rows(session, [job.id for job in current.values()], reserve_match_owners=True)
         seen = set()
         touched_jobs: set[Job] = set()
         closed_jobs: set[Job] = set()

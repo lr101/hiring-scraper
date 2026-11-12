@@ -12,6 +12,8 @@ no historical releases have been reconstructed.
 
 ### Fixed
 
+- Queue production Journey updates transactionally, commit restartable 100-job profile backfill pages, and keep saved Journey pages usable while matching catches up. Migration `0037_journey_match_progress` adds durable queue and progress state.
+
 - Show an accessible score graphic on job details, separate task evidence from desired titles, and require exact saved-source citations for AI dimension scores. Existing assessments refresh under the new scoring version.
 
 - Match documented core duties across job titles while preserving academic scope, formal qualifications, language requirements and source-backed evidence.

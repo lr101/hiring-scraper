@@ -17,7 +17,6 @@ import time
 
 from fastapi import HTTPException
 from sqlalchemy import and_, exists, func, or_, select, text
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app import codex_runtime, requirement_evidence
@@ -928,20 +927,12 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
                 # SQLite has no row locks; reserve its writer before checking the
                 # snapshot so a source edit cannot slip between verification/save.
                 session.connection().exec_driver_sql('BEGIN IMMEDIATE')
-            # Derived writers lock all profiles in ascending order. A source writer
-            # may already own the job; NOWAIT prevents a profile/job lock cycle.
-            locked_profiles = session.scalars(select(UserProfile).order_by(UserProfile.id).with_for_update()).all()
-            profile = next((row for row in locked_profiles if row.id == profile_id), None)
+            # Match source writers use job -> profile order. Inference finished
+            # before this transaction; publication only verifies and stores rows.
+            job = session.scalar(select(Job).where(Job.id == job_id).options(selectinload(Job.locations))
+                                 .with_for_update(key_share=True))
+            profile = session.scalar(select(UserProfile).where(UserProfile.id == profile_id).with_for_update())
             if profile is None:
-                return False
-            try:
-                job = session.scalar(select(Job).where(Job.id == job_id).options(selectinload(Job.locations))
-                                     .with_for_update(nowait=True))
-            except OperationalError as error:
-                if (getattr(error.orig, 'sqlstate', None) or getattr(error.orig, 'pgcode', None)) != '55P03':
-                    raise
-                session.rollback()
-                _RETRIES[retry_key] = (1, time.monotonic() + 30)
                 return False
             if job is None or not job.is_active or expiry(job)['expired'] or source_hash(job, profile) != digest:
                 return False
@@ -992,6 +983,8 @@ def requeue_all_assessments():
             result = session.execute(delete(ProfileLLMScore))
             session.execute(delete(AIMatchingSelection))
             session.execute(update(UserProfile).values(match_index_version=None))
+            from hiring_scraper.app.models import ProfileMatchProgress
+            session.execute(delete(ProfileMatchProgress))
             count = result.rowcount
             session.commit()
     _RETRIES.clear()

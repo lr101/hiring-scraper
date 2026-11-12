@@ -17,7 +17,9 @@ from hiring_scraper.app.application_deduplication import (
 )
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
-    Job, JobApplication, JobFeed, JobLocation, JobSearchState, ProfileJobMatch, UserProfile, utcnow,
+    Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
+    MatchSemanticDocument, ProfileLLMScore, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
+    reserve_job_source_rows,
 )
 from hiring_scraper.matching import VERSION, match_job
 from hiring_scraper.app.profile_semantics import cached_semantic_evidence
@@ -29,6 +31,7 @@ from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREME
 _PENDING_MATCH_MAX_BYTES = 1_048_576
 _MATCH_JOB_BATCH_SIZE = 500
 _MATCH_PROFILE_BATCH_SIZE = 100
+_MATCH_WORK_PAGE_SIZE = 100
 
 
 class ProfileIndexChanged(RuntimeError):
@@ -106,21 +109,120 @@ def profile_match_index_stale(profile: UserProfile) -> bool:
     return profile.match_index_version != _profile_index_version(profile)
 
 
+def _match_worker_owner(session: Session) -> bool:
+    return (session.get_bind().dialect.name != 'postgresql' or
+            bool(session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 4)'))))
+
+
 def refresh_profile_match_indexes_once() -> bool:
-    """Rebuild one stale profile outside HTTP requests; stale versions are the queue."""
+    """Commit one inventory page, rotating stale profiles between steps."""
     with SessionLocal() as session:
-        if session.get_bind().dialect.name == 'postgresql':
-            # Only one replica backfills at a time, without waiting for an owner
-            # or locking profiles while the expensive matching pass runs.
-            if not session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 4)')):
-                return False
-        profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
-        stale = next((profile for profile in profiles if profile_match_index_stale(profile)), None)
-        if stale is None:
+        if not _match_worker_owner(session):
             return False
-        rebuilt = ensure_profile_match_indexes(session, [stale])
+        profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
+        progress = {row.profile_id: row for row in session.scalars(select(ProfileMatchProgress))}
+        stale = [p for p in profiles if profile_match_index_stale(p)]
+        if not stale:
+            return False
+        # Unstarted profiles first, then least recently advanced. No profile can
+        # monopolize the worker while new jobs continue arriving.
+        profile = min(stale, key=lambda p: (p.id in progress,
+            progress[p.id].advanced_at.isoformat() if p.id in progress else '', p.id))
+        version = _profile_index_version(profile)
+        state = progress.get(profile.id)
+        checkpoint = ((state.version, state.cursor, state.high_water, state.advanced_at)
+                      if state is not None else None)
+        if state is None or state.version != version:
+            state = ProfileMatchProgress(profile_id=profile.id, version=version, cursor=0,
+                high_water=int(session.scalar(select(func.max(Job.id))) or 0))
+            # Persist only after the publication verifies the profile below.
+        ids = session.scalars(select(Job.id).where(
+            Job.id > state.cursor, Job.id <= state.high_water).order_by(Job.id)
+            .limit(_MATCH_WORK_PAGE_SIZE)).all()
+        _refresh_application_matches_for_jobs(session, ids, profile_ids=[profile.id], verify_sources=True)
+        locked = session.scalar(select(UserProfile).where(UserProfile.id == profile.id)
+            .with_for_update().execution_options(populate_existing=True))
+        if locked is None or _profile_index_version(locked) != version:
+            raise ProfileIndexChanged('Profile changed during inventory page')
+        persisted = session.execute(select(ProfileMatchProgress.version, ProfileMatchProgress.cursor,
+            ProfileMatchProgress.high_water, ProfileMatchProgress.advanced_at).where(
+                ProfileMatchProgress.profile_id == profile.id)).one_or_none()
+        if (tuple(persisted) if persisted is not None else None) != checkpoint:
+            raise ProfileIndexChanged('Backfill checkpoint was reset during matching')
+        # Explicit rematch may keep the same preference hash. Verify checkpoint
+        # identity as well so an in-flight page cannot restore a deleted cursor.
+        state.cursor = ids[-1] if ids else state.high_water
+        state.advanced_at = utcnow()
+        if len(ids) < _MATCH_WORK_PAGE_SIZE or state.cursor >= state.high_water:
+            locked.match_index_version = version
+            session.execute(delete(ProfileMatchProgress).where(ProfileMatchProgress.profile_id == profile.id))
+        else:
+            session.merge(state)
         session.commit()
-        return rebuilt
+        return True
+
+
+def refresh_dirty_job_matches_once() -> bool:
+    """Compute without row locks, then acknowledge exactly the verified revisions."""
+    with SessionLocal() as session:
+        if not _match_worker_owner(session):
+            return False
+        pending = session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)
+            .order_by(MatchDirtyJob.queued_at, MatchDirtyJob.job_id).limit(_MATCH_WORK_PAGE_SIZE)).all()
+        if not pending:
+            return False
+        _refresh_application_matches_for_jobs(session, [row.job_id for row in pending], verify_sources=True)
+        for job_id, revision in pending:
+            session.execute(delete(MatchDirtyJob).where(MatchDirtyJob.job_id == job_id,
+                                                       MatchDirtyJob.revision == revision))
+        session.commit()
+        return True
+
+
+def _batch_source_snapshot(session: Session, ids, profile_ids) -> str:
+    """Read source/evidence values directly, bypassing the ORM identity cache."""
+    job_feeds = select(Job.feed_id).where(Job.id.in_(ids))
+    feed_companies = select(JobFeed.company_id).where(JobFeed.id.in_(job_feeds))
+    employers = select(Job.employer_company_id).where(Job.id.in_(ids))
+    statements = [
+        select(Job.id, *(getattr(Job, name) for name in sorted(_JOB_MATCH_FIELDS)))
+            .where(Job.id.in_(ids)).order_by(Job.id),
+        select(JobLocation.__table__).where(JobLocation.job_id.in_(ids)).order_by(JobLocation.id),
+        select(JobFeed.id, JobFeed.company_id, JobFeed.provider, JobFeed.tenant, JobFeed.source_revision)
+            .where(JobFeed.id.in_(job_feeds)).order_by(JobFeed.id),
+        select(Company.id, Company.name, Company.domain, Company.state, Company.country_code,
+               Company.category, Company.source)
+            .where(Company.id.in_(employers) | Company.id.in_(feed_companies)).order_by(Company.id),
+        select(MatchSemanticDocument.__table__).where(MatchSemanticDocument.job_id.in_(ids) |
+            MatchSemanticDocument.profile_id.in_(profile_ids)).order_by(MatchSemanticDocument.id),
+        select(ProfileLLMScore.__table__).where(ProfileLLMScore.job_id.in_(ids),
+            ProfileLLMScore.profile_id.in_(profile_ids)).order_by(ProfileLLMScore.profile_id, ProfileLLMScore.job_id),
+    ]
+    return json.dumps([[list(row) for row in session.execute(query)] for query in statements], default=str,
+                      sort_keys=True, separators=(',', ':'))
+
+
+def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_publish=None) -> None:
+    """Production callers enqueue; SQLite/manual workflows stay self contained."""
+    if session.get_bind().dialect.name != 'postgresql':
+        _refresh_application_matches_for_jobs(session, job_ids, before_publish=before_publish)
+        return
+    ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
+    if not ids:
+        return
+    session.flush()
+    reserve_job_source_rows(session, ids)
+    if before_publish is not None:
+        # Only owners of affected saved stages participate in short retirement.
+        owners = select(JobApplication.profile_id).where(JobApplication.job_id.in_(ids))
+        session.scalars(select(UserProfile).where(UserProfile.id.in_(owners))
+                        .order_by(UserProfile.id).with_for_update()).all()
+        before_publish(session)
+    from uuid import uuid4
+    statement = _insert_for(session, MatchDirtyJob).values([
+        {'job_id': job_id, 'revision': uuid4().hex, 'queued_at': utcnow()} for job_id in ids])
+    session.execute(statement.on_conflict_do_update(index_elements=['job_id'],
+        set_={'revision': statement.excluded.revision}))
 
 
 def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> bool:
@@ -346,11 +448,13 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         return bool(stable_ids)
 
 
-def refresh_application_matches_for_jobs(
+def _refresh_application_matches_for_jobs(
     session: Session,
     job_ids: set[int] | list[int],
     *,
     before_publish: Callable[[Session], None] | None = None,
+    profile_ids: list[int] | None = None,
+    verify_sources: bool = False,
 ) -> None:
     """Refresh derived matches and create New only for newly visible default-area matches."""
     ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
@@ -358,15 +462,17 @@ def refresh_application_matches_for_jobs(
         return
     # Make pending source updates visible before computing incremental matches.
     session.flush()
-    profiles = session.scalars(
-        select(UserProfile).order_by(UserProfile.id).execution_options(populate_existing=True)
-    ).all()
+    profile_query = select(UserProfile).order_by(UserProfile.id).execution_options(populate_existing=True)
+    if profile_ids is not None:
+        profile_query = profile_query.where(UserProfile.id.in_(profile_ids))
+    profiles = session.scalars(profile_query).all()
     if not profiles:
         index_vacancy_identities(session, ids)
         if before_publish is not None:
             before_publish(session)
         return
     profile_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
+    source_snapshot = _batch_source_snapshot(session, ids, list(profile_versions)) if verify_sources else None
     search_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
     now = utcnow()
     with SpooledTemporaryFile(max_size=_PENDING_MATCH_MAX_BYTES, mode="w+t", encoding="utf-8") as pending_spool:
@@ -427,6 +533,8 @@ def refresh_application_matches_for_jobs(
 
         # One invocation can span many batches. Keep the profile rows unlocked
         # through every matching pass, then serialize the derived writes together.
+        if verify_sources:
+            reserve_job_source_rows(session, ids)
         current_profiles = session.scalars(select(UserProfile).where(
             UserProfile.id.in_(list(profile_versions))
         ).order_by(UserProfile.id).with_for_update().execution_options(populate_existing=True)).all()
@@ -437,7 +545,12 @@ def refresh_application_matches_for_jobs(
         affected_vacancy_groups = index_vacancy_identities(session, ids)
         # Assessment publication also owns profile locks, so a committed change
         # observed here cannot race past the derived writes that follow.
-        if int(session.scalar(select(func.max(JobSearchState.id))) or 0) != search_generation:
+        if verify_sources:
+            if _batch_source_snapshot(session, ids, list(profile_versions)) != source_snapshot:
+                raise ProfileIndexChanged("Batch sources or evidence changed during matching")
+            if any(_profile_index_version(profile) != profile_versions[profile.id] for profile in current_profiles):
+                raise ProfileIndexChanged("Profile changed during matching")
+        elif int(session.scalar(select(func.max(JobSearchState.id))) or 0) != search_generation:
             raise ProfileIndexChanged("Search evidence changed during incremental matching")
         stable_profiles = [profile for profile in current_profiles
                            if _profile_index_version(profile) == profile_versions[profile.id]]

@@ -527,6 +527,24 @@ class MatchSemanticDocument(Base):
     indexed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
+class MatchDirtyJob(Base):
+    """Coalesced transactional invalidations; revision makes acknowledgements safe."""
+    __tablename__ = "match_dirty_jobs"
+    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    revision: Mapped[str] = mapped_column(String(32), nullable=False)
+    queued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+
+
+class ProfileMatchProgress(Base):
+    """Restartable high-water scan; one committed inventory page per worker step."""
+    __tablename__ = "profile_match_progress"
+    profile_id: Mapped[int] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), primary_key=True)
+    version: Mapped[str] = mapped_column(String(40), nullable=False)
+    cursor: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    high_water: Mapped[int] = mapped_column(Integer, nullable=False)
+    advanced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
 class JobSearchState(Base):
     """Append-only change marker; its generated ID is a cheap search generation."""
     __tablename__ = "job_search_state"
@@ -674,9 +692,25 @@ def _lock_job_source_rows(connection, job_ids) -> None:
                             .order_by(Job.id).with_for_update(key_share=True)).all()
 
 
-def reserve_job_source_rows(session: Session, job_ids) -> None:
-    """Reserve a known batch of existing jobs before a caller can flush rows."""
-    _lock_job_source_rows(session.connection(), job_ids)
+def _reserve_match_owners(connection, job_ids) -> None:
+    if connection.dialect.name == 'sqlite' or not job_ids:
+        return
+    # Saved-stage owners also participate in source retirement. Reserve the
+    # ordered union before invalidation, so retirement cannot add a lower-ID
+    # owner after a cached assessment owner is already held.
+    owners = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id.in_(job_ids)).union(
+        select(JobApplication.profile_id).where(JobApplication.job_id.in_(job_ids)))
+    connection.execute(select(UserProfile.id).where(UserProfile.id.in_(owners))
+                       .order_by(UserProfile.id).with_for_update()).all()
+
+
+def reserve_job_source_rows(session: Session, job_ids, *, reserve_match_owners: bool = False) -> None:
+    """Reserve a known batch before multi-flush source ingestion starts."""
+    ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
+    connection = session.connection()
+    _lock_job_source_rows(connection, ids)
+    if reserve_match_owners:
+        _reserve_match_owners(connection, ids)
 
 
 def _reserve_changed_job_sources(session: Session, connection) -> None:
@@ -716,11 +750,8 @@ def _reserve_changed_job_sources(session: Session, connection) -> None:
     _lock_job_source_rows(connection, written_job_ids | source_job_ids)
     if connection.dialect.name == 'sqlite':
         return
-    # Incremental match publication locks every profile in ID order after the
-    # changed jobs. Reserve that same complete set before cache invalidation;
-    # otherwise two writers can each invalidate a different profile and then
-    # deadlock when publication asks for the full ordered set.
-    connection.execute(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
+    # Reserve only the complete ordered owner set for these source rows.
+    _reserve_match_owners(connection, source_job_ids)
 
 
 @event.listens_for(Session, "before_flush")
@@ -827,6 +858,62 @@ def _invalidate_job_search_snapshots(session: Session, _flush_context, _instance
         session.info["job_search_generation_dirty"] = True
 
 
+@event.listens_for(Session, "before_flush")
+def _collect_match_invalidations(session: Session, _flush_context, _instances) -> None:
+    pending = session.info.setdefault("match_dirty_sources", [])
+    for item in (*session.new, *session.dirty, *session.deleted):
+        fields = _SEARCH_FIELDS.get(type(item))
+        if fields is None:
+            continue
+        changed = (item in session.new or item in session.deleted or
+                   any(inspect(item).attrs[name].history.has_changes() for name in fields))
+        if isinstance(item, Job) and inspect(item).attrs.locations.history.has_changes():
+            changed = True
+        if changed:
+            pending.append(item)
+
+
+@event.listens_for(Session, "after_flush_postexec")
+def _queue_match_invalidations(session: Session, _flush_context) -> None:
+    from uuid import uuid4
+    from sqlalchemy import literal
+    from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+    from sqlalchemy.dialects.postgresql import insert as postgres_insert
+
+    connection = session.connection()
+    insert_queue = sqlite_insert if connection.dialect.name == 'sqlite' else postgres_insert
+    for item in session.info.pop("match_dirty_sources", []):
+        if isinstance(item, Job):
+            ids = select(Job.id).where(Job.id == item.id)
+        elif isinstance(item, (JobLocation, ProfileLLMScore, MatchSemanticDocument)):
+            job_id = item.job_id
+            if isinstance(item, JobLocation) and job_id is None and item.job is not None:
+                job_id = item.job.id
+            if job_id is None:
+                if isinstance(item, MatchSemanticDocument) and item.profile_id is not None:
+                    connection.execute(delete(ProfileMatchProgress).where(
+                        ProfileMatchProgress.profile_id == item.profile_id))
+                    connection.execute(update(UserProfile).where(UserProfile.id == item.profile_id)
+                                       .values(match_index_version=None))
+                continue
+            ids = select(Job.id).where(Job.id == job_id)
+        elif isinstance(item, JobFeed):
+            ids = select(Job.id).where(Job.feed_id == item.id)
+        elif isinstance(item, Company):
+            feeds = select(JobFeed.id).where(JobFeed.company_id == item.id)
+            ids = select(Job.id).where((Job.feed_id.in_(feeds)) | (Job.employer_company_id == item.id))
+        else:
+            continue
+        # INSERT SELECT must have a WHERE for SQLite's ON CONFLICT parser.
+        statement = insert_queue(MatchDirtyJob).from_select(
+            ['job_id', 'revision', 'queued_at'],
+            select(Job.id, literal(uuid4().hex), literal(utcnow())).where(Job.id.in_(ids)))
+        connection.execute(statement.on_conflict_do_update(index_elements=['job_id'], set_={
+            'revision': statement.excluded.revision,
+            # Keep first-dirty order so frequently updated jobs cannot starve.
+        }))
+
+
 @event.listens_for(Session, "before_commit")
 def _commit_job_search_generation(session: Session) -> None:
     # Finish domain writes first. Holding the shared marker during a feed/job
@@ -848,6 +935,7 @@ def _commit_job_search_generation(session: Session) -> None:
 @event.listens_for(Session, "after_rollback")
 def _reset_job_search_generation_flag(session: Session) -> None:
     session.info.pop("job_search_generation_dirty", None)
+    session.info.pop("match_dirty_sources", None)
 
 
 class ScanRun(Base):
