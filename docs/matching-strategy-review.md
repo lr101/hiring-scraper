@@ -148,3 +148,34 @@ never average scores with different meanings or let favorable AI preferences
 clear known static incompatibilities. Separate task qualification, mandatory
 eligibility and uncertainty in the result. Cached judgments invalidate on relevant
 source changes; only jobs still in the bounded pool are automatically refreshed.
+
+## Diagnosing a stalled assessment queue
+
+The profile matching worker gives local index pages, dirty jobs, semantic
+embeddings, AI assessments, and automatic preparation a turn each cycle.
+A pending or failed index page must not skip later stages: AI selection reads
+current source facts directly and validates them again before saving an answer.
+Shortlist preparation also runs before quota checks so a connection pause does
+not prevent the worker from persisting its selection.
+
+When Settings shows queued pairs but no successful assessment:
+
+- Confirm background workers are enabled (`RUN_BACKGROUND_WORKERS=true`) and
+  look for `profile match worker started` in the app logs. The status endpoint's
+  `worker_health: unknown` is not a heartbeat or proof the process is alive.
+- Check `indexing_pending` and `selection_pending`. A cold selection count is an
+  estimate before shortlist caps; it does not promise that every pair will receive
+  an assessment. Selection expires after a minute, so a stale selection alone
+  does not prove the worker has stopped.
+- Check subscription availability and the separate five-hour call budget. Worker
+  logs report `AI matching paused` with a safe reason. A zero subscription usage
+  percentage alone does not establish that inference is allowed.
+- Look for `Profile assessment failed` entries. They identify the candidate and
+  exception type without logging prompts, applicant facts, or provider responses.
+  Failed candidates use bounded exponential backoff, allowing other candidates
+  to proceed. Repeated errors need investigation of the runtime or validation
+  path; do not bypass eligibility, quota, or source validation to drain a queue.
+
+Deploy worker changes with an application restart. Verify that a permitted
+candidate produces a saved assessment and advances `last_assessed_at` on the
+actual deployment; passing local tests cannot confirm production runtime access.

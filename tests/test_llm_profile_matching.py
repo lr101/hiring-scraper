@@ -1000,6 +1000,19 @@ class PersistedAssessmentTests(unittest.TestCase):
                 with self.factory() as session:
                     self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
 
+    def test_paused_usage_still_prepares_selection_without_spending_calls(self):
+        calls = []
+        self.assertFalse(self.refresh(
+            generate=lambda *args, **kwargs: calls.append(True),
+            usage=lambda: {'allowed': False, 'reason': 'usage_unavailable'}))
+        self.assertEqual(calls, [])
+        with self.factory() as session:
+            selection = session.get(models.AIMatchingSelection, self.profile_id)
+            self.assertIsNotNone(selection)
+            self.assertIn(self.job_id, selection.job_ids)
+            self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+        self.assertTrue(self.refresh())
+
     def test_worker_allows_usage_above_fifty(self):
         self.assertTrue(self.refresh(generate=lambda *a, **kw: assessment(),
                                     usage=lambda: {'allowed': True, 'used_percent': 75}))
@@ -1484,6 +1497,27 @@ class PersistedAssessmentTests(unittest.TestCase):
 
 
 class ManagedWorkerTests(unittest.TestCase):
+    def test_backfill_progress_and_failures_do_not_starve_other_stages(self):
+        from hiring_scraper.app import profile_match_worker as worker
+        for outcome in (True, RuntimeError('Index unavailable'), worker.ProfileIndexChanged('Inputs changed')):
+            with self.subTest(outcome=outcome):
+                events = []
+                def backfill():
+                    if isinstance(outcome, Exception):
+                        raise outcome
+                    return outcome
+                def stop(_seconds):
+                    raise InterruptedError('Stop managed loop')
+                with patch.object(worker, 'refresh_profile_match_indexes_once', backfill), \
+                     patch.object(worker, 'refresh_dirty_job_matches_once', lambda: events.append('dirty')), \
+                     patch.object(worker, 'refresh_semantic_documents_once', lambda: events.append('semantics')), \
+                     patch.object(worker, 'refresh_llm_scores_once', lambda: events.append('llm')), \
+                     patch.object(worker, 'prepare_once', lambda: events.append('preparation')), \
+                     patch.object(worker.time, 'sleep', stop):
+                    with self.assertRaises(InterruptedError):
+                        worker.main()
+                self.assertEqual(events, ['dirty', 'semantics', 'llm', 'preparation'])
+
     def test_worker_keeps_rule_and_semantic_cycles_when_llm_pauses(self):
         from hiring_scraper.app import profile_match_worker as worker
         self.assertTrue(hasattr(worker, 'refresh_llm_scores_once'), 'Managed worker does not schedule LLM scoring')

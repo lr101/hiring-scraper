@@ -965,8 +965,6 @@ def _engine_cache_key(engine):
 def refresh_llm_scores_once(*, generate=None, usage=None):
     """Assess one prioritized/exploratory job, then verify locked sources before publishing."""
     from hiring_scraper.app.ai_matching_budget import status as budget_status
-    if not budget_status(SessionLocal)['remaining']:
-        return False
     generate = generate or codex_runtime.generate
     usage = usage or codex_runtime.subscription_usage
     with SessionLocal() as session:
@@ -975,13 +973,23 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
     with _inference_lease(engine) as acquired:
         if not acquired:
             return False
-        quota = usage()
-        if not _subscription_allows_matching(quota):
-            return False
         with SessionLocal() as session:
             config = matching_config(session)
             snapshot = _candidate_snapshot(session, engine_key, config)
         if snapshot is None:
+            return False
+        # Selection is local work and must remain observable even when the
+        # provider is disconnected or quota cannot currently be read.
+        if not budget_status(SessionLocal)['remaining']:
+            LOG.info('AI matching paused: local five-hour call budget exhausted')
+            return False
+        quota = usage()
+        if not _subscription_allows_matching(quota):
+            # Only log known reason codes; provider payloads may contain secrets.
+            reason = quota.get('reason')
+            if reason not in {'disconnected', 'usage_unavailable', 'usage_limit_reached'}:
+                reason = 'subscription_not_allowed'
+            LOG.info('AI matching paused: %s', reason)
             return False
         profile_id, job_id, digest, prompt, config = snapshot
         retry_key = (engine_key, profile_id, job_id, digest)
@@ -996,12 +1004,13 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
             sources = json.loads(prompt.split('\nDATA:\n', 1)[1])['evidence_sources']
             checked = validate_assessment(raw, sources)
             raw = {key: checked[key] for key in SCHEMA['properties']}
-        except Exception:
+        except Exception as error:
             attempts = _RETRIES.get(retry_key, (0, 0))[0] + 1
             if len(_RETRIES) >= 4096:
                 _RETRIES.pop(next(iter(_RETRIES)))
             _RETRIES[retry_key] = (attempts, time.monotonic() + min(1800, 30 * 2 ** min(attempts - 1, 6)))
-            LOG.warning('Profile assessment failed; candidate deferred for retry (profile=%s job=%s)', profile_id, job_id)
+            LOG.warning('Profile assessment failed; candidate deferred for retry (profile=%s job=%s error_type=%s)',
+                        profile_id, job_id, type(error).__name__)
             return False
         with SessionLocal() as session:
             if session.get_bind().dialect.name == 'sqlite':

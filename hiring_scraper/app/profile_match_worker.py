@@ -21,26 +21,16 @@ def main() -> None:
     next_llm_attempt = 0.0
     next_preparation_attempt = 0.0
     while True:
-        backfill_pending = False
         for refresh in (refresh_profile_match_indexes_once, refresh_dirty_job_matches_once):
             try:
-                refreshed = refresh()
-                if refresh is refresh_profile_match_indexes_once:
-                    backfill_pending = bool(refreshed)
+                refresh()
             except ProfileIndexChanged:
                 LOG.warning("Matching inputs changed; retrying the affected page next cycle")
-                if refresh is refresh_profile_match_indexes_once:
-                    backfill_pending = True
             except Exception:
                 LOG.exception("Could not refresh profile matches; retrying next cycle")
-                if refresh is refresh_profile_match_indexes_once:
-                    backfill_pending = True
-        if backfill_pending:
-            # Finish stale profiles before potentially lengthy AI selection.
-            # Once backfill is fresh, dirty batches still precede each AI cycle
-            # without permanently starving inference under steady ingestion.
-            time.sleep(POLL_SECONDS)
-            continue
+        # Each stage gets a turn even during backfill or a failed index page.
+        # AI selection reads current source facts and validates them again on
+        # publication; it does not depend on the materialized local index.
         if time.monotonic() >= next_semantic_attempt:
             try:
                 refresh_semantic_documents_once()

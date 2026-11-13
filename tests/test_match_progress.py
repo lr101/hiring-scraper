@@ -72,8 +72,12 @@ class MatchProgressTests(unittest.TestCase):
         from hiring_scraper.app import profile_match_worker
         class EndIteration(BaseException):
             pass
+        observed_cursors = []
         def expensive_work():
-            raise AssertionError('AI selection delayed the next local page')
+            with self.factory() as session:
+                progress = session.get(models.ProfileMatchProgress, self.profile_id)
+                self.assertIsNotNone(progress, 'Local backfill must commit before AI stages')
+                observed_cursors.append(progress.cursor)
         with patch.object(job_search, 'SessionLocal', self.factory), \
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', expensive_work), \
@@ -84,6 +88,7 @@ class MatchProgressTests(unittest.TestCase):
                 with self.assertRaises(EndIteration):
                     profile_match_worker.main()
             self.assertFalse(any('ERROR' in line for line in logs.output), logs.output)
+        self.assertEqual(observed_cursors, [self.job_ids[1]] * 3)
         with self.factory() as session:
             self.assertIsNotNone(session.get(models.ProfileMatchProgress, self.profile_id))
 
