@@ -156,10 +156,17 @@ matching indexes and model-specific cache identities; an old in-flight model
 answer cannot become a current assessment after the switch. Usage counters are
 preserved.
 
-New AI assessments require an eligible, active, non-expired job in the saved
-search area with a local base score **strictly above 35/100** (36 or more for
-integer scores). The shortlist selects at most ten jobs or 10% of candidates
-rounded up, whichever is smaller, and at most two per employer. Subscription
-and call-budget limits also apply. A score above 35 therefore does not guarantee
-an AI review. Valid saved AI assessments are reused according to their source
-and model identity; the threshold governs new inference selection.
+AI matching now queues every active, non-expired job in the saved search area,
+including low local scores and known qualification conflicts. Conflicts still
+constrain the published result. There are no shortlist, employer, or local provider
+call-budget caps. `RADIUS_MATCH_AI_CONCURRENCY` defaults to four simultaneous calls.
+Migration `0039_durable_ai_matching_queue` adds persistent task claims, retries,
+progress, and worker heartbeat state; deploy it before restarting API and workers.
+Queue reconciliation runs once a minute independently of local indexing. Failed
+items retry with durable exponential backoff and expired claims recover after
+40 minutes. Every provider attempt retains the subscription quota guard.
+
+AI publication updates Journey's stored ranks before pagination. Existing eligible
+entries stay visible when a lower AI score falls below the new-entry minimum;
+match ordering moves them down. Source/model changes invalidate judgments and
+queue a fresh review; ordinary restarts retain successful results.

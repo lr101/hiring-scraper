@@ -479,13 +479,35 @@ class ProfileJobMatch(Base):
 
 
 class AIMatchingSelection(Base):
-    """Small background-selected pool for cheap cross-process status reads."""
+    """Last reconciled in-scope inventory for cross-process queue readiness."""
     __tablename__ = 'ai_matching_selections'
 
     profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
     source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     job_ids: Mapped[list] = mapped_column(JSON, nullable=False)
     refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class AIMatchingTask(Base):
+    """Durable assessment work; a token fences publication after lease recovery."""
+    __tablename__ = 'ai_matching_tasks'
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    version: Mapped[str] = mapped_column(String(160), nullable=False)
+    state: Mapped[str] = mapped_column(String(16), nullable=False, default='pending', index=True)
+    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    token: Mapped[str | None] = mapped_column(String(32))
+    error_type: Mapped[str | None] = mapped_column(String(100))
+
+
+class AIMatchingWorker(Base):
+    __tablename__ = 'ai_matching_workers'
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class AIMatchingSetting(Base):

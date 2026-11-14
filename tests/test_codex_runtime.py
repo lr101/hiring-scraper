@@ -41,6 +41,28 @@ class CodexRuntimeTests(unittest.TestCase):
         home=self.root/'home'; home.mkdir(exist_ok=True)
         (home/'auth.json').write_text(json.dumps({'auth_mode':mode}))
 
+    def test_generate_runs_parallel_subprocesses(self):
+        from concurrent.futures import ThreadPoolExecutor
+        runtime = self.module(); self.connect()
+        (self.root / 'fixture.json').write_text(json.dumps({'delay': .2}))
+        barrier = threading.Barrier(2)
+        def generate():
+            barrier.wait(timeout=5)
+            return runtime.generate('CV', {'type': 'object'})
+        with ThreadPoolExecutor(2) as pool:
+            results = list(pool.map(lambda _: generate(), range(2)))
+        self.assertEqual(results, [{'answer': 'prepared'}, {'answer': 'prepared'}])
+
+    def test_parallel_inference_slots_keep_account_mutations_exclusive(self):
+        runtime = self.module(); self.connect()
+        # A second generation lease must coexist, while sign-in/disconnect stays exclusive.
+        with runtime._generation_lease(self.root):
+            with runtime._generation_lease(self.root):
+                with self.assertRaises(HTTPException):
+                    with runtime._lock(self.root):
+                        pass
+                self.assertTrue(runtime.subscription_usage()['allowed'])
+
     def test_api_key_environment_cannot_enable_subscription_preparation(self):
         runtime=self.module()
         self.assertFalse(runtime.status()['enabled'])

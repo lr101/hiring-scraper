@@ -15,12 +15,10 @@ solve the missing job-side requirements.
 ## Decision
 
 Use local rules and semantic similarity for inexpensive candidate preselection,
-then AI requirement assessment for selected jobs. The worker uses the bounded
-priority/exploration pool described below; it does not eventually assess every
-unassessed job. Exploration can include unfamiliar wording within that pool.
-Explicit known
-incompatibilities, closed/expired jobs, source checks and subscription limits
-remain enforced. This is a recall-oriented shortlist, not
+then AI requirement assessment for selected jobs. The worker drains a durable queue of every active, non-expired job in the saved
+search area, including unfamiliar wording and low local scores. Known
+incompatibilities constrain published judgments; source checks and subscription
+limits remain enforced. This is a recall-oriented shortlist, not
 proof of fit. Local numbers shown in Radius retain their evidence-based calibration and remain provisional;
 the local/AI source and connection or quota status remain distinguishable.
 Saved minimum-score filters can admit grounded local estimates without waiting for AI.
@@ -119,40 +117,27 @@ processed without fabricating a requirement. They do not replace the judged-job
 benchmark.
 
 
-## Selective AI policy and combining scores
+## Full AI coverage and combining scores
 
-Static matching and cached local embeddings process the inventory without paid
-inference. The automatic AI pool is at most 10% of locally eligible jobs, rounded
-up, capped at ten per profile and two per employer. About 80% are the highest
-static candidates; the balance samples task/static disagreement and uncertainty.
-Unknown eligibility is distinct from a known blocker. This is a relevance and
-value-of-information heuristic, still requiring independent quality evaluation.
+Static matching and cached local embeddings provide provisional estimates while
+AI reviews all active, in-scope, non-expired jobs. There is no static-score,
+employer, shortlist, or local five-hour call cap. Queue state, retry times, and
+fenced expiring claims are durable. Four provider requests can run concurrently by
+default (`RADIUS_MATCH_AI_CONCURRENCY`); actual subscription availability gates
+every attempt, including repairs and transport retries. Exhaustion pauses dispatch
+and capacity recovery resumes it. Calls already in flight can finish afterward.
 
-Compute pool membership from static evidence including jobs already assessed by
-AI. A rejected assessment must not free a slot for another job automatically;
-otherwise a small batch size eventually becomes an all-inventory AI sweep.
-Profile/job facts and inventory changes can legitimately change the pool. The
-persisted global rolling-five-hour provider-call budget defaults to 50, and counts
-repairs and unsuccessful attempts as well as successful assessments. There is no
-50% subscription usage cutoff. Connection, quota availability and provider
-exhaustion checks still apply. This controls automatic matching calls, not unrelated CV generation
-or other activity on the account.
-Actual quota exhaustion is rechecked under the runtime lock before every provider
-attempt, including repairs and timeout retries. Usage below 100% remains eligible;
-unavailable or exhausted quota does not start inference. A missing qualification
-score remains unknown when an academic-scope ceiling is applied.
-
-For unselected jobs retain the explicitly provisional static estimate and its
-uncertainty. For selected jobs use a current grounded AI requirement judgment;
-never average scores with different meanings or let favorable AI preferences
-clear known static incompatibilities. Separate task qualification, mandatory
-eligibility and uncertainty in the result. Cached judgments invalidate on relevant
-source changes; only jobs still in the bounded pool are automatically refreshed.
+Use a current grounded AI requirement judgment when available; never average
+scores with different meanings or let favorable AI preferences clear known static
+incompatibilities. Cached judgments invalidate on relevant source/model changes.
+AI publication refreshes Journey's stored match ranks before pagination. Existing
+eligible entries move down when their score falls, even below the new-entry
+minimum, instead of disappearing solely due to the new score.
 
 ## Diagnosing a stalled assessment queue
 
-The profile matching worker gives local index pages, dirty jobs, semantic
-embeddings, AI assessments, and automatic preparation a turn each cycle.
+The profile matching worker runs a separate concurrent AI scheduler alongside
+local index pages, dirty jobs, semantic embeddings, and automatic preparation.
 A pending or failed index page must not skip later stages: AI selection reads
 current source facts directly and validates them again before saving an answer.
 Shortlist preparation also runs before quota checks so a connection pause does
@@ -162,17 +147,15 @@ When Settings shows queued pairs but no successful assessment:
 
 - Confirm background workers are enabled (`RUN_BACKGROUND_WORKERS=true`) and
   look for `profile match worker started` in the app logs. The status endpoint's
-  `worker_health: unknown` is not a heartbeat or proof the process is alive.
-- Check `indexing_pending` and `selection_pending`. A cold selection count is an
-  estimate before shortlist caps; it does not promise that every pair will receive
-  an assessment. Selection expires after a minute, so a stale selection alone
-  does not prove the worker has stopped.
-- Check subscription availability and the separate five-hour call budget. Worker
-  logs report `AI matching paused` with a safe reason. A zero subscription usage
-  percentage alone does not establish that inference is allowed.
-- Look for `Profile assessment failed` entries. They identify the candidate and
+  `worker_health: unknown` means no heartbeat is recorded; `stale` means the
+  scheduler has not reported within 90 seconds.
+- Check `selection_pending`: counts become available after the initial queue
+  reconciliation. `indexing_pending` does not block AI work.
+- Check subscription availability. A zero usage percentage alone does not
+  establish that inference is allowed. There is no separate application call cap.
+- Look for `Profile assessment deferred` entries. They identify the candidate and
   exception type without logging prompts, applicant facts, or provider responses.
-  Failed candidates use bounded exponential backoff, allowing other candidates
+  Failed candidates use durable exponential backoff, allowing other candidates
   to proceed. Repeated errors need investigation of the runtime or validation
   path; do not bypass eligibility, quota, or source validation to drain a queue.
 

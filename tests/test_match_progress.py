@@ -81,14 +81,14 @@ class MatchProgressTests(unittest.TestCase):
         with patch.object(job_search, 'SessionLocal', self.factory), \
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', expensive_work), \
-                patch.object(profile_match_worker, 'refresh_llm_scores_once', expensive_work), \
+                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', expensive_work), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration):
             with self.assertLogs(profile_match_worker.LOG, level='INFO') as logs:
                 with self.assertRaises(EndIteration):
                     profile_match_worker.main()
             self.assertFalse(any('ERROR' in line for line in logs.output), logs.output)
-        self.assertEqual(observed_cursors, [self.job_ids[1]] * 3)
+        self.assertEqual(observed_cursors, [self.job_ids[1]] * 2)
         with self.factory() as session:
             self.assertIsNotNone(session.get(models.ProfileMatchProgress, self.profile_id))
 
@@ -188,7 +188,7 @@ class MatchProgressTests(unittest.TestCase):
                              side_effect=job_search.ProfileIndexChanged('retry page')), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: None), \
-                patch.object(profile_match_worker, 'refresh_llm_scores_once', lambda: False), \
+                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: None):
             with self.assertLogs(profile_match_worker.LOG):
                 with self.assertRaises(EndIteration):
@@ -226,11 +226,11 @@ class MatchProgressTests(unittest.TestCase):
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: events.append('semantic')), \
-                patch.object(profile_match_worker, 'refresh_llm_scores_once', lambda: events.append('ai')), \
+                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: events.append('prepare')):
             with self.assertRaises(EndIteration):
                 profile_match_worker.main()
-        self.assertEqual(events, ['semantic', 'ai', 'prepare'])
+        self.assertEqual(events, ['semantic', 'prepare'])
         with self.factory() as session:
             self.assertEqual(len(session.scalars(select(models.MatchDirtyJob)).all()), 3)
 

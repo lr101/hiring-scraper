@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from copy import deepcopy
-from datetime import timezone
+from datetime import timedelta, timezone
 import fcntl
 import hashlib
 import json
@@ -13,18 +13,17 @@ import os
 import re
 from pathlib import Path
 import tempfile
-import time
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import and_, exists, func, or_, select, text
+from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.orm import object_session, selectinload
 
 from hiring_scraper.app import codex_runtime, requirement_evidence
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, Job, JobApplication, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
+from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, AIMatchingTask, AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job, required_application_artifact
 from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity, scoped_sentences, structured_text
@@ -41,18 +40,12 @@ if EFFORT not in {'low', 'medium', 'high', 'xhigh', 'max', 'ultra'}:
 # provider judgment or publishes it under the new model's name.
 VERSION = f'profile-v18-dimension-citations:{MODEL}:{EFFORT}'
 AVAILABLE_MODELS = ('gpt-6.1-sol', 'gpt-6-luna')
-MIN_AI_BASE_SCORE = 35
 WEIGHTS = {'skills': .30, 'experience': .25, 'behavioral': .15, 'career_alignment': .30}
 GATES = ('location', 'language', 'eligibility')
 JOB_FIELDS = (*SOURCE_FIELDS, 'department', 'date_posted', 'is_active', 'closed_at')
 _ASSESSMENT_CAPTURE_FIELDS = frozenset({
     'source_observed_at', 'source_api_url', 'search_terms', 'detail_state',
 })
-_RETRIES = {}
-_CURSORS = {}
-_QUEUE_NEXT = {}
-_SELECTION_CACHE = {}
-_SELECTION_TTL_SECONDS = 60
 
 
 class MatchingConfig:
@@ -98,7 +91,6 @@ def set_matching_model(model):
         # process to observe the new cache provenance on their next snapshot.
         session.query(UserProfile).update({UserProfile.match_index_version: None})
         session.commit()
-    _SELECTION_CACHE.clear()
     return {'model': model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': EFFORT}
 
 
@@ -810,7 +802,7 @@ def apply_cached_assessment(local, job, profile, documents):
 
 @contextmanager
 def _inference_lease(engine):
-    """Single owner across replicas; no database transaction stays open in inference."""
+    """Serialize queue reconciliation/rematch across replicas, never model inference."""
     if engine.dialect.name == 'postgresql':
         with engine.connect().execution_options(isolation_level='AUTOCOMMIT') as connection:
             acquired = bool(connection.scalar(text('SELECT pg_try_advisory_lock(85793011, 5)')))
@@ -845,173 +837,145 @@ def _inference_lease(engine):
             fcntl.flock(descriptor, fcntl.LOCK_UN)
 
 
-def _selection_key(session, profile, config):
-    return (session.get_bind(), profile.id, _hash(profile.matching_preferences), config.version)
-
-
-def _selected_job_ids(session, profile, config=None):
-    # AI outcomes do not change this static-only pool. Bound inventory rescans
-    # to once a minute; source_hash still verifies each selected job before use.
-    config = config or matching_config(session)
-    key = _selection_key(session, profile, config)
-    cached = _SELECTION_CACHE.get(key)
-    if cached is not None and time.monotonic() - cached[0] < _SELECTION_TTL_SECONDS:
-        return list(cached[1])
-    selected = _compute_selected_job_ids(session, profile)
-    if len(_SELECTION_CACHE) >= 256:
-        _SELECTION_CACHE.pop(next(iter(_SELECTION_CACHE)))
-    _SELECTION_CACHE[key] = (time.monotonic(), tuple(selected))
-    # The API and worker have separate processes. Persist only IDs/fingerprint,
-    # never prompts or applicant facts, for inexpensive status diagnostics.
-    session.merge(AIMatchingSelection(profile_id=profile.id,
-        source_hash=_hash([config.version, profile.matching_preferences]),
-        job_ids=selected, refreshed_at=utcnow()))
-    session.commit()
-    return selected
-
-
 def _compute_selected_job_ids(session, profile):
-    """Compute a bounded pool from local evidence, including cached rejections.
-
-    Scanning local evidence costs no provider calls. Rejected AI jobs must remain
-    in this population so subsequent worker passes cannot drain the inventory.
-    """
+    """All active in-scope jobs; local evidence affects priority, never coverage."""
     from hiring_scraper.app.ai_match_selection import in_search_area, select_cases
-    from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-    rows = []
-    statement = (select(Job).where(Job.is_active.is_(True))
-        .options(selectinload(Job.locations), selectinload(Job.feed))
-        .order_by(Job.id).execution_options(yield_per=100))
-    for jobs in session.scalars(statement).partitions(100):
-        documents = _load_semantic_documents(session, jobs, [profile])
-        for job in jobs:
-            if expiry(job)['expired'] or not in_search_area(job, profile.matching_preferences):
-                continue
-            source = job_input(job)
-            semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
-            baseline = match_job(source, profile.matching_preferences, current_enrichment(job),
-                                 **({'semantic': semantic} if semantic else {}))
-            if not baseline['eligible'] or baseline['score'] <= MIN_AI_BASE_SCORE:
-                continue
-            rows.append({'id': job.id, 'company': job.feed.company_id,
-                         'score': baseline['score'], 'uncertain': baseline.get('uncertain'),
-                         'task_score': (baseline.get('task_alignment') or {}).get('score') or 0})
-    return select_cases(rows)
+    priorities = dict(session.execute(select(ProfileJobMatch.job_id, ProfileJobMatch.match_score).where(
+        ProfileJobMatch.profile_id == profile.id)).all())
+    return select_cases([{'id': job.id, 'score': priorities.get(job.id, 0)}
+        for job in session.scalars(select(Job).where(Job.is_active.is_(True))
+            .options(selectinload(Job.locations)).order_by(Job.id).execution_options(yield_per=100))
+        if not expiry(job)['expired'] and in_search_area(job, profile.matching_preferences)])
 
 
-def _candidate_snapshot(session, engine_key, config, *, advance=True):
-    """Refresh only a stable bounded pool, fairly rotating among profiles."""
-    profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
-    if not profiles:
-        return None
-    key = (engine_key, 'selected-profile')
-    cursor = _CURSORS.get(key, 0) % len(profiles)
-    for offset in range(len(profiles)):
-        index = (cursor + offset) % len(profiles)
-        profile = profiles[index]
-        selected = _selected_job_ids(session, profile, config)
-        if not selected:
-            continue
-        jobs = {job.id: job for job in session.scalars(select(Job).where(Job.id.in_(selected))
-                .options(selectinload(Job.locations)))}
-        cached = {row.job_id: row for row in session.scalars(select(ProfileLLMScore).where(
-            ProfileLLMScore.profile_id == profile.id, ProfileLLMScore.job_id.in_(selected)))}
-        for job_id in selected:
-            job = jobs.get(job_id)
-            if job is None or not job.is_active or expiry(job)['expired']:
-                continue
-            digest = source_hash(job, profile, config=config)
-            old = cached.get(job_id)
-            if old is not None and old.version == config.version and old.source_hash == digest:
-                continue
-            retry = _RETRIES.get((engine_key, profile.id, job_id, digest))
-            if retry and retry[1] > time.monotonic():
-                continue
-            # Pool membership may be cached for a minute, but facts can change
-            # immediately. Recheck only this candidate before spending a call.
-            from hiring_scraper.app.ai_match_selection import in_search_area
-            from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-            if not in_search_area(job, profile.matching_preferences):
-                continue
-            source = job_input(job)
-            documents = _load_semantic_documents(session, [job], [profile])
-            semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
-            baseline = match_job(source, profile.matching_preferences, current_enrichment(job),
-                                 **({'semantic': semantic} if semantic else {}))
-            if not baseline['eligible'] or baseline['score'] <= MIN_AI_BASE_SCORE:
-                continue
-            if advance:
-                _CURSORS[key] = (index + 1) % len(profiles)
-            return profile.id, job_id, digest, build_prompt(job, profile), config
+def sync_matching_queue():
+    """Reconcile current sources without deleting successful assessments."""
+    with SessionLocal() as session:
+        engine = session.get_bind()
+    with _inference_lease(engine) as acquired:
+        if not acquired:
+            return
+        with SessionLocal() as session:
+            config = matching_config(session)
+            reconciled_at = utcnow()
+            for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)).all():
+                selected = _compute_selected_job_ids(session, profile)
+                selected_set = set(selected)
+                tasks = {row.job_id: row for row in session.scalars(select(AIMatchingTask).where(
+                    AIMatchingTask.profile_id == profile.id))}
+                # Persist exclusions too, so status counts describe the whole inventory.
+                for job_id in session.scalars(select(Job.id).where(Job.is_active.is_(True))):
+                    if job_id not in selected_set and job_id not in tasks:
+                        task = AIMatchingTask(profile_id=profile.id, job_id=job_id,
+                            source_hash='', version=config.version, state='excluded')
+                        session.add(task)
+                for job_id, task in tasks.items():
+                    if job_id not in selected_set:
+                        task.state, task.token, task.lease_until = 'excluded', None, None
+                for start in range(0, len(selected), 100):
+                    ids = selected[start:start + 100]
+                    cached = {row.job_id: row for row in session.scalars(select(ProfileLLMScore).where(
+                        ProfileLLMScore.profile_id == profile.id, ProfileLLMScore.job_id.in_(ids)))}
+                    priorities = dict(session.execute(select(ProfileJobMatch.job_id, ProfileJobMatch.match_score).where(
+                        ProfileJobMatch.profile_id == profile.id, ProfileJobMatch.job_id.in_(ids))).all())
+                    for job in session.scalars(select(Job).where(Job.id.in_(ids)).options(selectinload(Job.locations))):
+                        digest = source_hash(job, profile, config=config)
+                        old = cached.get(job.id)
+                        current = old is not None and old.source_hash == digest and old.version == config.version
+                        task = tasks.get(job.id)
+                        if task is None:
+                            task = AIMatchingTask(profile_id=profile.id, job_id=job.id,
+                                source_hash=digest, version=config.version,
+                                state='done' if current else 'pending', attempts=0, available_at=reconciled_at)
+                            session.add(task)
+                        if task.source_hash != digest or task.version != config.version or task.state in (None, 'excluded', 'done'):
+                            task.state = 'done' if current else 'pending'
+                            task.attempts, task.available_at = 0, reconciled_at
+                            task.token, task.lease_until, task.error_type = None, None, None
+                        task.source_hash, task.version = digest, config.version
+                        task.priority = priorities.get(job.id, 0)
+                session.merge(AIMatchingSelection(profile_id=profile.id,
+                    source_hash=_hash([config.version, profile.matching_preferences]),
+                    job_ids=selected, refreshed_at=utcnow()))
+            session.commit()
+
+
+def _claim_task():
+    now = utcnow()
+    ready = or_(and_(AIMatchingTask.state.in_(['pending', 'retry']), AIMatchingTask.available_at <= now),
+                and_(AIMatchingTask.state == 'running', AIMatchingTask.lease_until <= now))
+    with SessionLocal() as session:
+        # CAS also fences SQLite claim races; PostgreSQL skips rows owned by other claimers.
+        candidates = session.scalars(select(AIMatchingTask).where(ready)
+            .order_by(AIMatchingTask.available_at, AIMatchingTask.priority.desc(), AIMatchingTask.profile_id, AIMatchingTask.job_id)
+            .limit(1 if session.get_bind().dialect.name == 'postgresql' else 16)
+            .with_for_update(skip_locked=True)).all()
+        for task in candidates:
+            token = uuid4().hex
+            changed = session.execute(update(AIMatchingTask).where(
+                AIMatchingTask.profile_id == task.profile_id, AIMatchingTask.job_id == task.job_id, ready)
+                .values(state='running', token=token, lease_until=now + timedelta(minutes=40))
+                .execution_options(synchronize_session=False))
+            if changed.rowcount:
+                session.commit()
+                return task.profile_id, task.job_id, token
     return None
+
+
+def _finish_task(profile_id, job_id, token, state, error=None):
+    with SessionLocal() as session:
+        task = session.get(AIMatchingTask, (profile_id, job_id))
+        if task is None or task.token != token:
+            return
+        values = {'state': state, 'token': None, 'lease_until': None}
+        if error is not None:
+            attempts = task.attempts + 1
+            values.update(attempts=attempts, error_type=type(error).__name__[:100],
+                available_at=utcnow() + timedelta(seconds=min(1800, 30 * 2 ** min(attempts - 1, 6))))
+        # Token comparison belongs in the UPDATE too: SQLite has no row locks.
+        session.execute(update(AIMatchingTask).where(AIMatchingTask.profile_id == profile_id,
+            AIMatchingTask.job_id == job_id, AIMatchingTask.token == token).values(**values)
+            .execution_options(synchronize_session=False))
+        session.commit()
 
 
 def _subscription_allows_matching(quota):
     return bool(quota.get('allowed'))
 
 
-def _engine_cache_key(engine):
-    database = engine.url.database or ''
-    memory = database in ('', ':memory:') or (
-        database.startswith('file:') and (
-            database.startswith('file::memory:') or engine.url.query.get('mode') == 'memory'))
-    if engine.dialect.name == 'sqlite' and memory:
-        # Object addresses can be recycled after disposal. A token owned by the
-        # engine keeps independent memory databases out of each other's backoff.
-        return engine.__dict__.setdefault('_radius_matching_cache_key', uuid4().hex)
-    return str(engine.url)
-
-
-def refresh_llm_scores_once(*, generate=None, usage=None):
-    """Assess one prioritized/exploratory job, then verify locked sources before publishing."""
-    from hiring_scraper.app.ai_matching_budget import status as budget_status
-    generate = generate or codex_runtime.generate
-    usage = usage or codex_runtime.subscription_usage
-    with SessionLocal() as session:
-        engine = session.get_bind()
-    engine_key = _engine_cache_key(engine)
-    with _inference_lease(engine) as acquired:
-        if not acquired:
-            return False
+def refresh_llm_scores_once(*, generate=None, usage=None, sync=True):
+    """Claim independent durable work; publish only the still-current fenced snapshot."""
+    if sync:
+        sync_matching_queue()
+    claim = _claim_task()
+    if claim is None:
+        return False
+    profile_id, job_id, token = claim
+    outcome = 'pending'
+    try:
         with SessionLocal() as session:
             config = matching_config(session)
-            snapshot = _candidate_snapshot(session, engine_key, config)
-        if snapshot is None:
-            return False
-        # Selection is local work and must remain observable even when the
-        # provider is disconnected or quota cannot currently be read.
-        if not budget_status(SessionLocal)['remaining']:
-            LOG.info('AI matching paused: local five-hour call budget exhausted')
-            return False
-        quota = usage()
+            job = session.get(Job, job_id)
+            profile = session.get(UserProfile, profile_id)
+            from hiring_scraper.app.ai_match_selection import in_search_area
+            if (job is None or profile is None or not job.is_active or expiry(job)['expired'] or
+                    not in_search_area(job, profile.matching_preferences)):
+                outcome = 'excluded'
+                return False
+            digest = source_hash(job, profile, config=config)
+            cached = session.get(ProfileLLMScore, (profile_id, job_id))
+            if cached is not None and cached.version == config.version and cached.source_hash == digest:
+                outcome = 'done'
+                return False
+            prompt = build_prompt(job, profile)
+        quota = (usage or codex_runtime.subscription_usage)()
         if not _subscription_allows_matching(quota):
-            # Only log known reason codes; provider payloads may contain secrets.
-            reason = quota.get('reason')
-            if reason not in {'disconnected', 'usage_unavailable', 'usage_limit_reached'}:
-                reason = 'subscription_not_allowed'
-            LOG.info('AI matching paused: %s', reason)
             return False
-        profile_id, job_id, digest, prompt, config = snapshot
-        retry_key = (engine_key, profile_id, job_id, digest)
-        try:
-            def budgeted_generate(*args, **kwargs):
-                from hiring_scraper.app.ai_matching_budget import reserve
-                from fastapi import HTTPException
-                if not reserve(SessionLocal):
-                    raise HTTPException(429, 'Five-hour AI matching call budget exhausted.')
-                return generate(*args, **kwargs)
-            raw = generate_assessment(prompt, generate=budgeted_generate, config=config)
-            sources = json.loads(prompt.split('\nDATA:\n', 1)[1])['evidence_sources']
-            checked = validate_assessment(raw, sources)
-            raw = {key: checked[key] for key in SCHEMA['properties']}
-        except Exception as error:
-            attempts = _RETRIES.get(retry_key, (0, 0))[0] + 1
-            if len(_RETRIES) >= 4096:
-                _RETRIES.pop(next(iter(_RETRIES)))
-            _RETRIES[retry_key] = (attempts, time.monotonic() + min(1800, 30 * 2 ** min(attempts - 1, 6)))
-            LOG.warning('Profile assessment failed; candidate deferred for retry (profile=%s job=%s error_type=%s)',
-                        profile_id, job_id, type(error).__name__)
-            return False
+        raw = generate_assessment(prompt, generate=generate or codex_runtime.generate, config=config)
+        sources = json.loads(prompt.split('\nDATA:\n', 1)[1])['evidence_sources']
+        checked = validate_assessment(raw, sources)
+        raw = {key: checked[key] for key in SCHEMA['properties']}
+
         with SessionLocal() as session:
             if session.get_bind().dialect.name == 'sqlite':
                 # SQLite has no row locks; reserve its writer before checking the
@@ -1029,6 +993,9 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
             if (job is None or not job.is_active or expiry(job)['expired'] or
                     matching_config(session) != config or source_hash(job, profile, config=config) != digest):
                 return False
+            task = session.get(AIMatchingTask, (profile_id, job_id), with_for_update=True)
+            if task is None or task.token != token:
+                return False
             previous_index_version = profile.match_index_version
             from hiring_scraper.app.job_search import _profile_index_version, refresh_application_matches_for_jobs
             was_current = previous_index_version == _profile_index_version(profile)
@@ -1040,12 +1007,42 @@ def refresh_llm_scores_once(*, generate=None, usage=None):
                 return False
             score.source_hash, score.version, score.assessment, score.scored_at = digest, config.version, raw, utcnow()
             session.flush()
+            # PostgreSQL defers broader Journey materialization. Publish this
+            # profile's authoritative rank atomically with the saved judgment,
+            # so page ordering never uses a stale local score with a new AI card.
+            from hiring_scraper.app.job_search import _upsert_profile_matches
+            from hiring_scraper.app.profile_semantics import cached_semantic_evidence
+            documents = load_matching_documents(session, [job], [profile])
+            source = job_input(job)
+            semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
+            local = match_job(source, profile.matching_preferences, current_enrichment(job),
+                **({'semantic': semantic} if semantic else {}))
+            result = apply_cached_assessment(local, job, profile, documents)
+            if result['eligible']:
+                _upsert_profile_matches(session, [{'profile_id': profile_id, 'job_id': job_id,
+                    'match_score': result['score'], 'match_tier': result['fit_tier'],
+                    'match_uncertain': bool(result.get('uncertain'))}])
+            else:
+                from sqlalchemy import delete
+                session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id == profile_id,
+                    ProfileJobMatch.job_id == job_id))
             refresh_application_matches_for_jobs(session, [job_id])
             if was_current:
                 profile.match_index_version = previous_index_version
+            task.state, task.token, task.lease_until = 'done', None, None
             session.commit()
-        _RETRIES.pop(retry_key, None)
+
+        outcome = 'done'
         return True
+    except Exception as error:
+        outcome = 'retry'
+        _finish_task(profile_id, job_id, token, outcome, error)
+        LOG.warning('Profile assessment deferred (profile=%s job=%s error_type=%s)',
+                    profile_id, job_id, type(error).__name__)
+        return False
+    finally:
+        if outcome != 'retry':
+            _finish_task(profile_id, job_id, token, outcome)
 
 
 def _stale_assessment_pending(session):
@@ -1076,55 +1073,25 @@ def requeue_all_assessments():
             session.scalars(select(UserProfile).order_by(UserProfile.id).with_for_update()).all()
             result = session.execute(delete(ProfileLLMScore))
             session.execute(delete(AIMatchingSelection))
+            session.execute(delete(AIMatchingTask))
             session.execute(update(UserProfile).values(match_index_version=None))
             from hiring_scraper.app.models import ProfileMatchProgress
             session.execute(delete(ProfileMatchProgress))
             count = result.rowcount
             session.commit()
-    _RETRIES.clear()
-    _CURSORS.clear()
-    _SELECTION_CACHE.clear()
     return {'requeued_assessments': count}
 
 
 def _queue_diagnostics(session):
-    """Use the worker's small persisted pool; a cold pool uses indexed counts.
+    counts = dict(session.execute(select(AIMatchingTask.state, func.count()).group_by(AIMatchingTask.state)).all())
+    selecting = any(session.get(AIMatchingSelection, profile_id) is None
+                    for profile_id in session.scalars(select(UserProfile.id)))
+    return counts, selecting
 
-    Status never matches inventory or builds a prompt. Counts on a cold pool
-    describe candidates before the background selector applies shortlist caps.
-    """
-    config = matching_config(session)
-    queued = 0
-    selection_pending = False
-    for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)):
-        cached = session.get(AIMatchingSelection, profile.id)
-        refreshed = cached.refreshed_at if cached else None
-        if refreshed is not None and refreshed.tzinfo is None:
-            refreshed = refreshed.replace(tzinfo=timezone.utc)
-        fresh = (cached is not None and cached.source_hash == _hash([config.version, profile.matching_preferences]) and
-                 (utcnow() - refreshed).total_seconds() < _SELECTION_TTL_SECONDS)
-        if fresh:
-            selected = cached.job_ids
-            jobs = session.scalars(select(Job).where(Job.id.in_(selected), Job.is_active.is_(True))
-                                   .options(selectinload(Job.locations))).all() if selected else []
-            for job in jobs:
-                row = session.get(ProfileLLMScore, (profile.id, job.id))
-                if not expiry(job)['expired'] and (row is None or row.version != config.version):
-                    queued += 1
-        else:
-            selection_pending = True
-            indexed = select(ProfileJobMatch.job_id).where(ProfileJobMatch.profile_id == profile.id,
-                                                            ProfileJobMatch.match_score > MIN_AI_BASE_SCORE)
-            saved = select(JobApplication.job_id).where(JobApplication.profile_id == profile.id,
-                ~exists(select(1).where(ProfileJobMatch.profile_id == profile.id,
-                                       ProfileJobMatch.job_id == JobApplication.job_id)))
-            ids = indexed.union(saved)
-            jobs = session.scalars(select(Job).where(Job.id.in_(ids), Job.is_active.is_(True),
-                ~exists(select(1).where(ProfileLLMScore.profile_id == profile.id,
-                                       ProfileLLMScore.job_id == Job.id, ProfileLLMScore.version == config.version)))
-                .execution_options(yield_per=200))
-            queued += sum(not expiry(job)['expired'] for job in jobs)
-    return queued, selection_pending
+
+def matching_worker_heartbeat(worker_id):
+    with SessionLocal.begin() as session:
+        session.merge(AIMatchingWorker(id=worker_id, seen_at=utcnow()))
 
 
 def matching_status():
@@ -1132,23 +1099,27 @@ def matching_status():
     quota = codex_runtime.subscription_usage()
     with SessionLocal() as session:
         config = matching_config(session)
-        queued, selecting = _queue_diagnostics(session)
+        counts, selecting = _queue_diagnostics(session)
+        queued = sum(counts.get(state, 0) for state in ('pending', 'running', 'retry'))
+        heartbeat = session.scalar(select(func.max(AIMatchingWorker.seen_at)))
+        if heartbeat is not None and heartbeat.tzinfo is None:
+            heartbeat = heartbeat.replace(tzinfo=timezone.utc)
+        worker_health = 'running' if heartbeat and utcnow() - heartbeat < timedelta(seconds=90) else 'stale' if heartbeat else 'unknown'
         assessed, last_assessed = session.execute(select(func.count(), func.max(ProfileLLMScore.scored_at))
             .select_from(ProfileLLMScore).join(Job, Job.id == ProfileLLMScore.job_id)
             .where(Job.is_active.is_(True), ProfileLLMScore.version == config.version)).one()
         stale = _stale_assessment_pending(session) if assessed else False
         from hiring_scraper.app.job_search import profile_match_index_stale
         indexing = any(profile_match_index_stale(profile) for profile in session.scalars(select(UserProfile)))
-        pending = bool(queued or stale or indexing)
-    from hiring_scraper.app.ai_matching_budget import status as budget_status
-    budget = budget_status(SessionLocal)
-    allowed = bool(_subscription_allows_matching(quota) and budget['remaining'])
+        pending = bool(queued or stale or indexing or selecting)
+    allowed = _subscription_allows_matching(quota)
     safe = {key: quota.get(key) for key in ('available', 'allowed', 'reason', 'used_percent',
                                            'resets_at', 'window_minutes', 'limit_percent')}
-    return {'state': 'pending' if allowed and pending else 'paused' if not budget['remaining'] else 'ready' if allowed else
+    return {'state': 'pending' if allowed and pending else 'ready' if allowed else
                      'disconnected' if quota.get('reason') == 'disconnected' else 'paused',
             'pending': pending, 'indexing_pending': indexing, 'selection_pending': selecting,
-            'model': config.model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': config.effort, 'usage': safe, 'call_budget': budget,
+            'model': config.model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': config.effort, 'usage': safe, 'call_budget': None,
             'queued_pairs': queued, 'assessed_pairs': assessed, 'stale_assessments_pending': stale,
             'last_assessed_at': last_assessed.isoformat() if last_assessed else None,
-            'worker_health': 'unknown', 'checked_at': utcnow().isoformat()}
+            'worker_health': worker_health, 'worker_last_seen_at': heartbeat.isoformat() if heartbeat else None,
+            'queue_counts': counts, 'concurrency': codex_runtime.inference_concurrency(), 'checked_at': utcnow().isoformat()}

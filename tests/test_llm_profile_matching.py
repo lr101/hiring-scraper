@@ -485,6 +485,116 @@ class PersistedAssessmentTests(unittest.TestCase):
                 generate=generate or (lambda prompt, schema, **kwargs: copy.deepcopy(data or assessment())),
                 usage=usage or (lambda: dict(USAGE)))
 
+    def test_existing_scores_backfill_completed_tasks_without_provider_calls(self):
+        self.assertTrue(self.refresh())
+        with self.factory.begin() as session:
+            session.query(models.AIMatchingTask).delete()
+        calls = []
+        self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(1) or assessment()))
+        self.assertEqual(calls, [])
+        with self.factory() as session:
+            self.assertEqual(session.get(models.AIMatchingTask, (self.profile_id, self.job_id)).state, 'done')
+
+    def test_initial_out_of_area_jobs_are_counted_as_excluded(self):
+        with self.factory.begin() as session:
+            job = session.get(models.Job, self.job_id)
+            job.is_remote, job.work_arrangement = False, 'onsite'
+            profile = session.get(models.UserProfile, self.profile_id)
+            profile.preferences = {**profile.preferences, 'search_area': {
+                'latitude': 49.0069, 'longitude': 8.4034, 'radius_km': 15, 'city': 'Karlsruhe', 'country_code': 'DE'}}
+            session.add(models.JobLocation(job_id=job.id, label='Berlin', country_code='DE',
+                latitude=52.52, longitude=13.405))
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            service.sync_matching_queue()
+            status = service.matching_status()
+        self.assertEqual(status['queue_counts'].get('excluded'), 1)
+        self.assertEqual(status['queued_pairs'], 0)
+
+    def test_queue_drains_all_jobs_including_low_local_scores_without_call_budget(self):
+        with self.factory.begin() as session:
+            original = session.get(models.Job, self.job_id)
+            for i in range(12):
+                session.add(models.Job(feed_id=original.feed_id, title='Unfamiliar occupation',
+                    description=DESCRIPTION, external_id=f'all-{i}',
+                    url=f'https://example.org/jobs/all-{i}', is_remote=True))
+        with patch.dict('os.environ', {'RADIUS_MATCH_AI_CALLS_PER_5H': '0'}):
+            for _ in range(13):
+                self.assertTrue(self.refresh(assessment(0)))
+        self.assertFalse(self.refresh())
+        with self.factory() as session:
+            self.assertEqual(session.query(models.ProfileLLMScore).count(), 13)
+
+    def test_retry_survives_process_cache_reset_and_other_jobs_continue(self):
+        def broken(*args, **kwargs):
+            raise RuntimeError('fixture unavailable')
+        self.assertFalse(self.refresh(generate=broken))
+        importlib.reload(self.service())
+        calls = []
+        self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(1) or assessment()))
+        self.assertEqual(calls, [])
+        with self.factory() as session:
+            row = session.get(models.AIMatchingTask, (self.profile_id, self.job_id))
+            self.assertEqual(row.state, 'retry')
+            self.assertEqual(row.attempts, 1)
+
+    def test_lower_ai_score_keeps_existing_new_job_and_moves_it_below_local_jobs(self):
+        with self.factory.begin() as session:
+            original = session.get(models.Job, self.job_id)
+            second = models.Job(feed_id=original.feed_id, title='Software developer II',
+                description=DESCRIPTION + ' A different vacancy.', external_id='local-second',
+                url='https://example.org/jobs/local-second', is_remote=True)
+            session.add(second)
+            session.flush()
+            second_id = second.id
+            from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
+            refresh_application_matches_for_jobs(session, [second_id])
+        self.assertTrue(self.refresh(assessment(12)))
+        with self.factory() as session:
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
+                sort='match', offset=0, limit=40, session=session)
+            self.assertEqual([item['id'] for item in page['items']], [second_id, self.job_id])
+            self.assertEqual(page['items'][1]['profile_match']['score'], 12)
+
+    def test_ai_rank_is_published_even_when_derived_refresh_is_deferred(self):
+        from hiring_scraper.app import job_search
+        # Production enqueues the broader materialization; the score/rank must
+        # still change together before a Journey request can see the answer.
+        with patch.object(job_search, 'refresh_application_matches_for_jobs', return_value=None):
+            self.assertTrue(self.refresh(assessment(12)))
+        with self.factory() as session:
+            indexed = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
+            self.assertEqual(indexed.match_score, 12)
+            with patch.object(api, 'IS_SQLITE', False):
+                page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
+                    sort='match', offset=0, limit=40, session=session)
+            self.assertEqual(page['items'][0]['profile_match']['score'], 12)
+
+    def test_journey_reorders_lowered_ai_scores_before_pagination(self):
+        with self.factory.begin() as session:
+            original = session.get(models.Job, self.job_id)
+            second = models.Job(feed_id=original.feed_id, title='Software developer II',
+                description=DESCRIPTION + ' A different vacancy.', external_id='second',
+                url='https://example.org/jobs/second', is_remote=True)
+            session.add(second)
+            session.flush()
+            second_id = second.id
+            for job_id in (self.job_id, second_id):
+                existing = session.scalar(select(models.JobApplication).where(
+                    models.JobApplication.profile_id == self.profile_id, models.JobApplication.job_id == job_id))
+                if existing:
+                    existing.status, existing.auto_created = 'open', False
+                else:
+                    session.add(models.JobApplication(profile_id=self.profile_id, job_id=job_id,
+                        status='open', auto_created=False))
+        self.assertTrue(self.refresh(assessment(12)))
+        self.assertTrue(self.refresh(assessment(80)))
+        with self.factory() as session:
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
+                sort='match', offset=0, limit=1, session=session)
+            self.assertEqual(page['items'][0]['id'], second_id)
+            self.assertEqual(page['items'][0]['profile_match']['score'], 80)
+
     def test_deactivated_job_in_cached_pool_never_spends_another_call(self):
         self.assertTrue(self.refresh())
         with self.factory.begin() as session:
@@ -493,16 +603,17 @@ class PersistedAssessmentTests(unittest.TestCase):
         self.assertFalse(self.refresh(generate=lambda *args, **kwargs: calls.append(kwargs) or assessment()))
         self.assertEqual(calls, [])
 
-    def test_new_explicit_language_conflict_is_rechecked_inside_cached_pool(self):
+    def test_language_conflict_is_preserved_after_ai_reassessment(self):
         with self.factory.begin() as session:
             profile = session.get(models.UserProfile, self.profile_id)
             profile.preferences = {**profile.preferences, 'language_levels': {'German': 'B2', 'English': 'C1'}}
         self.assertTrue(self.refresh())
         with self.factory.begin() as session:
             session.get(models.Job, self.job_id).description = DESCRIPTION + ' German C2 required.'
-        calls = []
-        self.assertFalse(self.refresh(generate=lambda *args, **kwargs: calls.append(kwargs) or assessment()))
-        self.assertEqual(calls, [])
+        self.assertTrue(self.refresh())
+        with self.factory() as session:
+            detail = api.get_job(self.job_id, session=session, profile_id=self.profile_id)
+            self.assertFalse(detail['profile_match']['eligible'])
 
     def test_deleted_job_in_cached_selection_is_skipped_without_inference(self):
         self.assertTrue(self.refresh())
@@ -512,7 +623,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.fail('Deleted jobs must not invoke the provider')
         self.assertFalse(self.refresh(generate=unexpected_provider))
 
-    def test_repeated_worker_passes_do_not_drain_inventory_after_ai_rejection(self):
+    def test_repeated_worker_passes_drain_inventory_after_ai_rejection(self):
         with self.factory.begin() as session:
             original = session.get(models.Job, self.job_id)
             for i in range(29):
@@ -520,16 +631,16 @@ class PersistedAssessmentTests(unittest.TestCase):
                     description=DESCRIPTION, external_id=f'selective-{i}',
                     url=f'https://example.org/jobs/selective-{i}', is_remote=True))
         with self.factory() as session:
-            before = self.service()._selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
-        self.assertEqual(len(before), 2)  # Employer diversity cap, within the 10% pool.
+            before = self.service()._compute_selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
+        self.assertEqual(len(before), 30)
         for _ in before:
             self.assertTrue(self.refresh(assessment(0)))
         for _ in range(3):
             self.assertFalse(self.refresh())
         with self.factory() as session:
-            after = self.service()._selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
+            after = self.service()._compute_selected_job_ids(session, session.get(models.UserProfile, self.profile_id))
             self.assertEqual(before, after)
-            self.assertEqual(len(session.scalars(select(models.ProfileLLMScore)).all()), 2)
+            self.assertEqual(len(session.scalars(select(models.ProfileLLMScore)).all()), 30)
 
     def test_ai_selection_does_not_spend_on_known_out_of_area_job(self):
         with self.factory.begin() as session:
@@ -545,22 +656,20 @@ class PersistedAssessmentTests(unittest.TestCase):
         self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(True)))
         self.assertEqual(calls, [])
 
-    def test_disabled_rolling_budget_never_calls_provider(self):
-        calls = []
+    def test_legacy_call_budget_does_not_disable_matching(self):
         with patch.dict('os.environ', {'RADIUS_MATCH_AI_CALLS_PER_5H': '0'}):
-            self.assertFalse(self.refresh(generate=lambda *a, **k: calls.append(True)))
-        self.assertEqual(calls, [])
+            self.assertTrue(self.refresh())
 
-    def test_repair_attempts_consume_rolling_budget_before_provider_call(self):
+    def test_repairs_are_not_blocked_by_legacy_call_budget(self):
         calls = []
         def provider(*args, **kwargs):
             calls.append(True)
             return {'invalid': 'response'}
         with patch.dict('os.environ', {'RADIUS_MATCH_AI_CALLS_PER_5H': '1'}):
             self.assertFalse(self.refresh(generate=provider))
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(calls), 2)
         with self.factory() as session:
-            self.assertEqual(len(session.scalars(select(models.AIMatchingCall)).all()), 1)
+            self.assertEqual(len(session.scalars(select(models.AIMatchingCall)).all()), 0)
 
     def test_persisted_high_low_and_zero_scores_replace_detail_journey_and_index(self):
         for score in [91, 12, 0]:
@@ -786,15 +895,14 @@ class PersistedAssessmentTests(unittest.TestCase):
     def test_status_uses_the_persisted_worker_selection_after_process_cache_is_lost(self):
         self.assertTrue(self.refresh())
         service = self.service()
-        service._SELECTION_CACHE.clear()
-        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')):
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_compute_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')):
             status = service.matching_status()
         self.assertFalse(status['pending'])
         self.assertEqual(status['state'], 'ready')
 
     def test_status_never_runs_inventory_matching_or_builds_a_prompt(self):
         service = self.service()
-        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')), patch.object(service, 'build_prompt', side_effect=AssertionError('Prompt on status read')):
+        with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE), patch.object(service, '_compute_selected_job_ids', side_effect=AssertionError('Inventory matching on status read')), patch.object(service, 'build_prompt', side_effect=AssertionError('Prompt on status read')):
             self.assertTrue(service.matching_status()['pending'])
 
     def test_status_allows_matching_above_half_subscription_usage(self):
@@ -831,6 +939,7 @@ class PersistedAssessmentTests(unittest.TestCase):
     def test_status_exposes_queue_and_success_without_claiming_worker_health(self):
         service = self.service()
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            service.sync_matching_queue()
             before = service.matching_status()
             self.assertEqual(before['assessed_pairs'], 0)
             self.assertEqual(before['queued_pairs'], 1)
@@ -847,6 +956,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             session.get(models.Job, self.job_id).raw_metadata = {'validThrough': '2000-01-01'}
         service = self.service()
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
+            service.sync_matching_queue()
             status = service.matching_status()
             self.assertEqual(status['queued_pairs'], 0)
             self.assertFalse(status['pending'])
@@ -878,6 +988,8 @@ class PersistedAssessmentTests(unittest.TestCase):
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
             self.assertTrue(service.matching_status()['pending'])
         self.assertTrue(self.refresh(assessment(82)))
+        for _ in range(4):
+            self.assertTrue(self.refresh(assessment(82)))
         self.assertFalse(self.refresh(assessment(82)))
         with self.factory() as session:
             row = session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
@@ -1115,42 +1227,34 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertEqual(len(rows), 1)
             self.assertNotEqual(rows[0].job_id, self.job_id)
 
-    def test_ai_preselection_requires_current_static_score_strictly_over_35(self):
+    def test_low_static_scores_do_not_exclude_queue_work(self):
+        with self.factory.begin() as session:
+            job = session.get(models.Job, self.job_id)
+            job.title, job.description = 'Specialist', 'Maintain specialist equipment.'
         service = self.service()
-        real_match = service.match_job
-        for score in (30, 35):
-            service._SELECTION_CACHE.clear()  # Independent background-selection ticks.
-            calls = []
-            with patch.object(service, 'match_job', side_effect=lambda *a, **kw: {**real_match(*a, **kw), 'score': score}):
-                self.assertFalse(self.refresh(generate=lambda *a, **kw: calls.append(kw) or assessment()))
-            self.assertEqual(calls, [])
-            with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
-                self.assertEqual(service.matching_status()['queued_pairs'], 0)
-        service._SELECTION_CACHE.clear()
-        with patch.object(service, 'match_job', side_effect=lambda *a, **kw: {**real_match(*a, **kw), 'score': 36}):
-            self.assertTrue(self.refresh())
+        with patch.object(service, 'SessionLocal', self.factory):
+            service.sync_matching_queue()
+            self.assertEqual(service._claim_task()[:2], (self.profile_id, self.job_id))
 
-    def test_ai_preselection_rechecks_current_base_score(self):
-        service = self.service()
-        calls = []
-        with patch.object(service, 'match_job', return_value={'eligible': True, 'score': 35}):
-            self.assertFalse(self.refresh(generate=lambda *a, **kw: calls.append(kw) or assessment()))
-        self.assertEqual(calls, [])
-        service._SELECTION_CACHE.clear()  # The next scheduled static-pool refresh.
-        self.assertTrue(self.refresh())
+    def test_low_ai_rejection_is_cached_without_repeated_inference(self):
+        self.assertTrue(self.refresh(assessment(0)))
+        self.assertFalse(self.refresh())
 
-    def test_ineligible_closed_and_implausible_candidates_are_not_scored(self):
-        with self.factory() as session:
+    def test_closed_jobs_are_excluded_but_unfamiliar_active_jobs_are_queued(self):
+        with self.factory.begin() as session:
             original = session.get(models.Job, self.job_id)
             original.is_active = False
-            session.add(models.Job(feed_id=original.feed_id, title='Nurse', description='Provide bedside care.',
-                external_id='nurse', url='https://example.org/nurse', is_remote=True))
-            session.commit()
-        def forbidden(*args, **kwargs):
-            self.fail('No plausible active candidate')
-        self.assertFalse(self.refresh(generate=forbidden))
+            job = models.Job(feed_id=original.feed_id, title='Nurse', description='Provide bedside care.',
+                external_id='nurse', url='https://example.org/nurse', is_remote=True)
+            session.add(job)
+            session.flush()
+            job_id = job.id
+        service = self.service()
+        with patch.object(service, 'SessionLocal', self.factory):
+            service.sync_matching_queue()
+            self.assertEqual(service._claim_task()[:2], (self.profile_id, job_id))
 
-    def test_low_local_score_stays_outside_ai_pool_despite_unproven_specialist_similarity(self):
+    def test_low_local_score_receives_grounded_ai_review(self):
         description = 'Your responsibilities:\nImprove relational query plans and diagnose data access bottlenecks.'
         with self.factory() as session:
             job = session.get(models.Job, self.job_id)
@@ -1164,27 +1268,21 @@ class PersistedAssessmentTests(unittest.TestCase):
         data = assessment()
         data['requirements'][0].update(requirement='Relational query tuning',
             job_quote='Improve relational query plans and diagnose data access bottlenecks.')
-        self.assertFalse(self.refresh(data))
-        self.service()._SELECTION_CACHE.clear()
-        semantic = {'score': 80, 'job_evidence': 'Relational query plans.', 'profile_evidence': 'SQL databases.'}
-        with patch('hiring_scraper.app.profile_semantics.cached_semantic_evidence', return_value=semantic):
-            self.assertFalse(self.refresh(data))
+        self.assertTrue(self.refresh(data))
         with self.factory() as session:
-            self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
+            self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
 
-    def test_exploration_still_respects_known_language_incompatibility(self):
-        with self.factory() as session:
+    def test_known_language_incompatibility_does_not_prevent_assessment(self):
+        with self.factory.begin() as session:
             profile = session.get(models.UserProfile, self.profile_id)
             profile.preferences = {**profile.preferences, 'language_levels': {'German': 'B2'}}
             job = session.get(models.Job, self.job_id)
-            job.description = 'German C1 required. Handle specialized platform setup requests.'
-            job.title = 'Platform Liaison'
-            session.commit()
-            ensure_profile_match_indexes(session, [profile])
-            session.commit()
-        def forbidden(*args, **kwargs):
-            self.fail('Explicit incompatibility must not consume inference capacity')
-        self.assertFalse(self.refresh(generate=forbidden))
+            job.description = DESCRIPTION + ' German C1 required.'
+        self.assertTrue(self.refresh())
+        with self.factory() as session:
+            result = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            self.assertEqual(result['score_source'], 'llm')
+            self.assertFalse(result['eligible'])
 
     def test_country_agnostic_authorization_flags_are_not_matching_evidence(self):
         service = self.service()
@@ -1413,7 +1511,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             finally:
                 first.dispose(); second.dispose()
 
-    def test_inference_lease_prevents_concurrent_duplicate_work(self):
+    def test_durable_claim_prevents_concurrent_duplicate_work(self):
         calls = []
         def generate(prompt, schema, **kwargs):
             calls.append(kwargs)
@@ -1511,12 +1609,12 @@ class ManagedWorkerTests(unittest.TestCase):
                 with patch.object(worker, 'refresh_profile_match_indexes_once', backfill), \
                      patch.object(worker, 'refresh_dirty_job_matches_once', lambda: events.append('dirty')), \
                      patch.object(worker, 'refresh_semantic_documents_once', lambda: events.append('semantics')), \
-                     patch.object(worker, 'refresh_llm_scores_once', lambda: events.append('llm')), \
+                     patch.object(worker, 'matching_loop', lambda stop: None), \
                      patch.object(worker, 'prepare_once', lambda: events.append('preparation')), \
                      patch.object(worker.time, 'sleep', stop):
                     with self.assertRaises(InterruptedError):
                         worker.main()
-                self.assertEqual(events, ['dirty', 'semantics', 'llm', 'preparation'])
+                self.assertEqual(events, ['dirty', 'semantics', 'preparation'])
 
     def test_worker_keeps_rule_and_semantic_cycles_when_llm_pauses(self):
         from hiring_scraper.app import profile_match_worker as worker
@@ -1527,12 +1625,12 @@ class ManagedWorkerTests(unittest.TestCase):
         with patch.object(worker, 'refresh_profile_match_indexes_once', lambda: events.append('rules')), \
              patch.object(worker, 'refresh_dirty_job_matches_once', lambda: False), \
              patch.object(worker, 'refresh_semantic_documents_once', lambda: events.append('semantics')), \
-             patch.object(worker, 'refresh_llm_scores_once', lambda: events.append('llm') or False), \
+             patch.object(worker, 'matching_loop', lambda stop: None), \
              patch.object(worker, 'prepare_once', lambda: events.append('preparation')), \
              patch.object(worker.time, 'sleep', stop):
             with self.assertRaises(InterruptedError):
                 worker.main()
-        self.assertEqual(events, ['rules', 'semantics', 'llm', 'preparation'])
+        self.assertEqual(events, ['rules', 'semantics', 'preparation'])
 
 class FurtherSourceTests(unittest.TestCase):
     setUp = PersistedAssessmentTests.setUp
@@ -1644,3 +1742,92 @@ class FurtherSourceTests(unittest.TestCase):
             result = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
             self.assertEqual(result['score_source'], 'local')
             self.assertIsNone(result['llm_match'])
+
+class ParallelQueueTests(unittest.TestCase):
+    def setUp(self):
+        from concurrent.futures import ThreadPoolExecutor
+        self.pool = ThreadPoolExecutor(4)
+        self.folder = tempfile.TemporaryDirectory()
+        self.engine = create_engine('sqlite:///' + self.folder.name + '/queue.db', connect_args={'timeout': 10})
+        models.Base.metadata.create_all(self.engine)
+        self.factory = sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
+        self.service = importlib.import_module('hiring_scraper.app.profile_llm')
+        self.binding = patch.object(self.service, 'SessionLocal', self.factory)
+        self.binding.start()
+        with self.factory() as session:
+            self.profile_id = profiles.create_profile(profiles.ProfileRequest(**PROFILE), session)['id']
+            company = models.Company(source='test', source_id='parallel', name='Parallel')
+            feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://example.org/jobs')
+            session.add_all([models.Job(feed=feed, title=f'Job {i}', description=DESCRIPTION,
+                external_id=str(i), url=f'https://example.org/{i}', is_remote=True) for i in range(4)])
+            session.commit()
+        self.service.sync_matching_queue()
+
+    def tearDown(self):
+        self.pool.shutdown()
+        self.binding.stop()
+        self.engine.dispose()
+        self.folder.cleanup()
+
+    def test_parallel_claims_are_distinct_and_expired_owner_cannot_release_reclaimed_work(self):
+        from datetime import timedelta
+        claims = list(self.pool.map(lambda _: self.service._claim_task(), range(4)))
+        self.assertEqual(len({claim[:2] for claim in claims}), 4)
+        self.assertIsNone(self.service._claim_task())
+        profile_id, job_id, token = claims[0]
+        with self.factory.begin() as session:
+            session.get(models.AIMatchingTask, (profile_id, job_id)).lease_until = models.utcnow() - timedelta(seconds=1)
+        reclaimed = self.service._claim_task()
+        self.assertEqual(reclaimed[:2], (profile_id, job_id))
+        self.assertNotEqual(reclaimed[2], token)
+        self.service._finish_task(profile_id, job_id, token, 'done')
+        with self.factory() as session:
+            task = session.get(models.AIMatchingTask, (profile_id, job_id))
+            self.assertEqual(task.state, 'running')
+            self.assertEqual(task.token, reclaimed[2])
+
+    def test_scheduler_dispatches_four_requests_and_records_heartbeat(self):
+        import threading
+        from hiring_scraper.app import profile_match_worker as worker
+        stop = threading.Event()
+        barrier = threading.Barrier(4, timeout=10)
+        def provider(*args, **kwargs):
+            barrier.wait()
+            stop.set()
+            return assessment(80)
+        with patch.object(worker.codex_runtime, 'subscription_usage', return_value=dict(USAGE)), patch.object(worker.codex_runtime, 'generate', provider):
+            scheduler = threading.Thread(target=worker.matching_loop, args=(stop,))
+            scheduler.start()
+            scheduler.join(timeout=20)
+            stop.set()
+            self.assertFalse(scheduler.is_alive())
+        with self.factory() as session:
+            self.assertEqual(session.query(models.ProfileLLMScore).count(), 4)
+            self.assertIsNotNone(session.scalar(select(models.AIMatchingWorker.seen_at)))
+
+    def test_additive_queue_migration_supports_claims_and_heartbeat(self):
+        from alembic.migration import MigrationContext
+        from alembic.operations import Operations
+        migration = importlib.import_module('hiring_scraper.app.migrations.versions.0039_durable_ai_matching_queue')
+        models.AIMatchingTask.__table__.drop(self.engine)
+        models.AIMatchingWorker.__table__.drop(self.engine)
+        with self.engine.begin() as connection:
+            with Operations.context(MigrationContext.configure(connection)):
+                migration.upgrade()
+        self.service.sync_matching_queue()
+        with self.factory() as session:
+            self.assertEqual(session.query(models.AIMatchingTask).count(), 4)
+        self.service.matching_worker_heartbeat('migration-test')
+
+    def test_provider_requests_overlap_and_publish_distinct_results(self):
+        import threading
+        barrier = threading.Barrier(4, timeout=10)
+        def provider(*args, **kwargs):
+            barrier.wait()
+            return assessment(80)
+        futures = [self.pool.submit(self.service.refresh_llm_scores_once,
+            generate=provider, usage=lambda: dict(USAGE), sync=False) for _ in range(4)]
+        self.assertEqual([f.result(timeout=20) for f in futures], [True] * 4)
+        with self.factory() as session:
+            self.assertEqual(session.query(models.ProfileLLMScore).count(), 4)
+            self.assertEqual(session.query(models.AIMatchingTask).filter_by(state='done').count(), 4)

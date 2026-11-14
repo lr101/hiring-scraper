@@ -1,34 +1,9 @@
-"""Stable static-only selection; AI outcomes never expand the checked pool."""
-from collections import Counter
-from hashlib import sha256
-from math import ceil
+"""Full-coverage AI candidate ordering and saved geographic scope."""
 
 
 def select_cases(rows):
-    """Check at most ten or 10% of eligible jobs per profile, whichever is less.
-
-    Reserve roughly 20% for disagreement/uncertainty and cap any employer at two.
-    Include already-assessed rows in the input: otherwise repeated passes drain
-    the inventory. This is selection arithmetic, not an applicability judgment.
-    """
-    target = min(10, ceil(len(rows) * .1))
-    if not target:
-        return []
-    priority_count = max(1, int(target * .8))
-    selected, employers = [], Counter()
-    def take(ordered, limit):
-        for row in ordered:
-            if len(selected) >= limit:
-                break
-            if row['id'] in selected or employers[row['company']] >= 2:
-                continue
-            selected.append(row['id'])
-            employers[row['company']] += 1
-    take(sorted(rows, key=lambda row: (-row['score'], row['id'])), priority_count)
-    take(sorted(rows, key=lambda row: (
-        -(row.get('task_score', 0) - row['score']),
-        -bool(row.get('uncertain')), sha256(str(row['id']).encode()).hexdigest())), target)
-    return selected
+    """Prioritize stronger local evidence without excluding any candidate."""
+    return [row['id'] for row in sorted(rows, key=lambda row: (-row['score'], row['id']))]
 
 
 def in_search_area(job, preferences):

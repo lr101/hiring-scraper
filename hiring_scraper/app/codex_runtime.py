@@ -72,16 +72,42 @@ def _command(subcommand):
 
 
 @contextmanager
-def _lock(root):
+def _lock(root, *, shared=False):
     _prepare(root)
     descriptor = os.open(root / 'runtime.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
-        try: fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try: fcntl.flock(descriptor, (fcntl.LOCK_SH if shared else fcntl.LOCK_EX) | fcntl.LOCK_NB)
         except BlockingIOError:
             raise HTTPException(409, 'The ChatGPT connection is busy signing in or preparing documents. Try again shortly.') from None
         yield descriptor
     finally:
         os.close(descriptor)
+
+
+def inference_concurrency():
+    try:
+        return max(1, int(os.getenv('RADIUS_MATCH_AI_CONCURRENCY', '4')))
+    except ValueError:
+        return 4
+
+
+@contextmanager
+def _generation_lease(root):
+    # Shared account access prevents login/disconnect during inference. Independent
+    # slot locks bound actual subprocesses across all processes sharing this home.
+    with _lock(root, shared=True) as account:
+        for slot in range(inference_concurrency()):
+            descriptor = os.open(root / f'inference-{slot}.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+            try:
+                try:
+                    fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                except BlockingIOError:
+                    continue
+                yield (account, descriptor)
+                return
+            finally:
+                os.close(descriptor)
+        raise HTTPException(409, 'All ChatGPT inference slots are busy. Try again shortly.')
 
 
 def _write(root, data):
@@ -240,7 +266,7 @@ def subscription_usage(*, limit_percent=100):
     """Read only Radius subscription limits; never start a model turn."""
     root = _root()
     try:
-        with _lock(root):
+        with _lock(root, shared=True):
             return _subscription_usage(root, limit_percent=limit_percent)
     except HTTPException:
         return evaluate(None, limit_percent=limit_percent)
@@ -370,7 +396,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
              reasoning_effort=None, usage_limit_percent=None):
     root = _root()
     _binary()
-    with _lock(root) as descriptor:
+    with _generation_lease(root) as descriptors:
         if not _connected(root):
             raise HTTPException(401, 'Continue with ChatGPT to use your subscription before preparing documents.')
         if usage_limit_percent is not None:
@@ -399,7 +425,7 @@ def generate(prompt, schema, *, timeout=GENERATION_SECONDS, cancelled=None, mode
                 with diagnostic_file.open('wb') as diagnostics, (workspace / 'stdout').open('wb') as stdout:
                     process = subprocess.Popen(command, env=_environment(root, workspace), cwd=workspace,
                         stdin=subprocess.PIPE, stdout=stdout, stderr=diagnostics,
-                        text=True, start_new_session=True, pass_fds=(descriptor,))
+                        text=True, start_new_session=True, pass_fds=descriptors)
                 deadline = time.monotonic() + min(timeout, GENERATION_SECONDS)
                 first = True
                 while True:
