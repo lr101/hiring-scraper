@@ -1,4 +1,4 @@
-"""A selective AI pool must not become an eventual all-jobs sweep."""
+"""AI ordering must retain every candidate regardless of score or employer."""
 import importlib
 import unittest
 
@@ -10,10 +10,10 @@ class AISelectionTests(unittest.TestCase):
     def rows(self, count=100):
         return [dict(id=i, score=100-i/10, company=i, task_score=0, uncertain=False) for i in range(count)]
 
-    def test_large_inventory_selects_small_pool_with_strong_candidates(self):
+    def test_large_inventory_retains_all_candidates_with_strong_candidates_first(self):
         rows = self.rows(1000)
         selected = self.select(rows)
-        self.assertEqual(len(selected), 10)
+        self.assertEqual(len(selected), 1000)
         self.assertTrue(set(range(8)).issubset(selected))
 
     def test_completed_ai_results_do_not_drain_static_pool(self):
@@ -29,17 +29,17 @@ class AISelectionTests(unittest.TestCase):
         rows[-1].update(score=15, task_score=85, uncertain=True)
         self.assertIn(rows[-1]['id'], self.select(rows))
 
-    def test_smaller_inventories_use_fraction_instead_of_fixed_ten(self):
-        self.assertEqual(len(self.select(self.rows(30))), 3)
+    def test_smaller_inventories_also_retain_all_candidates(self):
+        self.assertEqual(len(self.select(self.rows(30))), 30)
         self.assertEqual(self.select([]), [])
 
     def test_pool_is_stable_when_database_iteration_order_changes(self):
         rows = self.rows()
         self.assertEqual(self.select(rows), self.select(list(reversed(rows))))
 
-    def test_top_employer_cannot_monopolize_priority_slots(self):
+    def test_employer_diversity_does_not_exclude_jobs(self):
         rows = self.rows()
         for row in rows[:20]:
             row['company'] = 'one-employer'
         selected = self.select(rows)
-        self.assertLessEqual(sum(i < 20 for i in selected), 2)
+        self.assertEqual(sum(i < 20 for i in selected), 20)

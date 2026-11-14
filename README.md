@@ -152,34 +152,37 @@ fresh slug. The adapter reserves a separate embedding port and owns both process
 
 ### Subscription-backed job scoring
 
-Only eligible jobs with a current local base score strictly over 35/100 can enter
-the AI pool. The profile matching worker evaluates active jobs with
-`gpt-6.1-sol` at high reasoning through the private Radius ChatGPT connection.
-Connect your subscription in **Settings → ChatGPT subscription**. This uses
-included Codex subscription capacity, not an API key. It does not reuse a
-developer's Codex login or silently fall back to paid API billing.
+The profile matching worker assesses every active, non-expired job in each profile's
+saved search area with `gpt-6.1-sol` at high reasoning through the private Radius
+ChatGPT connection. Connect your subscription in **Settings → ChatGPT subscription**.
+This uses included Codex subscription capacity, not an API key, and does not reuse
+the developer's login or fall back to paid API billing.
 
-AI is a selective second pass, not an eventual sweep of the inventory. For each
-profile the worker selects at most 10% of locally eligible jobs (rounded up),
-capped at ten jobs and two per employer. Roughly 80% of slots prioritize static
-fit; the rest prioritize task/static disagreement and uncertainty. Static scores
-and cached local embeddings select the pool; AI scores never feed back into its
-membership. Already-assessed jobs remain in the population, so checking or
-rejecting them does not move the worker on to every remaining job. Meaningful
-profile, source or inventory changes can change the selected pool. Known
-incompatibilities and closed/expired jobs remain excluded.
+The durable queue has no job-count, employer-count, local-score, or application
+call cap. Local scores prioritize work but never exclude a job. Known qualification
+conflicts remain enforced in published results. Successful assessments are reused
+until relevant source facts or the matching model change.
 
-`RADIUS_MATCH_AI_CALLS_PER_5H` defaults to **50 provider attempts per rolling five hours,
-globally across profiles and workers**. Set it to `0` to disable automatic AI
-matching. Failed calls and grounding/transport retries also count. Reservations
-are persisted before calls, survive restarts and cache deletion, and use a unique
-database slot to prevent replica overspend. Invalid values disable inference.
-Expired reservations are pruned when reserving a new call. The worker refreshes its static
-selection at most once a minute and persists only selected IDs and a profile fingerprint,
-so status reads do not rescore the inventory. Selected sources are verified before inference
-and before publishing a result.
-The status endpoint reports the five-hour limit, used calls and remaining calls in `call_budget`.
-This call cap is not a token or monetary guarantee. Cached assessments and static matching remain available.
+`RADIUS_MATCH_AI_CONCURRENCY` defaults to **4** simultaneous provider requests per
+shared Radius runtime directory. It controls throughput, not total coverage. Each
+queue item has a unique claim token and a 40-minute recovery lease (longer than the
+bounded assessment and repair timeout). Abandoned work becomes claimable after
+expiry; superseded owners cannot publish. Failures retry independently with durable
+30-second exponential backoff, up to 30 minutes, without a retry-count cap. Queue
+reconciliation runs every minute independently of local indexing and preparation.
+
+Apply migration `0039_durable_ai_matching_queue` and restart the API and background
+workers when upgrading. Existing valid assessments are retained. The old
+`RADIUS_MATCH_AI_CALLS_PER_5H` setting is no longer used for automatic matching.
+Settings → AI matching status reports pending, running, retrying, excluded, saved
+assessments, and a worker heartbeat. Before the first reconciliation it explicitly
+reports that the queue is being prepared. An overdue heartbeat requires checking
+the background worker logs.
+
+Journey sorts by the updated AI judgment before pagination. An existing eligible
+Journey entry stays visible when AI lowers its score below the profile's minimum
+for adding new entries; it moves down in match order. New jobs still respect the
+profile's Journey inclusion preferences. Open Journey pages refresh every 30 seconds.
 
 Explicit CV language sections can supply a missing language level without
 replacing a saved level; absence of a language claim remains unknown.
@@ -187,13 +190,13 @@ Country-agnostic authorization flags are not country-specific eligibility eviden
 
 Set `RADIUS_MATCH_AI_MODEL` and `RADIUS_MATCH_AI_REASONING_EFFORT` to override the
 matching model and effort. Changing either invalidates prior assessments; document
-preparation keeps its separate model setting. The call budget is unchanged, but
-model choice affects subscription capacity and latency.
+preparation keeps its separate model setting. Model choice affects subscription capacity and latency.
 
 The worker reads subscription usage before each job. There is no 50% usage guard:
 matching can use the remaining subscription capacity. It pauses when the connection
 is missing, usage cannot be verified, the five-hour window is absent, or a provider
-quota is exhausted. The separate 50-calls-per-rolling-five-hours limit still applies.
+quota is exhausted. Dispatch resumes automatically when subscription capacity returns.
+Concurrent in-flight calls may finish after exhaustion is detected.
 Cached assessments and local matching remain available while inference is paused.
 
 Assessments follow the functional-experience approach of

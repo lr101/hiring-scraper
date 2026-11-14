@@ -225,7 +225,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_pu
         set_={'revision': statement.excluded.revision}))
 
 
-def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> bool:
+def application_match_allowed(job: Job, profile: UserProfile, result: dict, *, tracked=False) -> bool:
     """Apply the profile's default area and match threshold before creating user state."""
     preferences = profile.matching_preferences
     area = preferences.get("search_area") or {}
@@ -248,7 +248,7 @@ def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> b
     include_unknown = defaults.get("include_unknown", True) is not False
     uncertain = bool(result.get("uncertain") or scope.get("unknowns"))
     return bool(scope["eligible"] and result.get("eligible") and
-                result.get("score", 0) >= min_score and
+                (result.get("score", 0) >= min_score or (tracked and result.get("score_source") == "llm")) and
                 (include_unknown or not uncertain))
 
 
@@ -352,6 +352,8 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                     selectinload(Job.locations),
                 )
             ).unique().all()
+            tracked = set(session.execute(select(JobApplication.profile_id, JobApplication.job_id).where(
+                JobApplication.job_id.in_([job.id for job in jobs]))).all())
             semantic_documents = load_semantic_documents(session, jobs, stale_profiles)
             for job in jobs:
                 source = job_input(job)
@@ -371,7 +373,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                         "match_tier": result.get("fit_tier", "possible"),
                         "match_uncertain": bool(result.get("uncertain")),
                     })
-                    if application_match_allowed(job, profile, result):
+                    if application_match_allowed(job, profile, result, tracked=(profile.id, job.id) in tracked):
                         pending_states.append({
                             "profile_id": profile.id,
                             "job_id": job.id,
@@ -492,6 +494,8 @@ def _refresh_application_matches_for_jobs(
                     selectinload(Job.locations),
                 ).execution_options(populate_existing=True)
             ).unique().all()
+            tracked = set(session.execute(select(JobApplication.profile_id, JobApplication.job_id).where(
+                JobApplication.job_id.in_([job.id for job in jobs]))).all())
             semantic_documents = load_semantic_documents(session, jobs, profiles)
             matching_jobs = [
                 (job, job_input(job), current_enrichment(job))
@@ -520,7 +524,7 @@ def _refresh_application_matches_for_jobs(
                             "match_tier": result.get("fit_tier", "possible"),
                             "match_uncertain": bool(result.get("uncertain")),
                         })
-                        if application_match_allowed(job, profile, result):
+                        if application_match_allowed(job, profile, result, tracked=(profile.id, job.id) in tracked):
                             qualifying_job_ids[profile.id].append(job.id)
                             states.append({
                                 "profile_id": profile.id,

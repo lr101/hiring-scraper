@@ -1735,6 +1735,58 @@ class PostgresConcurrencyTests(unittest.TestCase):
         finally:
             bounded.dispose()
 
+    def test_ai_queue_claims_skip_locked_work_and_fence_expired_owner(self):
+        from hiring_scraper.app import profile_llm
+        from hiring_scraper.app.models import AIMatchingTask
+        from datetime import timedelta
+        _, _, profile_id, job_ids = self.seed_match_page()
+        with patch.object(profile_llm, 'SessionLocal', self.factory):
+            profile_llm.sync_matching_queue()
+            # Hold one task row exactly as another claimer would. Other work must
+            # remain claimable without waiting for that transaction to finish.
+            with self.factory.begin() as blocker:
+                blocker.scalar(select(AIMatchingTask).where(AIMatchingTask.job_id == job_ids[0]).with_for_update())
+                claim = profile_llm._claim_task()
+                self.assertIsNotNone(claim)
+                self.assertNotEqual(claim[1], job_ids[0])
+            claimed_profile, job_id, token = claim
+            with self.factory.begin() as session:
+                session.get(AIMatchingTask, (claimed_profile, job_id)).lease_until = utcnow() - timedelta(seconds=1)
+                for other_id in job_ids:
+                    if other_id != job_id:
+                        session.get(AIMatchingTask, (profile_id, other_id)).state = 'done'
+            reclaimed = profile_llm._claim_task()
+            self.assertEqual(reclaimed[:2], claim[:2])
+            self.assertNotEqual(reclaimed[2], token)
+            profile_llm._finish_task(claimed_profile, job_id, token, 'done')
+            with self.factory() as session:
+                task = session.get(AIMatchingTask, (claimed_profile, job_id))
+                self.assertEqual(task.state, 'running')
+                self.assertEqual(task.token, reclaimed[2])
+
+    def test_ai_judgment_updates_journey_rank_before_dirty_worker_runs(self):
+        from hiring_scraper.app import profile_llm
+        from hiring_scraper.app.models import AIMatchingTask, MatchDirtyJob
+        from test_llm_profile_matching import PROFILE, DESCRIPTION, assessment
+        _, _, profile_id, job_ids = self.seed_match_page()
+        with self.factory.begin() as session:
+            session.get(UserProfile, profile_id).preferences = dict(PROFILE)
+            for job_id in job_ids:
+                job = session.get(Job, job_id)
+                job.title, job.description = 'Software developer', DESCRIPTION
+        with self.factory() as session:
+            job_search.ensure_profile_match_indexes(session, [session.get(UserProfile, profile_id)])
+            session.commit()
+        with patch.object(profile_llm, 'SessionLocal', self.factory):
+            self.assertTrue(profile_llm.refresh_llm_scores_once(
+                generate=lambda *args, **kwargs: assessment(12), usage=lambda: {'allowed': True}))
+        with self.factory() as session:
+            scored = session.scalar(select(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id))
+            self.assertIsNotNone(scored)
+            self.assertEqual(session.get(ProfileJobMatch, (profile_id, scored.job_id)).match_score, 12)
+            self.assertIsNotNone(session.get(MatchDirtyJob, scored.job_id))
+            self.assertEqual(session.get(AIMatchingTask, (profile_id, scored.job_id)).state, 'done')
+
     def seed_match_page(self):
         _, feed_id, run_id = self.seed_feed()
         with self.factory.begin() as session:
