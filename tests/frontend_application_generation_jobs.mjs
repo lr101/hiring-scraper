@@ -17,3 +17,8 @@ assert.deepEqual(JSON.parse(request.options.body),{version:'v1',draft:{notes:'ed
 const { matchesDraftContext } = await import('../frontend/src/applicationGeneration.ts')
 assert.equal(matchesDraftContext({context:{job_id:42,profile_id:7,cv_updated_at:'c1'},profile_updated_at:'p1'},{job_id:42,profile_id:7,cv_updated_at:'c1'},'p1'),true)
 assert.equal(matchesDraftContext({context:{job_id:42,profile_id:7,cv_updated_at:'c1'},profile_updated_at:'p0'},{job_id:42,profile_id:7,cv_updated_at:'c1'},'p1'),false)
+const { preparationFailureMessage } = await import('../frontend/src/applicationGeneration.ts')
+assert.match(preparationFailureMessage('The generated CV edits failed the template checks after correction. Your existing documents are unchanged.'), /retry/i)
+assert.doesNotMatch(preparationFailureMessage('The generated CV edits failed the template checks after correction. Your existing documents are unchanged.'), /macro|template checks|correction/i)
+assert.equal(preparationFailureMessage('ChatGPT sign-in is required.'), 'ChatGPT sign-in is required.')
+assert.match(preparationFailureMessage(), /retry/i)

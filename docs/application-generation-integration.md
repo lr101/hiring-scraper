@@ -18,10 +18,31 @@ unsupported draft claims. Final grounding findings still reject the package.
 These instructions guide the model; unit tests cannot establish prose quality or
 prove that every model output follows them.
 
-The Dockerfile copies the application package, including the prompt. No schema,
-frontend, provider setting or subscription-limit change is needed. Existing saved
-documents are not rewritten. Previously saved preparation checkpoints may contain
-an earlier draft/review; start a fresh preparation to use the updated instructions.
+Formatting recovery is scoped to the affected document. For macro CVs, the server
+validates edits independently, keeps valid ones, and requests one correction containing
+only rejected edits. Unknown macro names are ignored; duplicates are rejected together.
+A failed or unavailable correction retains each affected slot's last valid wording
+(the draft during revision, otherwise the original). Every assembled CV still passes
+the same strict template/history/budget validator used by import and export.
+
+For older full-source CVs, a correction returns only the CV source. If it still fails,
+Radius keeps the validated draft or original marked template. Generic CVs can be
+rendered deterministically from readable prose. Straightforward cover-letter TeX
+wrappers, emphasis and escaped symbols are converted to prose without a model call;
+unknown commands or math require a letter-only correction. An unusable letter revision
+retains the validated draft. The initial letter must still contain usable finished
+prose. Corrections cannot overwrite other documents or application answers.
+
+Retained wording is disclosed in the selected language in the preparation review,
+including after a checkpoint resume. The independent and final content reviews see
+the recovered documents. Cancellation, stale-source checks, unfinished-text checks,
+form limits and final grounding failures still prevent publication. These recoveries
+do not guarantee provider availability or prove factual/visual quality.
+
+The Dockerfile copies the application package, including the prompt. No database
+migration, provider setting or subscription-limit change is needed. Existing saved
+documents are not rewritten. Previously saved preparation checkpoints may contain an
+earlier draft/review; start a fresh preparation to use updated instructions.
 
 Offline evaluation tooling is maintained separately under
 `experiments/application_hillclimb/`. That directory is excluded from Docker build

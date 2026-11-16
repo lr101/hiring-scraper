@@ -8,6 +8,14 @@ export type PreparationJob = {
   result?: { package?: unknown }
 }
 
+export function preparationFailureMessage(error?: string) {
+  // Older persisted jobs can still contain the former formatting dead end.
+  if (!error || /generated CV edits failed|CV could not pass its formatting|cover letter still contains LaTeX/i.test(error)) {
+    return 'Please retry preparation. Validated progress can be reused when your profile, CV and job details are unchanged.'
+  }
+  return error
+}
+
 export function cancelPreparationJob(api: string, profileId: number, jobId: number, expectedId: string) {
   const query = new URLSearchParams({ job_id: String(jobId), expected_id: expectedId })
   return jobRequest(`${api}/api/v1/profiles/${profileId}/preparation-job/cancel?${query}`, { method: 'POST' })
