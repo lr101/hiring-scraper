@@ -86,9 +86,9 @@ def _lock(root, *, shared=False):
 
 def inference_concurrency():
     try:
-        return max(1, int(os.getenv('RADIUS_MATCH_AI_CONCURRENCY', '4')))
+        return max(1, int(os.getenv('RADIUS_MATCH_AI_CONCURRENCY', '25')))
     except ValueError:
-        return 4
+        return 25
 
 
 @contextmanager

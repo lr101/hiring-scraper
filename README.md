@@ -163,13 +163,16 @@ call cap. Local scores prioritize work but never exclude a job. Known qualificat
 conflicts remain enforced in published results. Successful assessments are reused
 until relevant source facts or the matching model change.
 
-`RADIUS_MATCH_AI_CONCURRENCY` defaults to **4** simultaneous provider requests per
-shared Radius runtime directory. It controls throughput, not total coverage. Each
+`RADIUS_MATCH_AI_CONCURRENCY` defaults to **25** simultaneous provider requests per
+shared Radius runtime directory. It controls throughput, not total coverage.
+Remove an existing override of `4`, or set it to `25`, and recreate the API and
+worker services to use the higher concurrency. Each
 queue item has a unique claim token and a 40-minute recovery lease (longer than the
 bounded assessment and repair timeout). Abandoned work becomes claimable after
 expiry; superseded owners cannot publish. Failures retry independently with durable
 30-second exponential backoff, up to 30 minutes, without a retry-count cap. Queue
-reconciliation runs every minute independently of local indexing and preparation.
+reconciliation runs in a separate thread, with a minute between completed scans,
+so large inventories cannot block inference dispatch or worker heartbeats.
 
 Apply migration `0039_durable_ai_matching_queue` and restart the API and background
 workers when upgrading. Existing valid assessments are retained. The old

@@ -36,7 +36,7 @@ export function MatchingStatusDetails({ data }: { data: MatchingStatus }) {
         <div><dt>In progress</dt><dd>{data.queue_counts?.running ?? 0}</dd></div>
         <div><dt>Waiting to retry</dt><dd>{data.queue_counts?.retry ?? 0}</dd></div>
         <div><dt>Excluded from current search</dt><dd>{data.queue_counts?.excluded ?? 0}</dd></div>
-        <div><dt>Concurrent assessments</dt><dd>{data.concurrency ?? 4}</dd></div>
+        <div><dt>Concurrent assessments</dt><dd>{data.concurrency ?? 25}</dd></div>
         <div><dt>Saved assessments for active jobs</dt><dd>{data.assessed_pairs}</dd></div>
         <div><dt>Changed jobs awaiting reassessment</dt><dd>{data.stale_assessments_pending ? 'Yes' : 'No'}</dd></div>
         <div><dt>Last successful assessment</dt><dd>{timestamp(data.last_assessed_at)}</dd></div>

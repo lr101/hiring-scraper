@@ -24,14 +24,21 @@ def matching_loop(stop):
     next_sync = 0.0
     next_quota = 0.0
     allowed = False
-    with ThreadPoolExecutor(max_workers=codex_runtime.inference_concurrency(), thread_name_prefix='ai-match') as pool:
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix='ai-queue-sync') as sync_pool, \
+            ThreadPoolExecutor(max_workers=codex_runtime.inference_concurrency(), thread_name_prefix='ai-match') as pool:
+        sync_future = None
         active = set()
         while not stop.is_set():
             try:
                 matching_worker_heartbeat(worker_id)
-                if time.monotonic() >= next_sync:
-                    sync_matching_queue()
+                if sync_future is not None and sync_future.done():
+                    finished_sync, sync_future = sync_future, None
                     next_sync = time.monotonic() + 60
+                    finished_sync.result()
+                if sync_future is None and time.monotonic() >= next_sync:
+                    # Inventory reconciliation can scan hundreds of thousands of
+                    # jobs. Never hold up dispatch or heartbeats while it runs.
+                    sync_future = sync_pool.submit(sync_matching_queue)
                 for future in list(active):
                     if future.done():
                         active.remove(future)

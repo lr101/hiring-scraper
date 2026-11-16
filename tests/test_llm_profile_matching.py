@@ -1786,11 +1786,17 @@ class ParallelQueueTests(unittest.TestCase):
             self.assertEqual(task.state, 'running')
             self.assertEqual(task.token, reclaimed[2])
 
-    def test_scheduler_dispatches_four_requests_and_records_heartbeat(self):
+    def test_scheduler_dispatches_25_requests_and_records_heartbeat(self):
         import threading
         from hiring_scraper.app import profile_match_worker as worker
         stop = threading.Event()
-        barrier = threading.Barrier(4, timeout=10)
+        with self.factory.begin() as session:
+            feed = session.scalar(select(models.JobFeed))
+            session.add_all([models.Job(feed=feed, title=f'Extra job {i}', description=DESCRIPTION,
+                external_id=f'extra-{i}', url=f'https://example.org/extra-{i}', is_remote=True)
+                for i in range(21)])
+        self.service.sync_matching_queue()
+        barrier = threading.Barrier(25, timeout=10)
         def provider(*args, **kwargs):
             barrier.wait()
             stop.set()
@@ -1802,8 +1808,36 @@ class ParallelQueueTests(unittest.TestCase):
             stop.set()
             self.assertFalse(scheduler.is_alive())
         with self.factory() as session:
-            self.assertEqual(session.query(models.ProfileLLMScore).count(), 4)
+            self.assertEqual(session.query(models.ProfileLLMScore).count(), 25)
             self.assertIsNotNone(session.scalar(select(models.AIMatchingWorker.seen_at)))
+
+    def test_slow_reconciliation_does_not_block_queued_assessments(self):
+        import threading
+        from hiring_scraper.app import profile_match_worker as worker
+        stop = threading.Event()
+        release_sync = threading.Event()
+        sync_started = threading.Event()
+        completed = threading.Event()
+        def slow_sync():
+            sync_started.set()
+            release_sync.wait(10)
+        def provider(*args, **kwargs):
+            completed.set()
+            stop.set()
+            return assessment(80)
+        with patch.object(worker, 'sync_matching_queue', slow_sync), \
+             patch.object(worker.codex_runtime, 'subscription_usage', return_value=dict(USAGE)), \
+             patch.object(worker.codex_runtime, 'generate', provider):
+            scheduler = threading.Thread(target=worker.matching_loop, args=(stop,))
+            scheduler.start()
+            try:
+                self.assertTrue(sync_started.wait(3))
+                self.assertTrue(completed.wait(3), 'Reconciliation blocked inference dispatch')
+            finally:
+                stop.set()
+                release_sync.set()
+                scheduler.join(timeout=20)
+            self.assertFalse(scheduler.is_alive())
 
     def test_additive_queue_migration_supports_claims_and_heartbeat(self):
         from alembic.migration import MigrationContext
