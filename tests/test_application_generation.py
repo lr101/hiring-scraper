@@ -171,12 +171,177 @@ class ApplicationGenerationTests(unittest.TestCase):
         calls = []
         def provider(prompt, schema, **kwargs):
             calls.append(prompt)
-            return invalid if len(calls) == 1 else valid
+            return invalid if len(calls) == 1 else {'cv': valid['latex_documents']['cv']}
         with patch.object(m.codex_runtime, 'generate', side_effect=provider):
             result = self.generate(mode='fast')
         self.assertEqual(len(calls), 2)
         self.assertIn('Escape LaTeX special characters', calls[1])
         self.assertEqual(result['package']['latex_documents']['cv'], valid['latex_documents']['cv'])
+
+    def macro_source(self):
+        from test_tex_cv import source
+        original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
+                                    '\\newcommand{\\RadiusWorkOne}{Built research tools.}\n'
+                                    '\\newcommand{\\RadiusWorkTwo}{Designed useful tools.}')
+        self.session.get(models.ProfileCV, self.profile_id).extracted_text = original
+        self.session.commit()
+        return original
+
+    def test_repeated_bad_macro_edits_keep_safe_edits_and_finish(self):
+        m = self.module()
+        original = self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+                                {'name': 'RadiusWorkTwo', 'text': 'Too long ' * 20}]
+        def provider(prompt, schema, **kwargs):
+            if schema['title'] == 'CVEditCorrection':
+                return {'cv_edits': [{'name': 'RadiusWorkTwo', 'text': 'Still too long ' * 20}]}
+            return response
+        with patch.object(m.codex_runtime, 'generate', side_effect=provider):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['latex_documents']['cv'], original.replace('Built research tools.', 'Built useful tools.'))
+        self.assertEqual(package['cover_letter'], response['cover_letter'])
+        self.assertIn('existing CV wording', package['review_notes'])
+        self.assertEqual(bytes(self.session.get(models.ProfileCV, self.profile_id).data), b'original')
+
+    def test_macro_correction_cannot_change_already_valid_edits(self):
+        m = self.module()
+        self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+                                {'name': 'RadiusWorkTwo', 'text': 'Too long ' * 20}]
+        correction = {'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Changed good text.'},
+                                   {'name': 'RadiusWorkTwo', 'text': 'Designed good tools.'}]}
+        with patch.object(m.codex_runtime, 'generate', side_effect=[response, correction]):
+            package = self.generate(mode='fast')['package']
+        self.assertIn('Built useful tools.', package['latex_documents']['cv'])
+        self.assertIn('Designed good tools.', package['latex_documents']['cv'])
+        self.assertNotIn('Changed good text.', package['latex_documents']['cv'])
+
+    def test_invalid_macro_revision_retains_last_valid_draft_and_reports_it(self):
+        m = self.module()
+        original = self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        draft = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]}
+        revision = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Too long ' * 20}]}
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, review, revision,
+                {'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Still too long ' * 20}]},
+                {'summary': 'Grounded.', 'findings': []}]):
+            package = self.generate()['package']
+        self.assertEqual(package['latex_documents']['cv'], original.replace('Built research tools.', 'Built useful tools.'))
+        self.assertIn('existing CV wording', package['review_notes'])
+
+    def test_letter_correction_preserves_valid_cv_and_answers(self):
+        m = self.module()
+        draft = self.documents(cover_letter=r'Dear \unknown{team}, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[draft, {'cover_letter': 'Dear team, I build tools.'}]):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['cover_letter'], 'Dear team, I build tools.')
+        self.assertEqual(package['latex_documents']['cv'], draft['latex_documents']['cv'])
+        self.assertEqual(package['application_answers'], draft['application_answers'])
+
+    def test_common_letter_latex_is_converted_without_another_model_turn(self):
+        m = self.module()
+        letter = r'\documentclass{letter}\begin{document}Dear \textbf{team},\par I build R\&D tools.\end{document}'
+        with patch.object(m.codex_runtime, 'generate', return_value=self.documents(cover_letter=letter)):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['cover_letter'], 'Dear team,\n\nI build R&D tools.')
+        self.assertIn('R\\&D', package['latex_documents']['cover_letter'])
+
+    def test_rejected_cv_prose_does_not_reach_the_final_review(self):
+        m = self.module()
+        self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response.update(cv='Invented rejected achievement.', cv_edits=[{'name': 'RadiusWorkOne', 'text': 'x' * 100}])
+        with patch.object(m.codex_runtime, 'generate', side_effect=[response, {'cv_edits': []}]):
+            package = self.generate(mode='fast')['package']
+        self.assertNotIn('Invented rejected achievement.', package['cv'])
+
+    def test_macro_recovery_handles_independent_invalid_edits(self):
+        from hiring_scraper.app.tex_cv import recover_macro_edits
+        original = self.macro_source()
+        for invalid in ('x' * 100, 'Broken\nline', r'\input{private}', 'Unclosed {', '[TODO finish]', 'R&D tools.', '^^41'):
+            with self.subTest(invalid=invalid):
+                latex, rejected = recover_macro_edits(original, [
+                    {'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+                    {'name': 'RadiusWorkTwo', 'text': invalid}], original=original)
+                self.assertEqual(latex, original.replace('Built research tools.', 'Built useful tools.'))
+                self.assertEqual([edit['name'] for edit in rejected], ['RadiusWorkTwo'])
+        latex, rejected = recover_macro_edits(original, [
+            {'name': 'RadiusWorkOne', 'text': 'Built useful tools.'},
+            {'name': 'RadiusWorkOne', 'text': 'Built good tools.'},
+            {'name': 'RadiusWorkTwo', 'text': 'Designed good tools.'}], original=original)
+        self.assertEqual(latex, original.replace('Designed useful tools.', 'Designed good tools.'))
+        self.assertEqual(len(rejected), 2)
+
+    def test_unavailable_macro_correction_still_returns_safe_documents(self):
+        m = self.module()
+        original = self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'x' * 100}]
+        for failure in (HTTPException(503, 'Unavailable'), HTTPException(504, 'Timed out'), {'cv_edits': None}):
+            with self.subTest(failure=failure), patch.object(m.codex_runtime, 'generate', side_effect=[response, failure]):
+                package = self.generate(mode='fast')['package']
+                self.assertEqual(package['latex_documents']['cv'], original)
+                self.assertEqual(package['cover_letter'], response['cover_letter'])
+                self.assertIn('existing CV wording', package['review_notes'])
+
+    def test_optional_correction_does_not_swallow_cancellation(self):
+        m = self.module()
+        self.macro_source()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'x' * 100}]
+        with patch.object(m.codex_runtime, 'generate', side_effect=[response, HTTPException(409, 'Preparation cancelled.')]):
+            with self.assertRaises(HTTPException) as raised:
+                self.generate(mode='fast')
+        self.assertEqual(raised.exception.status_code, 409)
+
+    def test_repeated_bad_letter_revision_keeps_validated_draft(self):
+        m = self.module()
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        final = {'summary': 'Grounded.', 'findings': []}
+        bad = self.documents(cover_letter=r'Dear \unknown{team}, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(), review, bad,
+                {'cover_letter': bad['cover_letter']}, final]), patch.object(m, '_verify_pdfs', return_value=[]):
+            package = self.generate()['package']
+        self.assertEqual(package['cover_letter'], 'Dear hiring team,\nI coordinate product requirements.')
+        self.assertIn('validated cover letter was retained', package['review_notes'])
+
+    def test_retry_keeps_recovery_notes_with_validated_draft(self):
+        m = self.module()
+        original = self.macro_source()
+        self.cache_assessment()
+        data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        class Control:
+            def __init__(self): self.values = {}
+            def __call__(self, stage): pass
+            def cancelled(self): return False
+            def checkpoint(self, key, value): self.values[key] = value
+            def load(self, key): return self.values.get(key)
+        control = Control()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'x' * 100}]
+        with patch.object(m.codex_runtime, 'generate', side_effect=[response, {'cv_edits': []}, HTTPException(504, 'Timed out')]):
+            with self.assertRaises(HTTPException): m._workflow(data, None, control)
+        review = self.transport(None)('', {'title': 'ApplicationReview'})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[review, {**response, 'cv_edits': []},
+                {'summary': 'Grounded.', 'findings': []}]), patch.object(m, '_verify_pdfs', return_value=[]):
+            package = m._workflow(data, None, control)
+        self.assertEqual(package['latex_documents']['cv'], original)
+        self.assertIn('existing CV wording', package['review_notes'])
+
+    def test_recovery_notes_follow_the_document_language(self):
+        m = self.module()
+        original = self.macro_source()
+        self.cache_assessment()
+        response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
+        response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'x' * 100}]
+        with patch.object(m.codex_runtime, 'generate', side_effect=[response, {'cv_edits': []}]):
+            result = m.prepare_application(self.profile_id,
+                self.request(mode='fast').model_copy(update={'language': 'de'}), self.session)
+        self.assertEqual(result['package']['latex_documents']['cv'], original)
+        self.assertIn('vorhandene Lebenslauf-Formulierungen', result['package']['review_notes'])
 
     def test_macro_cv_generation_applies_edits_to_original_source(self):
         from test_tex_cv import source
@@ -193,7 +358,7 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertEqual(result['latex_documents']['cv'], original.replace('Built research tools.', 'Built useful tools.'))
         self.assertIn('cv_edits', provider.call_args.args[1]['properties'])
 
-    def test_macro_cv_rejects_unrecognized_edits(self):
+    def test_macro_cv_ignores_unrecognized_edits_without_discarding_letter(self):
         from test_tex_cv import source
         m = self.module()
         original = source().replace('\\begin{itemize}\n\\item Built research tools.\n\\end{itemize}',
@@ -203,8 +368,12 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.session.commit()
         response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
         response['cv_edits'] = [{'name': 'RadiusUnknown', 'text': 'Changed.'}]
-        with patch.object(m.codex_runtime, 'generate', return_value=response), self.assertRaises(HTTPException):
-            self.generate(mode='fast')
+        with patch.object(m.codex_runtime, 'generate', return_value=response) as provider:
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(provider.call_count, 1)
+        self.assertEqual(package['latex_documents']['cv'], original)
+        self.assertEqual(package['cover_letter'], response['cover_letter'])
+        self.assertIn('existing CV wording', package['review_notes'])
 
     def test_macro_cv_corrects_an_overlong_edit(self):
         from test_tex_cv import source
@@ -217,7 +386,7 @@ class ApplicationGenerationTests(unittest.TestCase):
         response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
         bad = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Too long ' * 20}]}
         good = {**response, 'cv_edits': [{'name': 'RadiusWorkOne', 'text': 'Built useful tools.'}]}
-        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, {'cv_edits': good['cv_edits']}]) as provider:
             result = self.generate(mode='fast')['package']
         self.assertEqual(provider.call_count, 2)
         self.assertIn('Built useful tools.', result['latex_documents']['cv'])
@@ -267,52 +436,47 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertIn('Built useful tools.', result)
         self.assertIn('Designed good tools.', result)
 
-    def test_failed_format_repair_reports_reason_without_publishing(self):
+    def test_repeated_bad_generic_cv_format_uses_server_rendered_prose(self):
         m = self.module()
-        invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co'), 'cover_letter': latex_source('Letter')})
-        with patch.object(m.codex_runtime, 'generate', return_value=invalid) as provider:
-            with self.assertRaises(HTTPException) as raised: self.generate(mode='fast')
-        self.assertEqual(provider.call_count, 2)
-        self.assertIn('formatting', raised.exception.detail.lower())
-        self.assertEqual(list(self.session.scalars(select(models.JobApplication))), [])
+        invalid = self.documents(latex_documents={'cv': latex_source('Alex').replace('Alex', 'Alex & Co')})
+        with patch.object(m.codex_runtime, 'generate', side_effect=[invalid, {'cv': invalid['latex_documents']['cv']}]):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['latex_documents']['cv'], latex_source('Alex Example\nProduct coordination'))
+        self.assertEqual(package['cover_letter'], invalid['cover_letter'])
+        self.assertIn('existing CV wording', package['review_notes'])
 
-    def test_latex_in_letter_is_corrected_once_before_publication(self):
+    def test_unrecognized_latex_in_letter_is_corrected_in_isolation(self):
         m = self.module()
-        bad = self.documents(cover_letter=r'\documentclass{letter}\begin{document}Dear team\end{document}')
-        good = self.documents(cover_letter='Dear team, I build research tools.')
-        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
-            result = self.generate(mode='fast')
-        self.assertEqual(provider.call_count, 2)
-        self.assertEqual(result['package']['cover_letter'], good['cover_letter'])
-        self.assertNotIn('documentclass{letter}', result['package']['latex_documents']['cover_letter'].split('\\begin{document}', 1)[-1])
+        bad = self.documents(cover_letter=r'Dear \unknown{team}, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, {'cover_letter': 'Dear team, I build tools.'}]):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['cover_letter'], 'Dear team, I build tools.')
+        self.assertEqual(package['latex_documents']['cv'], bad['latex_documents']['cv'])
 
-    def test_repeated_latex_in_letter_fails_without_publishing(self):
+    def test_repeated_unsupported_letter_syntax_fails_without_publishing(self):
         m = self.module()
-        bad = self.documents(cover_letter=r'Dear \textbf{team}, I build tools.')
-        with patch.object(m.codex_runtime, 'generate', return_value=bad) as provider:
+        bad = self.documents(cover_letter=r'Dear \unknown{team}, I build tools.')
+        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, {'cover_letter': bad['cover_letter']}]):
             with self.assertRaises(HTTPException) as raised: self.generate(mode='fast')
-        self.assertEqual(provider.call_count, 2)
         self.assertIn('cover letter', raised.exception.detail.lower())
         self.assertEqual(list(self.session.scalars(select(models.JobApplication))), [])
 
-    def test_bare_latex_commands_in_letter_are_corrected(self):
+    def test_bare_latex_formatting_in_letter_is_normalized(self):
         m = self.module()
-        bad = self.documents(cover_letter=r'\centering Dear team, I build tools.')
-        good = self.documents(cover_letter='Dear team, I build tools.')
-        with patch.object(m.codex_runtime, 'generate', side_effect=[bad, good]) as provider:
-            result = self.generate(mode='fast')
-        self.assertEqual(provider.call_count, 2)
-        self.assertEqual(result['package']['cover_letter'], good['cover_letter'])
+        with patch.object(m.codex_runtime, 'generate', return_value=self.documents(cover_letter=r'\centering Dear team, I build tools.')):
+            package = self.generate(mode='fast')['package']
+        self.assertEqual(package['cover_letter'], 'Dear team, I build tools.')
 
-    def test_math_or_latex_fences_in_letter_trigger_correction(self):
+    def test_letter_math_and_unknown_commands_need_correction_but_fences_do_not(self):
         m = self.module()
-        for letter in (r'\(x+y\)', r'\[x^2\]', r'\"o', r'Price is $x^2$ per unit.', '$x + y$', '$E = mc^2$', '$$x+y$$', '```latex\nDear team\n```'):
-            with self.subTest(letter=letter), patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(cover_letter=letter), self.documents()]) as provider:
-                self.generate(mode='fast')
-                self.assertEqual(provider.call_count, 2)
-        with patch.object(m.codex_runtime, 'generate', return_value=self.documents(cover_letter='The budget was $5 to $10.')) as provider:
-            self.generate(mode='fast')
-            self.assertEqual(provider.call_count, 1)
+        for letter in (r'\(x+y\)', r'\[x^2\]', r'\"o', 'Price is $x^2$ per unit.', '$x + y$', '$E = mc^2$', '$$x+y$$'):
+            with self.subTest(letter=letter), patch.object(m.codex_runtime, 'generate', side_effect=[self.documents(cover_letter=letter), {'cover_letter': 'Dear team, I build tools.'}]):
+                package = self.generate(mode='fast')['package']
+                self.assertEqual(package['cover_letter'], 'Dear team, I build tools.')
+        for letter, expected in [('```latex\nDear team\n```', 'Dear team'), ('The budget was $5 to $10.', 'The budget was $5 to $10.')]:
+            with self.subTest(letter=letter), patch.object(m.codex_runtime, 'generate', return_value=self.documents(cover_letter=letter)):
+                package = self.generate(mode='fast')['package']
+                self.assertEqual(package['cover_letter'], expected)
 
     def test_fast_preparation_uses_selected_model_once(self):
         m = self.module()
@@ -419,9 +583,7 @@ class ApplicationGenerationTests(unittest.TestCase):
         results = [self.upstream(status='incomplete'),
                    self.upstream(output=[{'type': 'message', 'content': [{'type': 'refusal', 'refusal': 'No.'}]}]),
                    {'status': 'completed', 'output': []},
-                   self.upstream(self.documents(cv='[TODO write CV]')),
-                   self.upstream(self.documents(latex_documents={'cv': latex_source('Safe').replace('Safe', r'\input{/etc/passwd}'),
-                                                                'cover_letter': latex_source('Letter')}))]
+                   self.upstream(self.documents(cv='[TODO write CV]'))]
         for result in results:
             with self.subTest(result=result), patch.object(m.codex_runtime, 'generate', side_effect=self.transport(result)):
                 with self.assertRaises(HTTPException) as raised: self.generate()
@@ -453,9 +615,10 @@ class ApplicationGenerationTests(unittest.TestCase):
         cv.extracted_text = source(); self.session.commit()
         changed = source().replace('"2021"', '"2010"')
         with patch.object(m.codex_runtime, 'generate', side_effect=self.transport(self.upstream(self.documents(
-                latex_documents={'cv': changed, 'cover_letter': latex_source('Letter')})))), self.assertRaises(HTTPException) as raised:
-            self.generate()
-        self.assertEqual(raised.exception.status_code, 502)
+                latex_documents={'cv': changed, 'cover_letter': latex_source('Letter')})))):
+            package = self.generate()['package']
+        self.assertEqual(package['latex_documents']['cv'], source())
+        self.assertIn('existing CV wording', package['review_notes'])
 
     def test_captured_questions_exclude_manual_and_unknown_answers(self):
         m = self.module()
@@ -701,7 +864,7 @@ class ApplicationGenerationTests(unittest.TestCase):
             self.assertGreaterEqual(kwargs['timeout'], 400)
             elapsed[0] += 400
             return next(outputs)
-        with patch.object(m.time, 'monotonic', side_effect=lambda: elapsed[0]), patch.object(m.codex_runtime, 'generate', side_effect=generate) as provider, patch.object(m, '_validated_generation', side_effect=lambda doc, *args: doc.model_dump()), patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
+        with patch.object(m.time, 'monotonic', side_effect=lambda: elapsed[0]), patch.object(m.codex_runtime, 'generate', side_effect=generate) as provider, patch.object(m, '_validated_generation', side_effect=lambda doc, *args, **kwargs: doc.model_dump()), patch.object(m, '_verify_pdfs', return_value=[]), patch.object(m, '_review_notes', return_value='Review all facts.'):
             m._workflow(data, None)
         self.assertEqual(provider.call_count, 4)
 

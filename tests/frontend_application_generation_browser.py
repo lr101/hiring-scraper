@@ -54,6 +54,8 @@ def main():
             if mode == 'error':
                 raise HTTPException(502, 'ChatGPT could not prepare this application. Check subscription usage.')
             if mode == 'slow': time.sleep(1)
+            if schema['title'] == 'CVSourceCorrection':
+                return {'cv': data['original_cv_text'].replace('"2021"', '"2001"')}
             if schema['title'] == 'RevisionOutput':
                 document = data['original_cv_text'] if 'DOCUMENT TYPE: CV LaTeX source' in prompt else 'Dear hiring team,\nI bring practical requirements coordination.'
                 return {'document': document, 'review': 'The original can be more direct.', 'changes': 'Made the wording more direct.'}
@@ -297,12 +299,21 @@ def main():
                     expect(page.get_by_role('alert').filter(has_text='ChatGPT could not prepare')).to_be_visible()
                     assert 'Private provider details' not in page.content()
                     state['mode'] = 'invalid'; page.get_by_text('Options', exact=True).click(); page.get_by_role('button', name='Start with current options', exact=True).click()
-                    expect(page.get_by_role('alert').filter(has_text='protected-history checks')).to_be_visible()
+                    expect(page.get_by_role('button', name='Open latest prepared documents')).to_be_visible(timeout=30000)
+                    recovered = context.request.get(f'{url}/api/v1/profiles/{profile_id}/preparation-job?job_id={job_id}').json()['job']
+                    assert recovered['state'] == 'completed', recovered.get('error')
+                    assert '"2021"' in recovered['result']['package']['latex_documents']['cv']
+                    assert '"2001"' not in recovered['result']['package']['latex_documents']['cv']
+                    assert 'existing CV wording' in recovered['result']['package']['review_notes']
+                    expect(page.get_by_role('alert').filter(has_text='protected-history checks')).to_have_count(0)
                     state['mode'] = 'normal'
                     page.get_by_text('Options', exact=True).click()
                     page.get_by_role('combobox', name='Document language', exact=True).select_option('German')
                     expect(page.locator('[data-original-cv-text]')).to_have_attribute('data-original-cv-text', source('de').strip())
-                    page.get_by_role('button', name='Start with current options', exact=True).click()
+                    with page.expect_response(lambda response: response.url.endswith('/preparation-job') and response.request.method == 'POST') as german_response:
+                        page.get_by_role('button', name='Prepare documents', exact=True).click()
+                    assert german_response.value.ok, german_response.value.text()
+                    expect(page.get_by_role('button', name='Prepare documents', exact=True)).to_be_hidden()
                     expect(page.get_by_role('button', name='Open latest prepared documents')).to_be_visible(timeout=30000)
                     page.get_by_role('button', name='Open latest prepared documents').click()
                     expect(page.get_by_text('Your documents are ready.', exact=True)).to_be_visible()
@@ -326,7 +337,7 @@ def main():
                     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Mobile layout overflow'
                     assert not errors, errors
                     browser.close()
-                    print('Direct preparation browser: real UI/API, source download, recovery, provider errors, history rejection, reload recovery, German selection and disabled fallback passed.')
+                    print('Direct preparation browser: real UI/API, source download, recovery, provider errors, protected-history retention, reload recovery, German selection and disabled fallback passed.')
             finally:
                 server.should_exit = True; thread.join(timeout=10)
                 engine.dispose()

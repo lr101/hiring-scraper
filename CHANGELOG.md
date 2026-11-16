@@ -21,6 +21,8 @@ no historical releases have been reconstructed.
 
 - Run AI queue reconciliation separately from inference scheduling so large inventories cannot stall dispatch or worker heartbeats; increase default parallel assessments from four to 25.
 
+- Recover CV and cover-letter formatting without discarding valid documents: correct only rejected edits, retain safe wording when correction fails, normalize simple letter formatting, and provide clearer preparation feedback.
+
 - Keep AI assessments and local semantic matching progressing during profile index backfills and index failures. Prepare shortlists while subscription checks pause inference, and log safe pause reasons and assessment error types.
 
 - Keep expired ChatGPT sign-ins in a waiting state until runtime cleanup releases the connection, so an immediate sign-in retry can proceed.

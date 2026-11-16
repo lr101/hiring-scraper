@@ -201,6 +201,31 @@ def apply_macro_edits(source, edits, *, original=None):
     return result
 
 
+def recover_macro_edits(source, edits, *, original):
+    """Apply independent valid edits; rejected edits leave their current slot intact.
+
+    Keep the strict import/export validator authoritative. In particular, never
+    truncate prose to fit a budget or guess which duplicate edit was intended.
+    """
+    from collections import Counter
+    from hiring_scraper.app.application_documents import _finished_text
+    validate_tailored_cv(original, source)
+    _finished_text(source)
+    slots = editable_macro_slots(source)
+    counts = Counter(edit['name'] for edit in edits)
+    accepted, rejected = [], []
+    for edit in edits:
+        try:
+            if edit['name'] not in slots or counts[edit['name']] != 1:
+                raise ValueError('Invalid CV macro edits.')
+            _finished_text(edit['text'])
+            apply_macro_edits(source, [edit], original=original)
+            accepted.append(edit)
+        except ValueError as error:
+            rejected.append({**edit, 'reason': str(error)})
+    return apply_macro_edits(source, accepted, original=original), rejected
+
+
 def validate_tailored_cv(original, tailored):
     """Only marked description and profile prose may change; uploaded source is never executed."""
     if "^^" in tailored:
