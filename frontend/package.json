@@ -14,7 +14,7 @@
     "predev": "python3 ../scripts/build_extension.py --output public/downloads"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "6.2.1",
+    "@vitejs/plugin-react": "6.3.0",
     "pdfjs-dist": "6.5.438",
     "react": "19.3.0",
     "react-dom": "19.3.0",
