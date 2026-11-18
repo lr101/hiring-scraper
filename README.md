@@ -302,7 +302,7 @@ jobs are not adjusted by a city result.
 
 ## Compose deployment
 
-Compose pulls the app and PostgreSQL/PostGIS image with pgvector from GitHub Container Registry (GHCR). The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, the pinned local multilingual embedding model, and startup logic. A background worker keeps company/job vectors current and prebuilds profile-area job snapshots, so normal job search does not wait for profile-match rebuilds. On startup, the app prepares its database role and applies migrations. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
+Compose pulls the app and PostgreSQL/PostGIS image with pgvector from GitHub Container Registry (GHCR). The deployment host needs `compose.yaml`, `.env`, and `docker/chromium-seccomp.json`; the app image includes the frontend, migrations, the pinned local multilingual embedding model, and startup logic. A background worker keeps company/job vectors current and prebuilds profile-area job snapshots, so normal job search does not wait for profile-match rebuilds. The one-shot `migrate` service prepares the database role and applies migrations before the API and workers start. The API and each worker run in separate containers. When background workers are enabled, the feed worker adds the configured default RSS sources from `hiring_scraper/app/default_job_feeds.json` and queues their first scans; it does not import fixture companies or jobs. Open **Search areas** in the app and add a location to create the first company discovery job. PostgreSQL data persists in a named volume.
 
 Copy `compose.yaml`, `.env.example`, and `docker/chromium-seccomp.json` to the deployment host, preserving the `docker/` path. On Ubuntu 24.04+, install the included AppArmor profile so the host can selectively allow Chromium's sandbox user namespace:
 
@@ -317,7 +317,7 @@ Set `HIRING_APPARMOR_PROFILE=hiring-scraper-chromium` in `.env` on that host. Re
 cp .env.example .env
 # Replace both placeholder passwords with different values from: openssl rand -hex 32
 chmod 600 .env
-docker compose pull app db
+docker compose pull
 docker compose up -d --no-build
 ```
 
@@ -325,14 +325,16 @@ If startup is already failing with `extension "vector" is not available`, pull t
 
 ```bash
 docker compose pull db
-docker compose up -d --no-build --force-recreate db app
+docker compose up -d --no-build --force-recreate
 ```
 
-This keeps the named database volume. Once PostgreSQL is healthy, the app retries its migrations against the updated image.
+This keeps the named database volume. Once PostgreSQL is healthy, the migration service runs against the updated image.
+
+When upgrading from the single-container layout, stop the old app before starting the new release so the old workers do not overlap the new ones. Existing preparation drafts remain on the Codex volume. New PostgreSQL preparation jobs are persisted and resume from checkpoints after an interrupted worker lease expires.
 
 The first app image pull downloads the pinned ONNX model (about 235 MB). The search worker then indexes existing companies and jobs in the background; newly changed records are queued as they are discovered or edited. The jobs page can serve a recent snapshot while the next refresh runs, and text queries use local semantic vectors once indexed.
 
-Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the tags from the same commit (`COMMIT_SHA` for the app and `db-COMMIT_SHA` for the database), or pin each image to its own digest. Then run `docker compose pull app db && docker compose up -d --no-build`.
+Open <http://localhost:8080> (or the `APP_PORT` you set in `.env`). `docker compose down` preserves the database volume; use `docker compose down --volumes` to erase it. For a pinned deployment, set `HIRING_APP_IMAGE` and `HIRING_DB_IMAGE` in `.env` to the tags from the same commit (`COMMIT_SHA` for the app and `db-COMMIT_SHA` for the database), or pin each image to its own digest. Then run `docker compose pull && docker compose up -d --no-build`.
 
 To discover employers across Germany, open **Search areas** and use the default
 **All of Germany** coverage. Discovery advances through small map sections across

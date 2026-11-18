@@ -12,6 +12,7 @@ from sqlalchemy.exc import OperationalError, TimeoutError as DatabasePoolTimeout
 from sqlalchemy.orm import sessionmaker
 from psycopg.errors import LockNotAvailable
 
+from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, database, default_job_feeds, discovery_worker, enrichment, job_search, profiles
 from hiring_scraper.app import worker
 from hiring_scraper.app.models import (
@@ -35,7 +36,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                                                      if table.name != 'semantic_search_documents'])
         self.factory = sessionmaker(self.engine, autoflush=False, expire_on_commit=False)
         self.patches = [patch.object(module, 'SessionLocal', self.factory)
-                        for module in (worker, api, default_job_feeds, discovery_worker, enrichment)]
+                        for module in (worker, search_snapshots, default_job_feeds, discovery_worker, enrichment)]
         self.patches += [patch.object(worker, 'engine', self.engine),
                          patch.object(discovery_worker, 'engine', self.engine),
                          patch.object(default_job_feeds, 'IS_SQLITE', False)]
@@ -61,6 +62,55 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(run)
             session.flush()
             return company.id, feed.id, run.id
+
+    def test_preparation_api_enqueues_for_worker_and_prunes_finished_result(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+
+        from fastapi import Response
+        from hiring_scraper.app import application_generation as generation
+        from hiring_scraper.app import application_preparation_queue as queue
+        from hiring_scraper.app.models import ApplicationPreparationTask
+
+        _, feed_id, _ = self.seed_feed()
+        with self.factory.begin() as session:
+            profile = UserProfile(name='Preparation queue')
+            job = Job(feed_id=feed_id, external_id='preparation', title='Engineer',
+                      url='https://example.test/preparation')
+            session.add_all((profile, job))
+            session.flush()
+            profile_id, job_id = profile.id, job.id
+
+        request = generation.PrepareApplicationRequest(
+            job_id=job_id, cv_updated_at='current', profile_updated_at='current', language='en',
+        )
+        with TemporaryDirectory() as state, self.factory() as session, (
+            patch.object(queue, 'SessionLocal', self.factory)
+        ), patch.object(generation, 'generation_status', return_value={'enabled': True}), (
+            patch.object(generation, '_snapshot', return_value=({}, 'revision'))
+        ), patch.object(generation.codex_runtime, '_root', return_value=Path(state)), (
+            patch.object(generation.codex_runtime, 'selected_model', return_value=None)
+        ):
+            queued = generation.start_preparation_job(profile_id, request, Response(), session)['job']
+            self.assertEqual(queued['state'], 'running')
+            self.assertNotIn('checkpoints', queued)
+
+            def run(owner, payload, revision, progress):
+                self.assertEqual((owner, payload['job_id'], revision), (profile_id, job_id, 'revision'))
+                progress('drafting')
+                progress.checkpoint('draft', {'title': 'Saved work'})
+                return {'package': 'generated'}
+
+            self.assertTrue(queue.process_once(run))
+            finished = generation.preparation_job_status(profile_id, job_id, Response(), session=session)['job']
+            self.assertEqual(finished['id'], queued['id'])
+            self.assertEqual(finished['result'], {'package': 'generated'})
+            session.rollback()
+            with self.factory.begin() as writer:
+                task = writer.get(ApplicationPreparationTask, (profile_id, job_id))
+                task.updated_at = utcnow() - queue.RETENTION - timedelta(seconds=1)
+            queue.prune_finished()
+            self.assertIsNone(generation.preparation_job_status(profile_id, job_id, Response(), session=session)['job'])
 
     def test_profile_edit_locks_source_before_semantic_cache_lookup(self):
         from sqlalchemy.engine.cursor import CursorResult
@@ -842,10 +892,10 @@ class PostgresConcurrencyTests(unittest.TestCase):
             second.flush()
             second.commit()
             with self.factory() as observer:
-                before_first_commit = api._search_generation(observer)
+                before_first_commit = search_snapshots.search_generation(observer)
             first.commit()
             with self.factory() as observer:
-                self.assertGreater(api._search_generation(observer), before_first_commit)
+                self.assertGreater(search_snapshots.search_generation(observer), before_first_commit)
 
     def test_feed_finalization_waits_for_company_without_holding_feed(self):
         self.assert_company_first(lambda feed_id, run_id: worker._persist_result(
@@ -1060,7 +1110,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 event.listen(self.engine, 'before_cursor_execute', pause)
                 def finish():
                     try:
-                        api._finish_search_snapshot_refresh(key, 'old', requested, retry=retry)
+                        search_snapshots._finish_search_snapshot_refresh(key, 'old', requested, retry=retry)
                     except Exception as error:
                         errors.append(error)
                 thread = threading.Thread(target=finish, name='snapshot-finisher')
@@ -1802,7 +1852,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         with self.factory() as identity_writer:
             index_vacancy_identities(identity_writer, job_ids)
             with self.factory() as observer:
-                previous_generation = api._search_generation(observer)
+                previous_generation = search_snapshots.search_generation(observer)
             # Keep actual identity writes uncommitted, as during deduplication
             # and search-copy materialization. An unrelated source can commit.
             worker._persist_result(feed_id, run_id, {
@@ -1812,7 +1862,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                     'description': 'New independently ingested source',
                 }]}}, b'', 1)
             with self.factory() as observer:
-                self.assertGreater(api._search_generation(observer), previous_generation)
+                self.assertGreater(search_snapshots.search_generation(observer), previous_generation)
                 self.assertIsNotNone(observer.scalar(select(Job.id).where(
                     Job.feed_id == feed_id, Job.external_id == 'independent-new')))
 

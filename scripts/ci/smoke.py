@@ -275,7 +275,7 @@ def main() -> None:
         query = urlencode({'profile_id': profile_id, 'limit': 3})
         board = read(WEB + '/api/v1/jobs?' + query)
         if board.get('search_mode') == 'warming':
-            from hiring_scraper.app.api import process_search_snapshot_refresh_once
+            from hiring_scraper.app.search_snapshots import process_search_snapshot_refresh_once
             for _ in range(20):
                 if process_search_snapshot_refresh_once():
                     break

@@ -30,17 +30,18 @@ def _prepare_codex_state() -> None:
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     # Named volumes can start root-owned. Repair existing native auth/cache
     # files too, without following links outside this dedicated runtime tree.
-    if os.geteuid() == 0:
-        for directory, directories, files in os.walk(root, followlinks=False):
-            for path in [Path(directory), *(Path(directory) / name for name in directories + files)]:
-                if path.is_symlink():
-                    # The native CLI creates PATH helper aliases in CODEX_HOME/tmp.
-                    # Keep those disposable links without touching their targets.
-                    # The cache root and all persistent state must remain real paths.
-                    temporary = root / 'home' / 'tmp'
-                    if path != temporary and path.is_relative_to(temporary):
-                        continue
-                    raise RuntimeError("The private Codex state directory must not contain symbolic links")
+    repair_owner = os.geteuid() == 0
+    for directory, directories, files in os.walk(root, followlinks=False):
+        for path in [Path(directory), *(Path(directory) / name for name in directories + files)]:
+            if path.is_symlink():
+                # The native CLI creates PATH helper aliases in CODEX_HOME/tmp.
+                # Keep those disposable links without touching their targets.
+                # The cache root and all persistent state must remain real paths.
+                temporary = root / 'home' / 'tmp'
+                if path != temporary and path.is_relative_to(temporary):
+                    continue
+                raise RuntimeError("The private Codex state directory must not contain symbolic links")
+            if repair_owner:
                 os.chown(path, APP_UID, APP_GID, follow_symlinks=False)
     root.chmod(0o700)
 
@@ -183,8 +184,18 @@ def _ensure_profile_vote_weight(migration_url: str) -> None:
 
 
 def _bootstrap() -> str:
-    application_url = _application_database_url()
     migration_url = _migration_database_url()
+    engine = create_engine(migration_url, isolation_level="AUTOCOMMIT")
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT pg_advisory_lock(85793011, 7)"))
+            return _migrate(migration_url)
+    finally:
+        engine.dispose()
+
+
+def _migrate(migration_url: str) -> str:
+    application_url = _application_database_url()
     print("Ensuring the application database role exists", flush=True)
     _ensure_application_role(migration_url, _application_database_password())
 
@@ -215,29 +226,44 @@ def _stop_children(children: list[subprocess.Popen[bytes]]) -> None:
                 child.wait()
 
 
-def _serve() -> int:
-    worker_setting = os.getenv("RUN_BACKGROUND_WORKERS", "true").lower()
-    if worker_setting not in {"true", "false"}:
-        raise RuntimeError("RUN_BACKGROUND_WORKERS must be true or false")
+WORKER_MODULES = (
+    "worker",
+    "discovery_worker",
+    "search_snapshot_worker",
+    "profile_match_worker",
+    "semantic_search_worker",
+    "application_preparation_worker",
+)
+WORKER_POOL = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
+PREPARATION_POOL = {"HIRING_DB_POOL_SIZE": "2", "HIRING_DB_MAX_OVERFLOW": "0"}
+API_POOL = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
+API_COMMAND = ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
-    commands: list[tuple[list[str], dict[str, str]]] = []
-    if worker_setting == "true":
-        worker_pool = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
-        commands.extend((command, worker_pool) for command in [
-            ["python", "-m", "hiring_scraper.app.worker"],
-            ["python", "-m", "hiring_scraper.app.discovery_worker"],
-            ["python", "-m", "hiring_scraper.app.search_snapshot_worker"],
-            ["python", "-m", "hiring_scraper.app.profile_match_worker"],
-            ["python", "-m", "hiring_scraper.app.semantic_search_worker"],
-        ])
-    # The API's synchronous route pool can run up to 40 requests concurrently.
-    # With five worker pools capped at 10 each, the app uses at most 90 of
-    # PostgreSQL's default 100 connections.
-    api_pool = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
-    commands.append((
-        ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"],
-        api_pool,
-    ))
+
+def _workers_enabled() -> bool:
+    setting = os.getenv("RUN_BACKGROUND_WORKERS", "true").lower()
+    if setting not in {"true", "false"}:
+        raise RuntimeError("RUN_BACKGROUND_WORKERS must be true or false")
+    return setting == "true"
+
+
+def _worker_pool(module: str) -> dict[str, str]:
+    return PREPARATION_POOL if module == "application_preparation_worker" else WORKER_POOL
+
+
+def _worker_command(module: str) -> list[str]:
+    return ["python", "-m", f"hiring_scraper.app.{module}"]
+
+
+def _exec_runtime(command: list[str], pool: dict[str, str]) -> None:
+    environment = _runtime_environment(_application_database_url()) | pool
+    _drop_privileges()
+    os.execvpe(command[0], command, environment)
+
+
+def _serve() -> int:
+    commands = [(_worker_command(module), _worker_pool(module)) for module in WORKER_MODULES] if _workers_enabled() else []
+    commands.append((API_COMMAND, API_POOL))
 
     environment = _runtime_environment()
     children: list[subprocess.Popen[bytes]] = []
@@ -272,8 +298,20 @@ def _serve() -> int:
 
 
 def main() -> int:
-    _prepare_codex_state()
     arguments = sys.argv[1:]
+    if arguments == ["--migrate"]:
+        _prepare_codex_state()
+        _bootstrap()
+        return 0
+    if arguments == ["--api"]:
+        _exec_runtime(API_COMMAND, API_POOL)
+        return 1
+    if len(arguments) == 2 and arguments[0] == "--worker" and arguments[1] in WORKER_MODULES:
+        if not _workers_enabled():
+            return 0
+        _exec_runtime(_worker_command(arguments[1]), _worker_pool(arguments[1]))
+        return 1
+    _prepare_codex_state()
     if arguments and arguments[0] == "--runtime-entrypoint":
         if len(arguments) != 1:
             raise RuntimeError("Unexpected runtime entrypoint arguments")

@@ -127,6 +127,9 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
             delete_errors = []
 
             class Session:
+                def get_bind(self):
+                    return SimpleNamespace(dialect=SimpleNamespace(name='sqlite'))
+
                 def rollback(self):
                     pass
 

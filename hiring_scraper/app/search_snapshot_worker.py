@@ -5,7 +5,7 @@ import logging
 import os
 import time
 
-from hiring_scraper.app.api import (
+from hiring_scraper.app.search_snapshots import (
     prewarm_profile_location_snapshots_once, process_search_snapshot_refresh_once,
 )
 

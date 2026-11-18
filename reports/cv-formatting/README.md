@@ -31,4 +31,4 @@ Reproduce the artifact trial:
 
 `tests/frontend_application_ready_browser.py` additionally uploads this CV, imports a tailored package via a return link, downloads a two-page PDF and template-preserving DOCX without opening the editor or confirming facts, checks malformed/unfinished input cannot replace finished documents, and checks unfinished manual edits cannot export. The regular handoff and return browser suites cover clipboard failures, other import paths, draft expiry and mobile layouts.
 
-PNGs are rendered one page at a time: the local Poppler build's multi-page raster path omitted repeated header/footer glyphs in later images, while PDF text/crops and independent page rendering were correct. The supplied PNGs use independent page rendering.
+PNGs are rendered one page at a time: the local Poppler build's multi-page raster path omitted repeated header/footer glyphs in later images, while PDF text/crops and independent page rendering were correct. The trial regenerates those PNGs on demand.

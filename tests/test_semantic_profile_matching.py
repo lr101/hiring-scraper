@@ -12,6 +12,7 @@ from unittest.mock import patch
 from sqlalchemy import create_engine, event, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
+from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, models, profiles
 
 from hiring_scraper.matching import match_job
@@ -547,7 +548,7 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
                     queries.append(statement)
             event.listen(self.engine, 'before_cursor_execute', observe)
             try:
-                page = api._jobs_page(jobs, 'match', 0, 40, 49.0, 8.4, 35, profile, 0, True,
+                page = search_snapshots._jobs_page(jobs, 'match', 0, 40, 49.0, 8.4, 35, profile, 0, True,
                     precomputed_scopes={job.id: {'eligible': True, 'reason': None,
                                                  'unknowns': [], 'match_kind': 'remote'} for job in jobs})
             finally:
