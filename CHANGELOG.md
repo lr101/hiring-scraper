@@ -12,10 +12,16 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Persist PostgreSQL application preparation jobs and checkpoints across worker restarts. Migration `0040_application_preparation` adds the queue. Existing drafts stay on the private runtime volume.
+
 - Continuously assess all active in-scope jobs through a durable parallel AI queue, with subscription pause/resume, independent persistent retries, recovered claims, and worker heartbeat diagnostics. Migration `0039_durable_ai_matching_queue` is required; `RADIUS_MATCH_AI_CONCURRENCY` defaults to 25. Shortlist, employer, local-score, and application call caps no longer restrict AI coverage.
 - Keep existing eligible Journey entries when AI lowers their score below the new-entry minimum, and sort them by the updated judgment before pagination.
 
 - Select the server-wide AI matching model in Settings → AI matching status. Migration `0038_ai_matching_model_setting` persists the choice across API and worker restarts; changing models refreshes matching without resetting usage budgets.
+
+### Changed
+
+- Run Compose migrations once per deployment and restart each worker independently of the API. Deploy the Compose file and its matching app image together.
 
 ### Fixed
 

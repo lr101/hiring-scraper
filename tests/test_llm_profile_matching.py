@@ -16,6 +16,7 @@ from sqlalchemy.exc import SAWarning
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, models, profiles
 from hiring_scraper.app.job_search import ensure_profile_match_indexes, profile_match_index_stale
 
@@ -1345,7 +1346,7 @@ class PersistedAssessmentTests(unittest.TestCase):
                     statements.append(statement)
             event.listen(self.engine, 'before_cursor_execute', observe)
             try:
-                page = api._jobs_page(jobs, 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
+                page = search_snapshots._jobs_page(jobs, 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                     precomputed_scopes={job.id: {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'remote'} for job in jobs})
             finally:
                 event.remove(self.engine, 'before_cursor_execute', observe)
@@ -1381,21 +1382,21 @@ class PersistedAssessmentTests(unittest.TestCase):
             indexed = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
             scope = {'eligible': True, 'reason': None,
                      'unknowns': ['Work location is not verified'], 'match_kind': 'remote'}
-            with patch.object(api, '_result_scope', return_value=scope):
+            with patch.object(search_snapshots, 'result_scope', return_value=scope):
                 detail = api.get_job(self.job_id, session=session, profile_id=self.profile_id,
                                      latitude=49., longitude=8.4, radius_km=35)['profile_match']
             self.assertEqual(detail['fit_tier'], 'possible')
             self.assertTrue(detail['uncertain'])
             for indexed_matches in [None, {job.id: indexed}]:
                 with self.subTest(indexed=indexed_matches is not None):
-                    page = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
+                    page = search_snapshots._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                         indexed_matches=indexed_matches, precomputed_scopes={job.id: scope})
                     match = page['items'][0]['profile_match']
                     self.assertEqual(match['score'], 90)
                     self.assertEqual(match['fit_tier'], detail['fit_tier'])
                     self.assertEqual(match['uncertain'], detail['uncertain'])
                     self.assertIn('Work location is not verified', match['unknowns'])
-                    hidden = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, False,
+                    hidden = search_snapshots._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, False,
                         indexed_matches=indexed_matches, precomputed_scopes={job.id: scope})
                     self.assertEqual(hidden['total'], 0)
 
@@ -1433,7 +1434,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             job = session.get(models.Job, self.job_id)
             profile = session.get(models.UserProfile, self.profile_id)
             indexed = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
-            page = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
+            page = search_snapshots._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                 indexed_matches={job.id: indexed}, precomputed_scopes={job.id: {
                     'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'remote'}})
             self.assertEqual(page['items'][0]['profile_match']['score_source'], 'llm')
@@ -1711,7 +1712,7 @@ class FurtherSourceTests(unittest.TestCase):
             job = session.get(models.Job, self.job_id)
             profile = session.get(models.UserProfile, self.profile_id)
             indexed = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
-            page = api._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
+            page = search_snapshots._jobs_page([job], 'match', 0, 40, 49., 8.4, 35, profile, 0, True,
                 indexed_matches={job.id: indexed}, precomputed_scopes={job.id: {
                     'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'remote'}})
             self.assertGreaterEqual(page['items'][0]['profile_match']['score'], 65)

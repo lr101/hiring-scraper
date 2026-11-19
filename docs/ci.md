@@ -111,7 +111,7 @@ ghcr.io/lr101/hiring-scraper/hiring-scraper
 ghcr.io/lr101/hiring-scraper/hiring-scraper:db-latest
 ```
 
-The `latest` image contains the API, both background workers, and the built frontend. The `db-latest` image contains PostgreSQL 17, PostGIS 3.5, and pgvector. Database tags add a `db-` prefix to the matching commit, `latest`, and release-version tags so both images can share the existing public package without tag collisions. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Both images include OCI source and revision labels. Public image pulls need no login.
+The `latest` image contains the API, migration command, background worker commands, and the built frontend. The `db-latest` image contains PostgreSQL 17, PostGIS 3.5, and pgvector. Database tags add a `db-` prefix to the matching commit, `latest`, and release-version tags so both images can share the existing public package without tag collisions. Publishing uses the repository's `GITHUB_TOKEN`; no personal access token is needed for the workflow. Both images include OCI source and revision labels. Public image pulls need no login.
 
 | Trigger | Published tags |
 | --- | --- |

@@ -10,7 +10,7 @@ import time
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from hiring_scraper.app import application_generation as generation, application_generation_jobs as jobs, codex_runtime
+from hiring_scraper.app import application_generation as generation, application_generation_jobs as jobs, application_preparation_queue, codex_runtime
 from hiring_scraper.app.applications import canonical_application_states
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.job_search import profile_match_index_stale
@@ -63,6 +63,15 @@ def prepare_once():
         if not quota.get('allowed'):
             return False
         with SessionLocal() as session:
+            postgres = session.get_bind().dialect.name == 'postgresql'
+            if postgres and application_preparation_queue.has_active(session):
+                return False
+
+            def status(profile_id, job_id):
+                if postgres:
+                    return application_preparation_queue.status(session, profile_id, job_id)
+                return jobs.status(root, profile_id, job_id)
+
             profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
             for profile in profiles:
                 if not profile.cv or profile_match_index_stale(profile):
@@ -73,7 +82,7 @@ def prepare_once():
                 for row in rows:
                     if jobs.load_draft(root, profile.id, row.job_id):
                         continue
-                    current = jobs.status(root, profile.id, row.job_id)
+                    current = status(profile.id, row.job_id)
                     if current and (current['state'] in ('running', 'cancelling', 'cancelled') or
                                     (current['state'] == 'completed' and not current.get('automatic')) or
                                     (current['state'] == 'failed' and time.time() - current.get('updated_at', 0) < RETRY_SECONDS)):
@@ -90,7 +99,7 @@ def prepare_once():
                             # A manual draft or job may have appeared since the scan.
                             if jobs.load_draft(root, profile.id, job.id):
                                 continue
-                            current = jobs.status(root, profile.id, job.id)
+                            current = status(profile.id, job.id)
                             if current and (current['state'] in ('running', 'cancelling', 'cancelled') or
                                             (current['state'] == 'completed' and not current.get('automatic'))):
                                 continue
@@ -99,6 +108,11 @@ def prepare_once():
                                 continue
                             profile_id = profile.id
                             session.rollback()
+                            if postgres:
+                                application_preparation_queue.enqueue(
+                                    profile_id, request.job_id, request.model_dump(), revision, automatic=True,
+                                )
+                                return True
                             def run(progress, profile_id=profile_id, request=request, revision=revision):
                                 with SessionLocal() as worker_session:
                                     return generation._prepare_application(profile_id, request, worker_session,

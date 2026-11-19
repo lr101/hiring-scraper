@@ -65,3 +65,10 @@ assert.equal(stateParams.get('state'), 'Baden-Württemberg')
 assert.equal(stateParams.has('latitude'), false, 'State browsing must not use a circle around a placeholder point')
 assert.equal(stateParams.has('radius_km'), false)
 console.log('Whole-state board requests use state membership instead of radius')
+
+const germanyLocation = { search_scope: 'country', label: 'Germany', latitude: 0, longitude: 0, country_code: 'de' }
+assert.equal(helpers.boardLocationParams(germanyLocation, 15, 'US').toString(), 'country=DE&country_code=US')
+assert.equal(helpers.profileBoardDefaults(
+  { search_area: { latitude: 49, longitude: 8, radius_km: 15 }, matching_defaults: {} },
+  new URLSearchParams('country=DE'),
+).location, null)

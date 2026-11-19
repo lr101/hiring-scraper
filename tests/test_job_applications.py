@@ -13,6 +13,7 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine, event, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, job_search, models, profiles
 from hiring_scraper.app.database import initialize_sqlite_schema
 
@@ -69,7 +70,7 @@ class JobApplicationTests(unittest.TestCase):
         def current_match(job, *args):
             matched_ids.append(job.id)
             return {'score': 2 if job.id == self.jobs[0].id else 59, 'score_source': 'local'}
-        with patch.object(api, 'IS_SQLITE', False), patch.object(api, '_profile_match', side_effect=current_match):
+        with patch.object(api, 'IS_SQLITE', False), patch.object(search_snapshots, 'profile_match', side_effect=current_match):
             page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all',
                                          sort='match', offset=0, limit=1, session=self.session)
         self.assertEqual(page['items'][0]['id'], self.jobs[0].id)

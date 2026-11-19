@@ -509,6 +509,9 @@ def delete_cv(profile_id: int, session: Session = Depends(get_session)):
     with application_generation_jobs.profile_lock(root, profile_id):
         profile = require_profile(profile_id, session)
         profile.cv = None
+        if session.get_bind().dialect.name == 'postgresql':
+            from hiring_scraper.app.application_preparation_queue import clear
+            clear(session, profile_id)
         session.commit()
         application_generation_jobs.delete_profile(root, profile_id)
         application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)

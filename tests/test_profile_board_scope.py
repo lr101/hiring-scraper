@@ -234,12 +234,12 @@ class ProfileBoardScopeTests(unittest.TestCase):
         self.assertEqual(updated['education'], [])
         self.assertEqual(updated['language_levels'], {})
 
-    def test_backend_geography_is_identical_and_filters_before_pagination(self):
+    def test_warm_snapshot_preserves_geography_filtered_results(self):
         profile = self.profile(search_area=AREA)
         self.job('outside', locations=[models.JobLocation(label='Heidelberg', country_code='US')])
         self.job('inside')
         sqlite = self.board(profile)
         with patch.object(api, 'IS_SQLITE', False):
-            postgres_path = self.board(profile)
-        self.assertEqual(sqlite['items'], postgres_path['items'])
+            warm_snapshot = self.board(profile)
+        self.assertEqual(sqlite['items'], warm_snapshot['items'])
         self.assertEqual(sqlite['total'], 1)

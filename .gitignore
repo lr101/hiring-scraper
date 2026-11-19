@@ -26,3 +26,11 @@ data/bonn-public/raw/
 # Reproducible extension artifacts are built by CI, never committed.
 dist/
 frontend/public/downloads/
+
+# Reproducible CV formatting trial output
+/reports/cv-formatting/*.png
+/reports/cv-formatting/mara-neumann-*.html
+/reports/cv-formatting/mara-neumann-expanded.docx
+/reports/cv-formatting/mara-neumann-expanded.pdf
+/reports/cv-formatting/mara-neumann-stress.docx
+/reports/cv-formatting/mara-neumann-stress.pdf
