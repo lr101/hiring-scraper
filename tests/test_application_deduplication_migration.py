@@ -2,6 +2,7 @@
 import importlib
 import importlib.util
 import unittest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from alembic.migration import MigrationContext
@@ -37,10 +38,12 @@ class ApplicationDeduplicationMigrationTests(unittest.TestCase):
             session.flush()
             self.profile_id, self.other_id = profile.id, other.id
             self.job_ids = [job.id for job in jobs]
+            decision_time = datetime(2026, 1, 1, tzinfo=timezone.utc)
             rows = [models.JobApplication(profile_id=profile.id, job_id=jobs[0].id,
-                        status='open', previous_status='new'),
+                        status='open', previous_status='new', updated_at=decision_time),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[1].id,
-                        status='interview', previous_status='waiting_for_reply'),
+                        status='interview', previous_status='waiting_for_reply',
+                        updated_at=decision_time + timedelta(seconds=1)),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[2].id,
                         status='new', auto_created=True),
                     models.JobApplication(profile_id=profile.id, job_id=jobs[3].id, status='new'),
