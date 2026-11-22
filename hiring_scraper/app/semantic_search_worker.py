@@ -400,7 +400,7 @@ def main() -> None:
     logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"),
                         format="%(asctime)s %(levelname)s %(name)s %(message)s")
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=int(os.getenv("SEMANTIC_EMBEDDING_PORT", "8001")),
+    uvicorn.run(app, host=os.getenv("SEMANTIC_EMBEDDING_HOST", "127.0.0.1"), port=int(os.getenv("SEMANTIC_EMBEDDING_PORT", "8001")),
                 log_level=os.getenv("LOG_LEVEL", "info").lower())
 
 
