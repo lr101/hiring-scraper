@@ -16,7 +16,7 @@ COPY frontend/ ./
 COPY hiring_scraper/app/latex_template.json /hiring_scraper/app/latex_template.json
 RUN npm run build
 
-FROM ghcr.io/astral-sh/uv:0.13.6@sha256:af22a52f5eafef3d78e551599d405c02df61919d18028f0cea8eda93bc9986d0 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.9@sha256:d3b601f0c7b118bc1753febf7c41cc80981df678445e0254284eecf84db79a7d AS uv
 
 # Keep Python within the wheel support of the locked onnxruntime dependency.
 FROM python:3.14-slim-bookworm@sha256:48b13b003dda20b16f9442b8475aa05fe21bf6579a8c881db92ffb4d8fd20f83
