@@ -5,7 +5,7 @@ import json
 import os
 from urllib.request import Request, urlopen
 
-from sqlalchemy import delete, exists, or_, select
+from sqlalchemy import exists, or_, select
 
 from hiring_scraper.app.database import SessionLocal
 from hiring_scraper.app.models import Job, MatchSemanticDocument, UserProfile, utcnow

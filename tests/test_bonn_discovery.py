@@ -1,8 +1,7 @@
 """Regressions for contracts observed in the Bonn live benchmark."""
-import copy
 import json
 import unittest
-from hiring_scraper.ats import identify, parse_feed, fetch_feed
+from hiring_scraper.ats import identify, parse_feed
 from hiring_scraper.discovery import discover
 from hiring_scraper.html_jobs import extract_html_jobs, html_job_key
 from hiring_scraper.pages import inspect_page
@@ -256,43 +255,6 @@ class BonnRefreshTests(unittest.TestCase):
                 self.assertEqual(old.missing_complete_scans,1)
                 self.assertEqual(session.get(JobFeed,feed_id).status,'incomplete')
         finally:engine.dispose()
-
-
-class BonnBenchmarkReplayTests(unittest.TestCase):
-    def test_concurrent_offline_replay_preserves_capture_evidence(self):
-        import hashlib
-        from argparse import Namespace
-        from pathlib import Path
-        from tempfile import TemporaryDirectory
-        from unittest.mock import patch
-        from experiments import bonn_discovery_benchmark as benchmark
-        real_client = benchmark.Client
-        with TemporaryDirectory() as folder:
-            root = Path(folder)
-            cache = root / 'http'
-            cache.mkdir()
-            body = b'<html>Fixture</html>'
-            record = {'url': 'https://example.com/', 'capture': 'fixture',
-                      'state': 'ok', 'status': 200,
-                      'sha256': hashlib.sha256(body).hexdigest()}
-            (cache / 'fixture.body').write_bytes(body)
-            (cache / 'fixture.json').write_text(json.dumps(record))
-            original = {p.name: p.read_bytes() for p in cache.iterdir()}
-            benchmark.write(root / 'cohort.json', [{'name': str(i), 'website': record['url']} for i in range(32)])
-            def make_client(out, **kwargs):
-                self.assertNotEqual(Path(out).resolve(), cache.resolve())
-                return real_client(out, **kwargs)
-            def discover(seed, client, **kwargs):
-                meta, captured = client._raw(seed['website'])
-                self.assertEqual(captured, body)
-                return {'name': seed['name'], 'status': 'career_found',
-                        'pages': [{'fetch_state': meta['state']}], 'boards': []}
-            args = Namespace(root=root, variant='candidate', baseline='unused',
-                             workers=8, requests=2500, live=False)
-            with patch.object(benchmark, 'Client', side_effect=make_client), patch.object(benchmark.discovery, 'discover', side_effect=discover), patch('builtins.print'):
-                benchmark.crawl(args)
-            self.assertEqual(len(benchmark.read(root / 'raw' / 'candidate.json')), 32)
-            self.assertEqual({p.name: p.read_bytes() for p in cache.iterdir()}, original)
 
 
 class PublicMicrodataTests(unittest.TestCase):

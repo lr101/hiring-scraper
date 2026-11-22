@@ -9,28 +9,13 @@ frontend/dist/
 *.egg-info/
 *.sqlite3
 hiring.db
-# Scraper captures, caches, and generated working data stay local.
+# Scraper captures and local private inputs stay local.
 *.body
-data/**/http/
-data/**/*-http/
-data/career-poc/resume-cache-*/
-data/probes/
+data/
 .superpowers/
-# Task-specific regional captures and local private inputs.
-data/local-cv-board/
-data/production-trials/
 .ci-results/
-data/bonn-discovery/raw/
-data/bonn-public/raw/
 
 # Reproducible extension artifacts are built by CI, never committed.
 dist/
 frontend/public/downloads/
 
-# Reproducible CV formatting trial output
-/reports/cv-formatting/*.png
-/reports/cv-formatting/mara-neumann-*.html
-/reports/cv-formatting/mara-neumann-expanded.docx
-/reports/cv-formatting/mara-neumann-expanded.pdf
-/reports/cv-formatting/mara-neumann-stress.docx
-/reports/cv-formatting/mara-neumann-stress.pdf

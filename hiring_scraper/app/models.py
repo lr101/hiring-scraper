@@ -15,6 +15,13 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def as_utc(value: datetime | None) -> datetime | None:
+    """Treat naive timestamps (as returned by SQLite) as UTC."""
+    if value is None:
+        return None
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -520,7 +527,7 @@ class AIMatchingSetting(Base):
 
 
 class AIMatchingCall(Base):
-    """Global provider attempt reservations, independent of deletable match caches."""
+    """Legacy call reservations from migration 0036; the durable queue no longer writes them."""
     __tablename__ = 'ai_matching_calls'
     __table_args__ = (Index('ix_ai_matching_calls_reserved_at', 'reserved_at'),)
 

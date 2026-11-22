@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import seed
-from hiring_scraper.app.models import Base, Company
+from hiring_scraper.app.models import Base, Company, as_utc
 from hiring_scraper.ats import parse_feed
 
 
@@ -187,7 +187,7 @@ class FixtureImportTests(unittest.TestCase):
                         job=feed.jobs[0]
                         self.assertEqual(company.career_url,'https://jobs.acme.example/live')
                         self.assertEqual(company.career_status,'jobs_feed_found')
-                        self.assertEqual(seed._as_utc(company.last_checked_at),fresh)
+                        self.assertEqual(as_utc(company.last_checked_at),fresh)
                         self.assertEqual(feed.status,'incomplete')
                         self.assertEqual(feed.job_count,8)
                         self.assertEqual(job.title,'Live title')

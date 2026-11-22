@@ -10,7 +10,7 @@ from typing import Callable
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.orm import Session, joinedload, object_session, selectinload
 
-from hiring_scraper.app.database import SessionLocal
+from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.application_deduplication import (
     consolidate_application_duplicates, index_vacancy_identities, reserve_vacancy_identity_writer,
@@ -84,13 +84,6 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
                 ("label", "latitude", "longitude", "precision", "country_code")}))
     job.locations[:] = updated
 
-
-def _insert_for(session: Session, model):
-    if session.get_bind().dialect.name == "sqlite":
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    return insert(model)
 
 
 def _profile_index_version(profile: UserProfile) -> str:
@@ -219,7 +212,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_pu
                         .order_by(UserProfile.id).with_for_update()).all()
         before_publish(session)
     from uuid import uuid4
-    statement = _insert_for(session, MatchDirtyJob).values([
+    statement = dialect_insert(session)(MatchDirtyJob).values([
         {'job_id': job_id, 'revision': uuid4().hex, 'queued_at': utcnow()} for job_id in ids])
     session.execute(statement.on_conflict_do_update(index_elements=['job_id'],
         set_={'revision': statement.excluded.revision}))
@@ -256,7 +249,7 @@ def upsert_new_match_states(session: Session, matches: list[dict]) -> None:
     """Create New for newly visible matches without replacing user decisions."""
     if not matches:
         return
-    insert = _insert_for(session, JobApplication)
+    insert = dialect_insert(session)(JobApplication)
     matches = [{**match, "auto_created": True} for match in matches]
     for start in range(0, len(matches), 80):
         statement = insert.values(matches[start:start + 80])
@@ -268,7 +261,7 @@ def upsert_new_match_states(session: Session, matches: list[dict]) -> None:
 def _upsert_profile_matches(session: Session, matches: list[dict]) -> None:
     if not matches:
         return
-    insert = _insert_for(session, ProfileJobMatch)
+    insert = dialect_insert(session)(ProfileJobMatch)
     for start in range(0, len(matches), 100):
         statement = insert.values(matches[start:start + 100])
         session.execute(statement.on_conflict_do_update(

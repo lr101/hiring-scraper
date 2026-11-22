@@ -21,7 +21,7 @@ from sqlalchemy.orm import object_session, selectinload
 
 from hiring_scraper.app import codex_runtime, requirement_evidence
 from hiring_scraper.app.board_scope import expiry
-from hiring_scraper.app.database import SessionLocal
+from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
 from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, AIMatchingTask, AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
@@ -81,10 +81,7 @@ def set_matching_model(model):
     if model not in AVAILABLE_MODELS:
         raise ValueError('Choose one of the supported AI matching models.')
     with SessionLocal() as session:
-        if session.get_bind().dialect.name == 'postgresql':
-            from sqlalchemy.dialects.postgresql import insert
-        else:
-            from sqlalchemy.dialects.sqlite import insert
+        insert = dialect_insert(session)
         session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=utcnow())
             .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': utcnow()}))
         # A model change invalidates derived ranks and forces workers in every

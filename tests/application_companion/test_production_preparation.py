@@ -4,7 +4,6 @@ import hashlib
 import io
 import os
 from pathlib import Path
-import shutil
 import socket
 import subprocess
 import sys
@@ -14,7 +13,7 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 from playwright.sync_api import expect
-from .test_extension import ExtensionHarness, EXTENSION, ROOT
+from .test_extension import ExtensionHarness, ROOT
 from .test_application_journey import ATS, LISTING, FORM
 
 
@@ -344,7 +343,6 @@ class ProductionPreparationTests(ProductionHarness):
         with urlopen(self.origin + '/downloads/radius-application-companion.zip') as response:
             self.assertEqual(response.read(2), b'PK')
     def test_return_link_import_and_changed_cv_prevent_stale_tailored_fill(self):
-        from urllib.parse import quote
         version = self.setup_preparation()
         payload = {'format':'radius-application-v1','job_id':1574,'profile_id':1,'cv_updated_at':version,'cv':'Alex Example. Research coordination.','cover_letter':'Only for the original CV.','application_answers':'Q: Why this role?\nA: Original research experience.','review_notes':'Review.'}
         payload['latex_documents']={'cv':self.cv_source}
@@ -404,7 +402,6 @@ class ProductionPreparationTests(ProductionHarness):
         self.check_captured_question_and_document_flow(attached=False)
 
     def check_captured_question_and_document_flow(self, attached):
-        from urllib.parse import quote
         from .test_form_preparation import QUESTIONS
         from pypdf import PdfReader
         version=self.setup_preparation(attached=attached)

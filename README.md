@@ -395,9 +395,6 @@ continue. A bot or CAPTCHA challenge stops the affected scan and is recorded as
 
 Career discovery now defaults to 24 pages, depth 5, and 48 requests per company.
 The page limit is configurable up to 24.
-The [follow-up Bonn public-source trial](reports/bonn-public-discovery.md) compares
-six-, twelve-, and twenty-four-page results and distinguishes group-wide rows
-from verified employer vacancies.
 
 Company discovery fills missing websites from linked Wikidata entries and public,
 identity-verified email domains. Set `TAVILY_API_KEY` in `.env` to enable an
@@ -416,37 +413,36 @@ with `HOMEPAGE_DISCOVERY_MAX_COMPANIES`, `HOMEPAGE_DISCOVERY_MAX_SEARCHES`, and
 `HOMEPAGE_DISCOVERY_MAX_REQUESTS`. Each query pass reserves a third of its remaining
 search allowance for later fallbacks, within the same total budget; consequently,
 large batches may give fewer companies an initial search. Search stops when the
-website request budget is exhausted. See the [website discovery experiment](reports/website-discovery-poc.md)
-for measured results and limitations.
-
-The [expanded 120-record homepage benchmark](reports/expanded-homepage-discovery-poc.md)
-compares query fallbacks, page verification, directory links, structured data,
-and paired basic/advanced Tavily searches. Recompute its audited results without
-network access using `.venv/bin/python -m experiments.summarize_expanded_homepages`.
+website request budget is exhausted.
 
 ## Documentation
 
+- [Architecture](docs/architecture.md)
 - [Saved CVs, application handoff and original-template document export](docs/application-handoff.md)
-- [Architecture and implementation plan](docs/implementation-plan.md)
-- [CV profile board findings](docs/cv-profile-board-findings.md)
-- [POC review and proposed accuracy experiments](reports/poc-review-and-next-experiments.md)
-- [Production improvement trials and retained changes](reports/production-improvement-trials.md)
-- [Bonn 102-employer discovery benchmark and improvements](reports/bonn-discovery-benchmark.md)
-- [Bonn public-source follow-up, rate limits, and retained adapters](reports/bonn-public-discovery.md)
+- [Application preparation prompt and generation integration](docs/application-generation-integration.md)
+- [Parallel application stages](docs/application-stages.md)
+- [CV formatting prompt](docs/cv-formatting-prompt.md)
+- [Matching strategy](docs/matching-strategy-review.md)
+- [German job-source candidates](docs/job-source-candidates.md)
+- [Chrome application companion](extensions/application-companion/README.md)
+- [Demo application profile](fixtures/demo-application/README.md)
 - [CI and release guide](docs/ci.md)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Security policy](SECURITY.md)
 - [Maintainer checklist](docs/maintaining.md)
-- [Research reports](reports/)
+
+Research prototypes, benchmark captures and trial reports from the proof-of-concept
+phase were removed from the tree; they remain available in Git history up to
+commit `0f89adca`.
 
 ## License
 
 The software is licensed under the [MIT License](LICENSE). Third-party data retains
 its respective licenses and attribution requirements.
 
-The Karlsruhe sample includes OpenStreetMap-derived data. See [OpenStreetMap attribution and license](https://www.openstreetmap.org/copyright); other source data retains its respective rights.
+The Karlsruhe seed fixture includes OpenStreetMap-derived data. See [OpenStreetMap attribution and license](https://www.openstreetmap.org/copyright); other source data retains its respective rights.
 
 ## Chrome application companion
 

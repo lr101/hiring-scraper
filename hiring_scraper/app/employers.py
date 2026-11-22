@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
+from hiring_scraper.app.database import dialect_insert
 from hiring_scraper.app.models import Company, JobFeed, utcnow
 
 _THIRD_PARTY_COMPANY_HOSTS = {
@@ -66,13 +67,6 @@ def _company_identity(name: str, domain: str | None) -> str:
     key = "domain:" + domain if domain else "name:" + " ".join(name.casefold().split())
     return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
-
-def _insert_for(session: Session, model):
-    if session.get_bind().dialect.name == "sqlite":
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    return insert(model)
 
 
 def _try_employer_upsert_lock(session: Session, identity: str) -> bool:
@@ -145,7 +139,7 @@ def _register_direct_feed(session: Session, company: Company, url: str, now: dat
         company.career_url = board_url
         company.career_status = "jobs_feed_found"
     if feed is None:
-        statement = _insert_for(session, JobFeed).values(
+        statement = dialect_insert(session)(JobFeed).values(
             company_id=company.id, provider=provider, tenant=identified.get("tenant"),
             board_url=board_url, feed_url=feed_url,
             status="pending", job_count=0, next_scan_at=now,
@@ -218,7 +212,7 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
     is_new = False
     website_added = False
     if company is None:
-        statement = _insert_for(session, Company).values(
+        statement = dialect_insert(session)(Company).values(
             source=source, source_id=source_id, name=name[:500],
             website_url=company_website, domain=domain,
             category="employer_from_job_feed", source_url=organization_url or feed.board_url,
@@ -259,7 +253,7 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
             JobFeed.company_id == company.id, JobFeed.provider == "html_jobs",
             JobFeed.feed_url == career_url))
         if page_feed is None:
-            statement = _insert_for(session, JobFeed).values(
+            statement = dialect_insert(session)(JobFeed).values(
                 company_id=company.id, provider="html_jobs", board_url=career_url,
                 feed_url=career_url, status="pending", job_count=0, next_scan_at=now,
             ).on_conflict_do_nothing(index_elements=[

@@ -24,6 +24,10 @@ node tests/frontend_application_personalization.mjs
 node tests/frontend_application_canvas.mjs
 node tests/frontend_application_preparation.mjs
 node tests/frontend_application_form.mjs
+node tests/frontend_application_generation.mjs
+node tests/frontend_application_generation_jobs.mjs
+node tests/frontend_document_revision.mjs
+node tests/frontend_profile_photo_export.mjs
 npm --prefix extensions/application-companion run check
 npm --prefix extensions/application-companion test
 # The app image already runs the TypeScript/Vite build and its output is served

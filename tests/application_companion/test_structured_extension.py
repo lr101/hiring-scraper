@@ -1,13 +1,13 @@
 import json
 from urllib.parse import urlsplit
 from playwright.sync_api import expect
-from .test_extension import ExtensionHarness, EXTENSION
+from .test_extension import ExtensionHarness
 from .structured_cases import CASES
 
 BASE='https://structured.example/'
 class StructuredBrowserTests(ExtensionHarness):
     def check_record_case(self,name):
-        from experiments.autofill_corpus import cases
+        from .autofill_corpus import cases
         case=next(case for case in cases() if case.name==name)
         self.applicant=case.profile
         self.context.route(BASE+'expanded',lambda route:route.fulfill(content_type='text/html',body=case.html))
@@ -29,7 +29,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_known_dates_and_checked_current_role_identify_reordered_jobs(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE,JOBS
+        from .autofill_corpus import PROFILE,JOBS
         for anchor in ['date','current']:
             with self.subTest(anchor=anchor):
                 self.applicant=deepcopy(PROFILE);self.applicant['experiences']=deepcopy(JOBS[:2])
@@ -51,7 +51,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_saved_profile_formats_combined_history_through_real_extension(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE, JOBS
+        from .autofill_corpus import PROFILE, JOBS
         self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
         markup = '<form><label>Email<input type=email></label><label>First name<input></label><fieldset><legend>Beruflicher Werdegang</legend><label>von - bis<input id=period></label><label>Arbeitgeber / Tätigkeiten<textarea id=duties></textarea></label></fieldset></form>'
         self.context.route(BASE+'combined-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))
@@ -63,7 +63,7 @@ class StructuredBrowserTests(ExtensionHarness):
 
     def test_saved_profile_formats_full_history_in_unlabelled_paragraph(self):
         from copy import deepcopy
-        from experiments.autofill_corpus import PROFILE, JOBS
+        from .autofill_corpus import PROFILE, JOBS
         self.applicant = {**deepcopy(PROFILE), 'experiences': deepcopy(JOBS[:2])}
         markup = '<form><label>Email<input type=email></label><label>First name<input></label><p>Beruflicher Werdegang und Tätigkeiten (Stichpunkte):*</p><p><span><textarea id=history></textarea></span></p></form>'
         self.context.route(BASE+'text-history',lambda route:route.fulfill(content_type='text/html; charset=utf-8',body=markup))

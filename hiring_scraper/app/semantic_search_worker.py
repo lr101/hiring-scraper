@@ -21,6 +21,7 @@ from sqlalchemy.dialects.postgresql import insert
 from tokenizers import Tokenizer
 
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal
+from hiring_scraper.semantic_matching import MODEL_ID, MODEL_KEY, MODEL_REVISION
 from hiring_scraper.app.models import (
     Company, Job, SemanticSearchDocument, SemanticSearchIndexState,
     SemanticSearchRefresh, utcnow,
@@ -28,9 +29,6 @@ from hiring_scraper.app.models import (
 
 
 LOG = logging.getLogger(__name__)
-MODEL_ID = "intfloat/multilingual-e5-small"
-MODEL_REVISION = "ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
-MODEL_KEY = f"{MODEL_ID}@{MODEL_REVISION}"
 DIMENSIONS = 384
 INFERENCE_BATCH_SIZE = 4
 MODEL_DIR = Path(os.getenv("SEMANTIC_MODEL_DIR", "/opt/models/multilingual-e5-small"))

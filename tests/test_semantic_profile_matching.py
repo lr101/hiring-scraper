@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 from sqlalchemy import create_engine, event, select, update
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, models, profiles

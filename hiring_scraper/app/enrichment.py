@@ -12,7 +12,7 @@ from threading import Lock
 import hashlib
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 import time
 

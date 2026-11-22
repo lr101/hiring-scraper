@@ -1723,7 +1723,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
         with self.factory.begin() as session:
             for kind in ('company', 'job'):
                 session.add(SemanticSearchIndexState(entity_type=kind,
-                    model_revision=api._SEMANTIC_MODEL_KEY, backfill_complete=True))
+                    model_revision=api.SEMANTIC_MODEL_KEY, backfill_complete=True))
         single = create_engine(os.environ['TEST_POSTGRES_URL'], pool_size=1, max_overflow=0,
             pool_timeout=.1, connect_args={'options': f'-c search_path={self.schema},public'})
         class EmbeddingReached(Exception):

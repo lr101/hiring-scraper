@@ -8,14 +8,16 @@ The Journey map groups alternatives at the same checkpoint:
 | 3 | Waiting for reply (`waiting_for_reply`) | Automated application (`automated_application`) |
 
 New and Interested offer **In GOD's hand** for overqualified roles. Automated application
-is assigned by the plugin's successful-submission callback. It can
+records an application sent with autofill assistance. It can
 move to Interview or Rejected. Existing swipe directions are
 preserved; swiping right in In GOD's hand marks a manual application sent, and
 swiping right in Automated application logs an interview. Undo returns to the
 previous stage.
 
-The proof-of-concept browser plugin is not present in this repository. Its form
-submission-success callback can use the existing profile-specific status API:
+The bundled [application companion](../extensions/application-companion/README.md)
+never submits forms or changes stages, and the Journey UI offers no transition into
+this stage. An integration that observes a successful autofill submission records it
+through the profile-specific status API:
 
 ```http
 PUT /api/v1/profiles/{profile_id}/applications/{job_id}

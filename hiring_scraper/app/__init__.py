@@ -1,1 +1,1 @@
-"""Persistent application API and demo importer."""
+"""Persistent Radius application: API, background workers, and data model."""

@@ -27,7 +27,7 @@ from hiring_scraper.app.application_deduplication import index_vacancy_identitie
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, func, or_, select, text, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
-from hiring_scraper.app.database import IS_SQLITE, engine, get_session, initialize_sqlite_schema
+from hiring_scraper.app.database import IS_SQLITE, dialect_insert, engine, get_session, initialize_sqlite_schema
 from hiring_scraper.app.models import (
     ApplicationMomentumEvent, Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany,
     DiscoveryRun, Job, JobApplication, JobFeed, JobSearchResult, JobSearchSnapshot, JobVacancyGroup,
@@ -53,6 +53,7 @@ from hiring_scraper.app.job_search import (
     ProfileIndexChanged, ensure_profile_match_indexes, profile_match_index_stale, refresh_application_matches_for_jobs,
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION
+from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
 from hiring_scraper.app import search_snapshots
 from hiring_scraper.app.board_scope import deduplicate_jobs
 
@@ -64,7 +65,6 @@ ATS_FEED_PROVIDERS = {"greenhouse", "lever", "personio", "ashby", "recruitee", "
 MANAGED_FEED_PROVIDERS = {"external_html", "browser_html", "rss", "arbeitsagentur", *ATS_FEED_PROVIDERS}
 _NOMINATIM_LOCK = threading.Lock()
 _LAST_NOMINATIM_REQUEST = 0.0
-_SEMANTIC_MODEL_KEY = "intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3"
 _SEMANTIC_EMBEDDING_URL = os.getenv("SEMANTIC_EMBEDDING_URL", "http://127.0.0.1:8001/embed")
 APPLICATION_WEEKLY_GOAL = max(1, int(os.getenv("APPLICATION_WEEKLY_GOAL", "10")))
 _QUERY_EMBEDDINGS: dict[str, list[float]] = {}
@@ -102,7 +102,7 @@ def _query_embedding(query: str) -> list[float] | None:
 def _semantic_index_ready(session: Session, entity_type: str) -> bool:
     return bool(session.scalar(select(SemanticSearchIndexState.backfill_complete).where(
         SemanticSearchIndexState.entity_type == entity_type,
-        SemanticSearchIndexState.model_revision == _SEMANTIC_MODEL_KEY,
+        SemanticSearchIndexState.model_revision == SEMANTIC_MODEL_KEY,
     )))
 
 
@@ -1099,7 +1099,7 @@ def list_companies(latitude: float = Query(49.0068705, ge=-90, le=90),
         session.execute(text("SET LOCAL hnsw.iterative_scan = relaxed_order"))
         session.execute(text("SET LOCAL hnsw.ef_search = 100"))
         vector_filter = and_(SemanticSearchDocument.entity_type == "company",
-                             SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY)
+                             SemanticSearchDocument.model_revision == SEMANTIC_MODEL_KEY)
         vector_distance = SemanticSearchDocument.embedding.cosine_distance(vector)
     if state or employer_country:
         filters.append(german_company_filter() if employer_country else Company.state == state)
@@ -1558,10 +1558,7 @@ def set_job_application(profile_id: int, job_id: int, request: ApplicationReques
             target_status = 'rejected' if request.status in APPLIED_STATUSES else 'closed'
         request = request.model_copy(update={'status': target_status})
     # Atomic upsert makes repeat saves and simultaneous requests safe on both stores.
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     now = utcnow()
     statement = insert(JobApplication).values(profile_id=profile_id, job_id=target_job_id,
         status=request.status, previous_status=None, auto_created=False,
@@ -1816,10 +1813,7 @@ def list_special_feeds(session: Session = Depends(get_session)) -> dict[str, Any
 @app.post("/api/v1/feeds", status_code=201)
 def create_managed_feed(request: ManagedFeedCreate,
                         session: Session = Depends(get_session)) -> dict[str, Any]:
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     source_url = _managed_page_url(request.feed_url)
     source_config = _managed_feed_config(session, request, request.provider)
     source = _managed_feed_source(source_url, request.provider, source_config)

@@ -2,7 +2,7 @@ import json
 import unittest
 from unittest.mock import patch
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from hiring_scraper.app import enrichment
 from hiring_scraper.app.discovery_worker import _upsert_jobs
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, utcnow

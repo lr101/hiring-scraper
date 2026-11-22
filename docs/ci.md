@@ -27,8 +27,7 @@ These host checks do not replace the image builds or PostgreSQL/PostGIS smoke te
 The container checks also exercise the bundled Codex binary against a fresh
 disposable state directory with networking disabled. Native `login status`
 creates helper symlinks without a login or model turn, then repeated startup
-ownership repair and another status read must succeed. The check also rejects
-application images containing the offline hillclimb tooling.
+ownership repair and another status read must succeed.
 
 ### Local PostgreSQL checks
 
@@ -64,7 +63,7 @@ Each invocation uses a unique Compose project and disposable database volume. Cl
 
 To investigate a failure, read the failing command in the terminal or workflow log and inspect the corresponding `.ci-results/` log. Fix the underlying failure and rerun the complete command. The isolated database is intentionally removed after the run.
 
-Health logs preserve probe timestamps, exit codes and output before teardown. The [local verification record](container-ci-verification.md) documents the successful full Docker run and the startup issues it uncovered.
+Health logs preserve probe timestamps, exit codes and output before teardown.
 
 ## GitHub workflow
 

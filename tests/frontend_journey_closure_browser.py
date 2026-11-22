@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from unittest.mock import patch
 
 from hiring_scraper.app import worker

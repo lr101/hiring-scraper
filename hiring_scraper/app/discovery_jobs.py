@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from hiring_scraper.app.database import IS_SQLITE
 from hiring_scraper.app.models import (
-    Company, ConfiguredLocation, DiscoveryJob, DiscoveryJobCompany, utcnow,
+    Company, ConfiguredLocation, DiscoveryJob, utcnow,
 )
 from hiring_scraper.geography import GERMAN_STATES, haversine_m
 
@@ -128,7 +128,6 @@ def configured_location_json(location: ConfiguredLocation) -> dict[str, Any]:
 
 
 def discovery_job_json(job: DiscoveryJob) -> dict[str, Any]:
-    terminal = job.status in {"completed", "partial", "failed"}
     if job.candidate_total:
         progress = min(100, round(100 * job.processed_count / job.candidate_total))
     else:

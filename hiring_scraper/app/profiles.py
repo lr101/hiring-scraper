@@ -15,7 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
-from hiring_scraper.app.database import get_session
+from hiring_scraper.app.database import dialect_insert, get_session
 from hiring_scraper.app.models import ProfileCV, ProfilePhoto, UserProfile, utcnow
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
 from hiring_scraper.app.job_search import clear_profile_match_scores
@@ -380,10 +380,7 @@ def store_profile_photo(session, profile_id, filename, data):
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
     require_profile(profile_id, session)
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     # Two tabs can both upload the first photo. Let the database serialize
     # creation/replacement instead of relying on a previously read relationship.
     values = {'filename': filename, 'size_bytes': len(data), 'data': data, 'updated_at': utcnow()}

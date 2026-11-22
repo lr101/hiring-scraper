@@ -17,7 +17,7 @@ from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.application_deduplication import index_vacancy_identities
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal
+from hiring_scraper.app.database import IS_SQLITE, dialect_insert, SessionLocal
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, Job, JobApplication, JobFeed, JobLocation, JobSearchRefresh,
     JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, ProfileJobMatch,
@@ -31,6 +31,7 @@ from hiring_scraper.app.applications import (
     APPLICATION_STATUSES, application_json, canonical_application_states_for_jobs, vacancy_group_ids_for_jobs,
 )
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
+from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
 from hiring_scraper.app.board_scope import (
     deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries,
     german_location_text_names, german_state_bounds, location_text_names,
@@ -515,10 +516,7 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
             session.commit()
         return snapshot
 
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     now = utcnow()
     insert_statement = insert(JobSearchSnapshot).values(
         key=key, generation=generation, payload={},
@@ -805,10 +803,7 @@ def enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any], 
     signature = hashlib.sha256(json.dumps(
         criteria, sort_keys=True, ensure_ascii=False, separators=(',', ':')
     ).encode('utf-8')).hexdigest()
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     requested_at = utcnow()
     refresh_table = JobSearchRefresh.__table__
     unleased = or_(refresh_table.c.lease_token.is_(None),
@@ -1030,7 +1025,7 @@ def semantic_jobs_page(session: Session, vector: list[float], *,
         .join(SemanticSearchDocument, and_(
             SemanticSearchDocument.entity_type == "job",
             SemanticSearchDocument.entity_id == Job.id,
-            SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
+            SemanticSearchDocument.model_revision == SEMANTIC_MODEL_KEY,
         ))
         .join(JobFeed, JobFeed.id == Job.feed_id)
         .join(Company, Company.id == JobFeed.company_id)
@@ -1148,7 +1143,7 @@ def semantic_jobs_page(session: Session, vector: list[float], *,
                 JobApplication.profile_id == profile.id, *filters,
                 Job.id.in_(select(SemanticSearchDocument.entity_id).where(
                     SemanticSearchDocument.entity_type == "job",
-                    SemanticSearchDocument.model_revision == _SEMANTIC_MODEL_KEY,
+                    SemanticSearchDocument.model_revision == SEMANTIC_MODEL_KEY,
                 )),
             )).all()
         application_status_by_job = {int(job_id): status for job_id, status in application_rows}

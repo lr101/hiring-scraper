@@ -14,7 +14,7 @@ from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.database import IS_SQLITE, SessionLocal, engine, initialize_sqlite_schema
-from hiring_scraper.app.models import Base, Company, Job, JobFeed, LocationCache
+from hiring_scraper.app.models import Company, Job, JobFeed, LocationCache, as_utc
 from hiring_scraper.app.job_search import (
     job_search_signature, refresh_application_matches_for_jobs, replace_job_locations,
 )
@@ -40,12 +40,6 @@ def _datetime(value: str | None) -> datetime | None:
         return None
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
-
-
-def _as_utc(value: datetime | None) -> datetime | None:
-    if value is None:
-        return None
-    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
 def _job_locations(job: dict) -> list[dict]:
@@ -135,8 +129,8 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                         max(scheduled_now, observed_at + timedelta(days=DISCOVERY_INTERVAL_DAYS))
                         if extra else scheduled_now)
                 snapshot_is_newer = (checked_at is not None and
-                                     (_as_utc(company.last_checked_at) is None or
-                                      _as_utc(company.last_checked_at) <= checked_at))
+                                     (as_utc(company.last_checked_at) is None or
+                                      as_utc(company.last_checked_at) <= checked_at))
                 for key, value in fields.items():
                     if key in {"domain", "domain_match_method", "domain_evidence_url"} and company.domain_match_method == "manual":
                         continue
@@ -167,8 +161,8 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                     session.add(feed)
                     feeds[key] = feed
                 else:
-                    if (_as_utc(feed.last_checked_at) is not None and
-                            _as_utc(feed.last_checked_at) > feed_observed_at):
+                    if (as_utc(feed.last_checked_at) is not None and
+                            as_utc(feed.last_checked_at) > feed_observed_at):
                         continue
                     feed.tenant = feed_data.get("tenant")
                     feed.board_url = feed_data.get("board_url")
@@ -184,8 +178,8 @@ def import_fixture(company_path: Path, career_path: Path) -> dict[str, int]:
                 for job_data in feed_data.get("jobs", []):
                     external_id = str(job_data["id"])
                     job = jobs.get((feed.id, external_id))
-                    if (job is not None and _as_utc(job.last_seen_at) is not None and
-                            _as_utc(job.last_seen_at) > feed_observed_at):
+                    if (job is not None and as_utc(job.last_seen_at) is not None and
+                            as_utc(job.last_seen_at) > feed_observed_at):
                         continue
                     created = job is None
                     if created:

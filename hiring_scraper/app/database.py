@@ -39,6 +39,15 @@ def create_runtime_engine(database_url: str):
     return create_engine(database_url, **options)
 
 
+def dialect_insert(session: Session):
+    """Return the dialect's ``insert`` construct, which supports ``on_conflict_*``."""
+    if session.get_bind().dialect.name == "sqlite":
+        from sqlalchemy.dialects.sqlite import insert
+    else:
+        from sqlalchemy.dialects.postgresql import insert
+    return insert
+
+
 def is_transient_database_error(error: BaseException) -> bool:
     """Retry contention/connection failures, while surfacing schema/code errors."""
     if isinstance(error, DatabasePoolTimeout):

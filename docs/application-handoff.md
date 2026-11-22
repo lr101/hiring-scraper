@@ -302,8 +302,6 @@ A guaranteed short opaque URL would require storing the result on Radius through
 
 Clipboard/popup failures have a manual fallback. The start button copies during the click before opening ChatGPT directly, so clipboard denial cannot leave an empty tab. If both copy methods fail, the brief is selected for Ctrl+C/⌘C. If opening a tab is blocked, an ordinary link remains available.
 
-See [workflow options and experimental results](../reports/application-return-options.md) for Canvas, file-based returns, generated links, direct account integration and less conventional alternatives.
-
 ## Deployment and verification
 
 PostgreSQL deployments apply migration `0028_profile_cv`; SQLite development uses the standard schema initializer. The production and CI Dockerfiles install LibreOffice Writer, Liberation fonts, LuaLaTeX and the recommended LaTeX packages. CI additionally installs Poppler for render-comparison checks. For local development, install `libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended` alongside locked Python/frontend dependencies. DOCX download remains available when PDF conversion is unavailable.
@@ -313,7 +311,7 @@ PostgreSQL deployments apply migration `0028_profile_cv`; SQLite development use
 - `tests/frontend_application_personalization.mjs`: saved evidence/voice/goals/logistics in application and independent fit briefs, and bounded source selection.
 - `tests/frontend_application_personalization_browser.py`: profile edit/reload, fit and application clipboard handoffs, exact Canvas source/CV/letter downloads, source preservation across reload, stale-source invalidation after editing, and mobile overflow checks on an isolated preview. ChatGPT is simulated.
 - `tests/test_profile_cv.py`: persistence, replacement validation, profile isolation/deletion, stream size limits, original download, template export, stale source rejection and migration round trip.
-- `tests/test_cv_realistic.py`: a fictional two-page professional CV; original and concise tailoring retain two pages, while deliberate longer/stress content reflows to three/five; compare both header/footer crops, formatting/ZIP parts, every paragraph and PDF word bounds. Reproduce the artifacts with `.venv/bin/python experiments/cv_formatting_trial.py`.
+- `tests/test_cv_realistic.py`: a fictional two-page professional CV; original and concise tailoring retain two pages, while deliberate longer/stress content reflows to three/five; compare both header/footer crops, formatting/ZIP parts, every paragraph and PDF word bounds.
 - `tests/frontend_application_ready_browser.py`: the realistic CV returns directly to downloads with editing hidden, PDF stays two pages, DOCX parts/source survive, bad imports preserve completed documents, and unfinished manual text cannot export.
 - `tests/test_cv_template.py`: a styled, two-column DOCX fixture with colored heading, custom margins and header; verify all unchanged package parts and formatting survive edits; compare rendered page geometry, unchanged text positions/fonts and unchanged header pixels against the original rendered source.
 - `tests/frontend_application_handoff.mjs`: source/return contract, saved-CV handoff, template change validation, malformed responses and safe simple-document HTML.

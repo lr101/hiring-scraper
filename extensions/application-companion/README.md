@@ -88,9 +88,7 @@ This approach draws on [Bitwarden's multi-attribute identity matching and browse
 
 The browser regression suite exercises the shipped MV3 extension against fictional forms: English/German conversational labels, nested identifiers, contradictory hints, localized native choices, repeat fills, unknown preferences, disabled options, preservation of existing answers and editor persistence. Run it with the Development and verification commands above.
 
-See [profile-first matching experiments](../../reports/autofill-lab/README.md) for the research, reproducible stress set and limitations of fuzzy, semantic and global assignment strategies. Experimental matchers are not imported into the extension runtime.
-
-The [expanded corpus](../../reports/autofill-lab/expanded.md) evaluates 499 forms and 950 scored fields, excluding support controls. It covers varied label layouts, confirmations, unrelated questions, preserved values, native choices, mid-fill context changes and reordered/ambiguous work records. Results are synthetic regression evidence, not an estimate of real ATS accuracy.
+The synthetic form corpus in `tests/application_companion/autofill_corpus.py` covers varied label layouts, confirmations, unrelated questions, preserved values, native choices, mid-fill context changes and reordered/ambiguous work records. It is regression evidence, not an estimate of real ATS accuracy.
 
 Real-form layouts also support full work-history textareas, numbered career entries, latest-employer prompts and paired period / employer-and-duties fields beneath explicit career headings. These format the saved records in profile order, retaining year/month precision and using “Present” for current roles. Existing incompatible drafts are preserved; text is never truncated to fit a shorter control. Site-specific Add/Save editors still require manual completion.
 
@@ -98,4 +96,4 @@ When bare “Name” accompanies one applicant “Vorname” question, it uses t
 
 Contact matching handles bounded German required prefixes and single-question paragraph labels. Bare “Name” alongside one unambiguous “Vorname” means surname; explicit full-name prompts retain their meaning. Postal-code/city and full postal addresses are composed only when all components are saved. A split street/house-number form is left for review when the profile supplies only a combined address line.
 
-See the [offline real-company evaluation](../../reports/autofill-real/improvements.md) for the fixed captures, before/after results and untested framework workflows.
+`tests/application_companion/test_real_autofill_improvements.py` keeps offline regressions for layouts first observed on real company forms.

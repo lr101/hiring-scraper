@@ -1,9 +1,5 @@
 """The extension opens Radius preparation for the selected current job."""
-import json
 import io
-import os
-import re
-from pathlib import Path
 from playwright.sync_api import expect
 from .test_production_preparation import ProductionHarness
 from .test_application_journey import LISTING

@@ -79,7 +79,6 @@ class NationalDiscoveryWorkerTests(unittest.TestCase):
                 return Response({'elements':[{'bounds':{'minlat':48,'minlon':8,'maxlat':48.5,'maxlon':8.5},'tags':{'name':state}}]})
             state=next(name for name in GERMAN_STATES if f'name"="{name}"' in query)
             completed.append(state)
-            from urllib.parse import urlsplit
             return Response({'elements':[{'type':'node','id':len(completed),'lat':48.25,'lon':8.25,
                 'tags':{'name':state+' Employer','office':'company','employees':'300',
                         'website':f'https://state{len(completed)}-employer-test.de'}}]})

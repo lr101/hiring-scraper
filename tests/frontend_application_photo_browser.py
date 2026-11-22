@@ -3,7 +3,6 @@
 Usage: python tests/frontend_application_photo_browser.py WEB_URL API_URL
 """
 import base64
-from io import BytesIO
 import json
 from pathlib import Path
 import subprocess
