@@ -26,7 +26,7 @@ class StructuredApplicabilityTests(unittest.TestCase):
                 'Designed physical prototypes. Coordinated laboratory handovers.'}]}})
         self.assertLess(result['score'], 65)
         self.assertNotEqual(result['fit_tier'], 'recommended')
-        self.assertTrue(any(r['evidence_context'] == 'academic' for r in result['task_alignment']['requirements']))
+        self.assertTrue(any(r['evidence_context'] == 'academic' for r in result['duty_evidence']['duties']))
 
     def test_c1_satisfies_generic_fluent_english_without_an_invented_c2_gate(self):
         result = match_job({'title': 'Junior coordinator', 'description': 'Fluent English required.'},

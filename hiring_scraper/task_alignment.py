@@ -14,8 +14,9 @@ from hiring_scraper.requirements import (
     structured_requirement_texts, structured_text,
 )
 
-VERSION = 'task-alignment-v9-support-lifecycle'
+VERSION = 'task-alignment-v10-actor-scope'
 _ACTIONS = {
+    'translate': r'translat(?:e|es|ed|ing)|übersetz\w*',
     'maintain': r'maintain(?:s|ed|ing)?|maintenance|pfleg\w*|wart\w*',
     'coordinate': r'coordinat(?:e|es|ed|ing|ion)|koordinier\w*|organis\w*',
     'create': r'design(?:s|ed|ing)?|develop(?:s|ed|ing)?|creat(?:e|es|ed|ing|ion)|gestalt\w*|entwickel\w*',
@@ -197,6 +198,11 @@ def _profile_actions(text):
     return actions
 
 
+def has_task_predicate(text):
+    """Distinguish performed-action wording from a nominal capability list."""
+    return bool(_profile_actions(text))
+
+
 def _semantic_objects(text):
     # Imperative "schedule workshops" names an action, not two deliverables.
     text = re.sub(r'^(?:(?:you|we|I)\s+)?schedule\b', ' ', text, flags=re.I)
@@ -242,7 +248,9 @@ def _sentences(text):
 
 
 def other_actor(text):
-    return bool(_OTHER_ACTOR.search(text))
+    return bool(_OTHER_ACTOR.search(text) or re.match(
+        r'^(?:(?:our|the|this|your|unsere?\w*|die|das)\s+)?'
+        r'(?:company|employer|organisation|organization|Unternehmen)(?=\s|[,:.]|$)', text, re.I))
 
 
 def task_units(job):

@@ -326,7 +326,7 @@ class UserProfile(Base):
             'skills', 'desired_roles', 'secondary_roles', 'work_styles',
             'employment_types', 'seniority_levels', 'experience_years',
             'languages', 'language_levels', 'excluded_terms', 'skill_evidence',
-            'search_area', 'education', 'certifications', 'matching_defaults',
+            'search_area', 'education', 'certifications', 'matching_defaults', 'duty_evidence',
         }
         preferences = {key: value for key, value in (self.preferences or {}).items()
                        if key in matching_fields}

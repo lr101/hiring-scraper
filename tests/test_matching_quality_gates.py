@@ -166,16 +166,16 @@ class MatchingQualityGateTests(unittest.TestCase):
                 'note': 'Maintained delivery schedules. Created progress presentations.'}}})
         self.assertGreaterEqual(result['task_fit'], 65)
         self.assertTrue(any(row['evidence_source'] == 'skill_evidence.Delivery coordination.note'
-                            for row in result['task_alignment']['requirements']))
+                            for row in result['duty_evidence']['duties']))
 
     def test_academic_skill_note_retains_scope_for_independent_work(self):
         result = match_job({'title': 'Program owner', 'description':
             'Your tasks: Independently maintain delivery schedules.'},
             {'skill_evidence': {'Delivery coordination': {'context': 'academic',
                 'note': 'Maintained delivery schedules.'}}})
-        row = result['task_alignment']['requirements'][0]
+        row = result['duty_evidence']['duties'][0]
         self.assertEqual(row['evidence_context'], 'academic')
-        self.assertNotEqual(row['status'], 'supported')
+        self.assertNotEqual(row['status'], 'direct')
 
     def test_single_transferable_duty_retains_proportional_task_credit(self):
         job = {'title': 'Operations assistant', 'description':

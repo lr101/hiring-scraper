@@ -6,9 +6,9 @@ import { readCVPhoto } from './applicationDocumentExport'
 import { cvFormattingPrompt, cvFormattingPromptDe } from '../../extensions/application-companion/tex-cv-prompt.js'
 
 const API = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-import type { SearchArea, Profile, ProfileSetupStep } from './profile'
+import type { DutyEvidence, SearchArea, Profile, ProfileSetupStep } from './profile'
 import { profileBoardLink, profileDraftFingerprint, profileSetupSections, selectedLanguageLevels, skillEvidenceKey, updateProfileLanguage } from './profile'
-const empty = (): Profile => ({ localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, photo: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
+const empty = (): Profile => ({ duty_evidence: [], localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, photo: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
   education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
@@ -179,11 +179,18 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
   function toggle(key: 'work_styles' | 'employment_types' | 'seniority_levels' | 'languages', value: string) {
     setForm(previous => ({ ...previous, [key]: previous[key].includes(value) ? previous[key].filter(item => item !== value) : [...previous[key], value] }))
   }
+  function updateDutyEvidence(index: number, change: Partial<DutyEvidence>) {
+    setForm(previous => ({
+      ...previous,
+      duty_evidence: previous.duty_evidence?.map((row, position) => position === index ? { ...row, ...change } : row),
+    }))
+  }
   async function save(event: React.FormEvent) {
     event.preventDefault(); if (!validate()) return; setBusy(true); setError(''); setNotice('')
     try {
       const edited = { ...form, skills: terms(skillsText), desired_roles: terms(rolesText), excluded_terms: terms(excludedText), secondary_roles: terms(secondaryText), languages: terms(languageText), language_levels: selectedLanguageLevels(terms(languageText), form.language_levels), certifications: terms(certificationsText) }
       const payload = updateProfileLanguage(storedForm, edited, contentLanguage)
+      if (payload.duty_evidence) payload.duty_evidence = payload.duty_evidence.filter(row => row.quote.trim())
       const id = payload.id
       delete payload.id
       delete payload.cv
@@ -380,6 +387,40 @@ function ProfileEditorPage({ profileId }: { profileId?: number }) {
             <label>{text('Experience context', 'Erfahrungskontext')}<select value={form.skill_evidence[evidenceKey]?.context ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { note: form.skill_evidence[evidenceKey]?.note ?? '', context: event.target.value } } })}><option value="">Unknown</option>{['professional','academic','research'].map(context => <option key={context} value={context}>{context}</option>)}{form.skill_evidence[evidenceKey]?.context && !['professional','academic','research'].includes(form.skill_evidence[evidenceKey].context) && <option value={form.skill_evidence[evidenceKey].context}>{form.skill_evidence[evidenceKey].context}</option>}</select></label>
             <label>{text('Supporting experience', 'Belegende Erfahrung')}<textarea maxLength={2000} value={form.skill_evidence[evidenceKey]?.note ?? ''} onChange={event => setForm({ ...form, skill_evidence: { ...form.skill_evidence, [evidenceKey]: { context: form.skill_evidence[evidenceKey]?.context ?? '', note: event.target.value } } })} /></label>
           </details> })}
+        </fieldset>
+        <fieldset className="profile-section">
+          <legend>{text('Documented work', 'Belegte Tätigkeiten')}</legend>
+          {(form.duty_evidence ?? []).map((row, index) => <div className="profile-education-row" key={index}>
+            <label>{text('Work performed and deliverable', 'Tätigkeit und Ergebnis')}
+              <textarea value={row.quote} maxLength={1000} onChange={event => updateDutyEvidence(index, { quote: event.target.value })} />
+            </label>
+            <label>{text('Experience context', 'Erfahrungskontext')}
+              <select value={row.context} onChange={event => updateDutyEvidence(index, { context: event.target.value as DutyEvidence['context'] })}>
+                <option value="unspecified">{text('Unspecified', 'Nicht angegeben')}</option>
+                <option value="professional">{text('Professional', 'Beruflich')}</option>
+                <option value="academic">{text('Academic', 'Studium')}</option>
+                <option value="research">{text('Research', 'Forschung')}</option>
+                <option value="training">{text('Training', 'Weiterbildung')}</option>
+              </select>
+            </label>
+            <label>{text('Responsibility', 'Verantwortung')}
+              <select value={row.responsibility} onChange={event => updateDutyEvidence(index, { responsibility: event.target.value as DutyEvidence['responsibility'] })}>
+                <option value="unspecified">{text('Unspecified', 'Nicht angegeben')}</option>
+                <option value="assisted">{text('Assisted', 'Unterstützt')}</option>
+                <option value="coordinated">{text('Coordinated', 'Koordiniert')}</option>
+                <option value="shared">{text('Shared responsibility', 'Geteilte Verantwortung')}</option>
+                <option value="owned">{text('Owned decisions', 'Entscheidungsverantwortung')}</option>
+              </select>
+            </label>
+            <label>{text('Source reference', 'Quellenangabe')}
+              <input value={row.reference} maxLength={200} onChange={event => updateDutyEvidence(index, { reference: event.target.value })} />
+            </label>
+            <button type="button" onClick={() => setForm(previous => ({ ...previous, duty_evidence: previous.duty_evidence?.filter((_, position) => position !== index) }))}>{text('Remove work evidence', 'Tätigkeitsbeleg entfernen')}</button>
+          </div>)}
+          {(form.duty_evidence?.length ?? 0) < 20 && <button type="button" onClick={() => setForm(previous => ({
+            ...previous,
+            duty_evidence: [...(previous.duty_evidence ?? []), { quote: '', context: 'unspecified', responsibility: 'unspecified', reference: '' }],
+          }))}>{text('Add work evidence', 'Tätigkeitsbeleg hinzufügen')}</button>}
         </fieldset>
         <fieldset className="profile-section"><legend>{text('Education and certifications', 'Ausbildung und Zertifikate')}</legend>
           {form.education.map((row,index) => <div className="profile-education-row" key={index}>

@@ -72,7 +72,13 @@ def structured_text(value) -> str:
         doc.feed(chunk)
         texts.append(''.join(doc.text))
         heading_levels.extend(doc.heading_levels)
-    lines = [' '.join(line.split()) for line in '\n'.join(texts).splitlines()]
+    combined = '\n'.join(texts)
+    # Plain feed descriptions often flatten headings and bullets. Restore only
+    # recognizable labels; real HTML heading occurrence metadata stays intact.
+    if not heading_levels:
+        combined = _FLAT_SECTION_HEADING.sub(lambda hit: '\n' + hit['label'] + '\n', combined)
+        combined = re.sub(r'\s+(?=(?:Du|Sie|You)\s+(?:hast|bist|verfügst|bringst|arbeitest|erstellst|unterstützt|koordinierst|übernimmst|have|are|will)\b)', '\n', combined)
+    lines = [' '.join(line.split()) for line in combined.splitlines()]
     result = re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
     marked_headings = {line.strip() for line in result.splitlines() if '\ue000' in line}
     result = '\n'.join(_logical_lines(result, marked_headings))
@@ -136,18 +142,32 @@ def structured_source_scope(source: str) -> str:
     return 'neutral'
 
 
+
+_FLAT_SECTION_HEADING = re.compile(
+    r'(?<![\w-])(?P<label>about us|über uns|dein profil|ihr profil|deine aufgaben|ihre aufgaben|'
+    r'your responsibilities|key responsibilities|required qualifications|required skills & experience|'
+    r'what you bring(?: to the mission)?|our humble expectations|das solltest du mitbringen|'
+    r'das bringst du mit|hiermit bringst du dich ein|dein daily business|unser perfect match|'
+    r'hier sorgst du für veränderung|what you will do(?: at [A-Z][A-Z -]{1,30})?|'
+    r'your mission|your contribution|nice.to.have|preferred qualifications|bonus skills|'
+    r'qualification checklist|das bieten wir|was wir für dich bereithalten|benefits|why join us|'
+    r"what[’']s in it for you|it[’']s a match|your benefits|erfahrung|kontaktinformationen|recruiting.prozess|bewerbungshinweise)"
+    r'\s*:?\s+(?=(?-i:[A-ZÄÖÜ])|[-•])', re.I)
+
 _REQUIRED_HEADING = re.compile(
-    r'^(?:(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
+    r"^(?:it[’']s a match|erfahrung(?=\s*:|$)|required skills & experience|"
+    r'what you bring|our humble expectations|das solltest du mitbringen|hiermit bringst du dich ein|unser perfect match|qualification checklist|(?:ihr|dein|your)\s+(?:profil|profile|qualifications|requirements)|'
     r'zwingend\w*(?:\s+voraussetzungen)?|voraussetzung(?:en)?|mandatory qualifications|essential requirements|was zählt|(?:ihre|deine)\s+qualifikation(?:en)?|required qualifications|damit begeistern sie uns|must.have|requirements|qualifications|anforderungen|'
     r'(?:das|was)\s+(?:sie|du)\s+mitbring(?:en|st)|was wir erwarten|'
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)
 _OTHER_HEADING = re.compile(
-    r'^(?:(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
+    r"^(?:what[’']s in it for you|key responsibilities|"
+    r'dein daily business|hier sorgst du für veränderung|what you will do|your mission|your contribution|was wir für dich bereithalten|why join us|kontaktinformationen|recruiting.prozess|bewerbungshinweise|(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
     r'aufgaben|responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|was wir bieten|dafür bieten wir ihnen|'
     r'das bieten wir|unser angebot|über uns|about us|about (?:the|our) company|core work|your role|kontakt|contact|bewerbung|tasks|'
     r'das sind (?:deine|ihre) aufgaben|diese herausforderungen|' 
     r'ihre vorteile|deine vorteile|deine benefits|ihre benefits|das erwartet (?:sie|dich))\b', re.I)
-_OPTIONAL_HEADING = re.compile(r'^(?:preferred qualifications|nice.to.have|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
+_OPTIONAL_HEADING = re.compile(r'^(?:preferred qualifications|nice.to.have|bonus skills|optional|wünschenswert|von vorteil)\s*[:.]*$', re.I)
 
 
 def _logical_lines(text: str, heading_names=()) -> list[str]:
@@ -209,7 +229,7 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
             scope = 'requirements'
         elif _OTHER_HEADING.search(sentence):
             task_heading = (not re.match(r'^(?:contact|kontakt|bewerbung)\b', sentence, re.I) and
-                            re.search(r'aufgaben|tasks|responsibilities|duties|^core work|^your role', sentence, re.I))
+                            re.search(r'aufgaben|tasks|responsibilities|duties|^core work|^your role|^dein daily business|^hier sorgst du|^what you will do|^your mission|^your contribution', sentence, re.I))
             scope = 'duties' if task_heading else 'benefits'
         elif _OPTIONAL_HEADING.search(sentence):
             scope = 'optional'
@@ -320,7 +340,7 @@ DEGREE_FIELDS = {
 }
 DOMAIN = re.compile(
     r'\b(?:medical devices?|medizintechnik|PV|photovoltaik|photovoltaics?|solar|'
-    r'electrical|elektrotechnik|construction|bauwesen|bauleitung|bauingenieur\w*|'
+    r'electrical|elektrotechnik|construction|bauwesen|baugeschäft|bauerfahrung|bauprojekte?\w*|bauleitung|bauingenieur\w*|'
     r'insurance|underwriting|versicher\w*|pharma\w*|GMP|GCP|GxP|gebäudeautomation|steuer. und regelungstechnik|HKL|VOB|energietechnik|automatisierungstechnik|EMSR|SCADA|versorgungstechnik|SHK|hochbau|tiefbau|ingenieurbau|verkehrsplanung|sicherheitstechnik|SAP(?:\s+[A-Z]{2,5})?|'
     r'S/4HANA|HANA|cloud infrastructure|rechenzentrum)\b', re.I)
 CERTIFICATE = re.compile(r'\b(?:PMP|PRINCE2|Scrum\s+(?:Master|certification)|certificate|certification|zertifikat\w*|zertifizier(?:ung|t))\b', re.I)
@@ -330,7 +350,7 @@ WAIVED_CERTIFICATE = re.compile(
     r'(?:required|necessary|erforderlich|notwendig)\b', re.I)
 TENURE = re.compile(r'\b(?:professional\s+(?:experience|\w+\s+experience)|berufserfahrung|mehrjährige\w*\s+erfahrung|extensive\s+experience|langjährige\w*\s+erfahrung)\b', re.I)
 APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|hochschulstudium|masterstudium|bachelorstudium|ausbildung)|(?:you have|you possess|sie verfügen|du verfügst|verfügst über|verfügen über)\s+(?:\w+\s+){0,4}(?:experience|erfahrung|berufserfahrung|kenntnisse))\b', re.I)
-ENROLMENT = re.compile(r'\b(?:immatrikulation|immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
+ENROLMENT = re.compile(r'\b(?:immatrikulation(?:sbescheinigung)?|immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
 
 
 def qualification_rows(clause: str, source: str) -> list[dict]:

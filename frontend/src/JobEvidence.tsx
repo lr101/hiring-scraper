@@ -4,9 +4,9 @@ export type ProfileMatch = {
   score_source?: 'local' | 'llm'
   mandatory_review?: boolean
   task_fit?: number
-  task_alignment?: { score: number | null; requirements: {
-    job_quote: string; status: 'supported' | 'transferable' | 'unknown'; explanation: string
-    evidence_source: string; evidence_quote: string; evidence_context: string
+  duty_evidence?: { score: number | null; coverage: number; duties: {
+    job_quote: string; status: 'direct' | 'transferable' | 'unverified'; evidence_source: string
+    evidence_quote: string; evidence_reference?: string; evidence_context?: string
   }[] }
   gates?: Record<string, { status: string; reason: string }>
   llm_match?: {
@@ -85,14 +85,13 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
       {match.score_source !== 'llm' && match.task_fit != null && <>
         <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The shortlist score above also accounts for unresolved qualifications and constraints.</p>
       </>}
-      {match.score_source !== 'llm' && (match.task_alignment?.requirements.length ?? 0) > 0 && <details>
-        <summary>Task evidence behind the local estimate</summary>
-        <p className="muted">These comparisons use saved actions and work products. Academic and adjacent work can show relevant capability without proving professional tenure or independent responsibility.</p>
-        {match.task_alignment!.requirements.map((row, index) => <div className="evidence-note" key={index}>
-          <strong>{row.status} · {row.evidence_context}</strong>
-          <p>Job: <q>{row.job_quote}</q></p>
-          <p>{row.explanation}</p>
-          {row.evidence_quote && <p>Saved evidence ({row.evidence_source}): <q>{row.evidence_quote}</q></p>}
+      {match.duty_evidence?.score != null && <details>
+        <summary>Documented duty fit · {match.duty_evidence.score}/100</summary>
+        <p>{Math.round(match.duty_evidence.coverage * 100)}% of extracted duties have some supporting evidence. This score compares work performed. Eligibility and preferences have separate checks.</p>
+        {match.duty_evidence.duties.map((duty, index) => <div className="evidence-note" key={index}>
+          <strong>{duty.status}{duty.evidence_context && duty.evidence_context !== 'unspecified' ? ' · ' + duty.evidence_context : ''}</strong>
+          <p>Job <q>{duty.job_quote}</q></p>
+          {duty.evidence_quote && <p>Saved evidence ({duty.evidence_reference || duty.evidence_source}) <q>{duty.evidence_quote}</q></p>}
         </div>)}
       </details>}
       {match.score_source === 'llm' && match.llm_match && <>

@@ -32,6 +32,14 @@ class Evidence(BaseModel):
     note: str = Field(default='', max_length=2000)
 
 
+class DutyEvidence(BaseModel):
+    model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
+    quote: str = Field(min_length=1, max_length=1000)
+    context: Literal['professional', 'academic', 'research', 'training', 'unspecified'] = 'unspecified'
+    responsibility: Literal['assisted', 'coordinated', 'shared', 'owned', 'unspecified'] = 'unspecified'
+    reference: str = Field(default='', max_length=200)
+
+
 class Education(BaseModel):
     model_config = ConfigDict(extra='forbid')
     level: Literal['vocational', 'bachelor', 'master', 'doctorate']
@@ -63,7 +71,7 @@ class MatchingDefaults(BaseModel):
     low_afd_vote_share_weight: int = Field(default=0, ge=0, le=20)
 
 
-NEW_PREFERENCES = {'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
+NEW_PREFERENCES = {'duty_evidence', 'language_levels', 'skill_evidence', 'summary', 'custom_instructions', 'search_area',
                    'secondary_roles', 'education', 'certifications', 'matching_defaults', 'application_details',
                    'application_personalization', 'localized_content'}
 
@@ -210,6 +218,7 @@ class LocalizedProfileContent(BaseModel):
 class ProfileRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', allow_inf_nan=False)
     name: str = Field(min_length=1, max_length=120)
+    duty_evidence: list[DutyEvidence] = Field(default_factory=list, max_length=20)
     localized_content: dict[Literal['en', 'de'], LocalizedProfileContent] = Field(default_factory=dict)
     application_details: ApplicationDetails = Field(default_factory=ApplicationDetails)
     application_personalization: ApplicationPersonalization = Field(default_factory=ApplicationPersonalization)

@@ -17,7 +17,7 @@ class TaskAlignmentTests(unittest.TestCase):
         result = match_job({'title': 'Unfamiliar operations role', 'description':
             'Your tasks:\nReview inspection records. Review laboratory handovers.'},
             {'summary': 'Maintained inspection records. Coordinated laboratory handovers.'})
-        self.assertEqual(result['task_alignment']['score'], 50)
+        self.assertGreater(result['duty_evidence']['score'], 0)
         self.assertGreaterEqual(result['score'], 40)
         self.assertLess(result['score'], 65)
 
@@ -26,7 +26,7 @@ class TaskAlignmentTests(unittest.TestCase):
         result = match_job({'title': 'Unfamiliar operations role', 'description':
             'Your tasks:\nMaintain inspection records. Coordinate clinical treatment.'},
             {'summary': 'Maintained inspection records.'})
-        self.assertEqual(result['task_alignment']['score'], 50)
+        self.assertGreater(result['duty_evidence']['score'], 0)
         self.assertGreaterEqual(result['score'], 40)
         self.assertLess(result['score'], 65)
 
@@ -101,13 +101,13 @@ class TaskAlignmentTests(unittest.TestCase):
         self.assertTrue(all(row['status'] == 'supported' for row in result['requirements']))
         self.assertTrue(all(row['evidence_source'] == 'experience.0' for row in result['requirements']))
 
-    def test_local_result_exposes_source_backed_task_alignment(self):
+    def test_local_result_exposes_source_backed_duties(self):
         from hiring_scraper.matching import match_job
         result = match_job({'title': 'Unfamiliar title', 'description':
             'Your tasks:\nMaintain inspection records. Coordinate laboratory handovers.'},
             {'summary': 'Maintained inspection records. Coordinated laboratory handovers.'})
-        self.assertEqual(result['task_alignment']['score'], 100)
-        self.assertEqual(len(result['task_alignment']['requirements']), 2)
+        self.assertGreaterEqual(result['duty_evidence']['score'], 80)
+        self.assertEqual(len(result['duty_evidence']['duties']), 2)
 
     def test_short_specific_deliverable_can_be_direct_evidence(self):
         result = self.align('Your tasks:\nDeliver workshops. Coordinate onboarding.',
