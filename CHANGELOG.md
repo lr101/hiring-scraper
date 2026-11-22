@@ -21,6 +21,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Rank static matches by documented duties when the posting and profile contain enough work evidence. Show which duties match directly, which experience transfers, and which duties need verification.
+
 - Run Compose migrations once per deployment and restart each worker independently of the API. Deploy the Compose file and its matching app image together.
 
 ### Fixed

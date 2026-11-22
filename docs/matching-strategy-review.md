@@ -57,23 +57,14 @@ contacts and CV headers remain excluded. Provider citation options retain parent
 scope and explicit degree completion state. One transient transport timeout may
 retry through the normal lock/quota guard, separately from one grounding repair.
 
-`task_alignment.py` adds a source-backed action/deliverable diagnostic alongside
-legacy local scoring. It compares actual work text rather than titles, preserves
-academic scope and distinguishes assistance from ownership. Coordinated duties
-are evaluated separately, so support for one duty cannot stand in for another.
-Multiple grounded duties can raise the local estimate. Partial supported duties
-or multiple transferable duties can surface a possible lead, capped at 59.
-The separate local `task_fit` field records capability overlap before mandatory
-qualification penalties and preferences; the final `score` remains the constrained
-shortlist estimate. Required degree evidence contributes to the eligibility gate,
-including completed degrees parsed from the saved CV. Current study does not
-establish degree completion. A past end date does not prove graduation: CV-derived
-degree proof requires an affirmative completion or award statement and must not
-contradict withdrawal or noncompletion evidence. Profile actions are split at the
-same predicate boundaries as job duties, so ownership of one object cannot prove
-ownership of an assisted duty elsewhere in that sentence. This diagnostic still needs broad
-calibration; neither literal action overlap nor embedding similarity proves
-professional tenure, formal prerequisites or regulated competence.
+Static matching uses documented duty coverage when a posting has several
+identifiable responsibilities and the profile provides distinct work examples.
+The scorer checks the performed action, deliverable, specialist context, and
+responsibility before awarding direct or transferable credit. Sparse postings
+and profiles with limited work evidence retain provisional discovery signals.
+The job detail shows the duty excerpts and supporting profile evidence. Formal
+qualifications, language, and preferences still affect the shortlist score
+through separate checks.
 
 These are explicit conservative starting rules, not empirically calibrated hiring
 probabilities. Evidence completeness is shown separately so absence of evidence is
@@ -82,12 +73,11 @@ known-evidence coverage diagnostic, but remain in the demonstrated-evidence ceil
 
 ## Why not rely exclusively on a stronger static score?
 
-A static scorer could improve with employer-requirement extraction, task/domain
-classification, role-specific importance and verified experience levels. Those
-are useful directions, but implementing them as a growing alias vocabulary repeats
-the current failure for unseen professions and paraphrases. Once validated
-requirements and their importance exist, deterministic arithmetic is appropriate;
-this change keeps that arithmetic in code and uses AI for contextual interpretation.
+The static scorer extracts duties and checks them against documented role scope
+and domain evidence. Its vocabulary covers established task equivalents. Unseen
+professions, novel paraphrases, and role-specific priorities can still require
+contextual interpretation. AI assessment provides an independent reading of
+those requirements and the applicant evidence.
 
 AI also has failure modes: misclassifying a supporting skill as core, omitting a
 requirement, misreading a source quote, or overvaluing an adjacent project. A
@@ -100,23 +90,18 @@ eligibility cannot be inferred from a generic form answer.
 
 ## Remaining evaluation
 
-Before tuning the budgets or claiming one method is more accurate, label 20–30
-representative strong, adjacent and unrelated jobs against the same saved career
-facts. Include traps with shared reporting/tools but unrelated core work, matching
-titles but wrong domain/seniority, adjacent duties with unfamiliar titles, sparse
-postings and explicit qualification gaps. Compare the original static ranking,
-a static requirement-based alternative and AI requirement assessment on false
-strong matches, top-result relevance, missed suitable jobs, evidence completeness,
-latency and subscription use. Inspect jobs below the local shortlist threshold too;
-AI reranking cannot recover suitable jobs excluded by preselection.
+Evaluate strong, adjacent, and unrelated jobs against frozen fit judgments and
+a saved profile snapshot. Include shared tools in unrelated roles, matching
+titles with different scope or seniority, transferable duties with unfamiliar
+titles, sparse postings, and explicit qualification gaps. Report false strong
+matches, missed suitable jobs, and results for duties-based and discovery-based
+ranking so that a sample dominated by low-fit jobs does not conceal recall gaps.
 
 The current regression tests establish deterministic safeguards: many supporting
 matches cannot compensate for unknown core work, required gaps stay visible,
 stale assessments fall back to provisional estimates, and sparse postings can be
 processed without fabricating a requirement. They do not replace the judged-job
 benchmark.
-
-
 ## Full AI coverage and combining scores
 
 Static matching and cached local embeddings provide provisional estimates while

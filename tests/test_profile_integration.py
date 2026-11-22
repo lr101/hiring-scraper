@@ -10,6 +10,23 @@ from hiring_scraper.app import api, models
 
 
 class ProfileIntegrationTests(unittest.TestCase):
+    def test_documented_duties_survive_legacy_edits_and_reach_matcher(self):
+        from hiring_scraper.matching import match_job
+
+        profiles = self.profile_api()
+        evidence = {'quote': 'Translated business requirements into product specifications.',
+                    'context': 'professional', 'responsibility': 'coordinated',
+                    'reference': 'Saved role description'}
+        with Session(self.engine) as session:
+            created = profiles.create_profile(profiles.ProfileRequest(
+                name='Example', duty_evidence=[evidence]), session)
+            profiles.update_profile(created['id'], profiles.ProfileRequest(name='Updated example'), session)
+            profile = session.get(models.UserProfile, created['id'])
+            job = {'description': 'Your tasks:\nTranslate business requirements into product specifications.'}
+            row = match_job(job, profile.matching_preferences)['duty_evidence']['duties'][0]
+            self.assertEqual(row['status'], 'direct')
+            self.assertEqual(row['evidence_reference'], evidence['reference'])
+
     def test_optional_personal_application_facts_persist_through_profile_edits(self):
         profiles = self.profile_api()
         facts = dict(salutation='Herr', birth_name='Beispiel', birth_date='1992-02-29', birth_place='Bonn',
