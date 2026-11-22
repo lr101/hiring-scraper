@@ -393,7 +393,8 @@ def discover(seed, client, max_pages=24, max_depth=5):
                     page['browser_requests'] = rendered_meta['browser_requests']
                 if rendered_meta.get('state') == 'ok' and rendered_meta.get('rendered'):
                     rendered_info = inspect_page(
-                        final, rendered_body, preferred_locations=seed.get('preferred_locations'))
+                        final, rendered_body.decode('utf-8', errors='replace'),
+                        preferred_locations=seed.get('preferred_locations'))
                     page.update(rendered_info)
                     page['candidates'] = rendered_info['candidates'][:12]
                     page['browser_rendered'] = True

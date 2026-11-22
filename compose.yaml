@@ -3,7 +3,7 @@ x-runtime: &runtime
   volumes:
     - ${HIRING_DOTENV_FILE:-./.env}:/run/app-bootstrap.env:ro
     - radius_codex:/var/lib/radius/codex
-  environment:
+  environment: &runtime_env
     NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-HiringScraper/0.2}
     HIRING_USER_AGENT: ${HIRING_USER_AGENT:-HiringScraper/0.2 (public job discovery)}
     FEED_SCAN_INTERVAL_HOURS: ${FEED_SCAN_INTERVAL_HOURS:-6}
@@ -108,11 +108,17 @@ services:
 
   profile-match-worker:
     <<: *runtime
+    environment:
+      <<: *runtime_env
+      SEMANTIC_EMBEDDING_URL: http://semantic-search-worker:8001/embed
     command: ["--worker", "profile_match_worker"]
     restart: on-failure
 
   semantic-search-worker:
     <<: *runtime
+    environment:
+      <<: *runtime_env
+      SEMANTIC_EMBEDDING_HOST: 0.0.0.0
     command: ["--worker", "semantic_search_worker"]
     restart: on-failure
 
