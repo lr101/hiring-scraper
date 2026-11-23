@@ -369,13 +369,10 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     profiles_by_id = {profile.id: profile for profile in profiles}
     from hiring_scraper.app.job_search import _profile_index_version
     from hiring_scraper.app.match_compute import (
-        compute_match,
         load_stored_match_snapshots,
         select_journey_card,
         snapshot_explanation_is_current,
     )
-    from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
-
     displayed_pairs = [(row.profile_id, row.job_id) for row in applications]
     snapshots = load_stored_match_snapshots(session, displayed_pairs) if displayed_pairs else {}
     expected_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
@@ -419,15 +416,20 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
             # last and shown without a score card rather than an out-of-order score.
             cards[pair] = None
     fallback_pairs = fallback_pairs_ranked
-    if fallback_pairs:
-        fallback_jobs = [jobs_by_id[jid] for jid in sorted({jid for _, jid in fallback_pairs})]
-        fallback_profiles = [profiles_by_id[pid] for pid in sorted({pid for pid, _ in fallback_pairs})]
-        fallback_documents = load_semantic_documents(session, fallback_jobs, fallback_profiles)
-        for pid, jid in fallback_pairs:
-            card = compute_match(jobs_by_id[jid], profiles_by_id[pid], fallback_documents)
-            card['score'] = ranks[(pid, jid)]
-            card['refreshing'] = True
-            cards[(pid, jid)] = card
+    for pair in fallback_pairs:
+        # No faithful stored explanation for the rank this page was ordered by:
+        # show that rank as a neutral, refreshing card. Freshly computed evidence
+        # (tier, source, skills) could contradict the displayed score, so the
+        # worker's rematch supplies it instead.
+        matching_pending = True
+        card = {'score': ranks[pair], 'refreshing': True}
+        stored = getattr(snapshots.get(pair), 'match', None)
+        explanation = getattr(stored, 'explanation', None)
+        if isinstance(explanation, dict):
+            for key in ('score_source', 'matched_skills'):
+                if explanation.get(key):
+                    card[key] = explanation[key]
+        cards[pair] = card
     items = []
     for application in applications:
         job = jobs_by_id[application.job_id]
