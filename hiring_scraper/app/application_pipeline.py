@@ -38,12 +38,33 @@ from hiring_scraper.documents.schema import (
 )
 from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.2'
+PIPELINE_VERSION = 'application-documents-v2.3'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
 Document = CvDocument | LetterDocument
 Generate = Callable[[str, dict], dict]
+
+_CV_PROSE_CODES = frozenset({
+    'cv_headline_too_long',
+    'cv_profile_first_person',
+    'cv_profile_voice',
+    'cv_profile_duplicate',
+    'cv_third_person',
+    'cv_repeated_opening_verb',
+    'cv_de_compound_hyphen',
+    'cv_de_awkward_verb',
+})
+_LETTER_PROSE_CODES = frozenset({
+    'letter_duplicate_employer',
+    'letter_cv_ngram_overlap',
+    'letter_contraction',
+    'letter_conditional_count',
+    'letter_repeated_ending',
+    'letter_de_salutation_case',
+    'letter_de_compound_hyphen',
+    'letter_de_awkward_verb',
+})
 
 
 class GenerationError(Exception):
@@ -422,6 +443,7 @@ def _cv_draft(
             'A rewritten CV profile unit lacked evidence source citations.',
         ))
 
+    base_entries = {entry.id: entry for section in base.sections for entry in section.entries}
     edits = {}
     for proposed in reply.entries:
         entry_id = proposed.entry_id
@@ -434,7 +456,8 @@ def _cv_draft(
                 code='cv_duplicate_entry',
             )
         count = counts[entry_id]
-        lo, hi = max(1, count - 1), min(MAX_SECTION_UNITS, count + 1)
+        lo = max(1, count - 2) if count >= 4 else max(1, count - 1)
+        hi = min(MAX_SECTION_UNITS, count + 1)
         if not lo <= len(proposed.bullets) <= hi:
             issues.append(_ProseIssue(
                 'cv_bullet_count',
@@ -449,8 +472,15 @@ def _cv_draft(
                 'review_grounding',
                 f'A rewritten bullet in {entry_id} lacked evidence source citations.',
             ))
-        if any(previous.lead_in.strip() and not bullet.lead_in.strip()
-               for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)):
+        base_entry = base_entries.get(entry_id)
+        base_visible = [u for u in base_entry.units if not u.hidden] if base_entry else []
+        all_base_labelled = bool(base_visible) and all(u.lead_in.strip() for u in base_visible)
+        if any(
+            previous.lead_in.strip()
+            and not bullet.lead_in.strip()
+            and (all_base_labelled or bool(set(previous.sources) & set(bullet.sources)))
+            for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)
+        ):
             issues.append(_ProseIssue(
                 'cv_split_project',
                 f'Entry {entry_id}: keep each labelled project in one bullet with its lead-in and merge unlabelled continuations.',
@@ -524,6 +554,14 @@ def _cv_draft(
                 unit = _ai(new_id('u-ai-competency'), item)
                 if unit.text.casefold() in existing or len(section.units) + len(additions) >= MAX_SECTION_UNITS:
                     continue
+                if len(editorial.words(unit.text)) > 4:
+                    issues.append(_ProseIssue(
+                        'cv_competency_too_long',
+                        'An added competency has more than four words; keep each added competency to a short 1–4 word tag.',
+                        'review_style',
+                        'An added competency exceeded four words instead of using a short tag.',
+                    ))
+                    continue
                 if not _supported_competency(unit, evidence, posting):
                     findings.append(_finding('cv', 'review_grounding',
                                              'An added competency lacked support from its cited evidence and the posting.'))
@@ -573,28 +611,96 @@ def _cv_prose_issues(doc: CvDocument) -> list[_ProseIssue]:
         for section in doc.sections for entry in section.entries for unit in entry.units if not unit.hidden
     ]
     for section in doc.sections:
-        if section.kind != 'profile':
-            continue
-        for idx, unit in enumerate(section.units, 1):
-            if unit.hidden or unit.origin != 'ai':
-                continue
-            if editorial.has_first_person(unit.text):
-                issues.append(_ProseIssue(
-                    'cv_profile_first_person',
-                    f'Profile unit {idx} uses explicit first person; use implied first person in the CV profile without I or ich.',
-                    'review_style',
-                    'The CV profile uses explicit first person instead of implied first person.',
-                    unit_id=unit.id,
-                ))
-            if any(editorial.near_duplicate(sentence, bullet)
-                   for sentence in re.split(r'(?<=[.!?])\s+', unit.text) for bullet in bullets):
-                issues.append(_ProseIssue(
-                    'cv_profile_duplicate',
-                    f'Profile unit {idx} repeats a CV bullet; synthesize the strongest evidence in the CV profile without repeating a bullet.',
-                    'review_style',
-                    'The CV profile closely repeats an experience or project bullet.',
-                    unit_id=unit.id,
-                ))
+        if section.kind == 'profile':
+            for idx, unit in enumerate(section.units, 1):
+                if unit.hidden or unit.origin != 'ai':
+                    continue
+                if editorial.has_first_person(unit.text):
+                    issues.append(_ProseIssue(
+                        'cv_profile_first_person',
+                        f'Profile unit {idx} uses explicit first person; write a noun-phrase-led CV profile without I or ich.',
+                        'review_style',
+                        'The CV profile uses explicit first person instead of a noun-phrase-led summary.',
+                        unit_id=unit.id,
+                    ))
+                voice_error = editorial.profile_voice_issue(unit.text, doc.language)
+                if voice_error:
+                    issues.append(_ProseIssue(
+                        'cv_profile_voice',
+                        f'Profile unit {idx} opens a sentence with a bare verb or imperative; start the profile with a noun phrase naming the professional identity from the evidence, and never start sentences with imperatives or conjugated first-person verbs.',
+                        'review_style',
+                        'The CV profile uses verb-first or imperative phrasing instead of a noun-phrase-led summary.',
+                        unit_id=unit.id,
+                    ))
+                if any(editorial.near_duplicate(sentence, bullet)
+                       for sentence in re.split(r'(?<=[.!?])\s+', unit.text) for bullet in bullets):
+                    issues.append(_ProseIssue(
+                        'cv_profile_duplicate',
+                        f'Profile unit {idx} repeats a CV bullet; synthesize the strongest evidence in the CV profile without repeating a bullet.',
+                        'review_style',
+                        'The CV profile closely repeats an experience or project bullet.',
+                        unit_id=unit.id,
+                    ))
+                if editorial.has_third_person_applicant(unit.text, doc.language):
+                    issues.append(_ProseIssue(
+                        'cv_third_person',
+                        f'Profile unit {idx} refers to the applicant in third person; remove third-person pronouns (she/he/sie/er).',
+                        'review_style',
+                        'The CV profile refers to the applicant in the third person.',
+                        unit_id=unit.id,
+                    ))
+                if doc.language == 'de' and editorial.missing_german_compound_hyphens(unit.text):
+                    issues.append(_ProseIssue(
+                        'cv_de_compound_hyphen',
+                        f'Profile unit {idx} is missing a German suspension hyphen in a coordinated compound (e.g. "Markt- und Nutzerbedürfnisse").',
+                        'review_style',
+                        'A coordinated German compound in the CV profile is missing its suspension hyphen.',
+                        unit_id=unit.id,
+                    ))
+                if doc.language == 'de' and editorial.has_awkward_de_verb_phrase(unit.text):
+                    issues.append(_ProseIssue(
+                        'cv_de_awkward_verb',
+                        f'Profile unit {idx} uses an awkward verb-noun phrase such as "Leitete die Koordination"; use a direct active verb instead.',
+                        'review_style',
+                        'The CV profile uses a redundant German verb-noun construction.',
+                        unit_id=unit.id,
+                    ))
+        elif section.kind in ('experience', 'education'):
+            for entry in section.entries:
+                for unit in entry.units:
+                    if unit.hidden or unit.origin != 'ai':
+                        continue
+                    if editorial.has_third_person_applicant(unit.text, doc.language):
+                        issues.append(_ProseIssue(
+                            'cv_third_person',
+                            f'Entry {entry.id} refers to the applicant in third person (e.g. "die sie koordinierte" or "she/he"); rewrite in direct CV voice without pronouns.',
+                            'review_style',
+                            'A CV bullet refers to the applicant in the third person.',
+                            unit_id=unit.id,
+                        ))
+                    if doc.language == 'de' and editorial.missing_german_compound_hyphens(unit_full_text(unit)):
+                        issues.append(_ProseIssue(
+                            'cv_de_compound_hyphen',
+                            f'Entry {entry.id} has a coordinated German compound missing its suspension hyphen (e.g. "Markt- und Nutzerbedürfnisse").',
+                            'review_style',
+                            'A coordinated German compound in a CV bullet is missing its suspension hyphen.',
+                            unit_id=unit.id,
+                        ))
+                    if doc.language == 'de' and editorial.has_awkward_de_verb_phrase(unit.text):
+                        issues.append(_ProseIssue(
+                            'cv_de_awkward_verb',
+                            f'Entry {entry.id} uses an awkward German verb-noun construction such as "Leitete die Koordination"; replace it with a direct active verb.',
+                            'review_style',
+                            'A CV bullet uses a redundant German verb-noun construction.',
+                            unit_id=unit.id,
+                        ))
+    for verb, count in editorial.repeated_opening_verbs(doc, max_count=2):
+        issues.append(_ProseIssue(
+            'cv_repeated_opening_verb',
+            f'Opening verb "{verb}" starts {count} bullets across the CV; vary bullet openings so no verb starts more than two bullets.',
+            'review_style',
+            'An opening verb starts more than two bullets across the CV.',
+        ))
     return issues
 
 
@@ -613,6 +719,40 @@ def _detail_findings(doc: CvDocument, evidence: dict[str, str]) -> list[Finding]
         for section in doc.sections for entry in section.entries for unit in entry.units
         if unit.origin == 'ai' and not unit.hidden and editorial.omitted_details(unit, evidence, entry.id)
     ]
+
+
+def _qualifier_findings(doc: CvDocument, evidence: dict[str, str]) -> list[Finding]:
+    findings: list[Finding] = []
+    if doc.headline.origin == 'ai' and not doc.headline.hidden:
+        if editorial.added_unsupported_qualifiers(doc.headline, evidence):
+            findings.append(_finding(
+                'cv', 'review_grounding',
+                'The rewritten headline adds a qualifier that does not appear in its cited evidence.',
+                unit_id=doc.headline.id,
+                suggestion='Verify the qualifier is backed by the evidence or rephrase to match the documented scope.',
+            ))
+    for section in doc.sections:
+        if section.kind == 'profile':
+            for unit in section.units:
+                if unit.origin == 'ai' and not unit.hidden and editorial.added_unsupported_qualifiers(unit, evidence):
+                    findings.append(_finding(
+                        'cv', 'review_grounding',
+                        'A profile unit adds a qualifier that does not appear in its cited evidence.',
+                        unit_id=unit.id,
+                        suggestion='Keep qualifiers strictly grounded in the cited evidence.',
+                    ))
+        elif section.kind in ('experience', 'education'):
+            for entry in section.entries:
+                header_ctx = f'{entry.locked.company} {entry.locked.title}'
+                for unit in entry.units:
+                    if unit.origin == 'ai' and not unit.hidden and editorial.added_unsupported_qualifiers(unit, evidence, header_ctx):
+                        findings.append(_finding(
+                            'cv', 'review_grounding',
+                            'A rewritten bullet adds a qualifier that does not appear in its cited evidence.',
+                            unit_id=unit.id,
+                            suggestion='Remove any adjective or scope label not supported by the cited source.',
+                        ))
+    return findings
 
 
 def _date_line(inp: PreparationInput, base: CvDocument) -> str:
@@ -726,6 +866,41 @@ def _letter_prose_issues(letter: LetterDocument, cv: CvDocument, base: CvDocumen
                 f'{label} uses more than one conditional (würde or would).',
                 unit_id=unit.id,
             ))
+        if letter.language == 'de' and editorial.missing_german_compound_hyphens(unit.text):
+            issues.append(_ProseIssue(
+                'letter_de_compound_hyphen',
+                f'{label} is missing a German suspension hyphen in a coordinated compound (e.g. "Markt- und Nutzerbedürfnisse").',
+                'review_style',
+                f'{label} has a coordinated German compound missing its suspension hyphen.',
+                unit_id=unit.id,
+            ))
+        if letter.language == 'de' and editorial.has_awkward_de_verb_phrase(unit.text):
+            issues.append(_ProseIssue(
+                'letter_de_awkward_verb',
+                f'{label} uses an awkward German verb-noun phrase such as "leitete ich die Koordination"; use a direct active verb instead.',
+                'review_style',
+                f'{label} uses a redundant German verb-noun construction.',
+                unit_id=unit.id,
+            ))
+    for prev_idx, curr_idx in editorial.repeated_paragraph_endings(letter.paragraphs):
+        unit = letter.paragraphs[curr_idx - 1]
+        issues.append(_ProseIssue(
+            'letter_repeated_ending',
+            f'Paragraph {curr_idx} ends with the same closing formula as Paragraph {prev_idx}. Vary paragraph endings so no two body paragraphs end with sentences sharing their first three words or a repeated bridge formula.',
+            'review_style',
+            f'Paragraph {curr_idx} repeats the closing sentence formula of Paragraph {prev_idx}.',
+            unit_id=unit.id,
+        ))
+    first_body = next((u for u in letter.paragraphs if not u.hidden and u.role != 'close'), None)
+    if letter.language == 'de' and first_body is not None:
+        if editorial.has_de_salutation_case_error(letter.salutation.text, first_body.text):
+            issues.append(_ProseIssue(
+                'letter_de_salutation_case',
+                'Paragraph 1 starts with a capitalized non-noun after a comma-ended German salutation; start the first word lowercase unless it is a noun, proper name, or Sie/Ihr*.',
+                'review_style',
+                'German letter body starts capitalized after a comma-ended salutation.',
+                unit_id=first_body.id,
+            ))
     return issues
 
 
@@ -753,12 +928,15 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
     company = re.sub(r'\s*\([^()]*\)\s*$', '', company).strip()[:200]
     city = _recipient_city(' '.join(str(inp.job.get('location') or '').split()))
     name = _sender_name(base.header.name)
+    salutation_text = _salutation(inp, company, reply.contact_name)
+    if inp.language == 'de' and paragraphs:
+        paragraphs[0].text = editorial.normalize_de_salutation_opening(salutation_text, paragraphs[0].text)
     letter = LetterDocument(
         language=inp.language, page='a4',
         sender={'name': name, 'lines': [c.text for c in base.header.contacts[:10]]},
         recipient_lines=[line for line in (company, city) if line], place_date=_date_line(inp, base),
         subject=_ai('u-letter-subject', _SourcedText(text=reply.subject.text, sources=['job'])),
-        salutation=Unit(id='u-letter-salutation', text=_salutation(inp, company, reply.contact_name)),
+        salutation=Unit(id='u-letter-salutation', text=salutation_text),
         paragraphs=paragraphs, closing=Unit(id='u-letter-signoff',
                                            text='Mit freundlichen Grüßen' if inp.language == 'de' else 'Kind regards,'),
         signature=name,
@@ -781,7 +959,7 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvD
     if not 150 <= body_words <= 450:
         issues.append(_ProseIssue(
             'letter_word_count',
-            f'Body has {body_words} words; keep the body between 150 and 450 words, ideally 260 to 320.',
+            f'Body has {body_words} words; keep the body between 150 and 450 words, ideally 270 to 310 (English) or 260 to 320 (German).',
             'review_format',
             'The letter body length is outside the 150 to 450 word range.',
         ))
@@ -998,9 +1176,8 @@ def prepare_documents(
                                    stats, hooks.cancelled, return_best=True)
             if isinstance(cv_outcome, _Fallback):
                 cv, base_draft_findings = cv_outcome.candidate
-                prose_codes = {'cv_headline_too_long', 'cv_profile_first_person', 'cv_profile_duplicate'}
                 draft_findings = base_draft_findings + _issues_to_findings(
-                    'cv', [issue for issue in cv_outcome.issues if issue.code not in prose_codes],
+                    'cv', [issue for issue in cv_outcome.issues if issue.code not in _CV_PROSE_CODES],
                 )
                 stats['error'] = 'invalid_response'
                 cv_state = 'fallback'
@@ -1019,6 +1196,7 @@ def prepare_documents(
             draft_findings
             + _issues_to_findings('cv', _cv_prose_issues(cv))
             + _detail_findings(cv, evidence)
+            + _qualifier_findings(cv, evidence)
             + ground(cv)
             + render_findings
         )
@@ -1043,12 +1221,8 @@ def prepare_documents(
                                    stats, hooks.cancelled, return_best=True)
         if isinstance(letter_outcome, _Fallback):
             letter = letter_outcome.candidate
-            letter_prose_codes = {
-                'letter_duplicate_employer', 'letter_cv_ngram_overlap',
-                'letter_contraction', 'letter_conditional_count',
-            }
             letter_non_prose_findings = _issues_to_findings(
-                'letter', [issue for issue in letter_outcome.issues if issue.code not in letter_prose_codes],
+                'letter', [issue for issue in letter_outcome.issues if issue.code not in _LETTER_PROSE_CODES],
             )
             stats['error'] = 'invalid_response'
             letter_state = 'fallback'
@@ -1104,6 +1278,7 @@ def prepare_documents(
                             draft_findings
                             + _issues_to_findings('cv', _cv_prose_issues(doc))
                             + _detail_findings(doc, evidence)
+                            + _qualifier_findings(doc, evidence)
                             + final_findings[kind]
                         )
                     else:

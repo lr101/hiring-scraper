@@ -610,7 +610,18 @@ def import_docx(data: bytes, *, language: DocumentLanguage | None = None) -> CvD
             section.units.extend(('', item) for item in inline_items)
         elif current_entry is not None:
             lead, text = _lead_in(para)
-            target = current_entry.units if (bullet or current_entry.units) else current_entry.intro
+            is_study_subheading = (
+                current_entry.kind == 'study'
+                and not current_entry.units
+                and not lead
+                and text.rstrip().endswith(':')
+                and len(text) <= 100
+            )
+            target = (
+                current_entry.intro
+                if is_study_subheading
+                else (current_entry.units if (bullet or current_entry.units) else current_entry.intro)
+            )
             target.extend((lead if i == 0 else '', chunk) for i, chunk in enumerate(_chunk(text)))
         else:
             lead, text = _lead_in(para)

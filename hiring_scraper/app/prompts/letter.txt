@@ -1,49 +1,66 @@
 Task: write a cover letter tailored to the specific work in the posting. Sender, recipient,
 date, salutation, sign-off and signature are filled in by the application.
 
-Write three or four paragraphs in paragraphs and one sentence in closing, for four or five
-body paragraphs in total. Aim for about 260–290 words including the closing sentence.
+Write three or four paragraphs in `paragraphs` and one brief closing unit in `closing`, for
+four or five body paragraphs in total. Target about 270–310 body words in English or 260–320
+body words in German (including `closing`).
 
-- Open with one motivation paragraph. Name what interests the applicant about the employer's
-  actual product, customers or work and the problem the role helps solve. Use only capabilities
-  and customer needs supported by the posting. Skip tenuous personal connections, origin stories
-  and autobiography. State interest directly, in the present tense.
+- Open with one motivation paragraph. Do NOT open by explaining the employer's own product back
+  to them; in the first sentence, connect their specific product, mission or problem directly to
+  the applicant's verified background. Describe the employer's product, customers and role
+  strictly from the posting's wording — never invent capabilities or customer segments not
+  stated in the posting. Skip tenuous personal connections, origin stories and autobiography.
+  State interest directly in the present tense.
 - Select the two strongest examples for the posting's core responsibilities by default. Add a
   third only when it proves a separate core responsibility that the first two do not address.
   If the strongest prior work has a different scope or stage, use the relevant steps of that
-  work rather than a less relevant example from a different domain. Use
-  one paragraph per employer or project. Combine all details from any one CV entry into
-  that paragraph and cite its cv:<entry_id>:b<n> or cv:<entry_id>:i<n> ids. Do not cite
-  that entry again in a different paragraph. Additional career evidence can supplement it.
-  Use experience or education for these paragraphs.
+  work rather than a less relevant example from a different domain. Use one paragraph per
+  employer or project. Combine all details from any one CV entry into that paragraph and cite
+  its cv:<entry_id>:b<n> or cv:<entry_id>:i<n> ids. Do not cite that entry again in a different
+  paragraph. Additional career evidence can supplement it. Use experience or education for these
+  paragraphs.
 - Develop each example in flowing prose. Start with the situation or decision, describe the
-  applicant's contribution at its verified scope, and end every experience or education
-  paragraph with one sentence about what that
-  experience means for this job. Make the final sentence about the target work, using a
-  specific task or decision. Vary sentence openings and avoid repeating a noun three times
-  in one paragraph. Explain why the actions fit together, instead of retelling the CV in order.
-  For projects outside the employer's domain, lead with the relevant method or decision and
-  give only enough context to understand it. Leave degree names and ancillary facts to the CV.
+  applicant's contribution at its exact verified scope (e.g. "led coordination of early-stage
+  development", never overstating to "led early development"), and connect EVERY experience or
+  education paragraph back to the target work or role. When an education paragraph refers to
+  the applicant's studies, name the applicant's verified degree or discipline naturally. Vary
+  sentence openings (never start more than two consecutive sentences in a paragraph with "I "
+  or "Ich ") and **vary paragraph endings** — never end two paragraphs with the same closing
+  formula or identical opening words (e.g. never start two paragraph-ending sentences with
+  "Diese Erfahrung …" or "This experience …"). Explain why the actions fit together instead of
+  retelling the CV in order. For projects outside the employer's domain, lead with the relevant
+  method or decision and give only enough context to understand it.
 - Use fresh wording even for the same evidence. No eight consecutive words may match any CV
   unit. Keep distinctive details intact while changing the focus and sentence structure.
 - If the evidence does not show a requirement such as a specific tenure or ownership through
   release, do not imply it. Where useful, one honest sentence can frame transferable experience
-  and the stage at which the applicant earned it. Include relevant verified qualifications
-  such as language proficiency in the example where they matter, without tacking them on
-  after its final connection to the target work.
-- If a fourth paragraph adds something beyond the two examples, use bring to name one concrete work
-  decision and what would inform it, at the scope the applicant can offer. In a bring paragraph,
-  cite job (and profile or skill evidence if relevant) rather than re-citing a CV entry already
-  used in an earlier paragraph. Prefer indicative voice and use at most one conditional (würde or
-  would) in any paragraph. In English, spell out contractions. In German, use formal register and
-  continue correctly after the comma.
+  and the stage at which the applicant earned it. Include relevant verified qualifications such
+  as language proficiency in the example where they matter, without tacking them on after a
+  paragraph's final connection to the target work.
+- If a fourth paragraph (`bring`) adds something beyond the examples, ground the proposed
+  approach in a **verified past method** the applicant has used (such as user research,
+  workflow mapping, stakeholder interviews, requirements structuring or prototyping) rather
+  than a generic hypothetical, and apply it concretely to a specific task from the posting at
+  the applicant's verified scope. Cite `job` and supporting profile/skill evidence (do not
+  re-cite a CV entry already used in an earlier paragraph). Prefer indicative voice and use at
+  most one conditional (würde or would) in any paragraph.
+- Register and mechanics:
+  - In English, spell out contractions.
+  - In German, **always use formal Sie-Form** (Sie/Ihnen/Ihr), even when the posting uses
+    informal "du". Because the salutation ends with a comma, start the first word of the first
+    paragraph with a lowercase letter unless it is a German noun or formal Sie/Ihr.
 
 Cite evidence ids in EVIDENCE, including the original sources behind claims shown in CV UNITS.
-Use job for facts established by the posting. Check sentence by sentence that the evidence
-supports the action, method and outcome at the stated scope. Keep recommendations distinct
-from decisions or adoption. Do not claim unverified work even when closely related.
+Use `job` for facts established by the posting. Check sentence by sentence that the evidence
+supports the action, method and outcome at the stated scope, with no unsupported qualifiers.
+Keep recommendations distinct from decisions or adoption. Do not claim unverified work even
+when closely related.
 
-Use closing for a single brief invitation to talk. Name the role in subject; include a reference
-number only if the posting text explicitly states one. For contact_name, copy the full name of the
-person the posting identifies as the contact for this vacancy, without any title or honorific.
-Return an empty string if only a first name or an email is given, or if there is no named contact.
+Use `closing` for a natural, warm closing line (optionally preceded by a brief thank-you, e.g.
+"Vielen Dank für Ihre Zeit. Ich freue mich auf ein persönliches Gespräch." / "Ich freue mich
+auf ein persönliches Gespräch." in German, or "Thank you for your time and consideration. I
+look forward to discussing the role with you." in English). Name the role in `subject`; include
+a reference number only if the posting text explicitly states one. For `contact_name`, copy the
+full name (first and last) of the person the posting identifies as the contact for this vacancy,
+without any title or honorific. Return an empty string if only a first name or an email is
+given, or if there is no named contact.

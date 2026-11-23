@@ -30,10 +30,30 @@ Patches: for AI-written units only, propose replacement text with a kind:
 A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
 are already good.
 
-Check that the CV headline names the demonstrated role family in at most 70 characters,
-the profile uses implied first person and adds to the bullets, German bullets use direct active
-verbs without needless reflexive "sich" constructions, and all differentiating details of a
-rewritten bullet remain. Check that the letter stays within 4–5 paragraphs including its
-closing, uses each employer or project at most once, uses fresh prose and keeps the experience
-stage accurate. Use indicative voice, with at most one conditional per paragraph, and spell out
-English contractions.
+Check that:
+- CV headline uses evidence-backed role-family terms in at most 70 characters without
+  overstating the domain.
+- CV profile is noun-phrase-led (starts with verified professional identity/degree, 3–4
+  sentences, no explicit first-person or third-person pronouns, no imperatives or clipped
+  verb-first fragments), surfaces the strongest matching evidence on page 1, and synthesizes
+  rather than repeating a bullet. A compact second profile unit ("Selected projects:" /
+  "Relevante Projekte:") naming 2–3 relevant projects from page 2 is intentional for page-1
+  visibility — do not flag it unless it copies a bullet verbatim or lists irrelevant projects.
+- CV bullets avoid third-person pronouns referring to the applicant (never "die sie
+  koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
+  "strategic", "software", etc.), merge overlapping duties, vary opening verbs (no verb
+  starting more than 2 bullets), retain differentiating details, and in German use direct
+  active verbs (no "Leitete die Koordination" or needless reflexive "sich") and suspension
+  hyphens in coordinated compounds ("Markt- und Nutzerbedürfnisse").
+- Competencies are tailored (irrelevant base items hidden; additions are 1–4 words and
+  evidence-backed).
+- Cover letter stays within 4–5 paragraphs (~270–310 EN / ~260–320 DE words including closing),
+  keeps formal Sie-Form in German with lowercase opening after the comma (unless a noun or
+  Sie/Ihr), opens by connecting the company's product/mission to the applicant's background
+  rather than explaining the product back to them, names the degree/discipline when referring
+  to studies, preserves exact leadership scope (e.g. coordination vs ownership), uses each
+  employer or project at most once, connects every experience/education paragraph to the target
+  role, varies sentence openings (avoid >2 consecutive "I "/"Ich " sentences) and paragraph
+  endings, grounds any proposed approach in a verified past method, uses fresh prose, keeps at
+  most one conditional per paragraph, spells out English contractions, and ends with a natural
+  closing line.

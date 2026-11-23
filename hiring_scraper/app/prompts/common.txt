@@ -26,6 +26,9 @@ Evidence
   Preserve who gave feedback and what it was about, at the specificity of the source.
 - Keep the action attached to the right object. Using standard materials does not mean
   standardizing those materials. Keep the exact meaning of each measured quantity.
+- Never add unsupported qualifiers or scope adjectives (such as "technical"/"technisch",
+  "strategic"/"strategisch", "commercial"/"kommerziell", "software", "enterprise", "global",
+  or "end-to-end") to a verified fact unless the cited evidence explicitly supports that scope.
 - State what the applicant did. Leave out details with uncertain scope, including negative
   claims about work that did not happen or deliverables the applicant did not create.
 - VOICE material (notes and exemplars) shows how the applicant likes to sound: rhythm, warmth,
@@ -34,12 +37,17 @@ Evidence
 Language and style
 - Write natural, idiomatic text as a native professional would. German reads as written in
   German from the start: verb-led sentences, active voice, everyday professional vocabulary,
-  no chains of nouns and no translated English phrasing. English is plain and concrete.
+  no chains of nouns and no translated English phrasing. Use German suspension hyphens
+  (Ergänzungsstrich) in coordinated compounds (e.g., "Markt- und Nutzerbedürfnisse",
+  "Entwicklungs- und Fertigungsteams") and direct active verbs instead of heavy verb-noun
+  constructions (write "koordinierte", not "leitete die Koordination"). English is plain and
+  concrete.
 - Lead with the action, then the method or tool, then the outcome or purpose.
 - Prefer one precise claim over a list of keywords. Use each skill or tool where it did work.
 - Put the idea in the applicant's own words. Keep distinctive product names and exact role titles
   where they identify the opening. Paraphrase the posting's terminology in the rest of the prose.
-- Vary sentence openings; avoid repeating the same fact across units.
+- Vary sentence openings; avoid repeating the same fact across units or repeating a word stem
+  within the same sentence.
 - Skip clichés and filler such as "passionate", "dynamic team", "results-driven", "I am writing
   to apply", "hiermit bewerbe ich mich", "mit großem Interesse".
 - Plain Unicode text only: no Markdown, no LaTeX, no line breaks inside a unit.

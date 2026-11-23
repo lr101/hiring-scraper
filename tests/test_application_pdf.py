@@ -240,6 +240,54 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(result.pages, 2)
         self.assertIn('u-long-intro', result.telemetry['split_units'])
 
+    def test_duplicate_company_title_internship_renders_localized_role_label(self):
+        for lang, expected in (('de', 'Praktikum'), ('en', 'Internship')):
+            with self.subTest(language=lang):
+                doc = fictional_cv(bullets=1)
+                doc.language = lang
+                doc.sections.append(Section(
+                    id='s-edu', kind='education', title='Ausbildung' if lang == 'de' else 'Education',
+                    entries=[
+                        Entry(
+                            id='study-2', kind='study', label='Praktikum' if lang == 'de' else 'Internship',
+                            locked=LockedEntry(
+                                company='Applied Craft Fellowship', title='Applied Craft Fellowship',
+                                start='2019', end='2019',
+                            ),
+                            units=[Unit(id='u-st2-b1', text='Built wooden mockups for community booths.')],
+                        ),
+                    ],
+                ))
+                result = application_pdf.render_document('cv', doc.model_dump())
+                self.assertIn(expected, result.text)
+                self.assertEqual(result.text.upper().count('APPLIED CRAFT FELLOWSHIP'), 1)
+
+    def test_four_bullet_entry_splits_and_telemetry_reports_page_fill_ratios(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.sections[1].entries.append(
+            Entry(
+                id='work-2', kind='work',
+                locked=LockedEntry(company='Fiktivlabor', title='Projektingenieur', start='2019', end='2021'),
+                units=[
+                    Unit(id=f'u-w2-b{n}', text=f'Messreihe {n}: ' + 'Dokumentierte Prüfergebnisse im Labor. ' * 5)
+                    for n in range(1, 5)
+                ],
+            ),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        p1_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[0]]
+        p2_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[1]]
+        self.assertEqual(p1_items, [1, 2])
+        self.assertEqual(p2_items, [3, 4])
+        ratios = result.telemetry['page_fill_ratios']
+        self.assertEqual(len(ratios), 2)
+        self.assertGreater(ratios[0], 0.8)
+        self.assertLessEqual(ratios[0], 1.0)
+
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:
             application_pdf.render_document('cv', {'format': 'radius-cv-v2'})

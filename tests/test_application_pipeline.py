@@ -371,6 +371,10 @@ class PipelineTests(unittest.TestCase):
                     'locked': {'company': 'University', 'title': 'Alder Institute',
                                'start': '2018', 'end': '2020'},
                     'intro': [{'id': 'u-study-intro', 'text': 'M.Sc. Design – Focus on museum accessibility.'}],
+                    'units': [
+                        {'id': 'u-study-sub', 'text': 'Selected projects:'},
+                        {'id': 'u-study-p1', 'lead_in': 'Wayfinding:', 'text': 'Mapped gallery signage with visitors.'},
+                    ],
                 },
                 {
                     'id': 'study-2', 'kind': 'study', 'label': 'PRAKTIKUM',
@@ -386,7 +390,9 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(entry1['locked']['company'], 'Alder Institute')
         self.assertEqual(entry1['locked']['title'], 'M.Sc. Design')
         self.assertEqual(entry1['intro'][0]['text'], 'Focus on museum accessibility.')
-        self.assertEqual(entry2['label'], '')
+        self.assertEqual(entry1['intro'][1]['text'], 'Selected projects:')
+        self.assertEqual(len(entry1['units']), 1)
+        self.assertEqual(entry2['label'], 'Praktikum')
         self.assertEqual(entry2['locked']['company'], 'Applied Craft Fellowship')
         self.assertEqual(entry2['locked']['title'], 'Applied Craft Fellowship')
 
@@ -686,4 +692,208 @@ class PipelineTests(unittest.TestCase):
         for prompt in seen_prompts:
             self.assertNotIn('j9876', prompt)
             self.assertNotIn('jobs.example.test', prompt)
+
+    def test_profile_voice_rejects_imperatives_and_verb_first_fragments(self):
+        from hiring_scraper.documents import editorial
+
+        self.assertIsNotNone(editorial.profile_voice_issue('Combine visitor interviews with prototyping.', 'en'))
+        self.assertIsNotNone(editorial.profile_voice_issue(
+            'Workshop designer with museum roots. Turn feedback into clear plans.', 'en',
+        ))
+        self.assertIsNone(editorial.profile_voice_issue(
+            'Exhibition designer with a background in civic workshops. Strong experience across visitor research.', 'en',
+        ))
+        self.assertIsNone(editorial.profile_voice_issue(
+            'Design engineer focused on participatory museum programs.', 'en',
+        ))
+        self.assertIsNone(editorial.profile_voice_issue(
+            'Selected projects: Wayfinding prototype and library workshop series.', 'en',
+        ))
+        self.assertIsNotNone(editorial.profile_voice_issue('Bringe Erfahrung in der Werkstattplanung mit.', 'de'))
+        self.assertIsNotNone(editorial.profile_voice_issue(
+            'Ausstellungsplanerin mit Schwerpunkt Beteiligung. Verfüge über Praxis in Prototypen.', 'de',
+        ))
+        self.assertIsNone(editorial.profile_voice_issue(
+            'Ausstellungsplanerin mit Erfahrung in Besucherforschung und Prototypenbau.', 'de',
+        ))
+        self.assertIsNone(editorial.profile_voice_issue(
+            'Relevante Projekte: Orientierungssystem und Werkstattreihe.', 'de',
+        ))
+
+    def test_repeated_opening_verbs_rejected_above_two_bullets(self):
+        self.inp.base_cv['sections'][1]['entries'][0]['units'] = [
+            {'id': f'u-w1-b{i}', 'text': f'Built museum exhibit guide {i} with librarians.'}
+            for i in range(1, 5)
+        ]
+        bad_cv = cv_reply()
+        bad_cv['entries'][0]['bullets'] = [
+            {'lead_in': '', 'text': f'Coordinated museum exhibit guide {i} with librarians.', 'sources': [f'cv:work-1:b{i}']}
+            for i in range(1, 4)
+        ]
+        base = CvDocument.model_validate(self.inp.base_cv)
+        evidence = pipeline.build_evidence(base, self.inp.profile)
+        entries = [{'entry_id': 'work-1', 'base_count': 4}]
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._cv_draft(bad_cv, base, entries, evidence, self.inp.job['description'])
+        self.assertIn('cv_repeated_opening_verb', ctx.exception.codes)
+
+        # Condensing a 4-bullet base entry down to 2 distinct-verb bullets is accepted.
+        good_cv = cv_reply()
+        good_cv['entries'][0]['bullets'] = [
+            {'lead_in': '', 'text': 'Coordinated museum exhibit guide 1 with librarians.', 'sources': ['cv:work-1:b1']},
+            {'lead_in': '', 'text': 'Structured museum exhibit guide 2 with librarians.', 'sources': ['cv:work-1:b2']},
+        ]
+        doc, _ = pipeline._cv_draft(good_cv, base, entries, evidence, self.inp.job['description'])
+        self.assertEqual(len(doc.sections[1].entries[0].units), 2)
+
+    def test_german_compound_hyphen_and_awkward_verb_checks(self):
+        from hiring_scraper.documents import editorial
+
+        self.assertTrue(editorial.missing_german_compound_hyphens(
+            'Analysierte Markt und Nutzerbedürfnisse für neue Ausstellungsformate.',
+        ))
+        self.assertFalse(editorial.missing_german_compound_hyphens(
+            'Analysierte Markt- und Nutzerbedürfnisse für neue Ausstellungsformate.',
+        ))
+        self.assertTrue(editorial.missing_german_compound_hyphens(
+            'Stimmte Entwicklungs und Fertigungsteams ab.',
+        ))
+        self.assertFalse(editorial.missing_german_compound_hyphens(
+            'Stimmte Entwicklungs- und Fertigungsteams ab.',
+        ))
+        self.assertFalse(editorial.missing_german_compound_hyphens(
+            'Arbeitete mit Designern und Besuchergruppen im Museum.',
+        ))
+        self.assertTrue(editorial.has_awkward_de_verb_phrase(
+            'Leitete die Koordination zwischen Werkstatt und Kuratorium.',
+        ))
+        self.assertFalse(editorial.has_awkward_de_verb_phrase(
+            'Koordinierte die Zusammenarbeit zwischen Werkstatt und Kuratorium.',
+        ))
+
+    def test_unsupported_qualifier_emits_info_grounding_finding(self):
+        self.inp.mode = 'fast'
+        reply = cv_reply()
+        reply['entries'][0]['bullets'][0]['text'] = (
+            'Designed a technical software workshop with librarians for public exhibits.'
+        )
+        result = self.run_with(cv=reply)
+        self.assertTrue(any(
+            f['code'] == 'review_grounding' and f['severity'] == 'info'
+            and f['unit_id'] == 'u-ai-work-1-b1'
+            for f in result.findings
+        ))
+
+    def test_competency_supports_german_compounds_and_rejects_long_phrases(self):
+        from hiring_scraper.documents import editorial
+
+        self.assertTrue(editorial.supports_competency(
+            'Marktrecherche',
+            ['Führte Recherche im Markt für modulare Systeme durch.'],
+            'Gesucht wird Erfahrung in Marktrecherche und Produktentwicklung.',
+        ))
+        self.assertTrue(editorial.supports_competency(
+            'Kostenkalkulation',
+            ['Erstellte Kalkulation der Kosten für Baugruppen.'],
+            'Verantwortung für Kostenkalkulation und Lieferanten.',
+        ))
+        self.assertFalse(editorial.supports_competency(
+            'Strukturierte Analyse von Markt und Anforderungen im Team',
+            ['Analysierte Markt und Anforderungen im Team.'],
+            'Analyse von Markt und Anforderungen',
+        ))
+
+        base = CvDocument.model_validate(self.inp.base_cv)
+        evidence = pipeline.build_evidence(base, self.inp.profile)
+        long_tag_cv = cv_reply()
+        long_tag_cv['skills'][0]['additions'] = [{
+            'text': 'Participatory public museum workshop facilitation planning',
+            'sources': ['cv:work-1:b1'],
+        }]
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._cv_draft(long_tag_cv, base, [{'entry_id': 'work-1', 'base_count': 1}], evidence, self.inp.job['description'])
+        self.assertIn('cv_competency_too_long', ctx.exception.codes)
+
+    def test_letter_rejects_repeated_endings_and_normalizes_german_salutation_case(self):
+        from hiring_scraper.documents import editorial
+
+        self.assertEqual(
+            editorial.normalize_de_salutation_opening(
+                'Sehr geehrte Damen und Herren,',
+                'Mit meiner Erfahrung im Ausstellungsbau unterstütze ich Ihr Team.',
+            ),
+            'mit meiner Erfahrung im Ausstellungsbau unterstütze ich Ihr Team.',
+        )
+        self.assertEqual(
+            editorial.normalize_de_salutation_opening(
+                'Sehr geehrte Damen und Herren,',
+                'Ausstellungen für die Öffentlichkeit reizen mich besonders.',
+            ),
+            'Ausstellungen für die Öffentlichkeit reizen mich besonders.',
+        )
+        self.assertEqual(
+            editorial.normalize_de_salutation_opening(
+                'Guten Tag Morgan Alder,',
+                'Sie suchen eine Planerin für modulare Werkstätten.',
+            ),
+            'Sie suchen eine Planerin für modulare Werkstätten.',
+        )
+
+        base = CvDocument.model_validate(self.inp.base_cv)
+        dup_ending = letter_reply()
+        dup_ending['paragraphs'] = [
+            {
+                'role': 'motivation',
+                'text': 'Wren Museum builds participatory exhibits that align with my studio background.',
+                'sources': ['job', 'cv:work-1:b1'],
+            },
+            {
+                'role': 'experience',
+                'text': 'At River Studio I ran gallery workshops with librarians. This experience prepares me for your program team.',
+                'sources': ['cv:work-1:b1'],
+            },
+            {
+                'role': 'bring',
+                'text': 'Using visitor walkthroughs helps uncover friction early. This experience supports your launch schedule.',
+                'sources': ['job', 'profile:skill:s1'],
+            },
+        ]
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._letter_draft(dup_ending, self.inp, base)
+        self.assertIn('letter_repeated_ending', ctx.exception.codes)
+
+    def test_third_person_cv_pronouns_rejected_and_distinct_labelled_reordering_allowed(self):
+        from hiring_scraper.documents import editorial
+
+        self.assertTrue(editorial.has_third_person_applicant(
+            'Präzisierte Anforderungen aus der Prüfung, die sie koordinierte.', 'de',
+        ))
+        self.assertFalse(editorial.has_third_person_applicant(
+            'Koordinierte Konzeptprüfungen und präzisierte Anforderungen.', 'de',
+        ))
+        self.assertTrue(editorial.has_third_person_applicant(
+            'Built prototypes that she tested with gallery visitors.', 'en',
+        ))
+        self.assertFalse(editorial.has_third_person_applicant(
+            'Built prototypes and tested them with gallery visitors.', 'en',
+        ))
+
+        # Reordering a labelled project bullet ahead of a distinct unlabelled base bullet is NOT a split project.
+        self.inp.base_cv['sections'][1]['entries'][0]['units'] = [
+            {'id': 'u-w1-b1', 'lead_in': '', 'text': 'Participated in an annual gallery seminar.'},
+            {'id': 'u-w1-b2', 'lead_in': 'Wayfinding:', 'text': 'Built tactile museum signage.'},
+        ]
+        base = CvDocument.model_validate(self.inp.base_cv)
+        evidence = pipeline.build_evidence(base, self.inp.profile)
+        reordered = cv_reply()
+        reordered['entries'][0]['bullets'] = [
+            {'lead_in': 'Wayfinding:', 'text': 'Built tactile museum signage for visitors.', 'sources': ['cv:work-1:b2']},
+            {'lead_in': '', 'text': 'Participated in an annual gallery seminar.', 'sources': ['cv:work-1:b1']},
+        ]
+        doc, _ = pipeline._cv_draft(
+            reordered, base, [{'entry_id': 'work-1', 'base_count': 2}], evidence, self.inp.job['description'],
+        )
+        self.assertEqual(len(doc.sections[1].entries[0].units), 2)
+
+
 

@@ -354,6 +354,33 @@ def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages
     return checks
 
 
+def _page_fill_ratios(reader: Any) -> list[float]:
+    """Estimate vertical fill ratio (0.0–1.0) of each rendered PDF page's printable area."""
+    margin_pt = _PAGE_MARGIN_MM * 72.0 / 25.4
+    ratios: list[float] = []
+    for page in reader.pages:
+        height_pt = float(page.mediabox.height)
+        printable_pt = max(1.0, height_pt - 2.0 * margin_pt)
+        lowest_y: list[float] = []
+
+        def visitor(text: str, cm: list[float], tm: list[float], _font_dict: Any, _font_size: float) -> None:
+            if text.strip():
+                ty = cm[1] * tm[4] + cm[3] * tm[5] + cm[5]
+                lowest_y.append(ty)
+
+        try:
+            page.extract_text(visitor_text=visitor)
+        except Exception:  # noqa: BLE001 - defensive against PDF edge cases
+            ratios.append(0.0)
+            continue
+        if not lowest_y:
+            ratios.append(0.0)
+            continue
+        used_pt = (height_pt - margin_pt) - min(lowest_y)
+        ratios.append(round(max(0.0, min(1.0, used_pt / printable_pt)), 3))
+    return ratios
+
+
 def render_document(
     kind: Literal['cv', 'letter'],
     document: dict,
@@ -387,6 +414,7 @@ def render_document(
         reader = PdfReader(io.BytesIO(pdf))
         pages = len(reader.pages)
         page_texts = [page.extract_text() or '' for page in reader.pages]
+        page_fill_ratios = _page_fill_ratios(reader)
         text = '\n'.join(page_texts)
         if isinstance(model, CvDocument):
             author = model.header.name.strip()
@@ -409,6 +437,7 @@ def render_document(
                              f'{telemetry.get("overflow_px", 0)} px beyond page {limit}; '
                              f'{len(telemetry.get("beyond_limit_units", []))} unit(s) past the limit.'))
     telemetry['pages'] = pages
+    telemetry['page_fill_ratios'] = page_fill_ratios
     # Chromium can move blocks between pages to honor CSS break rules. Only report
     # a split when the extracted unit crosses an actual PDF page boundary.
     page_runs = [_squash(page) for page in page_texts]

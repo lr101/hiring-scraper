@@ -2,52 +2,73 @@ Task: tailor the CV to the posting. Preserve verified employers, titles, dates a
 order. Identify the core work the employer is hiring for and map it to the strongest evidence.
 
 Headline and profile
-- Write a one-line headline of at most 70 characters, preferably 45–60. Name the posting's
-  role family using terms the evidence supports. Use a functional focus rather than claiming
-  an unverified job title, seniority level, tenure, or ownership.
-- Write one compact profile paragraph of about 35–50 words in implied first person (no I, I'm,
-  I've or ich). Use two sentences, with no more than one concrete example in each.
-  Lead with the strongest relevant evidence so it is visible on page one, even when the
-  project itself appears later. Mention the applicant's concrete method or output where it
-  directly addresses a core responsibility, especially if it is elsewhere on the CV.
-  Connect two complementary strengths and name the actual stage or context. Synthesize
-  across evidence instead of paraphrasing a bullet. Save motivation for the letter.
+- Write a one-line headline of at most 70 characters, preferably 45–60. Use 2–3 pipe-separated
+  functional focuses in the posting's role family backed strictly by the evidence (e.g.
+  "Product Development | Requirements & Prototyping | Stakeholder Coordination" style). Never
+  overstate the domain (e.g. never write "Software Development" when the evidence is product or
+  requirements coordination) and never claim an unverified job title, seniority, tenure or
+  ownership.
+- Write a noun-phrase-led profile summary (unit 1 of `profile`) of 3–4 sentences (~55–80 words)
+  with no explicit first person (no I, I'm, I've or ich) and no imperatives or clipped
+  verb-first fragments.
+  - Sentence 1 MUST begin with a noun phrase naming the applicant's verified professional
+    identity or degree from the evidence (e.g. "<Degree> engineer with …" /
+    "<Abschluss>-Ingenieurin mit …"). Never start sentence 1 with a verb.
+  - Subsequent sentences may use complete sentences or noun-phrase/participial constructions,
+    never bare imperatives or conjugated verb-first fragments (never start a sentence with
+    "Bringe", "Verfüge", "Verbinde", "Combine", "Turn", "Lead", etc.).
+  - Surface the 2–3 pieces of evidence most relevant to the posting's CORE responsibilities right
+    on page 1, even when that work appears in education or projects on page 2. Synthesize
+    across evidence instead of paraphrasing a bullet. Save motivation for the letter.
+- When 2–3 highly relevant projects or deliverables sit in education or later sections, add a
+  compact second unit in `profile` starting with "Selected projects:" (English) or
+  "Relevante Projekte:" (German) naming them concisely with their evidence `sources`. Otherwise
+  return one profile unit.
 - Cite the actual work supporting each claim. If the profile names a past employer, cite a
   bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
 
 Entries
-- For each listed entry, select and reorder its bullets by relevance, including education
-  projects. Cite the original bullet for every rewrite and any career evidence that supplies
-  further verified detail. Lead with the work closest to the hiring responsibilities rather than
-  the most impressive result in a less relevant area. Use only evidence from the same employer
-  or project.
-- Return between one fewer and one more bullet than the base count, with at least one. Give
-  each bullet a distinct responsibility: separate its action and purpose from the other
-  bullets under that entry. Before writing, give each bullet a different topic and choose
-  a single place for overlapping facts such as coordination, requirements or feedback.
-  For example, when several bullets concern program work, distinguish partner relationships,
-  event delivery, and participant operations instead of listing general coordination twice.
-  Use the lower end of the count range when that makes the responsibilities clearer.
-- Start with a direct verb and concrete object. Use consistent CV voice without explicit
-  pronouns. Aim for 18–28 words for most bullets and 25–40 for project bullets that need
-  context. Use parallel objects and concise clauses, especially when listing artifacts.
-  In German, use a direct active verb where a reflexive construction sounds indirect.
-  For joint work, use a structure like "Wirkte an … mit" or "Trug zu … bei".
-- Retain the details that distinguish each cited source, such as named collaborators,
-  languages used, tools, drawings or other deliverables, suppliers, scope and verified metrics.
-  Keep the original distinctions between actions, methods and outcomes. State details once,
-  where they best substantiate the distinct responsibility. Avoid restating an action or
-  purpose in the same bullet.
+- For each listed entry, select and reorder its bullets by relevance to the posting's CORE
+  responsibilities, including education projects. Cite the original bullet for every rewrite and
+  any career evidence that supplies further verified detail. Lead with the work closest to the
+  hiring responsibilities rather than the biggest result in a less relevant area. Use only
+  evidence from the same employer or project.
+- Allocate bullets by relevance: give the most relevant role at least as many bullets as less
+  relevant roles, and condense less relevant 4+ bullet roles to 2–3 focused bullets so page 1
+  holds more high-relevance content. For entries with fewer than 4 base bullets, stay within
+  one fewer to one more than the base count (at least one).
+- Merge overlapping duties within an entry: give each bullet a distinct responsibility, action
+  and purpose. Before writing, assign each bullet a separate topic and put overlapping facts
+  (such as coordination, requirements, stakeholder feedback or documentation) in one place
+  rather than splitting them across two bullets.
+- Start each bullet with a direct past-tense active verb and concrete object (no explicit
+  first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
+  "she", "he", "die sie koordinierte", etc.). Vary opening verbs across the entire CV: no
+  opening verb may start more than 2 bullets in the whole CV.
+  - In German, rotate direct active verbs (e.g. Erarbeitete, Analysierte, Konzipierte,
+    Koordinierte, Steuerte, Begleitete, Erstellte, Strukturierte, Moderierte, Prüfte,
+    Übersetzte, Entwickelte, Organisierte, Stimmte … ab); avoid awkward verb-noun phrases like
+    "Leitete die Koordination" (write "Koordinierte") and avoid needless reflexive "sich"
+    constructions. For joint work, use "Wirkte an … mit" or "Trug zu … bei". Use suspension
+    hyphens in coordinated compounds (e.g. "Markt- und Nutzerbedürfnisse").
+  - In English, rotate direct active verbs (e.g. Defined, Translated, Mapped, Coordinated,
+    Facilitated, Prototyped, Evaluated, Structured, Prepared, Synthesized, Managed, Delivered).
+- Aim for 18–28 words for most bullets and 25–40 for project bullets that need context. Use
+  parallel objects and concise clauses. Retain distinguishing details (named collaborators,
+  languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
+  substantiate that responsibility. Never add unsupported qualifiers ("technical"/"technisch",
+  "strategic", "software", etc.) not present in the cited source.
 - Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
   with a colon and merge related details into that bullet. Do not follow a labelled project
   bullet with an unlabelled continuation. Use an empty lead_in for ordinary work bullets.
-- Keep degree names in education headings. Do not repeat the degree in prose or project bullets.
+- Keep degree names in education headings. Do not repeat the degree in project bullets.
 
 Skills
-- Return the existing unit ids in relevance order in unit_ids and ids to hide in hidden_ids.
-  Hide lower-value items to keep the section readable.
-- Use additions for up to four new competency items across the CV, or an empty list. Use a
-  short phrase with posting terminology and cite the applicant's evidence ids for every term.
-  Use at least one substantive posting term, and pick the rest of the phrasing from the cited
-  evidence with only light inflection. The posting itself is not evidence. Keep scope
-  qualifiers, and omit synonyms or duplicates of existing competencies.
+- Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
+  and put clearly irrelevant or low-value items in `hidden_ids` so the section stays sharp and
+  targeted.
+- Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
+  CV, or an empty list. Never write long phrases. Each tag must use at least one substantive
+  term from the posting and draw the rest from the cited applicant evidence (compound nouns
+  built from supported evidence terms are valid). Cite every supporting evidence id. Omit
+  synonyms or duplicates of existing competencies.

@@ -27,8 +27,26 @@ function visibleUnits(units: Unit[], showHidden: boolean): Unit[] {
 }
 
 const genericEntryLabel = /^(?:university|college|hochschule|universität|internship|praktikum|education|ausbildung)$/i
+const roleEntryLabel = /^(?:internship|praktikum)$/i
 
 const publicationSectionTitle = /(?:publication|publikation|research|forschung|paper|aufsatz)/i
+
+function localizedRoleLabel(raw: string, language: CvDocument['language']): string {
+  const trimmed = raw.trim()
+  if (roleEntryLabel.test(trimmed)) {
+    return language === 'de' ? 'Praktikum' : 'Internship'
+  }
+  return ''
+}
+
+function isShortOrListParagraph(unit: Unit): boolean {
+  const text = `${unit.lead_in ? `${unit.lead_in} ` : ''}${unit.text}`.trim()
+  if (!text) return false
+  if (text.length < 180) return true
+  if (text.endsWith(':')) return true
+  if (unit.lead_in.trim()) return true
+  return /^[^.!?]{2,40}:\s+/.test(text)
+}
 
 function italicizeQuotedTitles(text: string): ReactNode {
   const parts = text.split(/("[^"]+"|“[^”]+”|„[^“”]+[“”]|«[^»]+»|»[^«]+«)/u)
@@ -168,7 +186,11 @@ function renderSectionUnits(
       {items.map((unit, index) => (
         <p
           key={unit.id}
-          className="doc-cv-paragraph"
+          className={
+            isShortOrListParagraph(unit)
+              ? 'doc-cv-paragraph doc-cv-paragraph--left'
+              : 'doc-cv-paragraph'
+          }
           data-unit-id={unit.id}
           data-unit-hidden={unit.hidden ? 'true' : undefined}
         >
@@ -198,11 +220,24 @@ function renderEntry(
   const bulletUnits = visibleUnits(entry.units, showHidden)
   const dates = formatEntryDates(entry.locked, language)
   const { company, title, location } = entry.locked
-  const genericCompany = genericEntryLabel.test(company.trim())
-  const companyLine = genericCompany ? title : company
-  const showTitle = !genericCompany && !genericEntryLabel.test(title.trim())
-    && company.trim().toLowerCase() !== title.trim().toLowerCase()
+  const trimmedCompany = company.trim()
+  const trimmedTitle = title.trim()
   const label = entry.label.trim()
+  const genericCompany = genericEntryLabel.test(trimmedCompany)
+  const companyLine = genericCompany ? title : company
+  const duplicateTitle = trimmedCompany.toLowerCase() === trimmedTitle.toLowerCase()
+  const showTitle = !genericCompany && !genericEntryLabel.test(trimmedTitle) && !duplicateTitle
+  const fallbackRoleTitle = (genericCompany || duplicateTitle)
+    ? localizedRoleLabel(
+      roleEntryLabel.test(label)
+        ? label
+        : roleEntryLabel.test(trimmedCompany)
+          ? trimmedCompany
+          : '',
+      language,
+    )
+    : ''
+  const titleText = showTitle ? title : fallbackRoleTitle
 
   return (
     <article key={entry.id} className="doc-cv-entry" data-entry-id={entry.id}>
@@ -214,9 +249,9 @@ function renderEntry(
             <span className="doc-cv-entry-location">{location}</span>
           ) : null}
         </div>
-        {(showTitle || dates) ? (
+        {(titleText || dates) ? (
           <div className="doc-cv-entry-row">
-            <span className="doc-cv-entry-title">{showTitle ? title : ''}</span>
+            <span className="doc-cv-entry-title">{titleText}</span>
             {dates ? <span className="doc-cv-entry-dates">{dates}</span> : null}
           </div>
         ) : null}
@@ -226,7 +261,7 @@ function renderEntry(
           {introUnits.map((unit, index) => (
             <p
               key={unit.id}
-              className="doc-cv-paragraph"
+              className="doc-cv-paragraph doc-cv-paragraph--left"
               data-unit-id={unit.id}
               data-unit-hidden={unit.hidden ? 'true' : undefined}
             >

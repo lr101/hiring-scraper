@@ -196,6 +196,11 @@
   widows: 2;
 }
 
+.doc-cv-paragraph--left,
+.doc-cv-entry-intro .doc-cv-paragraph {
+  text-align: left;
+}
+
 .doc-cv-paragraph:last-child {
   margin-bottom: 0;
 }
@@ -463,12 +468,13 @@
     page-break-after: auto;
   }
 
-  .doc-cv-entry:has(.doc-cv-bullet:nth-child(2)):not(:has(.doc-cv-bullet:nth-child(5))) {
+  .doc-cv-entry:has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(4))):not(:has(.doc-cv-entry-intro)),
+  .doc-cv-entry:has(.doc-cv-entry-intro):has(.doc-cv-bullet):not(:has(.doc-cv-bullet:nth-child(3))) {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  .doc-cv-entry .doc-cv-bullet:first-child,
+  .doc-cv-entry:not(:has(.doc-cv-entry-intro)) .doc-cv-bullet:first-child:not(:last-child),
   .doc-cv-entry .doc-cv-bullet:nth-last-child(2) {
     break-after: avoid;
     page-break-after: avoid;
