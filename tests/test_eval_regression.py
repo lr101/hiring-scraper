@@ -1,0 +1,705 @@
+"""Dataset sanity checks, pure metric unit tests, and regression gates for job matching."""
+from __future__ import annotations
+
+import json
+import math
+import os
+import unittest
+from collections import Counter, defaultdict
+
+from hiring_scraper.semantic_matching import DIMENSIONS
+from tests.eval import cv as private_dataset
+from tests.eval import public as public_dataset
+from tests.eval.cv.check import group_near_duplicate_jobs
+from tests.eval.cv.check import validate_dataset as validate_private_dataset
+from tests.eval.public.check import validate_dataset as validate_public_dataset
+from tests.eval.metrics import (
+    band_error,
+    de_en_parity,
+    effective_ranking_score,
+    expected_calibration_error,
+    good_hidden_rate,
+    hide_precision,
+    hide_recall,
+    ndcg_at_k,
+    pair_eligibility_disagreement,
+    pairwise_auc,
+    precision_at_k,
+    rank_indices,
+    ranking_auc,
+    ranking_relevance,
+    score_spread,
+)
+from tests.eval.run import (
+    BASELINE_PATH,
+    HARD_HIDE_TAGS,
+    MATCHERS,
+    MATCHER_VERSIONS,
+    assign_split,
+    baseline_path,
+    evaluate,
+    get_dataset,
+    get_matcher,
+    load_cases,
+    load_profiles,
+    register_matcher,
+)
+from tests.eval.semantic import build_semantic_evidence, embed_text
+
+MIN_HARD_HIDE_GATE_CASES = 3
+MIN_PROFILE_GATE_CASES = 15
+# Translation-pair coverage the dataset must keep, (profile, pair) combinations that are compared.
+MIN_PAIR_COUNT = {"public": 15, "private": 0}
+
+# Dataset-specific shape expectations: (min cases, min profiles, must contain profile id)
+DATASET_SHAPE = {
+    "public": {"min_cases": 180, "min_profiles": 6, "min_cases_per_profile": 25, "required_profile": None},
+    "private": {"min_cases": 200, "min_profiles": 5, "min_cases_per_profile": 15, "required_profile": "base"},
+}
+
+
+def _require_dataset(testcase: unittest.TestCase, dataset: str) -> None:
+    if not DATASET_AVAILABILITY[dataset]():
+        testcase.skipTest(
+            f"{dataset} evaluation dataset not present on this machine "
+            f"(private data lives in {private_dataset.CV_EVAL_DIR}); gates skipped"
+        )
+
+
+DATASET_AVAILABILITY = {
+    "public": public_dataset.is_available,
+    "private": private_dataset.is_available,
+}
+
+REQUIRED_PROFILE_KEYS = {
+    "desired_roles",
+    "secondary_roles",
+    "skills",
+    "languages",
+    "language_levels",
+    "experience_years",
+    "summary",
+    "application_details",
+    "cv_career_facts",
+    "skill_evidence",
+    "application_preferences",
+    "education",
+}
+
+
+def check_regression_gates(report: dict, baseline: dict, *, min_pairs: int = 0) -> list[str]:
+    """Compare an evaluation report against a baseline and return gate failure messages.
+
+    ``min_pairs`` makes the translation-pair gates mandatory: both the baseline and the
+    report must then carry at least that many DE/EN pairs with parity metrics.
+    """
+    failures: list[str] = []
+    b_overall = baseline["overall"]
+    c_overall = report["overall"]
+    if min_pairs:
+        for name, overall in (("baseline", b_overall), ("report", c_overall)):
+            if int(overall.get("pair_count", 0)) < min_pairs:
+                failures.append(f"{name} has {overall.get('pair_count', 0)} DE/EN pairs (< {min_pairs})")
+            for metric in ("de_en_parity", "pair_eligibility_disagreement"):
+                if overall.get(metric) is None:
+                    failures.append(f"{name} lacks {metric}")
+
+    if c_overall["ndcg_at_10"] < b_overall["ndcg_at_10"] - 0.02:
+        failures.append(
+            f"nDCG@10 regressed: {c_overall['ndcg_at_10']:.4f} < {b_overall['ndcg_at_10']:.4f} - 0.02"
+        )
+    if c_overall["pairwise_auc"] < b_overall["pairwise_auc"] - 0.02:
+        failures.append(
+            f"pairwise_auc regressed: {c_overall['pairwise_auc']:.4f} < {b_overall['pairwise_auc']:.4f} - 0.02"
+        )
+    if c_overall["hide_precision"] < b_overall["hide_precision"] - 0.02:
+        failures.append(
+            f"hide_precision regressed: {c_overall['hide_precision']:.4f} < {b_overall['hide_precision']:.4f} - 0.02"
+        )
+    if c_overall["hide_recall"] < b_overall["hide_recall"] - 0.02:
+        failures.append(
+            f"hide_recall regressed: {c_overall['hide_recall']:.4f} < {b_overall['hide_recall']:.4f} - 0.02"
+        )
+
+    b_hard_hide = baseline.get("hard_hide_recall") or {}
+    c_hard_hide = report.get("hard_hide_recall") or {}
+    b_by_tag = baseline.get("by_tag") or {}
+    c_by_tag = report.get("by_tag") or {}
+    for tag in HARD_HIDE_TAGS:
+        b_tag_entry = b_hard_hide.get(tag) or b_by_tag.get(tag)
+        c_tag_entry = c_hard_hide.get(tag) or c_by_tag.get(tag)
+        if b_tag_entry is None and c_tag_entry is None:
+            continue
+        b_count = int((b_tag_entry or {}).get("count", 0))
+        if b_count < MIN_HARD_HIDE_GATE_CASES:
+            continue
+        if c_tag_entry is None:
+            failures.append(f"Missing hard-hide category {tag!r} in report")
+            continue
+        b_rec = b_tag_entry["hide_recall"]
+        c_rec = c_tag_entry["hide_recall"]
+        if c_rec < b_rec - 0.02:
+            failures.append(
+                f"{tag} hide_recall regressed: {c_rec:.4f} < {b_rec:.4f} - 0.02"
+            )
+
+    if c_overall["good_hidden_rate"] > b_overall["good_hidden_rate"] + 0.02:
+        failures.append(
+            f"good_hidden_rate regressed: {c_overall['good_hidden_rate']:.4f} > {b_overall['good_hidden_rate']:.4f} + 0.02"
+        )
+    if c_overall["band_error"] > b_overall["band_error"] + 0.02:
+        failures.append(
+            f"band_error regressed: {c_overall['band_error']:.4f} > {b_overall['band_error']:.4f} + 0.02"
+        )
+
+    # Translation-pair gates apply only when pairs exist
+    has_pairs = (
+        int(b_overall.get("pair_count", 0)) > 0
+        and int(c_overall.get("pair_count", 0)) > 0
+        and b_overall.get("de_en_parity") is not None
+        and c_overall.get("de_en_parity") is not None
+    )
+    if has_pairs:
+        if c_overall["de_en_parity"] > b_overall["de_en_parity"] + 2.0:
+            failures.append(
+                f"de_en_parity regressed: {c_overall['de_en_parity']:.2f} > {b_overall['de_en_parity']:.2f} + 2.0"
+            )
+        if (
+            b_overall.get("pair_eligibility_disagreement") is not None
+            and c_overall.get("pair_eligibility_disagreement") is not None
+            and c_overall["pair_eligibility_disagreement"] > b_overall["pair_eligibility_disagreement"] + 0.02
+        ):
+            failures.append(
+                "pair_eligibility_disagreement regressed: "
+                f"{c_overall['pair_eligibility_disagreement']:.4f} > "
+                f"{b_overall['pair_eligibility_disagreement']:.4f} + 0.02"
+            )
+
+    # Per-language AUC gap growth gate (DE vs EN)
+    b_lang_gap = b_overall.get("lang_auc_gap")
+    c_lang_gap = c_overall.get("lang_auc_gap")
+    if b_lang_gap is not None and c_lang_gap is not None:
+        if c_lang_gap > b_lang_gap + 0.05:
+            failures.append(
+                f"lang_auc_gap regressed: {c_lang_gap:.4f} > {b_lang_gap:.4f} + 0.05"
+            )
+
+    b_profiles = baseline.get("per_profile") or {}
+    c_profiles = report.get("per_profile") or {}
+    for profile_id, b_prof in sorted(b_profiles.items()):
+        if int(b_prof.get("count", 0)) < MIN_PROFILE_GATE_CASES:
+            continue
+        c_prof = c_profiles.get(profile_id)
+        if c_prof is None:
+            failures.append(f"Missing profile {profile_id!r} in report")
+            continue
+        if c_prof["ndcg_at_10"] < b_prof["ndcg_at_10"] - 0.05:
+            failures.append(
+                f"per-profile nDCG@10 regressed for {profile_id}: "
+                f"{c_prof['ndcg_at_10']:.4f} < {b_prof['ndcg_at_10']:.4f} - 0.05"
+            )
+        if c_prof["pairwise_auc"] < b_prof["pairwise_auc"] - 0.05:
+            failures.append(
+                f"per-profile pairwise_auc regressed for {profile_id}: "
+                f"{c_prof['pairwise_auc']:.4f} < {b_prof['pairwise_auc']:.4f} - 0.05"
+            )
+
+    return failures
+
+
+class TestEvalDatasetIntegrity(unittest.TestCase):
+    def test_public_dataset_self_check_passes(self) -> None:
+        _profiles, _jobs, _labels, errors = validate_public_dataset()
+        self.assertEqual(errors, [], "Public dataset validation failed:\n- " + "\n- ".join(errors))
+
+    def test_private_dataset_self_check_passes(self) -> None:
+        _require_dataset(self, "private")
+        _profiles, _jobs, _labels, errors = validate_private_dataset()
+        self.assertEqual(errors, [], "Private dataset validation failed:\n- " + "\n- ".join(errors))
+
+    def test_public_profiles_and_cases_schema_and_balance(self) -> None:
+        self._check_profiles_and_cases("public")
+
+    def test_private_profiles_and_cases_schema_and_balance(self) -> None:
+        _require_dataset(self, "private")
+        self._check_profiles_and_cases("private")
+
+    def _check_profiles_and_cases(self, dataset: str) -> None:
+        shape = DATASET_SHAPE[dataset]
+        profiles = load_profiles(dataset)
+        jobs = get_dataset(dataset).load_jobs()
+        group_keys, _near_pairs = group_near_duplicate_jobs(jobs)
+        cases = load_cases(dataset)
+
+        self.assertGreaterEqual(len(profiles), shape["min_profiles"], f"Too few {dataset} profiles")
+        if shape["required_profile"]:
+            self.assertIn(shape["required_profile"], profiles)
+        for profile_id, profile in profiles.items():
+            missing_keys = REQUIRED_PROFILE_KEYS - set(profile.keys())
+            self.assertFalse(missing_keys, f"Profile {profile_id!r} missing keys: {missing_keys}")
+            self.assertIsInstance(profile["application_details"].get("experiences"), list)
+            self.assertIsInstance(profile["cv_career_facts"].get("experiences"), list)
+            self.assertIsInstance(profile["cv_career_facts"].get("education"), list)
+
+        self.assertGreaterEqual(len(cases), shape["min_cases"], f"Expected >= {shape['min_cases']} cases, got {len(cases)}")
+
+        seen_ids: set[str] = set()
+        langs: Counter[str] = Counter()
+        splits: Counter[str] = Counter()
+        profile_splits: dict[str, Counter[str]] = defaultdict(Counter)
+        by_profile: dict[str, list[dict]] = defaultdict(list)
+        all_tags: Counter[str] = Counter()
+
+        for case in cases:
+            self.assertIsInstance(case, dict)
+            for req_key in ("id", "profile_id", "job_id", "lang", "split", "job", "label", "tags"):
+                self.assertIn(req_key, case, f"Case missing required key {req_key!r}: {case.get('id')}")
+
+            case_id = case["id"]
+            self.assertIsInstance(case_id, str)
+            self.assertTrue(case_id.strip(), "Case id must be non-empty")
+            self.assertNotIn(case_id, seen_ids, f"Duplicate case id: {case_id!r}")
+            seen_ids.add(case_id)
+
+            profile_id = case["profile_id"]
+            self.assertIn(profile_id, profiles, f"Unknown profile_id {profile_id!r} in case {case_id!r}")
+            by_profile[profile_id].append(case)
+
+            lang = case["lang"]
+            self.assertIn(lang, {"de", "en"}, f"Invalid lang {lang!r} in case {case_id!r}")
+            langs[lang] += 1
+
+            case_split = case["split"]
+            self.assertIn(case_split, {"dev", "heldout"}, f"Invalid split {case_split!r} in case {case_id!r}")
+            expected_split = assign_split(group_keys[case["job_id"]])
+            self.assertEqual(
+                case_split,
+                expected_split,
+                f"Case {case_id!r} has split {case_split!r}, expected deterministic {expected_split!r}",
+            )
+            splits[case_split] += 1
+            profile_splits[profile_id][case_split] += 1
+
+            job = case["job"]
+            self.assertIsInstance(job, dict, f"job must be a dict in {case_id!r}")
+            self.assertIsInstance(job.get("title"), str, f"job.title must be a str in {case_id!r}")
+            self.assertTrue(job["title"].strip(), f"job.title must be non-empty in {case_id!r}")
+            self.assertIsInstance(job.get("description"), str, f"job.description must be a str in {case_id!r}")
+            self.assertEqual(job.get("description_kind"), "summary")
+            self.assertLessEqual(len(job["description"]), 2500)
+            if "work_arrangement" in job and job["work_arrangement"] is not None:
+                self.assertIn(job["work_arrangement"], {"remote", "hybrid", "onsite"})
+
+            label = case["label"]
+            self.assertIsInstance(label, dict, f"label must be a dict in {case_id!r}")
+            grade = label.get("grade")
+            self.assertIn(grade, {0, 1, 2, 3}, f"Invalid grade {grade!r} in {case_id!r}")
+            self.assertNotIsInstance(grade, bool, f"grade must be int, not bool in {case_id!r}")
+            should_hide = label.get("should_hide")
+            self.assertIsInstance(should_hide, bool, f"should_hide must be bool in {case_id!r}")
+            if should_hide:
+                self.assertLess(
+                    grade,
+                    2,
+                    f"Hard-incompatible should_hide case {case_id!r} must have grade < 2 (got {grade})",
+                )
+
+            tags = case["tags"]
+            self.assertIsInstance(tags, list, f"tags must be a list in {case_id!r}")
+            self.assertNotIn("applied", tags, f"Deprecated 'applied' tag found in {case_id!r}")
+            for tag in tags:
+                self.assertIsInstance(tag, str)
+                all_tags[tag] += 1
+                if tag in HARD_HIDE_TAGS:
+                    self.assertTrue(
+                        should_hide,
+                        f"Case {case_id!r} tagged {tag!r} must have should_hide=True",
+                    )
+
+        # Every profile must meet the per-profile minimum, cover grades 0-3, and span both splits
+        self.assertEqual(set(by_profile.keys()), set(profiles.keys()))
+        for profile_id, p_cases in by_profile.items():
+            self.assertGreaterEqual(
+                len(p_cases),
+                shape["min_cases_per_profile"],
+                f"Profile {profile_id!r} has fewer than {shape['min_cases_per_profile']} cases",
+            )
+            grade_set = {c["label"]["grade"] for c in p_cases}
+            self.assertEqual(
+                grade_set,
+                {0, 1, 2, 3},
+                f"Profile {profile_id!r} must contain all grades 0-3, found {grade_set}",
+            )
+            self.assertGreater(profile_splits[profile_id]["dev"], 0, f"Profile {profile_id!r} missing dev cases")
+            self.assertGreater(
+                profile_splits[profile_id]["heldout"],
+                0,
+                f"Profile {profile_id!r} missing heldout cases",
+            )
+
+        # Heldout split ~25-35%
+        heldout_ratio = splits["heldout"] / len(cases)
+        self.assertGreaterEqual(heldout_ratio, 0.20, f"Heldout share too low: {heldout_ratio:.2%}")
+        self.assertLessEqual(heldout_ratio, 0.40, f"Heldout share too high: {heldout_ratio:.2%}")
+
+        # Balanced DE/EN coverage
+        de_ratio = langs["de"] / len(cases)
+        self.assertGreaterEqual(de_ratio, 0.40, f"German share too low: {de_ratio:.2%}")
+        self.assertLessEqual(de_ratio, 0.60, f"German share too high: {de_ratio:.2%}")
+
+        # Language hard-hide category present with >= 3 cases
+        self.assertGreaterEqual(
+            all_tags["hard_hide_cefr"],
+            MIN_HARD_HIDE_GATE_CASES,
+            "Expected at least 3 hard_hide_cefr cases",
+        )
+
+
+class TestEvalMetricsUnit(unittest.TestCase):
+    def test_ranking_and_classification_metrics(self) -> None:
+        self.assertAlmostEqual(ndcg_at_k([3, 2, 1, 0], 4), 1.0)
+        self.assertLess(ndcg_at_k([0, 1, 2, 3], 4), 0.7)
+        self.assertAlmostEqual(precision_at_k([3, 2, 1, 0], 2), 1.0)
+        self.assertAlmostEqual(precision_at_k([3, 0, 2, 1], 4), 0.5)
+
+        # Hidden jobs receive zero gain in observed ranking while keeping true grade in ideal ranking
+        self.assertAlmostEqual(
+            ndcg_at_k([3, 2, 1, 0], 4, hidden_in_ranked_order=[True, True, True, True]),
+            0.0,
+        )
+        self.assertLess(
+            ndcg_at_k([3, 2, 1, 0], 4, hidden_in_ranked_order=[False, True, False, False]),
+            1.0,
+        )
+        self.assertAlmostEqual(
+            precision_at_k([3, 2, 1, 0], 2, hidden_in_ranked_order=[False, True, False, False]),
+            0.5,
+        )
+        self.assertAlmostEqual(
+            precision_at_k([3, 2, 1, 0], 2, hidden_in_ranked_order=[True, True, False, False]),
+            0.0,
+        )
+
+        self.assertAlmostEqual(hide_precision([True, False, True], [True, True, False]), 0.5)
+        self.assertAlmostEqual(hide_recall([True, False, True], [True, True, False]), 0.5)
+        self.assertAlmostEqual(good_hidden_rate([3, 2, 1, 0], [True, False, True, True]), 0.5)
+        self.assertAlmostEqual(de_en_parity([(80, 70), (50, 50)]), 5.0)
+        self.assertAlmostEqual(pair_eligibility_disagreement([(True, True), (True, False)]), 0.5)
+        self.assertAlmostEqual(pair_eligibility_disagreement([(True, True), (False, False)]), 0.0)
+
+        # Hidden cases rank last (effective score -1)
+        scores = [95, 40, 20]
+        hidden = [True, False, False]
+        order = rank_indices(scores, hidden, case_ids=["a", "b", "c"])
+        self.assertEqual(order, [1, 2, 0])
+        eff = [effective_ranking_score(s, h) for s, h in zip(scores, hidden)]
+        self.assertEqual(eff, [-1.0, 40.0, 20.0])
+        self.assertAlmostEqual(pairwise_auc([2, 1, 0], [80, 50, 20]), 1.0)
+        self.assertAlmostEqual(pairwise_auc([2, 1, 0], [80, 50, 50]), 5.0 / 6.0)
+        self.assertAlmostEqual(pairwise_auc([2, 1], [50, 50]), 0.5)
+
+        # Band error on visible jobs only
+        self.assertAlmostEqual(band_error([0, 1, 2, 3], [0, 30, 79, 100]), 0.0)
+        self.assertAlmostEqual(band_error([0, 3], [39, 70]), 0.10)
+        # Hidden job is excluded from band_error
+        self.assertAlmostEqual(
+            band_error([0, 3], [15, 0], is_hidden=[False, True]),
+            0.0,
+        )
+
+        # Perfect calibration -> ECE == 0.0
+        self.assertAlmostEqual(
+            expected_calibration_error([0, 1, 2, 3], [15, 45, 70, 90]),
+            0.0,
+        )
+        # Hiding a grade-3 job degrades ECE
+        self.assertGreater(
+            expected_calibration_error([3], [90], is_hidden=[True]),
+            0.5,
+        )
+
+        spread = score_spread([29, 59, 85, 42])
+        self.assertEqual(spread["distinct_count"], 4)
+        self.assertAlmostEqual(spread["plateau_fraction"], 0.75)
+        self.assertEqual(spread["plateau_counts"], {"29": 1, "59": 1, "85": 1})
+
+    def test_should_hide_cases_carry_no_ranking_gain(self) -> None:
+        self.assertEqual(ranking_relevance([3, 1, 0, 2], [False, True, False, True]), [3, 0, 0, 0])
+        with self.assertRaises(ValueError):
+            ranking_relevance([1], [])
+        # A correctly hidden grade-1 case keeps nDCG at 1.0 (zero gain in both rankings) ...
+        relevance = ranking_relevance([3, 2, 1], [False, False, True])
+        self.assertAlmostEqual(ndcg_at_k(relevance, 3, hidden_in_ranked_order=[False, False, True]), 1.0)
+        # ... while hiding a case that should stay visible still loses gain.
+        relevance = ranking_relevance([3, 2, 1], [False, False, False])
+        self.assertLess(ndcg_at_k(relevance, 3, hidden_in_ranked_order=[False, False, True]), 1.0)
+        # Without the should_hide rule, the same correct hide is punished.
+        self.assertLess(ndcg_at_k([3, 2, 1], 3, hidden_in_ranked_order=[False, False, True]), 1.0)
+
+    def test_ranking_auc_excludes_should_hide_cases(self) -> None:
+        grades, scores = [2, 1, 0], [80.0, 50.0, -1.0]
+        # The hidden grade-0 case would score -1 (below everything); the hidden grade-1 case below grade 0.
+        self.assertAlmostEqual(ranking_auc(grades, scores, [False, False, False]), 1.0)
+        self.assertAlmostEqual(ranking_auc([2, 1, 0], [80.0, -1.0, 20.0], [False, True, False]), 1.0)
+        self.assertAlmostEqual(pairwise_auc([2, 1, 0], [80.0, -1.0, 20.0]), 2.0 / 3.0)
+        self.assertAlmostEqual(ranking_auc([1, 0], [-1.0, 20.0], [True, False]), 0.5)
+        with self.assertRaises(ValueError):
+            ranking_auc([1], [1.0], [])
+
+    def test_pairs_are_keyed_by_profile_and_pair_id(self) -> None:
+        from tests.eval.run import _pair_eligibilities, _pair_scores
+        rows = [
+            {"profile_id": "a", "pair_id": "pair_01", "lang": "de", "score": 80, "eligible": True},
+            {"profile_id": "a", "pair_id": "pair_01", "lang": "en", "score": 60, "eligible": True},
+            {"profile_id": "b", "pair_id": "pair_01", "lang": "de", "score": 10, "eligible": False},
+            {"profile_id": "b", "pair_id": "pair_01", "lang": "en", "score": 10, "eligible": True},
+            {"profile_id": "c", "pair_id": "pair_01", "lang": "en", "score": 40, "eligible": True},
+            {"profile_id": "a", "pair_id": None, "lang": "de", "score": 1, "eligible": True},
+        ]
+        self.assertEqual(_pair_scores(rows), [(80.0, 60.0), (10.0, 10.0)])
+        self.assertEqual(_pair_eligibilities(rows), [(True, True), (False, True)])
+
+    def test_gate_thresholds_for_language_gap_sparse_categories_and_small_profiles(self) -> None:
+        base_rep = {
+            "overall": {
+                "pair_count": 0,
+                "ndcg_at_10": 0.70,
+                "pairwise_auc": 0.70,
+                "hide_precision": 0.90,
+                "hide_recall": 0.80,
+                "good_hidden_rate": 0.05,
+                "band_error": 0.15,
+                "de_en_parity": None,
+                "pair_eligibility_disagreement": None,
+                "lang_auc_gap": 0.04,
+            },
+            "hard_hide_recall": {
+                "hard_hide_cefr": {"count": 10, "hide_recall": 0.80},
+                "hard_hide_work_permit": {"count": 2, "hide_recall": 1.0},
+            },
+            "per_profile": {
+                "base": {"count": 150, "ndcg_at_10": 0.70, "pairwise_auc": 0.70},
+                "tiny": {"count": 10, "ndcg_at_10": 0.90, "pairwise_auc": 0.90},
+            },
+        }
+        cur_rep = json.loads(json.dumps(base_rep))
+        # Regress tiny profile (< 15 cases) and sparse hard-hide (< 3 cases): should NOT fail
+        cur_rep["hard_hide_recall"]["hard_hide_work_permit"]["hide_recall"] = 0.0
+        cur_rep["per_profile"]["tiny"]["ndcg_at_10"] = 0.10
+        cur_rep["per_profile"]["tiny"]["pairwise_auc"] = 0.10
+        self.assertEqual(check_regression_gates(cur_rep, base_rep), [])
+
+        # Grow lang_auc_gap by > 0.05: MUST fail
+        cur_rep["overall"]["lang_auc_gap"] = 0.10
+        failures = check_regression_gates(cur_rep, base_rep)
+        self.assertTrue(any("lang_auc_gap" in f for f in failures), failures)
+
+    def test_matcher_output_validation(self) -> None:
+        bad_outputs = [
+            "not-a-dict",
+            {"eligible": True},
+            {"score": 50},
+            {"score": float("nan"), "eligible": True},
+            {"score": float("inf"), "eligible": True},
+            {"score": -1, "eligible": True},
+            {"score": 101, "eligible": True},
+            {"score": True, "eligible": True},
+            {"score": "50", "eligible": True},
+            {"score": 50, "eligible": 1},
+            {"score": 50, "eligible": 0},
+            {"score": 50, "eligible": None},
+            {"score": 50, "eligible": "true"},
+        ]
+        for idx, payload in enumerate(bad_outputs):
+            name = f"_test_invalid_matcher_{idx}"
+            register_matcher(name, lambda _j, _p, out=payload: out)
+            try:
+                with self.assertRaises(ValueError, msg=f"Expected ValueError for output {payload!r}"):
+                    evaluate(name, split="heldout")
+            finally:
+                MATCHERS.pop(name, None)
+                MATCHER_VERSIONS.pop(name, None)
+
+    def test_semantic_fixture_and_v1_sem_registered(self) -> None:
+        self.assertIn("v1+sem", MATCHERS)
+        v1 = embed_text("Python backend engineer PostgreSQL Docker")
+        v2 = embed_text("Python backend engineer PostgreSQL Docker")
+        self.assertEqual(len(v1), DIMENSIONS)
+        self.assertEqual(v1, v2)
+        self.assertAlmostEqual(math.sqrt(sum(x * x for x in v1)), 1.0, places=6)
+
+        profiles = load_profiles()
+        cases = load_cases()
+        sample = cases[0]
+        sem = build_semantic_evidence(sample["job"], profiles[sample["profile_id"]])
+        self.assertIn("score", sem)
+        self.assertIn("similarity", sem)
+        self.assertIn("model", sem)
+
+        res = get_matcher("v1+sem")(sample["job"], profiles[sample["profile_id"]])
+        self.assertIsInstance(res["eligible"], bool)
+        self.assertTrue(0.0 <= float(res["score"]) <= 100.0)
+
+    def test_split_evaluation_partitions_dataset(self) -> None:
+        name = "_test_split_dummy"
+        register_matcher(name, lambda _j, _p: {"score": 50.0, "eligible": True})
+        try:
+            all_rep = evaluate(name, split="all")
+            dev_rep = evaluate(name, split="dev")
+            held_rep = evaluate(name, split="heldout")
+            self.assertEqual(
+                dev_rep["counts"]["total"] + held_rep["counts"]["total"],
+                all_rep["counts"]["total"],
+            )
+            self.assertEqual(set(all_rep["by_split"].keys()), {"dev", "heldout"})
+            self.assertEqual(all_rep["by_split"]["dev"]["count"], dev_rep["counts"]["total"])
+            self.assertEqual(all_rep["by_split"]["heldout"]["count"], held_rep["counts"]["total"])
+            # A constant matcher scores both members of every translation pair alike.
+            self.assertGreaterEqual(all_rep["overall"]["pair_count"], MIN_PAIR_COUNT["public"])
+            self.assertEqual(all_rep["overall"]["de_en_parity"], 0.0)
+            self.assertEqual(all_rep["overall"]["pair_eligibility_disagreement"], 0.0)
+            self.assertIn("de", all_rep["by_language"])
+            self.assertIn("en", all_rep["by_language"])
+        finally:
+            MATCHERS.pop(name, None)
+            MATCHER_VERSIONS.pop(name, None)
+
+
+class _RegressionGates:
+    """Gate checks shared by the public (always) and private (when present) datasets."""
+
+    dataset = "public"
+
+    def _load_v1_baseline(self) -> dict:
+        _require_dataset(self, self.dataset)
+        path = baseline_path(self.dataset)
+        if not path.exists():
+            if self.dataset == "private":
+                self.skipTest(
+                    f"No private baseline at {path}; create it with "
+                    "`python -m tests.eval.run --dataset private --write-baseline`"
+                )
+            self.fail(f"Missing baseline file: {path}")
+        baselines = json.loads(path.read_text(encoding="utf-8"))
+        self.assertIn("v1", baselines, f"No 'v1' baseline in {path}")
+        return baselines["v1"]
+
+    def _gated_tags(self, baseline: dict) -> list[str]:
+        """Hard-hide categories gated by the baseline that a never-hiding matcher can regress."""
+        return [
+            tag
+            for tag in HARD_HIDE_TAGS
+            if int(((baseline.get("hard_hide_recall") or {}).get(tag) or {}).get("count", 0))
+            >= MIN_HARD_HIDE_GATE_CASES
+            and float(((baseline.get("hard_hide_recall") or {}).get(tag) or {}).get("hide_recall", 0.0)) > 0.02
+        ]
+
+    def test_matcher_meets_baseline_gates(self) -> None:
+        _require_dataset(self, self.dataset)
+        matcher_name = os.environ.get("RADIUS_EVAL_MATCHER", "v1").strip() or "v1"
+        path = baseline_path(self.dataset)
+        if not path.exists():
+            self._load_v1_baseline()  # skips (private) or fails (public) with a clear message
+        baselines = json.loads(path.read_text(encoding="utf-8"))
+        baseline_key = matcher_name if matcher_name in baselines else "v1"
+        self.assertIn(
+            baseline_key,
+            baselines,
+            f"No baseline recorded for matcher {matcher_name!r} (or 'v1') in {path}",
+        )
+
+        report = evaluate(matcher_name, dataset=self.dataset, split="all")
+        failures = check_regression_gates(report, baselines[baseline_key], min_pairs=MIN_PAIR_COUNT[self.dataset])
+        self.assertFalse(failures, "Regression gate failure(s):\n- " + "\n- ".join(failures))
+
+    def test_constant_50_matcher_fails_gates(self) -> None:
+        baseline = self._load_v1_baseline()
+        name = f"_test_constant_50_{self.dataset}"
+        register_matcher(name, lambda _job, _profile: {"score": 50.0, "eligible": True})
+        try:
+            report = evaluate(name, dataset=self.dataset, split="all")
+            failures = check_regression_gates(report, baseline)
+            self.assertTrue(failures, "Constant-50 matcher must fail regression gates")
+            joined = "\n".join(failures)
+            self.assertIn("hide_recall", joined)
+            self.assertIn("pairwise_auc", joined)
+            self.assertIn("nDCG@10", joined)
+            gated_tags = self._gated_tags(baseline)
+            self.assertTrue(gated_tags, "Expected at least one gated hard-hide category in baseline")
+            for tag in gated_tags:
+                self.assertIn(tag, joined)
+        finally:
+            MATCHERS.pop(name, None)
+            MATCHER_VERSIONS.pop(name, None)
+
+    def test_everything_visible_matcher_fails_gates(self) -> None:
+        baseline = self._load_v1_baseline()
+        v1 = get_matcher("v1")
+        name = f"_test_everything_visible_{self.dataset}"
+        register_matcher(
+            name,
+            lambda job, profile: {**v1(job, profile), "eligible": True},
+        )
+        try:
+            report = evaluate(name, dataset=self.dataset, split="all")
+            self.assertEqual(report["overall"]["hide_recall"], 0.0)
+            failures = check_regression_gates(report, baseline)
+            self.assertTrue(failures, "Everything-visible matcher must fail regression gates")
+            joined = "\n".join(failures)
+            self.assertIn("hide_recall regressed", joined)
+            gated_tags = self._gated_tags(baseline)
+            self.assertTrue(gated_tags, "Expected at least one gated hard-hide category in baseline")
+            for tag in gated_tags:
+                self.assertIn(tag, joined)
+        finally:
+            MATCHERS.pop(name, None)
+            MATCHER_VERSIONS.pop(name, None)
+
+
+class TestPublicEvalRegression(_RegressionGates, unittest.TestCase):
+    dataset = "public"
+
+    def test_public_set_keeps_translation_pair_coverage(self) -> None:
+        baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))["v1"]["overall"]
+        self.assertGreaterEqual(baseline["pair_count"], MIN_PAIR_COUNT["public"])
+        self.assertIsNotNone(baseline["de_en_parity"])
+        self.assertIsNotNone(baseline["pair_eligibility_disagreement"])
+        stub = {"overall": {"pair_count": 0, "de_en_parity": None, "pair_eligibility_disagreement": None,
+                            **{key: 0.5 for key in ("ndcg_at_10", "pairwise_auc", "hide_precision", "hide_recall",
+                                                    "good_hidden_rate", "band_error")}}}
+        failures = check_regression_gates(stub, {"overall": dict(baseline)}, min_pairs=MIN_PAIR_COUNT["public"])
+        self.assertTrue(any("report has 0 DE/EN pairs" in item for item in failures), failures)
+
+    def test_every_public_pair_has_both_languages_and_a_shared_split(self) -> None:
+        cases = load_cases("public")
+        by_pair: dict[tuple[str, str], dict[str, dict]] = defaultdict(dict)
+        for case in cases:
+            if case["pair_id"]:
+                by_pair[(case["profile_id"], case["pair_id"])][case["lang"]] = case
+        self.assertGreaterEqual(len(by_pair), MIN_PAIR_COUNT["public"])
+        for key, langs in by_pair.items():
+            self.assertEqual(set(langs), {"de", "en"}, key)
+            self.assertEqual(langs["de"]["split"], langs["en"]["split"], key)
+            self.assertEqual(langs["de"]["label"]["grade"], langs["en"]["label"]["grade"], key)
+            self.assertEqual(langs["de"]["label"]["should_hide"], langs["en"]["label"]["should_hide"], key)
+
+    def test_committed_baseline_holds_public_set_only(self) -> None:
+        baselines = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
+        public_profiles = set(load_profiles("public"))
+        for key, entry in baselines.items():
+            self.assertEqual(entry.get("dataset"), "public", f"Baseline {key!r} is not a public-set baseline")
+            self.assertLessEqual(
+                set(entry.get("per_profile") or {}),
+                public_profiles,
+                f"Baseline {key!r} lists profiles that are not in the public set",
+            )
+
+
+class TestPrivateEvalRegression(_RegressionGates, unittest.TestCase):
+    """Skipped unless the private real-CV dataset (and its baseline) exist locally."""
+
+    dataset = "private"
+
+
+if __name__ == "__main__":
+    unittest.main()

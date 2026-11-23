@@ -1,0 +1,143 @@
+{
+  "id": "junior_proto",
+  "archetype": "Junior innovation and prototyping engineer (English-language profile, needs visa, German B1)",
+  "location_region": "Relocating to Germany",
+  "desired_roles": [
+    "Prototyping Engineer",
+    "Innovation Engineer",
+    "Junior Development Engineer"
+  ],
+  "secondary_roles": [
+    "Mechatronics Engineer",
+    "Test Engineer",
+    "Hardware Engineer"
+  ],
+  "skills": [
+    "Rapid Prototyping",
+    "3D Printing",
+    "CAD",
+    "Autodesk Inventor",
+    "KiCad",
+    "Arduino",
+    "Raspberry Pi",
+    "Python",
+    "MATLAB",
+    "Design Thinking",
+    "Sensors",
+    "Test Rigs",
+    "Soldering"
+  ],
+  "languages": [
+    "English",
+    "German"
+  ],
+  "language_levels": {
+    "English": "C1",
+    "German": "B1"
+  },
+  "experience_years": 2,
+  "work_styles": [
+    "onsite",
+    "hybrid"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "Mechatronics engineer with two years of hands-on prototyping experience, mostly through a student job and a junior role. I build functional models with 3D printing, simple electronics and Python scripts, run test series and document results. I am looking for an innovation or prototyping role in Germany and need employer support for a work permit.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Student assistant, prototyping lab",
+        "start": "2021-01",
+        "end": "2021-08",
+        "current": false,
+        "description": "Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts."
+      },
+      {
+        "title": "Junior Prototyping Engineer",
+        "start": "2021-10",
+        "end": "2023-10",
+        "current": false,
+        "description": "Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports."
+      }
+    ],
+    "education": [
+      {
+        "title": "B.Sc. Mechatronics",
+        "start": "2017-10",
+        "end": "2021-09",
+        "current": false,
+        "completed": true,
+        "description": "Completed degree with a thesis on low-cost sensor housings."
+      },
+      {
+        "title": "M.Sc. Mechanical Engineering (part-time)",
+        "start": "2023-11",
+        "end": "",
+        "current": true,
+        "completed": false,
+        "description": "Part-time master's programme, in progress."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "Rapid Prototyping": {
+      "context": "professional",
+      "note": "Built functional models for sensor products within days."
+    },
+    "3D Printing": {
+      "context": "professional",
+      "note": "FDM and resin printing, post-processing and fit tests."
+    },
+    "Autodesk Inventor": {
+      "context": "professional",
+      "note": "Designed housings and brackets for prototypes."
+    },
+    "Python": {
+      "context": "professional",
+      "note": "Test-data logging and plotting scripts; not a software developer."
+    },
+    "Arduino": {
+      "context": "academic",
+      "note": "Coursework and thesis projects."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": true,
+    "authorized_to_work": false,
+    "authorization_country": "Germany",
+    "sponsorship_required": true
+  },
+  "education": [
+    {
+      "level": "bachelor",
+      "field": "Mechatronics",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    },
+    {
+      "level": "master",
+      "field": "Mechanical Engineering",
+      "status": "in_progress",
+      "completed": false,
+      "current": true,
+      "equivalency": ""
+    }
+  ],
+  "excluded_terms": [],
+  "certifications": [],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Student assistant, prototyping lab",
+        "description": "Printed and assembled functional models, wired sensors to Arduino boards and logged test data with Python scripts."
+      },
+      {
+        "title": "Junior Prototyping Engineer",
+        "description": "Built three functional prototypes for a smart-home sensor line, designed housings in Autodesk Inventor, ran vibration and temperature tests and wrote test reports."
+      }
+    ]
+  }
+}

@@ -1,0 +1,580 @@
+{
+  "v1": {
+    "dataset": "public",
+    "matcher": "v1",
+    "matcher_version": "rules-v50-duty-ranking",
+    "split": "all",
+    "calibration_mapping": {
+      "0": {
+        "band": [
+          0,
+          29
+        ],
+        "target": 0.15
+      },
+      "1": {
+        "band": [
+          30,
+          59
+        ],
+        "target": 0.45
+      },
+      "2": {
+        "band": [
+          60,
+          79
+        ],
+        "target": 0.7
+      },
+      "3": {
+        "band": [
+          80,
+          100
+        ],
+        "target": 0.9
+      }
+    },
+    "counts": {
+      "total": 224,
+      "profiles": 6,
+      "pairs": 18,
+      "should_hide": 36,
+      "by_split": {
+        "dev": 154,
+        "heldout": 70
+      },
+      "by_language": {
+        "de": 116,
+        "en": 108
+      },
+      "by_profile": {
+        "junior_proto": 39,
+        "ld_specialist": 33,
+        "logistics_lead": 42,
+        "ops_analyst": 44,
+        "pc_manufacturing": 33,
+        "po_fintech": 33
+      },
+      "by_grade": {
+        "0": 54,
+        "1": 88,
+        "2": 45,
+        "3": 37
+      },
+      "by_tag": {
+        "company_boast": 8,
+        "fitting": 82,
+        "hard_hide_cefr": 15,
+        "hard_hide_declined_onsite": 5,
+        "hard_hide_excluded_term": 12,
+        "hard_hide_work_permit": 4,
+        "keyword_trap": 11,
+        "long_clause": 5,
+        "metadata_only_onsite": 2,
+        "near_miss": 88,
+        "non_fitting": 54,
+        "or_alternative": 7,
+        "qualitative_language": 13,
+        "seniority_gap": 9,
+        "sponsorship_alternative": 5
+      }
+    },
+    "overall": {
+      "count": 224,
+      "pair_count": 18,
+      "should_hide": 36,
+      "ndcg_at_10": 0.6932,
+      "precision_at_10": 0.7833,
+      "pairwise_auc": 0.7562,
+      "hide_precision": 0.4177,
+      "hide_recall": 0.9167,
+      "good_hidden_rate": 0.122,
+      "de_en_parity": 19.1111,
+      "pair_eligibility_disagreement": 0.0556,
+      "lang_auc_gap": 0.0376,
+      "band_error": 0.1558,
+      "ece": 0.2824,
+      "score_spread": {
+        "std": 23.4389,
+        "distinct_count": 42,
+        "plateau_fraction": 0.2991,
+        "plateau_counts": {
+          "29": 16,
+          "59": 49,
+          "85": 2
+        }
+      }
+    },
+    "by_language": {
+      "de": {
+        "count": 116,
+        "ndcg_at_10": 0.555,
+        "pairwise_auc": 0.7621,
+        "mean_score": 31.2672,
+        "mean_score_by_grade": {
+          "0": 14.14,
+          "1": 27.37,
+          "2": 44.63,
+          "3": 54.11
+        },
+        "count_by_grade": {
+          "0": 29,
+          "1": 49,
+          "2": 19,
+          "3": 19
+        }
+      },
+      "en": {
+        "count": 108,
+        "ndcg_at_10": 0.5757,
+        "pairwise_auc": 0.7245,
+        "mean_score": 29.6111,
+        "mean_score_by_grade": {
+          "0": 9.4,
+          "1": 25.41,
+          "2": 44.08,
+          "3": 45.89
+        },
+        "count_by_grade": {
+          "0": 25,
+          "1": 39,
+          "2": 26,
+          "3": 18
+        }
+      }
+    },
+    "hard_hide_recall": {
+      "hard_hide_cefr": {
+        "count": 15,
+        "hide_recall": 0.8667
+      },
+      "hard_hide_excluded_term": {
+        "count": 12,
+        "hide_recall": 1.0
+      },
+      "hard_hide_declined_onsite": {
+        "count": 5,
+        "hide_recall": 1.0
+      },
+      "hard_hide_work_permit": {
+        "count": 4,
+        "hide_recall": 0.75
+      }
+    },
+    "by_split": {
+      "dev": {
+        "count": 154,
+        "pair_count": 13,
+        "should_hide": 22,
+        "ndcg_at_10": 0.6968,
+        "precision_at_10": 0.7333,
+        "pairwise_auc": 0.733,
+        "hide_precision": 0.4167,
+        "hide_recall": 0.9091,
+        "good_hidden_rate": 0.1231,
+        "de_en_parity": 18.9231,
+        "pair_eligibility_disagreement": 0.0769,
+        "lang_auc_gap": 0.0641,
+        "band_error": 0.178,
+        "ece": 0.2954,
+        "score_spread": {
+          "std": 23.6699,
+          "distinct_count": 37,
+          "plateau_fraction": 0.2922,
+          "plateau_counts": {
+            "29": 11,
+            "59": 33,
+            "85": 1
+          }
+        },
+        "by_language": {
+          "de": {
+            "count": 85,
+            "ndcg_at_10": 0.579,
+            "pairwise_auc": 0.7462,
+            "mean_score": 31.8588,
+            "mean_score_by_grade": {
+              "0": 18.0,
+              "1": 26.23,
+              "2": 44.0,
+              "3": 51.86
+            },
+            "count_by_grade": {
+              "0": 20,
+              "1": 35,
+              "2": 16,
+              "3": 14
+            }
+          },
+          "en": {
+            "count": 69,
+            "ndcg_at_10": 0.5181,
+            "pairwise_auc": 0.6821,
+            "mean_score": 30.8406,
+            "mean_score_by_grade": {
+              "0": 8.5,
+              "1": 22.59,
+              "2": 44.65,
+              "3": 41.83
+            },
+            "count_by_grade": {
+              "0": 12,
+              "1": 22,
+              "2": 23,
+              "3": 12
+            }
+          }
+        },
+        "hard_hide_recall": {
+          "hard_hide_cefr": {
+            "count": 9,
+            "hide_recall": 0.8889
+          },
+          "hard_hide_excluded_term": {
+            "count": 7,
+            "hide_recall": 1.0
+          },
+          "hard_hide_declined_onsite": {
+            "count": 2,
+            "hide_recall": 1.0
+          },
+          "hard_hide_work_permit": {
+            "count": 4,
+            "hide_recall": 0.75
+          }
+        }
+      },
+      "heldout": {
+        "count": 70,
+        "pair_count": 5,
+        "should_hide": 14,
+        "ndcg_at_10": 0.7101,
+        "precision_at_10": 0.25,
+        "pairwise_auc": 0.7527,
+        "hide_precision": 0.4194,
+        "hide_recall": 0.9286,
+        "good_hidden_rate": 0.1176,
+        "de_en_parity": 19.6,
+        "pair_eligibility_disagreement": 0.0,
+        "lang_auc_gap": 0.0099,
+        "band_error": 0.0954,
+        "ece": 0.2537,
+        "score_spread": {
+          "std": 22.7882,
+          "distinct_count": 20,
+          "plateau_fraction": 0.3143,
+          "plateau_counts": {
+            "29": 5,
+            "59": 16,
+            "85": 1
+          }
+        },
+        "by_language": {
+          "de": {
+            "count": 31,
+            "ndcg_at_10": 0.8143,
+            "pairwise_auc": 0.7937,
+            "mean_score": 29.6452,
+            "mean_score_by_grade": {
+              "0": 5.56,
+              "1": 30.21,
+              "2": 48.0,
+              "3": 60.4
+            },
+            "count_by_grade": {
+              "0": 9,
+              "1": 14,
+              "2": 3,
+              "3": 5
+            }
+          },
+          "en": {
+            "count": 39,
+            "ndcg_at_10": 0.846,
+            "pairwise_auc": 0.8036,
+            "mean_score": 27.4359,
+            "mean_score_by_grade": {
+              "0": 10.23,
+              "1": 29.06,
+              "2": 39.67,
+              "3": 54.0
+            },
+            "count_by_grade": {
+              "0": 13,
+              "1": 17,
+              "2": 3,
+              "3": 6
+            }
+          }
+        },
+        "hard_hide_recall": {
+          "hard_hide_cefr": {
+            "count": 6,
+            "hide_recall": 0.8333
+          },
+          "hard_hide_excluded_term": {
+            "count": 5,
+            "hide_recall": 1.0
+          },
+          "hard_hide_declined_onsite": {
+            "count": 3,
+            "hide_recall": 1.0
+          }
+        }
+      }
+    },
+    "per_profile": {
+      "junior_proto": {
+        "count": 39,
+        "pair_count": 4,
+        "ndcg_at_10": 0.6841,
+        "precision_at_10": 0.9,
+        "pairwise_auc": 0.7518,
+        "hide_precision": 0.2105,
+        "hide_recall": 0.8,
+        "good_hidden_rate": 0.2143,
+        "de_en_parity": 4.75,
+        "pair_eligibility_disagreement": 0.25,
+        "band_error": 0.17,
+        "ece": 0.3179,
+        "score_spread": {
+          "std": 20.8973,
+          "distinct_count": 17,
+          "plateau_fraction": 0.2051,
+          "plateau_counts": {
+            "29": 3,
+            "59": 5,
+            "85": 0
+          }
+        }
+      },
+      "ld_specialist": {
+        "count": 33,
+        "pair_count": 3,
+        "ndcg_at_10": 0.8662,
+        "precision_at_10": 0.7,
+        "pairwise_auc": 0.7677,
+        "hide_precision": 0.4,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.4167,
+        "de_en_parity": 30.3333,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1988,
+        "ece": 0.3982,
+        "score_spread": {
+          "std": 22.0316,
+          "distinct_count": 15,
+          "plateau_fraction": 0.3636,
+          "plateau_counts": {
+            "29": 2,
+            "59": 10,
+            "85": 0
+          }
+        }
+      },
+      "logistics_lead": {
+        "count": 42,
+        "pair_count": 7,
+        "ndcg_at_10": 0.7132,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.7428,
+        "hide_precision": 0.5385,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.0556,
+        "de_en_parity": 26.4286,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.2272,
+        "ece": 0.3333,
+        "score_spread": {
+          "std": 24.2802,
+          "distinct_count": 19,
+          "plateau_fraction": 0.2143,
+          "plateau_counts": {
+            "29": 3,
+            "59": 5,
+            "85": 1
+          }
+        }
+      },
+      "ops_analyst": {
+        "count": 44,
+        "pair_count": 2,
+        "ndcg_at_10": 0.6291,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.7687,
+        "hide_precision": 0.2857,
+        "hide_recall": 0.6667,
+        "good_hidden_rate": 0.0,
+        "de_en_parity": 3.5,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1108,
+        "ece": 0.202,
+        "score_spread": {
+          "std": 25.0961,
+          "distinct_count": 18,
+          "plateau_fraction": 0.3182,
+          "plateau_counts": {
+            "29": 1,
+            "59": 13,
+            "85": 0
+          }
+        }
+      },
+      "pc_manufacturing": {
+        "count": 33,
+        "pair_count": 1,
+        "ndcg_at_10": 0.4853,
+        "precision_at_10": 0.7,
+        "pairwise_auc": 0.6408,
+        "hide_precision": 0.6667,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.0714,
+        "de_en_parity": 42.0,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1904,
+        "ece": 0.2806,
+        "score_spread": {
+          "std": 20.8777,
+          "distinct_count": 21,
+          "plateau_fraction": 0.303,
+          "plateau_counts": {
+            "29": 4,
+            "59": 5,
+            "85": 1
+          }
+        }
+      },
+      "po_fintech": {
+        "count": 33,
+        "pair_count": 1,
+        "ndcg_at_10": 0.7816,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.8655,
+        "hide_precision": 0.6667,
+        "hide_recall": 0.8571,
+        "good_hidden_rate": 0.0,
+        "de_en_parity": 0.0,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.0737,
+        "ece": 0.1685,
+        "score_spread": {
+          "std": 23.9989,
+          "distinct_count": 11,
+          "plateau_fraction": 0.4242,
+          "plateau_counts": {
+            "29": 3,
+            "59": 11,
+            "85": 0
+          }
+        }
+      }
+    },
+    "by_tag": {
+      "company_boast": {
+        "count": 8,
+        "mean_score": 39.5,
+        "hidden_rate": 0.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "fitting": {
+        "count": 82,
+        "mean_score": 46.9268,
+        "hidden_rate": 0.122,
+        "good_hidden_rate": 0.122,
+        "hide_recall": 1.0
+      },
+      "hard_hide_cefr": {
+        "count": 15,
+        "mean_score": 22.7333,
+        "hidden_rate": 0.8667,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.8667
+      },
+      "hard_hide_declined_onsite": {
+        "count": 5,
+        "mean_score": 39.2,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "hard_hide_excluded_term": {
+        "count": 12,
+        "mean_score": 30.5,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "hard_hide_work_permit": {
+        "count": 4,
+        "mean_score": 48.75,
+        "hidden_rate": 0.75,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.75
+      },
+      "keyword_trap": {
+        "count": 11,
+        "mean_score": 23.6364,
+        "hidden_rate": 0.2727,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "long_clause": {
+        "count": 5,
+        "mean_score": 51.8,
+        "hidden_rate": 0.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "metadata_only_onsite": {
+        "count": 2,
+        "mean_score": 45.0,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 1.0,
+        "hide_recall": 1.0
+      },
+      "near_miss": {
+        "count": 88,
+        "mean_score": 26.5,
+        "hidden_rate": 0.5,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.9032
+      },
+      "non_fitting": {
+        "count": 54,
+        "mean_score": 11.9444,
+        "hidden_rate": 0.463,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "or_alternative": {
+        "count": 7,
+        "mean_score": 43.8571,
+        "hidden_rate": 0.1429,
+        "good_hidden_rate": 0.1429,
+        "hide_recall": 1.0
+      },
+      "qualitative_language": {
+        "count": 13,
+        "mean_score": 47.8462,
+        "hidden_rate": 0.1538,
+        "good_hidden_rate": 0.1538,
+        "hide_recall": 1.0
+      },
+      "seniority_gap": {
+        "count": 9,
+        "mean_score": 23.4444,
+        "hidden_rate": 0.8889,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "sponsorship_alternative": {
+        "count": 5,
+        "mean_score": 40.8,
+        "hidden_rate": 0.4,
+        "good_hidden_rate": 0.4,
+        "hide_recall": 1.0
+      }
+    }
+  }
+}
