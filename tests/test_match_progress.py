@@ -74,7 +74,7 @@ class MatchProgressTests(unittest.TestCase):
             self.assertEqual(len(session.scalars(select(models.ProfileJobMatch).where(
                 models.ProfileJobMatch.profile_id == second_id)).all()), 2)
 
-    def test_worker_advances_local_pages_before_ai_selection(self):
+    def test_worker_advances_local_pages_before_secondary_stages(self):
         from hiring_scraper.app import profile_match_worker
         class EndIteration(BaseException):
             pass
@@ -82,12 +82,11 @@ class MatchProgressTests(unittest.TestCase):
         def expensive_work():
             with self.factory() as session:
                 progress = session.get(models.ProfileMatchProgress, self.profile_id)
-                self.assertIsNotNone(progress, 'Local backfill must commit before AI stages')
+                self.assertIsNotNone(progress, 'Local backfill must commit before later stages')
                 observed_cursors.append(progress.cursor)
         with patch.object(job_search, 'SessionLocal', self.factory), \
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', expensive_work), \
-                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', expensive_work), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration):
             with self.assertLogs(profile_match_worker.LOG, level='INFO') as logs:
@@ -150,41 +149,6 @@ class MatchProgressTests(unittest.TestCase):
             self.assertEqual(set(session.scalars(select(models.ProfileJobMatch.job_id))), set(self.job_ids))
             self.assertFalse(job_search.profile_match_index_stale(session.get(models.UserProfile, self.profile_id)))
 
-    def test_rematch_all_restarts_same_version_checkpoint(self):
-        from hiring_scraper.app import profile_llm
-        with patch.object(job_search, 'match_job', return_value={
-                'eligible': True, 'score': 90, 'fit_tier': 'recommended'}):
-            self.step()
-        with patch.object(profile_llm, 'SessionLocal', self.factory):
-            profile_llm.requeue_all_assessments()
-        with patch.object(job_search, 'match_job', return_value={
-                'eligible': True, 'score': 15, 'fit_tier': 'possible'}):
-            self.step()
-        with self.factory() as session:
-            first = session.get(models.ProfileJobMatch, (self.profile_id, self.job_ids[0]))
-            self.assertEqual(first.match_score, 15)
-
-    def test_rematch_during_a_later_page_cannot_resurrect_deleted_checkpoint(self):
-        from hiring_scraper.app import profile_llm
-        self.step()
-        changed = False
-        def rematch_during_compute(*_args, **_kwargs):
-            nonlocal changed
-            if not changed:
-                changed = True
-                with patch.object(profile_llm, 'SessionLocal', self.factory):
-                    profile_llm.requeue_all_assessments()
-            return {'eligible': True, 'score': 90, 'fit_tier': 'recommended'}
-        with patch.object(job_search, 'match_job', side_effect=rematch_during_compute):
-            with self.assertRaises(job_search.ProfileIndexChanged):
-                self.step()
-        with patch.object(job_search, 'match_job', return_value={
-                'eligible': True, 'score': 15, 'fit_tier': 'possible'}):
-            self.step()
-        with self.factory() as session:
-            self.assertEqual(session.get(models.ProfileJobMatch,
-                (self.profile_id, self.job_ids[0])).match_score, 15)
-
     def test_conflicted_backfill_does_not_block_dirty_queue_progress(self):
         from hiring_scraper.app import profile_match_worker
         class EndIteration(BaseException):
@@ -194,7 +158,6 @@ class MatchProgressTests(unittest.TestCase):
                              side_effect=job_search.ProfileIndexChanged('retry page')), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: None), \
-                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: None):
             with self.assertLogs(profile_match_worker.LOG):
                 with self.assertRaises(EndIteration):
@@ -202,7 +165,7 @@ class MatchProgressTests(unittest.TestCase):
         with self.factory() as session:
             self.assertEqual(len(session.scalars(select(models.ProfileJobMatch)).all()), 5)
 
-    def test_steady_dirty_queue_does_not_starve_ai_after_backfill_finishes(self):
+    def test_steady_dirty_queue_does_not_starve_later_stages_after_backfill_finishes(self):
         from hiring_scraper.app import profile_match_worker
         with patch.object(job_search, 'SessionLocal', self.factory):
             self.assertTrue(job_search.refresh_profile_match_indexes_once())
@@ -213,7 +176,6 @@ class MatchProgressTests(unittest.TestCase):
                 patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 2), \
                 patch.object(profile_match_worker.time, 'sleep', side_effect=EndIteration), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once', lambda: events.append('semantic')), \
-                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker, 'prepare_once', lambda: events.append('prepare')):
             with self.assertRaises(EndIteration):
                 profile_match_worker.main()
@@ -228,7 +190,6 @@ class MatchProgressTests(unittest.TestCase):
             ('feed', self.job_ids),
             ('company', self.job_ids),
             ('semantic', [self.job_ids[0]]),
-            ('assessment', [self.job_ids[0]]),
             ('closure', [self.job_ids[0]]),
         ]
         for kind, expected in cases:
@@ -250,10 +211,6 @@ class MatchProgressTests(unittest.TestCase):
                         session.add(models.MatchSemanticDocument(job_id=job.id, source_hash='source',
                             version='test', sections=[], vectors=b''))
                         source_changes.vectors_changed(session, job_ids=[job.id])
-                    elif kind == 'assessment':
-                        session.add(models.ProfileLLMScore(profile_id=self.profile_id, job_id=job.id,
-                            source_hash='source', version='test', assessment={}))
-                        source_changes.assessments_changed(session, [job.id])
                     else:
                         job.is_active = False
                         source_changes.jobs_changed(session, [job.id])

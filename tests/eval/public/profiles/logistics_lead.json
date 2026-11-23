@@ -1,0 +1,138 @@
+{
+  "id": "logistics_lead",
+  "archetype": "Teamleiter Logistik (deutschsprachiges Profil, kaum Englisch)",
+  "location_region": "Region Hannover, Deutschland",
+  "desired_roles": [
+    "Teamleiter Logistik",
+    "Schichtleiter Lager",
+    "Lagerleiter"
+  ],
+  "secondary_roles": [
+    "Disponent",
+    "Teamleiter Versand",
+    "Fachkraft für Lagerlogistik"
+  ],
+  "skills": [
+    "Mitarbeiterführung",
+    "Schichtplanung",
+    "Kommissionierung",
+    "Wareneingang",
+    "Versand",
+    "Lagerverwaltung",
+    "SAP EWM",
+    "Arbeitssicherheit",
+    "Inventur",
+    "Flurförderzeuge",
+    "Kennzahlen",
+    "Personaleinsatzplanung"
+  ],
+  "languages": [
+    "German",
+    "English"
+  ],
+  "language_levels": {
+    "German": "C2",
+    "English": "A2"
+  },
+  "experience_years": 15,
+  "work_styles": [
+    "onsite"
+  ],
+  "employment_types": [
+    "full_time"
+  ],
+  "summary": "Fachkraft für Lagerlogistik und Teamleiter mit 15 Jahren Berufserfahrung im Mehrschichtbetrieb. Ich führe Teams von 12 bis 25 Mitarbeitenden, plane Schichten, sichere Termintreue im Versand und halte Sicherheits- und Qualitätsvorgaben ein.",
+  "cv_career_facts": {
+    "experiences": [
+      {
+        "title": "Lagermitarbeiter Kommissionierung",
+        "start": "2011-07",
+        "end": "2015-02",
+        "current": false,
+        "description": "Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager."
+      },
+      {
+        "title": "Schichtleiter Lager",
+        "start": "2015-03",
+        "end": "2021-09",
+        "current": false,
+        "description": "Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen."
+      },
+      {
+        "title": "Teamleiter Logistik",
+        "start": "2021-10",
+        "end": "",
+        "current": true,
+        "description": "Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdaten in SAP EWM."
+      }
+    ],
+    "education": [
+      {
+        "title": "Ausbildung Fachkraft für Lagerlogistik",
+        "start": "2008-08",
+        "end": "2011-06",
+        "current": false,
+        "completed": true,
+        "description": "Abgeschlossene Berufsausbildung (IHK)."
+      }
+    ]
+  },
+  "skill_evidence": {
+    "Mitarbeiterführung": {
+      "context": "professional",
+      "note": "Seit neun Jahren Führung von Teams mit bis zu 22 Personen."
+    },
+    "Schichtplanung": {
+      "context": "professional",
+      "note": "Erstellt Dienstpläne im Dreischichtbetrieb."
+    },
+    "SAP EWM": {
+      "context": "professional",
+      "note": "Tägliche Nutzung für Wareneingang, Umlagerung und Versand."
+    },
+    "Arbeitssicherheit": {
+      "context": "professional",
+      "note": "Führt Unterweisungen durch und dokumentiert sie."
+    }
+  },
+  "application_preferences": {
+    "willing_to_work_onsite": true,
+    "authorized_to_work": true,
+    "authorization_country": "Germany",
+    "sponsorship_required": false
+  },
+  "education": [
+    {
+      "level": "vocational",
+      "field": "Fachkraft für Lagerlogistik",
+      "status": "completed",
+      "completed": true,
+      "current": false,
+      "equivalency": ""
+    }
+  ],
+  "certifications": [
+    "Flurförderzeugschein",
+    "Ausbildereignungsprüfung (AEVO)"
+  ],
+  "excluded_terms": [
+    "Praktikum",
+    "Aushilfe"
+  ],
+  "application_details": {
+    "experiences": [
+      {
+        "title": "Lagermitarbeiter Kommissionierung",
+        "description": "Kommissionierung, Wareneingang, Verladung und Bestandskontrolle im Handelslager."
+      },
+      {
+        "title": "Schichtleiter Lager",
+        "description": "Führung einer Schicht mit 10 Mitarbeitenden, Verteilung der Aufträge, Abstimmung mit Disposition und Spedition, Einweisung neuer Kollegen."
+      },
+      {
+        "title": "Teamleiter Logistik",
+        "description": "Verantwortung für Wareneingang und Versand mit 22 Mitarbeitenden in drei Schichten, Schichtplanung, Kennzahlen zu Termintreue und Fehlerquote, Arbeitssicherheitsunterweisungen, Inventurorganisation, Pflege der Lagerdaten in SAP EWM."
+      }
+    ]
+  }
+}

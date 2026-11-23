@@ -17,7 +17,7 @@ from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import (
-    application_preparation_queue, discovery_worker, job_search, profile_llm, profile_semantics,
+    application_preparation_queue, discovery_worker, job_search, profile_semantics,
     search_snapshots, semantic_search_worker, worker,
 )
 from hiring_scraper.app.models import MatchSemanticDocument, SemanticSearchIndexState, UserProfile
@@ -38,7 +38,6 @@ def _idle_cycles():
         'feed scan': worker.scan_once,
         'company discovery': discovery_worker.process_batch,
         'search snapshot refresh': search_snapshots.process_search_snapshot_refresh_once,
-        'AI assessment claim': lambda: profile_llm.refresh_llm_scores_once(sync=False),
         'application preparation claim': lambda: application_preparation_queue.process_once(
             lambda *_args: None),
         'profile/job vectors': lambda: profile_semantics.refresh_semantic_documents_once(

@@ -7,8 +7,8 @@ from datetime import datetime
 from tempfile import SpooledTemporaryFile
 from typing import Callable
 
-from sqlalchemy import delete, func, select, text
-from sqlalchemy.orm import Session, joinedload, object_session, selectinload
+from sqlalchemy import delete, func, or_, select, text
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, SessionLocal
@@ -17,18 +17,26 @@ from hiring_scraper.app.application_deduplication import (
     consolidate_application_duplicates, index_vacancy_identities, reserve_vacancy_identity_writer,
 )
 from hiring_scraper.app.enrichment import current_enrichment, job_input
+from hiring_scraper.app.match_compute import (
+    active_matcher_version,
+    compute_match,
+    current_score_version,
+    load_stored_match_snapshots,
+    match_row_payload,
+    snapshot_explanation_is_current,
+)
 from hiring_scraper.app.models import (
     ProfileIndexChanged, hold_profiles,
     Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
-    MatchSemanticDocument, ProfileLLMScore, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
+    MatchSemanticDocument, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
     reserve_job_source_rows,
 )
-from hiring_scraper.matching import VERSION, match_job
-from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-from hiring_scraper.app.profile_llm import (apply_cached_assessment, matching_version,
-    load_matching_documents as load_semantic_documents, profile_data)
+from hiring_scraper.app.profile_semantics import load_semantic_documents
+from hiring_scraper.matching import match_job
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
-from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
+
+_DEFAULT_MATCH_JOB = match_job
+PRESENTATION_MATCHING_DEFAULT_KEYS = frozenset({"min_match_score", "include_unknown"})
 
 _PENDING_MATCH_MAX_BYTES = 1_048_576
 _MATCH_JOB_BATCH_SIZE = 500
@@ -83,15 +91,27 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
     job.locations[:] = updated
 
 
+def scoring_preferences(matching_preferences: dict) -> dict:
+    """Return matching preferences stripped of presentation-only defaults."""
+    prefs = dict(matching_preferences or {})
+    defaults = prefs.get("matching_defaults")
+    if isinstance(defaults, dict):
+        scoring_defaults = {
+            key: value for key, value in defaults.items()
+            if key not in PRESENTATION_MATCHING_DEFAULT_KEYS
+        }
+        if scoring_defaults:
+            prefs["matching_defaults"] = scoring_defaults
+        else:
+            prefs.pop("matching_defaults", None)
+    return prefs
+
 
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
-        "matcher": VERSION,
+        "matcher": active_matcher_version(),
         "semantic": SEMANTIC_VERSION,
-        "llm": matching_version(object_session(profile)),
-        "requirement_scoring": REQUIREMENT_SCORING_VERSION,
-        "llm_preferences": profile_data(profile),
-        "preferences": profile.matching_preferences,
+        "preferences": scoring_preferences(profile.matching_preferences),
     }, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:40]
 
@@ -112,6 +132,10 @@ def refresh_profile_match_indexes_once() -> bool:
         profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
         progress = {row.profile_id: row for row in session.scalars(select(ProfileMatchProgress))}
         stale = [p for p in profiles if profile_match_index_stale(p)]
+        pending = [p for p in profiles if p.presentation_refresh_pending and not profile_match_index_stale(p)]
+        if pending:
+            # Self-heal a flag set against an index that has since become current.
+            return _apply_pending_presentation_refresh(session, pending[0])
         if not stale:
             return False
         # Unstarted profiles first, then least recently advanced. No profile can
@@ -148,11 +172,32 @@ def refresh_profile_match_indexes_once() -> bool:
         state.advanced_at = utcnow()
         if len(ids) < _MATCH_WORK_PAGE_SIZE or state.cursor >= state.high_water:
             locked.match_index_version = version
+            # SessionLocal disables autoflush: persist the version first, or the
+            # snapshot queries below still see the old index and defer every row.
+            session.flush()
+            if locked.presentation_refresh_pending:
+                # A threshold/unknown-policy edit arrived mid-backfill: pages committed
+                # before it still hold the old presentation. Re-evaluate New rows now,
+                # in the transaction that publishes the index as current.
+                reevaluate_profile_new_applications(session, locked)
             session.execute(delete(ProfileMatchProgress).where(ProfileMatchProgress.profile_id == profile.id))
         else:
             session.merge(state)
         session.commit()
         return True
+
+
+def _apply_pending_presentation_refresh(session: Session, profile: UserProfile) -> bool:
+    expected_source = {profile.id: profile.source_version}
+    hold_profiles(session, expected_source, wait=False, exclusive=True)
+    locked = session.get(UserProfile, profile.id, populate_existing=True)
+    if locked is None or not locked.presentation_refresh_pending:
+        session.rollback()
+        return False
+    # reevaluate_profile_new_applications defers again if the index went stale.
+    reevaluate_profile_new_applications(session, locked)
+    session.commit()
+    return True
 
 
 def refresh_dirty_job_matches_once(session_factory=None) -> bool:
@@ -188,8 +233,6 @@ def _batch_source_snapshot(session: Session, ids, profile_ids) -> str:
             .where(Company.id.in_(employers) | Company.id.in_(feed_companies)).order_by(Company.id),
         select(MatchSemanticDocument.__table__).where(MatchSemanticDocument.job_id.in_(ids) |
             MatchSemanticDocument.profile_id.in_(profile_ids)).order_by(MatchSemanticDocument.id),
-        select(ProfileLLMScore.__table__).where(ProfileLLMScore.job_id.in_(ids),
-            ProfileLLMScore.profile_id.in_(profile_ids)).order_by(ProfileLLMScore.profile_id, ProfileLLMScore.job_id),
     ]
     return json.dumps([[list(row) for row in session.execute(query)] for query in statements], default=str,
                       sort_keys=True, separators=(',', ':'))
@@ -202,7 +245,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_pu
         return
     session.flush()
     reserve_job_source_rows(session, ids)
-    # Declares the jobs: drops stale vectors/assessments and queues the rematch.
+    # Declares the jobs: drops stale vectors and queues the rematch.
     source_changes.jobs_changed(session, ids)
     if before_publish is not None:
         # Only owners of affected saved stages participate in short retirement.
@@ -211,7 +254,7 @@ def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_pu
         before_publish(session)
 
 
-def application_match_allowed(job: Job, profile: UserProfile, result: dict, *, tracked=False) -> bool:
+def application_match_allowed(job: Job, profile: UserProfile, result: dict) -> bool:
     """Apply the profile's default area and match threshold before creating user state."""
     preferences = profile.matching_preferences
     area = preferences.get("search_area") or {}
@@ -226,16 +269,44 @@ def application_match_allowed(job: Job, profile: UserProfile, result: dict, *, t
         area.get("city"), area.get("country_code") or "DE",
     )
     defaults = preferences.get("matching_defaults") or {}
-    min_score = defaults.get("min_match_score", 30)
+    min_score = defaults.get("min_match_score", 0)
     try:
         min_score = int(min_score)
     except (TypeError, ValueError):
-        min_score = 30
+        min_score = 0
     include_unknown = defaults.get("include_unknown", True) is not False
     uncertain = bool(result.get("uncertain") or scope.get("unknowns"))
     return bool(scope["eligible"] and result.get("eligible") and
-                (result.get("score", 0) >= min_score or (tracked and result.get("score_source") == "llm")) and
+                result.get("score", 0) >= min_score and
                 (include_unknown or not uncertain))
+
+
+def evaluate_stored_new_application(
+    job: Job,
+    profile: UserProfile,
+    match_row,
+    *,
+    is_current: bool,
+) -> str:
+    """Pure decision for presentation-only New-row re-evaluation.
+
+    Returns ``'defer'`` when the stored match is dirty, stale, legacy, or unfaithful
+    (leaving existing applications untouched for rematching), ``'qualifies'`` when the
+    current stored row passes ``application_match_allowed``, or ``'retract'`` otherwise.
+    """
+    if not is_current or match_row is None:
+        return "defer"
+    explanation = getattr(match_row, "explanation", None)
+    if not isinstance(explanation, dict):
+        return "defer"
+    stored_result = {
+        "eligible": bool(explanation.get("eligible", True)),
+        "score": match_row.match_score,
+        "uncertain": bool(match_row.match_uncertain),
+    }
+    if application_match_allowed(job, profile, stored_result):
+        return "qualifies"
+    return "retract"
 
 
 def upsert_new_match_states(session: Session, matches: list[dict]) -> None:
@@ -263,6 +334,8 @@ def _upsert_profile_matches(session: Session, matches: list[dict]) -> None:
                 "match_score": statement.excluded.match_score,
                 "match_tier": statement.excluded.match_tier,
                 "match_uncertain": statement.excluded.match_uncertain,
+                "explanation": statement.excluded.explanation,
+                "score_version": statement.excluded.score_version,
             },
         ))
 
@@ -339,28 +412,26 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
                     selectinload(Job.locations),
                 )
             ).unique().all()
-            tracked = set(session.execute(select(JobApplication.profile_id, JobApplication.job_id).where(
-                JobApplication.job_id.in_([job.id for job in jobs]))).all())
             semantic_documents = load_semantic_documents(session, jobs, stale_profiles)
+            score_version = current_score_version()
+            matcher = None if match_job is _DEFAULT_MATCH_JOB else match_job
             for job in jobs:
                 source = job_input(job)
                 enrichment = current_enrichment(job)
                 for profile in stale_profiles:
-                    semantic = cached_semantic_evidence(source, profile.matching_preferences,
-                                                        job.id, profile.id, semantic_documents)
-                    result = match_job(source, profile.matching_preferences, enrichment,
-                                       **({'semantic': semantic} if semantic else {}))
-                    result = apply_cached_assessment(result, job, profile, semantic_documents)
+                    result = compute_match(
+                        job, profile, semantic_documents,
+                        source=source, enrichment=enrichment, matcher=matcher,
+                    )
                     if not result.get("eligible"):
                         continue
-                    pending_matches.append({
-                        "profile_id": profile.id,
-                        "job_id": job.id,
-                        "match_score": result.get("score", 0),
-                        "match_tier": result.get("fit_tier", "possible"),
-                        "match_uncertain": bool(result.get("uncertain")),
-                    })
-                    if application_match_allowed(job, profile, result, tracked=(profile.id, job.id) in tracked):
+                    pending_matches.append(
+                        match_row_payload(
+                            profile.id, job.id, result, score_version,
+                            job=job, documents=semantic_documents, source=source,
+                        )
+                    )
+                    if application_match_allowed(job, profile, result):
                         pending_states.append({
                             "profile_id": profile.id,
                             "job_id": job.id,
@@ -435,6 +506,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
             consolidate_application_duplicates(session, stable_ids)
             for profile in stable_profiles:
                 profile.match_index_version = expected_versions[profile.id]
+                profile.presentation_refresh_pending = False
 
         profiles[:] = [current_by_id.get(profile_id) for profile_id in profile_ids]
         session.flush()
@@ -482,9 +554,9 @@ def _refresh_application_matches_for_jobs(
                     selectinload(Job.locations),
                 ).execution_options(populate_existing=True)
             ).unique().all()
-            tracked = set(session.execute(select(JobApplication.profile_id, JobApplication.job_id).where(
-                JobApplication.job_id.in_([job.id for job in jobs]))).all())
             semantic_documents = load_semantic_documents(session, jobs, profiles)
+            score_version = current_score_version()
+            matcher = None if match_job is _DEFAULT_MATCH_JOB else match_job
             matching_jobs = [
                 (job, job_input(job), current_enrichment(job))
                 for job in jobs if job.is_active
@@ -498,21 +570,19 @@ def _refresh_application_matches_for_jobs(
                 }
                 for job, source, enrichment in matching_jobs:
                     for profile in profile_batch:
-                        semantic = cached_semantic_evidence(source, profile.matching_preferences,
-                                                            job.id, profile.id, semantic_documents)
-                        result = match_job(source, profile.matching_preferences, enrichment,
-                                           **({'semantic': semantic} if semantic else {}))
-                        result = apply_cached_assessment(result, job, profile, semantic_documents)
+                        result = compute_match(
+                            job, profile, semantic_documents,
+                            source=source, enrichment=enrichment, matcher=matcher,
+                        )
                         if not result.get("eligible"):
                             continue
-                        matches.append({
-                            "profile_id": profile.id,
-                            "job_id": job.id,
-                            "match_score": result.get("score", 0),
-                            "match_tier": result.get("fit_tier", "possible"),
-                            "match_uncertain": bool(result.get("uncertain")),
-                        })
-                        if application_match_allowed(job, profile, result, tracked=(profile.id, job.id) in tracked):
+                        matches.append(
+                            match_row_payload(
+                                profile.id, job.id, result, score_version,
+                                job=job, documents=semantic_documents, source=source,
+                            )
+                        )
+                        if application_match_allowed(job, profile, result):
                             qualifying_job_ids[profile.id].append(job.id)
                             states.append({
                                 "profile_id": profile.id,
@@ -549,8 +619,6 @@ def _refresh_application_matches_for_jobs(
             # Source retirement must update application rows only after profile
             # locks are held, and before stale automatic New rows are retracted.
             before_publish(session)
-        # Assessment publication also owns profile locks, so a committed change
-        # observed here cannot race past the derived writes that follow.
         if verify_sources:
             if _batch_source_snapshot(session, ids, list(profile_versions)) != source_snapshot:
                 raise ProfileIndexChanged("Batch sources or evidence changed during matching")
@@ -610,3 +678,112 @@ def clear_profile_match_scores(session: Session, profile_id: int) -> None:
         JobApplication.status == "new",
         JobApplication.auto_created.is_(True),
     ))
+
+
+def reevaluate_profile_new_applications(
+    session: Session,
+    profile: UserProfile,
+    *,
+    batch_size: int = 200,
+) -> dict[str, int]:
+    """Re-evaluate automatic Journey New rows from current stored ProfileJobMatch rows.
+
+    Used when only presentation preferences (``min_match_score``, ``include_unknown``)
+    change: shares the exact ``application_match_allowed`` predicate with workers,
+    never alters user-decided rows, and defers dirty/stale/legacy rows to rematching
+    instead of trusting or retracting them.
+    """
+    expected_index_version = _profile_index_version(profile)
+    # The caller holds the profile row lock. Read the committed index state under
+    # it: a backfill page may have published the index after this profile was loaded.
+    session.flush()
+    session.refresh(profile, ['match_index_version'])
+    if profile.match_index_version != expected_index_version:
+        # Backfill in progress: pages committed before this edit keep the old
+        # presentation. Remember it; the worker re-evaluates once the index is current.
+        profile.presentation_refresh_pending = True
+        return {"evaluated": 0, "added": 0, "retracted": 0, "deferred": 0}
+    now = utcnow()
+    cursor = 0
+    evaluated = 0
+    added = 0
+    retracted = 0
+    deferred = 0
+    while True:
+        # Page by id only; explanations are loaded once, by the snapshot query below.
+        batch_job_ids = list(session.scalars(
+            select(ProfileJobMatch.job_id)
+            .join(Job, Job.id == ProfileJobMatch.job_id)
+            .where(
+                ProfileJobMatch.profile_id == profile.id,
+                Job.is_active.is_(True),
+                ProfileJobMatch.job_id > cursor,
+            )
+            .order_by(ProfileJobMatch.job_id)
+            .limit(batch_size)
+        ))
+        if not batch_job_ids:
+            break
+        cursor = batch_job_ids[-1]
+        jobs_by_id = {job.id: job for job in session.scalars(
+            select(Job).where(Job.id.in_(batch_job_ids)).options(selectinload(Job.locations)))}
+        snapshots = load_stored_match_snapshots(
+            session, [(profile.id, job_id) for job_id in batch_job_ids],
+        )
+        retract_ids: list[int] = []
+        stale_to_queue: list[int] = []
+        states: list[dict] = []
+        for job in (jobs_by_id[job_id] for job_id in batch_job_ids if job_id in jobs_by_id):
+            snapshot = snapshots.get((profile.id, job.id))
+            is_current = snapshot_explanation_is_current(
+                snapshot,
+                job,
+                profile,
+                expected_profile_index_version=expected_index_version,
+            )
+            decision = evaluate_stored_new_application(
+                job,
+                profile,
+                snapshot.match if snapshot is not None else None,
+                is_current=is_current,
+            )
+            if decision == "defer":
+                deferred += 1
+                if snapshot is None or not snapshot.dirty:
+                    stale_to_queue.append(job.id)
+                continue
+            evaluated += 1
+            if decision == "qualifies":
+                states.append({
+                    "profile_id": profile.id,
+                    "job_id": job.id,
+                    "status": "new",
+                    "previous_status": None,
+                    "created_at": now,
+                    "updated_at": now,
+                })
+            else:
+                retract_ids.append(job.id)
+        if retract_ids:
+            stale = delete(JobApplication).where(
+                JobApplication.profile_id == profile.id,
+                JobApplication.job_id.in_(retract_ids),
+                JobApplication.status == "new",
+                JobApplication.auto_created.is_(True),
+            )
+            deleted = session.execute(stale)
+            retracted += int(deleted.rowcount or 0)
+        if states:
+            upsert_new_match_states(session, states)
+            added += len(states)
+        if stale_to_queue:
+            source_changes.queue_stale_rematch(session, stale_to_queue)
+    if added:
+        consolidate_application_duplicates(session, {profile.id})
+    profile.presentation_refresh_pending = False
+    return {
+        "evaluated": evaluated,
+        "added": added,
+        "retracted": retracted,
+        "deferred": deferred,
+    }

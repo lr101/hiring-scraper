@@ -53,7 +53,9 @@ class LiveRequirementPatterns(unittest.TestCase):
             'Required qualifications:\n3+ years of experience in mechanical prototyping and hardware assembly.'},
             {'experience_years': 5, 'skills': ['CAD', 'Prototyping']})
         self.assertLess(r['score'], 65)
-        self.assertTrue(any('scoped' in s.lower() for s in r['unknowns']))
+        # Unverifiable scoped tenure is a visible verify note, not an unknown gate.
+        notes = r['unknowns'] + r.get('soft_conflicts', [])
+        self.assertTrue(any('scoped' in s.lower() for s in notes))
 
     def test_construction_business_experience_is_not_project_coordination(self):
         r = match_job({'title': 'Delivery specialist', 'description':

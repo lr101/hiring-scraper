@@ -138,33 +138,4 @@ ORDER BY objid, granted, pid;
 ```
 
 Key 2 should appear only around commits; key 6 may span identity indexing and
-page publication. Worker ownership is key 4, and LLM process ownership is key 5.
-
-### Choosing the AI matching model
-
-Open **Settings → AI matching status**, choose the matching model and save.
-The setting applies to all profiles and matching workers on this server; it does
-not change the separate application-document model. The choices are GPT-6.1 Sol
-and GPT-6 Luna. Account access and subscription limits still apply. Until a
-choice is saved, `RADIUS_MATCH_AI_MODEL` remains the default.
-
-Apply migration `0038_ai_matching_model_setting` before starting the updated
-API and workers. The choice survives restarts. Model changes invalidate derived
-matching indexes and model-specific cache identities; an old in-flight model
-answer cannot become a current assessment after the switch. Usage counters are
-preserved.
-
-AI matching now queues every active, non-expired job in the saved search area,
-including low local scores and known qualification conflicts. Conflicts still
-constrain the published result. There are no shortlist, employer, or local provider
-call-budget caps. `RADIUS_MATCH_AI_CONCURRENCY` defaults to four simultaneous calls.
-Migration `0039_durable_ai_matching_queue` adds persistent task claims, retries,
-progress, and worker heartbeat state; deploy it before restarting API and workers.
-Queue reconciliation runs once a minute independently of local indexing. Failed
-items retry with durable exponential backoff and expired claims recover after
-40 minutes. Every provider attempt retains the subscription quota guard.
-
-AI publication updates Journey's stored ranks before pagination. Existing eligible
-entries stay visible when a lower AI score falls below the new-entry minimum;
-match ordering moves them down. Source/model changes invalidate judgments and
-queue a fresh review; ordinary restarts retain successful results.
+page publication. Worker ownership is key 4.

@@ -14,7 +14,7 @@ file to import. Review all factual claims and wording before using the documents
 The workflow follows the drafting/review/revision pattern of
 [ai-job-search's apply workflow](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/commands/apply.md):
 
-1. Reuse the current matching requirement assessment, or create one before drafting.
+1. Ground job requirements against saved profile and CV evidence before drafting.
    Each requirement names a job excerpt and factual applicant excerpt, with supported,
    transferable, missing or unknown evidence. Source quotes are checked; goals and
    writing samples cannot establish experience. Missing facts remain unknown.
@@ -62,7 +62,7 @@ most 100 expired files checked per cleanup pass, so records can remain longer th
 seven days while the instance is idle. Deleting the saved application removes it.
 Review all claims before using the result; no employer form is submitted.
 
-Preparation usually uses **five Codex requests** (fewer when assessments are cached, more when repairs are needed) from the connected subscription. Each is
+Preparation usually uses **five Codex requests** (more when repairs are needed) from the connected subscription. Each is
 ephemeral and isolated. The native calls share a 120-minute overall budget, with
 at most 600 seconds per call; local PDF checks may take additional time. The page
 polls a backend job, so reloading or closing it does not cancel preparation. It
@@ -118,7 +118,7 @@ comes from that account's Codex entitlement within its ChatGPT subscription;
 account/workspace policies and usage limits apply. There is no API-key fallback.
 Radius strips inherited API credentials, access-token overrides and alternative
 gateway settings from its Codex child processes. The optional
-`APPLICATION_AI_MODEL` selects the server default; leaving it empty uses the Codex default. Choose an instance-wide default under Settings → ChatGPT subscription → Application model. Preparation options can override it for an individual job; availability depends on the connected account. Choosing the server or Codex default in Settings clears the saved selection. Full preparation normally uses four sequential requests, plus one requirement-assessment request when no current matching assessment is cached. Fast preparation uses one drafting request, plus that assessment request when needed, and skips the independent review and revision, so users should check the result carefully. Automatic correction can add requests in either mode.
+`APPLICATION_AI_MODEL` selects the server default; leaving it empty uses the Codex default. Choose an instance-wide default under Settings → ChatGPT subscription → Application model. Preparation options can override it for an individual job; availability depends on the connected account. Choosing the server or Codex default in Settings clears the saved selection. Full preparation normally uses five sequential requests (requirement grounding, drafting, review, revision, and final review). Fast preparation uses two requests (requirement grounding and drafting) and skips the independent review and revision, so users should check the result carefully. Automatic correction can add requests in either mode.
 
 The release image includes Codex **0.163.0**, installed from the locked
 `runtime/codex` package and exported as native Linux x64/arm64 binaries. Node is
@@ -227,15 +227,13 @@ This applies to CV headings and descriptions, the letter, answers and fallback p
 
 The cover-letter brief asks for a role-specific opening and verified examples that explain the applicant's contribution. It discourages interchangeable company praise, stock openings and CV retelling. A final editing pass adapts the [upstream unslop skill](https://github.com/cursor/plugins/blob/main/pstack/skills/unslop/SKILL.md) to application prose in the selected language while preserving facts and personal voice. It must not invent anecdotes or emotions to sound human. These are generation instructions, not a guarantee about model output; no logged-in ChatGPT generation was tested.
 
-## Reusable application context and fit assessment
+## Reusable application context
 
 **About me for applications** on the profile stores a career evidence bank (12,000 characters), writing samples (12,000), a full example cover letter per language (16,000), wording to avoid (3,000), career goals (5,000), and working preferences/dealbreakers (5,000). Draft these using the context in your usual ChatGPT conversation, verify the facts, and paste them into the profile. Save concrete examples with your contribution, outcome, dates and evidence links where available. Identify academic work as academic. Add two or three short pieces of your own writing to guide the voice.
 
 Paste an example into **Example cover letter (English)** in the English profile-content tab and **Beispielanschreiben (Deutsch)** in the Deutsch tab. The matching application-language example guides letter structure, formatting and voice. Former employers, role names, addressees and claims are not copied as facts. Clearing one language leaves the other example intact; missing examples use the standard letter format.
 
 These optional fields are included in copied briefs in both saved-CV and browser-local flows. Writing samples guide style rather than supplying new factual claims. The brief asks ChatGPT to choose relevant verified examples and avoid disclosing private dealbreakers in application prose. The data is stored in profile preferences JSON; no migration is required. Older clients that omit `application_personalization` preserve the saved object; explicitly sending an empty object clears it.
-
-Choose **Assess job fit** in **Brief type**, then **Assess fit in ChatGPT**. The separate assessment compares skills, experience, qualifications, logistics, career direction and working environment. It asks for evidence, gaps, unknowns, dealbreakers, a recommendation and employer questions without an invented percentage score. It stays in ChatGPT; choose **Prepare application documents** to resume document preparation. The fit-assessment action does not call an AI API or retrieve ChatGPT history. Direct document preparation is described above.
 
 ## Original-template DOCX workflow
 
@@ -308,8 +306,8 @@ Deployments apply migration `0028_profile_cv`. The production and CI Dockerfiles
 
 - `tests/test_application_documents.py`: real LaTeX compilation and extractable Unicode/date text, safe literal TeX, DOCX header/body preservation, source downloads, missing compiler/font errors, stale source and unfinished-content rejection.
 - `tests/frontend_application_canvas.mjs`: exact Canvas source survives the executed Python return-link recipes, both import paths and draft reload, with invalid source shapes rejected.
-- `tests/frontend_application_personalization.mjs`: saved evidence/voice/goals/logistics in application and independent fit briefs, and bounded source selection.
-- `tests/frontend_application_personalization_browser.py`: profile edit/reload, fit and application clipboard handoffs, exact Canvas source/CV/letter downloads, source preservation across reload, stale-source invalidation after editing, and mobile overflow checks on an isolated preview. ChatGPT is simulated.
+- `tests/frontend_application_personalization.mjs`: saved evidence/voice/goals/logistics in application briefs and bounded source selection.
+- `tests/frontend_application_personalization_browser.py`: profile edit/reload, application clipboard handoffs, exact Canvas source/CV/letter downloads, source preservation across reload, stale-source invalidation after editing, and mobile overflow checks on an isolated preview. ChatGPT is simulated.
 - `tests/test_profile_cv.py`: persistence, replacement validation, profile isolation/deletion, stream size limits, original download, template export, stale source rejection and migration round trip.
 - `tests/test_cv_realistic.py`: a fictional two-page professional CV; original and concise tailoring retain two pages, while deliberate longer/stress content reflows to three/five; compare both header/footer crops, formatting/ZIP parts, every paragraph and PDF word bounds.
 - `tests/frontend_application_ready_browser.py`: the realistic CV returns directly to downloads with editing hidden, PDF stays two pages, DOCX parts/source survive, bad imports preserve completed documents, and unfinished manual text cannot export.

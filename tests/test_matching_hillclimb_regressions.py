@@ -229,7 +229,8 @@ class ApplicabilityJudgmentTests(unittest.TestCase):
         result = match_job({'title': 'Director', 'description':
                             'Core work: manage department heads and approve budgets. '
                             'Mandatory: at least 12 years of professional leadership and six years managing managers.'}, self.profile)
-        unknowns = ' '.join(result['unknowns']).lower()
+        # Unverifiable scoped tenure is surfaced as a soft conflict, not a gate.
+        unknowns = ' '.join(result['unknowns'] + result['soft_conflicts']).lower()
         self.assertIn('managing managers', unknowns)
         self.assertIn('budgets', unknowns)
 

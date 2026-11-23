@@ -23,6 +23,8 @@ from hiring_scraper.app.board_scope import expiry
 router = APIRouter(prefix='/api/v1')
 DAILY_TARGET = 3
 ACTIONABLE = ('new', 'open')
+STRONG_MATCH_SCORE = 65  # the matcher's 'recommended' threshold
+POSSIBLE_MATCH_SCORE = 30
 
 
 def _documents_ready(session: Session, profile_id: int, job_id: int) -> bool:
@@ -56,7 +58,11 @@ def _reason(status: str, ready: bool, score: int | None) -> str:
         return 'Documents are ready to review and send'
     if status == 'open':
         return 'You marked this role as Interested'
-    return f'Strong match ({score})' if score is not None and score >= 0 else 'New in your Journey'
+    if score is not None and score >= STRONG_MATCH_SCORE:
+        return f'Strong match ({score})'
+    if score is not None and score >= POSSIBLE_MATCH_SCORE:
+        return f'Possible match ({score})'
+    return 'New in your Journey'
 
 
 def todays_focus(session: Session, profile_id: int) -> dict:

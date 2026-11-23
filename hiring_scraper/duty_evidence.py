@@ -3,7 +3,7 @@ from functools import lru_cache
 import re
 
 from hiring_scraper.task_alignment import (
-    _academic, _atomic_duties, _excluded, _profile_actions, _semantic_objects,
+    _academic, _atomic_duties, _atomic_job_duties, _excluded, _profile_actions, _semantic_objects,
     _sentences, other_actor,
 )
 
@@ -66,6 +66,17 @@ _ACTION_EQUIVALENTS = {
     'prepare': r'\b(?:prepar\w*|bereit\w*\b.{0,65}\bauf|aufbereit\w*)\b',
     'document': r'\b(?:erfass\w*|protokollier\w*|dokumentier\w*|nachweis\w*)\b',
 }
+_ACTION_EQUIVALENT_PATTERNS = {
+    action: re.compile(pattern, re.I)
+    for action, pattern in _ACTION_EQUIVALENTS.items()
+}
+_DUTY_CLAUSE_SPLIT_RE = re.compile(
+    r'(?<=[.?!])\s+|\s+(?=(?:Du|Sie|Koordiniere|Verantworte|Unterstütze|Optimiere|Plane)\s+)'
+)
+_NON_DUTY_LEAD_RE = re.compile(
+    r'^(?:we|wir|our|unsere?\w*|about|at [A-Z]|experience|you are|du bist bereit)\b',
+    re.I,
+)
 _OWN = re.compile(r'\b(?:own(?:s|ed|ing)?|decision authority|end.to.end responsibility|verantwortest|verantworten|gesamtverantwortung)\b', re.I)
 
 
@@ -89,7 +100,7 @@ def _concepts(text):
 
 def _portable_actions(text, actions):
     actions = set(actions)
-    actions.update(action for action, pattern in _ACTION_EQUIVALENTS.items() if re.search(pattern, text, re.I))
+    actions.update(action for action, pattern in _ACTION_EQUIVALENT_PATTERNS.items() if pattern.search(text))
     return frozenset(actions)
 
 
@@ -110,12 +121,13 @@ def _facts(sources):
     return tuple(facts[:300])
 
 
-def _duty_units(job, legacy_units):
+def _duty_units(job, legacy_units, description_sentences=None):
     units = list(legacy_units)
     description = job.get('description') or ''
-    candidates = []
+    candidates = {}
     explicit = False
-    for quote, scope in _sentences(description):
+    sentences = _sentences(description) if description_sentences is None else description_sentences
+    for quote, scope in sentences:
         heading = _DUTY_HEADING.search(quote)
         if heading:
             # Limit any recovered scope to the next recognizable heading.
@@ -125,33 +137,32 @@ def _duty_units(job, legacy_units):
             explicit = False
             continue
         if scope == 'duties' or explicit:
-            for clause in re.split(r'(?<=[.?!])\s+|\s+(?=(?:Du|Sie|Koordiniere|Verantworte|Unterstütze|Optimiere|Plane)\s+)', quote):
-                candidates.extend(part for part, _ in _atomic_duties(clause))
+            for clause in _DUTY_CLAUSE_SPLIT_RE.split(quote):
+                for part, _ in _atomic_job_duties(clause):
+                    candidates.setdefault(part.casefold().strip(' .'), part)
     if candidates:
         # Prefer posting duties to company introductions and requirements,
         # while retaining explicitly structured feed duties.
         units = [unit for unit in units if unit['job_source'] != 'description' or
-                 any(unit['job_quote'] in clause for clause in candidates)]
+                 any(unit['job_quote'] in clause for clause in candidates.values())]
     existing = {row['job_quote'].casefold().strip(' .') for row in units}
-    for quote in candidates[:60]:
-        if _excluded(quote) or other_actor(quote):
+    for key, quote in candidates.items():
+        if len(units) >= 60:
+            break
+        if key in existing or _excluded(quote) or other_actor(quote):
             continue
         actions = _portable_actions(quote, _profile_actions(quote))
-        key = quote.casefold().strip(' .')
-        if actions and _semantic_objects(quote) and key not in existing:
+        if actions and _semantic_objects(quote):
             units.append({'job_quote': quote, 'job_source': 'description', 'actions': actions, 'id': ''})
             existing.add(key)
     return units[:60]
 
 
-def assess_duties(job, sources, legacy_alignment):
-    facts = _facts(sources)
-    original = {r['id']: r for r in legacy_alignment['requirements']}
-    rows, seen = [], set()
-    role_domains = _domains(job.get('title') or '')
-    for task in _duty_units(job, legacy_alignment['requirements']):
+def analyze_duty_units(job, task_units, description_sentences=None):
+    analyzed, seen = [], set()
+    for task in _duty_units(job, task_units, description_sentences):
         quote = task['job_quote']
-        if re.match(r'^(?:we|wir|our|unsere?\w*|about|at [A-Z]|experience|you are|du bist bereit)\b', quote, re.I):
+        if _NON_DUTY_LEAD_RE.match(quote):
             continue
         actions = _portable_actions(quote, task['actions'])
         if not actions or len(quote.split()) < 3:
@@ -165,6 +176,19 @@ def assess_duties(job, sources, legacy_alignment):
         seen.add(key)
         authority = 'own' in actions or bool(_OWN.search(quote))
         domains = _domains(quote)
+        analyzed.append((task, actions, objects, concepts, authority, domains))
+    return _domains(job.get('title') or ''), analyzed
+
+
+def assess_duties(job, sources, legacy_alignment, *, description_sentences=None, analysis=None):
+    facts = _facts(sources)
+    original = {r['id']: r for r in legacy_alignment['requirements']}
+    rows = []
+    if analysis is None:
+        analysis = analyze_duty_units(job, legacy_alignment['requirements'], description_sentences)
+    role_domains, units = analysis
+    for task, actions, objects, concepts, authority, domains in units:
+        quote = task['job_quote']
         specialized = bool(concepts & {'budget', 'launch'})
         best = (0., '', '', 'unspecified')
         old = original.get(task['id'], {})

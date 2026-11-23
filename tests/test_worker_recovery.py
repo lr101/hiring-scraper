@@ -16,7 +16,6 @@ class WorkerRecoveryTests(unittest.TestCase):
     def test_profile_match_loop_retries_conflicts_without_exiting(self):
         with patch.object(profile_match_worker, 'refresh_profile_match_indexes_once',
                           side_effect=[ProfileIndexChanged('inventory changed'), KeyboardInterrupt]), \
-                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker.time, 'sleep'), \
                 self.assertLogs(profile_match_worker.LOG, level='WARNING'):
             with self.assertRaises(KeyboardInterrupt):
@@ -25,9 +24,7 @@ class WorkerRecoveryTests(unittest.TestCase):
     def test_profile_worker_runs_automatic_preparation(self):
         with patch.object(profile_match_worker, 'refresh_profile_match_indexes_once', side_effect=[None, KeyboardInterrupt]), \
                 patch.object(profile_match_worker, 'refresh_semantic_documents_once'), \
-                patch.object(profile_match_worker, 'refresh_llm_scores_once'), \
                 patch.object(profile_match_worker, 'prepare_once') as prepare, \
-                patch.object(profile_match_worker, 'matching_loop', lambda stop: None), \
                 patch.object(profile_match_worker.time, 'sleep'):
             with self.assertRaises(KeyboardInterrupt):
                 profile_match_worker.main()

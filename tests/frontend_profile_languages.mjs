@@ -13,7 +13,7 @@ assert.equal(profileForLanguage(changed,'de').application_details.preferences.no
 assert.equal(profileForLanguage(changed,'en').application_details.email,'new@example.org')
 assert.equal(profileForLanguage(changed,'de').custom_instructions,undefined)
 console.log('Independent narratives and shared contact/salary persistence passed')
-const { buildApplicationPrompt, buildFitAssessmentPrompt } = await import('../frontend/src/applicationHandoff.ts')
+const { buildApplicationPrompt } = await import('../frontend/src/applicationHandoff.ts')
 const profile={...base,id:7,name:'Alex',localized_content:{de:{summary:'Deutsches Profil',custom_instructions:'Sachlich schreiben.',application_personalization:{career_evidence:'Deutsche Belege'}}}}
 const job={id:3,title:'Entwickler',company_name:'Labs',url:'https://example.org/job',description:'Deutsch'}
 const prompt=buildApplicationPrompt({job,profile,language:'German'})
@@ -21,10 +21,7 @@ assert.match(prompt,/Erstelle meine Bewerbung/)
 assert.ok(prompt.includes('Deutsches Profil'))
 assert.ok(!prompt.includes('English voice'))
 assert.ok(prompt.includes('Sachlich schreiben.'))
-const fit=buildFitAssessmentPrompt({job,profile,language:'German'})
-assert.ok(fit.includes('Deutsches Profil'))
-assert.ok(!fit.includes('English voice'))
-console.log('German website application and fit briefs use the matching profile')
+console.log('German website application briefs use the matching profile')
 const germanLinked=buildApplicationPrompt({job,profile,language:'German',handoff:{job_id:3,profile_id:7,cv_updated_at:'r1',return_url:'https://radius.example/jobs/3/apply?profile_id=7'}})
 const recipe=germanLinked.match(/RETURN_LINK_RECIPE_BEGIN\n([\s\S]*?)\nRETURN_LINK_RECIPE_END/)[1]
 const { execFileSync } = await import('node:child_process')

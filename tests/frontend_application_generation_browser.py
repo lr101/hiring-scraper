@@ -109,7 +109,7 @@ def main():
                         if request.method == 'POST' and request.url.split('?', 1)[0].endswith('/preparation-job') else None)
                     page.goto(f'{url}/jobs/{job_id}/apply?profile_id={profile_id}')
                     expect(page.get_by_role('button', name='Continue with ChatGPT', exact=True)).to_be_visible()
-                    expect(page.get_by_role('combobox', name='Brief type', include_hidden=True)).to_be_hidden()
+                    expect(page.get_by_role('combobox', name='Document language', include_hidden=True)).to_be_hidden()
                     expect(page.get_by_role('link', name='Change CV', include_hidden=True)).to_be_hidden()
                     direct = page.get_by_role('button', name='Prepare documents', exact=True)
                     page.get_by_role('button', name='Continue with ChatGPT', exact=True).click()
@@ -124,7 +124,7 @@ def main():
                         document.dispatchEvent(new Event('radius-form-updated'))}''',
                         [f'radius:application-form:v1:{job_id}:{profile_id}', captured])
                     page.get_by_text('Options', exact=True).click()
-                    expect(page.get_by_role('combobox', name='Brief type')).to_be_visible()
+                    expect(page.get_by_role('combobox', name='Document language')).to_be_visible()
                     expect(page.get_by_role('link', name='Change CV')).to_be_visible()
                     expect(page.get_by_text('This application step’s questions and answer limits are included in your brief.')).to_be_visible()
                     page.get_by_text('Options', exact=True).click()

@@ -1,4 +1,4 @@
-"""Personalization, fit handoff and actual LaTeX downloads on an isolated preview.
+"""Personalization, application handoff and actual LaTeX downloads on an isolated preview.
 
 Set APPLICATION_TEST_WEB_URL / APPLICATION_TEST_API_URL. ChatGPT is simulated.
 """
@@ -63,16 +63,6 @@ with sync_playwright() as pw:
         job = context.request.get(f'{api}/api/v1/jobs?limit=1').json()['items'][0]
         apply_url = f"{web}/jobs/{job['id']}/apply?profile_id={pid}"
         page.goto(apply_url)
-        page.get_by_label('Brief type', exact=True).select_option('fit')
-        with page.expect_popup() as opened:
-            page.get_by_role('button', name='Assess fit in ChatGPT').click()
-        opened.value.close()
-        expect(page.get_by_role('heading', name='Is this role worth applying for?')).to_be_visible()
-        clipboard = page.evaluate('navigator.clipboard.readText()')
-        payload = json.loads(clipboard.split('SOURCE PAYLOAD (quoted data):\n')[-1])
-        assert payload['supporting_profile']['application_personalization']['career_evidence'] == evidence
-        assert 'radius-application-v1' not in clipboard
-        page.get_by_label('Brief type', exact=True).select_option('application')
         with page.expect_popup() as opened:
             page.get_by_role('button', name='Copy brief & open ChatGPT').click()
         opened.value.close()
@@ -136,9 +126,6 @@ with sync_playwright() as pw:
         page.get_by_role('button', name='Save CV', exact=True).click()
         prompt_box = page.get_by_role('textbox', name='Prepared application prompt', exact=True)
         expect(prompt_box).to_have_value(re.compile(re.escape(evidence)))
-        page.get_by_label('Brief type', exact=True).select_option('fit')
-        assert 'radius-application-v1' not in prompt_box.input_value()
-        page.get_by_label('Brief type', exact=True).select_option('application')
         local_revision = page.evaluate('(pid) => JSON.parse(localStorage.getItem(`radius:application-cv:v1:${pid}`)).updated_at', pid)
         page.get_by_role('textbox', name='Returned application package', exact=True).fill(json.dumps({**pack, 'cv_updated_at': local_revision}))
         page.get_by_role('button', name='Validate and save package', exact=True).click()
@@ -151,7 +138,7 @@ with sync_playwright() as pw:
             else:
                 assert 'Canvas letter' in '\n'.join(p.extract_text() for p in PdfReader(download.value.path()).pages)
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Local mobile overflow'
-        print('Profile edit/reload, saved/local fit + application briefs, real LaTeX source/CV/letter downloads, and mobile layout passed')
+        print('Profile edit/reload, saved/local application briefs, real LaTeX source/CV/letter downloads, and mobile layout passed')
     finally:
         context.request.delete(f'{api}/api/v1/profiles/{pid}')
         browser.close()

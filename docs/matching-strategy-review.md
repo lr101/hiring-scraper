@@ -14,79 +14,46 @@ solve the missing job-side requirements.
 
 ## Decision
 
-Use local rules and semantic similarity for inexpensive candidate preselection,
-then AI requirement assessment for selected jobs. The worker drains a durable queue of every active, non-expired job in the saved
-search area, including unfamiliar wording and low local scores. Known
-incompatibilities constrain published judgments; source checks and subscription
-limits remain enforced. This is a recall-oriented shortlist, not
-proof of fit. Local numbers shown in Radius retain their evidence-based calibration and remain provisional;
-the local/AI source and connection or quota status remain distinguishable.
-Saved minimum-score filters can admit grounded local estimates without waiting for AI.
-These filters do not prevent the worker from considering the provisional shortlist. Local eligibility
-restrictions continue to apply.
+Rank jobs locally only, using deterministic rules (`matching.py`, `requirements.py`,
+`duty_evidence.py`, `task_alignment.py`) combined with local multilingual semantic
+evidence (`semantic_matching.py`, cached in `match_semantic_documents`). AI job-fit
+assessment for ranking has been removed (its tables are dropped by migration
+`0043_drop_ai_assessment`, which also invalidates legacy derived match state for a
+clean local rebuild while preserving user-set Journey stages). AI requirement
+grounding remains strictly inside the application drafting workflow.
 
-The AI must identify the job's main responsibilities, domain expertise and
-seniority independently of the applicant's skills. It marks requirements as core
-or supporting, quotes job and applicant sources, and distinguishes direct support,
-transferable evidence, explicit missing qualifications and unknowns. Goals,
-writing examples and desired titles cannot establish existing abilities. Literal
-source checks verify provenance, not interpretation or extraction completeness.
+Structured feed leaves retain their own source paths and required/preferred scope.
+HTML heading levels end sibling sections without erasing child scope. Local matching
+receives the explicit CV work/study projection while keeping contacts and CV headers
+excluded. Unscoped authorization flags are excluded from matching evidence; unknown
+legal eligibility is never inferred from a generic form answer.
 
-The skills/experience qualification estimate cannot exceed demonstrated role
-evidence. Career/working-style preferences are scored separately. Core
-requirements have an 85-point budget and supporting requirements at most 15;
-without supporting requirements the core budget is 100. Within each group,
-preferred requirements have quarter weight, direct support earns full credit and
-close transferable evidence 80% credit and adjacent transfer half credit. Unknown and missing evidence add no demonstrated
-credit. Unresolved core tasks reduce aggregate evidence rather than imposing a blanket 59 cap.
-They still prevent a Recommended label. Without
-identified core work the evidence ceiling is zero. A list of matching generic
-tools or favorable preferences cannot lift that ceiling.
+Static matching uses documented duty coverage when a posting has several identifiable
+responsibilities and the profile provides distinct work examples. The scorer checks
+the performed action, deliverable, specialist context, and responsibility before
+awarding direct or transferable credit. Sparse postings and profiles with limited
+work evidence retain provisional discovery signals. The job detail shows the duty
+excerpts and supporting profile evidence.
 
-Requirement category is separate from mandatory/preferred priority. Formal
-education, credentials, languages, location, work authorization and workplace
+Requirement category stays separate from mandatory/preferred priority. Formal
+education, credentials, languages, location, work authorization, and workplace
 conditions constrain eligibility rather than task evidence arithmetic. Unknown
-mandatory formal or legal prerequisites trigger explicit eligibility review; they
-do not establish an applicant incompatibility. A verified independent conflict
-cannot be cleared by supporting another prerequisite.
+mandatory formal or legal prerequisites stay visible as uncertain rather than
+silently passing or proving applicant incompatibility.
 
-Structured feed leaves retain their own source paths and required/preferred
-scope. HTML heading levels end sibling sections without erasing child scope.
-Both local and AI matching receive the same explicit CV work/study projection;
-contacts and CV headers remain excluded. Provider citation options retain parent
-scope and explicit degree completion state. One transient transport timeout may
-retry through the normal lock/quota guard, separately from one grounding repair.
+Local multilingual section embeddings supplement exact vocabulary matching so
+unfamiliar wording and paraphrases still surface as explained leads without sending
+profile or job data to a remote model or coupling ranking to subscription quotas.
 
-Static matching uses documented duty coverage when a posting has several
-identifiable responsibilities and the profile provides distinct work examples.
-The scorer checks the performed action, deliverable, specialist context, and
-responsibility before awarding direct or transferable credit. Sparse postings
-and profiles with limited work evidence retain provisional discovery signals.
-The job detail shows the duty excerpts and supporting profile evidence. Formal
-qualifications, language, and preferences still affect the shortlist score
-through separate checks.
+## Why local-only ranking?
 
-These are explicit conservative starting rules, not empirically calibrated hiring
-probabilities. Evidence completeness is shown separately so absence of evidence is
-not mistaken for proven inability. Unknowns are excluded from the separate
-known-evidence coverage diagnostic, but remain in the demonstrated-evidence ceiling.
-
-## Why not rely exclusively on a stronger static score?
-
-The static scorer extracts duties and checks them against documented role scope
-and domain evidence. Its vocabulary covers established task equivalents. Unseen
-professions, novel paraphrases, and role-specific priorities can still require
-contextual interpretation. AI assessment provides an independent reading of
-those requirements and the applicant evidence.
-
-AI also has failure modes: misclassifying a supporting skill as core, omitting a
-requirement, misreading a source quote, or overvaluing an adjacent project. A
-successful quote check cannot rule these out. No live-model quality improvement
-is claimed by synthetic transport tests. Provider citations select bound source/
-excerpt references; the application resolves and validates them before caching.
-An invalid semantic status or gate can receive one guarded reconciliation pass.
-Unscoped authorization flags are excluded from matching evidence; unknown legal
-eligibility cannot be inferred from a generic form answer.
+Removing the AI ranking queue keeps job matching deterministic, fast, private, and
+independent of ChatGPT subscription limits. An earlier AI ranking queue carried
+inherent failure modes — misclassifying supporting skills as core, omitting
+requirements, misreading source quotes, and coupling Journey freshness to external
+quotas — while duplicating work better handled locally. Deep requirement grounding
+and independent document review remain part of **Prepare inside Radius** when
+drafting an actual application.
 
 ## Remaining evaluation
 
@@ -99,51 +66,14 @@ ranking so that a sample dominated by low-fit jobs does not conceal recall gaps.
 
 The current regression tests establish deterministic safeguards: many supporting
 matches cannot compensate for unknown core work, required gaps stay visible,
-stale assessments fall back to provisional estimates, and sparse postings can be
-processed without fabricating a requirement. They do not replace the judged-job
-benchmark.
-## Full AI coverage and combining scores
+stale rows refresh through the local worker without blocking reads, and sparse
+postings can be processed without fabricating requirements. They do not replace
+the judged-job benchmark.
 
-Static matching and cached local embeddings provide provisional estimates while
-AI reviews all active, in-scope, non-expired jobs. There is no static-score,
-employer, shortlist, or local five-hour call cap. Queue state, retry times, and
-fenced expiring claims are durable. Four provider requests can run concurrently by
-default (`RADIUS_MATCH_AI_CONCURRENCY`); actual subscription availability gates
-every attempt, including repairs and transport retries. Exhaustion pauses dispatch
-and capacity recovery resumes it. Calls already in flight can finish afterward.
+## Local refresh pipeline
 
-Use a current grounded AI requirement judgment when available; never average
-scores with different meanings or let favorable AI preferences clear known static
-incompatibilities. Cached judgments invalidate on relevant source/model changes.
-AI publication refreshes Journey's stored match ranks before pagination. Existing
-eligible entries move down when their score falls, even below the new-entry
-minimum, instead of disappearing solely due to the new score.
-
-## Diagnosing a stalled assessment queue
-
-The profile matching worker runs a separate concurrent AI scheduler alongside
-local index pages, dirty jobs, semantic embeddings, and automatic preparation.
-A pending or failed index page must not skip later stages: AI selection reads
-current source facts directly and validates them again before saving an answer.
-Shortlist preparation also runs before quota checks so a connection pause does
-not prevent the worker from persisting its selection.
-
-When Settings shows queued pairs but no successful assessment:
-
-- Confirm background workers are enabled (`RUN_BACKGROUND_WORKERS=true`) and
-  look for `profile match worker started` in the app logs. The status endpoint's
-  `worker_health: unknown` means no heartbeat is recorded; `stale` means the
-  scheduler has not reported within 90 seconds.
-- Check `selection_pending`: counts become available after the initial queue
-  reconciliation. `indexing_pending` does not block AI work.
-- Check subscription availability. A zero usage percentage alone does not
-  establish that inference is allowed. There is no separate application call cap.
-- Look for `Profile assessment deferred` entries. They identify the candidate and
-  exception type without logging prompts, applicant facts, or provider responses.
-  Failed candidates use durable exponential backoff, allowing other candidates
-  to proceed. Repeated errors need investigation of the runtime or validation
-  path; do not bypass eligibility, quota, or source validation to drain a queue.
-
-Deploy worker changes with an application restart. Verify that a permitted
-candidate produces a saved assessment and advances `last_assessed_at` on the
-actual deployment; passing local tests cannot confirm production runtime access.
+The profile match worker (`app.profile_match_worker`) backfills stale profiles in
+bounded, restartable pages (`profile_match_progress`), refreshes local semantic
+section vectors (`match_semantic_documents`), and drains changed jobs from
+`match_dirty_jobs`. Each stage runs independently so a transient failure in one
+stage does not block the others, and HTTP reads never run model inference inline.

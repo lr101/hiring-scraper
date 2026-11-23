@@ -64,23 +64,15 @@ class ApplicationGenerationTests(unittest.TestCase):
             'job_quote': 'Coordinate product requirements.', 'evidence_source': 'profile.summary',
             'evidence_quote': 'Product coordination', 'explanation': 'Adjacent coordination experience.'}]}
 
-    def cache_assessment(self):
-        from hiring_scraper.app import profile_llm
-        from test_llm_profile_matching import assessment
-        profile = self.session.get(models.UserProfile, self.profile_id)
-        job = self.session.get(models.Job, self.job_id)
-        raw = {**assessment(), **self.requirements()}
-        for dimension in raw['dimensions'].values():
-            dimension.update(evidence_source='profile.summary', evidence_quote='Product coordination')
-        digest = profile_llm.source_hash(job, profile)
-        row = self.session.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
-        if row is None:
-            row = models.ProfileLLMScore(profile_id=self.profile_id, job_id=self.job_id)
-            self.session.add(row)
-        row.version, row.source_hash, row.assessment = profile_llm.VERSION, digest, raw
-        self.session.commit()
+    def _with_shared_requirements(self, module):
+        original = module._snapshot
+        requirements = self.requirements()['requirements']
+        def wrapped(*args, **kwargs):
+            data, revision = original(*args, **kwargs)
+            return {**data, 'shared_requirements': requirements}, revision
+        return patch.object(module, '_snapshot', side_effect=wrapped)
 
-    def test_preparation_assesses_evidence_before_drafting_when_cache_is_missing(self):
+    def test_preparation_assesses_evidence_before_drafting(self):
         m = self.module()
         seen = []
         def provider(prompt, schema, **kwargs):
@@ -94,18 +86,6 @@ class ApplicationGenerationTests(unittest.TestCase):
         self.assertEqual(seen, ['RequirementAssessment', 'GeneratedDocuments'])
         self.assertIn('Product coordination', result['package']['cv'])
 
-    def test_current_matching_evidence_is_reused_and_cache_arrival_does_not_change_revision(self):
-        m = self.module()
-        _, before = m._snapshot(self.profile_id, self.request(), self.session)
-        self.cache_assessment()
-        data, after = m._snapshot(self.profile_id, self.request(), self.session)
-        self.assertEqual(before, after)
-        self.assertEqual(data['shared_requirements'], self.requirements()['requirements'])
-        with patch.object(m.codex_runtime, 'generate', return_value=self.documents()) as provider:
-            m.prepare_application(self.profile_id, self.request(mode='fast'), self.session)
-        self.assertEqual(provider.call_count, 1)
-        self.assertIn('Adjacent coordination experience.', provider.call_args.args[0])
-
     def test_sparse_posting_prepares_without_inventing_requirement_evidence(self):
         m = self.module()
         self.session.get(models.Job, self.job_id).description = 'Details to follow.'
@@ -118,7 +98,6 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_final_grounding_failure_never_publishes_revised_documents(self):
         m = self.module()
-        self.cache_assessment()
         def provider(prompt, schema, **kwargs):
             if schema['title'] == 'FinalContentReview':
                 return {'summary': 'Unsupported achievement.', 'findings': [{'document': 'cover_letter',
@@ -151,6 +130,8 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def transport(self, result):
         def respond(prompt, schema, **kwargs):
+            if schema['title'] == 'RequirementAssessment':
+                return self.requirements()
             if schema['title'] == 'FinalContentReview':
                 return {'summary': 'Revised wording is grounded.', 'findings': []}
             if schema['title'] == 'ApplicationReview':
@@ -162,8 +143,9 @@ class ApplicationGenerationTests(unittest.TestCase):
         return respond
 
     def generate(self, **changes):
-        self.cache_assessment()
-        return self.module().prepare_application(self.profile_id, self.request(**changes), self.session)
+        m = self.module()
+        with self._with_shared_requirements(m):
+            return m.prepare_application(self.profile_id, self.request(**changes), self.session)
 
     def test_invalid_cv_format_is_repaired_once_and_revalidated(self):
         m = self.module()
@@ -312,8 +294,8 @@ class ApplicationGenerationTests(unittest.TestCase):
     def test_retry_keeps_recovery_notes_with_validated_draft(self):
         m = self.module()
         original = self.macro_source()
-        self.cache_assessment()
         data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        data = {**data, 'shared_requirements': self.requirements()['requirements']}
         class Control:
             def __init__(self): self.values = {}
             def __call__(self, stage): pass
@@ -335,10 +317,9 @@ class ApplicationGenerationTests(unittest.TestCase):
     def test_recovery_notes_follow_the_document_language(self):
         m = self.module()
         original = self.macro_source()
-        self.cache_assessment()
         response = {key: value for key, value in self.documents().items() if key != 'latex_documents'}
         response['cv_edits'] = [{'name': 'RadiusWorkOne', 'text': 'x' * 100}]
-        with patch.object(m.codex_runtime, 'generate', side_effect=[response, {'cv_edits': []}]):
+        with patch.object(m.codex_runtime, 'generate', side_effect=[self.requirements(), response, {'cv_edits': []}]):
             result = m.prepare_application(self.profile_id,
                 self.request(mode='fast').model_copy(update={'language': 'de'}), self.session)
         self.assertEqual(result['package']['latex_documents']['cv'], original)
@@ -720,7 +701,6 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_selected_language_cover_letter_example_reaches_authoritative_context(self):
         m = self.module()
-        self.cache_assessment()
         profile = self.session.get(models.UserProfile, self.profile_id)
         profile.preferences = {**profile.preferences,
             'application_personalization': {'cover_letter_example': 'English example for voice.'},
@@ -854,8 +834,8 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_long_successful_turns_leave_time_for_final_review(self):
         m = self.module()
-        self.cache_assessment()
         data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        data = {**data, 'shared_requirements': self.requirements()['requirements']}
         elapsed = [0]
         review = {'recommendation': 'possible', 'summary': 'Relevant experience.',
                   'requirements': [{'requirement': 'Coordination', 'priority': 'required', 'status': 'supported', 'evidence': 'Saved experience'}], 'findings': [], 'keywords': []}
@@ -871,8 +851,8 @@ class ApplicationGenerationTests(unittest.TestCase):
 
     def test_retry_reuses_validated_draft_after_review_timeout(self):
         m = self.module()
-        self.cache_assessment()
         data, _ = m._snapshot(self.profile_id, self.request(), self.session)
+        data = {**data, 'shared_requirements': self.requirements()['requirements']}
         class Control:
             def __init__(self): self.values = {}
             def __call__(self, stage): pass

@@ -700,7 +700,7 @@ if [[ "$local_semantics" == true ]]; then
   semantic_worker_pid=$!
 fi
 if [[ "$profile_matching" == true ]]; then
-  # Without a local embedding process, keep the rules/Luna worker available
+  # Without a local embedding process, keep the local rules worker available
   # without contacting an unrelated embedding service on the host.
   profile_embedding_url="http://127.0.0.1:${semantic_port:-9}/embed"
   (

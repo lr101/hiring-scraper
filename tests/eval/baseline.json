@@ -1,0 +1,670 @@
+{
+  "v1": {
+    "dataset": "public",
+    "matcher": "v1",
+    "matcher_version": "rules-v51-safe-subset",
+    "split": "all",
+    "calibration_mapping": {
+      "0": {
+        "band": [
+          0,
+          29
+        ],
+        "target": 0.15
+      },
+      "1": {
+        "band": [
+          30,
+          59
+        ],
+        "target": 0.45
+      },
+      "2": {
+        "band": [
+          60,
+          79
+        ],
+        "target": 0.7
+      },
+      "3": {
+        "band": [
+          80,
+          100
+        ],
+        "target": 0.9
+      }
+    },
+    "counts": {
+      "total": 224,
+      "profiles": 6,
+      "pairs": 18,
+      "should_hide": 36,
+      "by_split": {
+        "dev": 154,
+        "heldout": 70
+      },
+      "by_language": {
+        "de": 116,
+        "en": 108
+      },
+      "by_profile": {
+        "junior_proto": 39,
+        "ld_specialist": 33,
+        "logistics_lead": 42,
+        "ops_analyst": 44,
+        "pc_manufacturing": 33,
+        "po_fintech": 33
+      },
+      "by_grade": {
+        "0": 54,
+        "1": 88,
+        "2": 45,
+        "3": 37
+      },
+      "by_tag": {
+        "company_boast": 8,
+        "fitting": 82,
+        "hard_hide_cefr": 15,
+        "hard_hide_declined_onsite": 5,
+        "hard_hide_excluded_term": 12,
+        "hard_hide_work_permit": 4,
+        "keyword_trap": 11,
+        "long_clause": 5,
+        "metadata_only_onsite": 2,
+        "near_miss": 88,
+        "non_fitting": 54,
+        "or_alternative": 7,
+        "qualitative_language": 13,
+        "seniority_gap": 9,
+        "sponsorship_alternative": 5
+      }
+    },
+    "overall": {
+      "count": 224,
+      "pair_count": 18,
+      "should_hide": 36,
+      "ndcg_at_10": 0.7143,
+      "precision_at_10": 0.7833,
+      "pairwise_auc": 0.7628,
+      "hide_precision": 0.4177,
+      "hide_recall": 0.9167,
+      "good_hidden_rate": 0.122,
+      "de_en_parity": 20.8889,
+      "pair_eligibility_disagreement": 0.0556,
+      "lang_auc_gap": 0.0388,
+      "band_error": 0.1494,
+      "ece": 0.2725,
+      "strong_reach_80": 0.1765,
+      "good_in_band": 0.0263,
+      "irrelevant_below_30": 0.8276,
+      "max_value_share": 0.2345,
+      "spread_p5_p95": 85.0,
+      "max_score": 100.0,
+      "lang_visa_ablated_count": 104,
+      "lang_visa_mean_abs_delta": 2.6154,
+      "lang_visa_max_delta": 10.0,
+      "lang_visa_band_jumps": 0.0,
+      "score_spread": {
+        "std": 25.1939,
+        "distinct_count": 44,
+        "plateau_fraction": 0.2679,
+        "plateau_counts": {
+          "29": 16,
+          "59": 42,
+          "85": 2
+        }
+      }
+    },
+    "by_language": {
+      "de": {
+        "count": 116,
+        "ndcg_at_10": 0.7292,
+        "pairwise_auc": 0.7674,
+        "mean_score": 31.9741,
+        "mean_score_by_grade": {
+          "0": 14.14,
+          "1": 27.37,
+          "2": 44.63,
+          "3": 58.42
+        },
+        "count_by_grade": {
+          "0": 29,
+          "1": 49,
+          "2": 19,
+          "3": 19
+        }
+      },
+      "en": {
+        "count": 108,
+        "ndcg_at_10": 0.6391,
+        "pairwise_auc": 0.7286,
+        "mean_score": 30.9907,
+        "mean_score_by_grade": {
+          "0": 9.4,
+          "1": 25.59,
+          "2": 46.27,
+          "3": 50.61
+        },
+        "count_by_grade": {
+          "0": 25,
+          "1": 39,
+          "2": 26,
+          "3": 18
+        }
+      }
+    },
+    "hard_hide_recall": {
+      "hard_hide_cefr": {
+        "count": 15,
+        "hide_recall": 0.8667
+      },
+      "hard_hide_excluded_term": {
+        "count": 12,
+        "hide_recall": 1.0
+      },
+      "hard_hide_declined_onsite": {
+        "count": 5,
+        "hide_recall": 1.0
+      },
+      "hard_hide_work_permit": {
+        "count": 4,
+        "hide_recall": 0.75
+      }
+    },
+    "by_split": {
+      "dev": {
+        "count": 154,
+        "pair_count": 13,
+        "should_hide": 22,
+        "ndcg_at_10": 0.7052,
+        "precision_at_10": 0.7333,
+        "pairwise_auc": 0.7367,
+        "hide_precision": 0.4167,
+        "hide_recall": 0.9091,
+        "good_hidden_rate": 0.1231,
+        "de_en_parity": 20.9231,
+        "pair_eligibility_disagreement": 0.0769,
+        "lang_auc_gap": 0.0631,
+        "band_error": 0.1733,
+        "ece": 0.2859,
+        "strong_reach_80": 0.125,
+        "good_in_band": 0.0303,
+        "irrelevant_below_30": 0.7895,
+        "max_value_share": 0.217,
+        "spread_p5_p95": 79.25,
+        "max_score": 100.0,
+        "lang_visa_ablated_count": 76,
+        "lang_visa_mean_abs_delta": 2.5263,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 25.2065,
+          "distinct_count": 37,
+          "plateau_fraction": 0.2727,
+          "plateau_counts": {
+            "29": 11,
+            "59": 30,
+            "85": 1
+          }
+        },
+        "by_language": {
+          "de": {
+            "count": 85,
+            "ndcg_at_10": 0.6215,
+            "pairwise_auc": 0.7503,
+            "mean_score": 32.3412,
+            "mean_score_by_grade": {
+              "0": 18.0,
+              "1": 26.23,
+              "2": 44.0,
+              "3": 54.79
+            },
+            "count_by_grade": {
+              "0": 20,
+              "1": 35,
+              "2": 16,
+              "3": 14
+            }
+          },
+          "en": {
+            "count": 69,
+            "ndcg_at_10": 0.5597,
+            "pairwise_auc": 0.6872,
+            "mean_score": 32.4348,
+            "mean_score_by_grade": {
+              "0": 8.5,
+              "1": 22.64,
+              "2": 47.13,
+              "3": 46.17
+            },
+            "count_by_grade": {
+              "0": 12,
+              "1": 22,
+              "2": 23,
+              "3": 12
+            }
+          }
+        },
+        "hard_hide_recall": {
+          "hard_hide_cefr": {
+            "count": 9,
+            "hide_recall": 0.8889
+          },
+          "hard_hide_excluded_term": {
+            "count": 7,
+            "hide_recall": 1.0
+          },
+          "hard_hide_declined_onsite": {
+            "count": 2,
+            "hide_recall": 1.0
+          },
+          "hard_hide_work_permit": {
+            "count": 4,
+            "hide_recall": 0.75
+          }
+        }
+      },
+      "heldout": {
+        "count": 70,
+        "pair_count": 5,
+        "should_hide": 14,
+        "ndcg_at_10": 0.7224,
+        "precision_at_10": 0.25,
+        "pairwise_auc": 0.7527,
+        "hide_precision": 0.4194,
+        "hide_recall": 0.9286,
+        "good_hidden_rate": 0.1176,
+        "de_en_parity": 20.8,
+        "pair_eligibility_disagreement": 0.0,
+        "lang_auc_gap": 0.0047,
+        "band_error": 0.0846,
+        "ece": 0.2431,
+        "strong_reach_80": 0.3,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 0.9,
+        "max_value_share": 0.2821,
+        "spread_p5_p95": 85.7,
+        "max_score": 100.0,
+        "lang_visa_ablated_count": 28,
+        "lang_visa_mean_abs_delta": 2.8571,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 25.0569,
+          "distinct_count": 24,
+          "plateau_fraction": 0.2571,
+          "plateau_counts": {
+            "29": 5,
+            "59": 12,
+            "85": 1
+          }
+        },
+        "by_language": {
+          "de": {
+            "count": 31,
+            "ndcg_at_10": 0.8733,
+            "pairwise_auc": 0.8004,
+            "mean_score": 30.9677,
+            "mean_score_by_grade": {
+              "0": 5.56,
+              "1": 30.21,
+              "2": 48.0,
+              "3": 68.6
+            },
+            "count_by_grade": {
+              "0": 9,
+              "1": 14,
+              "2": 3,
+              "3": 5
+            }
+          },
+          "en": {
+            "count": 39,
+            "ndcg_at_10": 0.8659,
+            "pairwise_auc": 0.8051,
+            "mean_score": 28.4359,
+            "mean_score_by_grade": {
+              "0": 10.23,
+              "1": 29.41,
+              "2": 39.67,
+              "3": 59.5
+            },
+            "count_by_grade": {
+              "0": 13,
+              "1": 17,
+              "2": 3,
+              "3": 6
+            }
+          }
+        },
+        "hard_hide_recall": {
+          "hard_hide_cefr": {
+            "count": 6,
+            "hide_recall": 0.8333
+          },
+          "hard_hide_excluded_term": {
+            "count": 5,
+            "hide_recall": 1.0
+          },
+          "hard_hide_declined_onsite": {
+            "count": 3,
+            "hide_recall": 1.0
+          }
+        }
+      }
+    },
+    "per_profile": {
+      "junior_proto": {
+        "count": 39,
+        "pair_count": 4,
+        "ndcg_at_10": 0.6821,
+        "precision_at_10": 0.9,
+        "pairwise_auc": 0.7494,
+        "hide_precision": 0.2105,
+        "hide_recall": 0.8,
+        "good_hidden_rate": 0.2143,
+        "de_en_parity": 4.75,
+        "pair_eligibility_disagreement": 0.25,
+        "band_error": 0.1645,
+        "ece": 0.3151,
+        "strong_reach_80": 0.0,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 1.0,
+        "max_value_share": 0.15,
+        "spread_p5_p95": 59.0,
+        "max_score": 59.0,
+        "lang_visa_ablated_count": 17,
+        "lang_visa_mean_abs_delta": 2.9412,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 21.1652,
+          "distinct_count": 16,
+          "plateau_fraction": 0.2051,
+          "plateau_counts": {
+            "29": 3,
+            "59": 5,
+            "85": 0
+          }
+        }
+      },
+      "ld_specialist": {
+        "count": 33,
+        "pair_count": 3,
+        "ndcg_at_10": 0.8857,
+        "precision_at_10": 0.7,
+        "pairwise_auc": 0.7727,
+        "hide_precision": 0.4,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.4167,
+        "de_en_parity": 32.3333,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1713,
+        "ece": 0.387,
+        "strong_reach_80": 0.1667,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 0.0,
+        "max_value_share": 0.625,
+        "spread_p5_p95": 59.1,
+        "max_score": 95.0,
+        "lang_visa_ablated_count": 8,
+        "lang_visa_mean_abs_delta": 1.875,
+        "lang_visa_max_delta": 5.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 24.2614,
+          "distinct_count": 17,
+          "plateau_fraction": 0.303,
+          "plateau_counts": {
+            "29": 2,
+            "59": 8,
+            "85": 0
+          }
+        }
+      },
+      "logistics_lead": {
+        "count": 42,
+        "pair_count": 7,
+        "ndcg_at_10": 0.7132,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.7428,
+        "hide_precision": 0.5385,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.0556,
+        "de_en_parity": 26.4286,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.2272,
+        "ece": 0.3333,
+        "strong_reach_80": 0.1429,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 0.75,
+        "max_value_share": 0.2414,
+        "spread_p5_p95": 59.6,
+        "max_score": 85.0,
+        "lang_visa_ablated_count": 12,
+        "lang_visa_mean_abs_delta": 2.0833,
+        "lang_visa_max_delta": 5.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 24.2802,
+          "distinct_count": 19,
+          "plateau_fraction": 0.2143,
+          "plateau_counts": {
+            "29": 3,
+            "59": 5,
+            "85": 1
+          }
+        }
+      },
+      "ops_analyst": {
+        "count": 44,
+        "pair_count": 2,
+        "ndcg_at_10": 0.6698,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.7748,
+        "hide_precision": 0.2857,
+        "hide_recall": 0.6667,
+        "good_hidden_rate": 0.0,
+        "de_en_parity": 24.0,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1103,
+        "ece": 0.1832,
+        "strong_reach_80": 0.2,
+        "good_in_band": 0.125,
+        "irrelevant_below_30": 0.75,
+        "max_value_share": 0.2703,
+        "spread_p5_p95": 92.0,
+        "max_score": 100.0,
+        "lang_visa_ablated_count": 26,
+        "lang_visa_mean_abs_delta": 2.3846,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 28.4461,
+          "distinct_count": 20,
+          "plateau_fraction": 0.25,
+          "plateau_counts": {
+            "29": 1,
+            "59": 10,
+            "85": 0
+          }
+        }
+      },
+      "pc_manufacturing": {
+        "count": 33,
+        "pair_count": 1,
+        "ndcg_at_10": 0.4853,
+        "precision_at_10": 0.7,
+        "pairwise_auc": 0.6472,
+        "hide_precision": 0.6667,
+        "hide_recall": 1.0,
+        "good_hidden_rate": 0.0714,
+        "de_en_parity": 27.0,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.1848,
+        "ece": 0.2761,
+        "strong_reach_80": 0.0,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 0.8,
+        "max_value_share": 0.1481,
+        "spread_p5_p95": 57.5,
+        "max_score": 85.0,
+        "lang_visa_ablated_count": 17,
+        "lang_visa_mean_abs_delta": 2.9412,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 20.7745,
+          "distinct_count": 22,
+          "plateau_fraction": 0.303,
+          "plateau_counts": {
+            "29": 4,
+            "59": 5,
+            "85": 1
+          }
+        }
+      },
+      "po_fintech": {
+        "count": 33,
+        "pair_count": 1,
+        "ndcg_at_10": 0.8495,
+        "precision_at_10": 0.8,
+        "pairwise_auc": 0.8896,
+        "hide_precision": 0.6667,
+        "hide_recall": 0.8571,
+        "good_hidden_rate": 0.0,
+        "de_en_parity": 0.0,
+        "pair_eligibility_disagreement": 0.0,
+        "band_error": 0.0563,
+        "ece": 0.1461,
+        "strong_reach_80": 0.6,
+        "good_in_band": 0.0,
+        "irrelevant_below_30": 0.8571,
+        "max_value_share": 0.3333,
+        "spread_p5_p95": 88.8,
+        "max_score": 100.0,
+        "lang_visa_ablated_count": 24,
+        "lang_visa_mean_abs_delta": 2.9167,
+        "lang_visa_max_delta": 10.0,
+        "lang_visa_band_jumps": 0.0,
+        "score_spread": {
+          "std": 27.601,
+          "distinct_count": 12,
+          "plateau_fraction": 0.3636,
+          "plateau_counts": {
+            "29": 3,
+            "59": 9,
+            "85": 0
+          }
+        }
+      }
+    },
+    "by_tag": {
+      "company_boast": {
+        "count": 8,
+        "mean_score": 44.625,
+        "hidden_rate": 0.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "fitting": {
+        "count": 82,
+        "mean_score": 49.6585,
+        "hidden_rate": 0.122,
+        "good_hidden_rate": 0.122,
+        "hide_recall": 1.0
+      },
+      "hard_hide_cefr": {
+        "count": 15,
+        "mean_score": 22.7333,
+        "hidden_rate": 0.8667,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.8667
+      },
+      "hard_hide_declined_onsite": {
+        "count": 5,
+        "mean_score": 40.2,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "hard_hide_excluded_term": {
+        "count": 12,
+        "mean_score": 30.5833,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "hard_hide_work_permit": {
+        "count": 4,
+        "mean_score": 48.75,
+        "hidden_rate": 0.75,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.75
+      },
+      "keyword_trap": {
+        "count": 11,
+        "mean_score": 23.6364,
+        "hidden_rate": 0.2727,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "long_clause": {
+        "count": 5,
+        "mean_score": 54.8,
+        "hidden_rate": 0.0,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "metadata_only_onsite": {
+        "count": 2,
+        "mean_score": 45.0,
+        "hidden_rate": 1.0,
+        "good_hidden_rate": 1.0,
+        "hide_recall": 1.0
+      },
+      "near_miss": {
+        "count": 88,
+        "mean_score": 26.5795,
+        "hidden_rate": 0.5,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 0.9032
+      },
+      "non_fitting": {
+        "count": 54,
+        "mean_score": 11.9444,
+        "hidden_rate": 0.463,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "or_alternative": {
+        "count": 7,
+        "mean_score": 43.8571,
+        "hidden_rate": 0.1429,
+        "good_hidden_rate": 0.1429,
+        "hide_recall": 1.0
+      },
+      "qualitative_language": {
+        "count": 13,
+        "mean_score": 51.3077,
+        "hidden_rate": 0.1538,
+        "good_hidden_rate": 0.1538,
+        "hide_recall": 1.0
+      },
+      "seniority_gap": {
+        "count": 9,
+        "mean_score": 23.4444,
+        "hidden_rate": 0.8889,
+        "good_hidden_rate": 0.0,
+        "hide_recall": 1.0
+      },
+      "sponsorship_alternative": {
+        "count": 5,
+        "mean_score": 40.8,
+        "hidden_rate": 0.4,
+        "good_hidden_rate": 0.4,
+        "hide_recall": 1.0
+      }
+    }
+  }
+}

@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from sqlalchemy import event, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from hiring_scraper.app import search_snapshots
+from hiring_scraper.app import match_compute
 from hiring_scraper.app import api, journey, job_search, models, profiles, source_changes
 from tests import pg
 
@@ -70,16 +70,16 @@ class JobApplicationTests(unittest.TestCase):
                                    match_score=score, match_tier='possible', match_uncertain=False)
             for job, score in zip(self.jobs[:2], [99, 1])])
         self.session.commit()
-        matched_ids = []
-        def current_match(job, *args):
-            matched_ids.append(job.id)
-            return {'score': 2 if job.id == self.jobs[0].id else 59, 'score_source': 'local'}
-        with   patch.object(search_snapshots, 'profile_match', side_effect=current_match):
+        with patch.object(match_compute, 'compute_match',
+                          side_effect=AssertionError('Fallback cards must not show freshly computed evidence')):
             page = api.list_applications(profile_ids=str(self.profile['id']), statuses='all',
                                          sort='match', offset=0, limit=1, session=self.session)
         self.assertEqual(page['items'][0]['id'], self.jobs[0].id)
-        self.assertEqual(page['items'][0]['profile_match']['score'], 2)
-        self.assertEqual(matched_ids, [self.jobs[0].id])
+        # Pagination and display share one score: the stored rank the page was
+        # ordered by (99), never a freshly computed one. With no faithful stored
+        # explanation the card is neutral: refreshing, and no tier, source or skills.
+        card = page['items'][0]['profile_match']
+        self.assertEqual(card, {'score': 99, 'refreshing': True})
         self.assertTrue(page['matching_pending'])
 
     def test_production_journey_reports_dirty_work_for_a_current_profile(self):

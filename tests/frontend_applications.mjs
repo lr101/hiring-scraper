@@ -85,9 +85,9 @@ try {
   await new Promise(resolve => server.close(resolve))
 }
 
-// Completed local results must refresh as background AI assessments arrive.
-const refreshEffectStart = component.indexOf('  // AI assessments can arrive')
-assert.ok(refreshEffectStart >= 0, 'Journey needs a background assessment refresh')
+// Completed local results must refresh as background match updates arrive.
+const refreshEffectStart = component.indexOf('  // Background match updates')
+assert.ok(refreshEffectStart >= 0, 'Journey needs a background match refresh')
 const refreshEffect = component.slice(refreshEffectStart, component.indexOf('\n  useEffect(', refreshEffectStart + 100))
 let refreshTimer
 let reloaded = false

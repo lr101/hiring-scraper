@@ -1,8 +1,8 @@
 """Explicit bookkeeping after writing source rows.
 
 Source rows (jobs and their locations, feeds, companies, profiles, CVs) are the
-truth. Matches, vectors, AI assessments and search snapshots are derived from
-them. Every write path declares what it changed before committing::
+truth. Matches, vectors and search snapshots are derived from them. Every write
+path declares what it changed before committing::
 
     reserve_job_source_rows(session, existing_ids)   # lock first, in id order
     ... write jobs ...
@@ -36,7 +36,7 @@ from sqlalchemy.orm import Session
 
 from hiring_scraper.app.models import (
     Company, Job, JobFeed, JobLocation, JobSearchState, MatchDirtyJob, MatchSemanticDocument,
-    ProfileCV, ProfileLLMScore, ProfileMatchProgress, UserProfile, utcnow,
+    ProfileCV, ProfileMatchProgress, UserProfile, utcnow,
 )
 
 LOG = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ _DECLARED = 'source_changes_declared'
 _DETECTED = 'source_changes_detected'
 _DIRTY = 'source_changes_search_dirty'
 
-# Fields whose changes affect search, matching or assessments.
+# Fields whose changes affect search or matching.
 TRACKED_FIELDS = {
     Company: {"name", "domain", "state", "country_code", "category", "source"},
     JobFeed: {"company_id", "provider", "tenant", "source_revision"},
@@ -55,7 +55,6 @@ TRACKED_FIELDS = {
     JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
     UserProfile: {"preferences"},
     ProfileCV: {"extracted_text", "variants"},
-    ProfileLLMScore: {"source_hash", "version", "assessment"},
     MatchSemanticDocument: {"source_hash", "version", "sections", "vectors"},
 }
 
@@ -88,6 +87,18 @@ def _queue_rematch(session: Session, job_ids) -> None:
         set_={'revision': statement.excluded.revision}))
 
 
+def queue_stale_rematch(session: Session, job_ids: Iterable[int]) -> None:
+    """Queue stale/legacy jobs for rematching without contending on already-dirty rows."""
+    ids = _ids(job_ids)
+    if not ids:
+        return
+    statement = pg_insert(MatchDirtyJob).from_select(
+        ['job_id', 'revision', 'queued_at'],
+        select(Job.id, literal(uuid4().hex), literal(utcnow())).where(Job.id.in_(ids)),
+    )
+    session.execute(statement.on_conflict_do_nothing(index_elements=['job_id']))
+
+
 def _invalidate_job_vectors(session: Session, jobs: list[Job]) -> None:
     from hiring_scraper.semantic_matching import job_sections, source_hash
     documents = {row.job_id: row.source_hash for row in session.execute(select(
@@ -99,24 +110,6 @@ def _invalidate_job_vectors(session: Session, jobs: list[Job]) -> None:
         session.execute(delete(MatchSemanticDocument).where(MatchSemanticDocument.job_id.in_(stale)))
 
 
-def _invalidate_job_assessments(session: Session, jobs: list[Job]) -> None:
-    from hiring_scraper.app.profile_llm import matching_config, source_hash
-    by_id = {job.id: job for job in jobs}
-    scores = session.execute(select(ProfileLLMScore.profile_id, ProfileLLMScore.job_id,
-                                    ProfileLLMScore.source_hash).where(
-        ProfileLLMScore.job_id.in_(list(by_id)))).all()
-    if not scores:
-        return
-    config = matching_config(session)
-    profiles = {profile.id: profile for profile in session.scalars(select(UserProfile).where(
-        UserProfile.id.in_({row.profile_id for row in scores})))}
-    for profile_id, job_id, digest in scores:
-        profile = profiles.get(profile_id)
-        if profile is None or source_hash(by_id[job_id], profile, config=config) != digest:
-            session.execute(delete(ProfileLLMScore).where(
-                ProfileLLMScore.profile_id == profile_id, ProfileLLMScore.job_id == job_id))
-
-
 def _bump_profiles(session: Session, profile_ids) -> None:
     """Invalidate in-flight publications for these profiles (see models.hold_profiles)."""
     session.execute(update(UserProfile).where(UserProfile.id.in_(sorted(profile_ids)))
@@ -126,9 +119,9 @@ def _bump_profiles(session: Session, profile_ids) -> None:
 def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
     """Declare created, edited, closed or deleted jobs (including their locations).
 
-    Drops vectors and AI assessments whose inputs changed, queues the jobs for
-    rematching and marks search snapshots stale. Lock the rows first with
-    ``reserve_job_source_rows`` when writing more than one job.
+    Drops vectors whose inputs changed, queues the jobs for rematching and marks
+    search snapshots stale. Lock the rows first with ``reserve_job_source_rows``
+    when writing more than one job.
     """
     ids = _ids(job_ids)
     if not ids:
@@ -138,7 +131,6 @@ def jobs_changed(session: Session, job_ids: Iterable[int]) -> None:
     jobs = session.scalars(select(Job).where(Job.id.in_(ids))).all()
     if jobs:
         _invalidate_job_vectors(session, jobs)
-        _invalidate_job_assessments(session, jobs)
         _queue_rematch(session, [job.id for job in jobs])
     session.info[_DIRTY] = True
 
@@ -167,21 +159,30 @@ def companies_changed(session: Session, company_ids: Iterable[int]) -> None:
     session.info[_DIRTY] = True
 
 
-def profile_changed(session: Session, profile_id: int, *, career_facts_changed: bool = False) -> None:
+def profile_changed(
+    session: Session,
+    profile_id: int,
+    *,
+    career_facts_changed: bool = False,
+    presentation_only: bool = False,
+) -> None:
     """Declare edits to a profile's preferences or CV.
 
-    Drops the profile's vectors and assessments whose inputs changed (all of its
-    assessments when ``career_facts_changed``), and marks its Journey index stale
-    when any assessment was dropped. Preference edits also change the index hash,
-    so the match worker rebuilds the profile.
+    Drops the profile's vectors whose inputs changed and marks its Journey index
+    stale when ``career_facts_changed``. When ``presentation_only`` is true (only
+    ``min_match_score`` / ``include_unknown`` or non-scoring fields changed),
+    bumps ``source_version`` to serialize against in-flight workers without
+    dropping vectors or ``match_index_version``.
     """
-    from hiring_scraper.app.profile_llm import matching_config, source_hash
     from hiring_scraper.semantic_matching import profile_sections, source_hash as vector_hash
 
     session.flush()
     _declare(session, 'profile', [profile_id])
     # The version bump locks the row until commit; publishers verify the version.
     _bump_profiles(session, [profile_id])
+    if presentation_only:
+        session.info[_DIRTY] = True
+        return
     profile = session.scalar(select(UserProfile).where(UserProfile.id == profile_id)
                              .execution_options(populate_existing=True))
     if profile is None:
@@ -190,30 +191,8 @@ def profile_changed(session: Session, profile_id: int, *, career_facts_changed: 
         MatchSemanticDocument.profile_id == profile_id)).scalar()
     if stored is not None and stored != vector_hash(profile_sections(profile.matching_preferences)):
         session.execute(delete(MatchSemanticDocument).where(MatchSemanticDocument.profile_id == profile_id))
-    scores = session.execute(select(ProfileLLMScore.job_id, ProfileLLMScore.source_hash).where(
-        ProfileLLMScore.profile_id == profile_id)).all()
-    stale = [job_id for job_id, _ in scores] if career_facts_changed else []
-    if scores and not career_facts_changed:
-        config = matching_config(session)
-        jobs = {job.id: job for job in session.scalars(select(Job).where(
-            Job.id.in_([job_id for job_id, _ in scores])))}
-        stale = [job_id for job_id, digest in scores
-                 if job_id not in jobs or source_hash(jobs[job_id], profile, config=config) != digest]
-    if stale:
-        session.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id,
-                                                      ProfileLLMScore.job_id.in_(stale)))
+    if career_facts_changed:
         profile.match_index_version = None
-    session.info[_DIRTY] = True
-
-
-def assessments_changed(session: Session, job_ids: Iterable[int]) -> None:
-    """Declare saved or edited AI assessments: queue those jobs for rematching."""
-    ids = _ids(job_ids)
-    if not ids:
-        return
-    session.flush()
-    _declare(session, 'job', ids)
-    _queue_rematch(session, ids)
     session.info[_DIRTY] = True
 
 
@@ -292,8 +271,8 @@ def _detect(session: Session, _flush_context) -> None:
     for item in (*session.new, *session.dirty, *session.deleted):
         if type(item) not in TRACKED_FIELDS or not _changed(session, item):
             continue
-        # Assessments and vectors deleted with their profile change no job's inputs.
-        if (item in session.deleted and isinstance(item, (ProfileLLMScore, MatchSemanticDocument))
+        # Vectors deleted with their profile change no job's inputs.
+        if (item in session.deleted and isinstance(item, MatchSemanticDocument)
                 and item.profile_id in deleted_profiles):
             continue
         if isinstance(item, Job):
@@ -309,8 +288,6 @@ def _detect(session: Session, _flush_context) -> None:
                 detected.add(('profile', item.id))
         elif isinstance(item, ProfileCV):
             detected.add(('profile', item.profile_id or (item.profile.id if item.profile is not None else None)))
-        elif isinstance(item, ProfileLLMScore):
-            detected.add(('job', item.job_id))
         elif isinstance(item, MatchSemanticDocument):
             detected.add(('job', item.job_id) if item.job_id is not None else ('profile', item.profile_id))
 

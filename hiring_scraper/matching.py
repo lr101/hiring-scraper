@@ -17,9 +17,9 @@ from hiring_scraper.election_data import job_city_vote_results
 from hiring_scraper.pages import Document
 from hiring_scraper.requirements import (structured_source_scope, structured_requirement_texts, structured_text, scoped_sentences, qualification_rows,
                                          education_satisfied, TENURE, APPLICANT_CUE, DOMAIN, DEGREE,
-                                         requirement_polarity, is_source_instruction)
+                                         requirement_polarity, is_source_instruction, clause_key)
 
-VERSION = 'rules-v50-duty-ranking'
+VERSION = 'rules-v51-safe-subset'
 SKILLS = {
     'Python': ['python'], 'JavaScript': ['javascript', 'js'], 'TypeScript': ['typescript'],
     'Java': ['java'], 'C++': ['c++'], 'C#': ['c#'], '.NET': ['.net', 'dotnet'],
@@ -359,13 +359,24 @@ def plain_text(value) -> str:
 
 
 @lru_cache(maxsize=4096)
+def _canonical_language(name) -> str:
+    """Map a localized profile language name ('Englisch') to the matcher's English name."""
+    text = str(name).strip()
+    return next((canonical for canonical, pattern in LANGUAGE_PATTERNS.items() if pattern.fullmatch(text)), text)
+
+
 def _pattern(term: str):
     return re.compile(r'(?<![\w+#])' + re.escape(term) + r'(?![\w+#])', re.I)
 
 
 def _evidence(value, text, match, source):
-    return {'value': value, 'source': source,
-            'evidence': text[max(0, match.start()-50):min(len(text), match.end()+70)]}
+    # Excerpts widen to whole words so display text never starts or ends mid-word.
+    start, end = max(0, match.start() - 50), min(len(text), match.end() + 70)
+    while 0 < start < match.start() and not text[start - 1].isspace():
+        start -= 1
+    while match.end() <= end < len(text) and not text[end].isspace():
+        end += 1
+    return {'value': value, 'source': source, 'evidence': text[start:end]}
 
 
 def _mention_kind(text: str, match, source: str) -> str:
@@ -633,7 +644,8 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                     if _required_context(experience_clause, explicit=requirement_section or (scope == 'neutral' and minimum), duties=scope == 'duties', start=exp.start(), end=exp.end()):
                         years = _experience_years(exp)
                         if years is not None and (experience is None or years > experience['value']):
-                            experience = _evidence(years, experience_clause, exp, source)
+                            experience = {**_evidence(years, experience_clause, exp, source),
+                                          'clause_key': clause_key(clause)}
                 language_hits = sorted(((name, hit) for name, pattern in LANGUAGE_PATTERNS.items()
                                         if (hit := pattern.search(clause))), key=lambda pair: pair[1].start())
                 level_info = []
@@ -772,7 +784,7 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                         if scope in {'neutral', 'requirements'} and not any(
                                 row['value'].casefold() == match.group(1).casefold() for row in deferred):
                             deferred.append({**_evidence(match.group(1), clause, match, source),
-                                             'kind': 'scripting_alternative'})
+                                             'kind': 'scripting_alternative', 'clause_key': clause_key(clause)})
                     for name, aliases in SKILLS.items():
                         # General skill evidence still uses the original text. Defer
                         # hard list-member interpretation when some alternatives
@@ -782,10 +794,11 @@ def _job_requirements(texts: list[tuple[str, str]]) -> tuple[dict | None, list[d
                                                  for start, end in alternative_spans)), None)
                         if found and (professional or not experience_matches):
                             rows.append({**_evidence(name, clause, found, source),
-                                         'kind': 'professional_experience' if professional else 'skill'})
+                                         'kind': 'professional_experience' if professional else 'skill',
+                                         'clause_key': clause_key(clause)})
                     for row in rows:
                         key = json.dumps({name: (str(value).casefold() if name == 'value' else value)
-                                          for name, value in row.items() if name not in {'source', 'evidence'}},
+                                          for name, value in row.items() if name not in {'source', 'evidence', 'clause_key'}},
                                          sort_keys=True)
                         if key not in seen_qualifications:
                             qualifications.append(row)
@@ -1192,7 +1205,7 @@ def _applicability_context(job, profile, enriched):
     direct = service and not uncovered and {'Customer service', 'Onboarding'} <= mentions & skills
     adjacent = (not direct and 'Customer service' in skills and
                 bool(re.search(r'assist customers|client communication|customer communication', main, re.I)))
-    observations, unknowns = [], []
+    observations, unknowns, soft_conflicts = [], [], []
     academic_bridge = False
     eligibility_conditions = []
     application_review = False
@@ -1239,10 +1252,14 @@ def _applicability_context(job, profile, enriched):
         if scoped_tenure:
             rows = _scoped_experience_rows(text, profile.get('experience_years'))
             observations.extend(rows)
-            unknowns.extend('Verify scoped tenure: ' + row['requirement'] + ' — ' + row['explanation'] for row in rows)
-            eligibility_conditions.extend({'kind': 'experience', 'status': 'fail' if row['status'] == 'missing' else 'unknown',
-                'reason': ('Declared total tenure is below the required scoped minimum: ' if row['status'] == 'missing' else
-                           'Required responsibility-specific tenure is unverified: ') + row['requirement']} for row in rows)
+            # Unverifiable tenure is a visible note, not a gate: it neither blocks nor caps the score.
+            soft_conflicts.extend('Verify scoped tenure: ' + row['requirement'] + ' — ' + row['explanation']
+                                  for row in rows if row['status'] != 'missing')
+            unknowns.extend('Verify scoped tenure: ' + row['requirement'] + ' — ' + row['explanation']
+                            for row in rows if row['status'] == 'missing')
+            eligibility_conditions.extend({'kind': 'experience', 'status': 'fail',
+                'reason': 'Declared total tenure is below the required scoped minimum: ' + row['requirement']}
+                for row in rows if row['status'] == 'missing')
         if academic:
             for skill in sorted(skills):
                 if not _pattern(skill).search(text):
@@ -1304,7 +1321,8 @@ def _applicability_context(job, profile, enriched):
     substantive = bool(mentions or duties)
     return {'score_floor': 85 if direct else 40 if adjacent or academic_bridge else 0,
             'transferable': adjacent, 'direct_service': direct, 'substantive': substantive,
-            'observations': observations, 'unknowns': unknowns, 'gates': gates, 'blocking': blocking,
+            'observations': observations, 'unknowns': unknowns, 'soft_conflicts': soft_conflicts,
+            'gates': gates, 'blocking': blocking,
             'uncovered_specialist': bool(uncovered),
             'prerequisite_conditions': eligibility_conditions + ([{'kind': 'residence', 'gate': 'location',
                 **gates['location']}] if location_review else [])}
@@ -1346,7 +1364,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     missing = [name for name in job_skills if name not in profile_skills]
     roles = [role for role in profile.get('desired_roles', []) if _role_match(role, title)]
     secondary_roles = [role for role in profile.get('secondary_roles', []) if _role_match(role, title)]
-    conflicts, unknowns, reasons = [], [], []
+    conflicts, soft_conflicts, unknowns, reasons = [], [], [], []
     for key, field, label in [('work_styles', 'work_style', 'Work style'), ('employment_types', 'employment_types', 'Employment type'), ('seniority_levels', 'seniority_levels', 'Experience level')]:
         preferences = profile.get(key) or []
         value = enriched.get(field)
@@ -1367,8 +1385,9 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     elif experience:
         reasons.append(f"Total declared experience reaches the numeric minimum ({profile_experience:g} years vs {experience['value']:g}); verify the required work scope")
         experience_adjustment = 5
-    language_levels = {name.casefold(): str(level).upper() for name, level in (profile.get('language_levels') or {}).items()}
-    known_languages = {x.casefold() for x in profile.get('languages', [])} | set(language_levels)
+    language_levels = {_canonical_language(name).casefold(): str(level).upper()
+                       for name, level in (profile.get('language_levels') or {}).items()}
+    known_languages = {_canonical_language(x).casefold() for x in profile.get('languages', [])} | set(language_levels)
     if enriched['languages'] and not known_languages:
         unknowns.append('Profile languages not provided')
     language_groups = {}
@@ -1427,6 +1446,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                 language_adjustment += 5
     requirement_gaps = []
     gap_penalties = {}
+    seen_gap_clauses = set()
     verified_requirements = []
     evidence_by_skill = {normalize_skills([name])[0].casefold(): row
                          for name, row in (profile.get('skill_evidence') or {}).items()}
@@ -1447,6 +1467,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
         kind = requirement.get('kind', 'qualification')
         evidence = evidence_by_skill.get(value.casefold())
         satisfied = False
+        unknown_tenure_only = False
         if kind in {'education', 'certification', 'enrolment'}:
             satisfied = _formal_requirement_satisfied(requirement, profile)
         elif kind not in {'enrolment', 'professional_experience'}:
@@ -1454,6 +1475,12 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                 evidence and str(evidence.get('context', '')).casefold() == 'professional')
         elif kind == 'professional_experience':
             satisfied = bool(evidence and str(evidence.get('context', '')).casefold() == 'professional')
+            # A declared skill without professional-context evidence has unverifiable
+            # tenure: a visible note, never a penalty. The penalty rests on missing
+            # capability evidence only, so adding known total years can never lower
+            # the score; a known shortfall is handled by the scoped-tenure conflict.
+            unknown_tenure_only = (not satisfied and value.casefold() in profile_skill_names and
+                                   str((evidence or {}).get('context', '')).casefold() not in {'academic', 'research'})
         if satisfied:
             verified_requirements.append(requirement)
             if kind == 'education':
@@ -1464,25 +1491,27 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
         prefix = ('Verify current student enrolment: ' if kind == 'enrolment' else
                   'Verify specialist role focus: ' if kind == 'title_domain' else 'Verify requirement: ')
         gap = prefix + requirement['evidence']
-        if gap not in requirement_gaps:
+        # One requirement clause is one gap and one penalty, whatever skills it names.
+        key = requirement.get('clause_key') or clause_key(requirement['evidence'])
+        if key not in seen_gap_clauses:
+            seen_gap_clauses.add(key)
             requirement_gaps.append(gap)
             unknowns.append(gap)
         penalty = {'domain': 25, 'education': 20, 'certification': 15,
                    'enrolment': 30, 'professional_experience': 20, 'skill': 15, 'title_domain': 25}.get(kind, 15)
-        if kind not in {'education', 'certification', 'enrolment'}:
-            gap_penalties[gap] = max(gap_penalties.get(gap, 0), penalty)
+        if kind not in {'education', 'certification', 'enrolment'} and not unknown_tenure_only:
+            gap_penalties[key] = max(gap_penalties.get(key, 0), penalty)
     if experience and profile.get('experience_years') is None:
-        gap = f"Verify minimum relevant experience: {experience['value']:g} years; CV exact months not established"
-        requirement_gaps.append(gap)
-        unknowns.append(gap)
-        if not any(row['evidence'] == experience['evidence'] and row.get('kind') in {'domain', 'professional_experience'}
-                   for row in enriched.get('requirements', [])):
-            gap_penalties[gap] = 15
+        exp_key = experience.get('clause_key') or clause_key(experience['evidence'])
+        if exp_key not in seen_gap_clauses:
+            seen_gap_clauses.add(exp_key)
+            gap = f"Verify minimum relevant experience: {experience['value']:g} years; CV exact months not established"
+            requirement_gaps.append(gap)
+            unknowns.append(gap)
     if (roles or secondary_roles or matched or narrative) and profile.get('experience_years') is None and (enriched.get('seniority') or {}).get('value') in {'senior', 'lead'}:
         gap = 'Verify senior-level professional tenure: exact relevant CV months not established'
         requirement_gaps.append(gap)
         unknowns.append(gap)
-        gap_penalties[gap] = 15
     for term in profile.get('excluded_terms', []):
         if _pattern(term).search(plain_text(job.get('title'))):
             conflicts.append('Excluded title term: ' + term)
@@ -1609,6 +1638,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     if applicability['transferable']:
         reasons.append('Transferable service experience overlaps client communication and implementation support; product-specific scope needs verification.')
     unknowns.extend(applicability['unknowns'])
+    soft_conflicts.extend(applicability['soft_conflicts'])
     for row in applicability['observations']:
         if row.get('kind') == 'experience' and row['status'] == 'missing':
             conflicts.append('Declared total tenure is below the scoped minimum: ' + row['requirement'])
@@ -1664,8 +1694,10 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     if applicability['uncovered_specialist'] or applicability['blocking']:
         score_limit = min(score_limit, 59 if applicability['blocking'] else 29)
     if any(row.get('kind') == 'experience' for row in applicability['observations']):
-        score_limit = min(score_limit, 29 if any(row.get('kind') == 'experience' and row['status'] == 'missing'
-                                              for row in applicability['observations']) else 59)
+        # Only a known shortfall caps the score; unverifiable tenure is a visible note.
+        if any(row.get('kind') == 'experience' and row['status'] == 'missing'
+               for row in applicability['observations']):
+            score_limit = min(score_limit, 29)
     if not applicability['substantive']:
         score_limit = 29 if re.search(r'only the title|contact recruiting for', job.get('description') or '', re.I) else 59
         unknowns.append('Substantive responsibilities and qualification requirements are unavailable; a desired title is not task evidence.')
@@ -1753,7 +1785,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
     fit_tier = ('unlikely' if conflicts or score < 30 or applicability['blocking'] else
                 'recommended' if score >= 65 and task_fit >= 65 and not language_review and (enriched['quality'] != 'limited' or applicability['direct_service'] or grounded_tasks) and not requirement_gaps else
                 'possible')
-    return {'score': score, 'eligible': not conflicts, 'uncertain': bool(unknowns),
+    return {'score': score, 'eligible': not conflicts, 'uncertain': bool(unknowns or soft_conflicts),
             'mandatory_review': applicability['blocking'],
             'language_review': language_review,
             'qualification_fit': qualification_fit,
@@ -1772,7 +1804,7 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
                               'average_afd_vote_share_percent': average_vote_share,
                               'score_adjustment': location_adjustment,
                               'weight': location_weight},
-            'conflicts': conflicts, 'unknowns': unknowns,
+            'conflicts': conflicts, 'soft_conflicts': soft_conflicts, 'unknowns': unknowns,
             'label': 'Preference conflict' if conflicts else 'Strong overlap' if score >= 65 else 'Some overlap' if score >= 30 else 'Little evidence of a match'}
 
 

@@ -10,6 +10,7 @@ import json
 import numpy as np
 
 from hiring_scraper.matching import NON_REQUIREMENT, _UNSUPPORTED_PROFILE_CLAIM, profile_content_sources
+from hiring_scraper.matching_v2.gates import strip_language_or_visa_subclauses
 from hiring_scraper.requirements import (scoped_sentences, structured_text,
                                         structured_requirement_texts, structured_source_scope)
 
@@ -17,7 +18,7 @@ from hiring_scraper.requirements import (scoped_sentences, structured_text,
 MODEL_ID = 'intfloat/multilingual-e5-small'
 MODEL_REVISION = 'ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3'
 MODEL_KEY = f'{MODEL_ID}@{MODEL_REVISION}'
-VERSION = MODEL_KEY + ':profile-sections-v4-positioned-heading-scope'
+VERSION = MODEL_KEY + ':profile-sections-v6-constraint-spans'
 DIMENSIONS = 384
 CHUNK_CHARS = 900
 MAX_JOB_CHUNKS = 12
@@ -68,7 +69,8 @@ def job_sections(job: dict) -> list[dict]:
     texts = [('description', job.get('description') or '')]
     raw = job.get('raw_metadata') or {}
     for prefix, values in [('structured', raw), ('detail', raw.get('detail_requirements') or {})]:
-        for field in ('skills', 'qualifications', 'experienceRequirements', 'educationRequirements'):
+        for field in ('responsibilities', 'duties', 'skills', 'qualifications',
+                      'experienceRequirements', 'educationRequirements'):
             value = values.get(field)
             if value:
                 texts.extend(structured_requirement_texts({field: value}, prefix))
@@ -78,6 +80,7 @@ def job_sections(job: dict) -> list[dict]:
                                                 initial_scope=structured_source_scope(source)):
             if scope in {'benefits', 'optional'} or NON_REQUIREMENT.search(sentence):
                 continue
+            sentence = strip_language_or_visa_subclauses(sentence)
             # Headings alone carry no content and can otherwise inflate cosine similarity.
             if len(sentence.split()) < 4:
                 continue
@@ -115,7 +118,7 @@ def pack_vectors(vectors: list[list[float]]) -> bytes:
 
 
 def semantic_evidence(profile_parts: list[dict], profile_vectors: bytes,
-                      job_parts: list[dict], job_vectors: bytes) -> dict:
+                      job_parts: list[dict], job_vectors: bytes, *, aggregate: bool = False) -> dict:
     empty = {'score': 0, 'similarity': None, 'model': MODEL_KEY}
     if not profile_parts or not job_parts:
         return empty
@@ -126,9 +129,32 @@ def semantic_evidence(profile_parts: list[dict], profile_vectors: bytes,
         return empty
     if not np.isfinite(p).all() or not np.isfinite(j).all():
         return empty
+    if aggregate:
+        scoped_indices = [
+            i for i, part in enumerate(job_parts) if part['scope'] in {'duties', 'requirements'}
+        ]
+        if not scoped_indices:
+            return empty
+        j = j[scoped_indices]
+        job_parts = [job_parts[i] for i in scoped_indices]
     similarities = j @ p.T
     job_index, profile_index = np.unravel_index(np.argmax(similarities), similarities.shape)
     similarity = max(-1.0, min(1.0, float(similarities[job_index, profile_index])))
+    if aggregate:
+        # Take at most one match per job chunk, so a single repeated profile
+        # phrase cannot dominate. Normalize against the posting's own median.
+        per_chunk = np.max(similarities, axis=1)
+        top = np.sort(per_chunk)[-3:]
+        similarity = float(np.clip(np.mean(top), -1, 1))
+        absolute = float(np.clip((similarity - 0.35) / 0.55, 0, 1))
+        uplift = float(np.clip((similarity - np.median(per_chunk)) / 0.20, 0, 1))
+        alignment = round(absolute * (0.8 + 0.2 * uplift), 4)
+        return {
+            'score': round(100 * alignment), 'similarity': round(similarity, 4), 'alignment': alignment,
+            'model': MODEL_KEY, 'job_evidence': job_parts[job_index]['text'],
+            'job_source': job_parts[job_index]['source'], 'profile_evidence': profile_parts[profile_index]['text'],
+            'profile_source': profile_parts[profile_index]['source'],
+        }
     # E5 cosine values are concentrated well above zero. This conservative
     # retrieval threshold is not a probability and needs corpus calibration.
     score = min(59, 30 + round((similarity - .84) / .07 * 29)) if similarity >= .84 else 0

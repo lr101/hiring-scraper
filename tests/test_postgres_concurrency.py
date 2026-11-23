@@ -19,7 +19,7 @@ from hiring_scraper.app.models import reserve_job_source_rows
 from tests import pg
 from hiring_scraper.app.models import (
     Company, DiscoveryJob, DiscoveryJobCompany, DiscoveryRun, Job, JobApplication, JobFeed, JobLocation,
-    JobSearchRefresh, MatchSemanticDocument, ProfileJobMatch, ProfileLLMScore, ScanRun,
+    JobSearchRefresh, MatchSemanticDocument, ProfileJobMatch, ScanRun,
     SemanticSearchIndexState, UserProfile, utcnow,
 )
 
@@ -227,12 +227,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add_all([job_a, job_b])
             session.flush()
             job_a_id, job_b_id = job_a.id, job_b.id
-            session.add_all([
-                ProfileLLMScore(profile_id=profile_id, job_id=job_a_id,
-                    source_hash='before-a', version='test', assessment={}),
-                ProfileLLMScore(profile_id=profile_id, job_id=job_b_id,
-                    source_hash='before-b', version='test', assessment={}),
-            ])
 
         application_at_profile = threading.Event()
         release_application_profile = threading.Event()
@@ -323,8 +317,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 self.assertEqual(session.get(Job, job_b_id).salary, '110000 USD')
                 self.assertIsNotNone(session.scalar(select(Job.id).where(
                     Job.feed_id == feed_id, Job.external_id == 'multi-x')))
-                self.assertIsNone(session.get(ProfileLLMScore, (profile_id, job_a_id)))
-                self.assertIsNone(session.get(ProfileLLMScore, (profile_id, job_b_id)))
         finally:
             release_application_profile.set()
             if application_thread.is_alive():
@@ -441,7 +433,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
             event.remove(self.engine, 'before_cursor_execute', before_cursor)
 
     def test_job_and_location_changes_requeue_one_job_without_profile_row_writes(self):
-        """Source edits drop cached assessments and queue the job; profiles stay current."""
+        """Source edits queue the job without touching profiles."""
         from hiring_scraper.app.models import MatchDirtyJob
 
         _, feed_id, _ = self.seed_feed()
@@ -452,10 +444,7 @@ class PostgresConcurrencyTests(unittest.TestCase):
                       url='https://example.test/profile-lock-order', salary='90000 USD', is_active=True)
             session.add_all([*profiles, job])
             session.flush()
-            profile_ids = [profile.id for profile in profiles]
             job_id = job.id
-            session.add(ProfileLLMScore(profile_id=profile_ids[1], job_id=job_id,
-                source_hash='source', version='test', assessment={}))
             session.add(JobLocation(job_id=job_id, label='Berlin', country_code='DE'))
         with self.factory.begin() as session:
             session.execute(text('DELETE FROM match_dirty_jobs'))
@@ -478,7 +467,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 event.remove(self.engine, 'before_cursor_execute', record)
             self.assertEqual(statements, [], 'Source ingestion must not lock or write profile rows')
             with self.factory.begin() as session:
-                self.assertIsNone(session.get(ProfileLLMScore, (profile_ids[1], job_id)))
                 self.assertEqual(session.scalars(select(MatchDirtyJob.job_id)).all(), [job_id])
                 versions = session.scalars(select(UserProfile.match_index_version)
                                            .order_by(UserProfile.id)).all()
@@ -497,12 +485,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             source_changes.jobs_changed(session, [job_id])
 
         assert_job_requeued_without_profile_locks(change_job)
-        # Recreate the cached assessment deleted by the first mutation.
-        with self.factory.begin() as session:
-            session.add(ProfileLLMScore(profile_id=profile_ids[1], job_id=job_id,
-                source_hash='second', version='test', assessment={}))
-            session.flush()
-            session.execute(text('DELETE FROM match_dirty_jobs'))
         assert_job_requeued_without_profile_locks(change_location)
 
     def test_profile_publication_lock_does_not_block_foreign_key_inserts(self):
@@ -684,8 +666,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(job)
             session.flush()
             job_id = job.id
-            session.add(ProfileLLMScore(profile_id=profile_id, job_id=job_id,
-                source_hash='before-edit', version='test', assessment={}))
 
         competitor_at_profile = threading.Event()
         release_competitor = threading.Event()
@@ -763,7 +743,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             self.assertEqual(errors, [])
             with self.factory() as session:
                 self.assertEqual(session.get(Job, job_id).salary, '120000 USD')
-                self.assertIsNone(session.get(ProfileLLMScore, (profile_id, job_id)))
         finally:
             release_competitor.set()
             if competitor.is_alive():
@@ -802,9 +781,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
             session.add(job)
             session.flush()
             job_id = job.id
-            if writer_kind == 'edit':
-                session.add(ProfileLLMScore(profile_id=profile_id, job_id=job_id,
-                    source_hash='before-edit', version='test', assessment={}))
 
         index_holds_profile = threading.Event()
         continue_index = threading.Event()
@@ -1853,61 +1829,6 @@ class PostgresConcurrencyTests(unittest.TestCase):
                 self.assertEqual(recovered.scalar(text('SELECT 1')), 1)
         finally:
             bounded.dispose()
-
-    def test_ai_queue_claims_skip_locked_work_and_fence_expired_owner(self):
-        from hiring_scraper.app import profile_llm
-        from hiring_scraper.app.models import AIMatchingTask
-        from datetime import timedelta
-        _, _, profile_id, job_ids = self.seed_match_page()
-        with patch.object(profile_llm, 'SessionLocal', self.factory):
-            profile_llm.sync_matching_queue()
-            # Hold one task row exactly as another claimer would. Other work must
-            # remain claimable without waiting for that transaction to finish.
-            with self.factory.begin() as blocker:
-                blocker.scalar(select(AIMatchingTask).where(AIMatchingTask.job_id == job_ids[0]).with_for_update())
-                claim = profile_llm._claim_task()
-                self.assertIsNotNone(claim)
-                self.assertNotEqual(claim[1], job_ids[0])
-            claimed_profile, job_id, token = claim
-            with self.factory.begin() as session:
-                session.get(AIMatchingTask, (claimed_profile, job_id)).lease_until = utcnow() - timedelta(seconds=1)
-                for other_id in job_ids:
-                    if other_id != job_id:
-                        session.get(AIMatchingTask, (profile_id, other_id)).state = 'done'
-            reclaimed = profile_llm._claim_task()
-            self.assertEqual(reclaimed[:2], claim[:2])
-            self.assertNotEqual(reclaimed[2], token)
-            profile_llm._finish_task(claimed_profile, job_id, token, 'done')
-            with self.factory() as session:
-                task = session.get(AIMatchingTask, (claimed_profile, job_id))
-                self.assertEqual(task.state, 'running')
-                self.assertEqual(task.token, reclaimed[2])
-
-    def test_ai_judgment_updates_journey_rank_before_dirty_worker_runs(self):
-        from hiring_scraper.app import profile_llm
-        from hiring_scraper.app.models import AIMatchingTask, MatchDirtyJob
-        from test_llm_profile_matching import PROFILE, DESCRIPTION, assessment
-        _, _, profile_id, job_ids = self.seed_match_page()
-        with self.factory.begin() as session:
-            session.get(UserProfile, profile_id).preferences = dict(PROFILE)
-            reserve_job_source_rows(session, job_ids)
-            for job_id in job_ids:
-                job = session.get(Job, job_id)
-                job.title, job.description = 'Software developer', DESCRIPTION
-            source_changes.jobs_changed(session, job_ids)
-            source_changes.profile_changed(session, profile_id)
-        with self.factory() as session:
-            job_search.ensure_profile_match_indexes(session, [session.get(UserProfile, profile_id)])
-            session.commit()
-        with patch.object(profile_llm, 'SessionLocal', self.factory):
-            self.assertTrue(profile_llm.refresh_llm_scores_once(
-                generate=lambda *args, **kwargs: assessment(12), usage=lambda: {'allowed': True}))
-        with self.factory() as session:
-            scored = session.scalar(select(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id))
-            self.assertIsNotNone(scored)
-            self.assertEqual(session.get(ProfileJobMatch, (profile_id, scored.job_id)).match_score, 12)
-            self.assertIsNotNone(session.get(MatchDirtyJob, scored.job_id))
-            self.assertEqual(session.get(AIMatchingTask, (profile_id, scored.job_id)).state, 'done')
 
     def seed_match_page(self):
         _, feed_id, run_id = self.seed_feed()

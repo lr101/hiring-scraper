@@ -98,6 +98,26 @@ class SemanticSectionTests(unittest.TestCase):
         self.assertEqual(unrelated['score'], 0)
         self.assertIn('server-side', similar['job_evidence'])
 
+    def test_v2_averages_scoped_chunks_and_preserves_mixed_skill_text(self):
+        sem = engine(self)
+        mixed = {'description': 'Requirements:\nYou must speak fluent German and have advanced Kubernetes experience.'}
+        clean = {'description': 'Requirements:\nYou must have advanced Kubernetes experience.'}
+        self.assertEqual(sem.job_sections(mixed), sem.job_sections(clean))
+        self.assertTrue(sem.job_sections(clean))
+        profile = [{'source': 'skills', 'text': 'Kubernetes', 'scope': 'capabilities'}]
+        job = [
+            {'source': 'description', 'text': 'Company introduction', 'scope': 'neutral'},
+            {'source': 'description', 'text': 'Deploy Kubernetes in production', 'scope': 'duties'},
+            {'source': 'description', 'text': 'Maintain cloud data infrastructure', 'scope': 'requirements'},
+        ]
+        p_blob = sem.pack_vectors([vector(1)])
+        j_blob = sem.pack_vectors([vector(1), vector(0.8, 0.6), vector(0.6, 0.8)])
+        evidence = sem.semantic_evidence(profile, p_blob, job, j_blob, aggregate=True)
+        self.assertAlmostEqual(evidence['similarity'], 0.7, places=4)
+        self.assertIn('Kubernetes', evidence['job_evidence'])
+        self.assertGreater(evidence['alignment'], 0)
+        self.assertLess(evidence['alignment'], 1)
+
     def test_malformed_or_nonfinite_vectors_cannot_supply_similarity(self):
         sem = engine(self)
         for vectors in [[[0.0] * 383], [[float('nan')] * 384], [[0.0] * 384]]:
@@ -195,17 +215,24 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
             self.assertTrue(service.refresh_semantic_documents_once(encode=encode))
         return service
 
+    @patch.dict(os.environ, {'RADIUS_MATCHER': 'v2'})
     def test_background_vectors_add_a_missed_job_to_journey_and_detail_consistently(self):
+        with self.factory() as session:
+            baseline = api.get_job(self.job_id, session=session, profile_id=self.profile_id)['profile_match']
+            profiles.update_profile(self.profile_id, profiles.ProfileRequest(name='Developer', **PROFILE,
+                matching_defaults={'min_match_score': baseline['score'] + 1}), session)
         self.populate()
         with self.factory() as session:
             page = pg.list_applications(self.engine, profile_ids=str(self.profile_id), statuses='new',
                                          sort='match', offset=0, limit=40, session=session)
             self.assertEqual([item['id'] for item in page['items']], [self.job_id])
             match = page['items'][0]['profile_match']
-            self.assertEqual(match['fit_tier'], 'possible')
+            self.assertGreater(match['score'], baseline['score'])
+            self.assertTrue(match['eligible'])
             self.assertTrue(match['semantic_match'])
             detail = api.get_job(self.job_id, session=session, profile_id=self.profile_id)
             self.assertEqual(detail['profile_match']['score'], match['score'])
+            self.assertEqual(detail['profile_match']['fit_tier'], match['fit_tier'])
 
     def test_unchanged_sources_reuse_vectors_and_contacts_do_not_invalidate_them(self):
         service = self.populate()
