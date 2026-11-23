@@ -387,6 +387,13 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                 match = {'eligible': True, 'score': indexed.match_score,
                          'fit_tier': indexed.match_tier, 'uncertain': bool(indexed.match_uncertain),
                          'unknowns': []}
+                if (match['uncertain'] and
+                        (profile.id, job.id) in getattr(semantic_documents, 'llm_scores', {})):
+                    # The index keeps only the uncertainty flag; recover the local
+                    # unverified-tenure notes so the AI overlay cannot silently drop them.
+                    local = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
+                    match.update({key: local[key] for key in ('soft_conflicts', 'requirement_observations')
+                                  if key in local})
                 from hiring_scraper.app.profile_llm import apply_cached_assessment
                 match = apply_cached_assessment(match, job, profile, semantic_documents)
                 if (match['score_source'] == 'local' and

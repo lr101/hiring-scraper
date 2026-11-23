@@ -63,6 +63,30 @@ class AssessmentTests(unittest.TestCase):
         with patch.object(service, 'assessment_sources', return_value=sources):
             return service.apply_cached_assessment(local, job, profile, docs)
 
+    TENURE = 'Mandatory: at least 3 years of experience managing teams.'
+
+    def test_unverified_scoped_tenure_stays_uncertain_through_the_ai_overlay(self):
+        # The AI row covers the tenure clause only as a capability, or not at all.
+        for category in ('capability', 'language'):
+            with self.subTest(category=category):
+                result = self.overlay_prerequisite(
+                    condition=self.TENURE, evidence='I lead a team of five engineers.',
+                    category=category, quote='at least 3 years of experience managing teams',
+                    source='profile.career_evidence')
+                self.assertEqual(result['score_source'], 'llm')
+                self.assertTrue(result['uncertain'])
+                self.assertTrue(any('Verify scoped tenure' in note for note in result['soft_conflicts']))
+
+    def test_grounded_supported_tenure_row_clears_note_and_flag_together(self):
+        result = self.overlay_prerequisite(
+            condition=self.TENURE, evidence='I managed engineering teams from 2019 to 2024.',
+            category='experience', quote='at least 3 years of experience managing teams', source='profile.career_evidence')
+        self.assertEqual(result['score_source'], 'llm')
+        self.assertEqual(result['soft_conflicts'], [])
+        self.assertFalse(result['uncertain'])
+        self.assertTrue(any(row.get('kind') == 'experience' and row['status'] == 'supported'
+                            for row in result['requirement_observations']))
+
     def test_grounded_completed_degree_discharges_only_corresponding_local_unknown(self):
         result = self.overlay_prerequisite()
         self.assertEqual(result['gates']['eligibility']['status'], 'pass')

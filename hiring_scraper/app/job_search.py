@@ -226,11 +226,11 @@ def application_match_allowed(job: Job, profile: UserProfile, result: dict, *, t
         area.get("city"), area.get("country_code") or "DE",
     )
     defaults = preferences.get("matching_defaults") or {}
-    min_score = defaults.get("min_match_score", 30)
+    min_score = defaults.get("min_match_score", 0)
     try:
         min_score = int(min_score)
     except (TypeError, ValueError):
-        min_score = 30
+        min_score = 0
     include_unknown = defaults.get("include_unknown", True) is not False
     uncertain = bool(result.get("uncertain") or scope.get("unknowns"))
     return bool(scope["eligible"] and result.get("eligible") and

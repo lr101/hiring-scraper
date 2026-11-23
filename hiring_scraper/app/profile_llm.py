@@ -719,6 +719,33 @@ def _reconcile_local_prerequisites(local, assessment, sources):
     return result
 
 
+def _resolve_soft_tenure(local, assessment):
+    """Unresolved local tenure notes survive the AI overlay.
+
+    A note and its uncertainty clear together, and only when a grounded,
+    supported, non-preferred AI experience row covers the same job quote.
+    """
+    notes = list(local.get('soft_conflicts') or [])
+    observations = deepcopy(local.get('requirement_observations') or [])
+    if not notes or not observations:
+        return notes, observations
+    normalize = lambda value: ' '.join(str(value or '').split()).casefold()
+    rows = [row for row in assessment['requirements']
+            if row['category'] == 'experience' and row['status'] == 'supported' and row['priority'] != 'preferred']
+    for observation in observations:
+        quote = normalize(observation.get('job_quote'))
+        if observation.get('kind') != 'experience' or observation.get('status') != 'unknown' or not quote:
+            continue
+        support = next((row for row in rows if quote in normalize(row['job_quote'])), None)
+        if support is None:
+            continue
+        observation.update(status='supported', evidence_source=support['evidence_source'],
+                           evidence_quote=support['evidence_quote'], explanation=support['explanation'])
+        note = 'Verify scoped tenure: ' + str(observation.get('requirement')) + ' — '
+        notes = [item for item in notes if not item.startswith(note)]
+    return notes, observations
+
+
 def apply_cached_assessment(local, job, profile, documents):
     result = {**local, 'score_source': 'local', 'llm_match': None}
     if result.get('eligible') and result.get('fit_tier') == 'recommended':
@@ -745,6 +772,9 @@ def apply_cached_assessment(local, job, profile, documents):
         return result
     local = _reconcile_local_prerequisites(local, assessment, sources)
     result.update({key: local[key] for key in ('requirement_observations', 'prerequisite_conditions') if key in local})
+    soft_conflicts, tenure_observations = _resolve_soft_tenure(local, assessment)
+    if 'requirement_observations' in result:
+        result['requirement_observations'] = tenure_observations
     eligible = bool(local.get('eligible') and assessment['eligible'])
     conflicts = list(local.get('conflicts') or []) + [f'{name}: {value["reason"]}'
         for name, value in assessment['gates'].items() if value['status'] == 'fail']
@@ -778,7 +808,8 @@ def apply_cached_assessment(local, job, profile, documents):
     gaps = list(dict.fromkeys(assessment['gaps'] + requirement_evidence.requirement_summary(assessment['requirements'])['required_gaps']))
     result.update(score=score, score_source='llm', eligible=eligible, fit_tier=tier,
                   mandatory_review=mandatory_review, language_review=language_review,
-                  uncertain=assessment['uncertain'] or mandatory_review or language_review or scope_review, reasons=assessment['strengths'],
+                  uncertain=bool(assessment['uncertain'] or mandatory_review or language_review or scope_review or soft_conflicts),
+                  soft_conflicts=soft_conflicts, reasons=assessment['strengths'],
                   qualification_fit=assessment['qualification_fit'], gates=assessment['gates'],
                   requirement_gaps=gaps, missing_skills=gaps,
                   conflicts=conflicts, unknowns=list(dict.fromkeys(unknowns)),

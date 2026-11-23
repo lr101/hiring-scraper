@@ -76,7 +76,7 @@ def structured_text(value) -> str:
     # Plain feed descriptions often flatten headings and bullets. Restore only
     # recognizable labels; real HTML heading occurrence metadata stays intact.
     if not heading_levels:
-        combined = _FLAT_SECTION_HEADING.sub(lambda hit: '\n' + hit['label'] + '\n', combined)
+        combined = _FLAT_SECTION_HEADING.sub(lambda hit: _recovered_heading(hit, combined), combined)
         combined = re.sub(r'\s+(?=(?:Du|Sie|You)\s+(?:hast|bist|verfügst|bringst|arbeitest|erstellst|unterstützt|koordinierst|übernimmst|have|are|will)\b)', '\n', combined)
     lines = [' '.join(line.split()) for line in combined.splitlines()]
     result = re.sub(r'\n{3,}', '\n\n', '\n'.join(lines)).strip()
@@ -148,11 +148,33 @@ _FLAT_SECTION_HEADING = re.compile(
     r'your responsibilities|key responsibilities|required qualifications|required skills & experience|'
     r'what you bring(?: to the mission)?|our humble expectations|das solltest du mitbringen|'
     r'das bringst du mit|hiermit bringst du dich ein|dein daily business|unser perfect match|'
-    r'hier sorgst du für veränderung|what you will do(?: at [A-Z][A-Z -]{1,30})?|'
+    r'hier sorgst du für veränderung|'
+    r"what you(?:[’']ll| will) (?:be )?do(?:ing)?(?:\s+(?:at|with|in|for|bei)\s+[^\n.:;!?]{1,40}?:|\s+at [A-Z][A-Z -]{1,30})?|"
+    r'was (?:du|sie) bei uns mach(?:st|en)|das erwartet (?:dich|sie)(?: bei uns)?|'
+    r'dein aufgabenbereich|ihr aufgabenbereich|your tasks|'
     r'your mission|your contribution|nice.to.have|preferred qualifications|bonus skills|'
     r'qualification checklist|das bieten wir|was wir für dich bereithalten|benefits|why join us|'
     r"what[’']s in it for you|it[’']s a match|your benefits|erfahrung|kontaktinformationen|recruiting.prozess|bewerbungshinweise)"
     r'\s*:?\s+(?=(?-i:[A-ZÄÖÜ])|[-•])', re.I)
+
+# Duty-style labels also occur inside benefits prose ("a course on what you will
+# do with Docker"), so they are recovered only as real, short headings.
+_PROSE_PRONE_HEADING = re.compile(
+    r"what you|was (?:du|sie) bei uns|das erwartet|your (?:tasks|mission|contribution)|dein aufgabenbereich|ihr aufgabenbereich", re.I)
+
+
+def _recovered_heading(hit, text: str) -> str:
+    label = hit['label']
+    if _PROSE_PRONE_HEADING.match(label):
+        before = text[:hit.start()].rstrip()
+        gap = text[len(before):hit.start()]
+        trail = hit.group(0)[len(label):]
+        boundary = not before or '\n' in gap or before[-1] in '.!?:;•*#-–—'
+        terminated = label.endswith(':') or ':' in trail or '\n' in trail
+        if len(label) > 60 or not boundary or not terminated:
+            return hit.group(0)
+    return '\n' + label + '\n'
+
 
 _REQUIRED_HEADING = re.compile(
     r"^(?:it[’']s a match|erfahrung(?=\s*:|$)|required skills & experience|"
@@ -162,7 +184,7 @@ _REQUIRED_HEADING = re.compile(
     r'das bringen sie mit|das bringst du mit|was bringen sie mit|was bringst du mit|überzeuge uns mit (?:deinen|ihren) qualifikationen|profil|qualifikation(?:en)?|fachliche anforderungen)\b', re.I)
 _OTHER_HEADING = re.compile(
     r"^(?:what[’']s in it for you|key responsibilities|"
-    r'dein daily business|hier sorgst du für veränderung|what you will do|your mission|your contribution|was wir für dich bereithalten|why join us|kontaktinformationen|recruiting.prozess|bewerbungshinweise|(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
+    r'dein daily business|hier sorgst du für veränderung|what you(?:[’\x27]ll| will) (?:be )?do(?:ing)?|was (?:du|sie) bei uns mach(?:st|en)|your mission|your contribution|was wir für dich bereithalten|why join us|kontaktinformationen|recruiting.prozess|bewerbungshinweise|(?:ihr|ihre|dein|deine|your|unsere)\s+(?:aufgaben(?:bereich)?|tasks|responsibilities|benefits)|'
     r'aufgaben|responsibilities|duties|benefits|perks|wir bieten|we offer|what we offer|was wir bieten|dafür bieten wir ihnen|'
     r'das bieten wir|unser angebot|über uns|about us|about (?:the|our) company|core work|your role|kontakt|contact|bewerbung|tasks|'
     r'das sind (?:deine|ihre) aufgaben|diese herausforderungen|' 
@@ -229,7 +251,7 @@ def scoped_sentences(text: str, *, structured: bool = False, initial_scope: str 
             scope = 'requirements'
         elif _OTHER_HEADING.search(sentence):
             task_heading = (not re.match(r'^(?:contact|kontakt|bewerbung)\b', sentence, re.I) and
-                            re.search(r'aufgaben|tasks|responsibilities|duties|^core work|^your role|^dein daily business|^hier sorgst du|^what you will do|^your mission|^your contribution', sentence, re.I))
+                            re.search(r'aufgaben|tasks|responsibilities|duties|^core work|^your role|^dein daily business|^hier sorgst du|^what you(?:[’\x27]ll| will) (?:be )?do(?:ing)?|^was (?:du|sie) bei uns mach(?:st|en)|^das erwartet (?:sie|dich)|^your mission|^your contribution', sentence, re.I))
             scope = 'duties' if task_heading else 'benefits'
         elif _OPTIONAL_HEADING.search(sentence):
             scope = 'optional'
@@ -353,6 +375,20 @@ APPLICANT_CUE = re.compile(r'\b(?:abgeschlossen\w*\s+(?:\w+\s+){0,3}(?:studium|h
 ENROLMENT = re.compile(r'\b(?:immatrikulation(?:sbescheinigung)?|immatrikuliert\w*|eingeschrieben\w*|enrolled|student enrolment|student enrollment|laufende[smr]?\s+studium)\b', re.I)
 
 
+_CLAUSE_PREFIX = re.compile(
+    r'^(?:ihr\s+profil|dein\s+profil|your\s+profile|requirements?|qualifications?|anforderungen|'
+    r'voraussetzungen|was\s+(?:du|sie)\s+mitbring(?:st|en)|mandatory|required|zwingend|erforderlich)\s*:\s*', re.I)
+
+
+def clause_key(text: str) -> str:
+    """Identity of one requirement clause, independent of display excerpts.
+
+    '+' and '#' are kept so 'C++', 'C#' and 'C' clauses never collapse together.
+    """
+    cleaned = _CLAUSE_PREFIX.sub('', ' '.join(str(text or '').split()))
+    return re.sub(r'[^\w+#]+', ' ', cleaned.casefold()).strip()
+
+
 def qualification_rows(clause: str, source: str) -> list[dict]:
     rows = []
     if is_source_instruction(clause):
@@ -362,7 +398,7 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
         if requirement_polarity(clause, hit.start() if hit else 0, hit.end() if hit else 0) != 'required':
             return
         rows.append({'kind': kind, 'value': value, 'source': source,
-                     'evidence': clause[:500], **extra})
+                     'evidence': clause[:500], 'clause_key': clause_key(clause), **extra})
 
     if (hit := ENROLMENT.search(clause)):
         row('enrolment', 'Current student enrolment', hit)

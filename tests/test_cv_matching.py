@@ -350,8 +350,11 @@ class CvMatchingTests(unittest.TestCase):
         unknown = match_job(job, CV, enriched)
         self.assertTrue(unknown['eligible'])
         self.assertTrue(unknown['requirement_gaps'])
-        self.assertLess(unknown['score'], 65)
-        self.assertTrue(match_job(job, {**CV, 'experience_years': 3}, enriched)['eligible'])
+        # Unknown tenure is a visible note: it never caps the score, but it keeps the job out of 'recommended'.
+        self.assertNotEqual(unknown['fit_tier'], 'recommended')
+        known = match_job(job, {**CV, 'experience_years': 3}, enriched)
+        self.assertTrue(known['eligible'])
+        self.assertGreaterEqual(known['score'], unknown['score'])
 
     def test_student_enrolment_is_not_inferred_from_past_degree(self):
         result = match_job({'title': 'Werkstudent Projektmanagement', 'description':

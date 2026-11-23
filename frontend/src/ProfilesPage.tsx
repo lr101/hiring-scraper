@@ -10,7 +10,7 @@ import type { DutyEvidence, SearchArea, Profile, ProfileSetupStep } from './prof
 import { profileBoardLink, profileDraftFingerprint, profileSetupSections, selectedLanguageLevels, skillEvidenceKey, updateProfileLanguage } from './profile'
 const empty = (): Profile => ({ duty_evidence: [], localized_content: {}, application_personalization: {}, application_details: { preferences: {} }, cv: null, photo: null, name: '', summary: '', custom_instructions: '', skills: [], desired_roles: [], secondary_roles: [], work_styles: [], employment_types: [],
   seniority_levels: [], experience_years: null, languages: [], language_levels: {}, excluded_terms: [], skill_evidence: {}, search_area: null,
-  education: [], certifications: [], matching_defaults: { min_match_score: 30, include_unknown: true, low_afd_vote_share_weight: 0 } })
+  education: [], certifications: [], matching_defaults: { min_match_score: 0, include_unknown: true, low_afd_vote_share_weight: 0 } })
 const terms = (value: string) => value.split(',').map(term => term.trim()).filter(Boolean)
 function withProfileDefaults(profile: Profile): Profile {
   const defaults = empty()
