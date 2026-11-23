@@ -312,6 +312,60 @@ class GroundingChecksTests(unittest.TestCase):
         lf = check_document(loanword_letter, self.evidence, language='de', profile=self.profile, base_cv=self.base_cv)
         self.assertEqual([f for f in lf if f.code == 'language_mix'], [])
 
+    def test_job_only_units_allow_posting_numbers_while_experience_units_stay_strict(self):
+        job = {
+            'title': 'Operations Analyst (Ref. 4821)',
+            'company_name': 'HarborTech AG',
+            'url': 'https://jobs.example.test/operations-analyst-j9999.html',
+            'description': 'Support 14 regional warehouses. Requires 5 years of team leadership.',
+        }
+        letter = _make_letter(
+            'en',
+            [
+                Unit(
+                    id='u-p1',
+                    text='Supporting 14 regional warehouses appeals to me because reliable scheduling matters daily.',
+                    role='motivation',
+                    origin='ai',
+                    sources=['job'],
+                ),
+                Unit(
+                    id='u-p2',
+                    text='I led warehouse operations with 5 years of team leadership.',
+                    role='experience',
+                    origin='ai',
+                    sources=['cv:work-1:b1', 'job'],
+                ),
+            ],
+        )
+        letter.subject = Unit(
+            id='u-subject',
+            text='Application for Operations Analyst – Ref. 4821',
+            origin='ai',
+            sources=['job'],
+        )
+        findings = [
+            f for f in check_document(letter, self.evidence, language='en', profile=self.profile, base_cv=self.base_cv, job=job)
+            if f.code == 'unsupported_number'
+        ]
+        # Ref. 4821 on subject and 14 on job-only motivation are allowed; 5 on experience unit is still flagged.
+        self.assertEqual([(f.unit_id, f.severity) for f in findings], [('u-p2', 'high')])
+
+        # A number appearing only in the URL (not posting title/description) is still rejected on the subject.
+        letter.subject = Unit(
+            id='u-subject',
+            text='Application for Operations Analyst – Ref. 9999',
+            origin='ai',
+            sources=['job'],
+        )
+        url_findings = [
+            f for f in check_document(letter, self.evidence, language='en', profile=self.profile, base_cv=self.base_cv, job=job)
+            if f.code == 'unsupported_number' and f.unit_id == 'u-subject'
+        ]
+        self.assertEqual(len(url_findings), 1)
+        self.assertEqual(url_findings[0].severity, 'high')
+
 
 if __name__ == '__main__':
     unittest.main()
+

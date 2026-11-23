@@ -12,7 +12,8 @@ _FIRST_PERSON_I = re.compile(r"\bI\b")
 _FIRST_PERSON_CONTRACTION = re.compile(r"\bi['’](?:m|ve|d|ll)\b", re.I)
 _FIRST_PERSON_DE = re.compile(r"\bich\b", re.I)
 _ROMAN_PREFIX = re.compile(
-    r'\b(?:phase|level|part|section|tier|stage|grade|class|type|version|annex|appendix)\s+$', re.I,
+    r'\b(?:phase|level|part|section|tier|stage|grade|class|type|version|annex|appendix|'
+    r'category|step|track|series|module|generation)\s+$', re.I,
 )
 EN_CONTRACTION = re.compile(
     r"\b(?:\w+n['’]t|\w+['’](?:m|ve|re|ll|d)|(?:it|that|there|what|who|how|he|she|here|let|where)['’]s)\b", re.I,
@@ -21,6 +22,14 @@ CONDITIONAL = re.compile(r"\b(?:würde(?:st|n|t)?|would)\b", re.I)
 GENERIC_ENTRY_LABEL = re.compile(
     r'^(?:university|college|hochschule|universität|internship|praktikum|education|ausbildung)$', re.I,
 )
+LEGAL_SUFFIX = re.compile(
+    r'(?:[,\s]+(?:(?:GmbH|gGmbH|AG|SE|UG)\s*(?:&|und)\s*Co\.?\s*(?:KGaA|KG|OHG)|'
+    r'GmbH|gGmbH|mbH|AG|SE|Inc(?:orporated)?|Corp(?:oration)?|Ltd|Limited|LL[CP]|PLC|'
+    r'L\.L\.[CP]|e\.?\s*V|B\.V|N\.V|S\.A\.R\.L|S\.à\s*r\.l|S\.r\.l|S\.L|S\.A|'
+    r'Co|KG|KGaA|OHG|UG|GbR|S[àa]rl|SAS|SA|BV|NV|Pty)\.?)+$',
+    re.I,
+)
+_QUOTED_SPAN = re.compile(r'[“"„][^”"‟]{1,240}[”"‟]|(?<!\w)\'[^\']{3,200}\'(?!\w)')
 _DEGREE = re.compile(
     r'^(?:[BM]\.?\s?(?:Sc|Eng|Tech|A|S)\.?\b|Bachelor\b|Master\b|Diplom\b|PhD\b|Ph\.D\.)', re.I,
 )
@@ -29,6 +38,19 @@ _CONNECTORS = frozenset(
     'des den dem ein eine einer eines für im in mit nach über von zur zum '
     'across through between during within around into onto toward towards without while whereas '
     'während zwischen sowie dabei damit darüber darunter unter über durch gegen ohne'.split()
+)
+_NGRAM_STOPWORDS = _CONNECTORS | frozenset(
+    'i me my we our us you your they their them he him his she her it its that this these those '
+    'is am are was were be been being have has had do does did will would shall should can could '
+    'may might must also about upon over under than then when where which who whom whose what how '
+    'why because although if but nor not so very more most such each every other another some any '
+    'all both few many together along ahead apart away back down even just now off out still up well '
+    'ich mir mich wir uns sie ihr ihre ihrem ihren ihres er ihm ihn es sein seine seinem seinen '
+    'seiner ist sind war waren gewesen haben hat hatte hatten habe werde wird wurden wurde kann '
+    'können konnte könnte soll sollte will wollte muss müssen darf dürfen mag möchte um zu vom '
+    'beim ins ans aufs als wie auch noch nur aber denn wenn weil dass ob sich man einem einen '
+    'nicht kein keine keinem keinen keiner zusammen gemeinsam bereits dafür daran darauf daraus '
+    'dazu ebenfalls etwa immer jedoch schon sehr sogar wieder weiter'.split()
 )
 _COMMON_ACTIONS = frozenset(
     'designed developed created worked supported managed planned produced helped built ensured '
@@ -56,6 +78,23 @@ def has_first_person(text: str) -> bool:
     return False
 
 
+def has_en_contraction(text: str) -> bool:
+    return bool(EN_CONTRACTION.search(_QUOTED_SPAN.sub(' ', text)))
+
+
+def employer_key(company: str, entry_id: str) -> str:
+    """Normalize an employer or institution name so entries at the same organization group consistently."""
+    cleaned = ' '.join(company.split())
+    if not cleaned or GENERIC_ENTRY_LABEL.fullmatch(cleaned):
+        return entry_id
+    stripped = re.sub(r'\s*\([^()]*\)\s*$', '', cleaned).strip()
+    stripped = LEGAL_SUFFIX.sub('', stripped).rstrip(' ,.-–—').strip()
+    normalized = ' '.join(re.findall(r'[^\W_]+', (stripped or cleaned).casefold()))
+    if not normalized or GENERIC_ENTRY_LABEL.fullmatch(normalized):
+        return entry_id
+    return normalized
+
+
 def words(text: str) -> list[str]:
     return re.findall(r'[^\W_]+', text.casefold())
 
@@ -65,8 +104,64 @@ def ngrams(text: str, size: int = 8) -> set[tuple[str, ...]]:
     return set(zip(*(tokens[offset:] for offset in range(size)), strict=False))
 
 
-def cv_ngrams(cv: CvDocument) -> set[tuple[str, ...]]:
-    return set().union(*(ngrams(unit_full_text(unit)) for unit in walk_units(cv) if not unit.hidden))
+def _strip_ignored_phrases(text: str, ignore_phrases: Iterable[str]) -> list[str]:
+    cleaned = _QUOTED_SPAN.sub('\n', text)
+    phrases = sorted(
+        {' '.join(p.split()) for p in ignore_phrases if len(words(p)) >= 3},
+        key=len,
+        reverse=True,
+    )
+    for phrase in phrases:
+        cleaned = re.sub(rf'(?<!\w){re.escape(phrase)}(?!\w)', '\n', cleaned, flags=re.I)
+    cleaned = re.sub(r'[.!?;:]+(?:\s+|$)', '\n', cleaned)
+    return [segment for segment in cleaned.split('\n') if segment.strip()]
+
+
+def _prose_words(text: str) -> list[str]:
+    return re.findall(r'[^\W_]+(?:[-–][^\W_]+)*', text.casefold())
+
+
+def prose_ngrams(
+    text: str,
+    *,
+    size: int = 8,
+    ignore_phrases: Iterable[str] = (),
+    min_content: int = 6,
+) -> set[tuple[str, ...]]:
+    """Extract substantive n-grams while ignoring quoted titles, proper-name phrases and stopword runs."""
+    threshold = min(min_content, size)
+    result: set[tuple[str, ...]] = set()
+    for segment in _strip_ignored_phrases(text, ignore_phrases):
+        tokens = _prose_words(segment)
+        for gram in zip(*(tokens[offset:] for offset in range(size)), strict=False):
+            if sum(1 for token in gram if token not in _NGRAM_STOPWORDS) >= threshold:
+                result.add(gram)
+    return result
+
+
+def cv_ignore_phrases(cv: CvDocument, extra: Iterable[str] = ()) -> tuple[str, ...]:
+    phrases: list[str] = [cv.header.name, *extra]
+    for section in cv.sections:
+        for entry in section.entries:
+            phrases.extend((entry.locked.company, entry.locked.title))
+    return tuple(dict.fromkeys(' '.join(p.split()) for p in phrases if p and len(words(p)) >= 3))
+
+
+def cv_ngrams(cv: CvDocument, *, ignore_phrases: Iterable[str] = ()) -> set[tuple[str, ...]]:
+    """Extract substantive 8-grams from visible CV prose (profile and experience/education bullets)."""
+    ignored = cv_ignore_phrases(cv, ignore_phrases)
+    grams: set[tuple[str, ...]] = set()
+    for section in cv.sections:
+        if section.kind == 'profile':
+            for unit in section.units:
+                if not unit.hidden:
+                    grams.update(prose_ngrams(unit.text, ignore_phrases=ignored))
+        elif section.kind in ('experience', 'education'):
+            for entry in section.entries:
+                for unit in entry.units:
+                    if not unit.hidden:
+                        grams.update(prose_ngrams(unit.text, ignore_phrases=ignored))
+    return grams
 
 
 def content_words(text: str) -> set[str]:
@@ -74,7 +169,7 @@ def content_words(text: str) -> set[str]:
 
 
 def near_duplicate(left: str, right: str) -> bool:
-    if ngrams(left) & ngrams(right):
+    if prose_ngrams(left) & prose_ngrams(right):
         return True
     a, b = content_words(left), content_words(right)
     return min(len(a), len(b)) >= 4 and len(a & b) / len(a | b) >= 0.75

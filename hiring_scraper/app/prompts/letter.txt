@@ -32,16 +32,18 @@ body paragraphs in total. Aim for about 260–290 words including the closing se
   such as language proficiency in the example where they matter, without tacking them on
   after its final connection to the target work.
 - If a fourth paragraph adds something beyond the two examples, use bring to name one concrete work
-  decision and what would inform it, at the scope the applicant can offer. Prefer indicative
-  voice and use at most one conditional (würde or would) in any paragraph. In English, spell
-  out contractions. In German, use formal register and continue correctly after the comma.
+  decision and what would inform it, at the scope the applicant can offer. In a bring paragraph,
+  cite job (and profile or skill evidence if relevant) rather than re-citing a CV entry already
+  used in an earlier paragraph. Prefer indicative voice and use at most one conditional (würde or
+  would) in any paragraph. In English, spell out contractions. In German, use formal register and
+  continue correctly after the comma.
 
 Cite evidence ids in EVIDENCE, including the original sources behind claims shown in CV UNITS.
 Use job for facts established by the posting. Check sentence by sentence that the evidence
 supports the action, method and outcome at the stated scope. Keep recommendations distinct
 from decisions or adoption. Do not claim unverified work even when closely related.
 
-Use closing for a single brief invitation to talk. Name the role in subject and include a
-reference number if the posting gives one. For contact_name, copy the full name of the person
-the posting identifies as the contact for this vacancy, without any title or honorific. Return
-an empty string if only a first name or an email is given, or if there is no named contact.
+Use closing for a single brief invitation to talk. Name the role in subject; include a reference
+number only if the posting text explicitly states one. For contact_name, copy the full name of the
+person the posting identifies as the contact for this vacancy, without any title or honorific.
+Return an empty string if only a first name or an email is given, or if there is no named contact.

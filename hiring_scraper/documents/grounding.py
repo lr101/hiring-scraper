@@ -524,13 +524,18 @@ def check_document(
                 break
 
         # 3. Numbers / percentages / years
-        allowed_numbers = {norm for _, norm in extract_numbers(cited_with_headers)}
+        number_corpus = cited_with_headers
+        if (isinstance(doc, LetterDocument) and unit.id == doc.subject.id) or (
+            'job' in unit.sources and not valid_sources
+        ):
+            number_corpus = f'{number_corpus}\n{job_corpus}'
+        allowed_numbers = {norm for _, norm in extract_numbers(number_corpus)}
         flagged_nums: set[str] = set()
         for raw_num, norm_num in extract_numbers(full_text):
             if norm_num in allowed_numbers or norm_num in flagged_nums:
                 continue
             # Also accept bare year if a YYYY-MM date with that year is in cited headers/sources.
-            if len(norm_num) == 4 and norm_num.isdigit() and re.search(rf'\b{re.escape(norm_num)}\b', cited_with_headers):
+            if len(norm_num) == 4 and norm_num.isdigit() and re.search(rf'\b{re.escape(norm_num)}\b', number_corpus):
                 continue
             flagged_nums.add(norm_num)
             add_finding(

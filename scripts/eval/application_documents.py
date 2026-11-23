@@ -138,6 +138,8 @@ def run(args: argparse.Namespace) -> None:
     print(json.dumps({
         'out': str(out), 'pages': pages, 'seconds': telemetry['seconds'], 'photo_used': photo_used,
         'stage_seconds': telemetry['stage_seconds'], 'attempts': telemetry['attempts'],
+        'attempt_failures': telemetry.get('attempt_failures', {}),
+        'stage_states': {name: s.get('state') for name, s in result.stages.items()},
         'applied_patches': len(telemetry['applied_patches']), 'finding_counts': telemetry['finding_counts'],
     }, sort_keys=True))
 
@@ -156,7 +158,10 @@ def main() -> int:
     try:
         run(parser.parse_args())
     except Exception as error:
-        print(f'Evaluation failed ({getattr(error, "code", type(error).__name__)}).', file=sys.stderr)
+        code = getattr(error, 'code', type(error).__name__)
+        reasons = getattr(error, 'reasons', ()) or ()
+        suffix = f': {", ".join(reasons)}' if reasons else ''
+        print(f'Evaluation failed ({code}{suffix}).', file=sys.stderr)
         return 1
     return 0
 

@@ -532,3 +532,158 @@ class PipelineTests(unittest.TestCase):
                     generate('Fictional prompt', schema)
                 self.assertEqual(error.exception.retryable, retryable)
                 self.assertNotIn('Provider detail', str(error.exception))
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_letter_ngram_ignores_proper_names_quoted_titles_and_stopword_runs(self):
+        self.inp.mode = 'fast'
+        long_org = 'Northern Harbor Botanical Conservatory and Research Institute'
+        quoted = '"Handbook of Inclusive Tactile Museum Guideways for Families"'
+        self.inp.base_cv['sections'][1]['entries'][0]['locked']['company'] = long_org
+        cv = cv_reply()
+        cv['entries'][0]['bullets'][0]['text'] = (
+            f'Co-authored {quoted} at {long_org}, guided stewardship of a city-wide catalog and archive initiative, '
+            'brought curators, archivists, printers, and docents together to test gallery guides, '
+            'and worked with the team on the design of the public gallery.'
+        )
+        ok_letter = letter_reply()
+        ok_letter['paragraphs'][1]['text'] = (
+            f'While contributing to {quoted} at {long_org}, I handled stewardship of a city-wide catalog and archive initiative. '
+            'In that effort I brought curators, archivists, printers, and docents together to review hands-on prompts. '
+            'Later I worked with the team on the design of the visitor tables to see which prompts invited curiosity. '
+            'That work directly informs how I structure clear interactive activities for museum guests.'
+        )
+        result = self.run_with(cv=cv, letter=ok_letter)
+        self.assertEqual(result.telemetry['attempts']['letter'], 1)
+        self.assertEqual(result.telemetry['attempt_failures'], {})
+
+        # Real 8-word substantive copy still retries with specific paragraph index and fixed telemetry code.
+        self.checkpoints.clear()
+        cv2 = cv_reply()
+        copied_clause = 'built modular tactile exhibition kits with visiting schoolteachers and curators'
+        cv2['entries'][0]['bullets'][0]['text'] = f'Successfully {copied_clause}.'
+        bad_letter = letter_reply()
+        bad_letter['paragraphs'][1]['text'] += f' I {copied_clause}.'
+        prompts = []
+        replies = [cv2, bad_letter, letter_reply()]
+
+        def generate(prompt, schema):
+            prompts.append(prompt)
+            return replies[len(prompts) - 1]
+
+        result2 = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result2.telemetry['attempts']['letter'], 2)
+        self.assertIn('Paragraph 2', prompts[2])
+        self.assertEqual(result2.telemetry['attempt_failures'], {
+            'letter': [{'attempt': 1, 'code': 'invalid_response', 'reasons': ['letter_cv_ngram_overlap']}],
+        })
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_letter_employer_grouping_normalizes_legal_suffixes_and_names_paragraphs(self):
+        self.inp.mode = 'fast'
+        self.inp.base_cv['sections'][1]['entries'][0]['locked']['company'] = 'Sedge Workshop GmbH'
+        self.inp.base_cv['sections'][1]['entries'].append({
+            'id': 'work-2', 'kind': 'work',
+            'locked': {'company': 'Sedge Workshop', 'title': 'Lead Designer',
+                       'location': 'Port Alder', 'start': '2022', 'end': '2024'},
+            'intro': [],
+            'units': [{'id': 'u-base-bullet-2', 'text': 'Trained museum volunteers on workshop setup.'}],
+        })
+        cv = cv_reply()
+        cv['entries'].append({'entry_id': 'work-2', 'bullets': [
+            {'text': 'Trained volunteers on gallery workshop setup.', 'lead_in': '', 'sources': ['cv:work-2:b1']},
+        ]})
+        dup_letter = letter_reply()
+        dup_letter['paragraphs'][2]['role'] = 'experience'
+        dup_letter['paragraphs'][2]['sources'] = ['cv:work-2:b1']
+        prompts = []
+        replies = [cv, dup_letter, letter_reply()]
+
+        def generate(prompt, schema):
+            prompts.append(prompt)
+            return replies[len(prompts) - 1]
+
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result.telemetry['attempts']['letter'], 2)
+        self.assertIn('Paragraph 3', prompts[2])
+        self.assertIn('Paragraph 2', prompts[2])
+        self.assertEqual(result.telemetry['attempt_failures']['letter'][0]['reasons'], ['letter_duplicate_employer'])
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_letter_fallback_publishes_best_attempt_after_prose_or_timeout_exhaustion(self):
+        best_attempt = letter_reply()
+        best_attempt['paragraphs'][1]['text'] += " I'd adapt the setup."
+        worse_attempt = letter_reply()
+        worse_attempt['paragraphs'][1]['text'] += " I'd adapt it, I would test it, and I would refine it."
+        fixed_text = letter_reply()['paragraphs'][1]['text'] + ' I would adapt the setup.'
+        calls = {'letter': 0}
+
+        def generate(prompt, schema):
+            stage = self.stages[-1]
+            if stage == 'cv':
+                return cv_reply()
+            if stage == 'letter':
+                calls['letter'] += 1
+                if calls['letter'] == 1:
+                    return best_attempt
+                if calls['letter'] == 2:
+                    return worse_attempt
+                raise pipeline.GenerationError('timeout', retryable=True)
+            return {
+                'findings': [],
+                'patches': [{'document': 'letter', 'unit_id': 'u-letter-p2', 'kind': 'rephrase', 'text': fixed_text}],
+            }
+
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result.stages['letter']['state'], 'fallback')
+        self.assertEqual(result.telemetry['attempts']['letter'], 3)
+        self.assertEqual(result.telemetry['attempt_failures']['letter'], [
+            {'attempt': 1, 'code': 'invalid_response', 'reasons': ['letter_contraction']},
+            {'attempt': 2, 'code': 'invalid_response', 'reasons': ['letter_contraction', 'letter_conditional_count']},
+            {'attempt': 3, 'code': 'timeout', 'reasons': ['timeout']},
+        ])
+        # Review stage was allowed to fix the fallback prose issue and clear the prose finding.
+        self.assertEqual(result.letter['paragraphs'][1]['text'], fixed_text)
+        self.assertEqual([f for f in result.findings if f['document'] == 'letter' and f['code'] == 'review_style'], [])
+        # Telemetry never contains document text.
+        self.assertNotIn('adapt the setup', json.dumps(result.telemetry))
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_cv_prose_fallback_publishes_best_attempt_and_letter_uses_base_cv_units(self):
+        self.inp.mode = 'fast'
+        long_cv = cv_reply()
+        long_cv['headline']['text'] = 'Exhibit, Workshop and Participatory Museum Activity Designer for Public Spaces'
+        long_cv['entries'][0]['bullets'][0]['text'] = 'Tailored bullet that should not replace base CV units on fallback.'
+        letter_prompts = []
+
+        def generate(prompt, schema):
+            if self.stages[-1] == 'cv':
+                return long_cv
+            letter_prompts.append(prompt)
+            return letter_reply()
+
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result.stages['cv']['state'], 'fallback')
+        self.assertEqual(result.cv['headline']['text'], long_cv['headline']['text'])
+        self.assertTrue(any(f['code'] == 'review_format' and f['unit_id'] == 'u-headline' for f in result.findings))
+        self.assertEqual(len(result.telemetry['attempt_failures']['cv']), 3)
+        self.assertTrue(all(
+            item['reasons'] == ['cv_headline_too_long'] for item in result.telemetry['attempt_failures']['cv']
+        ))
+        self.assertIn('Designed a workshop with librarians.', letter_prompts[0])
+        self.assertNotIn('Tailored bullet that should not replace', letter_prompts[0])
+
+    def test_prompt_omits_job_url(self):
+        self.inp.mode = 'fast'
+        self.inp.job['url'] = 'https://jobs.example.test/designer-j9876.html'
+        seen_prompts = []
+
+        def generate(prompt, schema):
+            seen_prompts.append(prompt)
+            return cv_reply() if self.stages[-1] == 'cv' else letter_reply()
+
+        pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertTrue(seen_prompts)
+        for prompt in seen_prompts:
+            self.assertNotIn('j9876', prompt)
+            self.assertNotIn('jobs.example.test', prompt)
+
