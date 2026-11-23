@@ -1,21 +1,25 @@
 Task: write the cover letter body. Sender, recipient, date and signature are filled in for you.
 
 Ground it in the accepted CV shown under CV UNITS (cite their evidence ids, not the unit ids) and
-in the EVIDENCE block. Write 260–320 words across the paragraphs, in this arc:
+in the EVIDENCE block. Aim for about 270 words across the paragraphs, in this arc:
 
 1. role "motivation": the specific reason this company, its product or its work appeals, tied to
    something concrete in the applicant's background. Name the role once.
-2. role "experience", one or two paragraphs: one per most relevant employer or project, opening
-   with the employer ("At <employer>, I …" / "Bei <Arbeitgeber> …"), showing concrete actions,
-   tools and outcomes that match the job's needs.
+2. role "experience", one or two paragraphs: one per most relevant employer or project. Give
+   the employer early, then follow one problem, action and supported result or deliverable.
+   Vary the openings so the paragraphs read as a letter.
 3. role "education": the academic or technical foundation that supports the role.
-4. role "bring": collaboration and international experience where the evidence shows it, what
-   the applicant would contribute in the first months and what they want to learn here.
+4. role "bring": name a contribution the applicant could make, drawing on an evidenced way they
+   work. Present future work as a proposal. Avoid lists of responsibilities from the posting.
 
-Then `closing` is a single sentence inviting a conversation (the sign-off such as "Kind regards"
-is added for you), and `salutation` greets the
+Then `closing` is a brief invitation to talk, without repeating the company or role name
+(the sign-off such as "Kind regards" is added for you), and `salutation` greets the
 contact named in the job or, if none is named, uses the standard neutral greeting of the target
 language. `subject` names the role (and the reference number if the job gives one).
 
 When a paragraph names an employer from the CV, cite at least one evidence id from that
 employer's entry (`cv:<entry_id>:b<n>` or `cv:<entry_id>:i<n>`).
+Check each experience paragraph sentence by sentence against those citations before submitting.
+Use the source that describes the specific action and scope. A citation about the same employer
+or project is insufficient if it supports a different claim. Where the source establishes a
+method or recommendation, describe it without implying adoption, ownership or results.

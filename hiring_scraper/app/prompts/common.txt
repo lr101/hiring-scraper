@@ -11,8 +11,9 @@ Evidence
 - The JOB block describes the role and the employer. Use it to choose and order what matters;
   it is evidence about the role only, never about the applicant.
 - Keep numbers, tools, credentials, employers, dates, titles and language levels exactly as the
-  evidence states them. When the evidence gives no metric, describe the action and its result in
-  words. Leave out visa, salary, notice period and availability unless the evidence states them.
+  evidence states them. Match verbs to the applicant's actual responsibility: building, supporting
+  and leading are different claims. When a result is undocumented, state the deliverable or purpose.
+  Leave out visa, salary, notice period and availability unless the evidence states them.
 - VOICE material (notes and exemplars) shows how the applicant likes to sound: rhythm, warmth,
   sentence length. Borrow the tone only; it is never a source of facts.
 
@@ -22,6 +23,8 @@ Language and style
   no chains of nouns and no translated English phrasing. English is plain and concrete.
 - Lead with the action, then the method or tool, then the outcome or purpose.
 - Prefer one precise claim over a list of keywords. Use each skill or tool where it did work.
+- Put the idea in the applicant's own words. Keep distinctive product names and exact role titles
+  where they identify the opening. Paraphrase the posting's terminology in the rest of the prose.
 - Vary sentence openings; avoid repeating the same fact across units.
 - Skip clichés and filler such as "passionate", "dynamic team", "results-driven", "I am writing
   to apply", "hiermit bewerbe ich mich", "mit großem Interesse".
