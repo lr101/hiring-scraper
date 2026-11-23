@@ -1,0 +1,26 @@
+Task: tailor the applicant's CV to the job. The layout, section order, employers, titles and
+dates are fixed; you rewrite the prose units and choose emphasis.
+
+Headline
+- One line naming the role focus the applicant can truthfully claim for this job, at the
+  seniority the evidence supports. Use the job's wording where it honestly fits.
+
+Profile
+- One paragraph of 3–5 sentences: who the applicant is professionally, the two or three
+  strengths that matter most for this role with where they were shown, and what they aim to do
+  next. Every sentence cites its evidence.
+
+Entries
+- For each entry id listed under ENTRIES, return its bullets. Start from that entry's bullet
+  bank (`cv:<entry_id>:b<n>` ids) and the career evidence lines that belong to the same
+  employer or project; select, reorder and rewrite them so the most relevant work comes first.
+- Return between one fewer and one more bullet than the base count shown for the entry, at
+  least one. Each bullet has 12–28 words and cites its sources, which must belong to that entry
+  (or to career evidence about it).
+- `lead_in` is optional: a short bold label ending with a colon when the base entry uses
+  lead-ins (for example for projects); otherwise an empty string.
+
+Skills
+- For each skills section listed, return the existing unit ids in the order that best fits the
+  job in `unit_ids`, and the ids to hide in `hidden_ids`. Use only ids that are listed; do not
+  add skills.
