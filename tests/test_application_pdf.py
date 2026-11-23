@@ -96,6 +96,28 @@ class RenderTests(unittest.TestCase):
         self.assertIn('Grüßen', result.text)
         self.assertEqual(self._passed(result, 'name_present'), 'passed')
 
+    def test_multi_entry_cv_extracts_headers_and_bullets_in_order(self):
+        doc = fictional_cv(bullets=1)
+        doc.sections[1].entries += [
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant',
+                                     start='2020', end='2020'),
+                  units=[Unit(id='u-work-2-b1', text='Kalibrierte Sensoren im Prüfstand.')]),
+        ]
+        doc.sections[2].layout = 'columns'
+        doc.sections[2].units.insert(1, Unit(id='u-skills-3', text='Konstruktion'))
+        result = application_pdf.render_document('cv', doc.model_dump(), photo_png=PIXEL)
+        self.assertEqual(self._passed(result, 'reading_order'), 'passed')
+        self.assertTrue(result.telemetry['photo_used'])
+        self.assertNotIn('2020-2020', result.text)
+        self.assertIn('2021-heute', result.text)
+        self.assertNotIn('‐', result.text)
+        parts = ('BEISPIELWERK', 'Plante Prüfläufe', 'FIKTIVLABOR', '2020',
+                 'Kalibrierte Sensoren', 'Python', 'Konstruktion', 'Messtechnik')
+        positions = [result.text.index(part) for part in parts]
+        self.assertEqual(positions, sorted(positions))
+        self.assertRegex(result.text, r'●\s*Kalibrierte')
+
     def test_long_cv_reports_overflow(self):
         doc = fictional_cv(bullets=45).model_dump(mode='json')
         result = application_pdf.render_document('cv', doc)
@@ -112,6 +134,37 @@ class RenderTests(unittest.TestCase):
 
 
 class AvailabilityTests(unittest.TestCase):
+    def test_reading_order_accepts_line_wrap_at_an_explicit_compound_hyphen(self):
+        doc = fictional_cv(bullets=1)
+        doc.headline.text = 'Koordination der Speicher-Entwicklung'
+        extracted = '\n'.join([
+            'Koordination der Speicher-\nEntwicklung',
+            doc.sections[0].units[0].text,
+            doc.sections[1].entries[0].units[0].text,
+            'Python • Messtechnik',
+        ])
+        checks = application_pdf._text_checks('cv', doc, extracted, 1)
+        self.assertIn(('reading_order', 'passed'), [(c['code'], c['status']) for c in checks])
+
+    def test_reading_order_check_rejects_extraction_with_moved_bullet(self):
+        doc = fictional_cv(bullets=1)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant',
+                                     start='2020', end='2020'),
+                  units=[Unit(id='u-work-2-b1', text='Kalibrierte Sensoren im Prüfstand.')]),
+        )
+        doc.sections[2].units[1].hidden = True
+        extracted = '\n'.join([
+            doc.headline.text,
+            doc.sections[0].units[0].text,
+            doc.sections[1].entries[1].units[0].text,
+            doc.sections[1].entries[0].units[0].text,
+            'Python',
+        ])
+        checks = application_pdf._text_checks('cv', doc, extracted, 1)
+        self.assertIn(('reading_order', 'failed'), [(c['code'], c['status']) for c in checks])
+
     def test_missing_dist_is_unavailable(self):
         import os
         from unittest import mock

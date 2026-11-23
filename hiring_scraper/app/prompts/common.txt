@@ -14,6 +14,10 @@ Evidence
   evidence states them. Match verbs to the applicant's actual responsibility: building, supporting
   and leading are different claims. When a result is undocumented, state the deliverable or purpose.
   Leave out visa, salary, notice period and availability unless the evidence states them.
+- Preserve the exact object and scope of each action. Leading project coordination means leading
+  the coordination, and informing feature priorities means contributing to those decisions.
+  Preserve these distinctions in the main verb and its object, even when shortening. Include a
+  measured outcome only when the source directly links it to that action.
 - VOICE material (notes and exemplars) shows how the applicant likes to sound: rhythm, warmth,
   sentence length. Borrow the tone only; it is never a source of facts.
 

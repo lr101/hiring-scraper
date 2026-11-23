@@ -115,15 +115,18 @@ def run(args: argparse.Namespace) -> None:
         write_json(workspace / 'job.json', job)
         write_json(workspace / 'findings.json', result.findings)
         pages = {}
+        photo_used = False
         for kind, body in (('cv', result.cv), ('letter', result.letter)):
             output = render(kind, body)
             pages[kind] = output.pages
+            if kind == 'cv':
+                photo_used = output.telemetry['photo_used']
             write_json(workspace / f'{kind}.json', body)
             (workspace / f'{kind}.pdf').write_bytes(output.pdf)
             (workspace / f'{kind}.txt').write_text(output.text, encoding='utf-8')
         telemetry = {
             **result.telemetry, 'stages': result.stages, 'base_path': str(base_path),
-            'model': args.model, 'mode': args.mode, 'pages': pages,
+            'model': args.model, 'mode': args.mode, 'pages': pages, 'photo_used': photo_used,
             'seconds': round(monotonic() - started, 3),
             'finding_counts': dict(Counter(f['code'] for f in result.findings)),
         }
@@ -133,7 +136,7 @@ def run(args: argparse.Namespace) -> None:
             artifact.replace(out / artifact.name)
 
     print(json.dumps({
-        'out': str(out), 'pages': pages, 'seconds': telemetry['seconds'],
+        'out': str(out), 'pages': pages, 'seconds': telemetry['seconds'], 'photo_used': photo_used,
         'stage_seconds': telemetry['stage_seconds'], 'attempts': telemetry['attempts'],
         'applied_patches': len(telemetry['applied_patches']), 'finding_counts': telemetry['finding_counts'],
     }, sort_keys=True))

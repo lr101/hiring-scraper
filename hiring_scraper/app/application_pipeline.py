@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date
 from functools import cache
+from html import unescape
 from pathlib import Path
 from typing import Literal
 
@@ -35,7 +36,7 @@ from hiring_scraper.documents.schema import (
     walk_units,
 )
 
-PIPELINE_VERSION = 'application-documents-v2'
+PIPELINE_VERSION = 'application-documents-v2.1'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -118,7 +119,7 @@ class _Paragraph(_SourcedText):
 
 class _LetterResponse(_Response):
     subject: _Text
-    salutation: _Text
+    contact_name: str
     paragraphs: list[_Paragraph]
     closing: _Text
 
@@ -413,6 +414,44 @@ def _date_line(inp: PreparationInput, base: CvDocument) -> str:
     return f'{city[:198 - len(formatted)]}, {formatted}' if city else formatted
 
 
+_NAME_WORD = r"[^\W\d_]+(?:[-'’][^\W\d_]+)*"
+_NAME_PARTICLES = frozenset({'al', 'bin', 'da', 'das', 'de', 'del', 'della', 'den',
+                             'der', 'di', 'do', 'dos', 'du', 'la', 'le', 'ten',
+                             'ter', 'van', 'von', 'zu', 'zum', 'zur'})
+_WORK_ARRANGEMENT = re.compile(
+    r'\b(?:hybrid|remote|on[- ]?site|on[- ]?premises|in[- ]?office|home[- ]?office|'
+    r'telework|work from home|vor ort|mobiles arbeiten)\b', re.I,
+)
+
+
+def _recipient_city(value: str) -> str:
+    # A posting's location often describes a region, multiple sites or a work arrangement.
+    # Omit ambiguous strings instead of inventing a mailing address from them.
+    if re.fullmatch(rf'{_NAME_WORD}(?: {_NAME_WORD})*', value) and not _WORK_ARRANGEMENT.search(value):
+        return value[:200]
+    return ''
+
+
+def _sender_name(value: str) -> str:
+    if value.isupper():
+        return ' '.join(word.lower() if word.lower() in _NAME_PARTICLES else word.title()
+                        for word in value.split())
+    return value
+
+
+def _salutation(inp: PreparationInput, company: str, proposed_name: str) -> str:
+    name = ' '.join(proposed_name.split())
+    description = str(inp.job.get('description') or '')
+    description = ' '.join(unescape(re.sub(r'<[^>]*>', ' ', description)).split())
+    if (len(name) <= 200 and re.fullmatch(rf'{_NAME_WORD}(?: {_NAME_WORD})+', name)
+            and name.split()[0].casefold() not in {'mr', 'ms', 'mrs', 'dr', 'prof', 'frau', 'herr'}
+            and re.search(rf'(?<!\w){re.escape(name)}(?!\w)', description)):
+        return f'Guten Tag {name},' if inp.language == 'de' else f'Dear {name},'
+    if inp.language == 'de':
+        return f'Sehr geehrtes {company + "-" if company else ""}Recruiting-Team,'
+    return f'Dear {company + " " if company else ""}Recruiting Team,'
+
+
 def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> LetterDocument:
     reply = _LetterResponse.model_validate(output)
     if not 3 <= len(reply.paragraphs) <= 6:
@@ -423,16 +462,18 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> Lett
     if not 150 <= sum(len(unit.text.split()) for unit in paragraphs) <= 450:
         raise _InvalidResponse('Keep the body between 150 and 450 words, ideally 260 to 320.')
     paragraphs.append(_ai('u-letter-closing', reply.closing, role='close'))
-    recipient = [' '.join(value.split())[:200] for key in ('company_name', 'location')
-                 if isinstance(value := inp.job.get(key), str) and value.strip()]
+    company = ' '.join(str(inp.job.get('company_name') or '').split())[:200]
+    city = _recipient_city(' '.join(str(inp.job.get('location') or '').split()))
+    name = _sender_name(base.header.name)
     return LetterDocument(
         language=inp.language, page=base.page,
-        sender={'name': base.header.name, 'lines': [c.text for c in base.header.contacts[:10]]},
-        recipient_lines=recipient, place_date=_date_line(inp, base),
-        subject=_ai('u-letter-subject', reply.subject), salutation=_ai('u-letter-salutation', reply.salutation),
+        sender={'name': name, 'lines': [c.text for c in base.header.contacts[:10]]},
+        recipient_lines=[line for line in (company, city) if line], place_date=_date_line(inp, base),
+        subject=_ai('u-letter-subject', _SourcedText(text=reply.subject.text, sources=['job'])),
+        salutation=Unit(id='u-letter-salutation', text=_salutation(inp, company, reply.contact_name)),
         paragraphs=paragraphs, closing=Unit(id='u-letter-signoff',
-                                           text='Mit freundlichen Grüßen' if inp.language == 'de' else 'Kind regards'),
-        signature=base.header.name,
+                                           text='Mit freundlichen Grüßen' if inp.language == 'de' else 'Kind regards,'),
+        signature=name,
     )
 
 
@@ -451,7 +492,7 @@ def _units(doc: Document, *, visible_only: bool = False) -> list[dict]:
 
 
 def _ground(doc: Document, evidence: dict, inp: PreparationInput, base: CvDocument) -> list[Finding]:
-    return check_document(doc, evidence, language=inp.language, profile=inp.profile, base_cv=base)
+    return check_document(doc, evidence, language=inp.language, profile=inp.profile, base_cv=base, job=inp.job)
 
 
 def _high(findings: list[Finding]) -> set[tuple]:

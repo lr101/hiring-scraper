@@ -22,6 +22,7 @@ import logging
 import math
 import mimetypes
 import os
+import re
 import threading
 import unicodedata
 from concurrent.futures import TimeoutError as FutureTimeout
@@ -32,8 +33,8 @@ from urllib.parse import unquote, urlsplit
 
 from pydantic import ValidationError
 
-from hiring_scraper.documents.schema import CvDocument, LetterDocument
-from hiring_scraper.documents.text import cv_text, letter_text
+from hiring_scraper.documents.schema import CvDocument, LetterDocument, walk_units
+from hiring_scraper.documents.text import cv_text, letter_text, unit_full_text
 
 LOG = logging.getLogger(__name__)
 
@@ -224,6 +225,7 @@ class _Renderer:
                     const top = root.getBoundingClientRect().top;
                     const height = root.scrollHeight;
                     const units = Array.from(document.querySelectorAll('[data-unit-id]'));
+                    const photo = root.querySelector('.doc-cv-photo');
                     const beyond = [], split = [];
                     for (const el of units) {
                         const r = el.getBoundingClientRect();
@@ -232,7 +234,8 @@ class _Renderer:
                         const pa = Math.floor(a / printable), pb = Math.floor((b - 0.5) / printable);
                         if (pb > pa) split.push(el.dataset.unitId);
                     }
-                    return {content_height_px: height, beyond_limit_units: beyond, split_units: split};
+                    return {content_height_px: height, beyond_limit_units: beyond, split_units: split,
+                            photo_used: Boolean(photo?.naturalWidth)};
                 }""",
                 [printable_px, limit],
             )
@@ -289,6 +292,24 @@ def _check(code: str, status: str, detail: str) -> dict:
     return {'code': code, 'status': status, 'detail': detail}
 
 
+def _reading_order_check(model: CvDocument | LetterDocument, text: str) -> dict:
+    def normalize(value: str) -> str:
+        normalized = ' '.join(unicodedata.normalize('NFC', value).casefold().split())
+        # pypdf inserts whitespace when a compound wraps at its existing hyphen.
+        return re.sub(r'(?<=\w)([-\u2010]) (?=\w)', r'\1', normalized)
+
+    extracted = normalize(text)
+    cursor = 0
+    for unit in walk_units(model):
+        if unit.hidden or not (prefix := normalize(unit_full_text(unit))[:30]):
+            continue
+        index = extracted.find(prefix, cursor)
+        if index == -1:
+            return _check('reading_order', 'failed', 'A document unit was missing or out of order.')
+        cursor = index + len(prefix)
+    return _check('reading_order', 'passed', 'Document units appear in reading order.')
+
+
 def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages: int) -> list[dict]:
     checks: list[dict] = []
     limit = PAGE_LIMITS[kind]
@@ -299,6 +320,7 @@ def _text_checks(kind: str, model: CvDocument | LetterDocument, text: str, pages
                          f'{len(text)} characters extracted.'))
     broken = text.count('�') + text.count('(cid:')
     checks.append(_check('glyphs', 'passed' if not broken else 'failed', f'{broken} unmapped glyph(s).'))
+    checks.append(_reading_order_check(model, text))
     source = cv_text(model) if isinstance(model, CvDocument) else letter_text(model)
     folded_text = unicodedata.normalize('NFC', text).casefold()
     special = {f for ch in unicodedata.normalize('NFC', source).casefold()

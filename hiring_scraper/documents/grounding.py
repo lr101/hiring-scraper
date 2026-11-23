@@ -402,6 +402,9 @@ def _split_sentences(text: str) -> list[str]:
     return [seg.strip() for seg in _SENTENCE_SPLIT_RE.split(text.strip()) if seg.strip()]
 
 
+_LEGAL_FORMS = frozenset({'gmbh', 'ag', 'se', 'kg', 'inc', 'ltd'})
+
+
 def check_document(
     doc: CvDocument | LetterDocument,
     evidence: Mapping[str, str],
@@ -409,6 +412,7 @@ def check_document(
     language: DocumentLanguage | None = None,
     profile: Mapping[str, Any] | None = None,
     base_cv: CvDocument | None = None,
+    job: Mapping[str, Any] | None = None,
 ) -> list[Finding]:
     """Run deterministic grounding checks on AI-origin units and return findings."""
     target_lang: DocumentLanguage = language or doc.language
@@ -423,6 +427,7 @@ def check_document(
     }
     declared_languages = _extract_declared_languages(prof, evidence)
     skills_corpus = _collect_profile_skills_corpus(prof, evidence, target_lang)
+    job_corpus = '\n'.join(str((job or {}).get(key) or '') for key in ('title', 'company_name', 'description'))
 
     app_details = prof.get('application_details') if isinstance(prof.get('application_details'), Mapping) else {}
     prefs = app_details.get('preferences') if isinstance(app_details.get('preferences'), Mapping) else {}
@@ -538,16 +543,18 @@ def check_document(
 
         # 4. Capitalized tool / tech / acronym / CamelCase / credential tokens
         term_corpus = '\n'.join([cited_with_headers, skills_corpus])
+        if 'job' in unit.sources or unit.role in ('motivation', 'bring', 'close'):
+            term_corpus = f'{term_corpus}\n{job_corpus}'
         tech_severity: FindingSeverity = (
             'info' if doc_kind == 'letter' and unit.role in ('motivation', 'bring') else 'medium'
         )
         for token in _extract_tech_tokens(full_text):
-            if not _token_in_corpus(token, term_corpus):
+            if token.casefold() not in _LEGAL_FORMS and not _token_in_corpus(token, term_corpus):
                 add_finding(
                     unit.id,
                     'unsupported_term',
                     tech_severity,
-                    f"Tool, acronym or credential '{token}' is not in cited sources or profile skills.",
+                    f"Tool, acronym or credential '{token}' is not supported by the evidence or applicable job context.",
                     'Cite a supporting source or remove unverified technical claims.',
                 )
 

@@ -4,18 +4,24 @@ Ground it in the accepted CV shown under CV UNITS (cite their evidence ids, not 
 in the EVIDENCE block. Aim for about 270 words across the paragraphs, in this arc:
 
 1. role "motivation": the specific reason this company, its product or its work appeals, tied to
-   something concrete in the applicant's background. Name the role once.
+   something concrete in the applicant's background. Use the natural role title in the prose.
+   Describe the product using capabilities explicitly stated in the posting. Express interest in
+   the present tense. Leave out stories about what sparked an interest or changed the applicant's
+   outlook unless the evidence says so.
 2. role "experience", one or two paragraphs: one per most relevant employer or project. Give
    the employer early, then follow one problem, action and supported result or deliverable.
    Vary the openings so the paragraphs read as a letter.
-3. role "education": the academic or technical foundation that supports the role.
+3. role "education": the academic or technical foundation that supports the role. Include one
+   relevant application of that foundation, when supported, and keep the paragraph brief.
 4. role "bring": name a contribution the applicant could make, drawing on an evidenced way they
    work. Present future work as a proposal. Avoid lists of responsibilities from the posting.
 
 Then `closing` is a brief invitation to talk, without repeating the company or role name
-(the sign-off such as "Kind regards" is added for you), and `salutation` greets the
-contact named in the job or, if none is named, uses the standard neutral greeting of the target
-language. `subject` names the role (and the reference number if the job gives one).
+(the sign-off such as "Kind regards" is added for you). `subject` names the role (and the
+reference number if the job gives one). For `contact_name`, copy the first and last name
+of a person the posting explicitly identifies as a contact for this vacancy. Omit titles
+and honorifics. Return an empty string when the contact has only a first name, appears
+only as an email address, or is absent. The application formats the greeting.
 
 When a paragraph names an employer from the CV, cite at least one evidence id from that
 employer's entry (`cv:<entry_id>:b<n>` or `cv:<entry_id>:i<n>`).
@@ -23,3 +29,8 @@ Check each experience paragraph sentence by sentence against those citations bef
 Use the source that describes the specific action and scope. A citation about the same employer
 or project is insufficient if it supports a different claim. Where the source establishes a
 method or recommendation, describe it without implying adoption, ownership or results.
+Check that purpose clauses preserve scope too. For example, bringing people together to inform
+feature priorities does not mean the applicant decided which features to prioritize. If the same
+project appears in the CV, verify the original evidence independently before reusing its wording.
+In German, continue the first sentence after the greeting's comma with standard German
+capitalization, and use short, direct sentences that sound natural when read aloud.

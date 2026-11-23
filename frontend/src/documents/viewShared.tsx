@@ -69,8 +69,8 @@ export function safeContactHref(contact: Contact): string | null {
 export function formatEntryDates(locked: EntryLocked, language: DocumentLanguage): string {
   const start = locked.start.trim()
   const end = (locked.end ?? '').trim()
-  const effectiveEnd = locked.current && !end ? (language === 'de' ? 'heute' : 'Present') : end
-  if (start && effectiveEnd) {
+  const effectiveEnd = locked.current ? (language === 'de' ? 'heute' : 'Present') : end
+  if (start && effectiveEnd && start !== effectiveEnd) {
     return `${start}-${effectiveEnd}`
   }
   return start || effectiveEnd

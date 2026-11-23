@@ -67,6 +67,24 @@ class GroundingChecksTests(unittest.TestCase):
         findings = check_document(doc, self.evidence, language='de', profile=self.profile)
         self.assertEqual(findings, [])
 
+    def test_job_terms_are_allowed_in_job_context_and_legal_suffixes_are_exempt(self):
+        doc = _make_letter('en', [
+            Unit(id='u-motivation', text='I am interested in LuminaCore SaaS at Wren AG.',
+                 role='motivation', origin='ai'),
+            Unit(id='u-experience', text='Wren GmbH used SQL and Kubernetes.',
+                 role='experience', origin='ai', sources=['job']),
+            Unit(id='u-other', text='Used SaaS at an earlier employer.',
+                 role='experience', origin='ai'),
+            Unit(id='u-close', text='I would welcome a conversation about LuminaCore.',
+                 role='close', origin='ai'),
+        ])
+        findings = check_document(doc, {}, job={
+            'title': 'SaaS Analytics', 'company_name': 'Wren AG',
+            'description': 'Support SQL reporting for LuminaCore.',
+        })
+        terms = [f.unit_id for f in findings if f.code == 'unsupported_term']
+        self.assertEqual(terms, ['u-experience', 'u-other'])
+
     def test_unknown_source_id_flagged(self):
         doc = apply_patch(
             self.base_cv,

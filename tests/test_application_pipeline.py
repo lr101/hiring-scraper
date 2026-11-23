@@ -50,7 +50,7 @@ def cv_reply():
 def letter_reply():
     return {
         'subject': {'text': 'Designer'},
-        'salutation': {'text': 'Dear hiring team,'},
+        'contact_name': '',
         'paragraphs': [
             {'role': 'motivation', 'sources': ['job'],
              'text': 'I am drawn to the museum because your exhibits ask visitors to make something for themselves. '
@@ -175,6 +175,34 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.letter['closing']['origin'], 'source')
         self.assertEqual([f['code'] for f in result.findings].count('review_format'), 3)
         self.assertIn('review_grounding', [f['code'] for f in result.findings])
+
+    def test_letter_uses_posting_contact_and_cleans_sender_and_recipient(self):
+        self.inp.base_cv['header']['name'] = 'DARA VON FINCH'
+        self.inp.job.update(location='Loam Bay Hybrid (Wren Museum GmbH)',
+                            description='Questions? Contact Morgan Alder from our recruiting team.')
+        reply = letter_reply()
+        reply['contact_name'] = 'Morgan Alder'
+        result = self.run_with(letter=reply)
+        self.assertEqual(result.letter['recipient_lines'], ['Wren Museum'])
+        self.assertEqual(result.letter['sender']['name'], 'Dara von Finch')
+        self.assertEqual(result.letter['signature'], 'Dara von Finch')
+        self.assertEqual(result.letter['salutation']['text'], 'Dear Morgan Alder,')
+
+    def test_letter_validates_full_name_and_localizes_team_greeting(self):
+        self.inp.job['description'] = 'Recruiting: Morgan. Collaborate with designer Avery Frost.'
+        base = CvDocument.model_validate(self.inp.base_cv)
+        for name, language, expected in [
+            ('Morgan', 'en', 'Dear Wren Museum Recruiting Team,'),
+            ('Morgan Frost', 'de', 'Sehr geehrtes Wren Museum-Recruiting-Team,'),
+            ('Morgan Alder', 'de', 'Guten Tag Morgan Alder,'),
+        ]:
+            with self.subTest(name=name, language=language):
+                if name == 'Morgan Alder':
+                    self.inp.job['description'] = 'Kontakt: Morgan Alder'
+                self.inp.language = language
+                reply = {**letter_reply(), 'contact_name': name}
+                letter = pipeline._letter_draft(reply, self.inp, base)
+                self.assertEqual(letter.salutation.text, expected)
 
     def test_unknown_entry_does_not_replace_source_bullets(self):
         cv = cv_reply()

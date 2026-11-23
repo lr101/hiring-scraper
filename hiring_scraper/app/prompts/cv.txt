@@ -20,6 +20,9 @@ Entries
   terms. Keep academic projects anchored to the activity and its actual scope.
 - Give each bullet one accomplishment. If two sources describe different projects or levels of
   responsibility, select the strongest supported action instead of combining them.
+- Keep the differentiating details that the posting calls for and the evidence supports, such as
+  which decisions the applicant shaped, what they built, or whom they worked with. Keep numbers
+  and tool names beside the action that used or produced them.
 - `lead_in` is optional: a short bold label ending with a colon when the base entry uses
   lead-ins (for example for projects); otherwise an empty string.
 
