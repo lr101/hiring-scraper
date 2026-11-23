@@ -11,7 +11,7 @@ from hiring_scraper.app.models import (
     AppDataMigration, Job, JobApplication, JobApplicationDeduplicationArchive,
     JobFeed, JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup,
     JobVacancyIdentity,
-    UserProfile, utcnow,
+    UserProfile, hold_profile_rows, utcnow,
 )
 
 
@@ -26,7 +26,7 @@ def migrate_existing_application_duplicates(session):
     job_ids = session.scalars(select(JobApplication.job_id).distinct()).all()
     # Identity writers serialize before acquiring any profile locks.
     index_vacancy_identities(session, job_ids)
-    session.execute(select(UserProfile.id).order_by(UserProfile.id).with_for_update()).all()
+    hold_profile_rows(session, session.scalars(select(UserProfile.id)).all())
     consolidate_application_duplicates(session, archive=True)
     # Search rows predate retained vacancy groups. Drop this disposable cache so
     # the next materialization can link untracked copies to saved application IDs.
@@ -42,8 +42,6 @@ def reserve_vacancy_identity_writer(session, *, wait=True):
     Call before job/profile row locks. Background publishers must use wait=False
     and roll back their page when busy, retaining its durable work for retry.
     """
-    if session.get_bind().dialect.name != 'postgresql':
-        return True
     if wait:
         session.execute(text('SELECT pg_advisory_xact_lock(85793011, 6)'))
         return True
@@ -55,14 +53,7 @@ def index_vacancy_identities(session, job_ids):
     ids = sorted(set(job_ids))
     if not ids:
         return set()
-    if session.get_bind().dialect.name == 'postgresql':
-        reserve_vacancy_identity_writer(session)
-    else:
-        # SQLite has no advisory locks. Take its single-writer lock before
-        # reading identities so concurrent indexers cannot race on unique keys.
-        for start in range(0, len(ids), 200):
-            session.execute(update(Job).where(Job.id.in_(ids[start:start + 200])).values(
-                is_active=Job.is_active).execution_options(synchronize_session=False))
+    reserve_vacancy_identity_writer(session)
     for start in range(0, len(ids), 200):
         jobs = session.scalars(select(Job).where(Job.id.in_(ids[start:start + 200])).options(
             joinedload(Job.feed).joinedload(JobFeed.company), selectinload(Job.locations),
@@ -122,8 +113,8 @@ def index_vacancy_identities(session, job_ids):
 def consolidate_application_duplicates(session, profile_ids=None, *, archive=False, vacancy_group_ids=None):
     """Archive every historical loser, or retract only redundant automatic New.
 
-    Match writers hold profile locks through publication. Migration callers take
-    the same locks here; keep both reads and writes bounded by profile/batch.
+    Publishers hold their profiles (``hold_profiles``) through publication;
+    holding them again here is free, and migration callers get the same guard; keep both reads and writes bounded by profile/batch.
     """
     if profile_ids is None:
         profile_ids = session.scalars(select(UserProfile.id).order_by(UserProfile.id)).all()
@@ -131,8 +122,7 @@ def consolidate_application_duplicates(session, profile_ids=None, *, archive=Fal
     removed = 0
     for start in range(0, len(ids), 100):
         batch_ids = ids[start:start + 100]
-        session.execute(select(UserProfile.id).where(UserProfile.id.in_(batch_ids))
-                        .order_by(UserProfile.id).with_for_update()).all()
+        hold_profile_rows(session, batch_ids)
         group_ids = sorted(set(vacancy_group_ids)) if vacancy_group_ids is not None else None
         batches = [None] if group_ids is None else [group_ids[i:i + 200] for i in range(0, len(group_ids), 200)]
         for group_batch in batches:
@@ -156,8 +146,13 @@ def consolidate_application_duplicates(session, profile_ids=None, *, archive=Fal
                         'original_application_id': row.id, 'archived_at': utcnow(),
                     } for row in losers])
                 if losers:
-                    session.execute(delete(JobApplication).where(JobApplication.id.in_([row.id for row in losers]))
-                                    .execution_options(synchronize_session=False))
+                    retract = delete(JobApplication).where(JobApplication.id.in_([row.id for row in losers]))
+                    if not archive:
+                        # Journey saves share the profile hold: PostgreSQL rechecks this
+                        # predicate after a concurrent save, so an acted stage survives.
+                        retract = retract.where(JobApplication.status == 'new',
+                                                JobApplication.auto_created.is_(True))
+                    session.execute(retract.execution_options(synchronize_session=False))
                     removed += len(losers)
     return removed
 

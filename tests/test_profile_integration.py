@@ -2,11 +2,12 @@ import importlib
 import importlib.util
 import unittest
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from hiring_scraper.app import api, models
+from tests import pg
 
 
 class ProfileIntegrationTests(unittest.TestCase):
@@ -142,7 +143,7 @@ class ProfileIntegrationTests(unittest.TestCase):
             job = models.Job(feed=feed, external_id='1', title='Python developer',
                 url='https://example.org/jobs/1', description='Python development.', is_remote=True)
             session.add(company); session.commit()
-            page = api.list_applications(profile_ids=str(saved['id']), statuses='new', sort='match', offset=0, limit=40, session=session)
+            page = pg.list_applications(self.engine, profile_ids=str(saved['id']), statuses='new', sort='match', offset=0, limit=40, session=session)
             self.assertEqual(len(page['items']), 1)
             profile = session.get(models.UserProfile, saved['id'])
             version = profile.match_index_version
@@ -190,7 +191,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                 profiles.update_profile(profile.id, profiles.ProfileRequest(name='Developer',
                     desired_roles=['Software developer'], matching_defaults={'min_match_score': 30}, **content), session)
                 self.assertIsNone(profile.match_index_version)
-                page = api.list_applications(profile_ids=str(profile.id), statuses='new', sort='match',
+                page = pg.list_applications(self.engine, profile_ids=str(profile.id), statuses='new', sort='match',
                                              offset=0, limit=40, session=session)
                 self.assertIn(job.id, {item['id'] for item in page['items']})
                 match = next(item['profile_match'] for item in page['items'] if item['id'] == job.id)
@@ -211,7 +212,7 @@ class ProfileIntegrationTests(unittest.TestCase):
                 profiles.ProfileRequest(name='Alex', localized_content=content)
 
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
 
     def tearDown(self):
@@ -239,14 +240,14 @@ class ProfileIntegrationTests(unittest.TestCase):
                     description='Python and PostgreSQL development. '*20 if key != 'unknown' else None,
                     is_remote=remote,work_arrangement=style,locations=[models.JobLocation(label=location)]))
             session.add(company); session.commit()
-            page = api.list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,1,
+            page = pg.list_jobs(self.engine, 49.0068705,8.4034195,15,None,None,'Karlsruhe',0,1,
                 session=session, profile_id=profile['id'], min_match_score=0, include_unknown=True)
             self.assertEqual(page['total'],3)
             self.assertEqual(len(page['items']), 1)
             self.assertTrue(all(item['profile_id'] == profile['id'] for item in page['items']))
             self.assertTrue(all('profile_match' not in item for item in page['items']))
             self.assertIn('enrichment',page['items'][0])
-            strict = api.list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,10,
+            strict = pg.list_jobs(self.engine, 49.0068705,8.4034195,15,None,None,'Karlsruhe',0,10,
                 session=session, profile_id=profile['id'], include_unknown=False)
             self.assertEqual({item['external_id'] for item in strict['items']}, {'remote','local','unknown'})
 
@@ -254,7 +255,7 @@ class ProfileIntegrationTests(unittest.TestCase):
         self.profile_api()
         with Session(self.engine) as session:
             with self.assertRaises(HTTPException) as raised:
-                api.list_jobs(49.0,8.4,15,None,None,None,0,10,session=session,profile_id=999)
+                pg.list_jobs(self.engine, 49.0,8.4,15,None,None,None,0,10,session=session,profile_id=999)
             self.assertEqual(raised.exception.status_code,404)
 
     def test_profile_delete_and_cv_preview_do_not_store_cv_text(self):
@@ -279,26 +280,6 @@ class ProfileIntegrationTests(unittest.TestCase):
         asyncio.run(api.app(scope,receive,send))
         start=next(item for item in messages if item['type']=='http.response.start')
         self.assertEqual(start['status'],200)
-
-    def test_existing_sqlite_jobs_are_preserved_when_initializing_the_new_schema(self):
-        from hiring_scraper.app import database
-        self.assertTrue(callable(getattr(database,'initialize_sqlite_schema',None)),
-                        'Existing SQLite databases need the enrichment column added')
-        with Session(self.engine) as session:
-            company=models.Company(source='test',source_id='legacy',name='Legacy Co')
-            feed=models.JobFeed(company=company,provider='html_jobs',feed_url='https://example.org',status='parsed')
-            feed.jobs.append(models.Job(external_id='1',title='Legacy Developer',url='https://example.org/jobs/1',description='Python'))
-            session.add(company);session.commit()
-        with self.engine.begin() as connection:
-            connection.exec_driver_sql('ALTER TABLE jobs DROP COLUMN enrichment')
-            connection.exec_driver_sql('DROP TABLE user_profiles')
-        database.initialize_sqlite_schema(self.engine)
-        database.initialize_sqlite_schema(self.engine)
-        with Session(self.engine) as session:
-            job=session.scalar(select(models.Job))
-            self.assertEqual(job.description,'Python')
-            self.assertEqual(job.enrichment,{})
-            self.assertEqual(session.scalars(select(models.UserProfile)).all(),[])
 
     def test_application_instructions_persist_survive_older_clients_and_can_be_cleared(self):
         profiles = self.profile_api()

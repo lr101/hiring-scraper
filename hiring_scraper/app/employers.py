@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
+from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert
 from hiring_scraper.app.models import Company, JobFeed, utcnow
 
@@ -71,8 +72,6 @@ def _company_identity(name: str, domain: str | None) -> str:
 
 def _try_employer_upsert_lock(session: Session, identity: str) -> bool:
     """Serialize this employer's secondary writes without waiting or deadlocking."""
-    if session.get_bind().dialect.name != "postgresql":
-        return True
     transaction = session.get_transaction()
     lock_state = session.info.get("employer_upsert_locks")
     if lock_state is not None and lock_state[0] is transaction and identity in lock_state[1]:
@@ -232,6 +231,7 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
                 raise RuntimeError("Employer insert conflicted but the company row was not found")
     if company is None:
         raise RuntimeError("Could not resolve the hiring company")
+    before = source_changes.tracked_values(company)
     if not is_new:
         if not company.website_url and company_website:
             company.website_url = company_website
@@ -266,4 +266,6 @@ def upsert_job_employer(session: Session, feed: JobFeed, job_data: dict,
             due = due.replace(tzinfo=timezone.utc)
         if is_new or due is None or due > now:
             company.next_discovery_at = now
+    if is_new or source_changes.tracked_values(company) != before:
+        source_changes.companies_changed(session, [company.id])
     return company

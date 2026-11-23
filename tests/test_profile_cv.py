@@ -5,11 +5,12 @@ from pathlib import Path
 import unittest
 
 from fastapi import HTTPException
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from hiring_scraper.app import models, profiles
+from tests import pg
 
 
 def sample_pdf(text='Alex Example - Project coordinator'):
@@ -32,7 +33,7 @@ def sample_pdf(text='Alex Example - Project coordinator'):
 
 class ProfileCVTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.profile = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)
@@ -115,7 +116,7 @@ class CVMigrationTests(unittest.TestCase):
         path = Path('hiring_scraper/app/migrations/versions/0028_profile_cv.py')
         self.assertTrue(path.exists(), 'A PostgreSQL-compatible attachment migration is required')
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0028_profile_cv')
-        engine = create_engine('sqlite://')
+        engine = pg.isolated_engine(self)
         with engine.begin() as connection:
             connection.exec_driver_sql('CREATE TABLE user_profiles (id INTEGER PRIMARY KEY)')
             connection.exec_driver_sql('INSERT INTO user_profiles VALUES (1)')

@@ -4,7 +4,7 @@ import time
 
 from hiring_scraper.app import application_preparation_queue as queue
 from hiring_scraper.app.application_generation import PrepareApplicationRequest, _prepare_application
-from hiring_scraper.app.database import IS_SQLITE, SessionLocal
+from hiring_scraper.app.database import SessionLocal
 
 
 def run(profile_id, payload, revision, progress):
@@ -16,8 +16,6 @@ def run(profile_id, payload, revision, progress):
 
 
 def main():
-    if IS_SQLITE:
-        return
     logging.basicConfig(level=logging.INFO)
     next_cleanup = time.monotonic()
     while True:

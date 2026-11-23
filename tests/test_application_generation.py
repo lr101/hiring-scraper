@@ -11,16 +11,17 @@ from unittest.mock import patch
 from codex_fixture import write_codex_fixture
 
 from fastapi import HTTPException
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app import models, profiles
 from hiring_scraper.app.latex_documents import latex_source
+from tests import pg
 
 
 class ApplicationGenerationTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         profile = profiles.create_profile(profiles.ProfileRequest(name='Alex', summary='Product coordination',

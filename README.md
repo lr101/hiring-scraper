@@ -1,53 +1,68 @@
 # Radius
 
-Radius discovers employers and job openings in Germany. Local development uses SQLite; Compose runs PostgreSQL/PostGIS and starts without fixture data. When background workers are enabled, it seeds the configured public RSS feeds.
+**Goal: find jobs, match them to your profile, and make applying easier, stress-free
+and gamified.**
+
+1. **Find** — discover German employers and keep their public job postings current.
+2. **Match** — rank those jobs against your profile with explainable evidence, so
+   good fits rise and poor fits stay out of the way.
+3. **Apply** — prepare tailored documents, fill forms, and track every application
+   through a Journey with weekly goals and momentum, so progress feels rewarding
+   rather than stressful.
+
+Radius runs on PostgreSQL with PostGIS and pgvector, in development, tests and
+production alike. Compose starts without fixture data; when background workers are
+enabled, it seeds the configured public RSS feeds. See the
+[architecture overview](docs/architecture.md) for how the pieces fit together.
 
 ## Local development
 
-Requires Python 3.11+, Node.js 22.13+, and [mise](https://mise.jdx.dev/).
+Requires Python 3.11+, Node.js 22.13+, [mise](https://mise.jdx.dev/), and either
+Docker or a local PostgreSQL 17 with PostGIS and pgvector.
+
+Start the database (the project's image, published on `127.0.0.1:5432`):
+
+```bash
+cp .env.example .env   # set POSTGRES_PASSWORD; see Compose deployment
+docker compose -f compose.yaml -f compose.dev.yaml up -d db
+export DATABASE_URL="postgresql+psycopg://postgres:<POSTGRES_PASSWORD>@127.0.0.1:5432/hiring"
+```
+
+Then migrate, seed the Karlsruhe fixture and start the API:
 
 ```bash
 mise install
 mise exec -- uv sync --locked
+mise exec -- uv run python scripts/dev/migrate.py
 mise exec -- uv run hiring-seed
 mise exec -- uv run uvicorn hiring_scraper.app.api:app --reload
 ```
 
-To scan the configured default RSS sources locally, start the feed worker in a
-separate terminal:
+`scripts/dev/migrate.py` runs the Alembic migrations plus the rollback-safe step the
+container entrypoint applies, so the local schema matches a deployment.
+
+Background work runs in workers, as in production. Start each in its own terminal
+(all use the same `DATABASE_URL`):
 
 ```bash
-mise exec -- uv run python -m hiring_scraper.app.worker
+mise exec -- uv run python -m hiring_scraper.app.worker                  # feed scans
+mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker  # browse results
+mise exec -- uv run python -m hiring_scraper.app.profile_match_worker    # Journey matching
+mise exec -- uv run python -m hiring_scraper.app.application_preparation_worker
 ```
 
-Start the search snapshot worker in another terminal to refresh cached browse
-results after new jobs arrive. While it rebuilds, the API serves the previous
-profileless snapshot and the web app refreshes it when the new snapshot is ready:
-
-```bash
-mise exec -- uv run python -m hiring_scraper.app.search_snapshot_worker
-```
-
-PostgreSQL deployments also run a profile matching worker. Journey returns saved
-roles immediately while this worker rebuilds stale matches after a profile edit
-or matcher update. The page checks for completed matches automatically. Compose
-starts the worker when `RUN_BACKGROUND_WORKERS=true`; when running PostgreSQL
-without Compose, start it separately:
-
-```bash
-mise exec -- uv run python -m hiring_scraper.app.profile_match_worker
-```
-
-SQLite development keeps the existing synchronous matching flow.
+Requests never match or build search results synchronously. While the search worker
+rebuilds, the API serves the previous snapshot and the web app refreshes when the new
+one is ready. Journey returns saved roles immediately and reports pending matches until
+the profile match worker has caught up; the page checks again automatically.
 
 Migration `0033_application_deduplication` consolidates existing duplicate Journey
 applications per profile using the same vacancy identity rules as search. It
 keeps the selected application and archives removed stages, undo state, and
 timestamps in `job_application_deduplication_archive`. Source job records and
-momentum events stay intact. PostgreSQL applies this through the normal
-`alembic upgrade head` deployment step; SQLite applies it once at startup.
-Downgrading restores archived entries that have no newer saved state. Background
-matching also retracts redundant automatic New entries after each publication.
+momentum events stay intact. Downgrading restores archived entries that have no
+newer saved state. Background matching also retracts redundant automatic New entries
+after each publication.
 
 In another terminal, start the frontend:
 
@@ -81,6 +96,13 @@ Waiting for reply for applications sent using browser-plugin autofill. Both sent
 stages count toward application momentum; filling a form alone does not.
 Statuses are saved per profile and remain visible after a source posting closes
 or expires.
+
+**Today's focus** at the top of Journey keeps the day small: up to three roles to act on
+now. Roles with prepared documents come first and open straight into review, then
+roles you marked Interested, then your strongest matches. Three dots fill as you send
+applications (marking a role Waiting for reply or Automated application). After three,
+the day is done and anything more is a bonus. Closed or expired postings are skipped,
+and nothing is sent on your behalf.
 
 Profile matching also compares job duties and qualifications with your skills,
 profile summary, work-history descriptions and saved career evidence. Strong
@@ -119,8 +141,7 @@ Exact duplicate sentences are removed before embedding.
 The model uses local inference; it makes no paid LLM/API calls.
 
 Normalized section vectors are stored once per job/profile in
-`match_semantic_documents` (migration `0034_profile_semantics` for PostgreSQL;
-SQLite creates the table during initialization). Job vectors are reused across
+`match_semantic_documents` (migration `0034_profile_semantics`). Job vectors are reused across
 profiles and process restarts. Content changes invalidate their vectors;
 contact/drafting edits reuse them. Background inference runs outside database
 transactions, checks that the source is still current before saving, and updates
@@ -261,7 +282,7 @@ The assessment version changes automatically invalidate older cached model resul
 local matching remains available while background assessments refresh.
 
 Assessments are cached per profile/job in `profile_llm_scores` (PostgreSQL
-migration `0035_profile_llm_scores`; additive SQLite initialization). Source
+migration `0035_profile_llm_scores`). Source
 changes invalidate the cached assessment; unchanged jobs do not consume another
 request. Inference runs outside database transactions, and publication verifies
 that the profile and job are still current. Existing acted application stages
@@ -376,8 +397,7 @@ Use **View companies and jobs** on the saved state card to browse the results.
 State results include active, unexpired postings from employers discovered in
 that state, including jobs elsewhere, jobs without a work location, and remote
 roles. City/radius searches continue to filter by the job's work location.
-PostgreSQL deployments apply the state-search migration during startup; existing
-local SQLite databases upgrade additively. Existing companies gain state membership
+Deployments apply the state-search migration during startup. Existing companies gain state membership
 when a state discovery observes them, rather than guessing it from their address.
 
 Scheduled refreshes revisit saved job feeds and career listing pages to find new postings. Recurring search-area schedules queue these known sources without repeating company, homepage, or career-page discovery. Feed failures retry the same saved URL with backoff. Use a manual discovery job to find additional companies or rediscover their career sources.

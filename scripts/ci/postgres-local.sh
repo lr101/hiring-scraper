@@ -14,7 +14,7 @@ if [[ $(psql -X -d postgres -Atqc "SELECT count(*) FROM pg_roles WHERE rolname =
     printf '%s\n' 'The local PostgreSQL server needs the hiring_app role for migration grants; see docs/ci.md.' >&2
     exit 1
 fi
-db_name="hiring_ci_$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
+db_name="hiring_test_ci_$(od -An -N12 -tx1 /dev/urandom | tr -d ' \n')"
 createdb --maintenance-db=postgres --template=template0 "$db_name"
 cleanup() {
     local status=$?
@@ -30,8 +30,8 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 export TEST_POSTGRES_URL="postgresql+psycopg:///$db_name"
 export DATABASE_URL="$TEST_POSTGRES_URL"
-printf '%s\n' 'Running PostgreSQL concurrency regressions'
-uv run python -m unittest discover -s tests -p test_postgres_concurrency.py -v
+printf '%s\n' 'Running the test suite (every database test uses PostgreSQL)'
+uv run python -m unittest discover -s tests
 printf '%s\n' 'Running PostgreSQL migrations (requires PostGIS and pgvector)'
 uv run alembic upgrade head
 uv run python -c 'from alembic.config import Config; from sqlalchemy import create_engine; from scripts.ci.migration_heads import assert_migration_heads; import os; engine = create_engine(os.environ["DATABASE_URL"]); connection = engine.connect(); assert_migration_heads(connection, Config("alembic.ini")); connection.close(); engine.dispose()'

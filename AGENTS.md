@@ -1,3 +1,17 @@
+# Project goal
+
+Radius helps one person **find jobs, match them to their profile, and make applying
+easier, stress-free and gamified**. Judge changes against that loop:
+
+- **Find:** fresh, complete public job inventory; never lose crawled work to transient errors.
+- **Match:** explainable, evidence-based ranking that stays current without blocking ingestion.
+- **Apply:** fewer steps and less anxiety; reward progress (Journey stages, weekly goal,
+  momentum); never submit an application on the user's behalf.
+
+Prefer simple, robust designs over clever locking. Background work must degrade
+gracefully (retry, queue, resume) rather than fail loudly. See `docs/architecture.md`
+for the concurrency model and `docs/code-review.md` for known risks and the roadmap.
+
 # Local verification
 
 - During development, run focused tests and inexpensive checks relevant to the change. Do not run full quality, browser shard, PostgreSQL regression, or container suites until immediately before a requested GitHub push.

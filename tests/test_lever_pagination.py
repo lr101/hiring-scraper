@@ -3,7 +3,7 @@ import unittest
 from datetime import timedelta, timezone
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper import ats
@@ -11,6 +11,7 @@ from hiring_scraper.app import worker
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, ScanRun, utcnow
 from hiring_scraper.app.job_search import ProfileIndexChanged
 from hiring_scraper.discovery import discover
+from tests import pg
 
 
 FEED = 'https://api.lever.co/v0/postings/acme?mode=json&limit=100'
@@ -265,10 +266,10 @@ class LeverFeedTests(unittest.TestCase):
 
 class LeverWorkerTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
-        self.patches = [patch.object(worker, 'SessionLocal', self.factory), patch.object(worker, 'engine', self.engine),
+        self.patches = [patch.object(worker, 'SessionLocal', self.factory),
                         patch.object(worker, '_pace_origin')]
         for item in self.patches:
             item.start()

@@ -22,7 +22,10 @@ from codex_fixture import write_codex_fixture
 def main():
     with tempfile.TemporaryDirectory(prefix='radius-formatting-browser-') as folder:
         root = Path(folder)
-        os.environ['DATABASE_URL'] = 'sqlite:///' + str(root / 'application.sqlite3')
+        # Disposable, migrated PostgreSQL test database (see tests/pg.py).
+        os.environ['DATABASE_URL'] = os.environ.get('TEST_POSTGRES_URL', '')
+        import pg
+        pg.reset()
         os.environ['RADIUS_CODEX_STATE_DIR'] = folder
         os.environ['RADIUS_CODEX_BIN'] = str(write_codex_fixture(folder))
         os.environ.pop('OPENAI_API_KEY', None)
@@ -33,7 +36,6 @@ def main():
         from hiring_scraper.app.database import SessionLocal, engine
         from hiring_scraper.app.tex_cv import validate_tailored_cv
         from test_tex_cv import source
-        models.Base.metadata.create_all(engine)
         with SessionLocal.begin() as session:
             company = models.Company(name='Synthetic Labs', source='test', source_id='formatting-browser')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://example.invalid/jobs')

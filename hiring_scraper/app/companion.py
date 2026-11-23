@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.orm import Session, aliased, joinedload, load_only
 
+from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, get_session
 from hiring_scraper.app.company_identity import company_domain, find_company_by_website, is_hosted_job_site
 from hiring_scraper.app.models import Company, Job, JobApplication, JobFeed, UserProfile, utcnow
@@ -292,6 +293,9 @@ def save_companion_job(request: SaveJobRequest,
         if created:
             session.execute(update(JobFeed).where(JobFeed.id == feed.id).values(
                 job_count=func.coalesce(JobFeed.job_count, 0) + 1))
+            # Core inserts bypass the ORM: declare the saved posting so it is
+            # matched and appears in search like any other job.
+            source_changes.jobs_changed(session, [job.id])
 
     now = utcnow()
     application_id = session.scalar(insert(JobApplication).values(

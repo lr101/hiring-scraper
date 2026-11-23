@@ -1,11 +1,11 @@
-"""Relational model shared by SQLite development and PostgreSQL/PostGIS."""
+"""Relational model for PostgreSQL/PostGIS (schema changes ship as Alembic migrations)."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
-    JSON, String, Text, UniqueConstraint, delete, event, false, insert, inspect, select, text, update,
+    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
+    JSON, String, Text, UniqueConstraint, false, select, text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
@@ -16,7 +16,7 @@ def utcnow() -> datetime:
 
 
 def as_utc(value: datetime | None) -> datetime | None:
-    """Treat naive timestamps (as returned by SQLite) as UTC."""
+    """Normalize timestamps to UTC, treating naive values as UTC."""
     if value is None:
         return None
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
@@ -122,7 +122,6 @@ class DiscoveryJob(Base):
             "search_scope",
             unique=True,
             postgresql_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
-            sqlite_where=text("search_scope = 'country' AND stage IN ('company_homepage_discovery', 'career_page_discovery') AND status IN ('scheduled', 'queued', 'running')"),
         ),
     )
 
@@ -224,8 +223,7 @@ class Job(Base):
     __table_args__ = (
         UniqueConstraint("feed_id", "external_id", name="uq_job_feed_external_id"),
         Index("ix_jobs_remote_active", "is_remote", "is_active"),
-        Index("ix_jobs_active_id", "id", postgresql_where=text("is_active"),
-              sqlite_where=text("is_active = 1")),
+        Index("ix_jobs_active_id", "id", postgresql_where=text("is_active")),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -308,6 +306,8 @@ class UserProfile(Base):
     preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     low_afd_vote_share_weight: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text("0"))
     match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Bumped by every declared input change (source_changes); publishers compare it.
+    source_version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default=text("0"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
@@ -680,49 +680,10 @@ class JobSearchResult(Base):
     remote_sort: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
-_SEARCH_FIELDS = {
-    ProfileLLMScore: {'source_hash', 'version', 'assessment'},
-    MatchSemanticDocument: {'source_hash', 'version', 'sections', 'vectors'},
-    Company: {"name", "domain", "state", "country_code", "category", "source"},
-    JobFeed: {"company_id", "provider", "tenant", "source_revision"},
-    Job: {"feed_id", "external_id", "employer_company_id", "title", "url", "description",
-          "location_text", "is_remote", "work_arrangement", "employment_type", "schedule",
-          "department", "seniority", "date_posted", "salary", "raw_metadata", "enrichment",
-          "first_seen_at", "is_active", "closed_at"},
-    JobLocation: {"job_id", "label", "latitude", "longitude", "country_code"},
-}
-
-
-def _search_data_changed(session: Session) -> bool:
-    for item in (*session.new, *session.deleted):
-        if type(item) in _SEARCH_FIELDS:
-            return True
-    for item in session.dirty:
-        fields = _SEARCH_FIELDS.get(type(item))
-        if fields is None:
-            continue
-        state = inspect(item)
-        if type(item) is Job and state.attrs.locations.history.has_changes():
-            return True
-        if not session.is_modified(item, include_collections=False):
-            continue
-        if any(state.attrs[name].history.has_changes() for name in fields):
-            return True
-    return False
-
-
 def _lock_job_source_rows(connection, job_ids) -> None:
     ordered_ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
     if not ordered_ids:
         return
-    if connection.dialect.name == 'sqlite':
-        # SQLite ignores row-level locks. Reserve the writer before any cache or
-        # profile lookup so source edits follow the same job -> profile order.
-        driver_connection = connection.connection.driver_connection
-        if not driver_connection.in_transaction:
-            connection.exec_driver_sql('BEGIN IMMEDIATE')
-        return
-
     # NO KEY UPDATE serializes source writers and application tracking while
     # remaining compatible with the FK KEY SHARE locks used by match indexes.
     for start in range(0, len(ordered_ids), 500):
@@ -730,250 +691,77 @@ def _lock_job_source_rows(connection, job_ids) -> None:
                             .order_by(Job.id).with_for_update(key_share=True)).all()
 
 
-def _reserve_match_owners(connection, job_ids) -> None:
-    if connection.dialect.name == 'sqlite' or not job_ids:
-        return
-    # Saved-stage owners also participate in source retirement. Reserve the
-    # ordered union before invalidation, so retirement cannot add a lower-ID
-    # owner after a cached assessment owner is already held.
-    owners = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id.in_(job_ids)).union(
-        select(JobApplication.profile_id).where(JobApplication.job_id.in_(job_ids)))
-    connection.execute(select(UserProfile.id).where(UserProfile.id.in_(owners))
-                       .order_by(UserProfile.id).with_for_update()).all()
+class ProfileIndexChanged(RuntimeError):
+    """A publication's profile inputs changed, or are being edited; retry later."""
 
 
-def reserve_job_source_rows(session: Session, job_ids, *, reserve_match_owners: bool = False) -> None:
-    """Reserve a known batch before multi-flush source ingestion starts."""
+def hold_profiles(session: Session, profiles, *, wait: bool = True, exclusive: bool = False) -> dict[int, int]:
+    """Hold profiles against input edits until commit; return ``{id: source_version}``.
+
+    Editors bump ``source_version`` (see ``source_changes``), which locks the row
+    only for their own short transaction. Publishers compute without profile
+    locks, then call this after computing and before their derived writes, the
+    same profile -> derived order editors use, so the two cannot deadlock.
+
+    ``profiles`` is an iterable of ids, or ``{id: expected_version}`` captured
+    when computation started: any difference (or a deleted profile) raises
+    ``ProfileIndexChanged``. ``FOR SHARE`` lets publishers run side by side;
+    ``exclusive`` (``FOR NO KEY UPDATE``) is for one that also writes the
+    profile row. With ``wait=False`` an in-flight edit defers the publication
+    instead of queueing behind it. Both modes let foreign-key inserts through.
+    """
+    expected = profiles if isinstance(profiles, dict) else None
+    ids = sorted({int(profile_id) for profile_id in profiles})
+    if not ids:
+        return {}
+    statement = (select(UserProfile.id, UserProfile.source_version).where(UserProfile.id.in_(ids))
+                 .order_by(UserProfile.id)
+                 .with_for_update(read=not exclusive, key_share=exclusive, nowait=not wait))
+    if wait:
+        versions = dict(session.execute(statement).all())
+    else:
+        from sqlalchemy.exc import OperationalError
+        try:
+            with session.begin_nested():
+                versions = dict(session.execute(statement).all())
+        except OperationalError as error:
+            raise ProfileIndexChanged('Profile is being edited; publication deferred') from error
+    if expected is not None and any(versions.get(profile_id) != version
+                                    for profile_id, version in expected.items()):
+        raise ProfileIndexChanged('Profile changed during matching')
+    return versions
+
+
+def hold_profile_rows(session: Session, profile_ids) -> None:
+    """``FOR SHARE`` on profile rows without reading versions.
+
+    For publishers that need no version check, including historical migrations
+    that run before ``source_version`` exists.
+    """
+    ids = sorted({int(profile_id) for profile_id in profile_ids})
+    if ids:
+        session.execute(select(UserProfile.id).where(UserProfile.id.in_(ids)).order_by(UserProfile.id)
+                        .with_for_update(read=True)).all()
+
+
+def profile_source_versions(session: Session, profile_ids) -> dict[int, int]:
+    """Read committed versions directly, bypassing the ORM identity map."""
+    ids = sorted({int(profile_id) for profile_id in profile_ids})
+    if not ids:
+        return {}
+    return dict(session.connection().execute(select(UserProfile.id, UserProfile.source_version)
+                                             .where(UserProfile.id.in_(ids))).all())
+
+
+def reserve_job_source_rows(session: Session, job_ids) -> None:
+    """Reserve a known batch of job rows, in id order, before multi-flush ingestion.
+
+    Source writers lock only job rows. Derived per-profile data is refreshed
+    through the ``match_dirty_jobs`` queue, so ingestion never waits on, or
+    holds, profile rows.
+    """
     ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
-    connection = session.connection()
-    _lock_job_source_rows(connection, ids)
-    if reserve_match_owners:
-        _reserve_match_owners(connection, ids)
-
-
-def _reserve_changed_job_sources(session: Session, connection) -> None:
-    """Lock every written job before profiles when a flush changes match inputs."""
-    from hiring_scraper.app.profile_llm import assessment_job_source_changed
-
-    source_job_ids = set()
-    written_job_ids = set()
-    for item in session.dirty:
-        if not isinstance(item, Job) or item.id is None:
-            continue
-        state = inspect(item)
-        if session.is_modified(item, include_collections=False):
-            written_job_ids.add(item.id)
-        if assessment_job_source_changed(item) or state.attrs.locations.history.has_changes():
-            source_job_ids.add(item.id)
-    for item in session.deleted:
-        if isinstance(item, Job) and item.id is not None:
-            written_job_ids.add(item.id)
-            source_job_ids.add(item.id)
-    for item in list(session.new) + list(session.dirty) + list(session.deleted):
-        if not isinstance(item, JobLocation) or not (
-                item in session.new or item in session.deleted or
-                session.is_modified(item, include_collections=False)):
-            continue
-        job_id = item.job_id or (item.job.id if item.job is not None else None)
-        if job_id is not None:
-            source_job_ids.add(job_id)
-            written_job_ids.add(job_id)
-    if not source_job_ids:
-        return
-
-    # A single ORM flush may update additional jobs for bookkeeping or
-    # enrichment. Lock the complete UPDATE set before taking profile locks;
-    # otherwise a later UPDATE can wait on a job held by a tracker that itself
-    # waits on one of the profiles reserved below.
-    _lock_job_source_rows(connection, written_job_ids | source_job_ids)
-    if connection.dialect.name == 'sqlite':
-        return
-    # Reserve only the complete ordered owner set for these source rows.
-    _reserve_match_owners(connection, source_job_ids)
-
-
-@event.listens_for(Session, "before_flush")
-def _invalidate_profile_semantic_documents(session: Session, _flush_context, _instances) -> None:
-    from hiring_scraper.semantic_matching import job_sections, profile_sections, source_hash
-    connection = session.connection()
-    _reserve_changed_job_sources(session, connection)
-    for item in list(session.dirty):
-        if isinstance(item, Job):
-            fields, owner = ('description', 'raw_metadata'), MatchSemanticDocument.job_id
-            sections = lambda: job_sections({'description': item.description, 'raw_metadata': item.raw_metadata})
-        elif isinstance(item, UserProfile):
-            fields, owner = ('preferences',), MatchSemanticDocument.profile_id
-            sections = lambda: profile_sections(item.matching_preferences)
-        else:
-            continue
-        if item.id is None or not any(inspect(item).attrs[name].history.has_changes() for name in fields):
-            continue
-        if isinstance(item, UserProfile):
-            # Publishers lock a profile before verifying/publishing its vectors.
-            # Take that owner lock before checking for a cache row on PostgreSQL.
-            if connection.dialect.name == 'sqlite':
-                driver_connection = connection.connection.driver_connection
-                if not driver_connection.in_transaction:
-                    connection.exec_driver_sql('BEGIN IMMEDIATE')
-            else:
-                connection.execute(select(UserProfile.id).where(
-                    UserProfile.id == item.id).with_for_update())
-        old_hash = connection.execute(select(MatchSemanticDocument.source_hash).where(owner == item.id)).scalar()
-        if old_hash is not None and old_hash != source_hash(sections()):
-            connection.execute(delete(MatchSemanticDocument).where(owner == item.id))
-            session.info['job_search_generation_dirty'] = True
-
-
-@event.listens_for(Session, "before_flush")
-def _invalidate_profile_llm_scores(session: Session, _flush_context, _instances) -> None:
-    from hiring_scraper.app.profile_llm import assessment_job_source_changed, cv_career_data, profile_data
-    connection = session.connection()
-    for item in list(session.dirty):
-        if isinstance(item, UserProfile) and inspect(item).attrs.preferences.history.has_changes():
-            history = inspect(item).attrs.preferences.history
-            old = profile_data(history.deleted[0]) if history.deleted else None
-            if old != profile_data(item.preferences):
-                # Publishers own the profile before updating its assessment. Take
-                # the same owner lock before deletion, rather than in the later
-                # ORM UPDATE of preferences, to avoid a profile/cache lock cycle.
-                connection.execute(select(UserProfile.id).where(UserProfile.id == item.id).with_for_update())
-                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == item.id))
-                item.match_index_version = None
-                session.info['job_search_generation_dirty'] = True
-        elif isinstance(item, Job):
-            state = inspect(item)
-            if assessment_job_source_changed(item) or state.attrs.locations.history.has_changes():
-                affected = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id == item.id)
-                connection.execute(update(UserProfile).where(UserProfile.id.in_(affected)).values(match_index_version=None))
-                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.job_id == item.id))
-    for item in list(session.new) + list(session.dirty) + list(session.deleted):
-        if isinstance(item, JobLocation) and (item in session.new or item in session.deleted or
-                session.is_modified(item, include_collections=False)):
-            job_id = item.job_id or (item.job.id if item.job is not None else None)
-            affected = select(ProfileLLMScore.profile_id).where(ProfileLLMScore.job_id == job_id)
-            connection.execute(update(UserProfile).where(UserProfile.id.in_(affected)).values(match_index_version=None))
-            connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.job_id == job_id))
-        if isinstance(item, ProfileCV):
-            state = inspect(item)
-            changed = item in session.new or item in session.deleted or any(
-                state.attrs[name].history.has_changes() for name in ('extracted_text', 'variants'))
-            if not changed:
-                continue
-            # Compare canonical career blocks, so CV contact/layout edits retain scores.
-            variants_history = state.attrs.variants.history
-            previous_variants = variants_history.deleted[0] if variants_history.deleted else None
-            new_variant = (item.variants or {}).get('en') or (item.variants or {}).get('de')
-            previous_variant = ((previous_variants or {}).get('en') or (previous_variants or {}).get('de'))
-            previous_texts = state.attrs.extracted_text.history.deleted
-            old_text = previous_variant.get('text', '') if previous_variant else previous_texts[0] if previous_texts else ''
-            new_text = new_variant.get('text', '') if new_variant else item.extracted_text or ''
-            old_facts = cv_career_data(old_text)
-            new_facts = {} if item in session.deleted else cv_career_data(new_text)
-            if old_facts != new_facts:
-                profile_id = item.profile_id or (item.profile.id if item.profile is not None else None)
-                # CV storage does not update the profile's own preferences. Take
-                # its owner lock explicitly before changing career facts/cache.
-                if profile_id is not None:
-                    connection.execute(select(UserProfile.id).where(UserProfile.id == profile_id).with_for_update())
-                connection.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id))
-                profile = session.get(UserProfile, profile_id) if profile_id is not None else None
-                if profile is not None:
-                    profile.match_index_version = None
-                session.info['job_search_generation_dirty'] = True
-    # A directly imported/edited assessment must invalidate the materialized rank.
-    for item in list(session.new) + list(session.dirty) + list(session.deleted):
-        if isinstance(item, ProfileLLMScore) and (item in session.new or item in session.deleted or
-                session.is_modified(item, include_collections=False)):
-            profile = session.get(UserProfile, item.profile_id)
-            if profile is not None:
-                profile.match_index_version = None
-
-
-@event.listens_for(Session, "before_flush")
-def _invalidate_job_search_snapshots(session: Session, _flush_context, _instances) -> None:
-    """Remember invalidation without taking a global lock during source work."""
-    if _search_data_changed(session):
-        session.info["job_search_generation_dirty"] = True
-
-
-@event.listens_for(Session, "before_flush")
-def _collect_match_invalidations(session: Session, _flush_context, _instances) -> None:
-    pending = session.info.setdefault("match_dirty_sources", [])
-    for item in (*session.new, *session.dirty, *session.deleted):
-        fields = _SEARCH_FIELDS.get(type(item))
-        if fields is None:
-            continue
-        changed = (item in session.new or item in session.deleted or
-                   any(inspect(item).attrs[name].history.has_changes() for name in fields))
-        if isinstance(item, Job) and inspect(item).attrs.locations.history.has_changes():
-            changed = True
-        if changed:
-            pending.append(item)
-
-
-@event.listens_for(Session, "after_flush_postexec")
-def _queue_match_invalidations(session: Session, _flush_context) -> None:
-    from uuid import uuid4
-    from sqlalchemy import literal
-    from sqlalchemy.dialects.sqlite import insert as sqlite_insert
-    from sqlalchemy.dialects.postgresql import insert as postgres_insert
-
-    connection = session.connection()
-    insert_queue = sqlite_insert if connection.dialect.name == 'sqlite' else postgres_insert
-    for item in session.info.pop("match_dirty_sources", []):
-        if isinstance(item, Job):
-            ids = select(Job.id).where(Job.id == item.id)
-        elif isinstance(item, (JobLocation, ProfileLLMScore, MatchSemanticDocument)):
-            job_id = item.job_id
-            if isinstance(item, JobLocation) and job_id is None and item.job is not None:
-                job_id = item.job.id
-            if job_id is None:
-                if isinstance(item, MatchSemanticDocument) and item.profile_id is not None:
-                    connection.execute(delete(ProfileMatchProgress).where(
-                        ProfileMatchProgress.profile_id == item.profile_id))
-                    connection.execute(update(UserProfile).where(UserProfile.id == item.profile_id)
-                                       .values(match_index_version=None))
-                continue
-            ids = select(Job.id).where(Job.id == job_id)
-        elif isinstance(item, JobFeed):
-            ids = select(Job.id).where(Job.feed_id == item.id)
-        elif isinstance(item, Company):
-            feeds = select(JobFeed.id).where(JobFeed.company_id == item.id)
-            ids = select(Job.id).where((Job.feed_id.in_(feeds)) | (Job.employer_company_id == item.id))
-        else:
-            continue
-        # INSERT SELECT must have a WHERE for SQLite's ON CONFLICT parser.
-        statement = insert_queue(MatchDirtyJob).from_select(
-            ['job_id', 'revision', 'queued_at'],
-            select(Job.id, literal(uuid4().hex), literal(utcnow())).where(Job.id.in_(ids)))
-        connection.execute(statement.on_conflict_do_update(index_elements=['job_id'], set_={
-            'revision': statement.excluded.revision,
-            # Keep first-dirty order so frequently updated jobs cannot starve.
-        }))
-
-
-@event.listens_for(Session, "before_commit")
-def _commit_job_search_generation(session: Session) -> None:
-    # Finish domain writes first. Holding the shared marker during a feed/job
-    # flush inverted its order with Company/Profile locks in other transactions.
-    session.flush()
-    if not session.info.get("job_search_generation_dirty"):
-        return
-    connection = session.connection()
-    if connection.dialect.name == "postgresql":
-        # Serialize sequence allocation with commit, including an empty table.
-        # Otherwise a lower sequence ID committing later can miss invalidation.
-        connection.execute(text("SELECT pg_advisory_xact_lock(85793011, 2)"))
-    connection.execute(insert(JobSearchState).values())
-    generation = connection.execute(select(JobSearchState.id).order_by(JobSearchState.id.desc()).limit(1)).scalar_one()
-    connection.execute(delete(JobSearchState).where(JobSearchState.id < generation))
-
-
-@event.listens_for(Session, "after_commit")
-@event.listens_for(Session, "after_rollback")
-def _reset_job_search_generation_flag(session: Session) -> None:
-    session.info.pop("job_search_generation_dirty", None)
-    session.info.pop("match_dirty_sources", None)
+    _lock_job_source_rows(session.connection(), ids)
 
 
 class ScanRun(Base):
@@ -1000,3 +788,8 @@ class ApplicationPreparationTask(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     lease_token: Mapped[str | None] = mapped_column(String(32))
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+# Write paths declare their changes through source_changes; importing it installs
+# the detector that reports undeclared changes for every Session.
+from hiring_scraper.app import source_changes  # noqa: E402,F401

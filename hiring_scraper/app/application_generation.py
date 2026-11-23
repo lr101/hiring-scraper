@@ -28,7 +28,7 @@ from sqlalchemy.orm import Session
 from hiring_scraper.app import application_preparation_queue, codex_runtime, application_generation_jobs, profile_llm, requirement_evidence
 from hiring_scraper.app.application_documents import LatexDocuments, _finished_text, validate_cover_letter_text, CoverLetterLatexError
 from hiring_scraper.app.board_scope import expiry
-from hiring_scraper.app.database import get_session, SessionLocal
+from hiring_scraper.app.database import get_session
 from hiring_scraper.app.latex_documents import latex_source, validate_latex_source
 from hiring_scraper.app.models import Job, ProfileLLMScore
 from hiring_scraper.app.profiles import cv_metadata, require_cv, require_profile
@@ -855,11 +855,7 @@ def prepare_application(profile_id: int, request: PrepareApplicationRequest, ses
 def preparation_job_status(profile_id: int, job_id: int, response: Response, summary: bool = False, session: Session = Depends(get_session)):
     response.headers['Cache-Control'] = 'no-store'
     require_profile(profile_id, session)
-    if session.get_bind().dialect.name == 'postgresql':
-        record = application_preparation_queue.status(session, profile_id, job_id)
-    else:
-        record = application_generation_jobs.status(codex_runtime._root(), profile_id, job_id)
-    job = _public_job(record)
+    job = _public_job(application_preparation_queue.status(session, profile_id, job_id))
     if job and summary: job = {key: value for key, value in job.items() if key not in ('request', 'result')}
     return {'job': job}
 
@@ -880,15 +876,8 @@ def start_preparation_job(profile_id: int, request: PrepareApplicationRequest, r
     root = codex_runtime._root()
     with application_generation_jobs.profile_lock(root, profile_id):
         _, revision = _snapshot(profile_id, request, session)
-        postgres = session.get_bind().dialect.name == 'postgresql'
         session.rollback()
-        if postgres:
-            job = application_preparation_queue.enqueue(profile_id, request.job_id, request.model_dump(), revision)
-            return {'job': _public_job(job)}
-        def run(progress):
-            with SessionLocal() as worker_session:
-                return _prepare_application(profile_id, request, worker_session, progress=progress, expected_revision=revision)
-        job = application_generation_jobs.start(root, profile_id, request.job_id, run, request.model_dump(), revision=revision)
+        job = application_preparation_queue.enqueue(profile_id, request.job_id, request.model_dump(), revision)
         return {'job': _public_job(job)}
 
 
@@ -896,9 +885,7 @@ def start_preparation_job(profile_id: int, request: PrepareApplicationRequest, r
 def cancel_preparation_job(profile_id: int, job_id: int, expected_id: str, response: Response, session: Session = Depends(get_session)):
     response.headers['Cache-Control'] = 'no-store'
     require_profile(profile_id, session)
-    if session.get_bind().dialect.name == 'postgresql':
-        return {'job': _public_job(application_preparation_queue.cancel(session, profile_id, job_id, expected_id))}
-    return {'job': _public_job(application_generation_jobs.cancel(codex_runtime._root(), profile_id, job_id, expected_id=expected_id))}
+    return {'job': _public_job(application_preparation_queue.cancel(session, profile_id, job_id, expected_id))}
 
 
 class SavedDraftRequest(StrictModel):
@@ -940,9 +927,8 @@ def delete_application_draft(profile_id: int, job_id: int, response: Response, s
     root = codex_runtime._root()
     with application_generation_jobs.profile_lock(root, profile_id):
         require_profile(profile_id, session)
-        if session.get_bind().dialect.name == 'postgresql':
-            application_preparation_queue.clear(session, profile_id, job_id)
-            session.commit()
+        application_preparation_queue.clear(session, profile_id, job_id)
+        session.commit()
         application_generation_jobs.delete(root, profile_id, job_id)
         application_generation_jobs.delete(root / 'document-revisions', profile_id, job_id)
     return {'deleted': True}

@@ -3,18 +3,25 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from urllib.request import Request, urlopen
 
-from sqlalchemy import exists, or_, select
+from sqlalchemy import exists, func, or_, select
 
+from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import SessionLocal
-from hiring_scraper.app.models import Job, MatchSemanticDocument, UserProfile, utcnow
+from hiring_scraper.app.models import Job, MatchDirtyJob, MatchSemanticDocument, UserProfile, utcnow
 from hiring_scraper.semantic_matching import (
     MODEL_KEY, VERSION, job_sections, pack_vectors, profile_sections, semantic_evidence, source_hash,
 )
 
 BATCH_JOBS = 16
 BATCH_PROFILES = 4
+# Finding jobs without current vectors must not scan the whole inventory every poll.
+# New ids are checked above a high-water mark; older ids are swept one window at a time.
+JOB_SWEEP_WINDOW = 1000
+JOB_SWEEP_IDLE_SECONDS = 10
+_job_sweeps: dict[int, dict] = {}  # Per engine: high-water mark, sweep cursor and idle pause.
 
 
 class SemanticDocuments(dict):
@@ -30,8 +37,7 @@ def load_semantic_documents(session, jobs, profiles) -> dict:
     documents = SemanticDocuments()
     if session is None or not owners:
         return documents
-    # Include the version parameter while staying below SQLite's standard 999
-    # bind limit, even when the incremental matcher receives many profiles.
+    # Keep each IN list bounded, even when the incremental matcher receives many profiles.
     for start in range(0, len(owners), 800):
         batch = owners[start:start + 800]
         rows = session.scalars(select(MatchSemanticDocument).where(or_(
@@ -88,6 +94,57 @@ def _request_vectors(texts: list[str], kind: str) -> list[list[float]]:
     return vectors
 
 
+def _jobs_missing_vectors(session, limit: int) -> list:
+    """Return up to ``limit`` active jobs without current vectors, newest ids first.
+
+    Cost per call is bounded by ``JOB_SWEEP_WINDOW`` ids regardless of inventory
+    size. New postings are found immediately above the high-water mark; edited
+    descriptions and model-version changes are found by the rolling sweep, which
+    keeps going while it finds work and slows down once the inventory is clean.
+    """
+    max_id = int(session.scalar(select(func.max(Job.id))) or 0)
+    state = _job_sweeps.setdefault(id(session.get_bind()),
+                                   {'high_water': 0, 'cursor': None, 'next_idle_sweep': 0.0})
+    if max_id < state['high_water']:
+        # The inventory was reset or restored; start over rather than skip new ids.
+        state.update(high_water=0, cursor=None, next_idle_sweep=0.0)
+
+    def missing(low: int, high: int, count: int) -> list:
+        return session.scalars(select(Job).where(
+            Job.is_active.is_(True), Job.id > low, Job.id <= high,
+            ~exists(select(1).where(MatchSemanticDocument.job_id == Job.id,
+                                    MatchSemanticDocument.version == VERSION)),
+        ).order_by(Job.id.desc()).limit(count)).all()
+
+    # Edited postings are queued for rematching; give them fresh vectors first.
+    found = session.scalars(select(Job).where(
+        Job.id.in_(select(MatchDirtyJob.job_id)), Job.is_active.is_(True),
+        ~exists(select(1).where(MatchSemanticDocument.job_id == Job.id,
+                                MatchSemanticDocument.version == VERSION)),
+    ).order_by(Job.id.desc()).limit(limit)).all()
+    if max_id > state['high_water'] and len(found) < limit:
+        seen = {job.id for job in found}
+        found += [job for job in missing(max(state['high_water'], max_id - JOB_SWEEP_WINDOW), max_id,
+                                         limit - len(found)) if job.id not in seen]
+        if len(found) < limit:
+            state['high_water'] = max_id
+    if len(found) < limit and time.monotonic() >= state['next_idle_sweep']:
+        cursor = state['cursor'] if state['cursor'] is not None else max_id
+        low = max(0, cursor - JOB_SWEEP_WINDOW)
+        seen = {job.id for job in found}
+        batch = [job for job in missing(low, cursor, limit - len(found)) if job.id not in seen]
+        found.extend(batch)
+        if batch and len(found) >= limit:
+            state['cursor'] = batch[-1].id - 1  # More work may remain in this window.
+        else:
+            state['cursor'] = low if low > 0 else None  # None restarts from the newest id.
+        if not batch:
+            # Clean window: keep the position but pause, so an idle inventory costs
+            # one bounded window every JOB_SWEEP_IDLE_SECONDS.
+            state['next_idle_sweep'] = time.monotonic() + JOB_SWEEP_IDLE_SECONDS
+    return found
+
+
 def refresh_semantic_documents_once(*, encode=None) -> bool:
     """Compute a bounded batch outside a DB transaction, then verify before publishing.
 
@@ -107,10 +164,7 @@ def refresh_semantic_documents_once(*, encode=None) -> bool:
             MatchSemanticDocument.profile_id.is_not(None), MatchSemanticDocument.version == VERSION,
             MatchSemanticDocument.vectors != b''))))
         if has_facts:
-            jobs = session.scalars(select(Job).where(Job.is_active.is_(True), ~exists(select(1).where(
-                MatchSemanticDocument.job_id == Job.id,
-                MatchSemanticDocument.version == VERSION))).order_by(Job.first_seen_at.desc(), Job.id.desc())
-                .limit(BATCH_JOBS)).all()
+            jobs = _jobs_missing_vectors(session, BATCH_JOBS)
             for job in jobs:
                 work.append(('job', job.id, job_sections({'description': job.description, 'raw_metadata': job.raw_metadata})))
     if not work:
@@ -136,18 +190,9 @@ def refresh_semantic_documents_once(*, encode=None) -> bool:
         with SessionLocal() as session:
             # Serialize publication with source edits. Holding these locks only
             # during local DB work also prevents saving a vanished source.
-            if session.get_bind().dialect.name == 'sqlite':
-                # SQLite ignores FOR UPDATE. Reserve its writer before reading
-                # the source so an edit cannot commit between verification and
-                # publishing the corresponding vectors.
-                session.connection().exec_driver_sql('BEGIN IMMEDIATE')
-            source_query = select(model).where(model.id == entity_id)
-            if entity_type == 'job':
-                # Keep job writers serialized without blocking FK KEY SHARE
-                # checks while an index rebuild owns the profile row.
-                source_query = source_query.with_for_update(key_share=True)
-            else:
-                source_query = source_query.with_for_update()
+            # Serialize source writers without blocking foreign-key KEY SHARE
+            # checks from rows that reference this job or profile.
+            source_query = select(model).where(model.id == entity_id).with_for_update(key_share=True)
             current = session.scalar(source_query)
             if current is None:
                 continue
@@ -159,6 +204,7 @@ def refresh_semantic_documents_once(*, encode=None) -> bool:
                 # obsolete source hash. Remove it so the queue can rebuild it.
                 if document is not None:
                     session.delete(document)
+                    source_changes.vectors_changed(session, **{entity_type + '_ids': [entity_id]})
                     session.commit()
                 continue
             if document is None:
@@ -169,11 +215,8 @@ def refresh_semantic_documents_once(*, encode=None) -> bool:
             document.sections = parts
             document.vectors = pack_vectors(encoded.get((entity_type, entity_id), []))
             document.indexed_at = utcnow()
-            if entity_type == 'profile':
-                current.match_index_version = None
-            else:
-                from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
-                session.flush()
-                refresh_application_matches_for_jobs(session, [entity_id])
+            # New profile vectors restart that profile's index; new job vectors
+            # rematch the job for every profile.
+            source_changes.vectors_changed(session, **{entity_type + '_ids': [entity_id]})
             session.commit()
     return True

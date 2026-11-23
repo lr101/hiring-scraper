@@ -1,0 +1,7 @@
+# Local development database: PostgreSQL 17 + PostGIS + pgvector on 127.0.0.1:5432.
+#   docker compose -f compose.yaml -f compose.dev.yaml up -d db
+# The API, workers and frontend then run on the host (see README, Local development).
+services:
+  db:
+    ports:
+      - "127.0.0.1:${HIRING_DEV_DB_PORT:-5432}:5432"

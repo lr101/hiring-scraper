@@ -2,15 +2,16 @@
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from hiring_scraper.app import job_search, models
+from hiring_scraper.app import job_search, models, source_changes
+from tests import pg
 
 
 class MatchProgressTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(self.engine, autoflush=False, expire_on_commit=False)
         with self.factory.begin() as session:
@@ -22,6 +23,8 @@ class MatchProgressTests(unittest.TestCase):
             session.add_all([profile, *jobs]); session.flush()
             self.profile_id = profile.id
             self.job_ids = [job.id for job in jobs]
+            # Ingestion declares new postings, which queues them for matching.
+            source_changes.jobs_changed(session, self.job_ids)
 
     def tearDown(self):
         self.engine.dispose()
@@ -45,12 +48,15 @@ class MatchProgressTests(unittest.TestCase):
     def test_source_changes_are_coalesced_transactional_and_drained(self):
         with self.factory() as session:
             session.get(models.Job, self.job_ids[0]).description = 'first edit'
+            source_changes.jobs_changed(session, [self.job_ids[0]])
             session.commit()
             first = session.get(models.MatchDirtyJob, self.job_ids[0]).revision
             session.get(models.Job, self.job_ids[0]).description = 'rolled back'
+            source_changes.jobs_changed(session, [self.job_ids[0]])
             session.flush(); session.rollback()
             self.assertEqual(session.get(models.MatchDirtyJob, self.job_ids[0]).revision, first)
             session.get(models.Job, self.job_ids[0]).description = 'latest edit'
+            source_changes.jobs_changed(session, [self.job_ids[0]])
             session.commit()
             self.assertNotEqual(session.get(models.MatchDirtyJob, self.job_ids[0]).revision, first)
         with patch.object(job_search, 'SessionLocal', self.factory):
@@ -196,25 +202,6 @@ class MatchProgressTests(unittest.TestCase):
         with self.factory() as session:
             self.assertEqual(len(session.scalars(select(models.ProfileJobMatch)).all()), 5)
 
-    def test_additive_migration_and_sqlite_startup_create_worker_state(self):
-        import importlib
-        from alembic.migration import MigrationContext
-        from alembic.operations import Operations
-        from hiring_scraper.app.database import initialize_sqlite_schema
-        models.ProfileMatchProgress.__table__.drop(self.engine)
-        models.MatchDirtyJob.__table__.drop(self.engine)
-        migration = importlib.import_module('hiring_scraper.app.migrations.versions.0037_journey_match_progress')
-        with self.engine.begin() as connection:
-            with Operations.context(MigrationContext.configure(connection)):
-                migration.upgrade()
-        self.assertTrue(self.step())
-        # create_all at SQLite startup also adds the tables to older local DBs.
-        models.ProfileMatchProgress.__table__.drop(self.engine)
-        models.MatchDirtyJob.__table__.drop(self.engine)
-        initialize_sqlite_schema(self.engine)
-        with self.factory() as session:
-            self.assertEqual(session.scalars(select(models.MatchDirtyJob)).all(), [])
-
     def test_steady_dirty_queue_does_not_starve_ai_after_backfill_finishes(self):
         from hiring_scraper.app import profile_match_worker
         with patch.object(job_search, 'SessionLocal', self.factory):
@@ -249,20 +236,27 @@ class MatchProgressTests(unittest.TestCase):
                 with self.factory.begin() as session:
                     session.execute(delete(models.MatchDirtyJob))
                     job = session.get(models.Job, self.job_ids[0])
+                    # Each write path pairs its write with the matching declaration.
                     if kind == 'location':
                         job.locations.append(models.JobLocation(label='Berlin', country_code='DE'))
+                        source_changes.jobs_changed(session, [job.id])
                     elif kind == 'feed':
                         job.feed.provider = 'greenhouse'
+                        source_changes.feeds_changed(session, [job.feed_id])
                     elif kind == 'company':
                         job.feed.company.name = 'Renamed employer'
+                        source_changes.companies_changed(session, [job.feed.company_id])
                     elif kind == 'semantic':
                         session.add(models.MatchSemanticDocument(job_id=job.id, source_hash='source',
                             version='test', sections=[], vectors=b''))
+                        source_changes.vectors_changed(session, job_ids=[job.id])
                     elif kind == 'assessment':
                         session.add(models.ProfileLLMScore(profile_id=self.profile_id, job_id=job.id,
                             source_hash='source', version='test', assessment={}))
+                        source_changes.assessments_changed(session, [job.id])
                     else:
                         job.is_active = False
+                        source_changes.jobs_changed(session, [job.id])
                 with self.factory() as session:
                     self.assertEqual(session.scalars(select(models.MatchDirtyJob.job_id)
                         .order_by(models.MatchDirtyJob.job_id)).all(), expected)

@@ -304,7 +304,7 @@ Clipboard/popup failures have a manual fallback. The start button copies during 
 
 ## Deployment and verification
 
-PostgreSQL deployments apply migration `0028_profile_cv`; SQLite development uses the standard schema initializer. The production and CI Dockerfiles install LibreOffice Writer, Liberation fonts, LuaLaTeX and the recommended LaTeX packages. CI additionally installs Poppler for render-comparison checks. For local development, install `libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended` alongside locked Python/frontend dependencies. DOCX download remains available when PDF conversion is unavailable.
+Deployments apply migration `0028_profile_cv`. The production and CI Dockerfiles install LibreOffice Writer, Liberation fonts, LuaLaTeX and the recommended LaTeX packages. CI additionally installs Poppler for render-comparison checks. For local development, install `libreoffice-writer fonts-liberation poppler-utils texlive-luatex texlive-latex-recommended` alongside locked Python/frontend dependencies. DOCX download remains available when PDF conversion is unavailable.
 
 - `tests/test_application_documents.py`: real LaTeX compilation and extractable Unicode/date text, safe literal TeX, DOCX header/body preservation, source downloads, missing compiler/font errors, stale source and unfinished-content rejection.
 - `tests/frontend_application_canvas.mjs`: exact Canvas source survives the executed Python return-link recipes, both import paths and draft reload, with invalid source shapes rejected.

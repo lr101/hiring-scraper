@@ -23,9 +23,9 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules, local semantic evidence and queued subscription-backed AI assessments. |
 | Application preparation worker | `app.application_preparation_worker` | Drafts, reviews and revises application documents from the PostgreSQL queue. |
 
-On SQLite, profile matching runs synchronously and application preparation uses
-file-backed jobs in the API process, so local development only needs the feed worker
-(plus the optional search and semantic workers described in the README).
+PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
+the same migrated schema and the same workers as production; requests never match,
+prepare documents or build search snapshots inline.
 
 ## Data flow
 
@@ -58,9 +58,13 @@ flowchart LR
   - Matching: `matching.py`, `requirements.py`, `duty_evidence.py`,
     `task_alignment.py`, `semantic_matching.py`; `election_data.py` for optional city context.
 - `hiring_scraper/app/` — persistence, API routers, workers and application preparation.
-  `models.py` is shared by SQLite and PostgreSQL/PostGIS; schema changes ship as
-  Alembic migrations in `app/migrations/versions/` and as additive SQLite
-  initialization in `database.py`.
+  `models.py` is the schema; changes ship as Alembic migrations in
+  `app/migrations/versions/` (plus the rollback-safe step in `docker/entrypoint.py`,
+  which `scripts/dev/migrate.py` and the test harness apply too). Write sites declare source changes through
+  `source_changes.py`, which invalidates caches, queues rematching and publishes search generations. Routers live beside their domain: `journey.py`
+  (stages, Journey list, momentum), `focus.py` (Today's focus), `profiles.py`,
+  `companion.py`, `application_generation.py`; `api.py` keeps search, companies,
+  feeds and discovery.
 - `frontend/` — React + TypeScript + Vite single-page app.
 - `extensions/application-companion/` — Chrome extension that fills application
   forms from a saved profile. It never submits a form.
@@ -86,14 +90,54 @@ flowchart LR
 - **Profile data stays private.** Prompts use saved career facts, not inferred
   abilities; profile photos are never sent to the model.
 
+## Concurrency model
+
+Several processes write to the same PostgreSQL database. Keep these rules when adding writes:
+
+- **Sources lock only source rows.** Feed, discovery and enrichment writers lock the job
+  rows they change, in id order (`models.reserve_job_source_rows`), and never write
+  `user_profiles`. The one exception is retiring jobs that have saved Journey stages: it
+  holds the owning profiles `FOR SHARE` (through `before_publish`) while closing them.
+- **Declare every source change.** After editing jobs, feeds, companies, profiles,
+  assessments or vectors, call the matching `source_changes.*_changed()` function before
+  commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
+  writes fail tests (strict mode) and log an error in production.
+- **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs`; companies and jobs needing vectors are queued
+  in `semantic_search_refreshes` by database triggers. Workers drain these queues. Only profile-wide inputs
+  (preferences, CV career facts, profile vectors) mark a whole profile stale.
+- **Profiles are versioned, not locked by publishers.** Profile edits bump
+  `user_profiles.source_version` (through `source_changes`). Publishers of per-profile data
+  record the versions when they start, compute without locks, then call
+  `models.hold_profiles(session, {id: version}, wait=False)` before their derived writes.
+  It holds the rows `FOR SHARE` (publishers run side by side; edits wait) and raises
+  `ProfileIndexChanged` if a version moved or an edit is in flight; the work is retried.
+  The match worker passes expected versions. AI publication holds only the profile id and
+  instead re-checks the assessment's source hash, which covers the profile inputs it used.
+- **Lock order is jobs → profiles → derived rows.** Lock affected job rows first
+  (`reserve_job_source_rows`), then hold profiles, then write matches, Journey rows or
+  assessments. Profile editors write the profile row before derived rows, so neither side
+  can deadlock. Hold exclusively (`exclusive=True`) only to write the profile row itself.
+- **Retry contention, don't discard work.** Wrap persistence of expensive results in
+  `database.retry_transient()`, and log loop failures with `database.log_worker_failure()`
+  (one warning line for contention, a traceback for bugs).
+- **No unbounded periodic scans.** Poll loops must do O(batch) work when idle. Backfills
+  use bounded id windows and stop once complete; the profile/job vector refresh checks the
+  rematch queue and new ids first, then sweeps one id window at a time.
+  `tests/test_postgres_idle_cost.py` measures every worker's idle cycle at two inventory
+  sizes and fails if its cost grows; add new poll loops to it.
+
 ## Testing
 
-Python tests in `tests/` exercise the SQLite path and run with
-`python -m unittest discover -s tests`. The extension and application browser suite in
+Every database test runs on PostgreSQL through `tests/pg.py`: it migrates the database
+in `TEST_POSTGRES_URL` once per run (real triggers, generated columns and indexes) and
+empties every table before each test. `pg.isolated_engine()` gives migration and DDL
+tests a private schema; `pg.run_workers()`, `pg.list_jobs()` and `pg.list_applications()`
+drain the worker queues the way production does before a test reads results. Run the
+suite with `scripts/dev/postgres-sandbox.sh` (a throwaway local cluster),
+`scripts/ci/postgres-local.sh` (an existing local test server) or `scripts/ci/run.sh`. The extension and application browser suite in
 `tests/application_companion/` needs `RADIUS_EXTENSION_BROWSER_TESTS=1` and runs as two
 CI shards. Node checks for the frontend and extension are listed in `scripts/ci/check.sh`.
 The `tests/frontend_*_browser.py` scripts are manual end-to-end checks against an isolated
 preview started with `scripts/dev/preview.sh`; they read the preview URLs from
-`APPLICATION_TEST_WEB_URL` and `APPLICATION_TEST_API_URL`. PostgreSQL-specific
-concurrency and migration checks run through `scripts/ci/postgres-local.sh` or the
-container pipeline. See the [CI guide](ci.md).
+`APPLICATION_TEST_WEB_URL` and `APPLICATION_TEST_API_URL`. `tests/test_postgres_*.py`
+cover concurrency, lock ordering and idle worker cost. See the [CI guide](ci.md).

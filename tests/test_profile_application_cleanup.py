@@ -89,6 +89,7 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
                 try:
                     with (
                         patch.object(profiles, 'require_profile', return_value=SimpleNamespace(cv='attached')),
+                        patch.object(profiles.source_changes, 'profile_changed'),
                         patch.object(codex_runtime, '_root', return_value=root),
                     ):
                         profiles.delete_profile(7, session)
@@ -126,15 +127,16 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
             start_errors = []
             delete_errors = []
 
-            class Session:
-                def get_bind(self):
-                    return SimpleNamespace(dialect=SimpleNamespace(name='sqlite'))
+            queued = {}
 
+            class Session:
                 def rollback(self):
                     pass
 
                 def delete(self, _profile):
-                    pass
+                    # Deleting the profile row cascades to its queued preparations.
+                    for key in [key for key in queued if key[0] == 7]:
+                        queued.pop(key)
 
                 def commit(self):
                     deletion_committed.set()
@@ -154,23 +156,22 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
                     raise RuntimeError('Timed out waiting to finish the snapshot.')
                 return {}, 'revision'
 
-            def save_job(root_path, profile_id, job_id, _runner, saved_request, revision):
-                record = {
-                    'id': 'prepared',
-                    'state': 'running',
-                    'updated_at': time.time(),
-                    'request': saved_request,
-                    'revision': revision,
-                }
-                jobs._write(root_path, profile_id, job_id, record)
+            def enqueue(profile_id, job_id, saved_request, revision, **_options):
+                record = {'id': 'prepared', 'state': 'queued', 'updated_at': time.time(),
+                          'request': saved_request, 'revision': revision}
+                queued[(profile_id, job_id)] = record
                 return record
+
+            def clear(_session, profile_id, job_id=None):
+                for key in [key for key in queued if key[0] == profile_id and job_id in (None, key[1])]:
+                    queued.pop(key)
 
             def start_preparation():
                 try:
                     with (
                         patch.object(generation, 'generation_status', return_value={'enabled': True}),
                         patch.object(generation, '_snapshot', side_effect=snapshot),
-                        patch.object(jobs, 'start', side_effect=save_job),
+                        patch.object(generation.application_preparation_queue, 'enqueue', side_effect=enqueue),
                         patch.object(codex_runtime, '_root', return_value=root),
                     ):
                         generation.start_preparation_job(7, request, Response(), session)
@@ -181,6 +182,9 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
                 try:
                     with (
                         patch.object(profiles, 'require_profile', return_value=SimpleNamespace(cv='attached')),
+                        patch('hiring_scraper.app.application_preparation_queue.clear', side_effect=clear),
+                        patch.object(profiles.source_changes, 'profile_changed'),
+                        patch.object(profiles, '_cv_career_facts', return_value={}),
                         patch.object(codex_runtime, '_root', return_value=root),
                     ):
                         delete_route(7, session)
@@ -207,4 +211,4 @@ class ProfileApplicationCleanupTests(unittest.TestCase):
             self.assertEqual(start_errors, [])
             self.assertEqual(delete_errors, [])
             self.assertTrue(deletion_committed.is_set())
-            self.assertIsNone(jobs.status(root, 7, 42))
+            self.assertEqual(queued, {}, 'Deletion must remove the preparation queued before it')

@@ -2,23 +2,19 @@
 import asyncio
 import copy
 import json
-from pathlib import Path
 import tempfile
 import importlib
 import importlib.util
 import unittest
-import warnings
-from uuid import uuid4
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, event, select
-from sqlalchemy.exc import SAWarning
+from sqlalchemy import event, select
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from hiring_scraper.app import search_snapshots
-from hiring_scraper.app import api, models, profiles
+from hiring_scraper.app import api, models, profiles, source_changes
 from hiring_scraper.app.job_search import ensure_profile_match_indexes, profile_match_index_stale
+from tests import pg
 
 
 PROFILE = dict(name='Developer', desired_roles=['Software developer'], skills=['Python', 'SQL'],
@@ -462,8 +458,7 @@ class PersistedAssessmentTests(unittest.TestCase):
     service = AssessmentTests.service
 
     def setUp(self):
-        self.engine = create_engine('sqlite://', poolclass=StaticPool,
-                                    connect_args={'check_same_thread': False})
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         with self.factory() as session:
@@ -552,7 +547,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             refresh_application_matches_for_jobs(session, [second_id])
         self.assertTrue(self.refresh(assessment(12)))
         with self.factory() as session:
-            page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
+            page = pg.list_applications(self.engine, profile_ids=str(self.profile_id), statuses='all',
                 sort='match', offset=0, limit=40, session=session)
             self.assertEqual([item['id'] for item in page['items']], [second_id, self.job_id])
             self.assertEqual(page['items'][1]['profile_match']['score'], 12)
@@ -566,9 +561,8 @@ class PersistedAssessmentTests(unittest.TestCase):
         with self.factory() as session:
             indexed = session.get(models.ProfileJobMatch, (self.profile_id, self.job_id))
             self.assertEqual(indexed.match_score, 12)
-            with patch.object(api, 'IS_SQLITE', False):
-                page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
-                    sort='match', offset=0, limit=40, session=session)
+            page = api.list_applications(profile_ids=str(self.profile_id), statuses='all',
+                sort='match', offset=0, limit=40, session=session)
             self.assertEqual(page['items'][0]['profile_match']['score'], 12)
 
     def test_journey_reorders_lowered_ai_scores_before_pagination(self):
@@ -766,14 +760,14 @@ class PersistedAssessmentTests(unittest.TestCase):
         with self.factory() as session:
             profiles.update_profile(self.profile_id, profiles.ProfileRequest(**{
                 **PROFILE, 'matching_defaults': {'min_match_score': 65}}), session)
-            page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
+            page = pg.list_applications(self.engine, profile_ids=str(self.profile_id), statuses='new', sort='match',
                                          offset=0, limit=40, session=session)
             self.assertEqual(len(page['items']), 1)
             self.assertGreaterEqual(page['items'][0]['profile_match']['score'], 65)
             self.assertEqual(page['items'][0]['profile_match']['score_source'], 'local')
         self.assertTrue(self.refresh(assessment(91)))
         with self.factory() as session:
-            page = api.list_applications(profile_ids=str(self.profile_id), statuses='new', sort='match',
+            page = pg.list_applications(self.engine, profile_ids=str(self.profile_id), statuses='new', sort='match',
                                          offset=0, limit=40, session=session)
             self.assertEqual(page['items'][0]['profile_match']['score'], 91)
 
@@ -983,8 +977,9 @@ class PersistedAssessmentTests(unittest.TestCase):
                     external_id=f'queued-{i}', url=f'https://example.org/jobs/queued-{i}', is_remote=True))
         with self.factory.begin() as session:
             ensure_profile_match_indexes(session, [session.get(models.UserProfile, self.profile_id)])
-            from hiring_scraper.app.job_search import refresh_application_matches_for_jobs
-            refresh_application_matches_for_jobs(session, list(session.scalars(select(models.Job.id))))
+            # Rebuild matches directly; declaring the change would drop the stale cache.
+            from hiring_scraper.app.job_search import _refresh_application_matches_for_jobs
+            _refresh_application_matches_for_jobs(session, list(session.scalars(select(models.Job.id))))
         service = self.service()
         with patch.object(service, 'SessionLocal', self.factory), patch.object(service.codex_runtime, 'subscription_usage', return_value=USAGE):
             self.assertTrue(service.matching_status()['pending'])
@@ -1359,7 +1354,8 @@ class PersistedAssessmentTests(unittest.TestCase):
         def observe(conn, cursor, statement, parameters, context, many):
             compiled = getattr(context, 'compiled', None)
             query = getattr(compiled, 'statement', None)
-            if getattr(query, '_for_update_arg', None) is not None and 'user_profiles' in statement:
+            # The source-version bump takes the row that publishers hold.
+            if statement.startswith('UPDATE user_profiles SET source_version'):
                 operations.append('profile_lock')
             if statement.startswith('DELETE FROM profile_llm_scores'):
                 operations.append('cache_delete')
@@ -1440,78 +1436,6 @@ class PersistedAssessmentTests(unittest.TestCase):
             self.assertEqual(page['items'][0]['profile_match']['score_source'], 'llm')
             self.assertEqual(page['items'][0]['profile_match']['llm_match']['dimensions']['skills']['score'], 90)
 
-    def test_independent_memory_databases_do_not_contend_for_inference_lease(self):
-        service = self.service()
-        for url in ['sqlite://', 'sqlite:///:memory:']:
-            first, second = create_engine(url, poolclass=StaticPool), create_engine(url, poolclass=StaticPool)
-            try:
-                with self.subTest(url=url), service._inference_lease(first) as acquired:
-                    self.assertTrue(acquired)
-                    with service._inference_lease(first) as same_database:
-                        self.assertFalse(same_database)
-                    with service._inference_lease(second) as distinct_database:
-                        self.assertTrue(distinct_database)
-            finally:
-                first.dispose(); second.dispose()
-
-    def test_named_shared_memory_database_engines_share_data_and_inference_lease(self):
-        service = self.service()
-        url = f'sqlite:///file:llm-{uuid4().hex}?mode=memory&cache=shared&uri=true'
-        first, second = create_engine(url, poolclass=StaticPool), create_engine(url, poolclass=StaticPool)
-        try:
-            with first.begin() as connection:
-                connection.exec_driver_sql('CREATE TABLE shared_facts (value INTEGER)')
-                connection.exec_driver_sql('INSERT INTO shared_facts VALUES (42)')
-            with second.connect() as connection:
-                self.assertEqual(connection.exec_driver_sql('SELECT value FROM shared_facts').scalar_one(), 42)
-            with service._inference_lease(first) as acquired:
-                self.assertTrue(acquired)
-                with service._inference_lease(second) as same_database:
-                    self.assertFalse(same_database)
-        finally:
-            first.dispose(); second.dispose()
-
-    def test_named_private_memory_database_engines_have_independent_leases(self):
-        service = self.service()
-        url = f'sqlite:///file:llm-{uuid4().hex}?mode=memory&cache=private&uri=true'
-        first, second = create_engine(url, poolclass=StaticPool), create_engine(url, poolclass=StaticPool)
-        try:
-            with service._inference_lease(first) as acquired:
-                self.assertTrue(acquired)
-                with service._inference_lease(second) as distinct_database:
-                    self.assertTrue(distinct_database)
-        finally:
-            first.dispose(); second.dispose()
-
-    def test_memory_query_without_uri_flag_keeps_file_database_lease_shared(self):
-        service = self.service()
-        with tempfile.TemporaryDirectory() as folder:
-            url = 'sqlite:///' + str(Path(folder) / 'file:ordinary.db') + '?mode=memory&cache=shared'
-            # This intentionally ignored query models a real filename, not a URI.
-            with warnings.catch_warnings():
-                warnings.filterwarnings('ignore', message='Query string argument.*not accepted.*', category=SAWarning)
-                first, second = create_engine(url, poolclass=StaticPool), create_engine(url, poolclass=StaticPool)
-            try:
-                with service._inference_lease(first) as acquired:
-                    self.assertTrue(acquired)
-                    with service._inference_lease(second) as same_database:
-                        self.assertFalse(same_database)
-            finally:
-                first.dispose(); second.dispose()
-
-    def test_same_file_database_engines_share_inference_lease(self):
-        service = self.service()
-        with tempfile.TemporaryDirectory() as folder:
-            url = 'sqlite:///' + str(Path(folder) / 'shared.db')
-            first, second = create_engine(url, poolclass=StaticPool), create_engine(url, poolclass=StaticPool)
-            try:
-                with service._inference_lease(first) as acquired:
-                    self.assertTrue(acquired)
-                    with service._inference_lease(second) as same_database:
-                        self.assertFalse(same_database)
-            finally:
-                first.dispose(); second.dispose()
-
     def test_durable_claim_prevents_concurrent_duplicate_work(self):
         calls = []
         def generate(prompt, schema, **kwargs):
@@ -1534,6 +1458,7 @@ class PersistedAssessmentTests(unittest.TestCase):
                 with self.factory() as writer:
                     row = writer.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
                     row.assessment = assessment(1)
+                    source_changes.assessments_changed(writer, [self.job_id])
                     writer.commit()
             return original(*args, **kwargs)
         with self.factory() as session:
@@ -1561,6 +1486,8 @@ class PersistedAssessmentTests(unittest.TestCase):
             cv = session.get(models.ProfileCV, self.profile_id)
             cv.extracted_text = cv_text.replace('Python research', 'Clinical research')
             cv.variants = {'en': {'text': cv.extracted_text, 'filename': 'cv.tex'}}
+            # The CV upload path declares changed career facts.
+            source_changes.profile_changed(session, self.profile_id, career_facts_changed=True)
             session.commit()
             self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
             self.assertTrue(profile_match_index_stale(session.get(models.UserProfile, self.profile_id)))
@@ -1574,7 +1501,7 @@ class PersistedAssessmentTests(unittest.TestCase):
             prompt = service.build_prompt(job, profile)
             self.assertLess(len(prompt), 55000)
 
-    def test_deleting_sources_cascades_assessment_on_sqlite(self):
+    def test_deleting_sources_cascades_assessment(self):
         self.assertTrue(self.refresh())
         with self.factory() as session:
             session.delete(session.get(models.Job, self.job_id)); session.commit()
@@ -1615,7 +1542,7 @@ class ManagedWorkerTests(unittest.TestCase):
                      patch.object(worker.time, 'sleep', stop):
                     with self.assertRaises(InterruptedError):
                         worker.main()
-                self.assertEqual(events, ['dirty', 'semantics', 'preparation'])
+                self.assertEqual(events, ['semantics', 'dirty', 'preparation'])
 
     def test_worker_keeps_rule_and_semantic_cycles_when_llm_pauses(self):
         from hiring_scraper.app import profile_match_worker as worker
@@ -1657,13 +1584,20 @@ class FurtherSourceTests(unittest.TestCase):
             session.commit()
             self.assertIsNotNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
 
-    def test_new_location_invalidates_cached_assessment_and_index(self):
+    def test_new_location_invalidates_cached_assessment_and_requeues_only_that_job(self):
         self.assertTrue(self.refresh())
         with self.factory() as session:
+            stale_before = profile_match_index_stale(session.get(models.UserProfile, self.profile_id))
+            session.execute(models.MatchDirtyJob.__table__.delete())
+            session.commit()
             session.add(models.JobLocation(job_id=self.job_id, label='Berlin', country_code='DE'))
+            source_changes.jobs_changed(session, [self.job_id])
             session.commit()
             self.assertIsNone(session.get(models.ProfileLLMScore, (self.profile_id, self.job_id)))
-            self.assertTrue(profile_match_index_stale(session.get(models.UserProfile, self.profile_id)))
+            self.assertEqual(session.scalars(select(models.MatchDirtyJob.job_id)).all(), [self.job_id])
+            # One changed job is rematched through the queue, not by rebuilding the profile.
+            self.assertEqual(profile_match_index_stale(session.get(models.UserProfile, self.profile_id)),
+                             stale_before)
 
     def test_source_removal_during_inference_does_not_publish(self):
         def generate(prompt, schema, **kwargs):
@@ -1676,14 +1610,17 @@ class FurtherSourceTests(unittest.TestCase):
 
     def test_incremental_refresh_rejects_concurrent_assessment_change(self):
         self.assertTrue(self.refresh())
-        from hiring_scraper.app.job_search import ProfileIndexChanged, refresh_application_matches_for_jobs
+        from hiring_scraper.app.job_search import ProfileIndexChanged, _refresh_application_matches_for_jobs
         def change_assessment(_session):
             with self.factory() as writer:
                 row = writer.get(models.ProfileLLMScore, (self.profile_id, self.job_id))
                 row.assessment = assessment(2); writer.commit()
+        # The match worker's publication step must notice an assessment saved
+        # after it computed the page, and retry instead of publishing stale ranks.
         with self.factory() as session:
             with self.assertRaises(ProfileIndexChanged):
-                refresh_application_matches_for_jobs(session, [self.job_id], before_publish=change_assessment)
+                _refresh_application_matches_for_jobs(session, [self.job_id], verify_sources=True,
+                                                      before_publish=change_assessment)
 
     def test_enrichment_only_updates_do_not_repeat_inference(self):
         self.assertTrue(self.refresh())
@@ -1749,8 +1686,8 @@ class ParallelQueueTests(unittest.TestCase):
         from concurrent.futures import ThreadPoolExecutor
         self.pool = ThreadPoolExecutor(4)
         self.folder = tempfile.TemporaryDirectory()
-        self.engine = create_engine('sqlite:///' + self.folder.name + '/queue.db', connect_args={'timeout': 10})
-        models.Base.metadata.create_all(self.engine)
+        self.engine = pg.isolated_engine(self)
+        pg.create_isolated_schema(self.engine)
         self.factory = sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         self.service = importlib.import_module('hiring_scraper.app.profile_llm')
         self.binding = patch.object(self.service, 'SessionLocal', self.factory)

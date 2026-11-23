@@ -6,6 +6,7 @@ from hiring_scraper.discovery import discover
 from hiring_scraper.html_jobs import extract_html_jobs, html_job_key
 from hiring_scraper.pages import inspect_page
 from tests.test_discovery import FixtureClient
+from tests import pg
 
 
 def phenom(rows, total=126, base='https://careers.example/de/'):
@@ -226,11 +227,11 @@ class BonnRefreshTests(unittest.TestCase):
     def test_telekom_refresh_preserves_employer_scope_and_does_not_close_unseen_jobs(self):
         from datetime import timedelta
         from unittest.mock import patch
-        from sqlalchemy import create_engine, select
+        from sqlalchemy import select
         from sqlalchemy.orm import sessionmaker
         from hiring_scraper.app import worker
         from hiring_scraper.app.models import Base, Company, Job, JobFeed, ScanRun, utcnow
-        engine=create_engine('sqlite://')
+        engine=pg.engine(self)
         Base.metadata.create_all(engine)
         factory=sessionmaker(bind=engine,expire_on_commit=False)
         try:
@@ -448,11 +449,11 @@ class PersonioPostingScopeTests(unittest.TestCase):
 class PersonioScopedRefreshTests(unittest.TestCase):
     def test_one_xml_source_refreshes_all_explicitly_scoped_postings_without_group_rows(self):
         from unittest.mock import patch
-        from sqlalchemy import create_engine, select
+        from sqlalchemy import select
         from sqlalchemy.orm import sessionmaker
         from hiring_scraper.app import worker
         from hiring_scraper.app.models import Base,Company,JobFeed,Job,ScanRun
-        engine=create_engine('sqlite://');Base.metadata.create_all(engine)
+        engine=pg.engine(self);Base.metadata.create_all(engine)
         factory=sessionmaker(bind=engine,expire_on_commit=False)
         try:
             with factory.begin() as session:

@@ -12,6 +12,7 @@ no historical releases have been reconstructed.
 
 ### Added
 
+- Today's focus on Journey: up to three roles to act on now (prepared documents first, then Interested, then best match) with a "3 a day" progress indicator. Ready documents open directly in review.
 - Persist PostgreSQL application preparation jobs and checkpoints across worker restarts. Migration `0040_application_preparation` adds the queue. Existing drafts stay on the private runtime volume.
 - Continuously assess all active in-scope jobs through a durable parallel AI queue, with subscription pause/resume, independent persistent retries, recovered claims, and worker heartbeat diagnostics. Migration `0039_durable_ai_matching_queue` is required; `RADIUS_MATCH_AI_CONCURRENCY` defaults to 25. Shortlist, employer, local-score, and application call caps no longer restrict AI coverage.
 - Keep existing eligible Journey entries when AI lowers their score below the new-entry minimum, and sort them by the updated judgment before pagination.
@@ -67,6 +68,8 @@ no historical releases have been reconstructed.
 
 ### Changed
 
+- Publish profile matches, AI assessments and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
+- Write paths declare job, feed, company, profile, assessment and vector changes explicitly instead of relying on database flush listeners. Undeclared changes are logged as errors.
 - Rank static matches by documented duties when the posting and profile contain enough work evidence. Show which duties match directly, which experience transfers, and which duties need verification.
 - Run Compose migrations once per deployment and restart each worker independently of the API. Deploy the Compose file and its matching app image together.
 - Jobs missing from a successful complete source scan close immediately. In Journey, Waiting for reply and Automated application move to Rejected; Accepted and Rejected stay unchanged, and other stages move to Closed. Failed or partial scans preserve existing jobs, and reappearing postings reopen without resetting Journey outcomes.
@@ -78,10 +81,20 @@ no historical releases have been reconstructed.
 
 ### Removed
 
+- **Breaking:** remove SQLite support. Radius, local development and the test suite require PostgreSQL with PostGIS and pgvector; use `compose.dev.yaml` or `scripts/dev/postgres-sandbox.sh`.
 - Remove the proof-of-concept crawl runner (`python -m hiring_scraper`) and the research experiments, captures and reports from the repository. They remain available in Git history.
 
 ### Fixed
 
+- Prevent a deadlock between editing a managed feed and a concurrent crawl of the same feed.
+- Match jobs saved from the browser companion like crawled jobs, so they appear in Journey with a score.
+- Upgrade populated databases through migration `0033` again, keep a Journey stage saved while duplicates are being consolidated, and allow deleting a profile with saved AI assessments.
+- Create the `hiring_app` role in the development migration script, build the browser-test database from the checkout instead of pulling it from GHCR, and refuse to run tests against databases not named `hiring_test*` or `radius_test*`.
+- Stop the profile matching worker from scanning every active job for missing vectors every two seconds. Edited and new postings get vectors right away; the rest of the inventory is checked in small windows.
+- Stop the semantic search worker from rescanning the whole job inventory on every idle poll, which caused statement timeouts on large databases. Once the backfill for the current model completes, only queued changes are indexed.
+- Stop feed, discovery and enrichment writes from locking profile rows, and make profile locks compatible with foreign-key inserts. This removes the `user_profiles` lock timeouts between workers. A changed job is now rematched on its own instead of forcing a full profile rebuild.
+- Retry feed and discovery persistence after short database contention instead of discarding the fetched results and crawling the source again. Expected contention is logged as one warning line instead of an error traceback.
+- Commit AI matching queue reconciliation in chunks so assessment claims no longer wait behind one inventory-wide transaction.
 - Restore semantic job search on PostgreSQL, which failed with an undefined model revision after the search workload was separated from the API.
 - Run AI queue reconciliation separately from inference scheduling so large inventories cannot stall dispatch or worker heartbeats; increase default parallel assessments from four to 25.
 - Recover CV and cover-letter formatting without discarding valid documents: correct only rejected edits, retain safe wording when correction fails, normalize simple letter formatting, and provide clearer preparation feedback.

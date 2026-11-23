@@ -1,21 +1,21 @@
 """Browsing capture attaches sources to a company without expanding profile scope."""
 import unittest
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Barrier
 
-from sqlalchemy import create_engine, event, func, select
+from sqlalchemy import event, func, select
 from sqlalchemy.orm import Session
 
 from hiring_scraper.app import api
 from hiring_scraper.app.companion import SaveJobRequest, save_companion_job
 from hiring_scraper.app.models import Base, Company, Job, JobApplication, JobFeed, UserProfile
+from tests import pg
 
 
 class CompanySourceCaptureTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.session = Session(self.engine, autoflush=False, expire_on_commit=False)
 
@@ -161,8 +161,7 @@ class CompanySourceCaptureTests(unittest.TestCase):
     def test_overlapping_captures_reuse_company_feed_job_and_application(self):
         for kind in ('feed', 'job'):
             with self.subTest(kind=kind), TemporaryDirectory() as directory:
-                engine = create_engine(f'sqlite:///{Path(directory) / "capture.db"}',
-                    connect_args={'check_same_thread': False, 'timeout': 10})
+                engine = pg.engine(self)
                 Base.metadata.create_all(engine)
                 with Session(engine) as session:
                     profile = UserProfile(name='Developer')

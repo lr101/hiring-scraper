@@ -6,12 +6,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import seed
 from hiring_scraper.app.models import Base, Company, as_utc
 from hiring_scraper.ats import parse_feed
+from tests import pg
 
 
 class FixtureImportTests(unittest.TestCase):
@@ -49,11 +50,11 @@ class FixtureImportTests(unittest.TestCase):
                 {'source_id':'node/123','website_url':'https://unrelated.example/','website_resolution':{'method':'manual_group_match','evidence_urls':['https://evidence.example/']}},
                 {'source_id':'node/124','website_url':'https://www.canonical.example/home/','website_resolution':{'method':'osm_website_tag','evidence_urls':['https://www.openstreetmap.org/node/124']}},
             ]}),encoding='utf-8')
-            engine=create_engine('sqlite://')
+            engine=pg.engine(self)
             Base.metadata.create_all(engine)
             factory=sessionmaker(bind=engine,autoflush=False,expire_on_commit=False)
             try:
-                with patch.object(seed,'engine',engine),patch.object(seed,'SessionLocal',factory),patch.object(seed,'IS_SQLITE',True):
+                with patch.object(seed,'SessionLocal',factory):
                     seed.import_fixture(companies,careers)
                     with factory() as session:
                         company=session.scalar(select(Company).where(Company.source_id=='node/123'))
@@ -112,11 +113,11 @@ class FixtureImportTests(unittest.TestCase):
                     'feeds':[],
                 }],
             }),encoding='utf-8')
-            engine=create_engine('sqlite://')
+            engine=pg.engine(self)
             Base.metadata.create_all(engine)
             factory=sessionmaker(bind=engine,autoflush=False,expire_on_commit=False)
             try:
-                with patch.object(seed,'engine',engine), patch.object(seed,'SessionLocal',factory), patch.object(seed,'IS_SQLITE',True):
+                with  patch.object(seed,'SessionLocal',factory):
                     seed.import_fixture(companies,careers)
                     with factory() as session:
                         company=session.scalar(select(Company).where(Company.source_id=='node/3705530440'))
@@ -160,11 +161,11 @@ class FixtureImportTests(unittest.TestCase):
                                   }],
                               }]}],
             }),encoding='utf-8')
-            engine=create_engine('sqlite://')
+            engine=pg.engine(self)
             Base.metadata.create_all(engine)
             factory=sessionmaker(bind=engine,autoflush=False,expire_on_commit=False)
             try:
-                with patch.object(seed,'engine',engine),patch.object(seed,'SessionLocal',factory),patch.object(seed,'IS_SQLITE',True):
+                with patch.object(seed,'SessionLocal',factory):
                     seed.import_fixture(companies,careers)
                     fresh=datetime(2026,10,6,tzinfo=timezone.utc)
                     with factory.begin() as session:

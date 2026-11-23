@@ -15,6 +15,7 @@ from zipfile import ZipFile
 from playwright.sync_api import expect
 from .test_extension import ExtensionHarness, ROOT
 from .test_application_journey import ATS, LISTING, FORM
+from tests import pg
 
 
 class ProductionHarness(ExtensionHarness):
@@ -32,7 +33,7 @@ class ProductionHarness(ExtensionHarness):
         listener.bind(('127.0.0.1', 0))
         listener.listen()
         self.origin = f'http://127.0.0.1:{listener.getsockname()[1]}'
-        env = dict(os.environ, DATABASE_URL=f'sqlite:///{self.server_directory.name}/test.sqlite3', HIRING_FRONTEND_DIR=str(project / 'frontend/dist'), PYTHONPATH=str(project))
+        env = dict(os.environ, DATABASE_URL=pg.server_url(), HIRING_FRONTEND_DIR=str(project / 'frontend/dist'), PYTHONPATH=str(project))
         self.server_log = open(Path(self.server_directory.name) / 'server.log', 'w+')
         self.addCleanup(self.server_log.close)
         self.server = subprocess.Popen([sys.executable, str(ROOT / 'production_server.py'), '--fd', str(listener.fileno())], pass_fds=[listener.fileno()], env=env, stdout=self.server_log, stderr=subprocess.STDOUT)

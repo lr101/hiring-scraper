@@ -15,8 +15,8 @@ from hiring_scraper.app.models import Company, Job, JobApplication, JobFeed, Sca
 
 web = os.environ['POSTING_TEST_WEB_URL'].rstrip('/')
 database_url = os.environ['POSTING_TEST_DATABASE_URL']
-assert database_url.startswith('sqlite:////tmp/serve-dev-worktree/hiring-scraper/'), 'Use an isolated preview database'
-engine = create_engine(database_url, connect_args={'timeout': 30})
+assert '/radius_preview_' in database_url, 'Use an isolated preview database (scripts/dev/preview.sh)'
+engine = create_engine(database_url)
 factory = sessionmaker(engine, expire_on_commit=False)
 marker = 'JourneyClosureDemo' + uuid4().hex[:6]
 expected = {'waiting_for_reply': 'rejected', 'automated_application': 'rejected',

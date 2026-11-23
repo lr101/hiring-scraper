@@ -7,7 +7,6 @@ import logging
 import re
 import unicodedata
 from datetime import datetime, timedelta, timezone
-from math import cos, radians
 from typing import Any
 from urllib.parse import urlsplit
 from uuid import uuid4
@@ -17,7 +16,7 @@ from sqlalchemy import and_, case, delete, func, or_, select, text, true, update
 from sqlalchemy.orm import Session, aliased, joinedload, selectinload
 
 from hiring_scraper.app.application_deduplication import index_vacancy_identities
-from hiring_scraper.app.database import IS_SQLITE, dialect_insert, SessionLocal
+from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, Job, JobApplication, JobFeed, JobLocation, JobSearchRefresh,
     JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, ProfileJobMatch,
@@ -46,26 +45,6 @@ SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS = 15 * 60
 WORK_LOCATION_GEOGRAPHY_VERSION = 'work-location-text-v2'
 
 
-def coordinate_bbox_filters(latitude: float, longitude: float, radius_km: float,
-                             latitude_column, longitude_column):
-    latitude_delta = radius_km / 110.0
-    filters = [
-        latitude_column.is_not(None), longitude_column.is_not(None),
-        latitude_column.between(max(-90.0, latitude - latitude_delta),
-                                min(90.0, latitude + latitude_delta)),
-    ]
-    longitude_scale = abs(cos(radians(latitude)))
-    if longitude_scale > 1e-6:
-        longitude_delta = min(360.0, radius_km / (110.0 * longitude_scale))
-        if longitude_delta < 180.0:
-            west, east = longitude - longitude_delta, longitude + longitude_delta
-            if west < -180:
-                filters.append(or_(longitude_column >= west + 360, longitude_column <= east))
-            elif east > 180:
-                filters.append(or_(longitude_column >= west, longitude_column <= east - 360))
-            else:
-                filters.append(longitude_column.between(west, east))
-    return filters
 
 
 def _location_text_patterns(value: str) -> set[str]:
@@ -104,17 +83,11 @@ def _job_area_candidates(latitude: float, longitude: float, radius_km: float,
                         Job.raw_metadata["valid_through"].as_string().is_not(None))
     if location_scope == 'remote':
         return or_(_remote_job_candidate(), expiry_clause)
-    if not IS_SQLITE:
-        location_ids = select(JobLocation.job_id).where(text(
-            "ST_DWithin(job_locations.location_geog, "
-            "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)"
-        ).bindparams(longitude=longitude, latitude=latitude, radius_m=radius_km * 1000))
-        spatial_clause = Job.id.in_(location_ids)
-    else:
-        bounds = coordinate_bbox_filters(latitude, longitude, radius_km,
-                                          JobLocation.latitude, JobLocation.longitude)
-        location_ids = select(JobLocation.job_id).where(*bounds)
-        spatial_clause = Job.id.in_(location_ids)
+    location_ids = select(JobLocation.job_id).where(text(
+        "ST_DWithin(job_locations.location_geog, "
+        "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false)"
+    ).bindparams(longitude=longitude, latitude=latitude, radius_m=radius_km * 1000))
+    spatial_clause = Job.id.in_(location_ids)
     clauses = [spatial_clause, expiry_clause, _remote_job_candidate()]
     if place:
         clauses.append(_job_location_text_candidate(place))
@@ -830,8 +803,6 @@ def enqueue_search_snapshot_refresh(session: Session, criteria: dict[str, Any], 
 
 def prewarm_profile_location_snapshots_once() -> int:
     """Queue profileless browse snapshots for every saved profile/configured area."""
-    if IS_SQLITE:
-        return 0
     now = utcnow()
     current_bucket = int(now.timestamp() // SEARCH_SNAPSHOT_FRESHNESS_BUCKET_SECONDS)
     locations: dict[str, dict[str, Any]] = {}

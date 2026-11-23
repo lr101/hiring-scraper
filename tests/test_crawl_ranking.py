@@ -2,16 +2,16 @@
 import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, ScanRun
 from hiring_scraper.app import worker
+from tests import pg
 
 NOW = datetime(2026, 10, 11, 12, tzinfo=timezone.utc)
 
 class CrawlRankingTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         self.session = self.factory()
@@ -117,7 +117,7 @@ class CrawlRankingTests(unittest.TestCase):
         old = JobFeed(company_id=active.id, provider='html', feed_url='https://small/jobs', status='parsed', next_scan_at=NOW-timedelta(days=2))
         recent = JobFeed(company_id=large.id, provider='html', feed_url='https://large/jobs', status='parsed', next_scan_at=NOW-timedelta(hours=1))
         self.session.add_all([old, recent]); self.session.commit()
-        with patch.object(worker, 'SessionLocal', self.factory), patch.object(worker, 'engine', self.engine), patch.object(worker, 'utcnow', return_value=NOW):
+        with patch.object(worker, 'SessionLocal', self.factory), patch.object(worker, 'utcnow', return_value=NOW):
             self.assertEqual(worker._claim_due_feed()[0], old.id)
 
     def test_conditional_success_recomputes_stale_jobs_and_schedules_adaptively(self):

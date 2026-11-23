@@ -7,11 +7,10 @@ from typing import Any
 from sqlalchemy import case, func, select, text, or_
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app.database import IS_SQLITE
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, DiscoveryJob, utcnow,
 )
-from hiring_scraper.geography import GERMAN_STATES, haversine_m
+from hiring_scraper.geography import GERMAN_STATES
 
 
 def _iso(value: datetime | None) -> str | None:
@@ -20,22 +19,13 @@ def _iso(value: datetime | None) -> str | None:
 
 def company_ids_in_radius(session: Session, latitude: float, longitude: float,
                           radius_km: float) -> list[int]:
-    radius_m = radius_km * 1000
-    if not IS_SQLITE:
-        rows = session.execute(text(
-            "SELECT id FROM companies WHERE website_url IS NOT NULL AND website_url <> '' "
-            "AND ST_DWithin(location_geog, "
-            "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false) "
-            "ORDER BY id"
-        ).params(latitude=latitude, longitude=longitude, radius_m=radius_m)).all()
-        return [int(row[0]) for row in rows]
-
-    companies = session.scalars(select(Company).where(
-        Company.website_url.is_not(None), Company.website_url != "",
-        Company.latitude.is_not(None), Company.longitude.is_not(None),
-    )).all()
-    return [company.id for company in companies
-            if haversine_m(latitude, longitude, company.latitude, company.longitude) <= radius_m]
+    rows = session.execute(text(
+        "SELECT id FROM companies WHERE website_url IS NOT NULL AND website_url <> '' "
+        "AND ST_DWithin(location_geog, "
+        "ST_SetSRID(ST_MakePoint(:longitude, :latitude),4326)::geography, :radius_m, false) "
+        "ORDER BY id"
+    ).params(latitude=latitude, longitude=longitude, radius_m=radius_km * 1000)).all()
+    return [int(row[0]) for row in rows]
 
 
 def german_company_filter(company=Company):
