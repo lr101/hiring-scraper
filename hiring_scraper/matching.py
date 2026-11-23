@@ -1383,7 +1383,6 @@ def match_job(job: dict, profile: dict, enrichment: dict | None = None, *, seman
             inferred_level = bool(language.get('level_inferred'))
             level_label = _language_level_label(language)
             candidate_level = language_levels.get(name.casefold())
-            level_range = language.get('level_range') or []
             if known_languages and name.casefold() not in known_languages:
                 outcomes.append(('unknown', name + ' required; profile language evidence not provided', inferred_level))
             elif level and candidate_level in CEFR_RANK and CEFR_RANK[candidate_level] < CEFR_RANK[level]:

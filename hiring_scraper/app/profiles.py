@@ -15,7 +15,8 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
-from hiring_scraper.app.database import get_session
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import dialect_insert, get_session
 from hiring_scraper.app.models import ProfileCV, ProfilePhoto, UserProfile, utcnow
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
 from hiring_scraper.app.job_search import clear_profile_match_scores
@@ -335,6 +336,8 @@ def _save(profile, request, session):
         # lock profiles in the same order, so no stale New rows can race past an edit.
         session.flush()
         clear_profile_match_scores(session, profile.id)
+    if profile.id is not None:
+        source_changes.profile_changed(session, profile.id)
     session.commit()
     return profile_json(profile)
 
@@ -355,6 +358,7 @@ def delete_profile(profile_id: int, session: Session = Depends(get_session)):
     root = codex_runtime._root()
     with application_generation_jobs.profile_lock(root, profile_id):
         session.delete(require_profile(profile_id, session))
+        source_changes.profile_changed(session, profile_id)  # cascade removed its derived rows
         session.commit()
         application_generation_jobs.delete_profile(root, profile_id)
         application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)
@@ -380,10 +384,7 @@ def store_profile_photo(session, profile_id, filename, data):
     except ValueError as error:
         raise HTTPException(422, str(error)) from None
     require_profile(profile_id, session)
-    if session.get_bind().dialect.name == 'sqlite':
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
+    insert = dialect_insert(session)
     # Two tabs can both upload the first photo. Let the database serialize
     # creation/replacement instead of relying on a previously read relationship.
     values = {'filename': filename, 'size_bytes': len(data), 'data': data, 'updated_at': utcnow()}
@@ -428,6 +429,13 @@ def cv_metadata(cv):
                                    'languages': {key: {'filename': value['filename']} for key, value in (cv.variants or {}).items()}}
 
 
+def _cv_career_facts(cv) -> dict:
+    """Career facts from the saved base CV (English first), as matching reads them."""
+    from hiring_scraper.app.profile_llm import cv_career_data
+    variant = (cv.variants or {}).get('en') or (cv.variants or {}).get('de')
+    return cv_career_data(variant['text'] if variant else cv.extracted_text or '')
+
+
 def store_profile_cv(session, profile_id, filename, data, language='en'):
     extension = Path(filename).suffix.lower()
     if not filename or len(filename) > 200 or any(char in filename for char in '/\\\r\n\x00') or extension != '.tex' or language not in {'en', 'de'}:
@@ -452,6 +460,7 @@ def store_profile_cv(session, profile_id, filename, data, language='en'):
         raise HTTPException(422, str(error)) from None
     profile = require_profile(profile_id, session)
     cv = profile.cv or ProfileCV(profile=profile)
+    previous_facts = _cv_career_facts(cv) if profile.cv is not None else {}
     for other_language, variant in (cv.variants or {}).items():
         if other_language != language and history_facts(history) != history_facts(parse_tex_cv(variant['text'])):
             raise HTTPException(422, 'English and German CVs must use the same history IDs, employers and dates. To change history facts, remove both base CVs and upload the updated pair.')
@@ -459,6 +468,9 @@ def store_profile_cv(session, profile_id, filename, data, language='en'):
     cv.filename, cv.content_type, cv.size_bytes = filename, TYPES[extension], len(data)
     cv.data, cv.extracted_text, cv.updated_at = data, parsed['text'], utcnow()
     session.add(cv)
+    # Contact or layout edits keep assessments; changed career facts drop them.
+    source_changes.profile_changed(session, profile_id,
+                                   career_facts_changed=_cv_career_facts(cv) != previous_facts)
     session.commit()
     return cv_metadata(cv)
 
@@ -517,10 +529,11 @@ def delete_cv(profile_id: int, session: Session = Depends(get_session)):
     root = codex_runtime._root()
     with application_generation_jobs.profile_lock(root, profile_id):
         profile = require_profile(profile_id, session)
+        had_facts = bool(profile.cv is not None and _cv_career_facts(profile.cv))
         profile.cv = None
-        if session.get_bind().dialect.name == 'postgresql':
-            from hiring_scraper.app.application_preparation_queue import clear
-            clear(session, profile_id)
+        from hiring_scraper.app.application_preparation_queue import clear
+        clear(session, profile_id)
+        source_changes.profile_changed(session, profile_id, career_facts_changed=had_facts)
         session.commit()
         application_generation_jobs.delete_profile(root, profile_id)
         application_generation_jobs.delete_profile(root / 'document-revisions', profile_id)

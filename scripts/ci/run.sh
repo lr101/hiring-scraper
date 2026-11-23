@@ -78,6 +78,8 @@ if [[ "${HIRING_CI_PREBUILT:-0}" == "1" ]]; then
 else
     "${compose[@]}" build --pull quality app db 2>&1 | tee "$results_dir/$project-build.log"
 fi
+# Quality checks include every PostgreSQL test, against the database image built above.
+"${compose[@]}" up --detach --wait --wait-timeout "$wait_timeout" db
 "${compose[@]}" run --rm --no-deps quality 2>&1 | tee "$results_dir/$project-checks.log"
 if [[ "${HIRING_CI_LOAD_CHROMIUM_PROFILE:-}" == "1" ]]; then
     printf '%s\n' 'Loading Chromium AppArmor profile'

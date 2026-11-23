@@ -13,7 +13,10 @@ from hiring_scraper.matching import NON_REQUIREMENT, _UNSUPPORTED_PROFILE_CLAIM,
 from hiring_scraper.requirements import (scoped_sentences, structured_text,
                                         structured_requirement_texts, structured_source_scope)
 
-MODEL_KEY = 'intfloat/multilingual-e5-small@ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3'
+# The pinned local embedding model shared by search indexing and profile matching.
+MODEL_ID = 'intfloat/multilingual-e5-small'
+MODEL_REVISION = 'ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3'
+MODEL_KEY = f'{MODEL_ID}@{MODEL_REVISION}'
 VERSION = MODEL_KEY + ':profile-sections-v4-positioned-heading-scope'
 DIMENSIONS = 384
 CHUNK_CHARS = 900

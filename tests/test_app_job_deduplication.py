@@ -1,15 +1,15 @@
 import unittest
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app.api import get_company, list_companies, list_jobs
+from hiring_scraper.app.api import get_company, list_companies
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, JobLocation
+from tests import pg
 
 
 class JobDeduplicationTests(unittest.TestCase):
     def test_company_list_filters_discovered_domain_career_feed_and_jobs(self):
-        engine=create_engine('sqlite://')
+        engine=pg.engine(self)
         Base.metadata.create_all(engine)
         try:
             with Session(engine) as session:
@@ -42,7 +42,7 @@ class JobDeduplicationTests(unittest.TestCase):
             engine.dispose()
 
     def test_greenhouse_language_variants_are_one_job_in_location_and_company_views(self):
-        engine=create_engine('sqlite://')
+        engine=pg.engine(self)
         Base.metadata.create_all(engine)
         try:
             with Session(engine) as session:
@@ -81,7 +81,7 @@ class JobDeduplicationTests(unittest.TestCase):
                 session.add(company)
                 session.commit()
 
-                result=list_jobs(49.0068705,8.4034195,15,None,None,'Karlsruhe',0,20,
+                result=pg.list_jobs(engine,49.0068705,8.4034195,15,None,None,'Karlsruhe',0,20,
                                  work_style='all',sort='relevance',session=session)
                 self.assertEqual(result['total'],3)
                 self.assertEqual(len(result['items']),3)

@@ -10,15 +10,17 @@ Use a running Docker Engine with Buildx and Docker Compose 2.20+, Bash, and stan
 
 ### Checks without Docker
 
-On a host with Python 3.11+, Node 24, npm, ShellCheck and [mise](https://mise.jdx.dev/), install the locked dependencies and run the same quality checks locally:
+On a host with Python 3.11+, Node 24, npm, ShellCheck, [mise](https://mise.jdx.dev/) and PostgreSQL 17 server binaries with PostGIS and pgvector, install the locked dependencies and run the same quality checks locally. Every database test uses PostgreSQL, so the checks run inside a throwaway cluster:
 
 ```bash
 mise install
 mise exec -- uv sync --locked
 npm --prefix frontend ci
 npm --prefix extensions/application-companion ci
-env -u DATABASE_URL -u TEST_POSTGRES_URL mise exec actionlint@1.7.12 -- uv run bash scripts/ci/check.sh
+mise exec actionlint@1.7.12 shellcheck@0.11.0 -- scripts/dev/postgres-sandbox.sh bash scripts/ci/check.sh
 ```
+
+To run tests against an existing disposable database instead, set `TEST_POSTGRES_URL` and `DATABASE_URL` to the same URL (its name must start with `hiring_test` or `radius_test`). `tests/pg.py` migrates that database and empties every table before each test; never point it at a database you want to keep.
 
 Install ShellCheck using your OS package manager. To run the browser shards too, install Chromium, the PDF/TeX dependencies, and the pinned Codex runtime as in the workflow, then use the shard commands below. On Ubuntu, `mise exec -- uv run python -m playwright install --with-deps chromium` installs Chromium and its OS dependencies; the workflow's PDF export step lists the remaining packages. Set `RADIUS_BROWSER_TRACE_DIR=.ci-results/browser-traces` to save a Playwright trace for each failing browser test; view one with `mise exec -- uv run python -m playwright show-trace PATH`. Traces can contain page contents and should only be shared where those contents are appropriate.
 
@@ -27,8 +29,7 @@ These host checks do not replace the image builds or PostgreSQL/PostGIS smoke te
 The container checks also exercise the bundled Codex binary against a fresh
 disposable state directory with networking disabled. Native `login status`
 creates helper symlinks without a login or model turn, then repeated startup
-ownership repair and another status read must succeed. The check also rejects
-application images containing the offline hillclimb tooling.
+ownership repair and another status read must succeed.
 
 ### Local PostgreSQL checks
 
@@ -38,7 +39,11 @@ Before pushing, a local PostgreSQL server can run the real concurrency regressio
 HIRING_LOCAL_POSTGRES=1 mise exec -- bash scripts/ci/postgres-local.sh
 ```
 
-The script creates a fresh randomly named `hiring_ci_*` database from `template0`, runs `tests/test_postgres_concurrency.py`, applies all migrations and checks the current heads, and drops the database on exit. If cleanup fails, the script prints its database name for manual removal. These checks do not exercise the container's separate application role, the collation-repair smoke scenario, or the production image; use `./scripts/ci/run.sh` when Docker is available. A different local PostgreSQL major version also cannot establish compatibility with the container's PostgreSQL 17.
+The script creates a fresh randomly named `hiring_test_ci_*` database from `template0`, runs the whole test suite, applies all migrations and checks the current heads, and drops the database on exit. If cleanup fails, the script prints its database name for manual removal. These checks do not exercise the container's separate application role, the collation-repair smoke scenario, or the production image; use `./scripts/ci/run.sh` when Docker is available. A different local PostgreSQL major version also cannot establish compatibility with the container's PostgreSQL 17.
+
+The PostgreSQL suites include `tests/test_postgres_idle_cost.py`, which seeds 3,000 and then 40,000 jobs and measures the buffers each background worker's idle cycle touches. It fails when that cost grows with the inventory, which is what caused the production statement timeouts. Set `RADIUS_IDLE_COST_REPORT=1` to print the per-worker numbers.
+
+Without a configured server, `scripts/dev/postgres-sandbox.sh` creates a throwaway cluster in a private temporary directory, listening only on `127.0.0.1` with a random password, runs the same checks, and deletes the cluster on exit. It needs PostgreSQL server binaries with PostGIS and pgvector, but no root, Docker or `.env`. Set `PG_BINDIR` if `initdb` is not under `/usr/lib/postgresql/*/bin`. Pass a command to run something else with the `PG*` variables set, for example `mise exec -- scripts/dev/postgres-sandbox.sh bash`.
 
 On Debian, if pgvector is unavailable as a package, install the matching `postgresql-server-dev-<major>` and build the pinned pgvector release following the commands in `docker/Dockerfile.postgres`. Confirm availability with `psql -d postgres -c "SELECT name, default_version FROM pg_available_extensions WHERE name IN ('postgis', 'vector');"`. The `PGUSER` must authenticate as a PostgreSQL role; having a running server alone does not grant access.
 
@@ -56,7 +61,7 @@ The value must be a positive whole number of seconds. It changes the stack start
 
 ## What the checks cover
 
-The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI scripts, changelog validation, Python unittest suites, extension formatting, and frontend/extension Node regression checks inside containers. Python unit tests exercise the SQLite application path; browser suites are skipped unless explicitly enabled. The combined app image runs the TypeScript/Vite production build, then an isolated PostgreSQL/PostGIS Compose stack exercises migrations, repeatable fixture imports, API requests, and the built frontend. The CI override disables background crawlers during the smoke run.
+The script builds a quality image with Python and Node, then runs actionlint for the workflows, ShellCheck for the CI scripts, changelog validation, Python unittest suites, extension formatting, and frontend/extension Node regression checks inside containers. The quality container runs the whole Python suite against a disposable `hiring_test` database on the freshly built PostgreSQL/PostGIS/pgvector image, over an internal network without internet access; browser suites are skipped unless explicitly enabled. The combined app image runs the TypeScript/Vite production build, then an isolated PostgreSQL/PostGIS Compose stack exercises migrations, repeatable fixture imports, API requests, and the built frontend. The CI override disables background crawlers during the smoke run.
 
 The PostgreSQL image build requires glibc to keep the persistent cluster's libc family stable. The smoke test forces stale collation metadata, replays the repair migration, and verifies that the version stays stale while reindexing is blocked, then refreshes after a populated text index is rebuilt. It also checks the usable company index and compares applied revisions against Alembic's migration graph before and after repair. Adding a migration does not require updating a hard-coded expected head. Static assertions about the exact image tag and historical migration SQL were removed in favor of checking the built image and real migration behavior.
 
@@ -64,7 +69,7 @@ Each invocation uses a unique Compose project and disposable database volume. Cl
 
 To investigate a failure, read the failing command in the terminal or workflow log and inspect the corresponding `.ci-results/` log. Fix the underlying failure and rerun the complete command. The isolated database is intentionally removed after the run.
 
-Health logs preserve probe timestamps, exit codes and output before teardown. The [local verification record](container-ci-verification.md) documents the successful full Docker run and the startup issues it uncovered.
+Health logs preserve probe timestamps, exit codes and output before teardown.
 
 ## GitHub workflow
 
@@ -94,9 +99,12 @@ chmod 700 "$RADIUS_CI_CODEX_STATE"
 export RADIUS_CODEX_BIN="$RADIUS_CI_CODEX_RUNTIME/bin/codex"
 export RADIUS_CODEX_STATE_DIR="$RADIUS_CI_CODEX_STATE"
 npm --prefix frontend run build
+export TEST_POSTGRES_URL=postgresql+psycopg://...@127.0.0.1:5432/radius_test DATABASE_URL="$TEST_POSTGRES_URL"
 RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 1 --shards 2
 RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python scripts/ci/test_shard.py --top-level-directory tests --shard 2 --shards 2
 ```
+
+The GitHub browser jobs build that database from `docker/Dockerfile.postgres` in the checkout and run it on `127.0.0.1:5432`.
 
 Unsharded discovery remains available with `RADIUS_EXTENSION_BROWSER_TESTS=1 uv run python -m unittest discover -s tests/application_companion -t tests -v`. Browser jobs use fresh contexts and disposable databases per test. They retain the shipped-package, real API/PDF, stale-document, navigation-race, consent, and no-automatic-submit regressions. Change-based test exclusion and broad removal of behavioral tests were avoided because they can hide cross-component regressions.
 

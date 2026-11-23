@@ -3,19 +3,27 @@ import unittest
 from datetime import timedelta
 from unittest.mock import patch
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import application_preparation_queue as queue
-from hiring_scraper.app.models import ApplicationPreparationTask, Base, utcnow
+from hiring_scraper.app.models import ApplicationPreparationTask, Company, Job, JobFeed, UserProfile, utcnow
+from tests import pg
 
 
 class ApplicationPreparationQueueTests(unittest.TestCase):
     def setUp(self):
-        engine = create_engine('sqlite://')
+        engine = pg.engine(self)
         self.addCleanup(engine.dispose)
-        Base.metadata.create_all(engine, tables=[ApplicationPreparationTask.__table__])
         self.sessions = sessionmaker(engine, expire_on_commit=False)
+        # Queue rows reference a real profile (1) and job (2).
+        with self.sessions.begin() as session:
+            session.add(UserProfile(id=1, name='Queue'))
+            feed = JobFeed(company=Company(source='test', source_id='queue', name='Employer'),
+                           provider='rss', feed_url='https://example.test/jobs.xml', status='parsed')
+            session.add(feed)
+            session.flush()
+            session.add_all([Job(id=job_id, feed_id=feed.id, external_id=str(job_id), title='Role',
+                                 url=f'https://example.test/{job_id}') for job_id in (2, 3, 4)])
         factory = patch.object(queue, 'SessionLocal', self.sessions)
         factory.start()
         self.addCleanup(factory.stop)

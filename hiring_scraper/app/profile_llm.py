@@ -4,26 +4,23 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta, timezone
-import fcntl
 import hashlib
 import json
 import logging
 import math
 import os
 import re
-from pathlib import Path
-import tempfile
 from uuid import uuid4
 
 from fastapi import HTTPException
 from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.orm import object_session, selectinload
 
-from hiring_scraper.app import codex_runtime, requirement_evidence
+from hiring_scraper.app import codex_runtime, requirement_evidence, source_changes
 from hiring_scraper.app.board_scope import expiry
-from hiring_scraper.app.database import SessionLocal
+from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, AIMatchingTask, AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, utcnow
+from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, AIMatchingTask, AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, hold_profiles, utcnow
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job, required_application_artifact
 from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity, scoped_sentences, structured_text
@@ -81,10 +78,7 @@ def set_matching_model(model):
     if model not in AVAILABLE_MODELS:
         raise ValueError('Choose one of the supported AI matching models.')
     with SessionLocal() as session:
-        if session.get_bind().dialect.name == 'postgresql':
-            from sqlalchemy.dialects.postgresql import insert
-        else:
-            from sqlalchemy.dialects.sqlite import insert
+        insert = dialect_insert(session)
         session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=utcnow())
             .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': utcnow()}))
         # A model change invalidates derived ranks and forces workers in every
@@ -803,38 +797,13 @@ def apply_cached_assessment(local, job, profile, documents):
 @contextmanager
 def _inference_lease(engine):
     """Serialize queue reconciliation/rematch across replicas, never model inference."""
-    if engine.dialect.name == 'postgresql':
-        with engine.connect().execution_options(isolation_level='AUTOCOMMIT') as connection:
-            acquired = bool(connection.scalar(text('SELECT pg_try_advisory_lock(85793011, 5)')))
-            try:
-                yield acquired
-            finally:
-                if acquired:
-                    connection.execute(text('SELECT pg_advisory_unlock(85793011, 5)'))
-        return
-    identity = str(engine.url)
-    database = engine.url.database or ''
-    uri_enabled = str(engine.url.query.get('uri', '')).casefold() in {'true', '1', 'yes', 'on'}
-    memory_uri = uri_enabled and database.startswith('file:') and (
-        database.startswith('file::memory:') or engine.url.query.get('mode') == 'memory')
-    if engine.dialect.name == 'sqlite' and memory_uri and engine.url.query.get('cache') == 'shared':
-        # Named shared-cache memory databases belong to the process, while each
-        # engine for private/unnamed memory below owns an independent database.
-        identity = f'{identity}:pid={os.getpid()}'
-    elif engine.dialect.name == 'sqlite' and (database in ('', ':memory:') or memory_uri):
-        identity = f'{identity}:pid={os.getpid()}:engine={id(engine)}'
-    key = hashlib.sha256(identity.encode()).hexdigest()[:24]
-    path = Path(tempfile.gettempdir()) / ('radius-llm-' + key + '.lock')
-    with path.open('a') as descriptor:
+    with engine.connect().execution_options(isolation_level='AUTOCOMMIT') as connection:
+        acquired = bool(connection.scalar(text('SELECT pg_try_advisory_lock(85793011, 5)')))
         try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError:
-            yield False
-            return
-        try:
-            yield True
+            yield acquired
         finally:
-            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            if acquired:
+                connection.execute(text('SELECT pg_advisory_unlock(85793011, 5)'))
 
 
 def _compute_selected_job_ids(session, profile):
@@ -848,8 +817,16 @@ def _compute_selected_job_ids(session, profile):
         if not expiry(job)['expired'] and in_search_area(job, profile.matching_preferences)])
 
 
+SYNC_COMMIT_CHUNK = 500
+
+
 def sync_matching_queue():
-    """Reconcile current sources without deleting successful assessments."""
+    """Reconcile current sources without deleting successful assessments.
+
+    The inventory can hold hundreds of thousands of jobs. Commit in bounded
+    chunks and reload task rows per chunk, so claimers never wait on one
+    long reconciliation transaction and only briefly-read rows are rewritten.
+    """
     with SessionLocal() as session:
         engine = session.get_bind()
     with _inference_lease(engine) as acquired:
@@ -858,22 +835,33 @@ def sync_matching_queue():
         with SessionLocal() as session:
             config = matching_config(session)
             reconciled_at = utcnow()
-            for profile in session.scalars(select(UserProfile).order_by(UserProfile.id)).all():
+            profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
+            for profile in profiles:
                 selected = _compute_selected_job_ids(session, profile)
                 selected_set = set(selected)
-                tasks = {row.job_id: row for row in session.scalars(select(AIMatchingTask).where(
-                    AIMatchingTask.profile_id == profile.id))}
+                known = set(session.scalars(select(AIMatchingTask.job_id).where(
+                    AIMatchingTask.profile_id == profile.id)).all())
                 # Persist exclusions too, so status counts describe the whole inventory.
-                for job_id in session.scalars(select(Job.id).where(Job.is_active.is_(True))):
-                    if job_id not in selected_set and job_id not in tasks:
-                        task = AIMatchingTask(profile_id=profile.id, job_id=job_id,
-                            source_hash='', version=config.version, state='excluded')
-                        session.add(task)
-                for job_id, task in tasks.items():
-                    if job_id not in selected_set:
-                        task.state, task.token, task.lease_until = 'excluded', None, None
+                active_ids = session.scalars(select(Job.id).where(Job.is_active.is_(True))).all()
+                excluded_new = [job_id for job_id in active_ids
+                                if job_id not in selected_set and job_id not in known]
+                for start in range(0, len(excluded_new), SYNC_COMMIT_CHUNK):
+                    session.add_all(AIMatchingTask(profile_id=profile.id, job_id=job_id, source_hash='',
+                                                   version=config.version, state='excluded')
+                                    for job_id in excluded_new[start:start + SYNC_COMMIT_CHUNK])
+                    session.commit()
+                deselected = sorted(known - selected_set)
+                for start in range(0, len(deselected), SYNC_COMMIT_CHUNK):
+                    session.execute(update(AIMatchingTask).where(
+                        AIMatchingTask.profile_id == profile.id,
+                        AIMatchingTask.job_id.in_(deselected[start:start + SYNC_COMMIT_CHUNK]),
+                        AIMatchingTask.state != 'excluded',
+                    ).values(state='excluded', token=None, lease_until=None))
+                    session.commit()
                 for start in range(0, len(selected), 100):
                     ids = selected[start:start + 100]
+                    tasks = {row.job_id: row for row in session.scalars(select(AIMatchingTask).where(
+                        AIMatchingTask.profile_id == profile.id, AIMatchingTask.job_id.in_(ids)))}
                     cached = {row.job_id: row for row in session.scalars(select(ProfileLLMScore).where(
                         ProfileLLMScore.profile_id == profile.id, ProfileLLMScore.job_id.in_(ids)))}
                     priorities = dict(session.execute(select(ProfileJobMatch.job_id, ProfileJobMatch.match_score).where(
@@ -894,10 +882,12 @@ def sync_matching_queue():
                             task.token, task.lease_until, task.error_type = None, None, None
                         task.source_hash, task.version = digest, config.version
                         task.priority = priorities.get(job.id, 0)
+                    if (start // 100) % (SYNC_COMMIT_CHUNK // 100) == 0:
+                        session.commit()
                 session.merge(AIMatchingSelection(profile_id=profile.id,
                     source_hash=_hash([config.version, profile.matching_preferences]),
                     job_ids=selected, refreshed_at=utcnow()))
-            session.commit()
+                session.commit()
 
 
 def _claim_task():
@@ -905,10 +895,10 @@ def _claim_task():
     ready = or_(and_(AIMatchingTask.state.in_(['pending', 'retry']), AIMatchingTask.available_at <= now),
                 and_(AIMatchingTask.state == 'running', AIMatchingTask.lease_until <= now))
     with SessionLocal() as session:
-        # CAS also fences SQLite claim races; PostgreSQL skips rows owned by other claimers.
+        # SKIP LOCKED passes over rows other claimers hold; the conditional UPDATE fences expiry races.
         candidates = session.scalars(select(AIMatchingTask).where(ready)
             .order_by(AIMatchingTask.available_at, AIMatchingTask.priority.desc(), AIMatchingTask.profile_id, AIMatchingTask.job_id)
-            .limit(1 if session.get_bind().dialect.name == 'postgresql' else 16)
+            .limit(1)
             .with_for_update(skip_locked=True)).all()
         for task in candidates:
             token = uuid4().hex
@@ -932,7 +922,7 @@ def _finish_task(profile_id, job_id, token, state, error=None):
             attempts = task.attempts + 1
             values.update(attempts=attempts, error_type=type(error).__name__[:100],
                 available_at=utcnow() + timedelta(seconds=min(1800, 30 * 2 ** min(attempts - 1, 6))))
-        # Token comparison belongs in the UPDATE too: SQLite has no row locks.
+        # Compare the token in the UPDATE: a newer claim may have replaced this one.
         session.execute(update(AIMatchingTask).where(AIMatchingTask.profile_id == profile_id,
             AIMatchingTask.job_id == job_id, AIMatchingTask.token == token).values(**values)
             .execution_options(synchronize_session=False))
@@ -977,17 +967,14 @@ def refresh_llm_scores_once(*, generate=None, usage=None, sync=True):
         raw = {key: checked[key] for key in SCHEMA['properties']}
 
         with SessionLocal() as session:
-            if session.get_bind().dialect.name == 'sqlite':
-                # SQLite has no row locks; reserve its writer before checking the
-                # snapshot so a source edit cannot slip between verification/save.
-                session.connection().exec_driver_sql('BEGIN IMMEDIATE')
             # Match source writers use job -> profile order. Inference finished
             # before this transaction; publication only verifies and stores rows.
             job = session.scalar(select(Job).where(Job.id == job_id).options(selectinload(Job.locations))
                                  .with_for_update(key_share=True))
-            profile = session.scalar(select(UserProfile).where(UserProfile.id == profile_id).with_for_update())
-            if profile is None:
+            # Shared hold: profile edits wait for, or defer, this short publication.
+            if not hold_profiles(session, [profile_id], wait=False):
                 return False
+            profile = session.get(UserProfile, profile_id)
             # Re-read configuration while holding the source rows: never publish
             # an old-model answer after a different process saved a new choice.
             if (job is None or not job.is_active or expiry(job)['expired'] or
@@ -996,9 +983,6 @@ def refresh_llm_scores_once(*, generate=None, usage=None, sync=True):
             task = session.get(AIMatchingTask, (profile_id, job_id), with_for_update=True)
             if task is None or task.token != token:
                 return False
-            previous_index_version = profile.match_index_version
-            from hiring_scraper.app.job_search import _profile_index_version, refresh_application_matches_for_jobs
-            was_current = previous_index_version == _profile_index_version(profile)
             score = session.get(ProfileLLMScore, (profile_id, job_id))
             if score is None:
                 score = ProfileLLMScore(profile_id=profile_id, job_id=job_id)
@@ -1026,9 +1010,8 @@ def refresh_llm_scores_once(*, generate=None, usage=None, sync=True):
                 from sqlalchemy import delete
                 session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id == profile_id,
                     ProfileJobMatch.job_id == job_id))
-            refresh_application_matches_for_jobs(session, [job_id])
-            if was_current:
-                profile.match_index_version = previous_index_version
+            # The saved assessment changes this job's rank for derived Journey rows.
+            source_changes.assessments_changed(session, [job_id])
             task.state, task.token, task.lease_until = 'done', None, None
             session.commit()
 
@@ -1070,11 +1053,13 @@ def requeue_all_assessments():
         with _inference_lease(engine) as acquired:
             if not acquired:
                 raise HTTPException(409, 'An AI assessment is running. Try rematching again shortly.')
-            session.scalars(select(UserProfile).order_by(UserProfile.id).with_for_update()).all()
+            # Profiles before derived rows, as AI publication holds them: no lock cycle.
+            hold_profiles(session, session.scalars(select(UserProfile.id)).all(), exclusive=True)
             result = session.execute(delete(ProfileLLMScore))
             session.execute(delete(AIMatchingSelection))
             session.execute(delete(AIMatchingTask))
-            session.execute(update(UserProfile).values(match_index_version=None))
+            session.execute(update(UserProfile).values(
+                match_index_version=None, source_version=UserProfile.source_version + 1))
             from hiring_scraper.app.models import ProfileMatchProgress
             session.execute(delete(ProfileMatchProgress))
             count = result.rowcount

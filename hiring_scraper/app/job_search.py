@@ -10,13 +10,15 @@ from typing import Callable
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.orm import Session, joinedload, object_session, selectinload
 
-from hiring_scraper.app.database import SessionLocal
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.board_scope import geographic_scope
 from hiring_scraper.app.application_deduplication import (
     consolidate_application_duplicates, index_vacancy_identities, reserve_vacancy_identity_writer,
 )
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
+    ProfileIndexChanged, hold_profiles,
     Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
     MatchSemanticDocument, ProfileLLMScore, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
     reserve_job_source_rows,
@@ -32,10 +34,6 @@ _PENDING_MATCH_MAX_BYTES = 1_048_576
 _MATCH_JOB_BATCH_SIZE = 500
 _MATCH_PROFILE_BATCH_SIZE = 100
 _MATCH_WORK_PAGE_SIZE = 100
-
-
-class ProfileIndexChanged(RuntimeError):
-    """Raised when profile preferences changed while their match index was rebuilt."""
 
 
 _JOB_MATCH_FIELDS = {
@@ -85,13 +83,6 @@ def replace_job_locations(job: Job, rows: list[dict]) -> None:
     job.locations[:] = updated
 
 
-def _insert_for(session: Session, model):
-    if session.get_bind().dialect.name == "sqlite":
-        from sqlalchemy.dialects.sqlite import insert
-    else:
-        from sqlalchemy.dialects.postgresql import insert
-    return insert(model)
-
 
 def _profile_index_version(profile: UserProfile) -> str:
     payload = json.dumps({
@@ -110,8 +101,7 @@ def profile_match_index_stale(profile: UserProfile) -> bool:
 
 
 def _match_worker_owner(session: Session) -> bool:
-    return (session.get_bind().dialect.name != 'postgresql' or
-            bool(session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 4)'))))
+    return bool(session.scalar(text('SELECT pg_try_advisory_xact_lock(85793011, 4)')))
 
 
 def refresh_profile_match_indexes_once() -> bool:
@@ -129,6 +119,7 @@ def refresh_profile_match_indexes_once() -> bool:
         profile = min(stale, key=lambda p: (p.id in progress,
             progress[p.id].advanced_at.isoformat() if p.id in progress else '', p.id))
         version = _profile_index_version(profile)
+        expected_source = {profile.id: profile.source_version}
         state = progress.get(profile.id)
         checkpoint = ((state.version, state.cursor, state.high_water, state.advanced_at)
                       if state is not None else None)
@@ -139,9 +130,11 @@ def refresh_profile_match_indexes_once() -> bool:
         ids = session.scalars(select(Job.id).where(
             Job.id > state.cursor, Job.id <= state.high_water).order_by(Job.id)
             .limit(_MATCH_WORK_PAGE_SIZE)).all()
-        _refresh_application_matches_for_jobs(session, ids, profile_ids=[profile.id], verify_sources=True)
-        locked = session.scalar(select(UserProfile).where(UserProfile.id == profile.id)
-            .with_for_update().execution_options(populate_existing=True))
+        _refresh_application_matches_for_jobs(session, ids, profile_ids=[profile.id], verify_sources=True,
+                                              exclusive_profiles=True)
+        # Exclusive: this page may also mark the profile index current below.
+        hold_profiles(session, expected_source, wait=False, exclusive=True)
+        locked = session.get(UserProfile, profile.id, populate_existing=True)
         if locked is None or _profile_index_version(locked) != version:
             raise ProfileIndexChanged('Profile changed during inventory page')
         persisted = session.execute(select(ProfileMatchProgress.version, ProfileMatchProgress.cursor,
@@ -162,9 +155,9 @@ def refresh_profile_match_indexes_once() -> bool:
         return True
 
 
-def refresh_dirty_job_matches_once() -> bool:
+def refresh_dirty_job_matches_once(session_factory=None) -> bool:
     """Compute without row locks, then acknowledge exactly the verified revisions."""
-    with SessionLocal() as session:
+    with (session_factory or SessionLocal)() as session:
         if not _match_worker_owner(session):
             return False
         pending = session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)
@@ -203,26 +196,19 @@ def _batch_source_snapshot(session: Session, ids, profile_ids) -> str:
 
 
 def refresh_application_matches_for_jobs(session: Session, job_ids, *, before_publish=None) -> None:
-    """Production callers enqueue; SQLite/manual workflows stay self contained."""
-    if session.get_bind().dialect.name != 'postgresql':
-        _refresh_application_matches_for_jobs(session, job_ids, before_publish=before_publish)
-        return
+    """Queue jobs for the match worker; run ``before_publish`` (job retirement) now."""
     ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
     if not ids:
         return
     session.flush()
     reserve_job_source_rows(session, ids)
+    # Declares the jobs: drops stale vectors/assessments and queues the rematch.
+    source_changes.jobs_changed(session, ids)
     if before_publish is not None:
         # Only owners of affected saved stages participate in short retirement.
-        owners = select(JobApplication.profile_id).where(JobApplication.job_id.in_(ids))
-        session.scalars(select(UserProfile).where(UserProfile.id.in_(owners))
-                        .order_by(UserProfile.id).with_for_update()).all()
+        hold_profiles(session, session.scalars(select(JobApplication.profile_id).distinct()
+                                               .where(JobApplication.job_id.in_(ids))).all())
         before_publish(session)
-    from uuid import uuid4
-    statement = _insert_for(session, MatchDirtyJob).values([
-        {'job_id': job_id, 'revision': uuid4().hex, 'queued_at': utcnow()} for job_id in ids])
-    session.execute(statement.on_conflict_do_update(index_elements=['job_id'],
-        set_={'revision': statement.excluded.revision}))
 
 
 def application_match_allowed(job: Job, profile: UserProfile, result: dict, *, tracked=False) -> bool:
@@ -256,7 +242,7 @@ def upsert_new_match_states(session: Session, matches: list[dict]) -> None:
     """Create New for newly visible matches without replacing user decisions."""
     if not matches:
         return
-    insert = _insert_for(session, JobApplication)
+    insert = dialect_insert(session)(JobApplication)
     matches = [{**match, "auto_created": True} for match in matches]
     for start in range(0, len(matches), 80):
         statement = insert.values(matches[start:start + 80])
@@ -268,7 +254,7 @@ def upsert_new_match_states(session: Session, matches: list[dict]) -> None:
 def _upsert_profile_matches(session: Session, matches: list[dict]) -> None:
     if not matches:
         return
-    insert = _insert_for(session, ProfileJobMatch)
+    insert = dialect_insert(session)(ProfileJobMatch)
     for start in range(0, len(matches), 100):
         statement = insert.values(matches[start:start + 100])
         session.execute(statement.on_conflict_do_update(
@@ -332,6 +318,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         return False
 
     expected_versions = {profile.id: _profile_index_version(profile) for profile in stale_profiles}
+    expected_sources = {profile.id: profile.source_version for profile in stale_profiles}
     search_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
     # Matching every active job can take much longer than a database lock
     # timeout. Compute from the snapshot first, then lock and verify the
@@ -395,19 +382,18 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
         for row in pending_states:
             _write_pending(state_spool, row)
 
-        # Keep the legacy full rebuild safe for explicit PostgreSQL callers too.
         # Serialize identity unions before row locks; never hold the generation
         # commit fence through derived publication. New inventory is durably
         # queued, while existing source/evidence writers share these row locks.
-        if session.get_bind().dialect.name == 'postgresql':
-            if not reserve_vacancy_identity_writer(session, wait=False):
-                raise ProfileIndexChanged('Vacancy identities are being indexed')
-            index_vacancy_identities(session, active_job_ids)
-            reserve_job_source_rows(session, active_job_ids)
+        if not reserve_vacancy_identity_writer(session, wait=False):
+            raise ProfileIndexChanged('Vacancy identities are being indexed')
+        index_vacancy_identities(session, active_job_ids)
+        reserve_job_source_rows(session, active_job_ids)
         # Do not publish if preferences or inventory changed during computation.
+        hold_profiles(session, expected_sources, exclusive=True)
         locked_profiles = session.scalars(
             select(UserProfile).where(UserProfile.id.in_(list(expected_versions))).order_by(UserProfile.id)
-            .with_for_update().execution_options(populate_existing=True)
+            .execution_options(populate_existing=True)
         ).all()
         current_by_id = {profile.id: profile for profile in current_profiles}
         locked_by_id = {profile.id: profile for profile in locked_profiles}
@@ -462,6 +448,7 @@ def _refresh_application_matches_for_jobs(
     before_publish: Callable[[Session], None] | None = None,
     profile_ids: list[int] | None = None,
     verify_sources: bool = False,
+    exclusive_profiles: bool = False,
 ) -> None:
     """Refresh derived matches and create New only for newly visible default-area matches."""
     ids = sorted({int(job_id) for job_id in job_ids if job_id is not None})
@@ -481,6 +468,7 @@ def _refresh_application_matches_for_jobs(
             before_publish(session)
         return
     profile_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
+    profile_sources = {profile.id: profile.source_version for profile in profiles}
     source_snapshot = _batch_source_snapshot(session, ids, list(profile_versions)) if verify_sources else None
     search_generation = int(session.scalar(select(func.max(JobSearchState.id))) or 0)
     now = utcnow()
@@ -550,9 +538,13 @@ def _refresh_application_matches_for_jobs(
         affected_vacancy_groups = index_vacancy_identities(session, ids)
         if verify_sources:
             reserve_job_source_rows(session, ids)
+        # Workers verify versions and defer behind an in-flight profile edit;
+        # other callers publish only the profiles that did not change.
+        held = hold_profiles(session, profile_sources if verify_sources else list(profile_sources),
+                             wait=not verify_sources, exclusive=exclusive_profiles)
         current_profiles = session.scalars(select(UserProfile).where(
-            UserProfile.id.in_(list(profile_versions))
-        ).order_by(UserProfile.id).with_for_update().execution_options(populate_existing=True)).all()
+            UserProfile.id.in_(list(held))
+        ).order_by(UserProfile.id).execution_options(populate_existing=True)).all()
         if before_publish is not None:
             # Source retirement must update application rows only after profile
             # locks are held, and before stale automatic New rows are retracted.
@@ -567,7 +559,8 @@ def _refresh_application_matches_for_jobs(
         elif int(session.scalar(select(func.max(JobSearchState.id))) or 0) != search_generation:
             raise ProfileIndexChanged("Search evidence changed during incremental matching")
         stable_profiles = [profile for profile in current_profiles
-                           if _profile_index_version(profile) == profile_versions[profile.id]]
+                           if held[profile.id] == profile_sources[profile.id]
+                           and _profile_index_version(profile) == profile_versions[profile.id]]
         stable_ids = {profile.id for profile in stable_profiles}
         if not stable_ids:
             return

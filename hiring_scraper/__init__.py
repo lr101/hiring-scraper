@@ -1,1 +1,1 @@
-"""Career discovery proof of concept."""
+"""Radius: discover German employers, their public job sources, and openings."""

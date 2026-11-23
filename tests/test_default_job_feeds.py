@@ -4,11 +4,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app.default_job_feeds import ensure_default_job_feeds
-from hiring_scraper.app.models import Base, Company, JobFeed
+from hiring_scraper.app.models import Company, JobFeed
+from tests import pg
 
 
 class DefaultJobFeedTests(unittest.TestCase):
@@ -22,15 +23,10 @@ class DefaultJobFeedTests(unittest.TestCase):
                 "source_page_url": "https://example.org/jobs",
                 "website_url": "https://example.org",
             }]}))
-            engine = create_engine(f"sqlite:///{root / 'defaults.db'}")
-            Base.metadata.create_all(engine)
+            engine = pg.engine(self)
             factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
             with patch("hiring_scraper.app.default_job_feeds.CONFIG_PATH", config_path), \
-                    patch("hiring_scraper.app.default_job_feeds.engine", engine), \
-                    patch("hiring_scraper.app.default_job_feeds.SessionLocal", factory), \
-                    patch("hiring_scraper.app.default_job_feeds.IS_SQLITE", True), \
-                    patch("hiring_scraper.app.default_job_feeds.initialize_sqlite_schema",
-                          side_effect=lambda target: Base.metadata.create_all(target)):
+                    patch("hiring_scraper.app.default_job_feeds.SessionLocal", factory):
                 self.assertEqual(ensure_default_job_feeds(), 1)
                 with factory.begin() as session:
                     feed = session.scalar(select(JobFeed))

@@ -12,8 +12,6 @@ def main():
     spec = importlib.util.spec_from_file_location('radius_entrypoint', entrypoint_path)
     entrypoint = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(entrypoint)
-    if Path('/app/experiments/application_hillclimb').exists() or Path('/app/scripts/hillclimb').exists():
-        raise RuntimeError('Offline benchmark tooling must not be present in the application image')
     # Codex intentionally refuses helper aliases below /tmp. Use a separate
     # disposable directory under /var/tmp, with no real login or provider calls.
     with tempfile.TemporaryDirectory(prefix='radius-codex-startup-', dir='/var/tmp') as folder:

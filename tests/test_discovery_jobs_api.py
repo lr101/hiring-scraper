@@ -1,10 +1,9 @@
 import tempfile
 import unittest
 from datetime import timedelta
-from pathlib import Path
 from types import SimpleNamespace
 
-from sqlalchemy import create_engine, event, select
+from sqlalchemy import event, select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from starlette.middleware.cors import CORSMiddleware
@@ -13,20 +12,18 @@ from hiring_scraper.app import api
 from hiring_scraper.app.models import (Base, Company, DiscoveryJob, DiscoveryJobCompany, Job,
                                        JobApplication, JobFeed, JobLocation, ProfileJobMatch, ScanRun,
                                        UserProfile, utcnow)
+from tests import pg
 
 
 class DiscoveryJobsApiTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'api.db'}")
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
 
-        self.previous_sqlite = api.IS_SQLITE
-        api.IS_SQLITE = True
 
     def tearDown(self):
-        api.IS_SQLITE = self.previous_sqlite
         self.engine.dispose()
         self.directory.cleanup()
 
@@ -249,7 +246,7 @@ class DiscoveryJobsApiTests(unittest.TestCase):
                 'automated_application': ('rejected', 'automated_application'),
                 'accepted': ('accepted', None), 'rejected': ('rejected', None),
             })
-            closed = api.list_jobs(49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
+            closed = pg.list_jobs(self.engine, 49.0068705, 8.4034195, 15, None, None, 'Karlsruhe', 0, 20,
                                    posting_status='closed', session=session)
             self.assertEqual([item['id'] for item in closed['items']], [job_id])
 
@@ -281,6 +278,7 @@ class DiscoveryJobsApiTests(unittest.TestCase):
             api.update_managed_feed(
                 feed_id, SimpleNamespace(feed_url="https://acme.example/jobs.xml", provider="rss", enabled=None),
                 session)
+        pg.run_workers(self.engine)
 
         with self.factory() as session:
             self.assertIsNone(session.get(ProfileJobMatch, (profile_id, job_id)))

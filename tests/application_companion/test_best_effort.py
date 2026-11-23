@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from urllib.parse import urlsplit
 from playwright.sync_api import expect
 from .test_extension import ExtensionHarness, EXTENSION
@@ -10,7 +9,7 @@ BASE = 'https://forms.example/'
 
 class BestEffortBrowserTests(ExtensionHarness):
     def check_expanded_case(self, name):
-        from experiments.autofill_corpus import cases
+        from .autofill_corpus import cases
         case=next(case for case in cases() if case.name==name)
         self.applicant=case.profile
         self.context.route(BASE+'expanded',lambda route:route.fulfill(content_type='text/html',body=case.html))

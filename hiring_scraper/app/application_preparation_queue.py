@@ -26,8 +26,7 @@ def _store(row, **changes):
 def enqueue(profile_id, job_id, request, revision, *, automatic=False):
     with SessionLocal.begin() as session:
         # Serialize the global capacity check and first insert.
-        if session.get_bind().dialect.name == 'postgresql':
-            session.execute(text('SELECT pg_advisory_xact_lock(85793011, 8)'))
+        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 8)'))
         row = session.get(Task, (profile_id, job_id), with_for_update=True, populate_existing=True)
         previous = row.record if row else {}
         same_inputs = previous.get('request') == request and previous.get('revision') == revision

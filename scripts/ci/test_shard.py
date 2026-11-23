@@ -16,8 +16,8 @@ def flatten(suite):
 
 
 def main() -> int:
-    # Match `python -m unittest`: helpers such as experiments/ are importable
-    # from the working directory even though this entry point lives in ci/.
+    # Match `python -m unittest`: repository modules are importable from the
+    # working directory even though this entry point lives in ci/.
     sys.path.insert(0, str(Path.cwd()))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--start-directory', type=Path, default=Path('tests/application_companion'))

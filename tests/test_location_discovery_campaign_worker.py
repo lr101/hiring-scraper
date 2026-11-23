@@ -1,27 +1,26 @@
 import tempfile
 import unittest
 from datetime import timedelta
-from pathlib import Path
 from threading import Barrier
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
 from hiring_scraper.app import discovery_worker as worker
 from hiring_scraper.app.discovery_jobs import discovery_job_json
 from hiring_scraper.app import models
 from hiring_scraper.app.models import Base, Company, DiscoveryJobCompany, DiscoveryRun, JobFeed, utcnow
+from tests import pg
 
 
 class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
-        self.engine = create_engine(f"sqlite:///{Path(self.directory.name) / 'campaign.db'}")
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
-        self.patches = [patch.object(worker, "SessionLocal", self.factory),
-                        patch.object(worker, "engine", self.engine)]
+        self.patches = [patch.object(worker, "SessionLocal", self.factory)]
         for item in self.patches:
             item.start()
 
@@ -77,7 +76,6 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
             self.assertEqual(run.status, "jobs_feed_found")
 
     def test_new_discovery_postings_are_committed_before_location_results_are_read(self):
-        from hiring_scraper.app import api
 
         with self.factory.begin() as session:
             company = Company(source="test", source_id="fresh", name="Fresh employer",
@@ -122,11 +120,11 @@ class LocationDiscoveryCampaignWorkerTests(unittest.TestCase):
         with self.factory() as session:
             self.assertEqual(session.get(models.DiscoveryJob, job_id).jobs_found, 5)
             self.assertEqual(len(session.scalars(select(models.Job)).all()), 6)
-            page = api.list_jobs(latitude=49.0, longitude=8.4, radius_km=15,
+            page = pg.list_jobs(self.engine, latitude=49.0, longitude=8.4, radius_km=15,
                 company_id=None, query=None, place="Karlsruhe", offset=0, limit=100,
                 location_scope="area", session=session)
             self.assertEqual({row["external_id"] for row in page["items"]}, {"local"})
-            closed = api.list_jobs(latitude=49.0, longitude=8.4, radius_km=15,
+            closed = pg.list_jobs(self.engine, latitude=49.0, longitude=8.4, radius_km=15,
                 company_id=None, query=None, place="Karlsruhe", offset=0, limit=100,
                 location_scope="area", posting_status="closed", session=session)
             self.assertEqual({row["external_id"] for row in closed["items"]}, {"old"})

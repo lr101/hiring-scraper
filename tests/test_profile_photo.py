@@ -8,18 +8,18 @@ import unittest
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
 from fastapi import HTTPException
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 from starlette.requests import Request
 
 from hiring_scraper.app import models, profiles
 import test_application_documents as document_tests
+from tests import pg
 
 
 class ProfilePhotoTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.profile_id = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)['id']
@@ -117,7 +117,7 @@ class PhotoMigrationTests(unittest.TestCase):
     def test_migration_round_trip_preserves_profiles(self):
         self.assertIsNotNone(importlib.util.find_spec('hiring_scraper.app.migrations.versions.0032_profile_photo'), 'Profile photo migration is missing')
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0032_profile_photo')
-        engine = create_engine('sqlite://')
+        engine = pg.isolated_engine(self)
         with engine.begin() as connection:
             connection.exec_driver_sql('CREATE TABLE user_profiles (id INTEGER PRIMARY KEY)')
             connection.exec_driver_sql('INSERT INTO user_profiles VALUES (1)')

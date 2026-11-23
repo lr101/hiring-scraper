@@ -10,8 +10,9 @@ Usage:
   preview.sh status --slug SLUG
   preview.sh stop --slug SLUG
 
-The preview uses a per-slug SQLite database and keeps runtime files under
-/tmp/serve-dev-worktree/hiring-scraper by default.
+The preview uses a per-slug PostgreSQL database (radius_preview_<slug>) created on
+the local server named by HIRING_PREVIEW_POSTGRES_URL, migrated like production and
+dropped on stop. Runtime files live under /tmp/serve-dev-worktree/hiring-scraper by default.
 EOF
 }
 
@@ -324,6 +325,9 @@ if [[ "$action" == stop ]]; then
   terminate_group "$state_web_pid" web
   remove_route "$state_token"
   release_port_reservations
+  if [[ -n "${HIRING_PREVIEW_POSTGRES_URL:-}" && -n "$state_database" ]]; then
+    (cd "$repo_root" && mise exec -- uv run python scripts/dev/preview_database.py drop "$state_database") || true
+  fi
   revision=$state_revision
   dirty=$state_dirty
   route_token=$state_token
@@ -344,6 +348,7 @@ if [[ "$action" == stop ]]; then
 fi
 
 [[ -f "$repo_root/pyproject.toml" && -f "$repo_root/frontend/package.json" ]] || die "project files are missing under $repo_root"
+[[ -n "${HIRING_PREVIEW_POSTGRES_URL:-}" ]] || die 'set HIRING_PREVIEW_POSTGRES_URL to a local PostgreSQL role that may create databases'
 for required_command in mise npm nginx curl flock setsid python3 ps; do
   command -v "$required_command" >/dev/null 2>&1 || die "required command is missing: $required_command"
 done
@@ -354,7 +359,6 @@ done
 mkdir -p -- "$runtime_root"
 [[ ! -e "$state_dir" && ! -L "$state_dir" ]] || die "slug state already exists; choose a fresh slug: $slug"
 mkdir -m 700 -- "$state_dir"
-[[ ! -e "$state_dir/hiring.sqlite3" && ! -L "$state_dir/hiring.sqlite3" ]] || die 'slug database path is already in use'
 [[ ! -e "$route_file" && ! -e "$route_owner" ]] || die "slug gateway route already exists: $slug"
 for conf in "$route_dir"/*.conf; do
   [[ -f "$conf" ]] || continue
@@ -364,8 +368,9 @@ for conf in "$route_dir"/*.conf; do
 done
 
 umask 077
-database_path="$state_dir/hiring.sqlite3"
-database_url="sqlite:////${database_path#/}"
+database_path="radius_preview_${slug//[^a-z0-9]/_}"
+database_url=
+database_created=no
 revision=$(git -C "$repo_root" rev-parse --short HEAD 2>/dev/null || printf unknown)
 if [[ -n "$(git -C "$repo_root" status --porcelain 2>/dev/null || true)" ]]; then dirty=yes; else dirty=no; fi
 route_token="$slug-$$-$RANDOM"
@@ -463,6 +468,9 @@ cleanup() {
   if [[ -n "$web_pid" ]]; then terminate_group "$web_pid" web; fi
   if [[ "$registered_route" == yes || "$route_claimed" == yes ]]; then remove_route "$route_token"; fi
   release_port_reservations
+  if [[ "$database_created" == yes ]]; then
+    (cd "$repo_root" && mise exec -- uv run python scripts/dev/preview_database.py drop "$database_path")
+  fi
   if [[ "$adapter_state" == starting ]]; then adapter_state=failed; fi
   write_state "$adapter_state"
   exit "$exit_code"
@@ -478,6 +486,8 @@ write_state starting
 
 printf 'Setting up the isolated fixture and production UI bundle...\n'
 (cd "$repo_root" && mise exec -- uv sync --locked)
+database_url=$(cd "$repo_root" && mise exec -- uv run python scripts/dev/preview_database.py create "$database_path")
+database_created=yes
 (cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run hiring-seed)
 (cd "$repo_root" && DATABASE_URL="$database_url" mise exec -- uv run python scripts/dev/seed_preview.py)
 if [[ -n "${HIRING_PREVIEW_PROFILE:-}" || -n "${HIRING_PREVIEW_REGIONAL_SNAPSHOT:-}" ]]; then

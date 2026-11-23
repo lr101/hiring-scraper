@@ -2,15 +2,16 @@
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from fastapi import HTTPException
 from hiring_scraper.app import api, models
 from hiring_scraper.app.discovery_jobs import company_ids_for_search
+from tests import pg
 
 class GermanySearchTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(self.engine, expire_on_commit=False)
     def tearDown(self):
@@ -78,7 +79,7 @@ class GermanySearchTests(unittest.TestCase):
             self.assertEqual({row['name'] for row in companies['items']}, {'bw','be'})
             ids = company_ids_for_search(session, SimpleNamespace(search_scope='country'))
             self.assertEqual(set(ids), {row['id'] for row in companies['items']})
-            jobs = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
+            jobs = pg.list_jobs(self.engine, session=session, company_id=None, query=None, offset=0, limit=100, country='DE', country_code='DE')
             self.assertEqual(jobs['total'], 0)
             self.assertEqual(jobs['counts']['filtered']['expired'], 2)
             self.assertEqual(api.summary(session=session, country='DE')['jobs_for_location'], 0)
@@ -142,7 +143,7 @@ class GermanySearchTests(unittest.TestCase):
             session.add(models.Job(feed=feed, external_id='role', title='Engineer', location_text='Karlsruhe', url='https://de.example/role'))
         with self.factory() as session:
             profile = create_profile(ProfileRequest(name='Profile', search_area={'label':'Karlsruhe','latitude':49,'longitude':8,'radius_km':15,'country_code':'DE'}), session)
-            item = api.list_jobs(session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
+            item = pg.list_jobs(self.engine, session=session, company_id=None, query=None, offset=0, limit=100, country='DE', profile_id=profile['id'], min_match_score=0, include_unknown=True)['items'][0]
             detail = api.get_job(item['id'], session, profile_id=profile['id'], country='DE')
             self.assertEqual(detail['geography'], item['geography'])
             self.assertIn('profile_match', detail)
@@ -165,6 +166,6 @@ class GermanySearchTests(unittest.TestCase):
             session.add(models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://de.example/jobs', next_scan_at=feed_due))
         with self.factory.begin() as session:
             company = session.scalar(select(models.Company))
-            self.assertEqual(api.get_company(company.id, session)['next_check_at'], '2026-10-14T08:00:00')
+            self.assertEqual(api.get_company(company.id, session)['next_check_at'], '2026-10-14T08:00:00+00:00')
             company.crawl_paused = True
             self.assertIsNone(api.get_company(company.id, session)['next_check_at'])

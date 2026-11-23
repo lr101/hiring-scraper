@@ -19,7 +19,10 @@ import uvicorn
 
 def main():
     with tempfile.TemporaryDirectory(prefix='radius-generation-browser-') as folder:
-        os.environ['DATABASE_URL'] = 'sqlite:///' + str(Path(folder) / 'application.sqlite3')
+        # Disposable, migrated PostgreSQL test database (see tests/pg.py).
+        os.environ['DATABASE_URL'] = os.environ.get('TEST_POSTGRES_URL', '')
+        import pg
+        pg.reset()
         executable = write_codex_fixture(folder)
         os.environ['RADIUS_CODEX_STATE_DIR'] = folder
         os.environ['RADIUS_CODEX_BIN'] = str(executable)
@@ -29,7 +32,6 @@ def main():
         from hiring_scraper.app.database import SessionLocal, engine
         from hiring_scraper.app.latex_documents import latex_source
         from test_tex_cv import source
-        models.Base.metadata.create_all(engine)
         with SessionLocal.begin() as session:
             company = models.Company(name='Synthetic Product GmbH', source='test', source_id='direct-browser')
             feed = models.JobFeed(company=company, provider='html_jobs', status='parsed', feed_url='https://example.invalid/jobs')

@@ -3,7 +3,6 @@ import unittest
 from unittest.mock import patch
 from fastapi import HTTPException
 from hiring_scraper.app import document_revision as revision
-from hiring_scraper.app.latex_documents import latex_source
 from test_tex_cv import source
 
 class DocumentRevisionTests(unittest.TestCase):

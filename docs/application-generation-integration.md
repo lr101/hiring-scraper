@@ -44,11 +44,6 @@ migration, provider setting or subscription-limit change is needed. Existing sav
 documents are not rewritten. Previously saved preparation checkpoints may contain an
 earlier draft/review; start a fresh preparation to use updated instructions.
 
-Offline evaluation tooling is maintained separately under
-`experiments/application_hillclimb/`. That directory is excluded from Docker build
-contexts and is not part of application startup, package installation or the
-deployment's application test discovery.
-
 ## Profile enrichment boundary
 
 The supported profile path is `GET /api/v1/profiles` followed by

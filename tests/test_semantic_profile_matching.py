@@ -2,20 +2,18 @@
 import importlib
 import importlib.util
 import os
-import sqlite3
-import tempfile
-import threading
-from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import create_engine, event, select, update
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import event, select, update
+from sqlalchemy.orm import sessionmaker
 
+from hiring_scraper.app import source_changes
 from hiring_scraper.app import search_snapshots
 from hiring_scraper.app import api, models, profiles
 
 from hiring_scraper.matching import match_job
+from tests import pg
 
 
 PROFILE = {'desired_roles': ['Software developer'], 'summary':
@@ -165,7 +163,7 @@ class SemanticScoreTests(unittest.TestCase):
 
 class SemanticCacheIntegrationTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(self.engine, expire_on_commit=False, autoflush=False)
         with self.factory() as session:
@@ -200,7 +198,7 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
     def test_background_vectors_add_a_missed_job_to_journey_and_detail_consistently(self):
         self.populate()
         with self.factory() as session:
-            page = api.list_applications(profile_ids=str(self.profile_id), statuses='new',
+            page = pg.list_applications(self.engine, profile_ids=str(self.profile_id), statuses='new',
                                          sort='match', offset=0, limit=40, session=session)
             self.assertEqual([item['id'] for item in page['items']], [self.job_id])
             match = page['items'][0]['profile_match']
@@ -227,6 +225,7 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
             api.set_job_application(self.profile_id, self.job_id, api.ApplicationRequest(status='open'), session)
             job = session.get(models.Job, self.job_id)
             job.description = 'Your tasks: Provide bedside patient care and administer medication. ' * 8
+            source_changes.jobs_changed(session, [self.job_id])
             session.commit()
             detail = api.get_job(self.job_id, session=session, profile_id=self.profile_id)
             self.assertIsNone(detail['profile_match']['semantic_match'])
@@ -309,181 +308,6 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
             self.assertEqual(document.source_hash,
                              service.source_hash(service.profile_sections(profile.matching_preferences)))
 
-    def test_sqlite_publication_reserves_writer_against_profile_edits(self):
-        service = self.service()
-        with tempfile.TemporaryDirectory() as directory:
-            engine = create_engine(f'sqlite:///{directory}/semantic.sqlite3',
-                                   connect_args={'timeout': 5})
-            models.Base.metadata.create_all(engine)
-            factory = sessionmaker(engine, expire_on_commit=False, autoflush=False)
-            with factory.begin() as session:
-                profile = models.UserProfile(name='Developer', preferences={
-                    'desired_roles': ['Software developer'],
-                    'summary': PROFILE['summary'],
-                    'matching_defaults': {'min_match_score': 30},
-                })
-                session.add(profile)
-                session.flush()
-                profile_id = profile.id
-
-            attempted = threading.Event()
-            completed = threading.Event()
-            errors = []
-
-            def edit_profile():
-                try:
-                    with factory() as session:
-                        attempted.set()
-                        session.connection().exec_driver_sql('BEGIN IMMEDIATE')
-                        profiles.update_profile(profile_id, profiles.ProfileRequest(
-                            name='Developer', desired_roles=['Software developer'],
-                            matching_defaults={'min_match_score': 30},
-                            summary='I design circuits and validate electronic hardware.'), session)
-                except Exception as error:
-                    errors.append(error)
-                finally:
-                    completed.set()
-
-            editor = None
-            pack_vectors = service.pack_vectors
-
-            def start_edit_during_publication(vectors):
-                nonlocal editor
-                editor = threading.Thread(target=edit_profile, daemon=True)
-                editor.start()
-                self.assertTrue(attempted.wait(1), 'Profile writer did not start')
-                self.assertFalse(completed.wait(.2),
-                                 'SQLite publication did not reserve its writer before verification')
-                return pack_vectors(vectors)
-
-            try:
-                with patch.object(service, 'SessionLocal', factory), \
-                     patch.object(service, 'pack_vectors', side_effect=start_edit_during_publication):
-                    self.assertTrue(service.refresh_semantic_documents_once(
-                        encode=lambda texts, kind: [vector(1) for _ in texts]))
-                editor.join(timeout=5)
-                self.assertFalse(editor.is_alive(), 'Profile edit did not resume after publication')
-                self.assertEqual(errors, [])
-                with factory() as session:
-                    self.assertIsNone(session.scalar(select(models.MatchSemanticDocument).where(
-                        models.MatchSemanticDocument.profile_id == profile_id)))
-
-                with patch.object(service, 'SessionLocal', factory):
-                    self.assertTrue(service.refresh_semantic_documents_once(
-                        encode=lambda texts, kind: [vector(0, 1) for _ in texts]))
-                with factory() as session:
-                    profile = session.get(models.UserProfile, profile_id)
-                    document = session.scalar(select(models.MatchSemanticDocument).where(
-                        models.MatchSemanticDocument.profile_id == profile_id))
-                    self.assertEqual(document.source_hash,
-                                     service.source_hash(service.profile_sections(profile.matching_preferences)))
-            finally:
-                if editor is not None and editor.is_alive():
-                    editor.join(timeout=5)
-                engine.dispose()
-
-    def test_sqlite_profile_edit_reserves_writer_before_semantic_cache_lookup(self):
-        service = self.service()
-        from sqlalchemy.engine.cursor import CursorResult
-        with tempfile.TemporaryDirectory() as directory:
-            engine = create_engine(f'sqlite:///{directory}/semantic.sqlite3',
-                                   connect_args={'timeout': 5, 'check_same_thread': False})
-            models.Base.metadata.create_all(engine)
-            with engine.connect() as connection:
-                connection.exec_driver_sql('PRAGMA journal_mode=WAL')
-            factory = sessionmaker(engine, expire_on_commit=False, autoflush=False)
-            with factory.begin() as session:
-                profile = models.UserProfile(name='Developer', preferences={
-                    'desired_roles': ['Software developer'],
-                    'summary': PROFILE['summary'],
-                    'matching_defaults': {'min_match_score': 30},
-                })
-                session.add(profile)
-                session.flush()
-                profile_id = profile.id
-
-            editor_read_cache = threading.Event()
-            resume_editor = threading.Event()
-            publisher_attempted_lock = threading.Event()
-            publisher_completed = threading.Event()
-            errors = []
-            editor = None
-            publisher = None
-
-            original_scalar = CursorResult.scalar
-
-            def observe_publisher_lock(_connection, _cursor, statement, _parameters, _context, _many):
-                if (threading.current_thread().name == 'semantic-publisher' and
-                        statement.strip().upper() == 'BEGIN IMMEDIATE'):
-                    publisher_attempted_lock.set()
-
-            def edit_profile():
-                try:
-                    with factory() as session:
-                        profiles.update_profile(profile_id, profiles.ProfileRequest(
-                            name='Developer', desired_roles=['Software developer'],
-                            matching_defaults={'min_match_score': 30},
-                            summary='I design circuits and validate electronic hardware.'), session)
-                except Exception as error:
-                    errors.append(error)
-
-            def publish_profile_vectors():
-                try:
-                    with patch.object(service, 'SessionLocal', factory):
-                        service.refresh_semantic_documents_once(
-                            encode=lambda texts, kind: [vector(1) for _ in texts])
-                except Exception as error:
-                    errors.append(error)
-                finally:
-                    publisher_completed.set()
-
-            def scalar_with_interleaving(result):
-                value = original_scalar(result)
-                statement = result.context.statement.upper()
-                if (threading.current_thread().name == 'profile-editor' and
-                        'MATCH_SEMANTIC_DOCUMENTS.SOURCE_HASH' in statement):
-                    editor_read_cache.set()
-                    if not resume_editor.wait(5):
-                        raise TimeoutError('Profile editor was not resumed')
-                return value
-
-            event.listen(engine, 'before_cursor_execute', observe_publisher_lock)
-            try:
-                editor = threading.Thread(target=edit_profile, name='profile-editor', daemon=True)
-                with patch.object(CursorResult, 'scalar', new=scalar_with_interleaving):
-                    editor.start()
-                    self.assertTrue(editor_read_cache.wait(5), 'Editor did not read the semantic cache')
-                    publisher = threading.Thread(target=publish_profile_vectors,
-                                                 name='semantic-publisher', daemon=True)
-                    publisher.start()
-                    self.assertTrue(publisher_attempted_lock.wait(5), 'Publisher did not request its SQLite writer lock')
-                    self.assertFalse(publisher_completed.wait(.2),
-                                     'Publisher passed an editor that had already checked for a cache row')
-                    resume_editor.set()
-                    editor.join(timeout=5)
-                    publisher.join(timeout=5)
-                    self.assertFalse(editor.is_alive(), 'Profile edit did not resume')
-                    self.assertFalse(publisher.is_alive(), 'Semantic publisher did not resume')
-                    self.assertEqual(errors, [])
-
-                    with factory() as session:
-                        self.assertIsNone(session.scalar(select(models.MatchSemanticDocument).where(
-                            models.MatchSemanticDocument.profile_id == profile_id)))
-                    with patch.object(service, 'SessionLocal', factory):
-                        self.assertTrue(service.refresh_semantic_documents_once(
-                            encode=lambda texts, kind: [vector(0, 1) for _ in texts]))
-                    with factory() as session:
-                        self.assertIsNotNone(session.scalar(select(models.MatchSemanticDocument).where(
-                            models.MatchSemanticDocument.profile_id == profile_id)))
-            finally:
-                resume_editor.set()
-                if editor is not None and editor.is_alive():
-                    editor.join(timeout=5)
-                if publisher is not None and publisher.is_alive():
-                    publisher.join(timeout=5)
-                event.remove(engine, 'before_cursor_execute', observe_publisher_lock)
-                engine.dispose()
-
     def test_profile_fact_changes_recompute_only_profile_vectors(self):
         service = self.populate()
         with self.factory() as session:
@@ -499,21 +323,6 @@ class SemanticCacheIntegrationTests(unittest.TestCase):
         with self.factory() as session:
             self.assertLess(api.get_job(self.job_id, session=session,
                                        profile_id=self.profile_id)['profile_match']['score'], 30)
-
-    def test_large_profile_sets_fit_the_standard_sqlite_parameter_limit(self):
-        service = self.populate()
-        with self.factory() as session:
-            raw = session.connection().connection.driver_connection
-            previous_limit = raw.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, 999)
-            try:
-                documents = service.load_semantic_documents(session,
-                    [session.get(models.Job, self.job_id)],
-                    [session.get(models.UserProfile, self.profile_id)] +
-                    [SimpleNamespace(id=index) for index in range(2, 1201)])
-                self.assertIn(('job', self.job_id), documents)
-                self.assertIn(('profile', self.profile_id), documents)
-            finally:
-                raw.setlimit(sqlite3.SQLITE_LIMIT_VARIABLE_NUMBER, previous_limit)
 
     def test_repeated_comparisons_parse_each_source_once_per_batch(self):
         service = self.populate()

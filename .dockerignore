@@ -9,7 +9,6 @@ frontend/node_modules
 runtime/**/node_modules
 frontend/dist
 data
-reports
 hiring.db
 *.sqlite3
 .env*
@@ -30,6 +29,3 @@ poc
 extensions/**/node_modules
 frontend/public/downloads
 dist
-
-# Offline benchmark tooling and its private inputs never enter deployment builds.
-experiments/application_hillclimb

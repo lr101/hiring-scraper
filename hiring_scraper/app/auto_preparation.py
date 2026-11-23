@@ -37,17 +37,6 @@ def document_language(posting, variants):
     return language
 
 
-def _active_job(root):
-    for path in jobs._directory(root).glob('*.json'):
-        match = re.fullmatch(r'(\d+)-(\d+)\.json', path.name)
-        if match:
-            with jobs._lock(root, int(match[1]), int(match[2])):
-                current = jobs._read(root, int(match[1]), int(match[2]))
-            if current and current['state'] in ('running', 'cancelling'):
-                return True
-    return False
-
-
 def prepare_once():
     root = codex_runtime._root()
     jobs._directory(root)
@@ -57,20 +46,17 @@ def prepare_once():
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             return False
-        if _active_job(root) or not codex_runtime.status()['enabled']:
+        if not codex_runtime.status()['enabled']:
             return False
         quota = codex_runtime.subscription_usage()
         if not quota.get('allowed'):
             return False
         with SessionLocal() as session:
-            postgres = session.get_bind().dialect.name == 'postgresql'
-            if postgres and application_preparation_queue.has_active(session):
+            if application_preparation_queue.has_active(session):
                 return False
 
             def status(profile_id, job_id):
-                if postgres:
-                    return application_preparation_queue.status(session, profile_id, job_id)
-                return jobs.status(root, profile_id, job_id)
+                return application_preparation_queue.status(session, profile_id, job_id)
 
             profiles = session.scalars(select(UserProfile).order_by(UserProfile.id)).all()
             for profile in profiles:
@@ -108,16 +94,9 @@ def prepare_once():
                                 continue
                             profile_id = profile.id
                             session.rollback()
-                            if postgres:
-                                application_preparation_queue.enqueue(
-                                    profile_id, request.job_id, request.model_dump(), revision, automatic=True,
-                                )
-                                return True
-                            def run(progress, profile_id=profile_id, request=request, revision=revision):
-                                with SessionLocal() as worker_session:
-                                    return generation._prepare_application(profile_id, request, worker_session,
-                                                                           progress=progress, expected_revision=revision)
-                            jobs.start(root, profile_id, request.job_id, run, request.model_dump(), revision=revision, automatic=True)
+                            application_preparation_queue.enqueue(
+                                profile_id, request.job_id, request.model_dump(), revision, automatic=True,
+                            )
                             return True
                     except HTTPException as exc:
                         LOG.info('Automatic preparation skipped profile=%s job=%s: %s', profile.id, row.job_id, exc.status_code)

@@ -1,11 +1,11 @@
 import json
 import unittest
 from unittest.mock import patch
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from hiring_scraper.app import models, profiles
 from hiring_scraper.app.latex_documents import latex_source
+from tests import pg
 
 
 class CVLanguageEvidenceTests(unittest.TestCase):
@@ -43,7 +43,7 @@ def source(language='en'):
 
 class TexCVTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.id = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)['id']
@@ -143,14 +143,14 @@ class TexCVTests(unittest.TestCase):
         from sqlalchemy import inspect
         from alembic.migration import MigrationContext
         from alembic.operations import Operations
-        engine = create_engine('sqlite://')
+        engine = pg.isolated_engine(self)
         migration = importlib.import_module('hiring_scraper.app.migrations.versions.0031_cv_languages')
         with engine.begin() as connection:
-            connection.exec_driver_sql('CREATE TABLE profile_cvs (profile_id INTEGER PRIMARY KEY, data BLOB NOT NULL)')
-            connection.exec_driver_sql("INSERT INTO profile_cvs VALUES (1, X'746578')")
+            connection.exec_driver_sql('CREATE TABLE profile_cvs (profile_id INTEGER PRIMARY KEY, data BYTEA NOT NULL)')
+            connection.exec_driver_sql("INSERT INTO profile_cvs VALUES (1, '\\x746578'::bytea)")
             with Operations.context(MigrationContext.configure(connection)):
                 migration.upgrade()
-                self.assertEqual(connection.exec_driver_sql('SELECT variants FROM profile_cvs').scalar(), '{}')
+                self.assertEqual(connection.exec_driver_sql('SELECT variants FROM profile_cvs').scalar(), {})
                 migration.downgrade()
             self.assertEqual(connection.exec_driver_sql('SELECT data FROM profile_cvs').scalar(), b'tex')
             self.assertNotIn('variants', {column['name'] for column in inspect(connection).get_columns('profile_cvs')})

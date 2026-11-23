@@ -11,12 +11,12 @@ from zipfile import ZipFile
 from xml.etree import ElementTree
 
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 
 from hiring_scraper.app import models, profiles
 from test_cv_template import template_docx
+from tests import pg
 
 
 class ApplicationDocumentTests(unittest.TestCase):
@@ -337,7 +337,7 @@ class ApplicationDocumentTests(unittest.TestCase):
         return 'data:image/png;base64,' + base64.b64encode(data).decode()
 
     def setUp(self):
-        self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
+        self.engine = pg.engine(self)
         models.Base.metadata.create_all(self.engine)
         self.session = Session(self.engine)
         self.profile_id = profiles.create_profile(profiles.ProfileRequest(name='Alex'), self.session)['id']

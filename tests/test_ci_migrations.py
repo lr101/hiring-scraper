@@ -4,9 +4,9 @@ from tempfile import TemporaryDirectory
 import unittest
 
 from alembic.config import Config
-from sqlalchemy import create_engine
 
 from scripts.ci.migration_heads import assert_migration_heads
+from tests import pg
 
 
 class MigrationHeadTests(unittest.TestCase):
@@ -17,7 +17,7 @@ class MigrationHeadTests(unittest.TestCase):
             (versions / 'first.py').write_text("revision = 'first'\ndown_revision = None\n")
             config = Config()
             config.set_main_option('script_location', directory)
-            engine = create_engine('sqlite://')
+            engine = pg.isolated_engine(self)
             try:
                 with engine.begin() as connection:
                     connection.exec_driver_sql('CREATE TABLE alembic_version (version_num VARCHAR(32) PRIMARY KEY)')
@@ -38,7 +38,7 @@ class MigrationHeadTests(unittest.TestCase):
             (versions / 'first.py').write_text("revision = 'first'\ndown_revision = None\n")
             config = Config()
             config.set_main_option('script_location', directory)
-            engine = create_engine('sqlite://')
+            engine = pg.isolated_engine(self)
             try:
                 with engine.connect() as connection, self.assertRaisesRegex(AssertionError, 'first'):
                     assert_migration_heads(connection, config)

@@ -1807,6 +1807,20 @@ html[data-theme="dark"] .quest-outcome-options { border-color: #4a565e; backgrou
 .journey-momentum-track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #83957f, #9baa8b); transition: width 330ms cubic-bezier(.2,.75,.25,1); }
 .journey-momentum-week > small, .journey-momentum-streak > small { grid-column: 1 / -1; color: #78857b; font-size: 9px; }
 .journey-momentum-divider { width: 1px; height: 38px; background: #e0e7da; }
+.journey-focus { margin-top: 12px; padding: 13px 19px; border: 1px solid #e2e6e8; border-left: 3px solid #6f9a86; border-radius: 13px; background: #f7f9f8; }
+.journey-focus-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.journey-focus-heading h2 { margin: 0; color: #36474d; font-size: 13px; }
+.journey-focus-dots { display: flex; gap: 6px; }
+.journey-focus-dots > span { width: 10px; height: 10px; border: 1.5px solid #9bb0a2; border-radius: 50%; transition: background 260ms ease; }
+.journey-focus-dots > span.is-done { border-color: #6f9a86; background: #6f9a86; }
+.journey-focus-headline { margin: 6px 0 0; color: #657466; font-size: 11px; }
+.journey-focus-list { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.journey-focus-list > li { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.journey-focus-list a { display: grid; flex: 1; min-width: 0; gap: 2px; padding: 8px 11px; border: 1px solid #e3e8e5; border-radius: 10px; background: #fff; color: inherit; text-decoration: none; }
+.journey-focus-list a:hover, .journey-focus-list a:focus-visible { border-color: #9bb0a2; }
+.journey-focus-title { overflow: hidden; color: #2f3f45; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.journey-focus-list small { overflow: hidden; color: #78857b; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.journey-focus-ready { flex: none; padding: 3px 8px; border-radius: 999px; background: #e3efe7; color: #3e6b54; font-size: 10px; font-weight: 700; }
 .journey-notice.is-applied, .journey-notice.is-milestone { animation: momentum-confirm 320ms cubic-bezier(.2,.75,.25,1) both; }
 .journey-notice.is-applied > span { color: #4c874e; }
 .journey-notice.is-milestone { border-color: #d9d8b6; background: #f8f6e8; color: #625d34; }
@@ -1839,6 +1853,11 @@ html[data-theme="dark"] .quest-outcome-options { border-color: #4a565e; backgrou
 @keyframes reward-step-in { from { opacity: 0; transform: translateY(5px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 html[data-theme="dark"] .journey-momentum { border-color: #3d474e; border-left-color: #89988f; background: #1b2227; }
+html[data-theme="dark"] .journey-focus { border-color: #3d474e; border-left-color: #6f9a86; background: #1b2227; }
+html[data-theme="dark"] .journey-focus-heading h2, html[data-theme="dark"] .journey-focus-title { color: #e2e7ea; }
+html[data-theme="dark"] .journey-focus-headline, html[data-theme="dark"] .journey-focus-list small { color: #aab4b9; }
+html[data-theme="dark"] .journey-focus-list a { border-color: #3d474e; background: #222b31; }
+html[data-theme="dark"] .journey-focus-ready { background: #26352a; color: #bcd39f; }
 html[data-theme="dark"] .journey-momentum-title { color: #aeb9b0; }
 html[data-theme="dark"] .journey-momentum-title > span:first-child { background: #26352a; color: #bcd39f; }
 html[data-theme="dark"] .journey-momentum-value { color: #e2e7ea; }

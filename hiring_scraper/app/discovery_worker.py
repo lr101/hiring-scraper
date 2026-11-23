@@ -8,7 +8,6 @@ import os
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor
-from threading import Lock
 from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -19,7 +18,10 @@ from sqlalchemy.orm import selectinload
 
 from hiring_scraper.app.enrichment import refresh_enrichment, preserve_verified_detail
 from hiring_scraper.app.applications import close_job_applications
-from hiring_scraper.app.database import SessionLocal, engine, is_transient_database_error
+from hiring_scraper.app import source_changes
+from hiring_scraper.app.database import (
+    SessionLocal, is_transient_database_error, log_worker_failure, retry_transient,
+)
 from hiring_scraper.app.crawl_ranking import refresh_company_rank, next_company_due, next_feed_due
 from hiring_scraper.app.national_discovery import advance_map_cursor
 from hiring_scraper.app.discovery_jobs import (
@@ -69,7 +71,6 @@ CAPTURE_DIR = Path(os.getenv("CAREER_DISCOVERY_CAPTURE_DIR", "/tmp/hiring-scrape
 USER_AGENT = os.getenv("HIRING_USER_AGENT", "HiringScraper/0.2 (public career discovery)")
 FEED_INTERVAL_HOURS = max(1, int(os.getenv("FEED_SCAN_INTERVAL_HOURS", "6")))
 _ORIGIN_PACER = ORIGIN_PACER
-_SQLITE_FINALIZE_LOCK = Lock()
 
 _CAREER_STATUS = {
     "career_content_found": "career_page_found",
@@ -127,8 +128,7 @@ def _claim_due_company() -> tuple[int, int] | None:
                             or_(Company.next_discovery_at.is_(None), Company.next_discovery_at <= now),
                             or_(Company.discovery_lease_until.is_(None), Company.discovery_lease_until < now))
                      .order_by(Company.next_discovery_at.asc().nullsfirst(), Company.crawl_priority.desc(), Company.id).limit(1))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True)
+        statement = statement.with_for_update(skip_locked=True)
         company = session.scalars(statement).first()
         if company is None:
             return None
@@ -189,8 +189,7 @@ def _claim_due_homepage_resolution(now=None) -> tuple[int, int, str] | None:
                                 Company.homepage_resolution_lease_until < now))
                      .order_by(Company.crawl_priority.desc(), Company.employee_count.desc().nullslast(),
                                Company.homepage_resolution_next_at, Company.id).limit(1))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True)
+        statement = statement.with_for_update(skip_locked=True)
         company = session.scalars(statement).first()
         if company is None:
             return None
@@ -247,6 +246,7 @@ def _process_homepage_resolution(claim: tuple[int, int, str]) -> bool:
             company.homepage_resolution_attempts = 0
             refresh_company_rank(session, company, now)
             company.next_discovery_at = now
+            source_changes.companies_changed(session, [company.id])
         elif attempt < HOMEPAGE_RESOLUTION_MAX_ATTEMPTS:
             # A verified lead may appear later; keep retries rare after the first,
             # and spread them according to company size.
@@ -368,6 +368,9 @@ def _upsert_jobs(session, feed: JobFeed, rows: list[dict], complete: bool,
     feed.last_error = None if complete else "Discovery returned a partial job list; no jobs were closed."
     feed.next_scan_at = now + timedelta(hours=FEED_INTERVAL_HOURS)
     feed.attempt_count = 0
+    session.flush()
+    # Declare here, where the rows are written: changed content, reopened and closed postings.
+    source_changes.jobs_changed(session, touched_job_ids | closed_job_ids)
     return seen_job_ids, touched_job_ids, closed_job_ids
 
 
@@ -466,9 +469,10 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
             elif not board.get("complete"):
                 continue
             source_job_ids.update(session.scalars(source_query.order_by(Job.id)).all())
-        reserve_job_source_rows(session, source_job_ids, reserve_match_owners=True)
+        reserve_job_source_rows(session, source_job_ids)
         # Career listings with no current postings still need direct future checks.
         # Do not turn individual vacancy pages or untrusted pages into listings.
+        new_feeds: list[JobFeed] = []
         if not parsed_boards:
             for page in career_pages:
                 url = page.get("url")
@@ -480,10 +484,12 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                                feed_url=url, status="pending", job_count=0, next_scan_at=now)
                 session.add(feed)
                 feed_by_key[key] = feed
+                new_feeds.append(feed)
         observed_job_ids: set[int] = set()
         touched_job_ids: set[int] = set()
         closed_job_ids: set[int] = set()
         updated_feed_ids = set()
+        changed_feeds: list[JobFeed] = []  # new feeds or edited provider/tenant
         for board in parsed_boards:
             jobs = board.get("jobs", [])
             if board.get("provider") in {"html_jobs", "browser_html"}:
@@ -503,6 +509,7 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                     if feed.lease_until is None and feed.provider != board["provider"]:
                         feed.provider = board["provider"]
                         feed.source_revision = (feed.source_revision or 0) + 1
+                        changed_feeds.append(feed)
                     feed_by_key[key] = feed
             if feed is None:
                 if (board["provider"] == "recruitee" and session.scalar(
@@ -523,7 +530,10 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 session.add(feed)
                 session.flush()
                 feed_by_key[key] = feed
+                changed_feeds.append(feed)
             else:
+                if (board.get("tenant") or feed.tenant) != feed.tenant:
+                    changed_feeds.append(feed)
                 feed.tenant = board.get("tenant") or feed.tenant
                 feed.board_url = board.get("board_url") or feed.board_url
             observed, touched, closed = _upsert_jobs(session, feed, jobs, bool(board.get("complete")), now)
@@ -542,6 +552,8 @@ def _persist_discovery(company_id: int, run_id: int, result: dict,
                 feed.job_count = session.scalar(select(func.count(Job.id)).where(
                     Job.feed_id == feed.id, Job.is_active.is_(True)))
 
+        session.flush()
+        source_changes.feeds_changed(session, [feed.id for feed in (*new_feeds, *changed_feeds)])
         if touched_job_ids:
             refresh_application_matches_for_jobs(
                 session, touched_job_ids,
@@ -674,8 +686,7 @@ def _claim_location_company_search(now=None) -> tuple[int, str] | None:
                                  or_(DiscoveryJob.location_scan_lease_until.is_(None),
                                      DiscoveryJob.location_scan_lease_until <= now))))
                      .order_by(DiscoveryJob.created_at, DiscoveryJob.id).limit(1))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True)
+        statement = statement.with_for_update(skip_locked=True)
         job = session.scalars(statement).first()
         if job is None:
             return None
@@ -691,8 +702,7 @@ def _claim_location_company_search(now=None) -> tuple[int, str] | None:
 
 def _lock_location_scan_attempt(session, job_id: int, attempt_token: str, now):
     statement = select(DiscoveryJob).where(DiscoveryJob.id == job_id)
-    if engine.dialect.name == "postgresql":
-        statement = statement.with_for_update()
+    statement = statement.with_for_update()
     job = session.scalars(statement).first()
     if (job is None or job.stage != "company_homepage_discovery" or job.status != "running" or
             not attempt_token or job.location_scan_token != attempt_token):
@@ -734,6 +744,7 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
             return
 
         imported = {}
+        changed_companies: set[int] = set()
         for candidate in candidates:
             source_id = str(candidate.get("source_id") or "").strip()
             name = str(candidate.get("name") or "").strip()
@@ -742,6 +753,7 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
             company = session.scalar(select(Company).where(
                 Company.source == "openstreetmap", Company.source_id == source_id))
             new_company = company is None
+            before = None if new_company else source_changes.tracked_values(company)
             website_url = candidate.get("website_url")
             if company is None:
                 company = Company(
@@ -787,6 +799,8 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                 company.employee_count = candidate['employee_count']
                 company.size_evidence = {**(company.size_evidence or {}), **incoming_size}
             session.flush()
+            if new_company or source_changes.tracked_values(company) != before:
+                changed_companies.add(company.id)
             refresh_company_rank(session, company, now,
                                  fresh_employer_evidence=fresh_size_evidence)
             crawl_company = company
@@ -797,6 +811,7 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                     crawl_company = session.get(Company, canonical_id)
                     is_domain_alias = crawl_company is not None
                     if crawl_company is not None:
+                        root_before = source_changes.tracked_values(crawl_company)
                         crawl_company.country_code = 'DE'
                         root_fresh_size_evidence = False
                         if (company.employee_count or 0) > (crawl_company.employee_count or 0):
@@ -816,6 +831,8 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
                                 crawl_company.domain = company.domain
                                 crawl_company.domain_match_method = company.domain_match_method
                                 crawl_company.domain_evidence_url = company.domain_evidence_url
+                        if source_changes.tracked_values(crawl_company) != root_before:
+                            changed_companies.add(crawl_company.id)
                         refresh_company_rank(session, crawl_company, now,
                                              fresh_employer_evidence=root_fresh_size_evidence)
                         # Office rows remain searchable, but share the canonical
@@ -878,6 +895,7 @@ def _persist_location_companies(job_id: int, attempt_token: str, candidates: lis
             imported[source_id] = bool(website_url)
 
         session.flush()
+        source_changes.companies_changed(session, changed_companies)
         if map_cursor is not None:
             job.map_cursor = map_cursor
             job.location_scan_lease_until = None
@@ -964,11 +982,15 @@ def _register_known_career_pages(session, now, company_ids=None) -> None:
     )
     if company_ids is not None:
         statement = statement.where(Company.id.in_(company_ids))
+    created = []
     for company in session.scalars(statement.with_for_update()).all():
-        session.add(JobFeed(company_id=company.id, provider="html_jobs",
-                            board_url=company.career_url, feed_url=company.career_url,
-                            status="pending", job_count=0, next_scan_at=now))
+        feed = JobFeed(company_id=company.id, provider="html_jobs",
+                       board_url=company.career_url, feed_url=company.career_url,
+                       status="pending", job_count=0, next_scan_at=now)
+        session.add(feed)
+        created.append(feed)
     session.flush()
+    source_changes.feeds_changed(session, [feed.id for feed in created])
 
 
 def _enqueue_known_sources(session, job, now) -> None:
@@ -1038,8 +1060,7 @@ def schedule_due_locations(now=None) -> int:
                             ConfiguredLocation.next_run_at <= now)
                      .order_by(ConfiguredLocation.next_run_at, ConfiguredLocation.id)
                      .limit(25))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True)
+        statement = statement.with_for_update(skip_locked=True)
         statement = statement.where(ConfiguredLocation.search_scope != 'country')
         locations = session.scalars(statement).all()
         for location in locations:
@@ -1074,9 +1095,8 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                                    DiscoveryJob.status.in_(("scheduled", "queued", "running")),
                                    Company.crawl_paused.is_(True))
                             .order_by(DiscoveryJobCompany.id).limit(100))
-        if engine.dialect.name == "postgresql":
-            paused_statement = paused_statement.with_for_update(
-                skip_locked=True, of=(DiscoveryJobCompany, Company))
+        paused_statement = paused_statement.with_for_update(
+            skip_locked=True, of=(DiscoveryJobCompany, Company))
         for item in session.scalars(paused_statement).all():
             item.status = "skipped"
             item.finished_at = now
@@ -1103,9 +1123,8 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                                   DiscoveryJobCompany.started_at < stale_before)
                            .order_by(DiscoveryJobCompany.started_at, DiscoveryJobCompany.id)
                            .limit(100))
-        if engine.dialect.name == "postgresql":
-            stale_statement = stale_statement.with_for_update(
-                skip_locked=True, of=(DiscoveryJobCompany, Company))
+        stale_statement = stale_statement.with_for_update(
+            skip_locked=True, of=(DiscoveryJobCompany, Company))
         stale_items = session.scalars(stale_statement).all()
         for item in stale_items:
             item.status = "queued"
@@ -1139,9 +1158,8 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                                   DiscoveryJob.search_scope == "country",
                                   DiscoveryJob.status.in_(("scheduled", "queued", "running")))
                            .order_by(DiscoveryJobCompany.id).limit(100))
-        if engine.dialect.name == "postgresql":
-            alias_statement = alias_statement.with_for_update(skip_locked=True,
-                                                               of=(DiscoveryJobCompany,))
+        alias_statement = alias_statement.with_for_update(skip_locked=True,
+                                                           of=(DiscoveryJobCompany,))
         alias_items = session.scalars(alias_statement).all()
         roots = canonical_company_map(session, [item.company_id for item in alias_items])
         for alias_item in alias_items:
@@ -1180,8 +1198,7 @@ def _claim_campaign_company(now=None) -> tuple[int, int, int, int] | None:
                                Company.next_discovery_at.asc().nullsfirst(), DiscoveryJob.id.asc(),
                                DiscoveryJobCompany.id.asc())
                      .limit(1))
-        if engine.dialect.name == "postgresql":
-            statement = statement.with_for_update(skip_locked=True, of=(DiscoveryJobCompany, Company))
+        statement = statement.with_for_update(skip_locked=True, of=(DiscoveryJobCompany, Company))
         item = session.scalars(statement).first()
         if item is None:
             return None
@@ -1362,11 +1379,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
             if item_id is not None:
                 _finish_campaign_company(item_id, run_id, error=error)
 
-        if engine.dialect.name == "sqlite":
-            with _SQLITE_FINALIZE_LOCK:
-                record_missing_website()
-        else:
-            record_missing_website()
+        record_missing_website()
         return True
     try:
         capture_dir = CAPTURE_DIR / f"company-{company_id}"
@@ -1380,18 +1393,10 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
                 _finish_campaign_company(item_id, run_id, jobs_found=jobs or 0)
             return jobs
 
-        for attempt in range(3):
-            try:
-                if engine.dialect.name == "sqlite":
-                    with _SQLITE_FINALIZE_LOCK:
-                        jobs = persist_result()
-                else:
-                    jobs = persist_result()
-                break
-            except ProfileIndexChanged:
-                if attempt == 2:
-                    raise
-                time.sleep(min(0.25 * 2 ** attempt, 1.0) + random.uniform(0, 0.1))
+        # Keep the crawl result through short lock contention instead of
+        # discarding it and re-crawling the site after the lease expires.
+        jobs = retry_transient(persist_result, action=f"saving discovery for company {company_id}",
+                               attempts=4, retry_on=(ProfileIndexChanged,))
         LOG.info("company discovery id=%s name=%r status=%s pages=%s jobs=%s",
                  company_id, seed["name"], result.get("status"), len(result.get("pages", [])), jobs)
     except Exception as error:
@@ -1404,11 +1409,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
                 _defer_employer_contention(
                     company_id, run_id, error, campaign_item_id=item_id)
 
-            if engine.dialect.name == "sqlite":
-                with _SQLITE_FINALIZE_LOCK:
-                    defer_retry()
-            else:
-                defer_retry()
+            defer_retry()
             LOG.warning("company discovery deferred id=%s name=%r: %s",
                         company_id, seed["name"], error)
         else:
@@ -1419,11 +1420,7 @@ def _process_claimed_company(claim: tuple[int, int, int | None, int | None]) -> 
                 if item_id is not None:
                     _finish_campaign_company(item_id, run_id, error=error)
 
-            if engine.dialect.name == "sqlite":
-                with _SQLITE_FINALIZE_LOCK:
-                    record_failure()
-            else:
-                record_failure()
+            record_failure()
     return True
 
 
@@ -1517,7 +1514,7 @@ def main() -> None:
         except (DBAPIError, DatabasePoolTimeout) as error:
             if not is_transient_database_error(error):
                 raise
-            LOG.warning('Discovery database cycle failed; backing off before retry', exc_info=True)
+            log_worker_failure(LOG, 'Discovery database cycle failed; backing off before retry', error)
             worked = False
         time.sleep(CRAWL_BATCH_DELAY_SECONDS if worked else POLL_SECONDS)
 

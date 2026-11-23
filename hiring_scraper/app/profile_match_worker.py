@@ -11,6 +11,7 @@ from hiring_scraper.app.job_search import ProfileIndexChanged, refresh_profile_m
 from hiring_scraper.app.profile_semantics import refresh_semantic_documents_once
 from hiring_scraper.app.profile_llm import refresh_llm_scores_once, sync_matching_queue, matching_worker_heartbeat
 from hiring_scraper.app import codex_runtime
+from hiring_scraper.app.database import log_worker_failure
 from hiring_scraper.app.auto_preparation import prepare_once
 
 
@@ -49,9 +50,18 @@ def matching_loop(stop):
                 if allowed:
                     while len(active) < codex_runtime.inference_concurrency():
                         active.add(pool.submit(refresh_llm_scores_once, sync=False))
-            except Exception:
-                LOG.exception('AI matching scheduler will retry')
+            except Exception as error:
+                log_worker_failure(LOG, 'AI matching scheduler will retry', error)
             stop.wait(POLL_SECONDS)
+
+
+def _run_match_stage(refresh) -> None:
+    try:
+        refresh()
+    except ProfileIndexChanged:
+        LOG.warning("Matching inputs changed; retrying the affected page next cycle")
+    except Exception as error:
+        log_worker_failure(LOG, "Could not refresh profile matches; retrying next cycle", error)
 
 
 def main() -> None:
@@ -63,30 +73,25 @@ def main() -> None:
     next_preparation_attempt = 0.0
     try:
         while True:
-            for refresh in (refresh_profile_match_indexes_once, refresh_dirty_job_matches_once):
-                try:
-                    refresh()
-                except ProfileIndexChanged:
-                    LOG.warning("Matching inputs changed; retrying the affected page next cycle")
-                except Exception:
-                    LOG.exception("Could not refresh profile matches; retrying next cycle")
-            # Each stage gets a turn even during backfill or a failed index page.
-            # AI selection reads current source facts and validates them again on
-            # publication; it does not depend on the materialized local index.
+            # Order: local rule backfill (cheap, never starved by the model), then
+            # vectors, then the changed-job rematch so edited postings use fresh
+            # semantic evidence. Each stage gets a turn even if another fails.
+            _run_match_stage(refresh_profile_match_indexes_once)
             if time.monotonic() >= next_semantic_attempt:
                 try:
                     refresh_semantic_documents_once()
                 except OSError:
                     LOG.warning('Local embedding service unavailable; rule matching continues; retrying in 30 seconds')
                     next_semantic_attempt = time.monotonic() + 30
-                except Exception:
-                    LOG.exception('Could not refresh local semantic profile evidence; retrying in 30 seconds')
+                except Exception as error:
+                    log_worker_failure(LOG, 'Could not refresh local semantic profile evidence; retrying in 30 seconds', error)
                     next_semantic_attempt = time.monotonic() + 30
+            _run_match_stage(refresh_dirty_job_matches_once)
             if time.monotonic() >= next_preparation_attempt:
                 try:
                     prepare_once()
-                except Exception:
-                    LOG.exception('Could not schedule automatic application preparation')
+                except Exception as error:
+                    log_worker_failure(LOG, 'Could not schedule automatic application preparation', error)
                 next_preparation_attempt = time.monotonic() + 30
             time.sleep(POLL_SECONDS)
     finally:

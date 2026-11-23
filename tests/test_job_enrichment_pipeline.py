@@ -1,18 +1,19 @@
 import json
 import unittest
 from unittest.mock import patch
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 from hiring_scraper.app import enrichment
 from hiring_scraper.app.discovery_worker import _upsert_jobs
 from hiring_scraper.app.models import Base, Company, Job, JobFeed, utcnow
 from hiring_scraper.ats import parse_feed
 from hiring_scraper.html_jobs import extract_html_jobs
+from tests import pg
 
 
 class JobEnrichmentPipelineTests(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine('sqlite://')
+        self.engine = pg.engine(self)
         Base.metadata.create_all(self.engine)
         self.factory = sessionmaker(bind=self.engine, expire_on_commit=False)
         with self.factory.begin() as session:

@@ -6,6 +6,8 @@ import { applicationStatuses, fetchApplicationResults, saveApplication, trackJob
 import type { Application, ApplicationStatus, ApplicationSwipeAction } from './applications'
 import { getApplicationMomentum } from './applicationMomentum'
 import type { ApplicationMomentum } from './applicationMomentum'
+import { focusHeadline, focusHref, getTodaysFocus } from './todaysFocus'
+import type { TodaysFocus } from './todaysFocus'
 import type { Enrichment, ProfileMatch } from './JobEvidence'
 import type { Profile } from './profile'
 
@@ -157,10 +159,13 @@ export default function ApplicationsPage() {
   const [momentum, setMomentum] = useState<ApplicationMomentum | null>(null)
   const momentumRef = useRef<ApplicationMomentum | null>(null)
   const [momentumRefreshKey, setMomentumRefreshKey] = useState(0)
+  const [focus, setFocus] = useState<TodaysFocus | null>(null)
+  const [focusRefreshKey, setFocusRefreshKey] = useState(0)
   const [savingKeys, setSavingKeys] = useState<Set<string>>(() => new Set())
   const savingKeysRef = useRef(new Set<string>())
   const [pendingStatuses, setPendingStatuses] = useState<Record<string, ApplicationStatus>>({})
   const activeProfileKey = activeProfileIds.join(',')
+  const focusProfileId = activeProfileIds[0] ?? profiles[0]?.id
   const allProfilesActive = profiles.length > 0 && activeProfileIds.length === profiles.length
   const hasSavingJob = savingKeys.size > 0
   const queryKey = applicationResultsKey(activeProfileKey, statuses, sortBy, offset)
@@ -401,6 +406,14 @@ export default function ApplicationsPage() {
   }, [momentumRefreshKey])
 
   useEffect(() => {
+    if (focusProfileId === undefined) return
+    let active = true
+    getTodaysFocus(API, focusProfileId).then(value => { if (active) setFocus(value) })
+      .catch(() => { if (active) setFocus(null) /* Focus is optional; the full Journey remains. */ })
+    return () => { active = false }
+  }, [focusProfileId, focusRefreshKey, momentumRefreshKey])
+
+  useEffect(() => {
     if (!profilesReady) return
     const url = new URL(window.location.href)
     url.searchParams.delete('profile_id')
@@ -547,6 +560,7 @@ export default function ApplicationsPage() {
         : `${job.title} · ${job.profileName} · ${label}`)
       setNoticeKind(applied ? 'applied' : 'standard')
       if (milestoneAction) setMomentumRefreshKey(current => current + 1)
+      else setFocusRefreshKey(current => current + 1)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save application status.')
     } finally {
@@ -652,6 +666,27 @@ export default function ApplicationsPage() {
           <strong className="journey-momentum-value">{momentum.successful_weeks}<span> {momentum.successful_weeks === 1 ? 'week' : 'weeks'}</span></strong>
           <small>{momentum.successful_weeks ? 'in a row' : 'Your first one starts here'}</small>
         </div>
+      </section>}
+
+      {profilesReady && focus && focusProfileId !== undefined && <section className="journey-focus" aria-labelledby="journey-focus-heading">
+        <div className="journey-focus-heading">
+          <h2 id="journey-focus-heading">Today’s focus</h2>
+          <div className="journey-focus-dots" role="img"
+            aria-label={`${Math.min(focus.sent_today, focus.daily_target)} of ${focus.daily_target} sent today`}>
+            {Array.from({ length: focus.daily_target }, (_, index) =>
+              <span key={index} className={index < focus.sent_today ? 'is-done' : ''} />)}
+          </div>
+        </div>
+        <p className="journey-focus-headline">{focusHeadline(focus)}</p>
+        {!focus.completed && focus.items.length > 0 && <ol className="journey-focus-list">
+          {focus.items.map(item => <li key={item.job_id}>
+            <a href={focusHref(item, focusProfileId)}>
+              <span className="journey-focus-title">{item.title}</span>
+              <small>{[item.company, item.reason].filter(Boolean).join(' · ')}</small>
+            </a>
+            {item.documents_ready && <span className="journey-focus-ready">Ready</span>}
+          </li>)}
+        </ol>}
       </section>}
 
       {profilesReady && profiles.length > 0 && momentum && <section className="journey-rewards" aria-label="Application rewards">
