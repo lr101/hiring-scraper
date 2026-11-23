@@ -491,7 +491,8 @@
     page-break-after: avoid;
   }
 
-  /* Keep compact trailing sections intact when short. */
+  /* Keep compact sections together so a continuation starts with its section heading. */
+  .doc-cv-section--education:not(:has(.doc-cv-entry ~ .doc-cv-entry ~ .doc-cv-entry)):not(:has(.doc-cv-bullet:nth-child(5))),
   .doc-cv-section--skills,
   .doc-cv-section--list:not(:has(.doc-cv-bullet:nth-child(6))) {
     break-inside: avoid;

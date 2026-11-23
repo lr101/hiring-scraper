@@ -226,7 +226,7 @@ function renderEntry(
   const genericCompany = genericEntryLabel.test(trimmedCompany)
   const companyLine = genericCompany ? title : company
   const duplicateTitle = trimmedCompany.toLowerCase() === trimmedTitle.toLowerCase()
-  const showTitle = !genericCompany && !genericEntryLabel.test(trimmedTitle) && !duplicateTitle
+  const showTitle = !genericCompany && (!genericEntryLabel.test(trimmedTitle) || roleEntryLabel.test(trimmedTitle)) && !duplicateTitle
   const fallbackRoleTitle = (genericCompany || duplicateTitle)
     ? localizedRoleLabel(
       roleEntryLabel.test(label)
@@ -237,7 +237,7 @@ function renderEntry(
       language,
     )
     : ''
-  const titleText = showTitle ? title : fallbackRoleTitle
+  const titleText = showTitle ? localizedRoleLabel(trimmedTitle, language) || title : fallbackRoleTitle
 
   return (
     <article key={entry.id} className="doc-cv-entry" data-entry-id={entry.id}>

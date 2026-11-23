@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from xml.etree import ElementTree as ET
 
 from hiring_scraper.documents.import_tex import _classify_contact, _detect_language, _slugify
+from hiring_scraper.documents.editorial import normalize_internship, normalize_skills
 from hiring_scraper.documents.schema import (
     MAX_SECTION_UNITS,
     MAX_UNIT_TEXT,
@@ -715,6 +716,11 @@ def _build(
             break
     if not any(s.entries for s in sections) and not any(s.units for s in sections):
         raise DocxImportError('No CV sections were recognized in the DOCX document.')
+    for section in sections:
+        if section.kind == 'skills':
+            normalize_skills(section)
+        for entry in section.entries:
+            normalize_internship(entry, language)
     return CvDocument(
         language=language,
         page=page,

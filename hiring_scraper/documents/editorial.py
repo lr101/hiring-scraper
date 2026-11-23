@@ -10,7 +10,6 @@ from hiring_scraper.documents.schema import (
     CvDocument,
     DocumentLanguage,
     Entry,
-    LetterDocument,
     Section,
     Unit,
     walk_units,
@@ -222,6 +221,79 @@ def has_en_contraction(text: str) -> bool:
     return bool(EN_CONTRACTION.search(_QUOTED_SPAN.sub(' ', text)))
 
 
+def sentences(text: str) -> list[str]:
+    """Split prose at sentence endings, skipping initials and common abbreviations."""
+    return [
+        part.strip() for part in re.split(
+            r'(?<!\b[A-ZÄÖÜ]\.)(?<!\bDr\.)(?<!\bMr\.)(?<!\bMs\.)(?<!\bvs\.)'
+            r'(?<=[.!?])\s+', text.strip(),
+        ) if part.strip()
+    ]
+
+
+def sentence_opening(sentence: str, language: DocumentLanguage) -> str:
+    """Recognize repeated first-person structures as well as identical opening words."""
+    tokens = words(sentence)
+    if not tokens:
+        return ''
+    first = tokens[0]
+    if language == 'de':
+        first_clause = words(sentence.split(',', 1)[0])
+        if first in _NON_VERB_OPENERS and 'ich' in first_clause[2:10]:
+            return 'fronted first person'
+    else:
+        _, comma, main = sentence.partition(',')
+        if comma and first in _NON_VERB_OPENERS and re.match(r'\s*I\b', main):
+            return 'fronted first person'
+        if first == 'my' and len(tokens) > 1:
+            return 'first person possessive'
+    return first
+
+
+def sentence_phrases(text: str, *, size: int = 4) -> set[tuple[str, ...]]:
+    return set().union(*(ngrams(sentence, size) for sentence in sentences(text)))
+
+
+def repeated_profile_term(text: str) -> bool:
+    tokens = (token for token in _prose_words(text)
+              if token.isalpha() and len(token) >= 3 and token not in _NGRAM_STOPWORDS)
+    return any(count >= 3 for count in Counter(map(_stem, tokens)).values())
+
+
+def normalize_skills(section: Section) -> None:
+    regular: list[Unit] = []
+    qualified: list[Unit] = []
+    for unit in section.units:
+        text = unit_full_text(unit)
+        prefix = re.fullmatch(r'(Grundlagen|Basics)\s*:\s*(.+)', text, re.I)
+        if prefix:
+            qualifier, skill = prefix.groups()
+            normalized = f'{skill.strip()} ({qualifier.capitalize()})'
+            if len(normalized) <= MAX_UNIT_TEXT:
+                unit.lead_in = ''
+                unit.text = normalized
+        is_qualified = prefix or re.search(r'\((?:Grundlagen|Basics)\)$', unit.text, re.I)
+        (qualified if is_qualified else regular).append(unit)
+    section.units = regular + qualified
+
+
+def normalize_internship(entry: Entry, language: DocumentLanguage) -> None:
+    """Resolve placeholder titles only when the import identifies an internship."""
+    locked = entry.locked
+    company, title = locked.company.strip(), locked.title.strip()
+    if not title or not company:
+        return
+    duplicate = ' '.join(company.casefold().split()) == ' '.join(title.casefold().split())
+    company_is_role = bool(_ROLE_ENTRY_LABEL.fullmatch(company))
+    if company_is_role and not duplicate:
+        company = title
+    elif not (duplicate and _ROLE_ENTRY_LABEL.fullmatch(entry.label.strip())):
+        return
+    entry.locked = locked.model_copy(update={'company': company, 'title': 'Praktikum' if language == 'de' else 'Internship'})
+    if _ROLE_ENTRY_LABEL.fullmatch(entry.label.strip()):
+        entry.label = ''
+
+
 def employer_key(company: str, entry_id: str) -> str:
     """Normalize an employer or institution name so entries at the same organization group consistently."""
     cleaned = ' '.join(company.split())
@@ -410,8 +482,7 @@ def supports_competency(text: str, cited: Iterable[str], posting: str) -> bool:
 
 def profile_voice_issue(text: str, language: DocumentLanguage) -> str | None:
     """Detect verb-first or imperative CV profile openings that violate noun-phrase-led summary style."""
-    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', text.strip()) if s.strip()]
-    for idx, sentence in enumerate(sentences):
+    for idx, sentence in enumerate(sentences(text)):
         tokens = re.findall(r'[^\W\d_]+', sentence)
         if not tokens:
             continue
@@ -522,10 +593,10 @@ def repeated_paragraph_endings(paragraphs: Iterable[Unit]) -> list[tuple[int, in
     for idx, unit in enumerate(paragraphs, 1):
         if unit.hidden or unit.role == 'close':
             continue
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', unit.text.strip()) if s.strip()]
-        if not sentences:
+        parts = sentences(unit.text)
+        if not parts:
             continue
-        tail_words = words(sentences[-1])
+        tail_words = words(parts[-1])
         matched_prev: int | None = None
         if len(tail_words) >= 3:
             prefix3 = tuple(tail_words[:3])
@@ -641,17 +712,14 @@ def merge_split_project_bullets(entry: Entry) -> bool:
 
 
 def normalize_study_entry(entry: Entry) -> None:
-    """Promote explicit DOCX degree labels, keep role labels for program entries, and promote project lead-ins."""
+    """Promote explicit DOCX degree labels and extract project lead-ins."""
     if entry.kind != 'study':
         return
     original_label = entry.label.strip()
-    role_hint = original_label if _ROLE_ENTRY_LABEL.fullmatch(original_label) else ''
     if GENERIC_ENTRY_LABEL.fullmatch(original_label):
         entry.label = ''
     locked = entry.locked
     if GENERIC_ENTRY_LABEL.fullmatch(locked.company.strip()):
-        if not role_hint and _ROLE_ENTRY_LABEL.fullmatch(locked.company.strip()):
-            role_hint = locked.company.strip()
         intro = next((unit for unit in entry.intro if not unit.hidden), None)
         promoted = False
         if intro and not intro.lead_in:
@@ -662,8 +730,6 @@ def normalize_study_entry(entry: Entry) -> None:
                 promoted = True
         if not promoted and locked.title.strip():
             entry.locked = locked = locked.model_copy(update={'company': locked.title})
-    if role_hint and locked.company.strip().casefold() == locked.title.strip().casefold():
-        entry.label = 'Praktikum' if role_hint.casefold() == 'praktikum' else 'Internship'
     visible_units = [u for u in entry.units if not u.hidden]
     if (
         len(visible_units) >= 2

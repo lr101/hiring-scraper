@@ -141,6 +141,16 @@ class DocxImportTests(unittest.TestCase):
         self.assertIn('cv:work-1:b2', evidence)
         self.assertIn('cv:study-1:i1', evidence)
 
+    def test_import_localizes_placeholder_internship_and_qualifies_skills(self):
+        source = fictional_paragraphs().replace('BEISPIEL UNIVERSITY', 'Internship').replace(
+            'M.Sc. Logistics', 'Alder Craft Studio',
+        ).replace('Forecasting • Data Cleaning • Stakeholder Reporting', 'Basics: Clay &amp; Glazes • Molding')
+        doc = import_docx(build_docx(source), language='de')
+        entry = next(section for section in doc.sections if section.kind == 'education').entries[0]
+        self.assertEqual((entry.locked.company, entry.locked.title), ('Alder Craft Studio', 'Praktikum'))
+        skills = next(section for section in doc.sections if section.kind == 'skills')
+        self.assertEqual([unit.text for unit in skills.units], ['Molding', 'Clay & Glazes (Basics)'])
+
     def test_letter_page_size(self):
         doc = import_docx(build_docx(fictional_paragraphs(page_w=12240)))
         self.assertEqual(doc.page, 'letter')

@@ -2,45 +2,50 @@ Task: tailor the CV to the posting. Preserve verified employers, titles, dates a
 order. Identify the core work the employer is hiring for and map it to the strongest evidence.
 
 Headline and profile
-- Write a one-line headline of at most 70 characters, preferably 45–60. Use 2–3 pipe-separated
-  functional focuses in the posting's role family backed strictly by the evidence (e.g.
-  "Product Development | Requirements & Prototyping | Stakeholder Coordination" style). Never
-  overstate the domain (e.g. never write "Software Development" when the evidence is product or
-  requirements coordination) and never claim an unverified job title, seniority, tenure or
-  ownership.
-- Write a noun-phrase-led profile summary (unit 1 of `profile`) of 3–4 sentences (~55–80 words)
-  with no explicit first person (no I, I'm, I've or ich) and no imperatives or clipped
-  verb-first fragments.
-  - Sentence 1 MUST begin with a noun phrase naming the applicant's verified professional
-    identity or degree from the evidence (e.g. "<Degree> engineer with …" /
-    "<Abschluss>-Ingenieurin mit …"). Never start sentence 1 with a verb.
-  - Subsequent sentences may use complete sentences or noun-phrase/participial constructions,
-    never bare imperatives or conjugated verb-first fragments (never start a sentence with
-    "Bringe", "Verfüge", "Verbinde", "Combine", "Turn", "Lead", etc.).
-  - Surface the 2–3 pieces of evidence most relevant to the posting's CORE responsibilities right
-    on page 1, even when that work appears in education or projects on page 2. Synthesize
-    across evidence instead of paraphrasing a bullet. Save motivation for the letter.
-- When 2–3 highly relevant projects or deliverables sit in education or later sections, add a
-  compact second unit in `profile` starting with "Selected projects:" (English) or
-  "Relevante Projekte:" (German) naming them concisely with their evidence `sources`. Otherwise
-  return one profile unit.
+- Write a one-line headline of at most 70 characters, preferably 45–60. Put the posting's
+  role-family keyword first when verified work is adjacent to that family. Frame it as a
+  functional focus, without implying a held title, seniority or ownership. Use the closest
+  truthful term if the role-family keyword would overstate the evidence. Add up to two
+  short, complementary focuses supported by the evidence. For example, for a Product Manager
+  posting with verified product discovery, requirements prioritization, or coordination of
+  early product development, use "Product Management" (German "Produktmanagement") as a
+  functional focus. Qualify it with the verified stage or focus, and add a domain such as
+  software or SaaS only if supported.
+- Return exactly one profile unit with 2–3 concise sentences. Open with a noun phrase naming
+  the applicant's verified professional identity or degree. Use active constructions with
+  the applicant as the actor (for example, "Engineer who mapped …" or "Ingenieurin, die …
+  entwickelte"). No explicit I/ich or she/he/sie/er, bare verb-first openings, or agentless
+  passives. Use the degree or professional identity once, in the first sentence only. Name
+  one relevant project or deliverable, or two if each proves a different core responsibility.
+  Mention each once, even if its entry falls on page 2. Give just the detail needed to show
+  what the applicant can do for this role. Avoid miniature case studies, repeated job or
+  degree labels, and separate project lists. No noun may occur three times, including
+  singular/plural variants. Save motivation for the letter.
 - Cite the actual work supporting each claim. If the profile names a past employer, cite a
   bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
 
 Entries
 - For each listed entry, select and reorder its bullets by relevance to the posting's CORE
-  responsibilities, including education projects. Cite the original bullet for every rewrite and
-  any career evidence that supplies further verified detail. Lead with the work closest to the
-  hiring responsibilities rather than the biggest result in a less relevant area. Use only
+  responsibilities, including education projects. Give the strongest entries concrete bridges
+  to duties explicitly named in the posting by showing a verified comparable action and result.
+  Use posting keywords where they accurately describe cited work: agile or iterative for verified
+  Kanban or iterations, data-driven for work using KPI analysis, market analysis for verified
+  market research, and cost analysis for verified costing. Name the underlying method and
+  keep its scope exact. Cite the original bullet for every rewrite and any career evidence
+  that supplies further verified detail. Lead with the work closest to the hiring responsibilities rather than the biggest result in a less relevant area. Use only
   evidence from the same employer or project.
 - Allocate bullets by relevance: give the most relevant role at least as many bullets as less
   relevant roles, and condense less relevant 4+ bullet roles to 2–3 focused bullets so page 1
-  holds more high-relevance content. For entries with fewer than 4 base bullets, stay within
-  one fewer to one more than the base count (at least one).
+  holds more high-relevance content. Omit low-relevance filler. For entries with fewer than
+  4 base bullets, stay within one fewer to one more than the base count (at least one).
+  For education or older roles outside the target domain, use the low end of this range
+  unless each additional bullet proves a distinct core duty in the posting. Favor a
+  transferable method that fits the work over an impressive but unrelated deliverable.
 - Merge overlapping duties within an entry: give each bullet a distinct responsibility, action
   and purpose. Before writing, assign each bullet a separate topic and put overlapping facts
   (such as coordination, requirements, stakeholder feedback or documentation) in one place
-  rather than splitting them across two bullets.
+  rather than splitting them across two bullets. Never repeat a phrase of four or more words
+  between bullets in the same entry. Use a recurring short term only if needed for precision.
 - Start each bullet with a direct past-tense active verb and concrete object (no explicit
   first-person OR third-person pronouns referring to the applicant — never write "I", "ich",
   "she", "he", "die sie koordinierte", etc.). Vary opening verbs across the entire CV: no
@@ -56,7 +61,10 @@ Entries
 - Aim for 18–28 words for most bullets and 25–40 for project bullets that need context. Use
   parallel objects and concise clauses. Retain distinguishing details (named collaborators,
   languages, tools, deliverables, suppliers, scope, verified metrics) once, where they best
-  substantiate that responsibility. Never add unsupported qualifiers ("technical"/"technisch",
+  substantiate that responsibility. Keep a relevant documented outcome and the activity that
+  produced it together. When the posting calls for sales enablement, customer training, or
+  working with partners, surface the corresponding verified deliverables and collaborator
+  details. Never add unsupported qualifiers ("technical"/"technisch",
   "strategic", "software", etc.) not present in the cited source.
 - Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
   with a colon and merge related details into that bullet. Do not follow a labelled project
@@ -66,7 +74,7 @@ Entries
 Skills
 - Tailor competencies deliberately: return existing unit ids in relevance order in `unit_ids`
   and put clearly irrelevant or low-value items in `hidden_ids` so the section stays sharp and
-  targeted.
+  targeted. Keep relevant basic skills qualified, self-contained, and last.
 - Use `additions` for up to 4 short (1–4 words maximum) evidence-backed bridge tags across the
   CV, or an empty list. Never write long phrases. Each tag must use at least one substantive
   term from the posting and draw the rest from the cited applicant evidence (compound nouns

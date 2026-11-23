@@ -23,8 +23,10 @@ Severity is high (misleading or wrong), medium (weakens the application) or info
 
 Patches: for AI-written units only, propose replacement text with a kind:
 - rephrase: same facts, better wording. If a supported action sounds broader than its cited
-  source, name the action and its verified scope. Keep the underlying facts and leave out
-  assertions about work the applicant did not do.
+  source, name the action and its verified scope. If a sentence joins independently
+  verified actions with an unsupported causal link, preserve both facts and rewrite them
+  as independent actions. Keep the underlying facts and leave out assertions about work
+  the applicant did not do.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
@@ -33,12 +35,10 @@ are already good.
 Check that:
 - CV headline uses evidence-backed role-family terms in at most 70 characters without
   overstating the domain.
-- CV profile is noun-phrase-led (starts with verified professional identity/degree, 3–4
-  sentences, no explicit first-person or third-person pronouns, no imperatives or clipped
-  verb-first fragments), surfaces the strongest matching evidence on page 1, and synthesizes
-  rather than repeating a bullet. A compact second profile unit ("Selected projects:" /
-  "Relevante Projekte:") naming 2–3 relevant projects from page 2 is intentional for page-1
-  visibility — do not flag it unless it copies a bullet verbatim or lists irrelevant projects.
+- CV profile is a single noun-phrase-led summary naming the strongest 1–2 matching pieces
+  of evidence once. Use active clauses with the applicant as actor, no pronouns referring
+  to the applicant, no agentless passives, and no noun three times. Flag a separate project
+  list or repeated wording. Check both keyword coverage and the scope supporting it.
 - CV bullets avoid third-person pronouns referring to the applicant (never "die sie
   koordinierte", "she", "he"), avoid unsupported qualifiers ("technical"/"technisch",
   "strategic", "software", etc.), merge overlapping duties, vary opening verbs (no verb
@@ -54,6 +54,9 @@ Check that:
   to studies, preserves exact leadership scope (e.g. coordination vs ownership), uses each
   employer or project at most once, connects every experience/education paragraph to the target
   role, varies sentence openings (avoid >2 consecutive "I "/"Ich " sentences) and paragraph
-  endings, grounds any proposed approach in a verified past method, uses fresh prose, keeps at
+  endings, uses no four-word phrase across paragraphs, names the target company in
+  motivation/closing with at most one other mention by paragraph, keeps examples to four
+  sentences with a concrete verified outcome where possible, includes one supported sentence
+  on English/international collaboration if the posting requires English or travel, grounds any proposed approach in a verified past method, uses fresh prose, keeps at
   most one conditional per paragraph, spells out English contractions, and ends with a natural
   closing line.

@@ -25,7 +25,9 @@ Evidence
   what it was used for, or what an action achieved only if the source makes that connection.
   Preserve who gave feedback and what it was about, at the specificity of the source.
 - Keep the action attached to the right object. Using standard materials does not mean
-  standardizing those materials. Keep the exact meaning of each measured quantity.
+  standardizing those materials. Keep the exact meaning of each measured quantity. If
+  sources name similar metrics differently, use the narrower definition explicitly supported
+  by the evidence. Cite the source for that definition and avoid merging different measures.
 - Never add unsupported qualifiers or scope adjectives (such as "technical"/"technisch",
   "strategic"/"strategisch", "commercial"/"kommerziell", "software", "enterprise", "global",
   or "end-to-end") to a verified fact unless the cited evidence explicitly supports that scope.

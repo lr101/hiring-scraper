@@ -164,6 +164,33 @@ class RenderTests(unittest.TestCase):
         for part in ('AUSBILDUNG', 'FIKTIVLABOR', 'Auswertung 1:', 'Auswertung 4:'):
             self.assertIn(part, pages[1])
 
+    def test_short_education_section_keeps_its_two_entries_under_one_heading(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=14)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='Ausbildung',
+            entries=[
+                Entry(
+                    id=f'study-{n}', kind='study',
+                    locked=LockedEntry(company=f'Fiktivlabor {n}', title='Forschungsprojekt',
+                                       start='2020', end='2020'),
+                    units=[
+                        Unit(id=f'u-study-{n}-b{i}', text=f'Auswertung {i}: '
+                             + 'Kalibrierte Sensoren für den Prüfstand mit dem Werkstattteam. ' * 3)
+                        for i in range(1, 4)
+                    ],
+                )
+                for n in (1, 2)
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertTrue(pages[1].lstrip().startswith('AUSBILDUNG'))
+        for company in ('FIKTIVLABOR 1', 'FIKTIVLABOR 2'):
+            self.assertIn(company, pages[1])
+
     def test_long_entry_avoids_single_orphan_bullet_at_top_of_page_two(self):
         from pypdf import PdfReader
 
@@ -183,7 +210,7 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(len(pages), 2)
         p1_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[0]]
         p2_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[1]]
-        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 2)
+        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 3)
         self.assertGreaterEqual(len(p2_items), 2)
 
     def test_long_cv_reports_overflow(self):
@@ -262,7 +289,7 @@ class RenderTests(unittest.TestCase):
                 self.assertIn(expected, result.text)
                 self.assertEqual(result.text.upper().count('APPLIED CRAFT FELLOWSHIP'), 1)
 
-    def test_four_bullet_entry_splits_and_telemetry_reports_page_fill_ratios(self):
+    def test_four_bullet_entry_moves_whole_and_telemetry_reports_page_fill_ratios(self):
         from pypdf import PdfReader
 
         doc = fictional_cv(bullets=13)
@@ -281,17 +308,33 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(len(pages), 2)
         p1_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[0]]
         p2_items = [n for n in range(1, 5) if f'Messreihe {n}:' in pages[1]]
-        self.assertEqual(p1_items, [1, 2])
-        self.assertEqual(p2_items, [3, 4])
+        self.assertEqual(p1_items, [])
+        self.assertEqual(p2_items, [1, 2, 3, 4])
+        self.assertIn('FIKTIVLABOR', pages[1])
         ratios = result.telemetry['page_fill_ratios']
         self.assertEqual(len(ratios), 2)
-        self.assertGreater(ratios[0], 0.8)
+        self.assertGreater(ratios[0], 0.75)
         self.assertLessEqual(ratios[0], 1.0)
 
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:
             application_pdf.render_document('cv', {'format': 'radius-cv-v2'})
         self.assertEqual(ctx.exception.code, 'invalid_document')
+
+
+class PaginationCheckTests(unittest.TestCase):
+    def test_checks_bullets_against_the_actual_header_page(self):
+        for count, on_first, expected in [
+            (4, 0, ['work-1']), (4, 3, ['work-1']),
+            (5, 2, ['work-1']), (5, 3, []), (5, 5, []),
+        ]:
+            with self.subTest(count=count, on_first=on_first):
+                doc = fictional_cv(bullets=count)
+                entry = doc.sections[1].entries[0]
+                bullets = [unit.text for unit in entry.units]
+                pages = ['\n'.join([entry.locked.company, entry.locked.title, *bullets[:on_first]]),
+                         '\n'.join(bullets[on_first:])]
+                self.assertEqual(application_pdf._orphan_entry_breaks(doc, pages), expected)
 
 
 class AvailabilityTests(unittest.TestCase):

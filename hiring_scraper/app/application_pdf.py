@@ -25,8 +25,10 @@ import os
 import re
 import threading
 import unicodedata
+from bisect import bisect_right
 from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
+from itertools import accumulate
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import unquote, urlsplit
@@ -323,41 +325,49 @@ def _reading_order_check(model: CvDocument | LetterDocument, text: str) -> dict:
 
 
 def _orphan_entry_breaks(model: CvDocument, page_texts: list[str]) -> list[str]:
-    """Return entry ids that split mid-entry across pages with <= 4 bullets total or < 3 bullets on the first page."""
+    """Find entries whose bullets cross pages without enough content beside the header."""
     if len(page_texts) < 2:
         return []
-    page_runs = [_squash(page) for page in page_texts]
+    runs = [_squash(page) for page in page_texts]
+    boundaries = list(accumulate(map(len, runs)))
+    extracted = ''.join(runs)
     broken: list[str] = []
+    cursor = 0
     for section in model.sections:
         for entry in section.entries:
-            visible = [u for u in entry.units if not u.hidden]
-            if not visible:
-                continue
-            bullet_pages: list[int] = []
-            min_page = 0
-            for unit in visible:
+            start = cursor
+            first_unit = None
+            bullet_ends: list[int] = []
+            bullets = [unit for unit in entry.units if not unit.hidden]
+            intro = [unit for unit in entry.intro if not unit.hidden]
+            for idx, unit in enumerate(intro + bullets):
                 run = _squash(unit_full_text(unit))
-                probe = run[:40]
-                if not probe:
+                if not run or (offset := extracted.find(run, cursor)) == -1:
                     continue
-                found: int | None = None
-                for idx in range(min_page, len(page_runs)):
-                    if probe in page_runs[idx]:
-                        found = idx
+                cursor = offset + len(run)
+                if first_unit is None:
+                    first_unit = offset
+                if idx >= len(intro):
+                    bullet_ends.append(cursor - 1)
+            if first_unit is None or not bullet_ends:
+                continue
+            # The company is the first header line. A generic import placeholder
+            # may render the title in its place.
+            header = -1
+            for value in (entry.locked.company, entry.locked.title):
+                if value.strip():
+                    header = extracted.rfind(_squash(value), start, first_unit)
+                    if header != -1:
                         break
-                if found is None:
-                    for idx, page_run in enumerate(page_runs):
-                        if probe in page_run:
-                            found = idx
-                            break
-                if found is not None:
-                    bullet_pages.append(found)
-                    min_page = found
-            if len(set(bullet_pages)) > 1:
-                first_page = bullet_pages[0]
-                on_first = sum(1 for p in bullet_pages if p == first_page)
-                if len(visible) <= 4 or on_first < 3:
-                    broken.append(entry.id)
+            if header == -1:
+                continue
+            header_page = bisect_right(boundaries, header)
+            on_header_page = sum(
+                bisect_right(boundaries, end) == header_page for end in bullet_ends
+            )
+            spills = any(bisect_right(boundaries, end) > header_page for end in bullet_ends)
+            if spills and (len(bullets) <= 4 or on_header_page < 3):
+                broken.append(entry.id)
     return broken
 
 

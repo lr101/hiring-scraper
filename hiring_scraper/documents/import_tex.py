@@ -13,6 +13,7 @@ from typing import Any, Literal
 
 from pydantic import ValidationError
 
+from hiring_scraper.documents.editorial import normalize_internship, normalize_skills
 from hiring_scraper.documents.schema import (
     Contact,
     CvDocument,
@@ -1315,6 +1316,11 @@ class _DocumentBuilder:
             )
 
         resolved_lang: DocumentLanguage = language or _detect_language(' '.join(all_text_samples))
+        for section in built_sections:
+            if section.kind == 'skills':
+                normalize_skills(section)
+            for entry in section.entries:
+                normalize_internship(entry, resolved_lang)
         return CvDocument(
             format='radius-cv-v2',
             language=resolved_lang,

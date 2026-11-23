@@ -62,8 +62,8 @@ def letter_reply():
                      'to participate. A small decision about what to put on the table can make it easier '
                      'for people to join in at their own pace.'},
             {'role': 'bring', 'sources': ['job'],
-             'text': 'I would like to learn how your staff test activities with visitors before an exhibit opens. '
-                     'I bring an eye for the practical details, from the way the first instruction '
+             'text': 'I am curious how your staff test activities with visitors before an exhibit opens. '
+                     'My focus is on the practical details, from the way the first instruction '
                      'is worded to how people know they are welcome to explore the materials. '
                      'I also ask the floor staff what they hear when people get stuck during an activity.'},
         ],
@@ -235,6 +235,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(result.telemetry['attempts']['letter'], 3)
         self.assertIn('one paragraph per employer or project', prompts[2])
         self.assertIn('eight consecutive words', prompts[3])
+        self.assertIn('one paragraph per employer or project', prompts[3])
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_letter_retries_excessive_conditionals_and_contractions(self):
@@ -392,9 +393,9 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(entry1['intro'][0]['text'], 'Focus on museum accessibility.')
         self.assertEqual(entry1['intro'][1]['text'], 'Selected projects:')
         self.assertEqual(len(entry1['units']), 1)
-        self.assertEqual(entry2['label'], 'Praktikum')
+        self.assertEqual(entry2['label'], '')
         self.assertEqual(entry2['locked']['company'], 'Applied Craft Fellowship')
-        self.assertEqual(entry2['locked']['title'], 'Applied Craft Fellowship')
+        self.assertEqual(entry2['locked']['title'], 'Internship')
 
     def test_letter_keeps_city_with_region_and_omits_remote_only_location(self):
         base = CvDocument.model_validate(self.inp.base_cv)
@@ -413,7 +414,8 @@ class PipelineTests(unittest.TestCase):
         self.inp.job['description'] = 'Recruiting: Morgan. Collaborate with designer Avery Frost.'
         base = CvDocument.model_validate(self.inp.base_cv)
         for name, language, expected in [
-            ('Morgan', 'en', 'Dear Wren Museum Hiring Team,'),
+            ('Morgan', 'en', 'Dear Morgan,'),
+            ('Morgan', 'de', 'Sehr geehrte Damen und Herren,'),
             ('Morgan Frost', 'de', 'Sehr geehrte Damen und Herren,'),
             ('', 'de', 'Sehr geehrte Damen und Herren,'),
             ('Morgan Alder', 'de', 'Guten Tag Morgan Alder,'),
@@ -426,6 +428,94 @@ class PipelineTests(unittest.TestCase):
                 reply = {**letter_reply(), 'contact_name': name}
                 letter = pipeline._letter_draft(reply, self.inp, base)
                 self.assertEqual(letter.salutation.text, expected)
+
+    def test_email_alone_does_not_supply_a_first_name(self):
+        self.inp.job['description'] = 'Recruiting: Morgan@example.test'
+        self.assertEqual(pipeline._salutation(self.inp, 'Wren Museum', 'Morgan'),
+                         'Dear Wren Museum Hiring Team,')
+
+    def test_letter_checks_company_back_references_and_repeated_phrases(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = letter_reply()
+        reply['paragraphs'][1]['text'] += ' Wren Museum would benefit from clear instructions for visitors.'
+        reply['paragraphs'][2]['text'] += ' For Wren Museum, I could write clear instructions for visitors.'
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._letter_draft(reply, self.inp, base)
+        self.assertIn('letter_company_mentions', ctx.exception.codes)
+        self.assertIn('letter_repeated_phrase', ctx.exception.codes)
+
+    def test_letter_checks_consecutive_openings_and_experience_length(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = letter_reply()
+        reply['paragraphs'][1]['text'] = (
+            'I planned a workshop. I invited librarians. I demonstrated the first activity. '
+            'The group then tried it. Everyone finished a small model.'
+        )
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._letter_draft(reply, self.inp, base)
+        self.assertIn('letter_repeated_opening', ctx.exception.codes)
+        self.assertIn('letter_experience_length', ctx.exception.codes)
+
+    def test_german_letter_checks_repeated_fronted_first_person_openings(self):
+        self.inp.language = 'de'
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = letter_reply()
+        reply['paragraphs'][1]['text'] = (
+            'Mit zwei Werkstätten plante ich eine Ausstellung. '
+            'Im Anschluss erstellte ich Modelle. '
+            'Für die Eröffnung lud ich die Nachbarschaft ein.'
+        )
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._letter_draft(reply, self.inp, base)
+        self.assertIn('letter_repeated_opening', ctx.exception.codes)
+
+    def test_cv_rejects_a_separate_projects_summary(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = cv_reply()
+        reply['profile'].append({'text': 'Selected projects: Library workshop.', 'sources': ['cv:work-1:b1']})
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
+        self.assertIn('cv_profile_count', ctx.exception.codes)
+
+    def test_cv_checks_repeated_profile_terms_and_phrases_within_an_entry(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        reply = cv_reply()
+        reply['profile'][0]['text'] = (
+            'Designer focused on visitor workshops. The work connects workshops to exhibits. '
+            'Each workshop starts with a concrete goal.'
+        )
+        reply['entries'][0]['bullets'] = [
+            {'text': text, 'lead_in': '', 'sources': ['cv:work-1:b1']}
+            for text in ('Designed activities for library visitors after hours.',
+                         'Prepared a guide for library visitors after hours.')
+        ]
+        with self.assertRaises(pipeline._InvalidResponse) as ctx:
+            pipeline._cv_draft(reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '')
+        self.assertIn('cv_profile_repetition', ctx.exception.codes)
+        self.assertIn('cv_repeated_bullet_phrase', ctx.exception.codes)
+
+    def test_cv_normalizes_legacy_internship_titles_and_puts_qualified_skills_last(self):
+        for language, label, qualifier in [('en', 'Internship', 'Basics'), ('de', 'Praktikum', 'Grundlagen')]:
+            with self.subTest(language=language):
+                data = deepcopy(self.inp.base_cv)
+                data['language'] = language
+                entry = data['sections'][1]['entries'][0]
+                entry.update(kind='study', label=label)
+                entry['locked']['title'] = entry['locked']['company']
+                units = data['sections'][2]['units']
+                units.insert(0, {'id': 'u-basics', 'lead_in': qualifier + ':', 'text': 'Clay & Glazes'})
+                base = CvDocument.model_validate(data)
+                normalized = pipeline._new_cv(base)
+                self.assertEqual(normalized.sections[1].entries[0].locked.title, label)
+                self.assertEqual([u.text for u in normalized.sections[2].units],
+                                 ['Facilitation', f'Clay & Glazes ({qualifier})'])
+                self.assertEqual(normalized.sections[2].units[-1].lead_in, '')
+                reply = cv_reply()
+                reply['skills'][0]['unit_ids'].insert(0, 'u-basics')
+                drafted, _ = pipeline._cv_draft(
+                    reply, base, [{'entry_id': 'work-1', 'base_count': 1}], {}, '',
+                )
+                self.assertEqual(drafted.sections[2].units[-1].id, 'u-basics')
 
     def test_unknown_entry_does_not_replace_source_bullets(self):
         cv = cv_reply()
