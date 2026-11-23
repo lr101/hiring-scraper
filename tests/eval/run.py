@@ -25,6 +25,7 @@ from hiring_scraper.matching import VERSION as V1_VERSION
 from hiring_scraper.matching import match_job
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
+from tests.eval.ablation import ablate_lang_visa
 from tests.eval.metrics import (
     GRADE_SCORE_BANDS,
     GRADE_SCORE_TARGETS,
@@ -35,13 +36,15 @@ from tests.eval.metrics import (
     good_hidden_rate,
     hide_precision,
     hide_recall,
+    lang_visa_ablation_metrics,
     ndcg_at_k,
     pair_eligibility_disagreement,
     pairwise_auc,
-    ranking_auc,
-    ranking_relevance,
     precision_at_k,
     rank_indices,
+    ranking_auc,
+    ranking_relevance,
+    score_range_metrics,
     score_spread,
 )
 from tests.eval.semantic import build_semantic_evidence
@@ -277,6 +280,14 @@ def _lang_auc_gap(by_language: dict[str, dict]) -> float | None:
     return None
 
 
+def _ablation_pairs(rows: list[dict]) -> list[tuple[float, float]]:
+    return [
+        (float(r["score"]), float(r["ablated_score"]))
+        for r in rows
+        if r["eligible"] and r.get("lang_visa_ablated") and r.get("ablated_score") is not None
+    ]
+
+
 def _compute_profile_metrics(rows: list[dict]) -> dict:
     grades = [r["grade"] for r in rows]
     scores = [float(r["score"]) for r in rows]
@@ -292,6 +303,8 @@ def _compute_profile_metrics(rows: list[dict]) -> dict:
     score_pairs = _pair_scores(rows)
     elig_pairs = _pair_eligibilities(rows)
     spread = score_spread(scores)
+    range_m = score_range_metrics(grades, scores, is_hidden=hidden)
+    ablation_m = lang_visa_ablation_metrics(_ablation_pairs(rows))
     return _round_metrics(
         {
             "count": len(rows),
@@ -308,6 +321,8 @@ def _compute_profile_metrics(rows: list[dict]) -> dict:
             ),
             "band_error": band_error(grades, scores, is_hidden=hidden),
             "ece": expected_calibration_error(grades, scores, is_hidden=hidden),
+            **range_m,
+            **ablation_m,
             "score_spread": spread,
         }
     )
@@ -350,6 +365,8 @@ def _compute_aggregate_metrics(
     all_hidden = [not r["eligible"] for r in rows]
     score_pairs = _pair_scores(rows)
     elig_pairs = _pair_eligibilities(rows)
+    range_m = score_range_metrics(all_grades, all_scores, is_hidden=all_hidden)
+    ablation_m = lang_visa_ablation_metrics(_ablation_pairs(rows))
 
     return _round_metrics(
         {
@@ -381,6 +398,8 @@ def _compute_aggregate_metrics(
             "lang_auc_gap": _lang_auc_gap(by_language),
             "band_error": band_error(all_grades, all_scores, is_hidden=all_hidden),
             "ece": expected_calibration_error(all_grades, all_scores, is_hidden=all_hidden),
+            **range_m,
+            **ablation_m,
             "score_spread": score_spread(all_scores),
         }
     )
@@ -429,6 +448,17 @@ def evaluate(
             case_id=case["id"],
             matcher_name=matcher_name,
         )
+        lang_visa_ablated = False
+        ablated_score: float | None = None
+        if eligible:
+            ablated_job, lang_visa_ablated = ablate_lang_visa(case["job"])
+            if lang_visa_ablated:
+                ablated_result = matcher(ablated_job, case["profile"])
+                ablated_score, _ = _validate_matcher_result(
+                    ablated_result,
+                    case_id=f"{case['id']}:ablated",
+                    matcher_name=matcher_name,
+                )
         label = case["label"]
         tags = list(case.get("tags") or [])
         lang = case.get("lang") or case.get("language")
@@ -444,6 +474,8 @@ def evaluate(
             "should_hide": bool(label["should_hide"]),
             "score": score,
             "eligible": eligible,
+            "lang_visa_ablated": lang_visa_ablated,
+            "ablated_score": ablated_score,
             "fit_tier": result.get("fit_tier"),
             "conflicts": list(result.get("conflicts") or []),
             "unknowns": list(result.get("unknowns") or []),
@@ -612,6 +644,30 @@ def format_report(report: dict) -> str:
     sp = overall["score_spread"]
     lines.append("")
     lines.append(f"Plateau counts (29/59/85): {sp['plateau_counts']}")
+
+    lines.append("")
+    lines.append("Score range utilisation (visible cases):")
+    lines.append(
+        f"  strong_reach_80={overall['strong_reach_80']:.4f} | "
+        f"good_in_band={overall['good_in_band']:.4f} | "
+        f"irrelevant_below_30={overall['irrelevant_below_30']:.4f} | "
+        f"band_error={overall['band_error']:.4f}"
+    )
+    lines.append(
+        f"  max_value_share={overall['max_value_share']:.4f} | "
+        f"spread_p5_p95={overall['spread_p5_p95']:.2f} | "
+        f"max_score={overall['max_score']:.1f}"
+    )
+
+    lines.append("")
+    lines.append(
+        f"Language/visa ablation (visible ablated cases={overall['lang_visa_ablated_count']}):"
+    )
+    lines.append(
+        f"  mean_abs_delta={overall['lang_visa_mean_abs_delta']:.4f} | "
+        f"max_delta={overall['lang_visa_max_delta']:.2f} | "
+        f"band_jumps={overall['lang_visa_band_jumps']:.4f}"
+    )
 
     if report.get("hard_hide_recall"):
         lines.append("")

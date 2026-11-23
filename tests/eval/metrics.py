@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+from collections import Counter
 from collections.abc import Mapping, Sequence
 
 GRADE_SCORE_BANDS: dict[int, tuple[int, int]] = {
@@ -334,4 +335,114 @@ def score_spread(
         "distinct_count": len(set(floats)),
         "plateau_fraction": on_plateau / len(floats),
         "plateau_counts": plateau_counts,
+    }
+
+
+def percentile(values: Sequence[float], q: float) -> float:
+    """Linear-interpolated percentile ``q`` in [0, 100] (returns 0.0 when empty)."""
+    if q < 0.0 or q > 100.0:
+        raise ValueError(f"Percentile q must be in [0, 100], got {q!r}")
+    if not values:
+        return 0.0
+    xs = sorted(float(v) for v in values)
+    if len(xs) == 1:
+        return xs[0]
+    pos = (q / 100.0) * (len(xs) - 1)
+    lo = math.floor(pos)
+    hi = math.ceil(pos)
+    return xs[lo] + (pos - lo) * (xs[hi] - xs[lo])
+
+
+def score_band(score: float) -> int:
+    """Map a 0-100 score into grade band index (0: 0-29, 1: 30-59, 2: 60-79, 3: 80-100)."""
+    s = float(score)
+    if s < 30.0:
+        return 0
+    if s < 60.0:
+        return 1
+    if s < 80.0:
+        return 2
+    return 3
+
+
+def score_range_metrics(
+    grades: Sequence[int],
+    scores: Sequence[float],
+    *,
+    is_hidden: Sequence[bool] | None = None,
+) -> dict[str, float]:
+    """Compute 0-100 range utilisation metrics on visible cases only.
+
+    Returns:
+    - ``strong_reach_80``: share of visible grade-3 cases with score >= 80
+    - ``good_in_band``: share of visible grade-2 cases with score in [60, 79]
+    - ``irrelevant_below_30``: share of visible grade-0 cases with score < 30
+    - ``max_value_share``: max share of visible cases at any single rounded integer score
+    - ``spread_p5_p95``: p95 - p5 score spread across visible cases
+    - ``max_score``: maximum score observed across visible cases
+    """
+    if len(grades) != len(scores):
+        raise ValueError("grades and scores must have the same length")
+    if is_hidden is not None and len(is_hidden) != len(grades):
+        raise ValueError("is_hidden and grades must have the same length")
+    hidden_flags = [False] * len(grades) if is_hidden is None else list(is_hidden)
+
+    visible_pairs = [
+        (int(g), float(s))
+        for g, s, hidden in zip(grades, scores, hidden_flags)
+        if not hidden
+    ]
+    if not visible_pairs:
+        return {
+            "strong_reach_80": 0.0,
+            "good_in_band": 0.0,
+            "irrelevant_below_30": 0.0,
+            "max_value_share": 0.0,
+            "spread_p5_p95": 0.0,
+            "max_score": 0.0,
+        }
+
+    vis_scores = [s for _, s in visible_pairs]
+    g3 = [s for g, s in visible_pairs if g == 3]
+    g2 = [s for g, s in visible_pairs if g == 2]
+    g0 = [s for g, s in visible_pairs if g == 0]
+
+    rounded_counts = Counter(round(s) for s in vis_scores)
+    max_value_share = max(rounded_counts.values()) / len(vis_scores)
+
+    return {
+        "strong_reach_80": (sum(1 for s in g3 if s >= 80.0) / len(g3)) if g3 else 0.0,
+        "good_in_band": (sum(1 for s in g2 if 60.0 <= s <= 79.0) / len(g2)) if g2 else 0.0,
+        "irrelevant_below_30": (sum(1 for s in g0 if s < 30.0) / len(g0)) if g0 else 0.0,
+        "max_value_share": max_value_share,
+        "spread_p5_p95": percentile(vis_scores, 95.0) - percentile(vis_scores, 5.0),
+        "max_score": max(vis_scores),
+    }
+
+
+def lang_visa_ablation_metrics(
+    score_pairs: Sequence[tuple[float, float]],
+) -> dict[str, float | int]:
+    """Summarize score sensitivity when language/visa requirements are ablated.
+
+    ``score_pairs`` contains ``(original_score, ablated_score)`` for visible
+    cases where at least one language/visa clause was removed.
+    """
+    n = len(score_pairs)
+    if n == 0:
+        return {
+            "lang_visa_ablated_count": 0,
+            "lang_visa_mean_abs_delta": 0.0,
+            "lang_visa_max_delta": 0.0,
+            "lang_visa_band_jumps": 0.0,
+        }
+    deltas = [abs(float(orig) - float(abl)) for orig, abl in score_pairs]
+    band_jumps = sum(
+        1 for orig, abl in score_pairs if abs(score_band(orig) - score_band(abl)) > 1
+    )
+    return {
+        "lang_visa_ablated_count": n,
+        "lang_visa_mean_abs_delta": sum(deltas) / n,
+        "lang_visa_max_delta": max(deltas),
+        "lang_visa_band_jumps": band_jumps / n,
     }

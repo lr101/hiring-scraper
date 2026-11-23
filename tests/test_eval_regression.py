@@ -6,10 +6,12 @@ import math
 import os
 import unittest
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 
 from hiring_scraper.semantic_matching import DIMENSIONS
 from tests.eval import cv as private_dataset
 from tests.eval import public as public_dataset
+from tests.eval.ablation import ablate_lang_visa, is_lang_visa_sentence, strip_lang_visa_text
 from tests.eval.cv.check import group_near_duplicate_jobs
 from tests.eval.cv.check import validate_dataset as validate_private_dataset
 from tests.eval.public.check import validate_dataset as validate_public_dataset
@@ -21,13 +23,17 @@ from tests.eval.metrics import (
     good_hidden_rate,
     hide_precision,
     hide_recall,
+    lang_visa_ablation_metrics,
     ndcg_at_k,
     pair_eligibility_disagreement,
     pairwise_auc,
+    percentile,
     precision_at_k,
     rank_indices,
     ranking_auc,
     ranking_relevance,
+    score_band,
+    score_range_metrics,
     score_spread,
 )
 from tests.eval.run import (
@@ -204,6 +210,41 @@ def check_regression_gates(report: dict, baseline: dict, *, min_pairs: int = 0) 
                 f"{c_prof['pairwise_auc']:.4f} < {b_prof['pairwise_auc']:.4f} - 0.05"
             )
 
+    return failures
+
+
+# Absolute acceptance thresholds for upcoming v2 scorer (user requirements 2026-11-23).
+TARGET_GATE_THRESHOLDS: dict[str, tuple[str, float]] = {
+    "strong_reach_80": (">=", 0.6),
+    "irrelevant_below_30": (">=", 0.8),
+    "max_value_share": ("<=", 0.05),
+    "spread_p5_p95": (">=", 60.0),
+    "lang_visa_mean_abs_delta": ("<=", 5.0),
+    "lang_visa_band_jumps": ("==", 0.0),
+    "hide_precision": (">=", 0.9),
+    "hide_recall": (">=", 0.9),
+    "good_hidden_rate": ("==", 0.0),
+}
+
+
+def check_target_gates(metrics: Mapping[str, object]) -> list[str]:
+    """Check absolute target acceptance gates against a report or its ``overall`` dict."""
+    overall = metrics.get("overall") if isinstance(metrics, Mapping) else None
+    source: Mapping[str, object] = overall if isinstance(overall, Mapping) else metrics
+
+    failures: list[str] = []
+    for key, (op, threshold) in TARGET_GATE_THRESHOLDS.items():
+        raw = source.get(key)
+        if raw is None or isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            failures.append(f"Missing target metric {key!r}")
+            continue
+        val = float(raw)
+        if op == ">=" and val < threshold:
+            failures.append(f"{key} below target: {val:.4f} < {threshold:.4f}")
+        elif op == "<=" and val > threshold:
+            failures.append(f"{key} above target: {val:.4f} > {threshold:.4f}")
+        elif op == "==" and val != threshold:
+            failures.append(f"{key} violates target: {val:.4f} != {threshold:.4f}")
     return failures
 
 
@@ -564,6 +605,233 @@ class TestEvalMetricsUnit(unittest.TestCase):
             MATCHERS.pop(name, None)
             MATCHER_VERSIONS.pop(name, None)
 
+    def test_score_range_metrics_and_percentiles(self) -> None:
+        self.assertAlmostEqual(percentile([], 50), 0.0)
+        self.assertAlmostEqual(percentile([42.0], 95), 42.0)
+        self.assertAlmostEqual(percentile(list(range(101)), 5), 5.0)
+        self.assertAlmostEqual(percentile(list(range(101)), 95), 95.0)
+        with self.assertRaises(ValueError):
+            percentile([1.0, 2.0], 101.0)
+
+        self.assertEqual([score_band(0), score_band(29), score_band(30), score_band(59), score_band(60), score_band(79), score_band(80), score_band(100)], [0, 0, 1, 1, 2, 2, 3, 3])
+
+        # Visible-only range metrics: hidden grade-3 score=0 and hidden grade-0 score=99 are excluded.
+        grades = [3, 3, 3, 2, 2, 0, 0, 0]
+        scores = [95.0, 80.0, 0.0, 79.0, 55.0, 10.0, 30.0, 99.0]
+        hidden = [False, False, True, False, False, False, False, True]
+        rm = score_range_metrics(grades, scores, is_hidden=hidden)
+        self.assertAlmostEqual(rm["strong_reach_80"], 1.0)
+        self.assertAlmostEqual(rm["good_in_band"], 0.5)
+        self.assertAlmostEqual(rm["irrelevant_below_30"], 0.5)
+        self.assertAlmostEqual(rm["max_value_share"], 1.0 / 6.0)
+        self.assertAlmostEqual(rm["max_score"], 95.0)
+        expected_spread = percentile([10.0, 30.0, 55.0, 79.0, 80.0, 95.0], 95.0) - percentile(
+            [10.0, 30.0, 55.0, 79.0, 80.0, 95.0], 5.0
+        )
+        self.assertAlmostEqual(rm["spread_p5_p95"], expected_spread)
+
+        # Bunching at one rounded score value shows up in max_value_share.
+        bunched = score_range_metrics([1, 1, 1, 1], [59.0, 59.0, 59.0, 20.0])
+        self.assertAlmostEqual(bunched["max_value_share"], 0.75)
+
+        # All hidden -> zeros
+        empty = score_range_metrics([3, 0], [90.0, 10.0], is_hidden=[True, True])
+        self.assertEqual(empty, {
+            "strong_reach_80": 0.0,
+            "good_in_band": 0.0,
+            "irrelevant_below_30": 0.0,
+            "max_value_share": 0.0,
+            "spread_p5_p95": 0.0,
+            "max_score": 0.0,
+        })
+
+    def test_lang_visa_ablation_metrics(self) -> None:
+        empty = lang_visa_ablation_metrics([])
+        self.assertEqual(empty["lang_visa_ablated_count"], 0)
+        self.assertEqual(empty["lang_visa_mean_abs_delta"], 0.0)
+        self.assertEqual(empty["lang_visa_max_delta"], 0.0)
+        self.assertEqual(empty["lang_visa_band_jumps"], 0.0)
+
+        # (78, 81): band 2 -> band 3 (1 band crossing, NOT a >1 band jump)
+        # (55, 85): band 1 -> band 3 (2 band crossings -> jump!)
+        # (60, 62): band 2 -> band 2 (0 crossings)
+        res = lang_visa_ablation_metrics([(78.0, 81.0), (55.0, 85.0), (60.0, 62.0)])
+        self.assertEqual(res["lang_visa_ablated_count"], 3)
+        self.assertAlmostEqual(res["lang_visa_mean_abs_delta"], (3.0 + 30.0 + 2.0) / 3.0)
+        self.assertAlmostEqual(res["lang_visa_max_delta"], 30.0)
+        self.assertAlmostEqual(res["lang_visa_band_jumps"], 1.0 / 3.0)
+
+    def test_check_target_gates(self) -> None:
+        passing = {
+            "strong_reach_80": 0.6,
+            "irrelevant_below_30": 0.8,
+            "max_value_share": 0.05,
+            "spread_p5_p95": 60.0,
+            "lang_visa_mean_abs_delta": 5.0,
+            "lang_visa_band_jumps": 0.0,
+            "hide_precision": 0.9,
+            "hide_recall": 0.9,
+            "good_hidden_rate": 0.0,
+        }
+        # Accepts both flat metrics dict and full report dict with 'overall'.
+        self.assertEqual(check_target_gates(passing), [])
+        self.assertEqual(check_target_gates({"overall": passing}), [])
+
+        # Each threshold fails when violated.
+        violations = {
+            "strong_reach_80": 0.59,
+            "irrelevant_below_30": 0.79,
+            "max_value_share": 0.051,
+            "spread_p5_p95": 59.9,
+            "lang_visa_mean_abs_delta": 5.1,
+            "lang_visa_band_jumps": 0.01,
+            "hide_precision": 0.89,
+            "hide_recall": 0.89,
+            "good_hidden_rate": 0.01,
+        }
+        for key, bad_val in violations.items():
+            mutated = {**passing, key: bad_val}
+            failures = check_target_gates(mutated)
+            self.assertEqual(len(failures), 1, f"Expected 1 failure for {key}={bad_val}, got {failures}")
+            self.assertIn(key, failures[0])
+
+        # Missing metric fails cleanly.
+        missing = dict(passing)
+        missing.pop("spread_p5_p95")
+        failures = check_target_gates(missing)
+        self.assertTrue(any("spread_p5_p95" in f for f in failures), failures)
+
+
+class TestLangVisaAblation(unittest.TestCase):
+    def test_removes_en_language_and_visa_sentences(self) -> None:
+        desc = (
+            "Lead backend services for our payments platform.\n\n"
+            "What you bring\n"
+            "- 5+ years of Python and PostgreSQL experience\n"
+            "- Fluent German (C1) and very good English required\n"
+            "- Existing right to work in Germany is required; we cannot offer visa sponsorship\n"
+            "- Experience building REST APIs and OAuth authorization services\n"
+            "- Good English; German at B1 is helpful\n"
+            "- Strong knowledge of German labour law and payroll regulations\n"
+            "- Valid work permit for the EU is mandatory\n"
+        )
+        cleaned, removed = strip_lang_visa_text(desc)
+        self.assertEqual(len(removed), 6, removed)
+        self.assertIn("Lead backend services for our payments platform.", cleaned)
+        self.assertIn("5+ years of Python and PostgreSQL experience", cleaned)
+        self.assertIn("Experience building REST APIs and OAuth authorization services", cleaned)
+        self.assertIn("Strong knowledge of German labour law and payroll regulations", cleaned)
+        self.assertNotIn("Fluent German", cleaned)
+        self.assertNotIn("visa sponsorship", cleaned)
+        self.assertNotIn("work permit", cleaned)
+        self.assertNotIn("German at B1", cleaned)
+
+    def test_removes_de_language_and_visa_sentences(self) -> None:
+        desc = (
+            "Sie verantworten die Weiterentwicklung unserer Produktionsprozesse.\n\n"
+            "Ihr Profil\n"
+            "- Abgeschlossenes Studium im Wirtschaftsingenieurwesen oder vergleichbar\n"
+            "- Sehr gute Deutschkenntnisse (mindestens C1) sowie gute Englischkenntnisse\n"
+            "- Verhandlungssicheres Deutsch und fließendes Englisch in Wort und Schrift\n"
+            "- Eine gültige Arbeitserlaubnis oder ein unbefristeter Aufenthaltstitel für Deutschland ist Voraussetzung\n"
+            "- Arbeitsbewilligung für die Schweiz erforderlich; kein Visa-Sponsoring möglich\n"
+            "- Fundierte Kenntnisse im deutschen Arbeitsrecht und in SAP MM\n"
+            "- Gute Sprachkenntnisse in Französisch sind von Vorteil\n"
+            "- Führerschein Klasse C1 und Staplerschein\n"
+        )
+        cleaned, removed = strip_lang_visa_text(desc)
+        self.assertEqual(len(removed), 6, removed)
+        self.assertIn("Weiterentwicklung unserer Produktionsprozesse", cleaned)
+        self.assertIn("Abgeschlossenes Studium im Wirtschaftsingenieurwesen", cleaned)
+        self.assertIn("Fundierte Kenntnisse im deutschen Arbeitsrecht und in SAP MM", cleaned)
+        self.assertIn("Führerschein Klasse C1 und Staplerschein", cleaned)
+        self.assertNotIn("Deutschkenntnisse", cleaned)
+        self.assertNotIn("Verhandlungssicheres Deutsch", cleaned)
+        self.assertNotIn("Arbeitserlaubnis", cleaned)
+        self.assertNotIn("Arbeitsbewilligung", cleaned)
+        self.assertNotIn("Sprachkenntnisse", cleaned)
+
+    def test_preserves_non_language_requirements_and_mixed_semicolon_clauses(self) -> None:
+        non_lang_sentences = [
+            "5+ years of experience with Python, Django and PostgreSQL",
+            "Build large language models and evaluation pipelines for search",
+            "Process Visa and Mastercard settlement files daily",
+            "Experience in B2B SaaS enterprise sales and account management",
+            "Verantwortung für Backlog und Roadmap der Authorisierungs- und Abrechnungsdienste",
+            "Mindestens fünf Jahre Berufserfahrung im Projektmanagement in der Fertigung",
+            "Führerschein Klasse B und Staplerschein erforderlich",
+            "Good knowledge of German GAAP (HGB) and IFRS reporting",
+            "Kenntnisse in Programmiersprachen wie Python oder Go",
+            "We polish our UX prototypes before customer interviews",
+        ]
+        for sentence in non_lang_sentences:
+            self.assertFalse(
+                is_lang_visa_sentence(sentence),
+                f"Non-language/non-visa sentence falsely flagged: {sentence!r}",
+            )
+
+        # Semicolon-separated mixed bullet keeps non-language clause.
+        mixed = "- Forklift licence; good German\n- Knowledge of IATF 16949; English B2 required"
+        cleaned, removed = strip_lang_visa_text(mixed)
+        self.assertEqual(removed, ["good German", "English B2 required"])
+        self.assertEqual(cleaned, "- Forklift licence\n- Knowledge of IATF 16949")
+
+        # Paragraph with duty sentence + language sentence keeps the duty sentence.
+        para = "Lead a shift team in a logistics hub. German is the team language; English at A2 is enough."
+        cleaned_para, removed_para = strip_lang_visa_text(para)
+        self.assertEqual(cleaned_para, "Lead a shift team in a logistics hub.")
+        self.assertEqual(len(removed_para), 2)
+
+    def test_ablates_structured_raw_metadata_without_mutating_input(self) -> None:
+        job = {
+            "id": "job_meta_1",
+            "title": "Backend Engineer",
+            "description": "Build distributed services in Python.\n- 3+ years Python",
+            "raw_metadata": {
+                "languages": ["German C1", "English B2"],
+                "visa_sponsorship": False,
+                "qualifications": [
+                    "Bachelor's degree in Computer Science",
+                    "Fluent German (C1) required",
+                    {"text": "Valid work permit for Germany"},
+                    {"text": "Experience with Kubernetes"},
+                ],
+                "detail_requirements": {
+                    "skills": ["PostgreSQL", "Sehr gute Deutschkenntnisse"],
+                    "arbeitserlaubnis": "required",
+                },
+                "source": "example_ats",
+            },
+        }
+        snapshot = json.loads(json.dumps(job))
+        ablated, changed = ablate_lang_visa(job)
+        self.assertTrue(changed)
+        # Original job is never mutated.
+        self.assertEqual(job, snapshot)
+        # Description unchanged because it had no lang/visa clauses.
+        self.assertEqual(ablated["description"], job["description"])
+        # Structured lang/visa keys and items removed; non-lang items preserved.
+        meta = ablated["raw_metadata"]
+        self.assertNotIn("languages", meta)
+        self.assertNotIn("visa_sponsorship", meta)
+        self.assertEqual(meta["source"], "example_ats")
+        self.assertEqual(
+            meta["qualifications"],
+            ["Bachelor's degree in Computer Science", {"text": "Experience with Kubernetes"}],
+        )
+        self.assertEqual(meta["detail_requirements"]["skills"], ["PostgreSQL"])
+        self.assertNotIn("arbeitserlaubnis", meta["detail_requirements"])
+
+        # Job without any language/visa clauses returns changed=False.
+        clean_job = {
+            "id": "job_clean",
+            "title": "Data Analyst",
+            "description": "Analyse warehouse throughput using SQL and Tableau.",
+        }
+        ablated_clean, clean_changed = ablate_lang_visa(clean_job)
+        self.assertFalse(clean_changed)
+        self.assertEqual(ablated_clean, clean_job)
+
 
 class _RegressionGates:
     """Gate checks shared by the public (always) and private (when present) datasets."""
@@ -611,6 +879,22 @@ class _RegressionGates:
         report = evaluate(matcher_name, dataset=self.dataset, split="all")
         failures = check_regression_gates(report, baselines[baseline_key], min_pairs=MIN_PAIR_COUNT[self.dataset])
         self.assertFalse(failures, "Regression gate failure(s):\n- " + "\n- ".join(failures))
+
+    def test_target_matchers_meet_target_gates(self) -> None:
+        _require_dataset(self, self.dataset)
+        raw = os.environ.get("RADIUS_EVAL_TARGET_MATCHERS", "")
+        target_matchers = [item.strip() for item in raw.split(",") if item.strip()]
+        if not target_matchers:
+            self.skipTest(
+                "RADIUS_EVAL_TARGET_MATCHERS is unset/empty; set e.g. RADIUS_EVAL_TARGET_MATCHERS=v2 "
+                "to run target acceptance gates"
+            )
+        all_failures: list[str] = []
+        for matcher_name in target_matchers:
+            report = evaluate(matcher_name, dataset=self.dataset, split="all")
+            for failure in check_target_gates(report):
+                all_failures.append(f"[{self.dataset}/{matcher_name}] {failure}")
+        self.assertFalse(all_failures, "Target gate failure(s):\n- " + "\n- ".join(all_failures))
 
     def test_constant_50_matcher_fails_gates(self) -> None:
         baseline = self._load_v1_baseline()
