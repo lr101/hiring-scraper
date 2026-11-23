@@ -425,10 +425,14 @@ _WORK_ARRANGEMENT = re.compile(
 
 
 def _recipient_city(value: str) -> str:
-    # A posting's location often describes a region, multiple sites or a work arrangement.
-    # Omit ambiguous strings instead of inventing a mailing address from them.
-    if re.fullmatch(rf'{_NAME_WORD}(?: {_NAME_WORD})*', value) and not _WORK_ARRANGEMENT.search(value):
-        return value[:200]
+    # Posting locations commonly put the city before the region or work arrangement.
+    city = value.split(',', 1)[0].split('(', 1)[0].strip()
+    arrangement = _WORK_ARRANGEMENT.search(city)
+    if arrangement:
+        city = city[:arrangement.start()].rstrip(' –—-')
+        city = re.sub(r'\b(?:fully|mostly|partly|100%)$', '', city, flags=re.I).strip()
+    if re.fullmatch(rf'{_NAME_WORD}(?: {_NAME_WORD})*', city):
+        return city[:200]
     return ''
 
 
@@ -462,7 +466,8 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> Lett
     if not 150 <= sum(len(unit.text.split()) for unit in paragraphs) <= 450:
         raise _InvalidResponse('Keep the body between 150 and 450 words, ideally 260 to 320.')
     paragraphs.append(_ai('u-letter-closing', reply.closing, role='close'))
-    company = ' '.join(str(inp.job.get('company_name') or '').split())[:200]
+    company = ' '.join(str(inp.job.get('company_name') or '').split())
+    company = re.sub(r'\s*\([^()]*\)\s*$', '', company).strip()[:200]
     city = _recipient_city(' '.join(str(inp.job.get('location') or '').split()))
     name = _sender_name(base.header.name)
     return LetterDocument(

@@ -3,26 +3,42 @@ dates are fixed; you rewrite the prose units and choose emphasis.
 
 Headline
 - One line naming the applicant's demonstrated role focus, at the seniority the evidence supports.
+  If several experiences point toward a new role, name the demonstrated field and focus
+  instead of using that new role as a professional title.
 
 Profile
 - One compact paragraph of two or three sentences. Describe the applicant's role and where they
   showed their most relevant strengths. Save employer-specific motivation for the letter.
 - Describe the work in concrete terms. If the profile names a past employer, cite a bullet or
   intro from that employer's entry alongside any career evidence used for the claim.
+- Use the profile to connect two complementary strengths. Lead with the strength most relevant
+  to the opening and identify the stage or context in which the applicant demonstrated it.
+  Leave the list of project artifacts to the entries.
 
 Entries
 - For each entry id listed under ENTRIES, return its bullets. Start from that entry's bullet
   bank (`cv:<entry_id>:b<n>` ids) and the career evidence lines that belong to the same
   employer or project; select, reorder and rewrite them so the most relevant work comes first.
+  Keep the bullets for any one project together, with enough context in its first bullet for
+  readers to understand the rest.
 - Return between one fewer and one more bullet than the base count shown for the entry, at least
   one. Aim for 12–24 words without padding. Cite sources from the same entry or career evidence
   about it. Use the terminology of the applicant's own work even if the target job uses different
   terms. Keep academic projects anchored to the activity and its actual scope.
-- Give each bullet one accomplishment. If two sources describe different projects or levels of
-  responsibility, select the strongest supported action instead of combining them.
+- Give each bullet one accomplishment. Begin with the verb and its object from the strongest
+  source for that action. Add a method, second action or outcome only if a citation directly
+  supports it at the same scope.
+- Separate evaluation criteria from validation methods unless the source explicitly connects
+  them. For example, if a source describes checking accessibility and separately describes
+  testing a prototype in interviews, do not say the interviews tested accessibility.
 - Keep the differentiating details that the posting calls for and the evidence supports, such as
-  which decisions the applicant shaped, what they built, or whom they worked with. Keep numbers
-  and tool names beside the action that used or produced them.
+  which decisions the applicant shaped, what they built, or whom they worked with. When the
+  posting asks for prioritization or partner collaboration, say what the applicant actually
+  prioritized or coordinated if the entry's evidence documents it. Keep numbers and tool names
+  beside the action that used or produced them.
+- When relevant and evidenced, show what changed after feedback and who helped inform the
+  next decision. For cross-functional work, prioritize the specific external or internal
+  collaboration over a list of artifacts that leaves the collaboration implicit.
 - `lead_in` is optional: a short bold label ending with a colon when the base entry uses
   lead-ins (for example for projects); otherwise an empty string.
 

@@ -1,5 +1,6 @@
 import base64
 import unittest
+from io import BytesIO
 
 from hiring_scraper.app import application_pdf
 from hiring_scraper.documents import (
@@ -126,6 +127,34 @@ class RenderTests(unittest.TestCase):
         overflow = next(c for c in result.checks if c['code'] == 'overflow')
         self.assertEqual(overflow['status'], 'warning')
         self.assertGreater(len(result.telemetry['beyond_limit_units']), 0)
+
+    def test_entry_intro_stays_with_first_bullet_at_page_break(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=16)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant', start='2020', end='2020'),
+                  intro=[Unit(id='u-intro', text='Übersicht über Kalibrierung und thermische Messung. ' * 3)],
+                  units=[Unit(id='u-bullet', text='Kalibrierte Sensoren im Prüfstand.')]),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        for part in ('FIKTIVLABOR', 'Übersicht über Kalibrierung', 'Kalibrierte Sensoren'):
+            self.assertIn(part, pages[1])
+        self.assertNotIn('u-bullet', result.telemetry['split_units'])
+
+    def test_telemetry_reports_paragraph_that_spans_two_pdf_pages(self):
+        doc = fictional_cv(bullets=14)
+        doc.sections[1].entries.append(
+            Entry(id='work-2', kind='work',
+                  locked=LockedEntry(company='Fiktivlabor', title='Praktikant', start='2020', end='2020'),
+                  intro=[Unit(id='u-long-intro', text='Übersicht über Kalibrierung und thermische Messung. ' * 21)]),
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(result.pages, 2)
+        self.assertIn('u-long-intro', result.telemetry['split_units'])
 
     def test_invalid_document_fails_cleanly(self):
         with self.assertRaises(application_pdf.RenderFailed) as ctx:

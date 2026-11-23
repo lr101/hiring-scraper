@@ -226,15 +226,12 @@ class _Renderer:
                     const height = root.scrollHeight;
                     const units = Array.from(document.querySelectorAll('[data-unit-id]'));
                     const photo = root.querySelector('.doc-cv-photo');
-                    const beyond = [], split = [];
+                    const beyond = [];
                     for (const el of units) {
                         const r = el.getBoundingClientRect();
-                        const a = r.top - top, b = r.bottom - top;
-                        if (b > printable * limit + 0.5) beyond.push(el.dataset.unitId);
-                        const pa = Math.floor(a / printable), pb = Math.floor((b - 0.5) / printable);
-                        if (pb > pa) split.push(el.dataset.unitId);
+                        if (r.bottom - top > printable * limit + 0.5) beyond.push(el.dataset.unitId);
                     }
-                    return {content_height_px: height, beyond_limit_units: beyond, split_units: split,
+                    return {content_height_px: height, beyond_limit_units: beyond,
                             photo_used: Boolean(photo?.naturalWidth)};
                 }""",
                 [printable_px, limit],
@@ -374,7 +371,8 @@ def render_document(
     try:
         reader = PdfReader(io.BytesIO(pdf))
         pages = len(reader.pages)
-        text = '\n'.join(page.extract_text() or '' for page in reader.pages)
+        page_texts = [page.extract_text() or '' for page in reader.pages]
+        text = '\n'.join(page_texts)
     except Exception:  # noqa: BLE001 - corrupt output
         raise RenderFailed('pdf_unreadable', 'The rendered PDF could not be read.') from None
     limit = PAGE_LIMITS[kind]
@@ -385,6 +383,15 @@ def render_document(
                              f'{telemetry.get("overflow_px", 0)} px beyond page {limit}; '
                              f'{len(telemetry.get("beyond_limit_units", []))} unit(s) past the limit.'))
     telemetry['pages'] = pages
+    # Chromium can move blocks between pages to honor CSS break rules. Only report
+    # a split when the extracted unit crosses an actual PDF page boundary.
+    page_runs = [_squash(page) for page in page_texts]
+    all_runs = ''.join(page_runs)
+    telemetry['split_units'] = [
+        unit.id for unit in walk_units(model)
+        if not unit.hidden and (unit_run := _squash(unit_full_text(unit)))
+        and unit_run in all_runs and not any(unit_run in page for page in page_runs)
+    ]
     telemetry['pdf_bytes'] = len(pdf)
     LOG.info('Rendered %s: %d page(s), %d check(s) not passed', kind, pages,
              sum(1 for c in checks if c['status'] != 'passed'))

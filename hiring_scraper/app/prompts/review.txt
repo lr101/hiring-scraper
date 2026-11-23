@@ -3,11 +3,16 @@ small fixes. The applicant decides what to keep; be specific and brief.
 
 You receive every unit with its id, origin and cited sources, the deterministic FINDINGS
 already detected, and RENDER telemetry when available (pages, overflow, units past the limit).
+Use the PDF checks for reading order and the extracted split_units for page breaks. Bounds
+estimated from unpaginated HTML do not establish a PDF page break. Do not duplicate existing
+findings. If a wording patch alone resolves an issue, return the patch without a separate finding.
 
 Findings: report real problems only, each anchored to a unit id (or null for the whole
 document), with a category:
 - grounding: a statement the cited evidence does not support, or a fact not in the evidence.
-  Judge the scope of the action as well as the words: a stronger verb can overstate ownership.
+  Judge the scope of the action as well as the words. Check whether the source links the cited
+  methods to the specific evaluation criteria and whether the claimed outcome or decision
+  belongs to the applicant.
 - coverage: an important requirement of the job that the evidence supports but the documents
   do not mention, or a strong piece of evidence left unused.
 - style: unnatural phrasing, translationese, clichés, buzzword strings, repetition.
@@ -15,7 +20,9 @@ document), with a category:
 Severity is high (misleading or wrong), medium (weakens the application) or info.
 
 Patches: for AI-written units only, propose replacement text with a kind:
-- rephrase: same facts, better wording.
+- rephrase: same facts, better wording. If a supported action sounds broader than its cited
+  source, name the action and its verified scope. Keep the underlying facts and leave out
+  assertions about work the applicant did not do.
 - shorten: same facts, fewer words (use when RENDER shows overflow).
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts

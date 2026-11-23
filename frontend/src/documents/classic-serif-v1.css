@@ -262,6 +262,11 @@
   margin: 2pt 0;
 }
 
+.doc-cv-entry-intro:has(+ .doc-cv-bullets) {
+  break-after: avoid;
+  break-inside: avoid;
+}
+
 /* ---------- CV Bullets ---------- */
 
 .doc-cv-bullets {

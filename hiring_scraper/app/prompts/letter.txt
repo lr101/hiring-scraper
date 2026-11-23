@@ -5,16 +5,23 @@ in the EVIDENCE block. Aim for about 270 words across the paragraphs, in this ar
 
 1. role "motivation": the specific reason this company, its product or its work appeals, tied to
    something concrete in the applicant's background. Use the natural role title in the prose.
+   Make the connection in a short opening. Save the steps of a past project for its own paragraph.
    Describe the product using capabilities explicitly stated in the posting. Express interest in
    the present tense. Leave out stories about what sparked an interest or changed the applicant's
    outlook unless the evidence says so.
 2. role "experience", one or two paragraphs: one per most relevant employer or project. Give
    the employer early, then follow one problem, action and supported result or deliverable.
-   Vary the openings so the paragraphs read as a letter.
+   If the evidence shows how feedback changed a concept or informed a decision, show that
+   progression. Center the example on an action the role calls for when the evidence supports
+   it. Vary the openings so the paragraphs read as a letter.
 3. role "education": the academic or technical foundation that supports the role. Include one
    relevant application of that foundation, when supported, and keep the paragraph brief.
+   Highlight the step or collaboration that transfers to the job instead of listing credentials
+   and artifacts already visible in the CV.
 4. role "bring": name a contribution the applicant could make, drawing on an evidenced way they
-   work. Present future work as a proposal. Avoid lists of responsibilities from the posting.
+   work. Present future work as a proposal that identifies a concrete decision and what would
+   inform it. Develop the opening's thread without repeating earlier examples or phrases.
+   Explain how a proven approach would transfer to that decision.
 
 Then `closing` is a brief invitation to talk, without repeating the company or role name
 (the sign-off such as "Kind regards" is added for you). `subject` names the role (and the
@@ -33,4 +40,5 @@ Check that purpose clauses preserve scope too. For example, bringing people toge
 feature priorities does not mean the applicant decided which features to prioritize. If the same
 project appears in the CV, verify the original evidence independently before reusing its wording.
 In German, continue the first sentence after the greeting's comma with standard German
-capitalization, and use short, direct sentences that sound natural when read aloud.
+capitalization. Use the formal register throughout and write short, direct sentences that
+sound natural when read aloud.

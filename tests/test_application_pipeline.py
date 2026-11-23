@@ -178,15 +178,29 @@ class PipelineTests(unittest.TestCase):
 
     def test_letter_uses_posting_contact_and_cleans_sender_and_recipient(self):
         self.inp.base_cv['header']['name'] = 'DARA VON FINCH'
-        self.inp.job.update(location='Loam Bay Hybrid (Wren Museum GmbH)',
+        self.inp.job.update(company_name='Wren Museum (Wren Museum GmbH)',
+                            location='Loam Bay Hybrid (Wren Museum GmbH)',
                             description='Questions? Contact Morgan Alder from our recruiting team.')
         reply = letter_reply()
         reply['contact_name'] = 'Morgan Alder'
         result = self.run_with(letter=reply)
-        self.assertEqual(result.letter['recipient_lines'], ['Wren Museum'])
+        self.assertEqual(result.letter['recipient_lines'], ['Wren Museum', 'Loam Bay'])
         self.assertEqual(result.letter['sender']['name'], 'Dara von Finch')
         self.assertEqual(result.letter['signature'], 'Dara von Finch')
         self.assertEqual(result.letter['salutation']['text'], 'Dear Morgan Alder,')
+
+    def test_letter_keeps_city_with_region_and_omits_remote_only_location(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        for location, expected in [
+            ('Loam Bay, CA-US, United States', ['Wren Museum', 'Loam Bay']),
+            ('Loam Bay (Hybrid Remote)', ['Wren Museum', 'Loam Bay']),
+            ('Fully Remote (Canada)', ['Wren Museum']),
+            ('Remote, Loam Bay', ['Wren Museum']),
+        ]:
+            with self.subTest(location=location):
+                self.inp.job['location'] = location
+                letter = pipeline._letter_draft(letter_reply(), self.inp, base)
+                self.assertEqual(letter.recipient_lines, expected)
 
     def test_letter_validates_full_name_and_localizes_team_greeting(self):
         self.inp.job['description'] = 'Recruiting: Morgan. Collaborate with designer Avery Frost.'
