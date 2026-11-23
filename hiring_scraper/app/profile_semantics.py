@@ -110,11 +110,17 @@ def _jobs_missing_vectors(session, limit: int) -> list:
         state.update(high_water=0, cursor=None, next_idle_sweep=0.0)
 
     def missing(low: int, high: int, count: int) -> list:
-        return session.scalars(select(Job).where(
-            Job.is_active.is_(True), Job.id > low, Job.id <= high,
-            ~exists(select(1).where(MatchSemanticDocument.job_id == Job.id,
-                                    MatchSemanticDocument.version == VERSION)),
-        ).order_by(Job.id.desc()).limit(count)).all()
+        # Two id-range reads and a set difference: an anti-join lets the planner
+        # switch between a hash join and one index probe per job as tables grow.
+        active = session.scalars(select(Job.id).where(
+            Job.is_active.is_(True), Job.id > low, Job.id <= high)).all()
+        indexed = set(session.scalars(select(MatchSemanticDocument.job_id).where(
+            MatchSemanticDocument.job_id > low, MatchSemanticDocument.job_id <= high,
+            MatchSemanticDocument.version == VERSION)).all())
+        ids = sorted((job_id for job_id in active if job_id not in indexed), reverse=True)[:count]
+        if not ids:
+            return []
+        return session.scalars(select(Job).where(Job.id.in_(ids)).order_by(Job.id.desc())).all()
 
     # Edited postings are queued for rematching; give them fresh vectors first.
     found = session.scalars(select(Job).where(
