@@ -4,7 +4,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
+    BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint, Index, Integer,
+    LargeBinary,
     JSON, String, Text, UniqueConstraint, false, select, text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -728,6 +729,83 @@ class ApplicationPreparationTask(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     lease_token: Mapped[str | None] = mapped_column(String(32))
     lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Earliest claim time for a task waiting to retry. Added by the rollback-safe
+    # entrypoint step (docker/entrypoint.py), not Alembic, so older images still start.
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ApplicationDocument(Base):
+    """One saved version of a structured CV or letter for a (profile, job)."""
+    __tablename__ = 'application_documents'
+    __table_args__ = (
+        CheckConstraint("kind IN ('cv', 'letter')", name='ck_application_documents_kind'),
+        CheckConstraint('version > 0', name='ck_application_documents_version'),
+        # Latest-version lookups read the PK backwards; this covers per-profile cleanup.
+        Index('ix_application_documents_job', 'job_id'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
+    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    language: Mapped[str] = mapped_column(String(8), nullable=False)
+    body: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    findings: Mapped[list] = mapped_column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))
+    origin: Mapped[str] = mapped_column(String(16), nullable=False)
+    stale_inputs: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
+    input_digest: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class ApplicationDocumentRender(Base):
+    """A verified PDF of one document version; removed with the version it renders."""
+    __tablename__ = 'application_document_renders'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['profile_id', 'job_id', 'kind', 'version'],
+            ['application_documents.profile_id', 'application_documents.job_id',
+             'application_documents.kind', 'application_documents.version'],
+            ondelete='CASCADE', name='fk_application_document_renders_document'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template: Mapped[str] = mapped_column(String(40), primary_key=True)
+    pdf: Mapped[bytes] = mapped_column(LargeBinary, nullable=False, deferred=True)
+    pages: Mapped[int] = mapped_column(Integer, nullable=False)
+    checks: Mapped[list] = mapped_column(JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class ApplicationRenderTask(Base):
+    """Render lane: PDF exports queue here so they never wait behind model inference.
+
+    ``available_at`` is the next time the row may be claimed: the retry time
+    while queued, the lease expiry while running, NULL once failed.
+    """
+    __tablename__ = 'application_render_tasks'
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['profile_id', 'job_id', 'kind', 'version'],
+            ['application_documents.profile_id', 'application_documents.job_id',
+             'application_documents.kind', 'application_documents.version'],
+            ondelete='CASCADE', name='fk_application_render_tasks_document'),
+        Index('ix_application_render_tasks_available_at', 'available_at'),
+    )
+
+    profile_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    job_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(16), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template: Mapped[str] = mapped_column(String(40), primary_key=True)
+    state: Mapped[str] = mapped_column(String(16), nullable=False)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default=text('0'))
+    available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_token: Mapped[str | None] = mapped_column(String(32))
+    error_code: Mapped[str | None] = mapped_column(String(64))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 # Write paths declare their changes through source_changes; importing it installs

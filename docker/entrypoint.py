@@ -183,6 +183,33 @@ def _ensure_profile_vote_weight(migration_url: str) -> None:
         engine.dispose()
 
 
+def _ensure_preparation_retry_schema(migration_url: str) -> None:
+    """Add the preparation queue's retry column without advancing Alembic's revision.
+
+    Older images ignore the nullable column, so a binary rollback still starts;
+    their claims leave it NULL, which newer images treat as "claim now".
+    """
+    engine = create_engine(migration_url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(text(
+                "ALTER TABLE application_preparation_tasks "
+                "ADD COLUMN IF NOT EXISTS next_attempt_at TIMESTAMP WITH TIME ZONE"
+            ))
+            connection.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_application_preparation_tasks_next_attempt_at "
+                "ON application_preparation_tasks (next_attempt_at)"
+            ))
+    finally:
+        engine.dispose()
+
+
+def ensure_rollback_safe_schema(migration_url: str) -> None:
+    """Every additive step applied after Alembic (entrypoint, dev migrate and tests)."""
+    _ensure_profile_vote_weight(migration_url)
+    _ensure_preparation_retry_schema(migration_url)
+
+
 def _bootstrap() -> str:
     migration_url = _migration_database_url()
     engine = create_engine(migration_url, isolation_level="AUTOCOMMIT")
@@ -207,8 +234,8 @@ def _migrate(migration_url: str) -> str:
     subprocess.run(["alembic", "upgrade", "head"], check=True, env=migration_environment)
     del migration_environment
 
-    print("Ensuring profile matching preference schema", flush=True)
-    _ensure_profile_vote_weight(migration_url)
+    print("Ensuring rollback-safe schema steps", flush=True)
+    ensure_rollback_safe_schema(migration_url)
 
     return application_url
 
@@ -235,7 +262,8 @@ WORKER_MODULES = (
     "application_preparation_worker",
 )
 WORKER_POOL = {"HIRING_DB_POOL_SIZE": "5", "HIRING_DB_MAX_OVERFLOW": "5"}
-PREPARATION_POOL = {"HIRING_DB_POOL_SIZE": "2", "HIRING_DB_MAX_OVERFLOW": "0"}
+# Inference lane + render lane threads, each with short sessions.
+PREPARATION_POOL = {"HIRING_DB_POOL_SIZE": "3", "HIRING_DB_MAX_OVERFLOW": "0"}
 API_POOL = {"HIRING_DB_POOL_SIZE": "30", "HIRING_DB_MAX_OVERFLOW": "10"}
 API_COMMAND = ["uvicorn", "hiring_scraper.app.api:app", "--host", "0.0.0.0", "--port", "8000"]
 
