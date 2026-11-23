@@ -28,9 +28,26 @@ function visibleUnits(units: Unit[], showHidden: boolean): Unit[] {
 
 const genericEntryLabel = /^(?:university|college|hochschule|universität|internship|praktikum|education|ausbildung)$/i
 
+const publicationSectionTitle = /(?:publication|publikation|research|forschung|paper|aufsatz)/i
+
 function italicizeQuotedTitles(text: string): ReactNode {
   const parts = text.split(/("[^"]+"|“[^”]+”|„[^“”]+[“”]|«[^»]+»|»[^«]+«)/u)
   return parts.map((part, index) => index % 2 ? <em key={index}>{part}</em> : part)
+}
+
+function renderPossiblyItalicizedUnit(unit: Unit): ReactNode {
+  const content = italicizeQuotedTitles(unit.text)
+  if (!unit.lead_in) {
+    return content
+  }
+  if (!unit.text) {
+    return <strong className="doc-unit-lead-in">{unit.lead_in}</strong>
+  }
+  return (
+    <>
+      <strong className="doc-unit-lead-in">{unit.lead_in}</strong> {content}
+    </>
+  )
 }
 
 function renderSectionUnits(
@@ -40,6 +57,9 @@ function renderSectionUnits(
 ): ReactNode {
   const items = visibleUnits(section.units, showHidden)
   if (items.length === 0) return null
+  const italicizeTitles = !renderUnit && (
+    section.kind === 'text' || publicationSectionTitle.test(section.title)
+  )
 
   if (section.layout === 'bullets') {
     return (
@@ -51,13 +71,15 @@ function renderSectionUnits(
             data-unit-id={unit.id}
             data-unit-hidden={unit.hidden ? 'true' : undefined}
           >
-            {renderUnitContent(renderUnit, {
-              unit,
-              kind: 'bullet',
-              splittable: true,
-              sectionId: section.id,
-              index,
-            })}
+            {italicizeTitles
+              ? renderPossiblyItalicizedUnit(unit)
+              : renderUnitContent(renderUnit, {
+                unit,
+                kind: 'bullet',
+                splittable: true,
+                sectionId: section.id,
+                index,
+              })}
           </li>
         ))}
       </ul>
@@ -150,8 +172,8 @@ function renderSectionUnits(
           data-unit-id={unit.id}
           data-unit-hidden={unit.hidden ? 'true' : undefined}
         >
-          {section.kind === 'text' && !renderUnit && !unit.lead_in
-            ? italicizeQuotedTitles(unit.text)
+          {italicizeTitles
+            ? renderPossiblyItalicizedUnit(unit)
             : renderUnitContent(renderUnit, {
               unit,
               kind: 'paragraph',

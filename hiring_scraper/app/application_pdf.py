@@ -389,10 +389,10 @@ def render_document(
         page_texts = [page.extract_text() or '' for page in reader.pages]
         text = '\n'.join(page_texts)
         if isinstance(model, CvDocument):
-            author = model.header.name
+            author = model.header.name.strip()
             title = 'Lebenslauf' if model.language == 'de' else 'CV'
         else:
-            author = model.sender.name
+            author = model.sender.name.strip()
             title = 'Anschreiben' if model.language == 'de' else 'Cover letter'
         writer = PdfWriter(clone_from=reader)
         writer.add_metadata({'/Title': f'{author} – {title}', '/Author': author})

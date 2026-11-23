@@ -191,11 +191,28 @@ class PipelineTests(unittest.TestCase):
 
     def test_new_documents_use_a4_and_greeting_strips_company_suffixes(self):
         self.inp.base_cv['page'] = 'letter'
+        base = CvDocument.model_validate(self.inp.base_cv)
+        for company, expected in [
+            ('Wren Museum GmbH & Co. KG', 'Dear Wren Museum Hiring Team,'),
+            ('Alder Labs GmbH', 'Dear Alder Labs Hiring Team,'),
+            ('Bramble Tech AG', 'Dear Bramble Tech Hiring Team,'),
+            ('Cedar Systems SE', 'Dear Cedar Systems Hiring Team,'),
+            ('Dune Works Inc.', 'Dear Dune Works Hiring Team,'),
+            ('Elm Studio B.V.', 'Dear Elm Studio Hiring Team,'),
+            ('Fern Society e.V.', 'Dear Fern Society Hiring Team,'),
+            ('Gorse Partners Ltd.', 'Dear Gorse Partners Hiring Team,'),
+        ]:
+            with self.subTest(company=company):
+                self.inp.job['company_name'] = company
+                letter = pipeline._letter_draft(letter_reply(), self.inp, base)
+                self.assertEqual(letter.page, 'a4')
+                self.assertEqual(letter.salutation.text, expected)
+                self.assertNotIn('-Hiring', letter.salutation.text)
+                self.assertNotIn('-Recruiting', letter.salutation.text)
         self.inp.job['company_name'] = 'Wren Museum GmbH & Co. KG'
         result = self.run_with()
         self.assertEqual(result.cv['page'], 'a4')
         self.assertEqual(result.letter['page'], 'a4')
-        self.assertEqual(result.letter['salutation']['text'], 'Dear Wren Museum Hiring Team,')
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
     def test_letter_retries_duplicate_entry_and_copied_cv_prose(self):
@@ -230,18 +247,48 @@ class PipelineTests(unittest.TestCase):
         result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
         self.assertEqual(result.telemetry['attempts']['letter'], 3)
 
+    def test_letter_checks_german_conditionals_and_english_contractions_vs_possessives(self):
+        base = CvDocument.model_validate(self.inp.base_cv)
+        # Possessives are allowed; contractions like don't / let's / it's are rejected.
+        possessive = letter_reply()
+        possessive['paragraphs'][0]['text'] += " The museum's visitors explore new tools."
+        letter = pipeline._letter_draft(possessive, self.inp, base)
+        self.assertIn("museum's", letter.paragraphs[0].text)
+        for bad in ("We don't rush visitors.", "It's a practical approach.", "Let's test the layout."):
+            with self.subTest(bad=bad):
+                draft = letter_reply()
+                draft['paragraphs'][1]['text'] += ' ' + bad
+                with self.assertRaises(pipeline._InvalidResponse):
+                    pipeline._letter_draft(draft, self.inp, base)
+        # German letter rejects two conditionals (würde / würden) in one paragraph.
+        self.inp.language = 'de'
+        de_bad = letter_reply()
+        de_bad['paragraphs'][2]['text'] = (
+            'Ich würde gern prüfen, wie Besucher die Stationen nutzen, und wir würden das Feedback auswerten.'
+        )
+        with self.assertRaises(pipeline._InvalidResponse):
+            pipeline._letter_draft(de_bad, self.inp, base)
+
     def test_competencies_require_posting_keywords_and_cited_support(self):
-        self.inp.job['description'] = 'Workshop design. Experience with Rust.'
+        self.inp.job['description'] = 'Workshop design and tracking. Experience with Rust.'
+        self.inp.base_cv['sections'][1]['entries'][0]['units'][0]['text'] = (
+            'Designed a workshop with librarians and tracked visitor attendance.'
+        )
         cv = cv_reply()
+        cv['entries'][0]['bullets'][0]['text'] = (
+            'Designed a public workshop with librarians and tracked visitor attendance.'
+        )
         cv['skills'][0]['additions'] = [
             {'text': 'Workshop design', 'sources': ['cv:headline']},
+            {'text': 'Attendance tracking', 'sources': ['cv:work-1:b1']},
             {'text': 'Rust', 'sources': ['cv:headline']},
             {'text': 'Rust', 'sources': ['job']},
         ]
         result = self.run_with(cv=cv)
         units = result.cv['sections'][2]['units']
-        self.assertEqual([unit['text'] for unit in units], ['Workshop design', 'Facilitation'])
+        self.assertEqual([unit['text'] for unit in units], ['Workshop design', 'Attendance tracking', 'Facilitation'])
         self.assertEqual(units[0]['sources'], ['cv:headline'])
+        self.assertEqual(units[1]['sources'], ['cv:work-1:b1'])
         self.assertEqual([f['code'] for f in result.findings], ['review_grounding', 'review_grounding'])
 
     @patch.object(pipeline, 'SLEEP', lambda _: None)
@@ -260,6 +307,42 @@ class PipelineTests(unittest.TestCase):
         replies = iter([first_person, split, cv, letter_reply()])
         result = pipeline.prepare_documents(self.inp, lambda *_: next(replies), self.hooks)
         self.assertEqual(result.telemetry['attempts']['cv'], 3)
+
+    @patch.object(pipeline, 'SLEEP', lambda _: None)
+    def test_cv_headline_length_and_roman_numeral_profile_check(self):
+        self.inp.mode = 'fast'
+        long_headline = cv_reply()
+        long_headline['headline']['text'] = 'Workshop and Public Exhibition Designer Focused on Interactive Museum Activities'
+        roman_ok = cv_reply()
+        roman_ok['profile'][0]['text'] = 'Workshop designer experienced in Phase I exhibition concepts and facilitation.'
+        prompts = []
+
+        def generate(prompt, schema):
+            prompts.append(prompt)
+            return replies[len(prompts) - 1]
+
+        replies = [long_headline, roman_ok, letter_reply()]
+        result = pipeline.prepare_documents(self.inp, generate, self.hooks)
+        self.assertEqual(result.telemetry['attempts']['cv'], 2)
+        self.assertIn('headline', prompts[1].lower())
+        self.assertIn('Phase I', result.cv['sections'][0]['units'][0]['text'])
+
+    def test_split_project_merge_combines_unlabelled_continuation_into_preceding_bullet(self):
+        self.inp.base_cv['sections'][1]['entries'][0]['units'] = [
+            {'id': 'u-p1', 'lead_in': 'Lantern Project:', 'text': 'Built tactile models for visitors',
+             'sources': ['cv:work-1:b1']},
+            {'id': 'u-p2', 'lead_in': '', 'text': 'Tested prototypes with school groups.',
+             'sources': ['cv:work-1:b2']},
+            {'id': 'u-p3', 'lead_in': 'Archive Map:', 'text': 'Catalogued workshop drawings.',
+             'sources': ['cv:work-1:b3']},
+        ]
+        normalized = pipeline._new_cv(CvDocument.model_validate(self.inp.base_cv))
+        units = normalized.sections[1].entries[0].units
+        self.assertEqual(len(units), 2)
+        self.assertEqual(units[0].lead_in, 'Lantern Project:')
+        self.assertEqual(units[0].text, 'Built tactile models for visitors. Tested prototypes with school groups.')
+        self.assertEqual(units[0].sources, ['cv:work-1:b1', 'cv:work-1:b2'])
+        self.assertEqual(units[1].lead_in, 'Archive Map:')
 
     def test_rewritten_bullet_flags_omitted_distinctive_details(self):
         self.inp.base_cv['sections'][1]['entries'][0]['units'][0]['text'] = (
@@ -282,18 +365,30 @@ class PipelineTests(unittest.TestCase):
 
     def test_study_degree_moves_to_the_header_without_losing_the_intro_details(self):
         self.inp.base_cv['sections'].append({
-            'id': 's-education', 'kind': 'education', 'title': 'Education', 'entries': [{
-                'id': 'study-1', 'kind': 'study',
-                'locked': {'company': 'University', 'title': 'Alder Institute',
-                           'start': '2018', 'end': '2020'},
-                'intro': [{'id': 'u-study-intro', 'text': 'M.Sc. Design – Focus on museum accessibility.'}],
-            }],
+            'id': 's-education', 'kind': 'education', 'title': 'Education', 'entries': [
+                {
+                    'id': 'study-1', 'kind': 'study', 'label': 'HOCHSCHULE',
+                    'locked': {'company': 'University', 'title': 'Alder Institute',
+                               'start': '2018', 'end': '2020'},
+                    'intro': [{'id': 'u-study-intro', 'text': 'M.Sc. Design – Focus on museum accessibility.'}],
+                },
+                {
+                    'id': 'study-2', 'kind': 'study', 'label': 'PRAKTIKUM',
+                    'locked': {'company': 'INTERNSHIP', 'title': 'Applied Craft Fellowship',
+                               'start': '2019', 'end': '2019'},
+                    'intro': [],
+                },
+            ],
         })
         result = self.run_with()
-        entry = result.cv['sections'][-1]['entries'][0]
-        self.assertEqual(entry['locked']['company'], 'Alder Institute')
-        self.assertEqual(entry['locked']['title'], 'M.Sc. Design')
-        self.assertEqual(entry['intro'][0]['text'], 'Focus on museum accessibility.')
+        entry1, entry2 = result.cv['sections'][-1]['entries']
+        self.assertEqual(entry1['label'], '')
+        self.assertEqual(entry1['locked']['company'], 'Alder Institute')
+        self.assertEqual(entry1['locked']['title'], 'M.Sc. Design')
+        self.assertEqual(entry1['intro'][0]['text'], 'Focus on museum accessibility.')
+        self.assertEqual(entry2['label'], '')
+        self.assertEqual(entry2['locked']['company'], 'Applied Craft Fellowship')
+        self.assertEqual(entry2['locked']['title'], 'Applied Craft Fellowship')
 
     def test_letter_keeps_city_with_region_and_omits_remote_only_location(self):
         base = CvDocument.model_validate(self.inp.base_cv)
@@ -314,7 +409,9 @@ class PipelineTests(unittest.TestCase):
         for name, language, expected in [
             ('Morgan', 'en', 'Dear Wren Museum Hiring Team,'),
             ('Morgan Frost', 'de', 'Sehr geehrte Damen und Herren,'),
+            ('', 'de', 'Sehr geehrte Damen und Herren,'),
             ('Morgan Alder', 'de', 'Guten Tag Morgan Alder,'),
+            ('Morgan Alder', 'en', 'Dear Morgan Alder,'),
         ]:
             with self.subTest(name=name, language=language):
                 if name == 'Morgan Alder':

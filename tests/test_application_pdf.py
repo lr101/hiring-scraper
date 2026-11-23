@@ -119,18 +119,27 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertRegex(result.text, r'●\s*Kalibrierte')
 
-    def test_pdf_metadata_identifies_document_and_author(self):
+    def test_pdf_metadata_and_a4_dimensions_for_de_and_en(self):
         from pypdf import PdfReader
 
+        en_cv = fictional_cv()
+        en_cv.language = 'en'
+        en_letter = fictional_letter()
+        en_letter.language = 'en'
         for kind, doc, title in [
             ('cv', fictional_cv(), 'Jörg Übermaß – Lebenslauf'),
             ('letter', fictional_letter(), 'Jörg Übermaß – Anschreiben'),
+            ('cv', en_cv, 'Jörg Übermaß – CV'),
+            ('letter', en_letter, 'Jörg Übermaß – Cover letter'),
         ]:
-            with self.subTest(kind=kind):
+            with self.subTest(kind=kind, language=doc.language):
                 result = application_pdf.render_document(kind, doc.model_dump())
-                metadata = PdfReader(BytesIO(result.pdf)).metadata
-                self.assertEqual(metadata.title, title)
-                self.assertEqual(metadata.author, 'Jörg Übermaß')
+                reader = PdfReader(BytesIO(result.pdf))
+                self.assertEqual(reader.metadata.title, title)
+                self.assertEqual(reader.metadata.author, 'Jörg Übermaß')
+                box = reader.pages[0].mediabox
+                self.assertAlmostEqual(float(box.width), 595.0, delta=2.0)
+                self.assertAlmostEqual(float(box.height), 842.0, delta=2.0)
 
     def test_education_keeps_institution_heading_and_bullets_together(self):
         from pypdf import PdfReader
@@ -154,6 +163,28 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(result.text.upper().count('FIKTIVLABOR'), 1)
         for part in ('AUSBILDUNG', 'FIKTIVLABOR', 'Auswertung 1:', 'Auswertung 4:'):
             self.assertIn(part, pages[1])
+
+    def test_long_entry_avoids_single_orphan_bullet_at_top_of_page_two(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=13)
+        doc.sections[1].entries.append(
+            Entry(
+                id='work-2', kind='work',
+                locked=LockedEntry(company='Fiktivlabor', title='Projektingenieur', start='2019', end='2021'),
+                units=[
+                    Unit(id=f'u-w2-b{n}', text=f'Messreihe {n}: ' + 'Dokumentierte Prüfergebnisse im Labor. ' * 5)
+                    for n in range(1, 7)
+                ],
+            )
+        )
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        p1_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[0]]
+        p2_items = [n for n in range(1, 7) if f'Messreihe {n}:' in pages[1]]
+        self.assertTrue(len(p1_items) == 0 or len(p1_items) >= 2)
+        self.assertGreaterEqual(len(p2_items), 2)
 
     def test_long_cv_reports_overflow(self):
         doc = fictional_cv(bullets=45).model_dump(mode='json')

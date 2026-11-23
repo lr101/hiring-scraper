@@ -334,7 +334,6 @@ def _cv_draft(
     if any(not unit.sources for unit in [reply.headline, *reply.profile]):
         raise _InvalidResponse('Cite the evidence supporting the headline and each profile unit.')
     counts = {entry['entry_id']: entry['base_count'] for entry in entries}
-    entry_bank = {entry.id: entry for section in base.sections for entry in section.entries}
     findings = []
 
     def unknown(message: str) -> None:
@@ -353,10 +352,9 @@ def _cv_draft(
             raise _InvalidResponse('Each entry needs between one fewer and one more bullet than its base count, at least one.')
         if any(not bullet.sources for bullet in proposed.bullets):
             raise _InvalidResponse('Cite evidence supporting every rewritten CV bullet.')
-        if any(unit.lead_in for unit in entry_bank[entry_id].units if not unit.hidden):
-            if any(previous.lead_in.strip() and not bullet.lead_in.strip()
-                   for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)):
-                raise _InvalidResponse('Keep each labelled project in one bullet with its lead-in. Merge unlabelled continuations.')
+        if any(previous.lead_in.strip() and not bullet.lead_in.strip()
+               for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)):
+            raise _InvalidResponse('Keep each labelled project in one bullet with its lead-in. Merge unlabelled continuations.')
         edits[entry_id] = proposed.bullets
 
     skill_sections = {s.id for s in base.sections if s.kind == 'skills'}
@@ -434,6 +432,7 @@ def _new_cv(base: CvDocument) -> CvDocument:
     for section in doc.sections:
         for entry in section.entries:
             editorial.normalize_study_entry(entry)
+            editorial.merge_split_project_bullets(entry)
     return doc
 
 
@@ -444,7 +443,8 @@ def _supported_competency(unit: Unit, evidence: dict[str, str], posting: str) ->
 
 def _check_cv_prose(doc: CvDocument) -> None:
     if not doc.headline.hidden and doc.headline.origin == 'ai':
-        _plain(doc.headline.text, 70)
+        if len(doc.headline.text) > 70:
+            raise _InvalidResponse('Keep the CV headline to one line of at most 70 characters.')
     bullets = [
         unit_full_text(unit)
         for section in doc.sections for entry in section.entries for unit in entry.units if not unit.hidden
@@ -455,7 +455,7 @@ def _check_cv_prose(doc: CvDocument) -> None:
         for unit in section.units:
             if unit.hidden or unit.origin != 'ai':
                 continue
-            if editorial.FIRST_PERSON.search(unit.text):
+            if editorial.has_first_person(unit.text):
                 raise _InvalidResponse('Use implied first person in the CV profile, without I or ich.')
             if any(editorial.near_duplicate(sentence, bullet)
                    for sentence in re.split(r'(?<=[.!?])\s+', unit.text) for bullet in bullets):
@@ -516,7 +516,7 @@ def _salutation(inp: PreparationInput, company: str, proposed_name: str) -> str:
     description = str(inp.job.get('description') or '')
     description = ' '.join(unescape(re.sub(r'<[^>]*>', ' ', description)).split())
     if (len(name) <= 200 and re.fullmatch(rf'{_NAME_WORD}(?: {_NAME_WORD})+', name)
-            and name.split()[0].casefold() not in {'mr', 'ms', 'mrs', 'dr', 'prof', 'frau', 'herr'}
+            and name.split()[0].casefold() not in {'mr', 'ms', 'mrs', 'miss', 'mx', 'dr', 'prof', 'frau', 'herr'}
             and re.search(rf'(?<!\w){re.escape(name)}(?!\w)', description)):
         return f'Guten Tag {name},' if inp.language == 'de' else f'Dear {name},'
     if inp.language == 'de':
@@ -526,8 +526,9 @@ def _salutation(inp: PreparationInput, company: str, proposed_name: str) -> str:
 
 
 _LEGAL_SUFFIX = re.compile(
-    r'(?:[,\s]+(?:GmbH\s*(?:&|und)\s*Co\.?\s*K(?:G|GaA)|'
-    r'GmbH|gGmbH|AG|SE|Inc(?:orporated)?|Corp(?:oration)?|Ltd|Limited|LL[CP]|PLC|L\.L\.C|'
+    r'(?:[,\s]+(?:(?:GmbH|gGmbH|AG|SE|UG)\s*(?:&|und)\s*Co\.?\s*(?:KGaA|KG|OHG)|'
+    r'GmbH|gGmbH|mbH|AG|SE|Inc(?:orporated)?|Corp(?:oration)?|Ltd|Limited|LL[CP]|PLC|'
+    r'L\.L\.[CP]|e\.?\s*V|B\.V|N\.V|S\.A\.R\.L|S\.à\s*r\.l|S\.r\.l|S\.L|S\.A|'
     r'Co|KG|KGaA|OHG|UG|GbR|S[àa]rl|SAS|SA|BV|NV|Pty)\.?)+$',
     re.I,
 )
@@ -546,7 +547,7 @@ def _check_letter_prose(letter: LetterDocument, cv: CvDocument, base: CvDocument
             match = re.fullmatch(r'cv:([^:]+):[bi]\d+', source)
             if match and match[1] in companies:
                 company = companies[match[1]]
-                groups.add(match[1] if editorial.GENERIC_ENTRY_LABEL.fullmatch(company) else company)
+                groups.add(match[1] if not company or editorial.GENERIC_ENTRY_LABEL.fullmatch(company) else company)
         if used & groups:
             raise _InvalidResponse('Use only one paragraph per employer or project. Consolidate examples that cite the same entry.')
         used.update(groups)
@@ -682,8 +683,8 @@ def _valid_review_edit(
             for entry in section.entries:
                 updated = next((u for u in entry.units if u.id == unit.id), None)
                 if updated is not None:
-                    return not (editorial.omitted_details(updated, evidence, entry.id)
-                                - editorial.omitted_details(unit, evidence, entry.id))
+                    return not (editorial.omitted_critical_details(updated, evidence, entry.id)
+                                - editorial.omitted_critical_details(unit, evidence, entry.id))
     return True
 
 
