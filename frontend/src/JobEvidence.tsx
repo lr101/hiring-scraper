@@ -1,7 +1,6 @@
 import type { CityElectionResult } from './profile'
 
 export type ProfileMatch = {
-  score_source?: 'local' | 'llm'
   mandatory_review?: boolean
   task_fit?: number
   duty_evidence?: { score: number | null; coverage: number; duties: {
@@ -9,18 +8,6 @@ export type ProfileMatch = {
     evidence_quote: string; evidence_reference?: string; evidence_context?: string
   }[] }
   gates?: Record<string, { status: string; reason: string }>
-  llm_match?: {
-    weighted_task_fit?: number | null
-    dimensions?: Record<string, { score: number | null; evidence: string; evidence_source?: string; evidence_quote?: string }>
-    weights?: Record<string, number>
-    qualification_fit: number | null; preference_fit: number | null; dimension_completeness: number
-    role_evidence_groups?: { importance: string; priority: string; job_quote: string; requirement_count: number; credit: number; weight: number }[]
-    role_evidence_score: number; requirement_coverage: number | null; requirement_completeness: number
-    requirements: { requirement: string; priority: 'required' | 'preferred' | 'logistics'; importance: 'core' | 'supporting'
-      evidence_distance?: 'close' | 'adjacent'
-      status: 'supported' | 'transferable' | 'missing' | 'unknown'; explanation: string
-      job_source: string; job_quote: string; evidence_quote: string; evidence_source: string }[]
-  } | null
   fit_tier?: 'recommended' | 'possible' | 'unlikely'; requirement_gaps?: string[]; refreshing?: boolean
   score: number; eligible: boolean; uncertain: boolean; label: string
   custom_skill_evidence?: { name: string; evidence: string; source: string }[]
@@ -43,18 +30,12 @@ export type Enrichment = {
 }
 
 function ScoreGraphic({ match }: { match: ProfileMatch }) {
-  const ai = match.score_source === 'llm' ? match.llm_match : null
-  const rows = ai ? [
-    { label: 'Task assessment', value: ai.weighted_task_fit, tone: 'task' },
-    { label: 'Role evidence ceiling', value: ai.role_evidence_score, tone: 'ceiling' },
-    { label: 'Final qualification score', value: match.score, tone: 'final' },
-    { label: 'Preference fit', value: ai.preference_fit, tone: 'preference' },
-  ] : [
+  const rows = [
     { label: 'Task fit', value: match.task_fit, tone: 'task' },
-    { label: 'Local shortlist score', value: match.score, tone: 'final' },
+    { label: 'Match score', value: match.score, tone: 'final' },
   ]
   return <figure className="score-graphic" aria-label="Job score breakdown">
-    <figcaption>{ai ? 'From task evidence to qualification fit' : 'Your local match estimate'}</figcaption>
+    <figcaption>Your match breakdown</figcaption>
     <div className="score-scale" aria-hidden="true"><span>0</span><span>50</span><span>100</span></div>
     {rows.map(row => {
       const value = row.value != null && Number.isFinite(row.value) ? Math.max(0, Math.min(100, row.value)) : null
@@ -66,8 +47,7 @@ function ScoreGraphic({ match }: { match: ProfileMatch }) {
           </div>}
       </div>
     })}
-    <p>{ai ? 'The task assessment is limited by the role evidence ceiling. Unverified academic scope can lower it further. Preference fit is separate.' :
-      'The shortlist score accounts for task fit, qualifications and preferences. Review the checks below for unresolved requirements.'}</p>
+    <p>The match score accounts for task fit, qualifications and preferences. Review the checks below for unresolved requirements.</p>
   </figure>
 }
 
@@ -77,13 +57,11 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
     <p className="eyebrow">How this job fits</p>
     {match ? <>
       <h2>{!match.eligible ? 'Requirement or preference conflict' : match.mandatory_review ? 'Verify mandatory eligibility' : match.fit_tier === 'recommended' ? 'Recommended match' : match.fit_tier === 'unlikely' ? 'Little match evidence' : 'Possible lead'} · {match.score}/100</h2>
-      <p className="muted">{match.score_source === 'llm'
-        ? 'AI qualification index based on your saved career evidence. Preferences and eligibility are assessed separately. It replaces the local estimate and is not a probability of getting hired.'
-        : 'Provisional local shortlist estimate based on saved task and skill evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.'}</p>
+      <p className="muted">Match score based on saved task, skill and requirement evidence. Shared tools may be incidental; verify the main work and mandatory requirements before applying. This is not a prediction of hiring success.</p>
       <ScoreGraphic match={match} />
       {match.mandatory_review && <p className="evidence-note">A mandatory eligibility requirement is unverified. The qualification score does not clear that requirement.</p>}
-      {match.score_source !== 'llm' && match.task_fit != null && <>
-        <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The shortlist score above also accounts for unresolved qualifications and constraints.</p>
+      {match.task_fit != null && <>
+        <p><strong>Task fit before mandatory requirements and preferences:</strong> {match.task_fit}/100. The match score above also accounts for unresolved qualifications and constraints.</p>
       </>}
       {match.duty_evidence?.score != null && <details>
         <summary>Documented duty fit · {match.duty_evidence.score}/100</summary>
@@ -94,62 +72,17 @@ export default function JobEvidence({ enrichment, match }: { enrichment: Enrichm
           {duty.evidence_quote && <p>Saved evidence ({duty.evidence_reference || duty.evidence_source}) <q>{duty.evidence_quote}</q></p>}
         </div>)}
       </details>}
-      {match.score_source === 'llm' && match.llm_match && <>
-        <h3>How your score was calculated</h3>
-        {match.llm_match.weighted_task_fit != null && <p>
-          Weighted skills and experience: <strong>{match.llm_match.weighted_task_fit}/100</strong>.
-          {' '}Limited by role evidence: <strong>{match.llm_match.role_evidence_score}/100</strong>.
-          {' '}Final score: <strong>{match.score}/100</strong>.
-        </p>}
-        {match.llm_match.dimensions && <dl>{Object.entries(match.llm_match.dimensions).map(([name, dimension]) => <div key={name}>
-          <dt>{name.replaceAll('_', ' ')} · {dimension.score == null ? 'Unknown' : `${dimension.score}/100`}</dt>
-          <dd>{dimension.evidence}{dimension.evidence_quote && <p>Saved evidence ({dimension.evidence_source}): <q>{dimension.evidence_quote}</q></p>}</dd>
-        </div>)}</dl>}
-        {match.llm_match.dimensions && match.llm_match.weights && <p className="muted">
-          Task calculation: {['skills', 'experience'].filter(name => match.llm_match!.dimensions![name]?.score != null).map(name =>
-            `${match.llm_match!.dimensions![name].score} × ${Math.round(match.llm_match!.weights![name] * 100)}%`).join(' + ') || 'No scored task dimensions'}.
-          {' '}Divide by the total weight of the known task dimensions, then round. The role evidence ceiling can lower that result.
-          {' '}Preferences are shown separately; language and eligibility checks may still require review.
-        </p>}
-        <h3>Match breakdown</h3>
-        <dl>
-          <dt>Qualification fit · role-relevant evidence</dt><dd>{match.llm_match.qualification_fit == null ? 'Unknown' : `${match.llm_match.qualification_fit}/100`}</dd>
-          <dt>Preference fit · career direction and working style</dt><dd>{match.llm_match.preference_fit == null ? 'Unknown' : `${match.llm_match.preference_fit}/100`}</dd>
-          <dt>Core-role evidence ceiling</dt><dd>{match.llm_match.role_evidence_score}/100</dd>
-          <dt>Assessment detail completeness</dt><dd>{match.llm_match.dimension_completeness}% of the weighted assessment dimensions have evidence</dd>
-          <dt>Requirement evidence completeness</dt><dd>{match.llm_match.requirement_completeness}% of assessed requirement weight has evidence</dd>
-          <dt>Requirement coverage · known evidence only</dt><dd>{match.llm_match.requirement_coverage == null ? 'Unknown' : `${match.llm_match.requirement_coverage}/100`}</dd>
-        </dl>
-        <p className="muted">Core work controls 85% of the evidence ceiling (100% when there are no supporting requirements); supporting skills control at most 15%. Unknown requirements are excluded from coverage, so high coverage with low completeness needs checking. Preferred requirements have one quarter of the weight; close transfer earns 80% credit and adjacent transfer earns 50%. Quotes establish the source, not the correctness of the AI interpretation.</p>
-        {match.llm_match.role_evidence_groups && <details>
-          <summary>Role evidence calculation</summary>
-          <p>Requirements quoted from the same employer clause share one weight within each priority and importance group. Splitting a duty into several rows does not multiply its credit or penalty.</p>
-          {match.llm_match.role_evidence_groups.map((group, index) => <div className="evidence-note" key={index}>
-            <q>{group.job_quote}</q>
-            <p>{group.importance} · {group.priority} · {group.requirement_count} requirement rows · {(100 * group.credit).toFixed(0)}% evidence credit · weight {group.weight}</p>
-          </div>)}
-        </details>}
-        <details>
-          <summary>Requirements and saved evidence</summary>
-          {match.llm_match.requirements.map((row, index) => <div className="evidence-note" key={index}>
-            <strong>{row.requirement} · {row.priority} · {row.importance} · {row.status}{row.status === 'transferable' && row.evidence_distance === 'close' ? ' (close transfer)' : ''}</strong>
-            <p>{row.explanation}</p>
-            <p>Job ({row.job_source}): <q>{row.job_quote}</q></p>
-            {row.evidence_quote && <p>Saved evidence ({row.evidence_source}): <q>{row.evidence_quote}</q></p>}
-          </div>)}
-        </details>
-      </>}
       {match.gates && <>
         <h3>Eligibility and location checks</h3>
         <dl>{Object.entries(match.gates).map(([name, gate]) => <div key={name}><dt>{name} · {gate.status}</dt><dd>{gate.reason}</dd></div>)}</dl>
       </>}
-      {match.score_source !== 'llm' && match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
+      {match.local_context && match.local_context.score_adjustment !== 0 && <p className="muted">Location preference changed this match by {match.local_context.score_adjustment} points.</p>}
       {match.reasons.length > 0 && <ul>{match.reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>}
       {match.conflicts.length > 0 && <div className="error-banner"><strong>Requirements or preferences that conflict</strong><ul>{match.conflicts.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.soft_conflicts?.length ?? 0) > 0 && <div className="evidence-note"><strong>Experience to verify</strong><ul>{match.soft_conflicts!.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
       {(match.requirement_gaps?.length ?? 0) > 0 && <div className="evidence-note"><strong>Qualification gaps to check</strong><ul>{match.requirement_gaps!.map(gap => <li key={gap}>{gap}</li>)}</ul></div>}
       {match.unknowns.length > 0 && <div className="evidence-note"><strong>Still needs checking</strong><ul>{match.unknowns.map(reason => <li key={reason}>{reason}</li>)}</ul></div>}
-      {match.score_source !== 'llm' && match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
+      {match.missing_skills.length > 0 && <p>Other skills mentioned in the post: {match.missing_skills.join(', ')}. Mentions can include optional skills.</p>}
     </> : <><h2>Skills and requirements found</h2><p className="muted"><a href="/profile">Create a profile</a> to rank jobs by your interests.</p></>}
     {enrichment.seniority && <p><strong>Experience level:</strong> {enrichment.seniority.value} · {enrichment.seniority.evidence}</p>}
     {enrichment.experience_years && <p><strong>Minimum experience:</strong> {enrichment.experience_years.value} years · {enrichment.experience_years.evidence}</p>}

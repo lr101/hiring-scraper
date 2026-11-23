@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from hiring_scraper.app import search_snapshots, source_changes
 from hiring_scraper.app.models import (
-    Company, Job, JobFeed, MatchDirtyJob, MatchSemanticDocument, ProfileLLMScore, UserProfile,
+    Company, Job, JobFeed, MatchDirtyJob, MatchSemanticDocument, UserProfile,
 )
 from hiring_scraper.semantic_matching import VERSION
 from tests import pg
@@ -88,11 +88,8 @@ class SourceChangesTests(unittest.TestCase):
             self.assertGreater(search_snapshots.search_generation(session), before)
             self.assertEqual(session.scalars(select(MatchDirtyJob.job_id)).all(), [self.job_id])
 
-    def test_deleting_a_profile_with_assessments_is_fully_declared(self):
+    def test_deleting_a_profile_is_fully_declared(self):
         from hiring_scraper.app import profiles
-        with self.factory.begin() as session:
-            session.add(ProfileLLMScore(profile_id=self.profile_id, job_id=self.job_id, version='v',
-                                        assessment={}, source_hash='saved'))
         with self.factory() as session, patch('hiring_scraper.app.codex_runtime._root',
                                               return_value=__import__('pathlib').Path(self.tmp())):
             self.assertEqual(profiles.delete_profile(self.profile_id, session), {'deleted': True})
@@ -105,40 +102,29 @@ class SourceChangesTests(unittest.TestCase):
         self.addCleanup(directory.cleanup)
         return directory.name
 
-    def test_jobs_changed_drops_only_stale_vectors_and_assessments(self):
-        from hiring_scraper.app.profile_llm import matching_config, source_hash
+    def test_jobs_changed_drops_only_stale_vectors(self):
         from hiring_scraper.semantic_matching import job_sections, source_hash as vector_hash
         with self.factory.begin() as session:
             job = session.get(Job, self.job_id)
-            profile = session.get(UserProfile, self.profile_id)
             session.add(MatchSemanticDocument(job_id=job.id, version=VERSION, sections=[], vectors=b'',
                 source_hash=vector_hash(job_sections({'description': job.description,
                                                       'raw_metadata': job.raw_metadata}))))
-            # A saved assessment carries the config version it was hashed with.
-            version = matching_config(session).version
-            session.add(ProfileLLMScore(profile_id=profile.id, job_id=job.id, version=version, assessment={},
-                                        source_hash=source_hash(job, profile, session=session)))
         with self.factory() as session:
             # Unchanged inputs keep the cached rows.
             source_changes.jobs_changed(session, [self.job_id])
             session.commit()
-            self.assertIsNotNone(session.get(ProfileLLMScore, (self.profile_id, self.job_id)))
             self.assertIsNotNone(session.scalar(select(MatchSemanticDocument.id)))
             session.get(Job, self.job_id).description = 'You will coordinate clinical trials across several hospital sites.'
             source_changes.jobs_changed(session, [self.job_id])
             session.commit()
-            self.assertIsNone(session.get(ProfileLLMScore, (self.profile_id, self.job_id)))
             self.assertIsNone(session.scalar(select(MatchSemanticDocument.id)))
 
-    def test_changed_career_facts_drop_assessments_and_restart_the_profile_index(self):
+    def test_changed_career_facts_restart_the_profile_index(self):
         with self.factory.begin() as session:
             session.get(UserProfile, self.profile_id).match_index_version = 'current'
-            session.add(ProfileLLMScore(profile_id=self.profile_id, job_id=self.job_id, version='v',
-                                        assessment={}, source_hash='irrelevant'))
         with self.factory() as session:
             source_changes.profile_changed(session, self.profile_id, career_facts_changed=True)
             session.commit()
-            self.assertIsNone(session.get(ProfileLLMScore, (self.profile_id, self.job_id)))
             self.assertIsNone(session.get(UserProfile, self.profile_id).match_index_version)
 
     def test_tracked_values_ignore_bookkeeping_fields(self):

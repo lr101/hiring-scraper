@@ -75,8 +75,8 @@
 .application-card-state { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 5px; }
 .application-job-card-header .application-state-badge { margin: 0; }
 .application-card-match-score { display: inline-flex; min-height: 22px; align-items: center; gap: 5px; padding: 3px 7px; border: 1px solid; border-radius: 999px; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
-.application-ai-match-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 3px 7px; border: 1px solid #a9a1cb; border-radius: 999px; color: #554784; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
-html[data-theme="dark"] .application-ai-match-tag { border-color: #8d80b4; color: #d7cafa; }
+.application-match-refresh-tag { display: inline-flex; align-items: center; min-height: 22px; padding: 3px 7px; border: 1px solid #a9a1cb; border-radius: 999px; color: #554784; font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; }
+html[data-theme="dark"] .application-match-refresh-tag { border-color: #8d80b4; color: #d7cafa; }
 .application-card-match-score::before { width: 6px; height: 6px; border-radius: 50%; background: currentColor; content: ''; }
 .application-card-match-score.match-recommended { border-color: #d4e4c9; background: #f0f2f1; color: #657a5a; }
 .application-card-match-score.match-possible { border-color: #e8dfc4; background: #f8f3e7; color: #806a3f; }
@@ -2000,14 +2000,6 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 @keyframes finish-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .finish-spinner { animation: none; } }
 
-.matching-status-facts { margin: 1rem 0; }
-.matching-status-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding: .8rem 0; border-bottom: 1px solid var(--border, #68756b); }
-.matching-status-facts dt { font-weight: 600; }
-.matching-status-facts dd { margin: 0; overflow-wrap: anywhere; }
-@media (max-width: 560px) {
-  .matching-status-facts > div { grid-template-columns: 1fr; gap: .3rem; }
-}
-
 .score-graphic { margin: 24px 0; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: #fff; max-width: 620px; }
 .score-graphic figcaption { font-weight: 650; color: var(--ink); margin-bottom: 16px; }
 .score-scale { display: flex; justify-content: space-between; font-size: 11px; color: #59656e; }
@@ -2016,11 +2008,8 @@ html[data-theme="dark"] .journey-reward-progress-label { color: #aab4b9; }
 .score-row-label strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .score-track { height: 12px; overflow: hidden; border-radius: 3px; background: #edf0f1; }
 .score-track > span { display: block; height: 100%; background: #6b8b9d; }
-.score-row-ceiling .score-track > span { background: #9a7941; }
 .score-row-final .score-track { height: 18px; }
 .score-row-final .score-track > span { background: #3c7051; }
-.score-row-preference { padding-top: 14px; border-top: 1px solid var(--line); }
-.score-row-preference .score-track > span { background: #7e7295; }
 .score-track-unknown { background: repeating-linear-gradient(135deg, #edf0f1, #edf0f1 5px, #fff 5px, #fff 10px); }
 .score-graphic p { font-size: 12px; line-height: 1.6; color: #59656e; margin: 16px 0 0; }
 @media (max-width: 480px) { .score-graphic { padding: 14px; } }

@@ -249,16 +249,12 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     from hiring_scraper.app.job_search import _profile_index_version
     from hiring_scraper.app.match_compute import (
         load_stored_match_snapshots,
-        public_explanation,
         select_journey_card,
         snapshot_explanation_is_current,
     )
-
     displayed_pairs = [(row.profile_id, row.job_id) for row in applications]
     snapshots = load_stored_match_snapshots(session, displayed_pairs) if displayed_pairs else {}
     expected_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
-    job_hash_cache: dict[int, str] = {}
-    profile_hash_cache: dict[int, str] = {}
     cards: dict[tuple[int, int], dict[str, Any]] = {}
     fallback_pairs: list[tuple[int, int]] = []
     for application in applications:
@@ -271,127 +267,6 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
             job,
             profile,
             expected_profile_index_version=expected_versions[application.profile_id],
-            job_hash_cache=job_hash_cache,
-            profile_hash_cache=profile_hash_cache,
-        )
-        mode, card = select_journey_card(
-            snapshot.match if snapshot is not None else None,
-            ranked_score=application.match_rank,
-            is_current=is_current,
-        )
-        if mode == 'refreshing':
-            matching_pending = True
-            cards[pair] = card
-        elif mode == 'stored':
-            cards[pair] = card
-        else:
-            fallback_pairs.append(pair)
-    # One ranking score drives pagination and display: the stored match score the
-    # page was ordered by. Cards that cannot show it faithfully are flagged pending;
-    # the page is never re-sorted by a different (freshly computed) score.
-    ranks = {(row.profile_id, row.job_id): row.match_rank for row in applications}
-    fallback_pairs_ranked = [pair for pair in fallback_pairs if ranks[pair] >= 0]
-    for pair in fallback_pairs:
-        if ranks[pair] < 0:
-            # No stored score (outside the indexed scope or not indexed yet): ranked
-            # last and shown without a score card rather than an out-of-order score.
-            cards[pair] = None
-    fallback_pairs = fallback_pairs_ranked
-    for pair in fallback_pairs:
-        # No stored explanation is faithful to the rank this page was ordered by. Show
-        # that rank as refreshing and never a freshly computed tier, source or skills
-        # (an old AI rank must not render as a low-fit local estimate). Keep only what
-        # the stored row itself says, otherwise stay neutral until the worker publishes.
-        snapshot = snapshots.get(pair)
-        stored = getattr(snapshot.match, 'explanation', None) if snapshot is not None else None
-        stored = public_explanation(stored) if isinstance(stored, dict) else {}
-        card = {key: stored[key] for key in ('matched_skills', 'score_source') if key in stored}
-        card.update(score=ranks[pair], refreshing=True)  # fit_tier omitted: the UI derives it from the score
-        cards[pair] = card
-        matching_pending = True
-    items = []
-    for application in applications:
-        item = search_snapshots.job_json(jobs_by_id[application.job_id])
-        item['application'] = application_json(application)
-        items.append(item)
-    return {'profile_id': profile_id, 'items': items, 'counts': counts,
-            'total': counts[status] if status is not None else sum(counts.values()),
-            'offset': offset, 'limit': limit}
-
-
-@router.get('/api/v1/applications')
-def list_applications(profile_ids: str = Query(..., max_length=1200),
-                      statuses: str | None = Query(None, max_length=160),
-                      sort: Literal['match', 'posted', 'discovered'] = 'match',
-                      offset: Annotated[int, Query(ge=0)] = 0,
-                      limit: Annotated[int, Query(ge=1, le=100)] = 40,
-                      session: Session = Depends(get_session)) -> dict[str, Any]:
-    try:
-        selected_ids = list(dict.fromkeys(int(value) for value in profile_ids.split(',') if value))
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail='profile_ids must be a comma-separated list of IDs') from error
-    if not selected_ids or len(selected_ids) > 100 or any(value < 1 for value in selected_ids):
-        raise HTTPException(status_code=422, detail='Select between 1 and 100 valid profiles')
-    profiles = [require_profile(value, session) for value in selected_ids]
-    selected_statuses: list[str] = []
-    if statuses and statuses != 'all':
-        selected_statuses = list(dict.fromkeys(value for value in statuses.split(',') if value))
-        if not selected_statuses or any(value not in APPLICATION_STATUSES for value in selected_statuses):
-            raise HTTPException(status_code=422, detail='statuses contains an unknown application state')
-
-    # Reads never scan the inventory or match synchronously: the profile match
-    # worker backfills stale profiles and drains changed jobs, while saved
-    # application stages stay usable and the page reports pending work.
-    from hiring_scraper.app.models import MatchDirtyJob
-    matching_pending = (any(profile_match_index_stale(profile) for profile in profiles)
-                        or session.scalar(select(MatchDirtyJob.job_id).limit(1)) is not None)
-
-    canonical_states = canonical_application_states(session, selected_ids)
-    counts = dict.fromkeys(APPLICATION_STATUSES, 0)
-    for application in canonical_states:
-        counts[application.status] += 1
-    applications = [application for application in canonical_states
-                    if not selected_statuses or application.status in selected_statuses]
-    total = len(applications)
-    # Stored ranks remain usable while bounded worker pages rebuild them.
-    # Matching card details below is limited to the requested page.
-    order = {
-        'posted': lambda row: (row.posted_rank, row.match_rank, row.discovered_rank, row.id),
-        'discovered': lambda row: (row.discovered_rank, row.match_rank, row.posted_rank, row.id),
-        'match': lambda row: (row.match_rank, row.discovered_rank, row.posted_rank, row.id),
-    }[sort]
-    applications = sorted(applications, key=order, reverse=True)[offset:offset + limit]
-    # Bind only this page's stable job IDs, regardless of the full Journey size.
-    jobs = session.scalars(select(Job).where(Job.id.in_({row.job_id for row in applications})).options(
-        joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
-        selectinload(Job.locations))).unique().all() if applications else []
-    jobs_by_id = {job.id: job for job in jobs}
-    profiles_by_id = {profile.id: profile for profile in profiles}
-    from hiring_scraper.app.job_search import _profile_index_version
-    from hiring_scraper.app.match_compute import (
-        load_stored_match_snapshots,
-        select_journey_card,
-        snapshot_explanation_is_current,
-    )
-    displayed_pairs = [(row.profile_id, row.job_id) for row in applications]
-    snapshots = load_stored_match_snapshots(session, displayed_pairs) if displayed_pairs else {}
-    expected_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
-    job_hash_cache: dict[int, str] = {}
-    profile_hash_cache: dict[int, str] = {}
-    cards: dict[tuple[int, int], dict[str, Any]] = {}
-    fallback_pairs: list[tuple[int, int]] = []
-    for application in applications:
-        pair = (application.profile_id, application.job_id)
-        job = jobs_by_id[application.job_id]
-        profile = profiles_by_id[application.profile_id]
-        snapshot = snapshots.get(pair)
-        is_current = snapshot_explanation_is_current(
-            snapshot,
-            job,
-            profile,
-            expected_profile_index_version=expected_versions[application.profile_id],
-            job_hash_cache=job_hash_cache,
-            profile_hash_cache=profile_hash_cache,
         )
         mode, card = select_journey_card(
             snapshot.match if snapshot is not None else None,
@@ -419,16 +294,14 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     for pair in fallback_pairs:
         # No faithful stored explanation for the rank this page was ordered by:
         # show that rank as a neutral, refreshing card. Freshly computed evidence
-        # (tier, source, skills) could contradict the displayed score, so the
-        # worker's rematch supplies it instead.
+        # (tier, skills) could contradict the displayed score, so the worker's
+        # rematch supplies it instead.
         matching_pending = True
         card = {'score': ranks[pair], 'refreshing': True}
         stored = getattr(snapshots.get(pair), 'match', None)
         explanation = getattr(stored, 'explanation', None)
-        if isinstance(explanation, dict):
-            for key in ('score_source', 'matched_skills'):
-                if explanation.get(key):
-                    card[key] = explanation[key]
+        if isinstance(explanation, dict) and explanation.get('matched_skills'):
+            card['matched_skills'] = explanation['matched_skills']
         cards[pair] = card
     items = []
     for application in applications:

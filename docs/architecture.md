@@ -20,7 +20,7 @@ development, run the same modules with `python -m hiring_scraper.app.<module>`.
 | Discovery worker | `app.discovery_worker` | Runs search-area campaigns: finds employers from OpenStreetMap, resolves missing homepages, and discovers career pages and ATS feeds. |
 | Search snapshot worker | `app.search_snapshot_worker` | Rebuilds materialized job-search snapshots so browsing does not wait for ranking. |
 | Semantic search worker | `app.semantic_search_worker` | Hosts the pinned local multilingual E5 embedding model and indexes companies and jobs. |
-| Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules, local semantic evidence and queued subscription-backed AI assessments. |
+| Profile match worker | `app.profile_match_worker` | Rebuilds stale profile matches using local rules and local semantic evidence. |
 | Application preparation worker | `app.application_preparation_worker` | Drafts, reviews and revises application documents from the PostgreSQL queue. |
 
 PostgreSQL (with PostGIS and pgvector) is the only database. Development and tests use
@@ -85,9 +85,9 @@ flowchart LR
   City and state searches show these independently.
 - **Provenance over guesses.** Homepages, employers and locations keep their source
   evidence; unknown values stay unknown. A shared domain alone does not merge employers.
-- **Reads never infer.** API requests use cached matches and assessments; model calls
-  run in workers, outside database transactions, and publish only if inputs are unchanged.
-- **Profile data stays private.** Prompts use saved career facts, not inferred
+- **Reads never infer.** API requests use cached matches; local embeddings and
+  application drafting run in workers, outside database transactions, and publish only if inputs are unchanged.
+- **Profile data stays private.** Application prompts use saved career facts, not inferred
   abilities; profile photos are never sent to the model.
 
 ## Concurrency model
@@ -98,52 +98,44 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   rows they change, in id order (`models.reserve_job_source_rows`), and never write
   `user_profiles`. The one exception is retiring jobs that have saved Journey stages: it
   holds the owning profiles `FOR SHARE` (through `before_publish`) while closing them.
-- **Declare every source change.** After editing jobs, feeds, companies, profiles,
-  assessments or vectors, call the matching `source_changes.*_changed()` function before
+- **Declare every source change.** After editing jobs, feeds, companies, profiles or
+  vectors, call the matching `source_changes.*_changed()` function before
   commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
   writes fail tests (strict mode) and log an error in production.
 - **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs`; companies and jobs needing vectors are queued
   in `semantic_search_refreshes` by database triggers. Workers drain these queues. Only profile-wide scoring inputs
-  (career/matching preferences, `low_afd_vote_share_weight`, `search_area`, CV career facts, profile vectors, or matcher/semantic/requirement scoring versions) mark a whole profile stale via `_profile_index_version`.
-- **Presentation defaults and AI model switches avoid full rebuilds.** Changing only `matching_defaults.min_match_score` or
+  (career/matching preferences, `low_afd_vote_share_weight`, `search_area`, CV career facts, profile vectors, or matcher/semantic versions) mark a whole profile stale via `_profile_index_version`.
+- **Presentation defaults avoid full rebuilds.** Changing only `matching_defaults.min_match_score` or
   `matching_defaults.include_unknown` does not change `_profile_index_version` or clear `profile_job_matches`; saving those
   fields calls `source_changes.profile_changed(..., presentation_only=True)` (bumping `source_version` to serialize against
-  in-flight workers without dropping vectors, assessments, or `match_index_version`) and runs
-  `reevaluate_profile_new_applications`, which shares `_tracked_application_pairs` and `application_match_allowed` with the
+  in-flight workers without dropping vectors or `match_index_version`) and runs
+  `reevaluate_profile_new_applications`, which shares `application_match_allowed` with the
   workers, leaves user-decided stages untouched, and defers dirty/stale/legacy rows to `match_dirty_jobs` (`ON CONFLICT DO
-  NOTHING`). Non-presentation edits compare each `profile_llm_scores` row against its own `version`, so edits after a model
-  switch never drop unchanged assessments. Effective AI model or reasoning-effort changes trigger
-  `source_changes.matching_model_changed()` from both `profile_llm.set_matching_model` and worker startup
-  (`profile_llm.reconcile_matching_config_change`, comparing against `ai_matching_observed_config` under advisory lock
-  `(85793011, 9)` so `RADIUS_MATCH_AI_MODEL` / `RADIUS_MATCH_AI_REASONING_EFFORT` env changes also queue affected AI-scored
-  jobs without locking `ai_matching_settings` or adding idle poll queries).
-- **One match computation, single-snapshot reads, and version-stamped explanations.** Indexers (`job_search.py`), AI
-  publication (`profile_llm.py`) and read fallbacks (`search_snapshots.py`, `journey.py`) share `match_compute.compute_match`.
+  NOTHING`).
+- **One match computation, single-snapshot reads, and version-stamped explanations.** Indexers (`job_search.py`) and
+  read fallbacks (`search_snapshots.py`, `journey.py`) share `match_compute.compute_match` (local rules + local semantic evidence).
   Every `profile_job_matches` upsert stores a JSONB-safe (NUL/surrogate/non-finite stripped) `explanation` bounded to
   `<= 16 KiB` on the final `json.dumps(..., allow_nan=False)` wire bytes (including `requirement_observations` and
-  `local_context.city_election_results`), stamped with internal provenance `_stamp` (`job` revision, `sem` hashes, and
-  assessment `source_hash:scored_at` revision; stripped before returning) and a source-scoped `score_version` (`ScoreStamp`:
-  model/effort enters `llm_version` only, so local-only rows stay reusable across model switches) with
-  `explanation['score'] == match_score`. Read paths validate `profile_job_matches`, `match_dirty_jobs`, `user_profiles`,
-  `match_semantic_documents.source_hash`, `profile_llm_scores.(version, source_hash, scored_at)` and `ai_matching_settings`
+  `local_context.city_election_results`), stamped with internal provenance `_stamp` (`job` revision and `sem` hashes;
+  stripped before returning) and `score_version` (`current_score_version()`) with
+  `explanation['score'] == match_score`. Read paths validate `profile_job_matches`, `match_dirty_jobs`, `user_profiles`
+  and `match_semantic_documents.source_hash`
   in ONE consistent SQL statement (`load_stored_match_snapshots`) for only the displayed `(profile_id, job_id)` pairs,
-  loading vectors and assessments only on fallback. Indexed search treats a missing `profile_job_matches` row as an
+  loading vectors only on fallback. Indexed search treats a missing `profile_job_matches` row as an
   authoritative `profile_conflict` only when the profile index is current and the job is not dirty, and recomputes via
   `compute_match` otherwise. Journey keeps rank and card score consistent: stale/dirty rows with a faithful stored
-  explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`) rather than
-  ranking by an old AI score while showing a recomputed local card; missing/legacy rows recompute on the displayed page and
-  keep the displayed order aligned with the rendered scores.
+  explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`);
+  missing/legacy rows recompute on the displayed page and keep the displayed order aligned with the rendered scores.
 - **Profiles are versioned, not locked by publishers.** Profile edits bump
   `user_profiles.source_version` (through `source_changes`). Publishers of per-profile data
   record the versions when they start, compute without locks, then call
   `models.hold_profiles(session, {id: version}, wait=False)` before their derived writes.
   It holds the rows `FOR SHARE` (publishers run side by side; edits wait) and raises
   `ProfileIndexChanged` if a version moved or an edit is in flight; the work is retried.
-  The match worker passes expected versions. AI publication holds only the profile id and
-  instead re-checks the assessment's source hash, which covers the profile inputs it used.
+  The match worker passes expected versions.
 - **Lock order is jobs → profiles → derived rows.** Lock affected job rows first
-  (`reserve_job_source_rows`), then hold profiles, then write matches, Journey rows or
-  assessments. Profile editors write the profile row before derived rows, so neither side
+  (`reserve_job_source_rows`), then hold profiles, then write matches or Journey rows.
+  Profile editors write the profile row before derived rows, so neither side
   can deadlock. Hold exclusively (`exclusive=True`) only to write the profile row itself.
 - **Retry contention, don't discard work.** Wrap persistence of expensive results in
   `database.retry_transient()`, and log loop failures with `database.log_worker_failure()`

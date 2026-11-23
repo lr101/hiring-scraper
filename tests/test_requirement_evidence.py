@@ -19,54 +19,8 @@ class RequirementEvidenceTests(unittest.TestCase):
                     'evidence_source': 'profile.summary', 'evidence_quote': 'Built Python services.',
                     'explanation': 'Direct service experience.'}
 
-    def test_incidental_tool_overlap_cannot_compensate_for_unknown_core_work(self):
-        rows = [{**self.row, 'status': 'unknown'},
-                *[{**self.row, 'importance': 'supporting', 'requirement': f'Tool {i}'} for i in range(20)]]
-        self.assertEqual(evidence.role_relevance_score(rows), 15)
-        rows[0]['status'] = 'transferable'
-        self.assertEqual(evidence.role_relevance_score(rows), 58)
-        rows[0]['status'] = 'supported'
-        self.assertEqual(evidence.role_relevance_score(rows), 100)
-
-    def test_one_unverified_duty_does_not_erase_strong_documented_core_overlap(self):
-        rows = [{**self.row, 'requirement': f'Core duty {i}'} for i in range(9)]
-        rows.append({**self.row, 'requirement': 'One additional duty', 'status': 'unknown'})
-        self.assertEqual(evidence.role_relevance_score(rows), 90)
-
-    def test_adjacent_core_work_still_cannot_become_a_strong_match_from_tools(self):
-        rows = [{**self.row, 'status': 'transferable'},
-                *[{**self.row, 'importance': 'supporting'} for _ in range(10)]]
-        self.assertLess(evidence.role_relevance_score(rows), 65)
-
-    def test_close_transfer_receives_substantial_credit_without_clearing_the_requirement(self):
-        row = {**self.row, 'status': 'transferable', 'evidence_distance': 'close'}
-        self.assertEqual(evidence.role_relevance_score([row]), 80)
-        summary = evidence.requirement_summary([row])
-        self.assertEqual(summary['coverage'], 80)
-
-    def test_splitting_one_unknown_employer_clause_does_not_multiply_its_penalty(self):
-        rows = [self.row, *[{**self.row, 'requirement': f'Part {i}',
-            'job_quote': 'Coordinate campaigns, tests, reports and events.', 'status': 'unknown'} for i in range(4)]]
-        self.assertEqual(evidence.role_relevance_score(rows), 50)
-
-    def test_splitting_one_supported_employer_clause_does_not_inflate_its_credit(self):
-        rows = [*[{**self.row, 'requirement': f'Part {i}'} for i in range(4)],
-                {**self.row, 'job_quote': 'Own regulatory approval.', 'status': 'unknown'}]
-        self.assertEqual(evidence.role_relevance_score(rows), 50)
-
     def test_sparse_job_can_have_no_requirements_without_fabrication(self):
         self.assertEqual(evidence.ground_requirements([], self.sources), [])
-        self.assertEqual(evidence.role_relevance_score([]), 0)
-
-    def test_unknown_logistics_do_not_reduce_supported_task_qualification_score(self):
-        rows = [self.row, {**self.row, 'requirement': 'Work authorization',
-                          'priority': 'logistics', 'importance': 'supporting', 'status': 'unknown'}]
-        self.assertEqual(evidence.role_relevance_score(rows), 100)
-
-    def test_mandatory_language_is_separate_from_task_fit_even_when_core(self):
-        rows = [self.row, {**self.row, 'requirement': 'French C1',
-                          'category': 'language', 'status': 'missing'}]
-        self.assertEqual(evidence.role_relevance_score(rows), 100)
 
     def test_in_progress_education_cannot_ground_supported_completed_degree(self):
         row = {**self.row, 'category': 'education', 'requirement': 'Completed master degree',
@@ -130,8 +84,6 @@ class RequirementEvidenceTests(unittest.TestCase):
     def test_source_specific_verified_evidence_is_preserved(self):
         result = evidence.ground_requirements([self.row], self.sources)
         self.assertEqual(result, [self.row])
-        self.assertEqual(evidence.requirement_summary(result),
-                         {'coverage': 100, 'completeness': 100, 'required_gaps': []})
 
     def test_country_agnostic_sponsorship_flag_cannot_prove_foreign_authorization_failure(self):
         row = {**self.row, 'requirement': 'Hold New Zealand work authorization',
@@ -211,9 +163,3 @@ class RequirementEvidenceTests(unittest.TestCase):
         sources = evidence.evidence_sources(profile, {})
         self.assertEqual(sources['profile.skill_evidence.Tool 5.note'], note)
         self.assertEqual(sources['profile.cv_career_facts.experiences[5].bullets[0]'], note)
-
-    def test_unknowns_are_visible_and_preferred_skills_do_not_hide_required_gaps(self):
-        rows = [self.row, {**self.row, 'requirement': 'Leadership', 'priority': 'preferred', 'status': 'unknown'},
-                {**self.row, 'requirement': 'Authorization', 'priority': 'logistics', 'status': 'missing'}]
-        self.assertEqual(evidence.requirement_summary(rows),
-                         {'coverage': 50, 'completeness': 89, 'required_gaps': ['Authorization']})

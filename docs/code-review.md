@@ -159,7 +159,7 @@ The problems were locking and unbounded scans, not queue throughput.
 ### Explicit source changes (item 3)
 
 Write sites call `source_changes.jobs_changed`, `feeds_changed`, `companies_changed`,
-`profile_changed`, `assessments_changed` or `vectors_changed`. Each call drops the caches
+`profile_changed` or `vectors_changed`. Each call drops the caches
 whose inputs changed (by comparing stored hashes with values recomputed from the
 database), queues rematching, and marks the transaction so one search generation is
 published at commit. The "can't forget" guarantee the listeners gave is kept by a
@@ -174,7 +174,7 @@ every declared profile input change. Publishers read it when they start computin
 call `models.hold_profiles()` with the expected versions after computing, before their
 derived writes:
 
-- `FOR SHARE`, so publishers (match worker, AI publication, duplicate consolidation,
+- `FOR SHARE`, so publishers (match worker, duplicate consolidation,
   Journey stage saves) no longer exclude each other; only a profile edit does.
 - Worker publications pass `wait=False`: an in-flight edit defers the page
   (`ProfileIndexChanged`, retried) instead of queueing behind it and timing out.
@@ -189,7 +189,5 @@ by one page of derived writes.
 ### Next
 
 - Continue splitting `api.py`: search/browse, feeds and discovery routers.
-- Make the AI reconciliation incremental (driven by `match_dirty_jobs`) rather than a
-  per-minute inventory pass. It is chunked now, but still O(inventory) CPU.
 - Product: let users set the daily focus size (default 3) and show a gentle weekly
   summary, without daily streak pressure.

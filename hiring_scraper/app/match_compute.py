@@ -4,7 +4,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from copy import deepcopy
 from dataclasses import dataclass
-from datetime import datetime
 import hashlib
 import json
 import math
@@ -16,30 +15,13 @@ from sqlalchemy.orm import aliased, object_session
 
 from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.models import (
-    AIMatchingSetting,
     Job,
     MatchDirtyJob,
     MatchSemanticDocument,
     ProfileJobMatch,
-    ProfileLLMScore,
     UserProfile,
-    as_utc,
 )
-from hiring_scraper.app.profile_llm import (
-    EFFORT as DEFAULT_LLM_EFFORT,
-    MODEL as DEFAULT_LLM_MODEL,
-    MatchingConfig,
-    _hash as llm_hash,
-    apply_cached_assessment,
-    job_data as llm_job_data,
-    load_matching_documents,
-    matching_config,
-    matching_version,
-    profile_data as llm_profile_data,
-    source_hash as llm_source_hash,
-)
-from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
+from hiring_scraper.app.profile_semantics import cached_semantic_evidence, load_semantic_documents
 from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 
@@ -101,53 +83,6 @@ _CITY_ELECTION_SCALAR_FIELDS = (
     'valid_second_votes',
     'postal_ballots_included',
 )
-_LLM_REQUIREMENT_FIELDS = (
-    'requirement',
-    'priority',
-    'importance',
-    'evidence_distance',
-    'status',
-    'explanation',
-    'job_source',
-    'job_quote',
-    'evidence_quote',
-    'evidence_source',
-)
-_LLM_GROUP_FIELDS = (
-    'importance',
-    'priority',
-    'job_quote',
-    'requirement_count',
-    'credit',
-    'weight',
-)
-_LLM_SCALAR_FIELDS = (
-    'model',
-    'reasoning_effort',
-    'version',
-    'scoring_version',
-    'source_hash',
-    'scored_at',
-    'score',
-    'weighted_task_fit',
-    'qualification_fit',
-    'preference_fit',
-    'dimension_completeness',
-    'role_evidence_score',
-    'requirement_coverage',
-    'requirement_completeness',
-)
-
-
-@dataclass(frozen=True)
-class ScoreStamp:
-    """Version stamps scoped by score source so local rows survive AI model switches."""
-    local_version: str
-    llm_version: str
-    llm_config_version: str
-
-    def for_source(self, score_source: str | None) -> str:
-        return self.llm_version if score_source == 'llm' else self.local_version
 
 
 @dataclass(frozen=True)
@@ -171,10 +106,6 @@ class MatchSnapshot:
     dirty_revision: str | None
     job_semantic_hash: str | None
     profile_semantic_hash: str | None
-    llm_version: str | None
-    llm_source_hash: str | None
-    llm_scored_at: datetime | None
-    ai_model: str | None
 
     @property
     def dirty(self) -> bool:
@@ -195,7 +126,7 @@ def _session_for(*objects):
 
 
 def apply_profile_match_scope(match: dict, scope: dict | None) -> dict:
-    """External geography remains authoritative after local or cached scoring."""
+    """External geography remains authoritative after local scoring."""
     if scope is not None:
         scope_unknowns = scope.get('unknowns') or []
         match['unknowns'] = list(dict.fromkeys((match.get('unknowns') or []) + scope_unknowns))
@@ -217,54 +148,12 @@ def _compose_score_version(components: dict[str, Any]) -> str:
     return f'{MATCHING_VERSION[:39]}:{digest}'
 
 
-def score_stamp_for_llm_version(llm_config_version: str) -> ScoreStamp:
-    """Build scoped local and AI score versions (each <= 80 chars)."""
-    local_version = _compose_score_version({
-        'kind': 'local',
+def current_score_version() -> str:
+    """Composite version stamping stored local explanations (<= 80 chars)."""
+    return _compose_score_version({
         'matcher': MATCHING_VERSION,
         'semantic': SEMANTIC_VERSION,
-        'requirement_scoring': REQUIREMENT_SCORING_VERSION,
     })
-    llm_version = _compose_score_version({
-        'kind': 'llm',
-        'matcher': MATCHING_VERSION,
-        'semantic': SEMANTIC_VERSION,
-        'requirement_scoring': REQUIREMENT_SCORING_VERSION,
-        'llm': llm_config_version,
-    })
-    return ScoreStamp(
-        local_version=local_version,
-        llm_version=llm_version,
-        llm_config_version=llm_config_version,
-    )
-
-
-def current_score_stamp(session=None, *, documents=None, llm_version: str | None = None) -> ScoreStamp:
-    """Resolve the active local and AI score stamps."""
-    if llm_version is None:
-        config = getattr(documents, 'llm_config', None)
-        llm_version = config.version if config is not None else matching_version(session)
-    return score_stamp_for_llm_version(llm_version)
-
-
-def current_score_version(
-    session=None,
-    *,
-    documents=None,
-    llm_version: str | None = None,
-    score_source: str = 'llm',
-) -> str:
-    """Composite version stamping stored explanations (<= 80 chars), scoped by score_source."""
-    return current_score_stamp(session, documents=documents, llm_version=llm_version).for_source(score_source)
-
-
-def snapshot_score_stamp(snapshot: MatchSnapshot) -> ScoreStamp:
-    """Build the ScoreStamp from the AI model observed in the same SQL snapshot."""
-    from hiring_scraper.app import profile_llm
-
-    model = snapshot.ai_model or profile_llm.MODEL
-    config = MatchingConfig(model, profile_llm.EFFORT)
-    return score_stamp_for_llm_version(config.version)
 
 
 def job_revision(job, *, source: dict | None = None) -> str:
@@ -295,42 +184,17 @@ def documents_semantic_stamp(documents, job_id: int | None, profile_id: int | No
     return semantic_stamp(job_hash, profile_hash)
 
 
-def format_assessment_revision(source_hash: str | None, scored_at: datetime | str | None) -> str | None:
-    """Combine assessment source_hash and UTC scored_at so successive judgments have distinct revisions."""
-    if not source_hash or scored_at is None:
-        return None
-    if isinstance(scored_at, str):
-        try:
-            dt = as_utc(datetime.fromisoformat(scored_at))
-        except ValueError:
-            return f'{source_hash}:{scored_at}'
-    else:
-        dt = as_utc(scored_at)
-    return f'{source_hash}:{dt.isoformat()}'
-
-
 def provenance_stamp(
     job,
     profile_id: int,
     documents,
-    result: dict,
     *,
     source: dict | None = None,
 ) -> dict[str, Any]:
-    """Capture the exact job, semantic and AI assessment revisions that produced ``result``."""
-    score_source = result.get('score_source') or 'local'
-    llm_rev = None
-    if score_source == 'llm':
-        llm_row = getattr(documents, 'llm_scores', {}).get((profile_id, job.id)) if documents is not None else None
-        if llm_row is not None:
-            llm_rev = format_assessment_revision(llm_row.source_hash, llm_row.scored_at)
-        else:
-            llm_match = result.get('llm_match') or {}
-            llm_rev = format_assessment_revision(llm_match.get('source_hash'), llm_match.get('scored_at'))
+    """Capture the exact job and semantic revisions that produced a stored match."""
     return {
         'job': job_revision(job, source=source),
         'sem': documents_semantic_stamp(documents, getattr(job, 'id', None), profile_id),
-        'llm': llm_rev,
     }
 
 
@@ -344,11 +208,11 @@ def compute_match(
     enrichment: dict | None = None,
     matcher=None,
 ) -> dict:
-    """Single shared match computation for indexers, detail views, Journey and AI publication."""
+    """Single shared local match computation for indexers, detail views and Journey."""
     resolved_source = job_input(job) if source is None else source
     resolved_enrichment = current_enrichment(job) if enrichment is None else enrichment
     if documents is None:
-        documents = load_matching_documents(_session_for(job, profile), [job], [profile])
+        documents = load_semantic_documents(_session_for(job, profile), [job], [profile])
     semantic = cached_semantic_evidence(
         resolved_source, profile.matching_preferences, job.id, profile.id, documents,
     )
@@ -359,8 +223,7 @@ def compute_match(
         resolved_enrichment,
         **({'semantic': semantic} if semantic else {}),
     )
-    result = apply_cached_assessment(local, job, profile, documents)
-    return apply_profile_match_scope(result, scope)
+    return apply_profile_match_scope(local, scope)
 
 
 def _sanitize_str(value: Any) -> str:
@@ -507,92 +370,6 @@ def _project_semantic_match(raw: Any, *, text_chars: int = 240) -> tuple[dict | 
     return projected, trimmed
 
 
-def _project_llm_match(
-    raw: Any,
-    *,
-    max_requirements: int = 20,
-    max_groups: int = 12,
-    text_chars: int = 240,
-) -> tuple[dict | None, bool]:
-    if not isinstance(raw, dict):
-        return None, False
-    trimmed = False
-    projected: dict[str, Any] = {}
-    for field in _LLM_SCALAR_FIELDS:
-        if field in raw:
-            val = raw.get(field)
-            if isinstance(val, str):
-                projected[field] = _trim_text(val, 200)
-            else:
-                projected[field] = _json_safe(val)
-    if isinstance(raw.get('weights'), dict):
-        projected['weights'] = {
-            _trim_text(k, 60): _json_safe(v) for k, v in list(raw['weights'].items())[:16]
-        }
-    if isinstance(raw.get('gates'), dict):
-        gates, gates_trimmed = _project_gates(raw['gates'], reason_chars=text_chars)
-        projected['gates'] = gates
-        trimmed = trimmed or gates_trimmed
-    if isinstance(raw.get('dimensions'), dict):
-        dimensions: dict[str, dict[str, Any]] = {}
-        for name, dim in list(raw['dimensions'].items())[:16]:
-            if not isinstance(dim, dict):
-                continue
-            entry: dict[str, Any] = {'score': _json_safe(dim.get('score'))}
-            for field in ('evidence', 'evidence_source', 'evidence_quote'):
-                if field in dim and dim[field] is not None:
-                    raw_val = _sanitize_str(dim[field])
-                    if len(raw_val) > text_chars:
-                        trimmed = True
-                    entry[field] = _trim_text(raw_val, text_chars)
-            dimensions[_trim_text(name, 80)] = entry
-        if len(raw['dimensions']) > 16:
-            trimmed = True
-        projected['dimensions'] = dimensions
-    if isinstance(raw.get('role_evidence_groups'), list):
-        groups_raw = raw['role_evidence_groups']
-        if len(groups_raw) > max_groups:
-            trimmed = True
-        groups = []
-        for row in groups_raw[:max_groups]:
-            if not isinstance(row, dict):
-                continue
-            entry = {}
-            for field in _LLM_GROUP_FIELDS:
-                if field not in row:
-                    continue
-                if field == 'job_quote' and row[field] is not None:
-                    raw_val = _sanitize_str(row[field])
-                    if len(raw_val) > text_chars:
-                        trimmed = True
-                    entry[field] = _trim_text(raw_val, text_chars)
-                else:
-                    entry[field] = _json_safe(row[field])
-            groups.append(entry)
-        projected['role_evidence_groups'] = groups
-    if isinstance(raw.get('requirements'), list):
-        reqs_raw = raw['requirements']
-        if len(reqs_raw) > max_requirements:
-            trimmed = True
-        reqs = []
-        for row in reqs_raw[:max_requirements]:
-            if not isinstance(row, dict):
-                continue
-            entry = {}
-            for field in _LLM_REQUIREMENT_FIELDS:
-                if field not in row or row[field] is None:
-                    continue
-                raw_val = _sanitize_str(row[field])
-                if len(raw_val) > text_chars:
-                    trimmed = True
-                entry[field] = _trim_text(raw_val, text_chars)
-            reqs.append(entry)
-        projected['requirements'] = reqs
-    if trimmed:
-        projected['truncated'] = True
-    return projected, trimmed
-
-
 def _project_custom_skill_evidence(raw: Any, *, max_items: int = 12, text_chars: int = 200) -> tuple[list[dict], bool]:
     if not isinstance(raw, list):
         return [], False
@@ -674,8 +451,6 @@ def _build_explanation_pass(
     duty_limit: int,
     obs_limit: int,
     city_limit: int,
-    req_limit: int,
-    group_limit: int,
     nested_chars: int,
     gate_chars: int,
     custom_limit: int,
@@ -686,7 +461,6 @@ def _build_explanation_pass(
     raw_label = _sanitize_str(result.get('label') or '')
     explanation: dict[str, Any] = {
         'score': score,
-        'score_source': _trim_text(result.get('score_source') or 'local', 32),
         'fit_tier': _trim_text(result.get('fit_tier') or 'possible', 32),
         'label': _trim_text(raw_label, gate_chars),
         'eligible': bool(result.get('eligible', False)),
@@ -722,14 +496,6 @@ def _build_explanation_pass(
     )
     explanation['semantic_match'] = semantic_match
     truncated = truncated or sem_trimmed
-    llm_match, llm_trimmed = _project_llm_match(
-        result.get('llm_match'),
-        max_requirements=req_limit,
-        max_groups=group_limit,
-        text_chars=nested_chars,
-    )
-    explanation['llm_match'] = llm_match
-    truncated = truncated or llm_trimmed
     local_context, ctx_trimmed = _project_local_context(
         result.get('local_context'), max_cities=city_limit, text_chars=nested_chars,
     )
@@ -757,15 +523,15 @@ def build_explanation(
     """Project a compact, JSONB-safe explanation bounded on its final serialized bytes."""
     tiers = (
         dict(list_limit=20, str_chars=260, duty_limit=14, obs_limit=14, city_limit=8,
-             req_limit=18, group_limit=10, nested_chars=220, gate_chars=280, custom_limit=10),
+             nested_chars=220, gate_chars=280, custom_limit=10),
         dict(list_limit=12, str_chars=180, duty_limit=8, obs_limit=8, city_limit=4,
-             req_limit=10, group_limit=6, nested_chars=150, gate_chars=200, custom_limit=5),
+             nested_chars=150, gate_chars=200, custom_limit=5),
         dict(list_limit=6, str_chars=120, duty_limit=4, obs_limit=4, city_limit=2,
-             req_limit=5, group_limit=3, nested_chars=100, gate_chars=140, custom_limit=2),
+             nested_chars=100, gate_chars=140, custom_limit=2),
         dict(list_limit=3, str_chars=80, duty_limit=2, obs_limit=2, city_limit=1,
-             req_limit=2, group_limit=1, nested_chars=64, gate_chars=90, custom_limit=0),
+             nested_chars=64, gate_chars=90, custom_limit=0),
         dict(list_limit=1, str_chars=48, duty_limit=0, obs_limit=0, city_limit=0,
-             req_limit=0, group_limit=0, nested_chars=40, gate_chars=50, custom_limit=0),
+             nested_chars=40, gate_chars=50, custom_limit=0),
     )
     explanation: dict[str, Any] = {}
     for params in tiers:
@@ -773,7 +539,7 @@ def build_explanation(
         if _encoded_size(explanation) <= max_bytes:
             return explanation
     # Extreme fallback cascade: guarantees _encoded_size(explanation) <= max_bytes
-    # even for adversarial payloads with huge gate/dimension/key counts or non-ASCII text.
+    # even for adversarial payloads with huge gate/key counts or non-ASCII text.
     explanation['truncated'] = True
     explanation['requirement_observations'] = []
     if isinstance(explanation.get('local_context'), dict):
@@ -789,13 +555,6 @@ def build_explanation(
             'duties': [],
             'truncated': True,
         }
-    if isinstance(explanation.get('llm_match'), dict):
-        llm = explanation['llm_match']
-        explanation['llm_match'] = {
-            key: llm[key] for key in _LLM_SCALAR_FIELDS if key in llm
-        }
-        explanation['llm_match']['requirements'] = []
-        explanation['llm_match']['truncated'] = True
     if _encoded_size(explanation) <= max_bytes:
         return explanation
 
@@ -809,20 +568,11 @@ def build_explanation(
     for field in _STRING_LIST_FIELDS:
         explanation[field] = []
     explanation['duty_evidence'] = None
-    if isinstance(explanation.get('llm_match'), dict):
-        llm = explanation['llm_match']
-        explanation['llm_match'] = {
-            key: llm[key]
-            for key in ('model', 'version', 'source_hash', 'scored_at', 'score')
-            if key in llm
-        }
-        explanation['llm_match']['truncated'] = True
     if _encoded_size(explanation) <= max_bytes:
         return explanation
 
     minimal: dict[str, Any] = {
         'score': int(result.get('score', 0)),
-        'score_source': _trim_text(result.get('score_source') or 'local', 16),
         'fit_tier': _trim_text(result.get('fit_tier') or 'possible', 16),
         'label': '',
         'eligible': bool(result.get('eligible', False)),
@@ -837,7 +587,7 @@ def build_explanation(
             return candidate
     if _encoded_size(minimal) <= max_bytes:
         return minimal
-    for drop_key in ('language_review', 'mandatory_review', 'label', 'fit_tier', 'score_source', 'uncertain', 'eligible'):
+    for drop_key in ('language_review', 'mandatory_review', 'label', 'fit_tier', 'uncertain', 'eligible'):
         minimal.pop(drop_key, None)
         if _encoded_size(minimal) <= max_bytes:
             return minimal
@@ -855,7 +605,7 @@ def match_row_payload(
     profile_id: int,
     job_id: int,
     result: dict,
-    score_version: str | ScoreStamp,
+    score_version: str,
     *,
     job=None,
     documents=None,
@@ -865,12 +615,7 @@ def match_row_payload(
     """Build a ProfileJobMatch upsert row with guaranteed explanation.score == match_score."""
     resolved_stamp = stamp
     if resolved_stamp is None and job is not None:
-        resolved_stamp = provenance_stamp(job, profile_id, documents, result, source=source)
-    resolved_version = (
-        score_version.for_source(result.get('score_source') or 'local')
-        if isinstance(score_version, ScoreStamp)
-        else score_version
-    )
+        resolved_stamp = provenance_stamp(job, profile_id, documents, source=source)
     explanation = build_explanation(result, stamp=resolved_stamp)
     return {
         'profile_id': profile_id,
@@ -879,7 +624,7 @@ def match_row_payload(
         'match_tier': result.get('fit_tier', 'possible'),
         'match_uncertain': bool(result.get('uncertain')),
         'explanation': explanation,
-        'score_version': resolved_version,
+        'score_version': score_version,
     }
 
 
@@ -890,8 +635,7 @@ def explanation_is_current(
     profile_stale: bool,
     job_revision: str,
     semantic_hash: str,
-    assessment_revision: str | None,
-    current_stamp: ScoreStamp,
+    expected_version: str | None = None,
 ) -> bool:
     """Pure decision: whether a stored ProfileJobMatch explanation is current and faithful."""
     if match_row is None:
@@ -903,26 +647,15 @@ def explanation_is_current(
         return False
     if dirty or profile_stale:
         return False
-    score_source = explanation.get('score_source') or 'local'
-    expected_version = current_stamp.for_source(score_source)
-    if getattr(match_row, 'score_version', None) != expected_version:
+    version = current_score_version() if expected_version is None else expected_version
+    if getattr(match_row, 'score_version', None) != version:
         return False
     stamp = explanation.get(_STAMP_KEY)
     if not isinstance(stamp, dict):
         return False
     if stamp.get('job') != job_revision:
         return False
-    if stamp.get('sem') != semantic_hash:
-        return False
-    if score_source == 'llm':
-        if assessment_revision is None:
-            return False
-        if stamp.get('llm') != assessment_revision:
-            return False
-        stored_hash = (explanation.get('llm_match') or {}).get('source_hash')
-        expected_hash = assessment_revision.split(':', 1)[0]
-        return stored_hash == expected_hash
-    return assessment_revision is None and stamp.get('llm') is None
+    return stamp.get('sem') == semantic_hash
 
 
 def select_journey_card(
@@ -965,18 +698,13 @@ def indexed_missing_match_action(*, profile_stale: bool, job_dirty: bool) -> str
 
 
 def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
-    """Single-snapshot SQL query joining match rows with dirty, vector and assessment metadata.
+    """Single-snapshot SQL query joining match rows with dirty and vector metadata.
 
-    Loads zero vector blobs, section JSON or assessment payloads; all invalidation
-    markers come from the same PostgreSQL MVCC snapshot as ``ProfileJobMatch``.
+    Loads zero vector blobs or section JSON; all invalidation markers come from
+    the same PostgreSQL MVCC snapshot as ``ProfileJobMatch``.
     """
     job_sem = aliased(MatchSemanticDocument)
     prof_sem = aliased(MatchSemanticDocument)
-    ai_model_subq = (
-        select(AIMatchingSetting.model)
-        .where(AIMatchingSetting.id == 1)
-        .scalar_subquery()
-    )
     profile_ids = sorted({int(profile_id) for profile_id, _ in pairs})
     job_ids = sorted({int(job_id) for _, job_id in pairs})
     pair_filter = and_(
@@ -999,10 +727,6 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
             MatchDirtyJob.revision.label('dirty_revision'),
             job_sem.source_hash.label('job_semantic_hash'),
             prof_sem.source_hash.label('profile_semantic_hash'),
-            ProfileLLMScore.version.label('llm_version'),
-            ProfileLLMScore.source_hash.label('llm_source_hash'),
-            ProfileLLMScore.scored_at.label('llm_scored_at'),
-            ai_model_subq.label('ai_model'),
         )
         .select_from(UserProfile)
         .join(Job, pair_filter)
@@ -1026,13 +750,6 @@ def build_stored_match_snapshot_query(pairs: list[tuple[int, int]]):
             and_(
                 prof_sem.profile_id == UserProfile.id,
                 prof_sem.version == SEMANTIC_VERSION,
-            ),
-        )
-        .outerjoin(
-            ProfileLLMScore,
-            and_(
-                ProfileLLMScore.profile_id == UserProfile.id,
-                ProfileLLMScore.job_id == Job.id,
             ),
         )
     )
@@ -1077,46 +794,8 @@ def load_stored_match_snapshots(
                 dirty_revision=row.dirty_revision,
                 job_semantic_hash=row.job_semantic_hash,
                 profile_semantic_hash=row.profile_semantic_hash,
-                llm_version=row.llm_version,
-                llm_source_hash=row.llm_source_hash,
-                llm_scored_at=row.llm_scored_at,
-                ai_model=row.ai_model,
             )
     return snapshots
-
-
-def live_assessment_revision(
-    snapshot: MatchSnapshot,
-    job,
-    profile,
-    current_stamp: ScoreStamp,
-    *,
-    job_hash_cache: dict[int, str] | None = None,
-    profile_hash_cache: dict[int, str] | None = None,
-) -> str | None:
-    """Resolve the active assessment revision from a snapshot without loading the assessment JSON."""
-    if (
-        snapshot.llm_version != current_stamp.llm_config_version
-        or not snapshot.llm_source_hash
-        or snapshot.llm_scored_at is None
-    ):
-        return None
-    if job_hash_cache is not None and job.id in job_hash_cache:
-        job_h = job_hash_cache[job.id]
-    else:
-        job_h = llm_hash(llm_job_data(job))
-        if job_hash_cache is not None:
-            job_hash_cache[job.id] = job_h
-    if profile_hash_cache is not None and profile.id in profile_hash_cache:
-        prof_h = profile_hash_cache[profile.id]
-    else:
-        prof_h = llm_hash(llm_profile_data(profile))
-        if profile_hash_cache is not None:
-            profile_hash_cache[profile.id] = prof_h
-    expected = llm_hash([current_stamp.llm_config_version, job_h, prof_h])
-    if snapshot.llm_source_hash != expected:
-        return None
-    return format_assessment_revision(snapshot.llm_source_hash, snapshot.llm_scored_at)
 
 
 def snapshot_explanation_is_current(
@@ -1126,58 +805,21 @@ def snapshot_explanation_is_current(
     *,
     expected_profile_index_version: str,
     job_rev: str | None = None,
-    job_hash_cache: dict[int, str] | None = None,
-    profile_hash_cache: dict[int, str] | None = None,
 ) -> bool:
     """Validate a loaded MatchSnapshot against live job/profile inputs using pure explanation_is_current."""
     if snapshot is None or snapshot.match is None:
         return False
-    current_stamp = snapshot_score_stamp(snapshot)
     profile_stale = snapshot.profile_index_version != expected_profile_index_version
     resolved_job_rev = job_revision(job) if job_rev is None else job_rev
     sem_hash = semantic_stamp(snapshot.job_semantic_hash, snapshot.profile_semantic_hash)
-    assessment_rev = live_assessment_revision(
-        snapshot,
-        job,
-        profile,
-        current_stamp,
-        job_hash_cache=job_hash_cache,
-        profile_hash_cache=profile_hash_cache,
-    )
     return explanation_is_current(
         snapshot.match,
         dirty=snapshot.dirty,
         profile_stale=profile_stale,
         job_revision=resolved_job_rev,
         semantic_hash=sem_hash,
-        assessment_revision=assessment_rev,
-        current_stamp=current_stamp,
+        expected_version=current_score_version(),
     )
-
-
-def _documents_assessment_revision(job, profile, documents, session, current_stamp: ScoreStamp) -> str | None:
-    if documents is not None and hasattr(documents, 'llm_scores'):
-        llm_row = documents.llm_scores.get((profile.id, job.id))
-        if llm_row is None or llm_row.version != current_stamp.llm_config_version:
-            return None
-        digest = llm_hash([
-            current_stamp.llm_config_version,
-            documents.llm_job_hashes.get(job.id),
-            documents.llm_profile_hashes.get(profile.id),
-        ])
-        if llm_row.source_hash != digest:
-            return None
-        return format_assessment_revision(llm_row.source_hash, llm_row.scored_at)
-    if session is not None:
-        config = matching_config(session)
-        llm_row = session.get(ProfileLLMScore, (profile.id, job.id))
-        if llm_row is None or llm_row.version != current_stamp.llm_config_version:
-            return None
-        digest = llm_source_hash(job, profile, session=session, config=config)
-        if llm_row.source_hash != digest:
-            return None
-        return format_assessment_revision(llm_row.source_hash, llm_row.scored_at)
-    return None
 
 
 def stored_match_explanation(
@@ -1186,14 +828,12 @@ def stored_match_explanation(
     profile,
     documents=None,
     *,
-    expected_version: str | ScoreStamp | None = None,
+    expected_version: str | None = None,
     dirty_job_ids: set[int] | None = None,
     profile_stale: bool | None = None,
     scope: dict | None = None,
     snapshot: MatchSnapshot | None = None,
     expected_profile_index_version: str | None = None,
-    job_hash_cache: dict[int, str] | None = None,
-    profile_hash_cache: dict[int, str] | None = None,
 ) -> dict | None:
     """Return caller-safe stored explanation (with scope applied) if current and faithful, else None."""
     if snapshot is not None:
@@ -1205,36 +845,19 @@ def stored_match_explanation(
             job,
             profile,
             expected_profile_index_version=expected_profile_index_version,
-            job_hash_cache=job_hash_cache,
-            profile_hash_cache=profile_hash_cache,
         ):
             return None
         return public_explanation(snapshot.match.explanation, scope=scope)
 
     if indexed is None or not isinstance(getattr(indexed, 'explanation', None), dict):
         return None
-    session = _session_for(job, profile)
-    if isinstance(expected_version, ScoreStamp):
-        stamp = expected_version
-    elif isinstance(expected_version, str):
-        base = current_score_stamp(session, documents=documents)
-        stamp = ScoreStamp(
-            local_version=expected_version,
-            llm_version=expected_version,
-            llm_config_version=base.llm_config_version,
-        )
-    else:
-        stamp = current_score_stamp(session, documents=documents)
-
-    assessment_rev = _documents_assessment_revision(job, profile, documents, session, stamp)
     is_current = explanation_is_current(
         indexed,
         dirty=bool(dirty_job_ids is not None and job.id in dirty_job_ids),
         profile_stale=bool(profile_stale),
         job_revision=job_revision(job),
         semantic_hash=documents_semantic_stamp(documents, getattr(job, 'id', None), getattr(profile, 'id', None)),
-        assessment_revision=assessment_rev,
-        current_stamp=stamp,
+        expected_version=expected_version or current_score_version(),
     )
     if not is_current:
         return None

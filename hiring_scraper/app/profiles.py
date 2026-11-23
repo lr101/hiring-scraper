@@ -447,7 +447,7 @@ def cv_metadata(cv):
 
 def _cv_career_facts(cv) -> dict:
     """Career facts from the saved base CV (English first), as matching reads them."""
-    from hiring_scraper.app.profile_llm import cv_career_data
+    from hiring_scraper.app.profile_facts import cv_career_data
     variant = (cv.variants or {}).get('en') or (cv.variants or {}).get('de')
     return cv_career_data(variant['text'] if variant else cv.extracted_text or '')
 
@@ -484,7 +484,6 @@ def store_profile_cv(session, profile_id, filename, data, language='en'):
     cv.filename, cv.content_type, cv.size_bytes = filename, TYPES[extension], len(data)
     cv.data, cv.extracted_text, cv.updated_at = data, parsed['text'], utcnow()
     session.add(cv)
-    # Contact or layout edits keep assessments; changed career facts drop them.
     source_changes.profile_changed(session, profile_id,
                                    career_facts_changed=_cv_career_facts(cv) != previous_facts)
     session.commit()

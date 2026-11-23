@@ -195,11 +195,10 @@ class ProfileIntegrationTests(unittest.TestCase):
                                              offset=0, limit=40, session=session)
                 self.assertIn(job.id, {item['id'] for item in page['items']})
                 match = next(item['profile_match'] for item in page['items'] if item['id'] == job.id)
-                # Documented core duties can now produce a strong provisional
-                # estimate despite a different title; this still is not AI evidence.
+                # Documented core duties can produce a strong local score
+                # despite a different title.
                 self.assertGreaterEqual(match['score'], 65)
                 self.assertLessEqual(match['score'], 85)
-                self.assertEqual(match['score_source'], 'local')
 
     def test_localized_content_rejects_shared_facts_and_unknown_languages(self):
         from pydantic import ValidationError

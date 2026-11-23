@@ -268,8 +268,6 @@ class Job(Base):
 
     semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
         foreign_keys="MatchSemanticDocument.job_id", cascade="all, delete-orphan", uselist=False)
-    llm_scores: Mapped[list[ProfileLLMScore]] = relationship(
-        foreign_keys="ProfileLLMScore.job_id", cascade="all, delete-orphan")
 
 
 class JobLocation(Base):
@@ -324,8 +322,6 @@ class UserProfile(Base):
     photo: Mapped[ProfilePhoto | None] = relationship(back_populates="profile", cascade="all, delete-orphan", uselist=False)
     semantic_document: Mapped[MatchSemanticDocument | None] = relationship(
         foreign_keys="MatchSemanticDocument.profile_id", cascade="all, delete-orphan", uselist=False)
-    llm_scores: Mapped[list[ProfileLLMScore]] = relationship(
-        foreign_keys="ProfileLLMScore.profile_id", cascade="all, delete-orphan")
 
     @property
     def matching_preferences(self) -> dict:
@@ -490,78 +486,6 @@ class ProfileJobMatch(Base):
     match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
     explanation: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     score_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
-
-
-class AIMatchingSelection(Base):
-    """Last reconciled in-scope inventory for cross-process queue readiness."""
-    __tablename__ = 'ai_matching_selections'
-
-    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
-    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    job_ids: Mapped[list] = mapped_column(JSON, nullable=False)
-    refreshed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-
-
-class AIMatchingTask(Base):
-    """Durable assessment work; a token fences publication after lease recovery."""
-    __tablename__ = 'ai_matching_tasks'
-    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
-    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    version: Mapped[str] = mapped_column(String(160), nullable=False)
-    state: Mapped[str] = mapped_column(String(16), nullable=False, default='pending', index=True)
-    priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
-    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    token: Mapped[str | None] = mapped_column(String(32))
-    error_type: Mapped[str | None] = mapped_column(String(100))
-
-
-class AIMatchingWorker(Base):
-    __tablename__ = 'ai_matching_workers'
-    id: Mapped[str] = mapped_column(String(32), primary_key=True)
-    seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-
-
-class AIMatchingSetting(Base):
-    """One durable matching configuration shared by the API and workers."""
-    __tablename__ = 'ai_matching_settings'
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    model: Mapped[str] = mapped_column(String(100), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-
-
-class AIMatchingObservedConfig(Base):
-    """Last effective AI matching config version observed by the match pipeline."""
-    __tablename__ = 'ai_matching_observed_config'
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    version: Mapped[str] = mapped_column(String(160), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-
-
-class AIMatchingCall(Base):
-    """Legacy call reservations from migration 0036; the durable queue no longer writes them."""
-    __tablename__ = 'ai_matching_calls'
-    __table_args__ = (Index('ix_ai_matching_calls_reserved_at', 'reserved_at'),)
-
-    day: Mapped[str] = mapped_column(String(10), primary_key=True)
-    slot: Mapped[int] = mapped_column(Integer, primary_key=True)
-    reserved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
-
-
-class ProfileLLMScore(Base):
-    """Persisted model judgment, separate from local vectors and derived ranks."""
-    __tablename__ = 'profile_llm_scores'
-
-    profile_id: Mapped[int] = mapped_column(ForeignKey('user_profiles.id', ondelete='CASCADE'), primary_key=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey('jobs.id', ondelete='CASCADE'), primary_key=True)
-    source_hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    version: Mapped[str] = mapped_column(String(160), nullable=False)
-    assessment: Mapped[dict] = mapped_column(JSON, nullable=False)
-    scored_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 
 class MatchSemanticDocument(Base):

@@ -171,124 +171,21 @@ For an isolated preview with both local semantic services, set
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when starting `scripts/dev/preview.sh` with a
 fresh slug. The adapter reserves a separate embedding port and owns both processes.
 
-### Subscription-backed job scoring
+### Local profile scoring and application preparation
 
-The profile matching worker assesses every active, non-expired job in each profile's
-saved search area with `gpt-6.1-sol` at high reasoning through the private Radius
-ChatGPT connection. Connect your subscription in **Settings → ChatGPT subscription**.
-This uses included Codex subscription capacity, not an API key, and does not reuse
-the developer's login or fall back to paid API billing.
-
-The durable queue has no job-count, employer-count, local-score, or application
-call cap. Local scores prioritize work but never exclude a job. Known qualification
-conflicts remain enforced in published results. Successful assessments are reused
-until relevant source facts or the matching model change.
-
-`RADIUS_MATCH_AI_CONCURRENCY` defaults to **25** simultaneous provider requests per
-shared Radius runtime directory. It controls throughput, not total coverage.
-Remove an existing override of `4`, or set it to `25`, and recreate the API and
-worker services to use the higher concurrency. Each
-queue item has a unique claim token and a 40-minute recovery lease (longer than the
-bounded assessment and repair timeout). Abandoned work becomes claimable after
-expiry; superseded owners cannot publish. Failures retry independently with durable
-30-second exponential backoff, up to 30 minutes, without a retry-count cap. Queue
-reconciliation runs in a separate thread, with a minute between completed scans,
-so large inventories cannot block inference dispatch or worker heartbeats.
-
-Apply migration `0039_durable_ai_matching_queue` and restart the API and background
-workers when upgrading. Existing valid assessments are retained. The old
-`RADIUS_MATCH_AI_CALLS_PER_5H` setting is no longer used for automatic matching.
-Settings → AI matching status reports pending, running, retrying, excluded, saved
-assessments, and a worker heartbeat. Before the first reconciliation it explicitly
-reports that the queue is being prepared. An overdue heartbeat requires checking
-the background worker logs.
-
-Journey sorts by the updated AI judgment before pagination. An existing eligible
-Journey entry stays visible when AI lowers its score below the profile's minimum
-for adding new entries; it moves down in match order. New jobs still respect the
-profile's Journey inclusion preferences. Open Journey pages refresh every 30 seconds.
+Job ranking is local-only: the profile matching worker scores active postings against
+each profile using deterministic rules (skills, duties, qualifications, language,
+location and eligibility gates) combined with cached local multilingual semantic
+evidence. Results and explanations are stored per profile/job in `profile_job_matches`
+and refreshed in the background when a job, profile or vector changes.
 
 Explicit CV language sections can supply a missing language level without
 replacing a saved level; absence of a language claim remains unknown.
 Country-agnostic authorization flags are not country-specific eligibility evidence.
+Local task fit excludes desired-title preference; task evidence is required for a
+Recommended label, and explicit eligibility conflicts veto eligibility.
 
-Set `RADIUS_MATCH_AI_MODEL` and `RADIUS_MATCH_AI_REASONING_EFFORT` to override the
-matching model and effort. Changing either invalidates prior assessments; document
-preparation keeps its separate model setting. Model choice affects subscription capacity and latency.
-
-The worker reads subscription usage before each job. There is no 50% usage guard:
-matching can use the remaining subscription capacity. It pauses when the connection
-is missing, usage cannot be verified, the five-hour window is absent, or a provider
-quota is exhausted. Dispatch resumes automatically when subscription capacity returns.
-Concurrent in-flight calls may finish after exhaustion is detected.
-Cached assessments and local matching remain available while inference is paused.
-
-Assessments follow the functional-experience approach of
-[AI Job Search's evaluation framework](https://github.com/ai-job-search-dev/ai-job-search/blob/master/.claude/skills/job-application-assistant/04-job-evaluation.md):
-skills (30%) and experience (25%) form the task-qualification score, renormalized
-over known task dimensions and capped by evidence for core work. Behavioral/work-preference
-fit (15%) and career alignment (30%) form a separate preference-fit score; they do
-not dilute demonstrated qualifications. Location, language and eligibility are
-separate gates. Unavailable dimensions remain unknown. The prompt uses saved career facts and preferences, including
-career goals and work preferences when supplied, rather than inferring abilities
-from desired job titles. It does not research companies or follow instructions
-embedded in job postings.
-
-Citation sources reserve space for career, CV, skill and logistics evidence, including
-original-language excerpts. Every scored AI dimension selects a bound profile citation;
-source paths and verbatim excerpts are checked before publishing or using cached results.
-Older assessments refresh under the new version while local estimates remain available. An assessment with unverifiable citations or unsupported
-gate failures receives one guarded repair attempt. Repeatedly ungrounded results are
-deferred rather than published with contradictory explanations. Mandatory unverified
-licenses or jurisdiction-specific work authorization keep the recommendation unlikely
-until verified; missing evidence is distinguished from an explicit incompatibility.
-
-Job details show a score graphic comparing task assessment, role-evidence ceiling and final
-qualification score, with preferences separate. Local task fit excludes desired-title
-preference; task evidence is required for a local recommendation.
-
-Local scores retain their evidence-based calibration and remain labelled as provisional shortlist estimates. A
-valid, current AI assessment **replaces** that estimate and its
-fit explanation, including lowering a score to zero. It is not blended with the
-local estimate. Its numerical score is capped by evidence for the job’s core work. Explicit local
-eligibility restrictions still apply. The same assessment drives job detail,
-Journey ranking and materialized profile matches; the detail page identifies a
-AI assessment. Missing, invalid or stale assessments fall back to local matching.
-
-Opening a job shows the weighted skills/experience calculation, its role-evidence ceiling,
-per-dimension reasons, requirement quotes, and eligibility checks.
-The job detail separates qualification fit (skills/experience), preference fit
-(behavior/career direction), assessed dimension weight, requirement coverage and
-requirement evidence completeness. The overall number remains a weighted fit index,
-not a hiring probability. The weighted dimension estimate is capped by demonstrated
-role evidence: core requirements control 85% and supporting requirements at most 15%
-(100% core when there are no supporting requirements). Unknown requirements add no
-demonstrated evidence; they do not establish inability. Individual core gaps and unknowns reduce the evidence-weighted score without a blanket cap;
-required unresolved capabilities still prevent a Recommended label. Atomic rows quoting the same employer clause share one weight, so splitting a
-duty cannot multiply its influence. No identified core work means zero demonstrated role fit. Preferences cannot raise the score above this ceiling.
-The evidence distance is assessed from source excerpts and remains visible for review.
-Unknown dimensions are excluded rather than scored as zero;
-coverage excludes unknown requirements, so always read it alongside completeness.
-Preferred requirements have quarter weight. Documented close transfer at the required autonomy
-earns 80% evidence credit; adjacent transfer earns 50%. Neither clears a formal prerequisite.
-A required gap, unknown or transferable-only requirement prevents a Recommended label,
-even when the numerical index is high. Explicit eligibility conflicts still veto eligibility.
-
-Matching and application drafting share requirement assessments with named source
-excerpts. Applicant quotes are checked against factual profile fields; unverifiable
-support becomes unknown. Goals and writing examples are excluded from factual sources.
-Excerpt checks verify provenance, not the model's interpretation or exhaustiveness.
-The assessment version changes automatically invalidate older cached model results;
-local matching remains available while background assessments refresh.
-
-Assessments are cached per profile/job in `profile_llm_scores` (PostgreSQL
-migration `0035_profile_llm_scores`). Source
-changes invalidate the cached assessment; unchanged jobs do not consume another
-request. Inference runs outside database transactions, and publication verifies
-that the profile and job are still current. Existing acted application stages
-remain intact. API reads use only cached data and never start inference.
-
-For a preview of the rules/AI worker without loading another local embedding
+For a preview of the local profile matching worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
 `HIRING_PREVIEW_LOCAL_SEMANTICS=true` when the preview also needs local embedding
 backfills; it enables the profile worker as well.

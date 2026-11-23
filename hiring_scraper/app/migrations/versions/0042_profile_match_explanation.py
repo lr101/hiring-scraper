@@ -23,18 +23,9 @@ def upgrade():
         sa.Column('presentation_refresh_pending', sa.Boolean(), nullable=False,
                   server_default=sa.false()),
     )
-    op.create_table(
-        'ai_matching_observed_config',
-        sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('version', sa.String(length=160), nullable=False),
-        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    )
-    if op.get_bind().dialect.name == 'postgresql':
-        op.execute("GRANT SELECT, INSERT, UPDATE, DELETE ON ai_matching_observed_config TO hiring_app")
 
 
 def downgrade():
-    op.drop_table('ai_matching_observed_config')
     op.drop_column('user_profiles', 'presentation_refresh_pending')
     op.drop_column('profile_job_matches', 'score_version')
     op.drop_column('profile_job_matches', 'explanation')

@@ -1,18 +1,15 @@
-"""Shared requirement evidence for matching and application drafting.
+"""Requirement-to-evidence extraction and grounding for application drafting.
 
 Excerpt checks establish provenance, not that a model's interpretation is correct.
 """
 from __future__ import annotations
 
 import re
-from collections import defaultdict, deque
+from collections import deque
 from itertools import islice
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-
-
-SCORING_VERSION = 'requirement-score-v3-prerequisite-reconciliation'
 
 
 class RequirementEvidence(BaseModel):
@@ -251,65 +248,3 @@ def ground_requirements(rows, sources):
         if row not in result:
             result.append(row)
     return result
-
-
-def evidence_credit(row):
-    if row['status'] == 'supported':
-        return 1.
-    if row['status'] != 'transferable':
-        return 0.
-    return .8 if (row.get('evidence_distance') == 'close' and
-                  row.get('category', 'capability') in {'capability', 'experience'}) else .5
-
-
-def requirement_summary(rows):
-    total = known = supported = 0.
-    gaps = []
-    for row in rows:
-        weight = .25 if row['priority'] == 'preferred' else 1.
-        total += weight
-        if row['status'] != 'unknown':
-            known += weight
-            supported += weight * evidence_credit(row)
-        if row['priority'] != 'preferred' and row['status'] == 'missing':
-            gaps.append(row['requirement'])
-    return {'coverage': round(100 * supported / known) if known else None,
-            'completeness': round(100 * known / total) if total else 0,
-            'required_gaps': gaps}
-
-
-def role_relevance_breakdown(rows):
-    """Share one employer-clause weight across its atomic requirement rows.
-
-    Otherwise decomposition can manufacture either extra credit or extra gaps.
-    Unknown is zero demonstrated evidence, not an assertion of inability.
-    """
-    grouped = defaultdict(list)
-    for row in rows:
-        if row.get('category', 'capability') in {
-                'education', 'credential', 'language', 'location', 'work_authorization', 'work_style'}:
-            continue
-        if row['priority'] == 'logistics':
-            continue
-        key = (row['importance'], row['priority'], _text(row['job_quote']))
-        grouped[key].append(row)
-    details = [{'importance': importance, 'priority': priority,
-                'job_quote': members[0]['job_quote'], 'requirement_count': len(members),
-                'weight': .25 if priority == 'preferred' else 1.,
-                'credit': sum(evidence_credit(row) for row in members) / len(members)}
-               for (importance, priority, _), members in grouped.items()]
-    groups = {}
-    for importance in ('core', 'supporting'):
-        selected = [group for group in details if group['importance'] == importance]
-        total = sum(group['weight'] for group in selected)
-        groups[importance] = sum(group['weight'] * group['credit'] for group in selected) / total if total else None
-    if groups['core'] is None:
-        return {'score': 0, 'groups': details}
-    value = groups['core'] * (85 if groups['supporting'] is not None else 100)
-    if groups['supporting'] is not None:
-        value += groups['supporting'] * 15
-    return {'score': round(value), 'groups': details}
-
-
-def role_relevance_score(rows):
-    return role_relevance_breakdown(rows)['score']

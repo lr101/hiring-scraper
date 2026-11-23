@@ -25,12 +25,12 @@ from pydantic import (
 from pypdf import PdfReader
 from sqlalchemy.orm import Session
 
-from hiring_scraper.app import application_preparation_queue, codex_runtime, application_generation_jobs, profile_llm, requirement_evidence
+from hiring_scraper.app import application_preparation_queue, codex_runtime, application_generation_jobs, profile_facts, requirement_evidence
 from hiring_scraper.app.application_documents import LatexDocuments, _finished_text, validate_cover_letter_text, CoverLetterLatexError
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import get_session
 from hiring_scraper.app.latex_documents import latex_source, validate_latex_source
-from hiring_scraper.app.models import Job, ProfileLLMScore
+from hiring_scraper.app.models import Job
 from hiring_scraper.app.profiles import cv_metadata, require_cv, require_profile
 from hiring_scraper.app.tex_cv import validate_tailored_cv, editable_macro_slots, recover_macro_edits
 
@@ -251,20 +251,12 @@ def _snapshot(profile_id, request, session):
                                     'application_instructions': request.notes},
             'current_date': date.today().isoformat(),
             'application_form': request.form.model_dump() if request.form else None}
-    resolved_facts = profile_llm.profile_data(preferences)
-    cv_facts = profile_llm.cv_career_data(source)
+    resolved_facts = profile_facts.profile_data(preferences)
+    cv_facts = profile_facts.cv_career_data(source)
     if cv_facts:
         resolved_facts['cv_career_facts'] = cv_facts
-    data['evidence_sources'] = requirement_evidence.evidence_sources(resolved_facts, profile_llm.job_data(job))
+    data['evidence_sources'] = requirement_evidence.evidence_sources(resolved_facts, profile_facts.job_data(job))
     data['shared_requirements'] = None
-    cached = session.get(ProfileLLMScore, (profile_id, job.id))
-    if (cached and cached.version == profile_llm.matching_version(session) and cached.source_hash == profile_llm.source_hash(job, profile, session=session)
-            and data['evidence_sources'] == profile_llm.assessment_sources(job, profile)):
-        try:
-            data['shared_requirements'] = profile_llm.validate_assessment(
-                cached.assessment, data['evidence_sources'])['requirements']
-        except (ValueError, TypeError):
-            pass
     serialized = json.dumps(data, ensure_ascii=False, sort_keys=True)
     if len(serialized) > 250000:
         raise HTTPException(413, 'This application context is too large. Shorten the CV or saved career evidence.')

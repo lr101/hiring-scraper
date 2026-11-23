@@ -12,7 +12,7 @@ from unittest.mock import patch
 from sqlalchemy.dialects import postgresql
 
 from hiring_scraper.app.enrichment import current_enrichment, job_input
-from hiring_scraper.app import match_compute, profile_llm, search_snapshots
+from hiring_scraper.app import match_compute, profile_semantics, search_snapshots
 from hiring_scraper.app.profile_semantics import SemanticDocuments, cached_semantic_evidence
 from hiring_scraper.matching import match_job
 from hiring_scraper.semantic_matching import (
@@ -124,12 +124,7 @@ def _make_profile(
 
 
 def _empty_documents():
-    docs = SemanticDocuments()
-    docs.llm_scores = {}
-    docs.llm_job_hashes = {}
-    docs.llm_profile_hashes = {}
-    docs.llm_config = profile_llm.MatchingConfig(profile_llm.MODEL, profile_llm.EFFORT)
-    return docs
+    return SemanticDocuments()
 
 
 def _semantic_documents(job, profile):
@@ -156,64 +151,11 @@ def _semantic_documents(job, profile):
     return docs
 
 
-def _llm_assessment(score: int = 84):
-    quote = 'Built Python services, maintained SQL databases, and deployed Docker containers.'
-    return {
-        'dimensions': {
-            name: {
-                'score': score,
-                'evidence': 'Direct Python, SQL and Docker service delivery.',
-                'evidence_source': 'profile.summary',
-                'evidence_quote': quote,
-            }
-            for name in ('skills', 'experience', 'behavioral', 'career_alignment')
-        },
-        'gates': {
-            'location': {'status': 'pass', 'reason': 'Matches hybrid Karlsruhe area.'},
-            'language': {'status': 'pass', 'reason': 'English C1 satisfies English C1.'},
-            'eligibility': {'status': 'pass', 'reason': 'No unmet legal prerequisite.'},
-        },
-        'strengths': ['Strong Python/SQL/Docker match'],
-        'gaps': [],
-        'unknowns': [],
-        'requirements': [{
-            'requirement': 'Build Python services and maintain SQL databases',
-            'priority': 'required',
-            'importance': 'core',
-            'status': 'supported',
-            'job_source': 'job.description',
-            'job_quote': 'Build Python services and maintain SQL databases.',
-            'evidence_source': 'profile.summary',
-            'evidence_quote': quote,
-            'explanation': 'Direct documented experience.',
-        }],
-    }
-
-
-def _with_llm_score(docs, job, profile, assessment_dict=None, *, scored_at=None):
-    config = docs.llm_config
-    job_h = profile_llm._hash(profile_llm.job_data(job))
-    prof_h = profile_llm._hash(profile_llm.profile_data(profile))
-    digest = profile_llm._hash([config.version, job_h, prof_h])
-    docs.llm_job_hashes[job.id] = job_h
-    docs.llm_profile_hashes[profile.id] = prof_h
-    docs.llm_scores[(profile.id, job.id)] = SimpleNamespace(
-        profile_id=profile.id,
-        job_id=job.id,
-        version=config.version,
-        source_hash=digest,
-        assessment=assessment_dict or _llm_assessment(),
-        scored_at=scored_at or datetime(2026, 5, 2, 12, 0, tzinfo=timezone.utc),
-    )
-    return docs
-
-
-def _snapshot_from_docs(job, profile, docs, payload, *, dirty_revision=None, ai_model=None):
+def _snapshot_from_docs(job, profile, docs, payload, *, dirty_revision=None):
     from hiring_scraper.app import job_search
 
     job_doc = docs.get(('job', job.id))
     prof_doc = docs.get(('profile', profile.id))
-    llm_row = docs.llm_scores.get((profile.id, job.id))
     match_state = (
         match_compute.MatchRowState(
             match_score=payload['match_score'],
@@ -238,10 +180,6 @@ def _snapshot_from_docs(job, profile, docs, payload, *, dirty_revision=None, ai_
         dirty_revision=dirty_revision,
         job_semantic_hash=getattr(job_doc, 'source_hash', None),
         profile_semantic_hash=getattr(prof_doc, 'source_hash', None),
-        llm_version=getattr(llm_row, 'version', None),
-        llm_source_hash=getattr(llm_row, 'source_hash', None),
-        llm_scored_at=getattr(llm_row, 'scored_at', None),
-        ai_model=ai_model if ai_model is not None else docs.llm_config.model,
     )
 
 
@@ -250,9 +188,9 @@ def _canonical_json(value) -> str:
 
 
 class ComputeMatchEquivalenceTests(unittest.TestCase):
-    """Verify compute_match produces byte-identical output to the original duplicated paths."""
+    """Verify compute_match produces byte-identical output to the direct rules+semantic path."""
 
-    def _legacy_compute(self, job, profile, documents, scope=None):
+    def _direct_compute(self, job, profile, documents, scope=None):
         source = job_input(job)
         enrichment = current_enrichment(job)
         semantic = cached_semantic_evidence(
@@ -262,7 +200,6 @@ class ComputeMatchEquivalenceTests(unittest.TestCase):
             source, profile.matching_preferences, enrichment,
             **({'semantic': semantic} if semantic else {}),
         )
-        result = profile_llm.apply_cached_assessment(result, job, profile, documents)
         return search_snapshots._apply_profile_match_scope(result, scope)
 
     def test_byte_identical_across_representative_fixtures(self):
@@ -279,8 +216,7 @@ class ComputeMatchEquivalenceTests(unittest.TestCase):
                 title='Platform Specialist',
                 description='Your tasks:\nDevelop server applications, manage relational stores and automate releases.\n' * 3,
             ), base_profile, None, None),
-            ('cached_llm_assessment', _make_job(5), base_profile, 'llm', None),
-            ('scope_with_unknowns', _make_job(6, is_remote=True, work_arrangement='remote'), base_profile, 'llm', {
+            ('scope_with_unknowns', _make_job(6, is_remote=True, work_arrangement='remote'), base_profile, None, {
                 'eligible': True, 'reason': None,
                 'unknowns': ['Remote country eligibility not stated'], 'match_kind': 'remote',
             }),
@@ -291,30 +227,25 @@ class ComputeMatchEquivalenceTests(unittest.TestCase):
 
         for name, job, profile, docs_spec, scope in fixtures:
             with self.subTest(fixture=name):
-                if docs_spec is None:
-                    docs = _semantic_documents(job, profile)
-                elif docs_spec == 'llm':
-                    docs = _with_llm_score(_semantic_documents(job, profile), job, profile)
-                else:
-                    docs = docs_spec
+                docs = _semantic_documents(job, profile) if docs_spec is None else docs_spec
 
-                old_inline = self._legacy_compute(job, profile, docs, scope)
-                old_snapshot = search_snapshots.profile_match(job, profile, scope, docs)
+                direct = self._direct_compute(job, profile, docs, scope)
+                snapshot_result = search_snapshots.profile_match(job, profile, scope, docs)
                 new_result = match_compute.compute_match(job, profile, docs, scope=scope)
 
-                self.assertEqual(_canonical_json(new_result), _canonical_json(old_inline))
-                self.assertEqual(_canonical_json(new_result), _canonical_json(old_snapshot))
+                self.assertEqual(_canonical_json(new_result), _canonical_json(direct))
+                self.assertEqual(_canonical_json(new_result), _canonical_json(snapshot_result))
 
 
 class StoredExplanationTests(unittest.TestCase):
-    """Tests for explanation projection shape, JSONB safety, final-wire size bound, and ScoreStamp."""
+    """Tests for explanation projection shape, JSONB safety, final-wire size bound, and score version."""
 
     REQUIRED_KEYS = {
-        'score', 'score_source', 'fit_tier', 'label', 'eligible', 'uncertain',
+        'score', 'fit_tier', 'label', 'eligible', 'uncertain',
         'mandatory_review', 'language_review', 'reasons', 'unknowns', 'conflicts',
         'soft_conflicts', 'requirement_gaps', 'matched_skills', 'missing_skills',
         'requirement_observations', 'gates', 'task_fit', 'qualification_fit',
-        'static_rank_basis', 'duty_evidence', 'semantic_match', 'llm_match', 'local_context',
+        'static_rank_basis', 'duty_evidence', 'semantic_match', 'local_context',
     }
 
     def test_projection_includes_requirement_observations_city_votes_and_strips_stamp_on_read(self):
@@ -327,21 +258,20 @@ class StoredExplanationTests(unittest.TestCase):
             ),
         )
         profile = _make_profile(low_afd_vote_share_weight=15)
-        docs = _with_llm_score(_semantic_documents(job, profile), job, profile)
+        docs = _semantic_documents(job, profile)
         result = match_compute.compute_match(job, profile, docs)
-        stamp = match_compute.current_score_stamp(documents=docs)
+        score_version = match_compute.current_score_version()
 
-        row = match_compute.match_row_payload(profile.id, job.id, result, stamp, job=job, documents=docs)
+        row = match_compute.match_row_payload(profile.id, job.id, result, score_version, job=job, documents=docs)
         explanation = row['explanation']
 
         self.assertTrue(self.REQUIRED_KEYS.issubset(explanation.keys()))
         self.assertEqual(explanation['score'], row['match_score'])
         self.assertEqual(explanation['score'], result['score'])
-        self.assertEqual(row['score_version'], stamp.llm_version)
+        self.assertEqual(row['score_version'], score_version)
         self.assertLessEqual(len(row['score_version']), 80)
         self.assertIn('_stamp', explanation)
         self.assertEqual(explanation['_stamp']['job'], match_compute.job_revision(job))
-        self.assertIsNotNone(explanation['_stamp']['llm'])
         # City vote evidence and requirement observations are preserved in stored cards.
         self.assertEqual(len(explanation['local_context']['city_election_results']),
                          len(result['local_context']['city_election_results']))
@@ -363,7 +293,6 @@ class StoredExplanationTests(unittest.TestCase):
     def test_projection_strips_nul_surrogates_non_finite_floats_and_bounds_final_wire_json(self):
         huge_result = {
             'score': 73,
-            'score_source': 'llm',
             'fit_tier': 'possible',
             'label': 'L\x00äöüß\ud800' * 400,
             'eligible': True,
@@ -424,28 +353,6 @@ class StoredExplanationTests(unittest.TestCase):
                 'profile_evidence': 'P' * 1500,
                 'raw_vectors': [0.1] * 1024,
             },
-            'llm_match': {
-                'model': 'gpt-6.1-sol',
-                'reasoning_effort': 'high',
-                'version': 'v18',
-                'source_hash': 'a' * 64,
-                'scored_at': '2026-05-02T12:00:00+00:00',
-                'score': 73,
-                'dimensions': {
-                    f'dim_{i}': {'score': 73, 'evidence': 'Eä' * 800, 'evidence_quote': 'Qö' * 800}
-                    for i in range(40)
-                },
-                'role_evidence_groups': [
-                    {'importance': 'core', 'priority': 'required', 'job_quote': 'G' * 800,
-                     'requirement_count': 2, 'credit': 1.0, 'weight': 1.0}
-                    for _ in range(30)
-                ],
-                'requirements': [
-                    {'requirement': 'Req ' + ('r' * 800), 'priority': 'required',
-                     'status': 'supported', 'explanation': 'X' * 800, 'job_quote': 'J' * 800}
-                    for _ in range(50)
-                ],
-            },
             'local_context': {
                 'score_adjustment': -3,
                 'weight': 15,
@@ -496,148 +403,90 @@ class StoredExplanationTests(unittest.TestCase):
         self.assertEqual(tiny['score'], 73)
         self.assertTrue(tiny.get('truncated'))
 
-    def test_score_stamp_scopes_ai_model_to_llm_rows_only(self):
-        stamp_v1 = match_compute.current_score_stamp(llm_version='llm-v1')
-        stamp_v2 = match_compute.current_score_stamp(llm_version='llm-v2')
-        self.assertLessEqual(len(stamp_v1.local_version), 80)
-        self.assertLessEqual(len(stamp_v1.llm_version), 80)
-        # Model/effort change affects ONLY llm_version, never local_version.
-        self.assertEqual(stamp_v1.local_version, stamp_v2.local_version)
-        self.assertNotEqual(stamp_v1.llm_version, stamp_v2.llm_version)
-        self.assertEqual(stamp_v1.for_source('local'), stamp_v1.local_version)
-        self.assertEqual(stamp_v1.for_source('llm'), stamp_v1.llm_version)
+    def test_current_score_version_changes_with_matcher_and_semantic_versions(self):
+        v1 = match_compute.current_score_version()
+        self.assertLessEqual(len(v1), 80)
 
-        # Matcher, semantic, and requirement scoring changes affect BOTH local and llm versions.
         with patch.object(match_compute, 'MATCHING_VERSION', 'matcher-next'):
-            next_stamp = match_compute.current_score_stamp(llm_version='llm-v1')
-            self.assertNotEqual(next_stamp.local_version, stamp_v1.local_version)
-            self.assertNotEqual(next_stamp.llm_version, stamp_v1.llm_version)
+            self.assertNotEqual(match_compute.current_score_version(), v1)
         with patch.object(match_compute, 'SEMANTIC_VERSION', 'semantic-next'):
-            next_stamp = match_compute.current_score_stamp(llm_version='llm-v1')
-            self.assertNotEqual(next_stamp.local_version, stamp_v1.local_version)
-            self.assertNotEqual(next_stamp.llm_version, stamp_v1.llm_version)
-        with patch.object(match_compute, 'REQUIREMENT_SCORING_VERSION', 'req-next'):
-            next_stamp = match_compute.current_score_stamp(llm_version='llm-v1')
-            self.assertNotEqual(next_stamp.local_version, stamp_v1.local_version)
-            self.assertNotEqual(next_stamp.llm_version, stamp_v1.llm_version)
+            self.assertNotEqual(match_compute.current_score_version(), v1)
 
 
 class PureDecisionLogicTests(unittest.TestCase):
-    """Mock-free unit tests for currency validation, Journey cards, indexed search, and config sync."""
+    """Mock-free unit tests for currency validation, Journey cards, and indexed search."""
 
     def test_explanation_is_current_checks_all_invalidation_dimensions(self):
-        stamp_v1 = match_compute.score_stamp_for_llm_version('profile-v18:gpt-6.1-sol:high')
-        stamp_v2 = match_compute.score_stamp_for_llm_version('profile-v18:gpt-6-luna:high')
-        t1 = datetime(2026, 5, 2, 12, 0, tzinfo=timezone.utc)
-        t2 = t1 + timedelta(seconds=5)
-        rev1 = match_compute.format_assessment_revision('h' * 64, t1)
-        rev2 = match_compute.format_assessment_revision('h' * 64, t2)
-        self.assertNotEqual(rev1, rev2)
-
-        ai_row = match_compute.MatchRowState(
-            match_score=84,
-            match_tier='recommended',
-            match_uncertain=False,
-            score_version=stamp_v1.llm_version,
-            explanation={
-                'score': 84,
-                'score_source': 'llm',
-                'llm_match': {'source_hash': 'h' * 64, 'scored_at': t1.isoformat()},
-                '_stamp': {'job': 'jobrev1', 'sem': 'jsem1:psem1', 'llm': rev1},
-            },
-        )
+        v1 = match_compute.current_score_version()
         local_row = match_compute.MatchRowState(
             match_score=62,
             match_tier='possible',
             match_uncertain=False,
-            score_version=stamp_v1.local_version,
+            score_version=v1,
             explanation={
                 'score': 62,
-                'score_source': 'local',
-                'llm_match': None,
-                '_stamp': {'job': 'jobrev1', 'sem': 'jsem1:psem1', 'llm': None},
+                '_stamp': {'job': 'jobrev1', 'sem': 'jsem1:psem1'},
             },
         )
 
-        # Current AI row passes.
-        self.assertTrue(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=False,
-            job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
-        ))
-        # Current local row passes AND stays valid after an AI model switch!
         self.assertTrue(match_compute.explanation_is_current(
             local_row, dirty=False, profile_stale=False,
             job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=None, current_stamp=stamp_v2,
+            expected_version=v1,
         ))
-        # AI row is rejected after model switch (even if dirty marker not yet read/present).
         self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=False,
+            local_row, dirty=False, profile_stale=False,
             job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=None, current_stamp=stamp_v2,
+            expected_version='different-version',
         ))
-        # Same source_hash with newer scored_at (successive judgment) rejects stale AI row!
         self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=False,
+            local_row, dirty=True, profile_stale=False,
             job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=rev2, current_stamp=stamp_v1,
+            expected_version=v1,
         ))
-        # Dirty job, stale profile, job revision drift, semantic hash drift, or new AI on local row all reject.
         self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=True, profile_stale=False,
+            local_row, dirty=False, profile_stale=True,
             job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
+            expected_version=v1,
         ))
         self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=True,
-            job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
-        ))
-        self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=False,
+            local_row, dirty=False, profile_stale=False,
             job_revision='jobrev2', semantic_hash='jsem1:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
-        ))
-        self.assertFalse(match_compute.explanation_is_current(
-            ai_row, dirty=False, profile_stale=False,
-            job_revision='jobrev1', semantic_hash='jsem2:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
+            expected_version=v1,
         ))
         self.assertFalse(match_compute.explanation_is_current(
             local_row, dirty=False, profile_stale=False,
-            job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=rev1, current_stamp=stamp_v1,
+            job_revision='jobrev1', semantic_hash='jsem2:psem1',
+            expected_version=v1,
         ))
         # Unfaithful score or missing _stamp rejects.
         unfaithful = match_compute.MatchRowState(
             match_score=90, match_tier='recommended', match_uncertain=False,
-            score_version=stamp_v1.local_version, explanation=local_row.explanation,
+            score_version=v1, explanation=local_row.explanation,
         )
         self.assertFalse(match_compute.explanation_is_current(
             unfaithful, dirty=False, profile_stale=False,
             job_revision='jobrev1', semantic_hash='jsem1:psem1',
-            assessment_revision=None, current_stamp=stamp_v1,
+            expected_version=v1,
         ))
 
     def test_select_journey_card_keeps_rank_and_card_score_consistent(self):
-        ai_row = match_compute.MatchRowState(
+        row = match_compute.MatchRowState(
             match_score=85,
             match_tier='recommended',
             match_uncertain=False,
-            score_version='old-llm-version',
-            explanation={'score': 85, 'score_source': 'llm', '_stamp': {'job': 'r1'}},
+            score_version='old-version',
+            explanation={'score': 85, '_stamp': {'job': 'r1'}},
         )
         # Current row -> 'stored', exact score, no refreshing flag, _stamp stripped.
-        mode, card = match_compute.select_journey_card(ai_row, ranked_score=85, is_current=True)
+        mode, card = match_compute.select_journey_card(row, ranked_score=85, is_current=True)
         self.assertEqual(mode, 'stored')
         self.assertEqual(card['score'], 85)
         self.assertNotIn('refreshing', card)
         self.assertNotIn('_stamp', card)
 
-        # Stale/dirty faithful row (e.g. pre-drain after model switch) -> 'refreshing'
-        # with SAME score Journey ranked by (no rank-vs-card inversion!).
-        mode, card = match_compute.select_journey_card(ai_row, ranked_score=85, is_current=False)
+        # Stale/dirty faithful row -> 'refreshing' with SAME score Journey ranked by.
+        mode, card = match_compute.select_journey_card(row, ranked_score=85, is_current=False)
         self.assertEqual(mode, 'refreshing')
         self.assertEqual(card['score'], 85)
         self.assertTrue(card['refreshing'])
@@ -650,7 +499,7 @@ class PureDecisionLogicTests(unittest.TestCase):
         )
         self.assertEqual(match_compute.select_journey_card(legacy, ranked_score=85, is_current=False), ('recompute', None))
         self.assertEqual(match_compute.select_journey_card(None, ranked_score=-1, is_current=False), ('recompute', None))
-        self.assertEqual(match_compute.select_journey_card(ai_row, ranked_score=60, is_current=False), ('recompute', None))
+        self.assertEqual(match_compute.select_journey_card(row, ranked_score=60, is_current=False), ('recompute', None))
 
     def test_indexed_missing_match_action_distinguishes_authoritative_vs_pending(self):
         self.assertEqual(
@@ -670,54 +519,32 @@ class PureDecisionLogicTests(unittest.TestCase):
             'recompute',
         )
 
-    def test_matching_config_change_action_handles_env_and_first_boot(self):
-        # Unchanged config -> no work.
-        self.assertEqual(
-            profile_llm.matching_config_change_action('v18:sol:high', 'v18:sol:high'),
-            (False, False),
-        )
-        # Env model or effort changed -> enqueue AI jobs and persist observed version.
-        self.assertEqual(
-            profile_llm.matching_config_change_action('v18:sol:high', 'v18:luna:high'),
-            (True, True),
-        )
-        self.assertEqual(
-            profile_llm.matching_config_change_action('v18:sol:high', 'v18:sol:medium'),
-            (True, True),
-        )
-        # First boot after migration: enqueue only if mismatched rows exist, always persist.
-        self.assertEqual(
-            profile_llm.matching_config_change_action(None, 'v18:sol:high', has_mismatched_scores=False),
-            (False, True),
-        )
-        self.assertEqual(
-            profile_llm.matching_config_change_action(None, 'v18:sol:high', has_mismatched_scores=True),
-            (True, True),
-        )
-
-    def test_evaluate_stored_new_application_shares_tracked_and_defers_stale(self):
+    def test_evaluate_stored_new_application_checks_threshold_and_defers_stale(self):
         from hiring_scraper.app import job_search
 
         profile = _make_profile(preferences={
             'matching_defaults': {'min_match_score': 70, 'include_unknown': False},
         })
         job = _make_job(55)
-        ai_below_threshold = match_compute.MatchRowState(
+        below_threshold = match_compute.MatchRowState(
             match_score=50, match_tier='possible', match_uncertain=False,
-            score_version='v', explanation={'score': 50, 'score_source': 'llm', 'eligible': True},
+            score_version='v', explanation={'score': 50, 'eligible': True},
         )
-        # Untracked AI row below min_match_score -> retract; tracked (even auto-created new) -> qualifies!
+        above_threshold = match_compute.MatchRowState(
+            match_score=82, match_tier='recommended', match_uncertain=False,
+            score_version='v', explanation={'score': 82, 'eligible': True},
+        )
         self.assertEqual(
-            job_search.evaluate_stored_new_application(job, profile, ai_below_threshold, is_current=True, tracked=False),
+            job_search.evaluate_stored_new_application(job, profile, below_threshold, is_current=True),
             'retract',
         )
         self.assertEqual(
-            job_search.evaluate_stored_new_application(job, profile, ai_below_threshold, is_current=True, tracked=True),
+            job_search.evaluate_stored_new_application(job, profile, above_threshold, is_current=True),
             'qualifies',
         )
-        # Dirty/stale/legacy row -> defer regardless of score or tracked state.
+        # Dirty/stale/legacy row -> defer regardless of score.
         self.assertEqual(
-            job_search.evaluate_stored_new_application(job, profile, ai_below_threshold, is_current=False, tracked=False),
+            job_search.evaluate_stored_new_application(job, profile, above_threshold, is_current=False),
             'defer',
         )
         legacy = match_compute.MatchRowState(
@@ -725,37 +552,8 @@ class PureDecisionLogicTests(unittest.TestCase):
             score_version=None, explanation=None,
         )
         self.assertEqual(
-            job_search.evaluate_stored_new_application(job, profile, legacy, is_current=True, tracked=False),
+            job_search.evaluate_stored_new_application(job, profile, legacy, is_current=True),
             'defer',
-        )
-
-    def test_profile_assessment_stale_job_ids_uses_row_version_not_active_model(self):
-        from hiring_scraper.app import source_changes
-
-        prof_h = 'prof-hash-1'
-        job_hashes = {10: 'job-hash-10', 20: 'job-hash-20'}
-        old_ver = 'profile-v18-dimension-citations:gpt-6.1-sol:high'
-        unchanged_old_model = (10, profile_llm._hash([old_ver, 'job-hash-10', prof_h]), old_ver)
-        changed_old_model = (20, profile_llm._hash([old_ver, 'job-hash-20', 'old-prof-hash']), old_ver)
-        missing_job = (30, 'deadbeef', old_ver)
-
-        # Even if active model is now gpt-6-luna, job 10 is NOT stale because its own version's inputs match.
-        with patch.object(profile_llm, 'MODEL', 'gpt-6-luna'):
-            stale = source_changes.profile_assessment_stale_job_ids(
-                [unchanged_old_model, changed_old_model, missing_job],
-                profile_hash=prof_h,
-                job_hashes=job_hashes,
-                career_facts_changed=False,
-            )
-        self.assertEqual(stale, [20, 30])
-        self.assertEqual(
-            source_changes.profile_assessment_stale_job_ids(
-                [unchanged_old_model, changed_old_model],
-                profile_hash=prof_h,
-                job_hashes=job_hashes,
-                career_facts_changed=True,
-            ),
-            [10, 20],
         )
 
     def test_single_snapshot_query_compiles_for_postgresql_without_loading_blobs(self):
@@ -765,14 +563,13 @@ class PureDecisionLogicTests(unittest.TestCase):
         self.assertIn('LEFT OUTER JOIN profile_job_matches', compiled)
         self.assertIn('LEFT OUTER JOIN match_dirty_jobs', compiled)
         self.assertIn('LEFT OUTER JOIN match_semantic_documents', compiled)
-        self.assertIn('LEFT OUTER JOIN profile_llm_scores', compiled)
-        self.assertIn('FROM ai_matching_settings', compiled)
+        self.assertNotIn('profile_llm_scores', compiled)
+        self.assertNotIn('ai_matching_settings', compiled)
         # Exact pair tuple predicate when spanning multiple profiles and jobs.
         self.assertIn('(user_profiles.id, jobs.id) IN', compiled)
-        # Must NOT fetch vector blobs, section JSON, or LLM assessment payloads.
+        # Must NOT fetch vector blobs or section JSON.
         self.assertNotIn('.vectors', compiled)
         self.assertNotIn('.sections', compiled)
-        self.assertNotIn('.assessment', compiled)
 
 
 class StoredExplanationReadPathTests(unittest.TestCase):
@@ -780,9 +577,9 @@ class StoredExplanationReadPathTests(unittest.TestCase):
 
     def _indexed_row(self, job, profile, docs):
         result = match_compute.compute_match(job, profile, docs)
-        stamp = match_compute.current_score_stamp(documents=docs)
-        payload = match_compute.match_row_payload(profile.id, job.id, result, stamp, job=job, documents=docs)
-        return SimpleNamespace(**payload), result, stamp, payload
+        score_version = match_compute.current_score_version()
+        payload = match_compute.match_row_payload(profile.id, job.id, result, score_version, job=job, documents=docs)
+        return SimpleNamespace(**payload), result, score_version, payload
 
     def test_indexed_jobs_page_reuses_stored_explanation_without_loading_vectors_on_hits(self):
         from hiring_scraper.app import job_search
@@ -793,17 +590,13 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         ))
         profile = _make_profile()
         profile.match_index_version = job_search._profile_index_version(profile)
-        assessment = _llm_assessment(82)
-        assessment['unknowns'] = ['Leadership scope unverified']
-        docs = _with_llm_score(_semantic_documents(job, profile), job, profile, assessment)
+        docs = _semantic_documents(job, profile)
         indexed, _, _, payload = self._indexed_row(job, profile, docs)
-        self.assertTrue(indexed.match_uncertain)
-        self.assertEqual(indexed.explanation['score_source'], 'llm')
 
         snapshot = _snapshot_from_docs(job, profile, docs, payload)
         scope = {'eligible': True, 'reason': None,
                  'unknowns': ['Remote country eligibility not stated'], 'match_kind': 'remote'}
-        with patch.object(profile_llm, 'load_matching_documents', side_effect=AssertionError('Must not load vectors/assessments on hit')), \
+        with patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Must not load vectors on hit')), \
              patch.object(match_compute, 'match_job', side_effect=AssertionError('Should not recompute')):
             page = search_snapshots._jobs_page(
                 [job], 'match', 0, 20, 49.0, 8.4, 35, profile, 0, True,
@@ -812,8 +605,6 @@ class StoredExplanationReadPathTests(unittest.TestCase):
             )
         card_match = page['items'][0]['profile_match']
         self.assertEqual(card_match['score'], indexed.match_score)
-        self.assertEqual(card_match['score_source'], 'llm')
-        self.assertTrue(card_match['uncertain'])
         self.assertNotIn('_stamp', card_match)
         self.assertIn('Remote country eligibility not stated', card_match['unknowns'])
         # Stored explanation dict must not be mutated in place by scope application.
@@ -851,14 +642,14 @@ class StoredExplanationReadPathTests(unittest.TestCase):
             loaded_job_ids.extend(j.id for j in jobs_arg)
             return docs
 
-        with patch.object(profile_llm, 'load_matching_documents', side_effect=fake_load):
+        with patch.object(profile_semantics, 'load_semantic_documents', side_effect=fake_load):
             page = search_snapshots._jobs_page(
                 [job_hit, job_pending_missing, job_authoritative_missing],
                 'match', 0, 20, 49.0, 8.4, 35, profile, 0, True,
                 match_snapshots=snapshots,
                 precomputed_scopes=scopes,
             )
-        # Only the pending-missing job triggered load_matching_documents (NOT job_hit or authoritative missing).
+        # Only the pending-missing job triggered load_semantic_documents (NOT job_hit or authoritative missing).
         self.assertEqual(loaded_job_ids, [job_pending_missing.id])
         returned_ids = {item['id'] for item in page['items']}
         self.assertEqual(returned_ids, {job_hit.id, job_pending_missing.id})
@@ -878,7 +669,6 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         with patch.object(match_compute, 'match_job', side_effect=AssertionError('Should not recompute')):
             result = search_snapshots.profile_match(job, profile, None, docs)
         self.assertEqual(result['score'], indexed.match_score)
-        self.assertEqual(result['score_source'], 'local')
         self.assertNotIn('_stamp', result)
 
     def test_stored_explanation_falls_back_on_version_mismatch_missing_dirty_stale_or_unfaithful(self):
@@ -887,50 +677,46 @@ class StoredExplanationReadPathTests(unittest.TestCase):
         job = _make_job(23)
         profile = _make_profile()
         profile.match_index_version = job_search._profile_index_version(profile)
-        docs = _with_llm_score(_semantic_documents(job, profile), job, profile)
-        indexed, _, stamp, _ = self._indexed_row(job, profile, docs)
+        docs = _semantic_documents(job, profile)
+        indexed, _, score_version, _ = self._indexed_row(job, profile, docs)
 
         # 1. Missing explanation
         no_expl = SimpleNamespace(**{**indexed.__dict__, 'explanation': None})
         self.assertIsNone(match_compute.stored_match_explanation(
-            no_expl, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=False))
+            no_expl, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=False))
         # 2. Version mismatch
         old_ver = SimpleNamespace(**{**indexed.__dict__, 'score_version': 'stale-version'})
         self.assertIsNone(match_compute.stored_match_explanation(
-            old_ver, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=False))
+            old_ver, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=False))
         # 3. Faithfulness mismatch (explanation.score != match_score)
         unfaithful = SimpleNamespace(**{**indexed.__dict__, 'match_score': indexed.match_score + 5})
         self.assertIsNone(match_compute.stored_match_explanation(
-            unfaithful, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=False))
+            unfaithful, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=False))
         # 4. Dirty job
         self.assertIsNone(match_compute.stored_match_explanation(
-            indexed, job, profile, docs, expected_version=stamp, dirty_job_ids={job.id}, profile_stale=False))
+            indexed, job, profile, docs, expected_version=score_version, dirty_job_ids={job.id}, profile_stale=False))
         # 5. Stale profile
         self.assertIsNone(match_compute.stored_match_explanation(
-            indexed, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=True))
-        # 6. Successive LLM judgment with same source_hash but newer scored_at
-        docs.llm_scores[(profile.id, job.id)].scored_at = datetime(2026, 5, 2, 12, 1, tzinfo=timezone.utc)
+            indexed, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=True))
+        # 6. Stale semantic hash
+        docs[('job', job.id)] = SimpleNamespace(**{**docs[('job', job.id)].__dict__, 'source_hash': '0' * 64})
         self.assertIsNone(match_compute.stored_match_explanation(
-            indexed, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=False))
-        # 7. Stale LLM source hash
-        docs.llm_scores[(profile.id, job.id)].source_hash = '0' * 64
-        self.assertIsNone(match_compute.stored_match_explanation(
-            indexed, job, profile, docs, expected_version=stamp, dirty_job_ids=set(), profile_stale=False))
+            indexed, job, profile, docs, expected_version=score_version, dirty_job_ids=set(), profile_stale=False))
 
-        # End-to-end fallback via _jobs_page recomputes fresh local result when LLM hash is stale.
-        with patch.object(profile_llm, 'load_matching_documents', return_value=docs):
+        # End-to-end fallback via _jobs_page recomputes fresh local result when stored row is stale.
+        with patch.object(profile_semantics, 'load_semantic_documents', return_value=docs):
             page = search_snapshots._jobs_page(
                 [job], 'match', 0, 20, 49.0, 8.4, 35, profile, 0, True,
-                indexed_matches={job.id: indexed},
+                indexed_matches={job.id: old_ver},
                 precomputed_scopes={job.id: {'eligible': True, 'reason': None, 'unknowns': [], 'match_kind': 'area'}},
             )
-        self.assertEqual(page['items'][0]['profile_match']['score_source'], 'local')
+        self.assertEqual(page['items'][0]['profile_match']['score'], indexed.match_score)
 
 
 class CheaperInvalidationTests(unittest.TestCase):
-    """Verify presentation-only preference split, model-switch dirty queuing, and New-row re-evaluation."""
+    """Verify presentation-only preference split and New-row re-evaluation."""
 
-    def test_profile_index_version_ignores_presentation_defaults_and_ai_model(self):
+    def test_profile_index_version_ignores_presentation_defaults(self):
         from hiring_scraper.app import job_search
 
         base = _make_profile(preferences={
@@ -942,10 +728,6 @@ class CheaperInvalidationTests(unittest.TestCase):
             'matching_defaults': {'min_match_score': 85, 'include_unknown': False},
         })
         self.assertEqual(job_search._profile_index_version(presentation_only), base_ver)
-
-        with patch.object(profile_llm, 'MODEL', 'gpt-6-luna'), \
-             patch.object(profile_llm, 'EFFORT', 'medium'):
-            self.assertEqual(job_search._profile_index_version(base), base_ver)
 
         skills_changed = _make_profile(preferences={'skills': ['Java', 'Kotlin']})
         self.assertNotEqual(job_search._profile_index_version(skills_changed), base_ver)
@@ -960,131 +742,6 @@ class CheaperInvalidationTests(unittest.TestCase):
             },
         })
         self.assertNotEqual(job_search._profile_index_version(area_changed), base_ver)
-
-    def test_matching_model_changed_enqueues_only_ai_scored_jobs_in_batches(self):
-        from hiring_scraper.app import source_changes
-
-        batches = [[10, 20], [30], []]
-        executed_queries = []
-        queued_batches = []
-
-        class FakeScalars:
-            def __init__(self, values):
-                self._values = values
-
-            def all(self):
-                return list(self._values)
-
-        class FakeSession:
-            def __init__(self):
-                self.info = {}
-                self.flushed = 0
-
-            def flush(self):
-                self.flushed += 1
-
-            def scalars(self, stmt):
-                executed_queries.append(str(stmt))
-                return FakeScalars(batches.pop(0))
-
-        session = FakeSession()
-        with patch.object(source_changes, '_queue_rematch', side_effect=lambda s, ids: queued_batches.append(list(ids))):
-            queued = source_changes.matching_model_changed(session, batch_size=2)
-
-        self.assertEqual(queued, 3)
-        self.assertEqual(queued_batches, [[10, 20], [30]])
-        self.assertTrue(session.info.get(source_changes._DIRTY))
-        self.assertEqual(session.info.get(source_changes._DECLARED), {('job', 10), ('job', 20), ('job', 30)})
-        self.assertTrue(all('profile_llm_scores' in sql for sql in executed_queries))
-
-    def test_set_matching_model_leaves_observed_config_to_the_worker_and_avoids_profile_rebuild(self):
-        from hiring_scraper.app import source_changes
-
-        executed_sql = []
-
-        class FakeSession:
-            def __init__(self):
-                self.info = {}
-                self.committed = False
-                self.bind = SimpleNamespace(dialect=postgresql.dialect())
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *exc):
-                return False
-
-            def execute(self, stmt):
-                executed_sql.append(str(stmt.compile(dialect=postgresql.dialect())))
-
-            def query(self, model):
-                raise AssertionError('set_matching_model must not bulk-update UserProfile.match_index_version')
-
-            def commit(self):
-                self.committed = True
-
-        fake_session = FakeSession()
-        with patch.object(profile_llm, 'SessionLocal', return_value=fake_session), \
-             patch.object(source_changes, 'matching_model_changed', return_value=2) as mock_changed:
-            saved = profile_llm.set_matching_model('gpt-6-luna')
-
-        self.assertEqual(saved['model'], 'gpt-6-luna')
-        self.assertTrue(fake_session.committed)
-        mock_changed.assert_called_once_with(fake_session)
-        self.assertTrue(any('pg_advisory_xact_lock(85793011, 9)' in sql for sql in executed_sql))
-        self.assertTrue(any('ai_matching_settings' in sql for sql in executed_sql))
-        # Worker-owned: an API process with an older effort env must not overwrite it.
-        self.assertFalse(any('ai_matching_observed_config' in sql for sql in executed_sql))
-
-    def test_reconcile_matching_config_change_detects_env_change_without_locking_setting(self):
-        from hiring_scraper.app import source_changes
-
-        executed_sql = []
-
-        class FakeSession:
-            def __init__(self, observed_version):
-                self.info = {}
-                self.committed = False
-                self.rolled_back = False
-                self.closed = False
-                self.bind = SimpleNamespace(dialect=postgresql.dialect())
-                self._observed = observed_version
-
-            def execute(self, stmt):
-                executed_sql.append(str(stmt.compile(dialect=postgresql.dialect())))
-
-            def scalar(self, stmt):
-                sql = str(stmt)
-                if 'ai_matching_settings' in sql:
-                    return None
-                if 'ai_matching_observed_config' in sql:
-                    return self._observed
-                return None
-
-            def commit(self):
-                self.committed = True
-
-            def rollback(self):
-                self.rolled_back = True
-
-            def close(self):
-                self.closed = True
-
-        # Env changed from gpt-6.1-sol:high -> gpt-6-luna:medium -> queues AI jobs & updates observed config ONLY.
-        fake = FakeSession(observed_version='profile-v18-dimension-citations:gpt-6.1-sol:high')
-        with patch.object(profile_llm, 'MODEL', 'gpt-6-luna'), \
-             patch.object(profile_llm, 'EFFORT', 'medium'), \
-             patch.object(profile_llm, 'SessionLocal', return_value=fake), \
-             patch.object(source_changes, 'matching_model_changed', return_value=4) as mock_changed:
-            queued = profile_llm.reconcile_matching_config_change()
-
-        self.assertEqual(queued, 4)
-        self.assertTrue(fake.committed)
-        self.assertTrue(fake.closed)
-        mock_changed.assert_called_once_with(fake)
-        self.assertTrue(any('ai_matching_observed_config' in sql for sql in executed_sql))
-        # Must NOT insert into ai_matching_settings (would override future env changes!).
-        self.assertFalse(any('INSERT INTO ai_matching_settings' in sql for sql in executed_sql))
 
     def test_profiles_save_passes_presentation_only_and_detects_profile_data_changes(self):
         from hiring_scraper.app import job_search, profiles, source_changes
@@ -1142,16 +799,16 @@ class CheaperInvalidationTests(unittest.TestCase):
         mock_declared.assert_called_once_with(session, profile.id, presentation_only=True)
         mock_reeval.assert_called_once_with(session, profile)
 
-        # Changing career_goals (part of profile_data / _profile_index_version) triggers full scoring rebuild.
-        req_goals = profiles.ProfileRequest(**{
+        # Changing career_evidence (part of matching_preferences / _profile_index_version) triggers full scoring rebuild.
+        req_evidence = profiles.ProfileRequest(**{
             **base_kwargs,
             'matching_defaults': {'min_match_score': 75, 'include_unknown': False},
-            'application_personalization': {'career_goals': 'Move into distributed systems leadership.'},
+            'application_personalization': {'career_evidence': 'Built distributed systems in production.'},
         })
         with patch.object(profiles, 'clear_profile_match_scores') as mock_clear, \
              patch.object(profiles, 'reevaluate_profile_new_applications') as mock_reeval, \
              patch.object(source_changes, 'profile_changed') as mock_declared:
-            profiles._save(profile, req_goals, session)
+            profiles._save(profile, req_evidence, session)
 
         self.assertIsNone(profile.match_index_version)
         mock_clear.assert_called_once_with(session, profile.id)
@@ -1166,7 +823,7 @@ class CheaperInvalidationTests(unittest.TestCase):
         })
         profile.match_index_version = job_search._profile_index_version(profile)
         docs = _empty_documents()
-        stamp = match_compute.current_score_stamp(documents=docs)
+        score_version = match_compute.current_score_version()
 
         job_high = _make_job(101)
         job_low = _make_job(102)
@@ -1181,8 +838,8 @@ class CheaperInvalidationTests(unittest.TestCase):
                     'explanation': None, 'score_version': None,
                 }
             else:
-                res = {'score': score, 'score_source': 'local', 'fit_tier': 'possible', 'eligible': True, 'uncertain': False}
-                payload = match_compute.match_row_payload(profile.id, job.id, res, stamp, job=job, documents=docs)
+                res = {'score': score, 'fit_tier': 'possible', 'eligible': True, 'uncertain': False}
+                payload = match_compute.match_row_payload(profile.id, job.id, res, score_version, job=job, documents=docs)
             row_ns = SimpleNamespace(**payload)
             snap = _snapshot_from_docs(job, profile, docs, payload, dirty_revision=dirty_rev)
             return (row_ns, job), snap
@@ -1226,8 +883,6 @@ class CheaperInvalidationTests(unittest.TestCase):
                 if sql.startswith('DELETE'):
                     delete_statements.append(stmt)
                     return FakeResult(rowcount=1)
-                if 'FROM job_applications' in sql:
-                    return FakeResult([])
                 return FakeResult(select_batches.pop(0))
 
             def scalars(self, stmt):
@@ -1258,10 +913,10 @@ class CheaperInvalidationTests(unittest.TestCase):
 
 
 class MigrationSchemaTests(unittest.TestCase):
-    """Verify migration 0042 metadata and ORM columns without needing a live database."""
+    """Verify migrations 0042 and 0043 metadata and ORM columns without needing a live database."""
 
-    def test_migration_adds_and_drops_explanation_score_version_and_observed_config(self):
-        from hiring_scraper.app.models import AIMatchingObservedConfig, ProfileJobMatch
+    def test_migration_0042_adds_and_drops_explanation_score_version_and_pending_flag(self):
+        from hiring_scraper.app.models import ProfileJobMatch
 
         migration = importlib.import_module(
             'hiring_scraper.app.migrations.versions.0042_profile_match_explanation'
@@ -1276,23 +931,10 @@ class MigrationSchemaTests(unittest.TestCase):
         self.assertTrue(table.c.score_version.nullable)
         self.assertEqual(table.c.score_version.type.length, 80)
 
-        obs_table = AIMatchingObservedConfig.__table__
-        self.assertEqual(obs_table.name, 'ai_matching_observed_config')
-        self.assertIn('version', obs_table.c)
-        self.assertIn('updated_at', obs_table.c)
-
         added = []
         dropped = []
-        created_tables = []
-        dropped_tables = []
-        executed = []
-        fake_bind = SimpleNamespace(dialect=SimpleNamespace(name='postgresql'))
         with patch.object(migration.op, 'add_column', side_effect=lambda tbl, col: added.append((tbl, col.name, col.nullable))), \
-             patch.object(migration.op, 'drop_column', side_effect=lambda tbl, col: dropped.append((tbl, col))), \
-             patch.object(migration.op, 'create_table', side_effect=lambda name, *cols: created_tables.append(name)), \
-             patch.object(migration.op, 'drop_table', side_effect=lambda name: dropped_tables.append(name)), \
-             patch.object(migration.op, 'get_bind', return_value=fake_bind), \
-             patch.object(migration.op, 'execute', side_effect=lambda sql: executed.append(sql)):
+             patch.object(migration.op, 'drop_column', side_effect=lambda tbl, col: dropped.append((tbl, col))):
             migration.upgrade()
             migration.downgrade()
 
@@ -1301,14 +943,62 @@ class MigrationSchemaTests(unittest.TestCase):
             ('profile_job_matches', 'score_version', True),
             ('user_profiles', 'presentation_refresh_pending', False),
         ])
-        self.assertEqual(created_tables, ['ai_matching_observed_config'])
-        self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON ai_matching_observed_config TO hiring_app' in sql for sql in executed))
-        self.assertEqual(dropped_tables, ['ai_matching_observed_config'])
         self.assertEqual(dropped, [
             ('user_profiles', 'presentation_refresh_pending'),
             ('profile_job_matches', 'score_version'),
             ('profile_job_matches', 'explanation'),
         ])
+
+    def test_migration_0043_drops_ai_assessment_tables_and_recreates_on_downgrade(self):
+        from hiring_scraper.app import models
+
+        migration = importlib.import_module(
+            'hiring_scraper.app.migrations.versions.0043_drop_ai_assessment'
+        )
+        self.assertEqual(migration.revision, '0043_drop_ai_assessment')
+        self.assertEqual(migration.down_revision, '0042_profile_match_explanation')
+
+        dropped_tables = (
+            'ai_matching_observed_config',
+            'ai_matching_workers',
+            'ai_matching_tasks',
+            'ai_matching_settings',
+            'ai_matching_selections',
+            'ai_matching_calls',
+            'profile_llm_scores',
+        )
+        for table_name in dropped_tables:
+            self.assertNotIn(table_name, models.Base.metadata.tables)
+
+        executed = []
+        created_tables = []
+        created_indexes = []
+        fake_bind = SimpleNamespace(dialect=SimpleNamespace(name='postgresql'))
+        with patch.object(migration.op, 'execute', side_effect=lambda sql: executed.append(sql)), \
+             patch.object(migration.op, 'create_table', side_effect=lambda name, *cols: created_tables.append(name)), \
+             patch.object(migration.op, 'create_index', side_effect=lambda name, tbl, cols: created_indexes.append((name, tbl))), \
+             patch.object(migration.op, 'get_bind', return_value=fake_bind):
+            migration.upgrade()
+            upgrade_sql = list(executed)
+            executed.clear()
+            migration.downgrade()
+            downgrade_sql = list(executed)
+
+        self.assertEqual(upgrade_sql, [f'DROP TABLE IF EXISTS {name}' for name in dropped_tables])
+        self.assertEqual(created_tables, [
+            'profile_llm_scores',
+            'ai_matching_calls',
+            'ai_matching_selections',
+            'ai_matching_settings',
+            'ai_matching_tasks',
+            'ai_matching_workers',
+        ])
+        self.assertEqual(created_indexes, [
+            ('ix_ai_matching_calls_reserved_at', 'ai_matching_calls'),
+            ('ix_ai_matching_tasks_state', 'ai_matching_tasks'),
+            ('ix_ai_matching_tasks_available_at', 'ai_matching_tasks'),
+        ])
+        self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON ' in sql and 'TO hiring_app' in sql for sql in downgrade_sql))
 
 
 class ReviewFixTests(unittest.TestCase):
@@ -1333,7 +1023,7 @@ class ReviewFixTests(unittest.TestCase):
         # freshly computed score (99) must never replace the ranking score.
         snapshots = {(1, state.job_id): SimpleNamespace(match=match_compute.MatchRowState(
             match_score=state.match_rank, match_tier='possible', match_uncertain=False, score_version='v',
-            explanation={'score': state.match_rank, 'score_source': 'local'}))
+            explanation={'score': state.match_rank}))
             for state in states if state.id % 2 == 0 and state.match_rank >= 0}
 
         def page(offset, limit):
@@ -1353,7 +1043,7 @@ class ReviewFixTests(unittest.TestCase):
              patch.object(job_search, '_profile_index_version', return_value='v'), \
              patch.object(match_compute, 'load_stored_match_snapshots', return_value=snapshots), \
              patch.object(match_compute, 'snapshot_explanation_is_current', return_value=True), \
-             patch.object(profile_llm, 'load_matching_documents', return_value=None), \
+             patch.object(profile_semantics, 'load_semantic_documents', return_value=None), \
              patch.object(match_compute, 'compute_match', side_effect=lambda *a, **k: {'score': 99}):
             for size in (1, 2, 4, len(states)):
                 items = []
@@ -1401,7 +1091,6 @@ class ReviewFixTests(unittest.TestCase):
         session.scalars.side_effect = scalars
         with patch.object(job_search, '_profile_index_version', return_value='current'), \
              patch.object(job_search, 'load_stored_match_snapshots', return_value={}), \
-             patch.object(job_search, '_tracked_application_pairs', return_value=set()), \
              patch.object(job_search, 'snapshot_explanation_is_current', return_value=False), \
              patch.object(job_search, 'evaluate_stored_new_application', return_value='defer'), \
              patch.object(job_search.source_changes, 'queue_stale_rematch'):
@@ -1412,82 +1101,10 @@ class ReviewFixTests(unittest.TestCase):
         for heavy in ('explanation', 'description', 'score_version'):
             self.assertNotIn(heavy, first)
 
-    def test_dirty_worker_skips_when_config_differs_from_observed(self):
-        from collections import namedtuple
-        from unittest.mock import MagicMock
-        from hiring_scraper.app import job_search
-        from hiring_scraper.app.models import ProfileIndexChanged
-
-        session = MagicMock()
-        session.__enter__.return_value = session
-        pending = [namedtuple('Row', 'job_id revision')(1, 'r')]
-        session.execute.return_value.all.return_value = pending
-        factory = MagicMock(return_value=session)
-        refresh = MagicMock()
-        with patch.object(job_search, '_match_worker_owner', return_value=True), \
-             patch.object(job_search, '_refresh_application_matches_for_jobs', refresh):
-            # Old worker (different effort/model) before computing: nothing published or acked.
-            with patch.object(job_search, 'matching_config_matches_observed', return_value=False):
-                self.assertFalse(job_search.refresh_dirty_job_matches_once(factory))
-            refresh.assert_not_called()
-            session.commit.assert_not_called()
-            # Config recorded by a newer worker while computing: roll back, never ack.
-            with patch.object(job_search, 'matching_config_matches_observed', side_effect=[True, False]):
-                with self.assertRaises(ProfileIndexChanged):
-                    job_search.refresh_dirty_job_matches_once(factory)
-            session.commit.assert_not_called()
-            # Matching config: normal publication and acknowledgement.
-            with patch.object(job_search, 'matching_config_matches_observed', return_value=True):
-                self.assertTrue(job_search.refresh_dirty_job_matches_once(factory))
-            session.commit.assert_called_once()
-
-    def test_matching_config_matches_observed_compares_effective_version(self):
-        from unittest.mock import MagicMock
-        from hiring_scraper.app import job_search
-
-        session = MagicMock()
-        effective = profile_llm.MatchingConfig('gpt-6-luna', 'high')
-        with patch.object(job_search, 'matching_config', return_value=effective):
-            session.scalar.return_value = None
-            self.assertTrue(job_search.matching_config_matches_observed(session))
-            session.scalar.return_value = effective.version
-            self.assertTrue(job_search.matching_config_matches_observed(session))
-            session.scalar.return_value = profile_llm.MatchingConfig('gpt-6-luna', 'low').version
-            self.assertFalse(job_search.matching_config_matches_observed(session))
-
-
-    def test_api_model_save_never_blocks_a_current_worker(self):
-        from unittest.mock import MagicMock
-        from hiring_scraper.app import job_search
-
-        # Worker recorded gpt-6-luna:high; an API save then switches the shared model.
-        session = MagicMock()
-        effective = profile_llm.MatchingConfig('gpt-6.1-sol', 'high')
-        observed = profile_llm.MatchingConfig('gpt-6-luna', 'high').version
-        scalars = iter([observed, 1])  # observed row, saved setting id
-        session.scalar.side_effect = lambda *_: next(scalars)
-        with patch.object(job_search, 'matching_config', return_value=effective), \
-             patch.object(job_search, '_upsert_observed_config') as upsert:
-            self.assertTrue(job_search.matching_config_matches_observed(session))
-        upsert.assert_called_once_with(session, effective.version)
-        # Without a saved model the difference is another worker's environment: skip.
-        scalars = iter([observed, None])
-        with patch.object(job_search, 'matching_config', return_value=effective), \
-             patch.object(job_search, '_upsert_observed_config') as upsert:
-            self.assertFalse(job_search.matching_config_matches_observed(session))
-        upsert.assert_not_called()
-        # A different effort (old worker) never rewrites the observation.
-        old_worker = profile_llm.MatchingConfig('gpt-6-luna', 'low')
-        scalars = iter([observed])
-        with patch.object(job_search, 'matching_config', return_value=old_worker), \
-             patch.object(job_search, '_upsert_observed_config') as upsert:
-            self.assertFalse(job_search.matching_config_matches_observed(session))
-        upsert.assert_not_called()
-
 
 @unittest.skipUnless(os.environ.get('TEST_POSTGRES_URL'), 'Requires PostgreSQL with pgvector (TEST_POSTGRES_URL)')
 class MatchComputePostgresIntegrationTests(unittest.TestCase):
-    """End-to-end DB tests exercising stored explanations, presentation edits, and model switches."""
+    """End-to-end DB tests exercising stored explanations, presentation edits, and dirty-queue repair."""
 
     def setUp(self):
         from sqlalchemy.orm import sessionmaker
@@ -1497,7 +1114,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
         self.engine = pg.engine(self)
         self.factory = sessionmaker(bind=self.engine, future=True)
 
-    def test_stored_explanation_round_trip_presentation_edit_and_model_switch(self):
+    def test_stored_explanation_round_trip_presentation_edit_and_dirty_repair(self):
         from sqlalchemy import select
         from hiring_scraper.app import api, job_search, models, profiles, source_changes
 
@@ -1544,17 +1161,17 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             job_search.ensure_profile_match_indexes(session, [profile])
             session.commit()
             index_version = profile.match_index_version
-            stamp_v1 = match_compute.current_score_stamp(session)
+            score_version = match_compute.current_score_version()
             row1 = session.get(models.ProfileJobMatch, (profile_id, job1_id))
             row2 = session.get(models.ProfileJobMatch, (profile_id, job2_id))
             self.assertIsNotNone(row1)
             self.assertIsNotNone(row2)
             self.assertEqual(row1.explanation['score'], row1.match_score)
-            self.assertEqual(row1.score_version, stamp_v1.local_version)
-            self.assertEqual(row2.score_version, stamp_v1.local_version)
+            self.assertEqual(row1.score_version, score_version)
+            self.assertEqual(row2.score_version, score_version)
 
             with patch.object(match_compute, 'match_job', side_effect=AssertionError('Should reuse stored explanation')), \
-                 patch.object(profile_llm, 'load_matching_documents', side_effect=AssertionError('Should not load vectors on hit')):
+                 patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Should not load vectors on hit')):
                 detail = api.get_job(job1_id, session=session, profile_id=profile_id)
             self.assertEqual(detail['profile_match']['score'], row1.match_score)
             self.assertNotIn('_stamp', detail['profile_match'])
@@ -1588,7 +1205,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertIsNone(app1)
             self.assertEqual(app2.status, 'open')
 
-            # Lower min_match_score back to 0 so job1 returns as New, and seed an actual AI-derived published match for job1.
+            # Lower min_match_score back to 0 so job1 returns as New, then edit job1 and mark it dirty.
             profiles.update_profile(profile_id, profiles.ProfileRequest(
                 name='Developer',
                 skills=['Python', 'SQL', 'Docker'],
@@ -1602,77 +1219,56 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
                              'radius_km': 35, 'country_code': 'DE'},
                 matching_defaults={'min_match_score': 0, 'include_unknown': True},
             ), session)
-            session.add(models.ProfileLLMScore(
-                profile_id=profile_id, job_id=job1_id,
-                version=profile_llm.matching_version(session),
-                source_hash=profile_llm.source_hash(session.get(models.Job, job1_id),
-                                                    session.get(models.UserProfile, profile_id), session=session),
-                assessment=_llm_assessment(85),
-                scored_at=models.utcnow(),
-            ))
-            source_changes.assessments_changed(session, [job1_id])
+            score_before_edit = row1.match_score
+            local_row2_score = row2.match_score
+            job1_row = session.get(models.Job, job1_id)
+            job1_row.title = 'Office Receptionist'
+            job1_row.description = 'Your tasks:\nAnswer phones and greet front desk visitors.'
+            source_changes.jobs_changed(session, [job1_id])
             session.commit()
 
-        # Drain dirty worker so job1 has a published AI-derived ProfileJobMatch (score_source='llm').
-        self.assertTrue(job_search.refresh_dirty_job_matches_once(self.factory))
-        with self.factory() as session:
-            stamp_v1 = match_compute.current_score_stamp(session)
-            ai_row1 = session.get(models.ProfileJobMatch, (profile_id, job1_id))
-            local_row2 = session.get(models.ProfileJobMatch, (profile_id, job2_id))
-            self.assertEqual(ai_row1.explanation['score_source'], 'llm')
-            self.assertEqual(ai_row1.score_version, stamp_v1.llm_version)
-            self.assertEqual(local_row2.explanation['score_source'], 'local')
-            self.assertEqual(local_row2.score_version, stamp_v1.local_version)
-            ai_score_before_switch = ai_row1.match_score
-
-        # 3. Switch AI model: only AI-scored job1 becomes dirty; local-only job2 stays clean and valid.
-        with patch.object(profile_llm, 'SessionLocal', self.factory):
-            profile_llm.set_matching_model('gpt-6-luna')
-
+        # 3. Pre-drain: only job1 is dirty; Journey keeps rank == displayed card score for job1 (flagged refreshing),
+        # while clean job2 stays current without refreshing or vector loads.
         with self.factory() as session:
             self.assertEqual(session.get(models.UserProfile, profile_id).match_index_version, index_version)
             dirty_ids = session.scalars(select(models.MatchDirtyJob.job_id)).all()
             self.assertEqual(dirty_ids, [job1_id])
 
-            # Pre-drain: Journey keeps rank == displayed card score for job1 (flagged refreshing),
-            # while local-only job2 stays current without refreshing or vector loads.
             with patch.object(match_compute, 'match_job', side_effect=AssertionError('Journey should not recompute faithful stored cards')), \
-                 patch.object(profile_llm, 'load_matching_documents', side_effect=AssertionError('Journey should not load vectors for stored cards')):
+                 patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Journey should not load vectors for stored cards')):
                 journey_pre = api.list_applications(
                     profile_ids=str(profile_id), statuses='all', sort='match', session=session,
                 )
             self.assertTrue(journey_pre['matching_pending'])
             by_job_pre = {item['id']: item['profile_match'] for item in journey_pre['items']}
-            self.assertEqual(by_job_pre[job1_id]['score'], ai_score_before_switch)
+            self.assertEqual(by_job_pre[job1_id]['score'], score_before_edit)
             self.assertTrue(by_job_pre[job1_id].get('refreshing'))
-            self.assertEqual(by_job_pre[job2_id]['score'], local_row2.match_score)
+            self.assertEqual(by_job_pre[job2_id]['score'], local_row2_score)
             self.assertNotIn('refreshing', by_job_pre[job2_id])
 
-            # Pre-drain: detail for local-only job2 reuses stored explanation; detail for dirty AI job1 falls back to local.
-            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Local-only row must stay reusable')):
+            # Pre-drain: detail for clean job2 reuses stored explanation; detail for dirty job1 computes live local score.
+            with patch.object(match_compute, 'match_job', side_effect=AssertionError('Clean row must stay reusable')):
                 detail2 = api.get_job(job2_id, session=session, profile_id=profile_id)
-            self.assertEqual(detail2['profile_match']['score'], local_row2.match_score)
+            self.assertEqual(detail2['profile_match']['score'], local_row2_score)
             detail1 = api.get_job(job1_id, session=session, profile_id=profile_id)
-            self.assertEqual(detail1['profile_match']['score_source'], 'local')
+            self.assertNotEqual(detail1['profile_match']['score'], score_before_edit)
 
-        # 4. Post-drain: running the dirty worker once repairs job1 to current local score and clears refreshing.
+        # 4. Post-drain: running the dirty worker once repairs job1 to its new local score and clears refreshing.
         self.assertTrue(job_search.refresh_dirty_job_matches_once(self.factory))
         with self.factory() as session:
             self.assertEqual(session.scalars(select(models.MatchDirtyJob.job_id)).all(), [])
-            stamp_v2 = match_compute.current_score_stamp(session)
             repaired_row1 = session.get(models.ProfileJobMatch, (profile_id, job1_id))
-            self.assertEqual(repaired_row1.explanation['score_source'], 'local')
-            self.assertEqual(repaired_row1.score_version, stamp_v2.local_version)
+            self.assertEqual(repaired_row1.score_version, match_compute.current_score_version())
+            self.assertEqual(repaired_row1.match_score, detail1['profile_match']['score'])
 
             with patch.object(match_compute, 'match_job', side_effect=AssertionError('Post-drain Journey must reuse stored cards')), \
-                 patch.object(profile_llm, 'load_matching_documents', side_effect=AssertionError('Post-drain Journey must not load vectors')):
+                 patch.object(profile_semantics, 'load_semantic_documents', side_effect=AssertionError('Post-drain Journey must not load vectors')):
                 journey_post = api.list_applications(
                     profile_ids=str(profile_id), statuses='all', sort='match', session=session,
                 )
             self.assertFalse(journey_post['matching_pending'])
             by_job_post = {item['id']: item['profile_match'] for item in journey_post['items']}
             self.assertEqual(by_job_post[job1_id]['score'], repaired_row1.match_score)
-            self.assertEqual(by_job_post[job1_id]['score_source'], 'local')
             self.assertNotIn('refreshing', by_job_post[job1_id])
 
 

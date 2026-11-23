@@ -81,6 +81,7 @@ no historical releases have been reconstructed.
 
 ### Removed
 
+- AI job-fit assessment removed; ranking is local-only (rules matcher + local semantic evidence). Migration `0043_drop_ai_assessment` drops the AI assessment tables.
 - **Breaking:** remove SQLite support. Radius, local development and the test suite require PostgreSQL with PostGIS and pgvector; use `compose.dev.yaml` or `scripts/dev/postgres-sandbox.sh`.
 - Remove the proof-of-concept crawl runner (`python -m hiring_scraper`) and the research experiments, captures and reports from the repository. They remain available in Git history.
 

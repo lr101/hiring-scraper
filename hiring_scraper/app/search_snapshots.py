@@ -32,7 +32,7 @@ from hiring_scraper.app.applications import (
 from hiring_scraper.app.match_compute import (
     apply_profile_match_scope,
     compute_match,
-    current_score_stamp,
+    current_score_version,
     indexed_missing_match_action,
     load_stored_match_snapshots,
     stored_match_explanation,
@@ -243,7 +243,7 @@ def canonical_state(state: str | None) -> str | None:
 def profile_match(job, profile, scope, semantic_documents=None):
     from sqlalchemy.orm import object_session
     from hiring_scraper.app.job_search import profile_match_index_stale
-    from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
+    from hiring_scraper.app.profile_semantics import load_semantic_documents
 
     session = None
     for obj in (job, profile):
@@ -285,7 +285,7 @@ def profile_match(job, profile, scope, semantic_documents=None):
                 job,
                 profile,
                 semantic_documents,
-                expected_version=current_score_stamp(session, documents=semantic_documents),
+                expected_version=current_score_version(),
                 dirty_job_ids=getattr(semantic_documents, 'dirty_job_ids', None),
                 profile_stale=profile_match_index_stale(profile),
                 scope=scope,
@@ -296,7 +296,7 @@ def profile_match(job, profile, scope, semantic_documents=None):
 
 
 def _apply_profile_match_scope(match, scope):
-    """External geography remains authoritative after local or cached scoring."""
+    """External geography remains authoritative after local scoring."""
     return apply_profile_match_scope(match, scope)
 
 
@@ -414,7 +414,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
         selected = []
         from sqlalchemy.orm import object_session
         from hiring_scraper.app.job_search import _profile_index_version, profile_match_index_stale
-        from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
+        from hiring_scraper.app.profile_semantics import load_semantic_documents
         profile_session = None
         try:
             profile_session = object_session(profile)
@@ -430,8 +430,6 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                     [(profile.id, job.id) for job in matching if getattr(job, 'id', None) is not None],
                 )
             )
-            job_hash_cache: dict[int, str] = {}
-            profile_hash_cache: dict[int, str] = {}
             fallback_jobs = []
             for job in matching:
                 snapshot = snapshots.get((profile.id, job.id))
@@ -443,8 +441,6 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                         snapshot=snapshot,
                         expected_profile_index_version=expected_index_version,
                         scope=scopes[job.id],
-                        job_hash_cache=job_hash_cache,
-                        profile_hash_cache=profile_hash_cache,
                     )
                     if stored is not None:
                         matches[job.id] = stored
@@ -472,7 +468,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
             profile_is_stale = profile_match_index_stale(profile)
             dirty_ids = set(dirty_job_ids or ())
             semantic_documents = load_semantic_documents(None, matching, [profile]) if indexed_matches else None
-            expected_stamp = current_score_stamp(None, documents=semantic_documents)
+            expected_version = current_score_version()
             fallback_jobs = []
             for job in matching:
                 indexed = indexed_matches.get(job.id)
@@ -490,7 +486,7 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                         job,
                         profile,
                         semantic_documents,
-                        expected_version=expected_stamp,
+                        expected_version=expected_version,
                         dirty_job_ids=dirty_ids,
                         profile_stale=profile_is_stale,
                         scope=scopes[job.id],
