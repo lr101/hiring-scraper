@@ -309,6 +309,10 @@ class UserProfile(Base):
     match_index_version: Mapped[str | None] = mapped_column(String(40), nullable=True)
     # Bumped by every declared input change (source_changes); publishers compare it.
     source_version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default=text("0"))
+    # Set when a presentation-only edit (threshold, unknown policy) arrives while the
+    # index is still backfilling; the worker re-evaluates New rows when it completes.
+    presentation_refresh_pending: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("false"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 

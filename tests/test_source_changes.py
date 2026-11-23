@@ -106,7 +106,7 @@ class SourceChangesTests(unittest.TestCase):
         return directory.name
 
     def test_jobs_changed_drops_only_stale_vectors_and_assessments(self):
-        from hiring_scraper.app.profile_llm import source_hash
+        from hiring_scraper.app.profile_llm import matching_config, source_hash
         from hiring_scraper.semantic_matching import job_sections, source_hash as vector_hash
         with self.factory.begin() as session:
             job = session.get(Job, self.job_id)
@@ -114,8 +114,10 @@ class SourceChangesTests(unittest.TestCase):
             session.add(MatchSemanticDocument(job_id=job.id, version=VERSION, sections=[], vectors=b'',
                 source_hash=vector_hash(job_sections({'description': job.description,
                                                       'raw_metadata': job.raw_metadata}))))
-            session.add(ProfileLLMScore(profile_id=profile.id, job_id=job.id, version='v', assessment={},
-                                        source_hash=source_hash(job, profile)))
+            # A saved assessment carries the config version it was hashed with.
+            version = matching_config(session).version
+            session.add(ProfileLLMScore(profile_id=profile.id, job_id=job.id, version=version, assessment={},
+                                        source_hash=source_hash(job, profile, session=session)))
         with self.factory() as session:
             # Unchanged inputs keep the cached rows.
             source_changes.jobs_changed(session, [self.job_id])

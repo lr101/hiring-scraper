@@ -287,18 +287,26 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
             cards[pair] = card
         else:
             fallback_pairs.append(pair)
+    # One ranking score drives pagination and display: the stored match score the
+    # page was ordered by. Cards that cannot show it faithfully are flagged pending;
+    # the page is never re-sorted by a different (freshly computed) score.
+    ranks = {(row.profile_id, row.job_id): row.match_rank for row in applications}
+    fallback_pairs_ranked = [pair for pair in fallback_pairs if ranks[pair] >= 0]
+    for pair in fallback_pairs:
+        if ranks[pair] < 0:
+            # No stored score (outside the indexed scope or not indexed yet): ranked
+            # last and shown without a score card rather than an out-of-order score.
+            cards[pair] = None
+    fallback_pairs = fallback_pairs_ranked
     if fallback_pairs:
         fallback_jobs = [jobs_by_id[jid] for jid in sorted({jid for _, jid in fallback_pairs})]
         fallback_profiles = [profiles_by_id[pid] for pid in sorted({pid for pid, _ in fallback_pairs})]
         fallback_documents = load_semantic_documents(session, fallback_jobs, fallback_profiles)
         for pid, jid in fallback_pairs:
-            cards[(pid, jid)] = compute_match(jobs_by_id[jid], profiles_by_id[pid], fallback_documents)
-        if sort == 'match':
-            applications = sorted(
-                applications,
-                key=lambda row: (cards[(row.profile_id, row.job_id)]['score'], row.discovered_rank, row.posted_rank, row.id),
-                reverse=True,
-            )
+            card = compute_match(jobs_by_id[jid], profiles_by_id[pid], fallback_documents)
+            card['score'] = ranks[(pid, jid)]
+            card['refreshing'] = True
+            cards[(pid, jid)] = card
     items = []
     for application in applications:
         job = jobs_by_id[application.job_id]

@@ -1223,6 +1223,12 @@ class CheaperInvalidationTests(unittest.TestCase):
                     return FakeResult([])
                 return FakeResult(select_batches.pop(0))
 
+            def scalars(self, stmt):
+                if 'FROM profile_job_matches' in str(stmt):
+                    self.batch = select_batches.pop(0)
+                    return [match.job_id for match, _ in self.batch]
+                return [job for _, job in self.batch]
+
         with patch.object(match_compute, 'match_job', side_effect=AssertionError('Must not recompute')), \
              patch.object(job_search, 'match_job', side_effect=AssertionError('Must not recompute')), \
              patch.object(job_search, 'load_stored_match_snapshots', return_value=snapshots_map), \
@@ -1286,14 +1292,161 @@ class MigrationSchemaTests(unittest.TestCase):
         self.assertEqual(added, [
             ('profile_job_matches', 'explanation', True),
             ('profile_job_matches', 'score_version', True),
+            ('user_profiles', 'presentation_refresh_pending', False),
         ])
         self.assertEqual(created_tables, ['ai_matching_observed_config'])
         self.assertTrue(any('GRANT SELECT, INSERT, UPDATE, DELETE ON ai_matching_observed_config TO hiring_app' in sql for sql in executed))
         self.assertEqual(dropped_tables, ['ai_matching_observed_config'])
         self.assertEqual(dropped, [
+            ('user_profiles', 'presentation_refresh_pending'),
             ('profile_job_matches', 'score_version'),
             ('profile_job_matches', 'explanation'),
         ])
+
+
+class ReviewFixTests(unittest.TestCase):
+    """Mock-based regressions for Journey ordering, deferred presentation refresh and config drift."""
+
+    def test_journey_pages_share_one_ranking_score_for_every_page_size(self):
+        from datetime import datetime, timezone
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import journey, job_search
+        from hiring_scraper.app.applications import CanonicalApplicationState
+
+        ranks = [90, 70, 50, 85, 20, -1, 60, 55, 95]
+        now = datetime(2026, 5, 1, tzinfo=timezone.utc)
+        states = [CanonicalApplicationState(
+            id=index, profile_id=1, job_id=100 + index, vacancy_group_id=None, status='new',
+            previous_status=None, created_at=now, updated_at=now, updated_rank=0.0, match_rank=rank,
+            discovered_rank=float(index), posted_rank='')
+            for index, rank in enumerate(ranks, start=1)]
+        jobs = [SimpleNamespace(id=state.job_id) for state in states]
+        profile = SimpleNamespace(id=1, name='P')
+        # Even rows have faithful stored cards; odd rows force the fallback, whose
+        # freshly computed score (99) must never replace the ranking score.
+        snapshots = {(1, state.job_id): SimpleNamespace(match=match_compute.MatchRowState(
+            match_score=state.match_rank, match_tier='possible', match_uncertain=False, score_version='v',
+            explanation={'score': state.match_rank, 'score_source': 'local'}))
+            for state in states if state.id % 2 == 0 and state.match_rank >= 0}
+
+        def page(offset, limit):
+            session = MagicMock()
+            session.scalar.return_value = None
+            session.scalars.return_value.unique.return_value.all.return_value = jobs
+            return journey.list_applications(
+                profile_ids='1', statuses=None, sort='match', offset=offset, limit=limit, session=session)
+
+        expected = [state.job_id for state in sorted(
+            states, key=lambda row: (row.match_rank, row.discovered_rank, row.posted_rank, row.id), reverse=True)]
+        with patch.object(journey, 'require_profile', return_value=profile), \
+             patch.object(journey, 'canonical_application_states', return_value=states), \
+             patch.object(journey, 'profile_match_index_stale', return_value=False), \
+             patch.object(journey, 'application_json', side_effect=lambda row: {'id': row.id}), \
+             patch.object(search_snapshots, 'job_json', side_effect=lambda job: {'id': job.id}), \
+             patch.object(job_search, '_profile_index_version', return_value='v'), \
+             patch.object(match_compute, 'load_stored_match_snapshots', return_value=snapshots), \
+             patch.object(match_compute, 'snapshot_explanation_is_current', return_value=True), \
+             patch.object(profile_llm, 'load_matching_documents', return_value=None), \
+             patch.object(match_compute, 'compute_match', side_effect=lambda *a, **k: {'score': 99}):
+            for size in (1, 2, 4, len(states)):
+                items = []
+                for offset in range(0, len(states), size):
+                    items.extend(page(offset, size)['items'])
+                self.assertEqual([item['id'] for item in items], expected, size)
+                scores = [item['profile_match']['score'] for item in items if item['profile_match'] is not None]
+                self.assertEqual(scores, sorted(scores, reverse=True), size)
+                self.assertEqual(sorted(scores, reverse=True), sorted((r for r in ranks if r >= 0), reverse=True))
+                unranked = [item for item in items if item['profile_match'] is None]
+                self.assertEqual(len(unranked), 1)
+                self.assertIs(items[-1], unranked[0])
+
+    def test_presentation_edit_during_backfill_is_remembered_and_applied_at_completion(self):
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import job_search
+
+        profile = SimpleNamespace(id=7, match_index_version=None, presentation_refresh_pending=False)
+        with patch.object(job_search, '_profile_index_version', return_value='current'):
+            result = job_search.reevaluate_profile_new_applications(MagicMock(), profile)
+        self.assertEqual(result['evaluated'], 0)
+        self.assertTrue(profile.presentation_refresh_pending)
+
+        # Once current, the same call evaluates and clears the pending flag.
+        profile.match_index_version = 'current'
+        session = MagicMock()
+        session.scalars.return_value = []
+        with patch.object(job_search, '_profile_index_version', return_value='current'):
+            job_search.reevaluate_profile_new_applications(session, profile)
+        self.assertFalse(profile.presentation_refresh_pending)
+
+    def test_threshold_edit_pages_by_job_id_only(self):
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import job_search
+
+        profile = SimpleNamespace(id=7, match_index_version='current', presentation_refresh_pending=True)
+        job = SimpleNamespace(id=5)
+        statements = []
+
+        def scalars(statement):
+            statements.append(str(statement))
+            return [5] if len(statements) == 1 else [job] if len(statements) == 2 else []
+
+        session = MagicMock()
+        session.scalars.side_effect = scalars
+        with patch.object(job_search, '_profile_index_version', return_value='current'), \
+             patch.object(job_search, 'load_stored_match_snapshots', return_value={}), \
+             patch.object(job_search, '_tracked_application_pairs', return_value=set()), \
+             patch.object(job_search, 'snapshot_explanation_is_current', return_value=False), \
+             patch.object(job_search, 'evaluate_stored_new_application', return_value='defer'), \
+             patch.object(job_search.source_changes, 'queue_stale_rematch'):
+            result = job_search.reevaluate_profile_new_applications(session, profile)
+        self.assertEqual(result['deferred'], 1)
+        first = statements[0]
+        self.assertIn('profile_job_matches.job_id', first)
+        for heavy in ('explanation', 'description', 'score_version'):
+            self.assertNotIn(heavy, first)
+
+    def test_dirty_worker_skips_when_config_differs_from_observed(self):
+        from collections import namedtuple
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import job_search
+        from hiring_scraper.app.models import ProfileIndexChanged
+
+        session = MagicMock()
+        session.__enter__.return_value = session
+        pending = [namedtuple('Row', 'job_id revision')(1, 'r')]
+        session.execute.return_value.all.return_value = pending
+        factory = MagicMock(return_value=session)
+        refresh = MagicMock()
+        with patch.object(job_search, '_match_worker_owner', return_value=True), \
+             patch.object(job_search, '_refresh_application_matches_for_jobs', refresh):
+            # Old worker (different effort/model) before computing: nothing published or acked.
+            with patch.object(job_search, 'matching_config_matches_observed', return_value=False):
+                self.assertFalse(job_search.refresh_dirty_job_matches_once(factory))
+            refresh.assert_not_called()
+            session.commit.assert_not_called()
+            # Config recorded by a newer worker while computing: roll back, never ack.
+            with patch.object(job_search, 'matching_config_matches_observed', side_effect=[True, False]):
+                with self.assertRaises(ProfileIndexChanged):
+                    job_search.refresh_dirty_job_matches_once(factory)
+            session.commit.assert_not_called()
+            # Matching config: normal publication and acknowledgement.
+            with patch.object(job_search, 'matching_config_matches_observed', return_value=True):
+                self.assertTrue(job_search.refresh_dirty_job_matches_once(factory))
+            session.commit.assert_called_once()
+
+    def test_matching_config_matches_observed_compares_effective_version(self):
+        from unittest.mock import MagicMock
+        from hiring_scraper.app import job_search
+
+        session = MagicMock()
+        effective = profile_llm.MatchingConfig('gpt-6-luna', 'high')
+        with patch.object(job_search, 'matching_config', return_value=effective):
+            session.scalar.return_value = None
+            self.assertTrue(job_search.matching_config_matches_observed(session))
+            session.scalar.return_value = effective.version
+            self.assertTrue(job_search.matching_config_matches_observed(session))
+            session.scalar.return_value = profile_llm.MatchingConfig('gpt-6-luna', 'low').version
+            self.assertFalse(job_search.matching_config_matches_observed(session))
 
 
 @unittest.skipUnless(os.environ.get('TEST_POSTGRES_URL'), 'Requires PostgreSQL with pgvector (TEST_POSTGRES_URL)')
@@ -1330,7 +1483,7 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             company = models.Company(source='test', source_id='p2', name='Example GmbH', country_code='DE')
             feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.de/jobs', status='parsed')
             job1 = models.Job(
-                feed=feed, external_id='j1', title='Python Backend Developer',
+                feed=feed, external_id='j1', title='Platform Specialist',
                 url='https://example.de/jobs/1',
                 description='Your tasks:\nBuild Python services and maintain SQL databases.\nDeploy Docker containers.',
                 is_remote=True, work_arrangement='remote', employment_type='full_time',
@@ -1372,6 +1525,11 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
 
             # 2. Presentation-only edit preserves index version & ProfileJobMatch, updates New rows, preserves user-decided 'open'.
             api.set_job_application(profile_id, job2_id, api.ApplicationRequest(status='open'), session)
+            # The fixture must score below the new threshold, otherwise keeping the
+            # New row would be correct and retraction could not be observed.
+            self.assertLess(row1.match_score, 99)
+            self.assertIsNotNone(session.scalar(select(models.JobApplication).where(
+                models.JobApplication.profile_id == profile_id, models.JobApplication.job_id == job1_id)))
             profiles.update_profile(profile_id, profiles.ProfileRequest(
                 name='Developer',
                 skills=['Python', 'SQL', 'Docker'],
@@ -1480,6 +1638,60 @@ class MatchComputePostgresIntegrationTests(unittest.TestCase):
             self.assertEqual(by_job_post[job1_id]['score'], repaired_row1.match_score)
             self.assertEqual(by_job_post[job1_id]['score_source'], 'local')
             self.assertNotIn('refreshing', by_job_post[job1_id])
+
+
+    def test_presentation_edit_during_backfill_is_applied_when_backfill_completes(self):
+        from sqlalchemy import select
+        from hiring_scraper.app import job_search, models, profiles
+
+        def request(threshold):
+            return profiles.ProfileRequest(
+                name='Developer', skills=['Python', 'SQL', 'Docker'], desired_roles=['Software developer'],
+                summary='Built Python services, maintained SQL databases, and deployed Docker containers.',
+                experience_years=4, language_levels={'English': 'C1', 'German': 'B2'},
+                work_styles=['remote', 'hybrid'], employment_types=['full_time'],
+                search_area={'city': 'Karlsruhe', 'latitude': 49.0069, 'longitude': 8.4037,
+                             'radius_km': 35, 'country_code': 'DE'},
+                matching_defaults={'min_match_score': threshold, 'include_unknown': True})
+
+        with self.factory() as session:
+            profile_id = profiles.create_profile(request(0), session)['id']
+            company = models.Company(source='test', source_id='bf', name='Example GmbH', country_code='DE')
+            feed = models.JobFeed(company=company, provider='html_jobs', feed_url='https://example.de/bf', status='parsed')
+            location = dict(label='Karlsruhe, Germany', latitude=49.0069, longitude=8.4037,
+                            precision='city', country_code='DE')
+            jobs = [models.Job(
+                feed=feed, external_id=f'bf{index}', title=title, url=f'https://example.de/bf/{index}',
+                description='Your tasks:\nBuild Python services and maintain SQL databases.\nDeploy Docker containers.',
+                is_remote=True, work_arrangement='remote', employment_type='full_time',
+                locations=[models.JobLocation(**location)])
+                for index, title in enumerate(('Platform Specialist', 'Platform Specialist Two'), start=1)]
+            session.add(company)
+            session.commit()
+            first_id, second_id = jobs[0].id, jobs[1].id
+
+        def new_row(session, job_id):
+            return session.scalar(select(models.JobApplication).where(
+                models.JobApplication.profile_id == profile_id, models.JobApplication.job_id == job_id))
+
+        with patch.object(job_search, 'SessionLocal', self.factory), \
+             patch.object(job_search, '_MATCH_WORK_PAGE_SIZE', 1):
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())  # page 1 (job 1)
+            with self.factory() as session:
+                self.assertIsNone(session.get(models.UserProfile, profile_id).match_index_version)
+                self.assertIsNotNone(new_row(session, first_id))
+                self.assertLess(session.get(models.ProfileJobMatch, (profile_id, first_id)).match_score, 99)
+                # Threshold edit mid-backfill: remembered, checkpoint and page-1 row untouched.
+                profiles.update_profile(profile_id, request(99), session)
+                self.assertTrue(session.get(models.UserProfile, profile_id).presentation_refresh_pending)
+                self.assertIsNotNone(new_row(session, first_id))
+            self.assertTrue(job_search.refresh_profile_match_indexes_once())  # page 2 completes
+        with self.factory() as session:
+            profile = session.get(models.UserProfile, profile_id)
+            self.assertIsNotNone(profile.match_index_version)
+            self.assertFalse(profile.presentation_refresh_pending)
+            self.assertIsNone(new_row(session, first_id))
+            self.assertIsNone(new_row(session, second_id))
 
 
 if __name__ == '__main__':

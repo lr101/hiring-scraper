@@ -342,6 +342,8 @@ def _save(profile, request, session):
         presentation_changed = False
     if scoring_changed:
         profile.match_index_version = None
+        # Derived rows are rebuilt with the new presentation anyway.
+        profile.presentation_refresh_pending = False
     session.add(profile)
     if profile.id is not None and scoring_changed:
         # Acquire the profile row lock before clearing derived rows. Job refreshes

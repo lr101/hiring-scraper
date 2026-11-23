@@ -26,13 +26,13 @@ from hiring_scraper.app.match_compute import (
 )
 from hiring_scraper.app.models import (
     ProfileIndexChanged, hold_profiles,
-    Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
+    AIMatchingObservedConfig, Company, Job, JobApplication, JobFeed, JobLocation, JobSearchState, MatchDirtyJob,
     MatchSemanticDocument, ProfileLLMScore, ProfileMatchProgress, ProfileJobMatch, UserProfile, utcnow,
     reserve_job_source_rows,
 )
 from hiring_scraper.matching import VERSION, match_job
 from hiring_scraper.app.profile_llm import (
-    load_matching_documents as load_semantic_documents, profile_data,
+    load_matching_documents as load_semantic_documents, matching_config, profile_data,
 )
 from hiring_scraper.semantic_matching import VERSION as SEMANTIC_VERSION
 from hiring_scraper.app.requirement_evidence import SCORING_VERSION as REQUIREMENT_SCORING_VERSION
@@ -172,6 +172,11 @@ def refresh_profile_match_indexes_once() -> bool:
         state.advanced_at = utcnow()
         if len(ids) < _MATCH_WORK_PAGE_SIZE or state.cursor >= state.high_water:
             locked.match_index_version = version
+            if locked.presentation_refresh_pending:
+                # A threshold/unknown-policy edit arrived mid-backfill: pages committed
+                # before it still hold the old presentation. Re-evaluate New rows now,
+                # in the transaction that publishes the index as current.
+                reevaluate_profile_new_applications(session, locked)
             session.execute(delete(ProfileMatchProgress).where(ProfileMatchProgress.profile_id == profile.id))
         else:
             session.merge(state)
@@ -179,16 +184,33 @@ def refresh_profile_match_indexes_once() -> bool:
         return True
 
 
+def matching_config_matches_observed(session: Session) -> bool:
+    """True unless this worker's effective AI config differs from the recorded one.
+
+    During a rolling restart an old worker (old model/effort) may still run after a
+    new worker recorded the change. It must not publish or acknowledge dirty
+    revisions with its own config; a current worker will process them.
+    """
+    observed = session.scalar(select(AIMatchingObservedConfig.version)
+        .where(AIMatchingObservedConfig.id == 1).execution_options(populate_existing=True))
+    return observed is None or observed == matching_config(session).version
+
+
 def refresh_dirty_job_matches_once(session_factory=None) -> bool:
     """Compute without row locks, then acknowledge exactly the verified revisions."""
     with (session_factory or SessionLocal)() as session:
         if not _match_worker_owner(session):
+            return False
+        if not matching_config_matches_observed(session):
             return False
         pending = session.execute(select(MatchDirtyJob.job_id, MatchDirtyJob.revision)
             .order_by(MatchDirtyJob.queued_at, MatchDirtyJob.job_id).limit(_MATCH_WORK_PAGE_SIZE)).all()
         if not pending:
             return False
         _refresh_application_matches_for_jobs(session, [row.job_id for row in pending], verify_sources=True)
+        if not matching_config_matches_observed(session):
+            # Config changed while computing: roll back the publication, ack nothing.
+            raise ProfileIndexChanged('AI matching config changed during matching')
         for job_id, revision in pending:
             session.execute(delete(MatchDirtyJob).where(MatchDirtyJob.job_id == job_id,
                                                        MatchDirtyJob.revision == revision))
@@ -511,6 +533,7 @@ def ensure_profile_match_indexes(session: Session, profiles: list[UserProfile]) 
             consolidate_application_duplicates(session, stable_ids)
             for profile in stable_profiles:
                 profile.match_index_version = expected_versions[profile.id]
+                profile.presentation_refresh_pending = False
 
         profiles[:] = [current_by_id.get(profile_id) for profile_id in profile_ids]
         session.flush()
@@ -702,6 +725,9 @@ def reevaluate_profile_new_applications(
     """
     expected_index_version = _profile_index_version(profile)
     if profile.match_index_version != expected_index_version:
+        # Backfill in progress: pages committed before this edit keep the old
+        # presentation. Remember it; the worker re-evaluates once the index is current.
+        profile.presentation_refresh_pending = True
         return {"evaluated": 0, "added": 0, "retracted": 0, "deferred": 0}
     now = utcnow()
     cursor = 0
@@ -712,22 +738,23 @@ def reevaluate_profile_new_applications(
     job_hash_cache: dict[int, str] = {}
     profile_hash_cache: dict[int, str] = {}
     while True:
-        rows = session.execute(
-            select(ProfileJobMatch, Job)
+        # Page by id only; explanations are loaded once, by the snapshot query below.
+        batch_job_ids = list(session.scalars(
+            select(ProfileJobMatch.job_id)
             .join(Job, Job.id == ProfileJobMatch.job_id)
             .where(
                 ProfileJobMatch.profile_id == profile.id,
                 Job.is_active.is_(True),
                 ProfileJobMatch.job_id > cursor,
             )
-            .options(selectinload(Job.locations))
             .order_by(ProfileJobMatch.job_id)
             .limit(batch_size)
-        ).unique().all()
-        if not rows:
+        ))
+        if not batch_job_ids:
             break
-        cursor = rows[-1][0].job_id
-        batch_job_ids = [match_row.job_id for match_row, _ in rows]
+        cursor = batch_job_ids[-1]
+        jobs_by_id = {job.id: job for job in session.scalars(
+            select(Job).where(Job.id.in_(batch_job_ids)).options(selectinload(Job.locations)))}
         snapshots = load_stored_match_snapshots(
             session, [(profile.id, job_id) for job_id in batch_job_ids],
         )
@@ -737,7 +764,7 @@ def reevaluate_profile_new_applications(
         retract_ids: list[int] = []
         stale_to_queue: list[int] = []
         states: list[dict] = []
-        for match_row, job in rows:
+        for job in (jobs_by_id[job_id] for job_id in batch_job_ids if job_id in jobs_by_id):
             snapshot = snapshots.get((profile.id, job.id))
             is_current = snapshot_explanation_is_current(
                 snapshot,
@@ -787,6 +814,7 @@ def reevaluate_profile_new_applications(
             source_changes.queue_stale_rematch(session, stale_to_queue)
     if added:
         consolidate_application_duplicates(session, {profile.id})
+    profile.presentation_refresh_pending = False
     return {
         "evaluated": evaluated,
         "added": added,
