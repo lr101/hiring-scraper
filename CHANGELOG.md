@@ -59,7 +59,7 @@ no historical releases have been reconstructed.
 
 ### Changed
 
-- Opt in to matcher v2 with `RADIUS_MATCHER=v2` for calibrated local job-fit scores from 0–100. Job details show the score contributions and supporting quotes. Language and work authorization contribute a combined deduction of at most five points on visible jobs. Only explicit, cited incompatibilities hide jobs during matching. The versioned background rebuild refreshes Journey rankings, and v1 remains the default.
+- Matcher v2 is the default (`RADIUS_MATCHER=v2`; set `v1` to return to the previous matcher for this release), with calibrated local job-fit scores from 0–100. Job details show the score contributions and supporting quotes. Language and work authorization contribute a combined deduction of at most five points on visible jobs. Only explicit, cited incompatibilities hide jobs during matching. The versioned background rebuild refreshes Journey rankings. Known limitation: on small held-out evaluation slices some score-range and on-site hide-recall targets are still below goal.
 
 - Publish profile matches and Journey changes with a version check instead of exclusive profile locks. Publishers no longer block each other, and a profile edit in progress defers background publication instead of timing it out. Migration `0041_profile_source_version` is required before starting updated workers.
 - Write paths declare job, feed, company, profile and vector changes explicitly instead of relying on database flush listeners. Undeclared changes are logged as errors.

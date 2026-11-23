@@ -411,8 +411,7 @@ class StoredExplanationTests(unittest.TestCase):
         job = _make_job()
         profile = _make_profile()
         docs = _empty_documents()
-        with patch.dict(os.environ):
-            os.environ.pop('RADIUS_MATCHER', None)
+        with patch.dict(os.environ, {'RADIUS_MATCHER': 'v1'}):
             legacy_result = match_compute.compute_match(job, profile, docs)
             legacy_version = match_compute.current_score_version()
             profile.match_index_version = _profile_index_version(profile)

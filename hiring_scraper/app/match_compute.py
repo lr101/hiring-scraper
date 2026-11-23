@@ -148,7 +148,7 @@ def apply_profile_match_scope(match: dict, scope: dict | None) -> dict:
 
 
 def _active_matcher():
-    setting = os.environ.get('RADIUS_MATCHER', 'v1').strip().lower()
+    setting = os.environ.get('RADIUS_MATCHER', 'v2').strip().lower()
     if setting == 'v1':
         return match_job, MATCHING_VERSION
     if setting == 'v2':

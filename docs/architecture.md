@@ -151,7 +151,8 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
 
 ## Matcher rollout
 
-`RADIUS_MATCHER=v1` is the default. Set `RADIUS_MATCHER=v2` to opt into the new scorer.
+`RADIUS_MATCHER=v2` is the default. Set `RADIUS_MATCHER=v1` to return to the previous matcher
+for this release.
 Use the same setting for the API and all workers. Both the stored
 score version and the profile index version include the active matcher version,
 so switching queues the usual background rebuild. Journey retains user-selected

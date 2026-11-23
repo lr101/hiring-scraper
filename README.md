@@ -192,8 +192,8 @@ With v2 enabled, job details show the strongest positive and negative contributi
 with evidence quotes, the raw total and the calibrated score. Journey uses the stored score
 and explanation while the worker refreshes old matches.
 
-The default is `v1`. Set `RADIUS_MATCHER=v2` on the API and workers to opt into
-calibrated scoring. Switching runs the normal background rebuild.
+The default is `v2`. Set `RADIUS_MATCHER=v1` on the API and workers to return to the
+previous rules matcher for this release. Switching runs the normal background rebuild.
 
 For a preview of the local profile matching worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use
