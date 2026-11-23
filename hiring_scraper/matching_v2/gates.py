@@ -15,6 +15,7 @@ verify flags only — never hard fails.
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
 from functools import lru_cache
 import hashlib
 import re
@@ -271,15 +272,32 @@ _EMPLOYER_PERMIT_ASSISTANCE = re.compile(
     r')',
     re.I,
 )
+_OTHER_REQUIREMENT_ACTOR = re.compile(
+    r'^(?:(?:our|their|the|unsere?\w*|deren|die)\s+)(?:[\w-]+\s+){0,4}'
+    r'(?:staff|employees?|workers?|teams?|partners?|contractors?|mitarbeit\w*|lagerkräfte|personal)\b',
+    re.I,
+)
+_EXTERNAL_LANGUAGE_USE = re.compile(
+    r'\b(?:is|are|wird|werden)\s+(?:used|spoken|required|verwendet|gesprochen|benötigt)\s+'
+    r'(?:by|von)\s+(?:our|their|the|unser\w*|dem|der)\b',
+    re.I,
+)
+_SPONSORSHIP_OTHER_ASSIGNMENT = re.compile(
+    r'^\s+(?:for|für)\s+(?!(?:this|the current|diese\w*)\s+(?:role|position|job|stelle)\b)'
+    r'[^.;!?]{0,65}\b(?:roles?|positions?|jobs?|stellen|positionen|teams?)\b',
+    re.I,
+)
+_SPONSORSHIP_LOCATION = re.compile(
+    r'^\s+(?:in|at|am)\s+(?=[\w])', re.I,
+)
+
 _EXISTING_PERMIT_CUE = re.compile(
     r'\b(?:'
-    r'existing|current|already\s+(?:hold\w*|have|possess\w*|authori[sz]ed|eligible)|'
+    r'already\s+(?:hold\w*|have|possess\w*|authori[sz]ed|eligible)|'
     r'must\s+(?:already\s+)?(?:hold|have|possess|be\s+(?:legally\s+)?(?:authori[sz]ed|eligible|permitted))|'
     r'need(?:s)?\s+to\s+(?:already\s+)?(?:hold|have|possess|be)|'
-    r'valid|legal|unrestricted|permanent|active|'
-    r'required|mandatory|essential|necessary|prerequisite|strictly|condition|'
-    r'erforderlich|zwingend|notwendig|vorausgesetzt|voraussetzung|pflicht|'
-    r'gültig\w*|bestehend\w*|vorhanden\w*|unbefristet\w*|uneingeschränkt\w*|bereits|'
+    r'required|mandatory|essential|necessary|prerequisite|'
+    r'erforderlich|zwingend|notwendig|vorausgesetzt|voraussetzung|pflicht|verpflichtend|'
     r'muss\s+(?:vorliegen|vorhanden\s+sein|bestehen)|benötig\w*'
     r')\b',
     re.I,
@@ -307,7 +325,7 @@ def _sponsorship_matches_jurisdiction(
 
 
 def _extract_sponsorship_offers_from_sentences(
-    sentences: list[tuple[str, str]],
+    sentences: Sequence[tuple[str, str]],
 ) -> list[dict[str, Any]]:
     """Extract non-negated sponsorship offers with their bound jurisdiction and role-scope metadata."""
     offers: list[dict[str, Any]] = []
@@ -333,8 +351,18 @@ def _extract_sponsorship_offers_from_sentences(
                 clause_start = comma_pos + 1
             semi_end = sentence.find(';', hit.end())
             clause = sentence[clause_start:semi_end] if semi_end != -1 else sentence[clause_start:]
-            offer_jurs = normalize_jurisdictions(clause, strict_codes=True)
-            role_restricted = bool(_SPONSORSHIP_OTHER_ROLE_SCOPE.search(clause))
+            explicit_location = _SPONSORSHIP_LOCATION.match(suffix)
+            # An offer scoped to a location must establish its own jurisdiction.
+            # Never borrow one from a preceding permit condition.
+            jurisdiction_text = sentence[hit.end():semi_end if semi_end != -1 else len(sentence)] if explicit_location else clause
+            offer_jurs = normalize_jurisdictions(jurisdiction_text, strict_codes=True)
+            role_restricted = bool(
+                _SPONSORSHIP_OTHER_ROLE_SCOPE.search(clause)
+                or _SPONSORSHIP_OTHER_ASSIGNMENT.match(suffix)
+                or (explicit_location and not offer_jurs)
+                or other_actor(sentence) or _OTHER_REQUIREMENT_ACTOR.search(sentence)
+                or is_source_instruction(sentence)
+            )
             offers.append({
                 'jurisdictions': offer_jurs,
                 'role_restricted': role_restricted,
@@ -409,6 +437,8 @@ def _is_employer_permit_offer(arm: str) -> bool:
 
 def _has_existing_permit_condition(arm: str, scope: str, hit: re.Match) -> bool:
     """Require an affirmative existing-permit condition (must already hold/have right to work in X)."""
+    if other_actor(arm) or _OTHER_REQUIREMENT_ACTOR.search(arm):
+        return False
     if _is_employer_permit_offer(arm) or re.search(
         r'\b(?:can\s+be\s+(?:obtained|arranged|acquired)|kann\s+[^.!?;]{0,45}\b(?:beantragt|beschafft|erworben)\s+werden)\b',
         arm[hit.end():], re.I,
@@ -482,7 +512,7 @@ _EXPLICIT_NO_REMOTE = re.compile(
 )
 _ONSITE_LOCATION_TERM = re.compile(
     r'\b(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|präsenz(?:arbeit|tätigkeit)?|'
-    r'im\s+büro|in\s+unserem\s+büro|am\s+standort|an\s+unserem\s+(?:standort|hauptsitz|sitz)|'
+    r'büroanwesenheit|anwesenheit\s+im\s+büro|im\s+büro|in\s+unserem\s+büro|am\s+standort|an\s+unserem\s+(?:standort|hauptsitz|sitz)|'
     r'in\s+the\s+office|in\s+our\s+office|'
     r'at\s+our\s+(?:office|site|plant|facility|warehouse|location|headquarters|hq|premises|branch|campus))\b',
     re.I,
@@ -497,11 +527,11 @@ _ONSITE_MANDATE = re.compile(
     r'required\s+to\s+(?:work|be|attend|report)\b|'
     r'(?:muss|müssen)\s+[^.;:!?\n]{0,45}\b(?:vor[- ]?ort|im\s+büro|in\s+präsenz|am\s+standort)\b|'
     r'(?:vor[- ]?ort|im\s+büro|in\s+präsenz|am\s+standort)\s+[^.;:!?\n]{0,40}\b(?:arbeiten|tätig\s+sein|anwesend\s+sein)\s+(?:muss|müssen)\b|'
-    r'(?:attendance|presence|anwesenheit|präsenz|work|working)\s+(?:(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro)\s+)?'
-    r'(?:is|ist)?\s*(?:required|mandatory|expected|erforderlich|notwendig|verpflichtend|zwingend|vorausgesetzt)|'
+    r'(?:attendance|presence|büroanwesenheit|anwesenheit|präsenz|work|working|arbeit)\s+(?:(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro)\s+)?'
+    r'(?:is|ist)?\s*(?:required|mandatory|expected|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
     r'(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|präsenz)\s+'
     r'(?:(?:work|attendance|presence|location|role|position|tätigkeit|arbeit|anwesenheit)\s+)?'
-    r'(?:is|ist)?\s*(?:required|mandatory|erforderlich|notwendig|verpflichtend|zwingend|vorausgesetzt)|'
+    r'(?:is|ist)?\s*(?:required|mandatory|erforderlich|notwendig|verpflichtend|pflicht|zwingend|vorausgesetzt)|'
     r'(?:full[- ]?time|fully|strictly|exclusively|ausschließlich|vollständig|vollzeit|täglich|daily)\s+'
     r'(?:on[- ]?site|in[- ]?office|in[- ]?person|vor[- ]?ort|im\s+büro|in\s+präsenz|at\s+our\s+(?:office|site|plant|warehouse|location|facility))|'
     r'(?:this\s+is\s+an?|role\s+is|position\s+is|job\s+is)\s+(?:a\s+)?(?:full[- ]?time\s+)?'
@@ -531,16 +561,18 @@ _ONSITE_NEGATIVE = re.compile(
 )
 
 
-def _explicit_onsite_from_sentences(sentences: list[tuple[str, str]]) -> str | None:
+def _explicit_onsite_from_sentences(sentences: Sequence[tuple[str, str]]) -> str | None:
     for sentence, scope in sentences:
-        if is_source_instruction(sentence) or _ONSITE_NEGATIVE.search(sentence):
+        if (
+            scope in {'optional', 'benefits'} or is_source_instruction(sentence)
+            or other_actor(sentence) or _OTHER_REQUIREMENT_ACTOR.search(sentence)
+            or _ONSITE_NEGATIVE.search(sentence)
+        ):
             continue
         if (hit := _EXPLICIT_NO_REMOTE.search(sentence)):
             if requirement_polarity(sentence, hit.start(), hit.end()) == 'required':
                 return sentence[:240]
         if (loc := _ONSITE_LOCATION_TERM.search(sentence)) and _ONSITE_MANDATE.search(sentence):
-            if scope == 'optional':
-                continue
             if requirement_polarity(sentence, loc.start(), loc.end()) == 'required':
                 return sentence[:240]
     return None
@@ -913,16 +945,26 @@ _APPOSITIVE_LEVEL_MOD_RE = re.compile(
 _LANG_SEP_RE = re.compile(r'(?:,\s*|\s+(?:and|und|sowie|or|oder|&|/)\s+)', re.I)
 
 
+_LANGUAGE_PREFILTER = re.compile(
+    r'\b(?:' + '|'.join(pattern.pattern.removeprefix(r'\b').removesuffix(r'\b')
+                       for pattern in LANGUAGE_PATTERNS.values()) + r')\b',
+    re.I,
+)
+
+
+@lru_cache(maxsize=256)
 def _extract_language_requirements(
-    parsed_texts: list[tuple[str, bool, list[tuple[str, str]]]],
+    parsed_texts: tuple[tuple[str, bool, tuple[tuple[str, str], ...]], ...],
 ) -> list[dict[str, Any]]:
     """Extract structured language requirements (explicit hard floors + qualitative wishes).
 
-    ``parsed_texts`` is a list of ``(source, force_requirements_scope, scoped_sentences)``.
+    ``parsed_texts`` is a tuple of ``(source, force_requirements_scope, scoped_sentences)``.
     """
     extracted: list[dict[str, Any]] = []
     for source, force_req, sentences in parsed_texts:
         for sentence, scope in sentences:
+            if not _LANGUAGE_PREFILTER.search(sentence):
+                continue
             if is_source_instruction(sentence) or _DRIVING_LICENSE_RE.search(sentence):
                 continue
             if scope == 'optional':
@@ -1016,7 +1058,8 @@ def _extract_language_requirements(
                     )
 
                     # Polarity check on the local window around this language mention.
-                    pol = requirement_polarity(clause, m.start(), m.end())
+                    start = sentence.find(clause) + m.start()
+                    pol = requirement_polarity(sentence, start, start + len(m.group()))
                     local_window = f'{before_for_this} {clause[m.start():m.end()]} {after_for_this}'
                     local_optional = (
                         pol in {'optional', 'waived', 'instruction'}
@@ -1136,7 +1179,10 @@ def _extract_language_requirements(
                 # Bind every explicit floor to an applicant requirement (applicant cue /
                 # requirements section / modality / minimum requirement cue). Ambiguous
                 # wording without applicant binding becomes a review flag, never a hard hide.
-                clause_other_actor = bool(other_actor(clause))
+                clause_other_actor = bool(
+                    other_actor(clause) or _OTHER_REQUIREMENT_ACTOR.search(clause)
+                    or _EXTERNAL_LANGUAGE_USE.search(clause)
+                )
                 clause_duty_action = bool(
                     _DUTY_ACTION_LEAD_RE.search(clause)
                     and not LANGUAGE_APPLICANT_CUE.search(clause)
@@ -1173,28 +1219,21 @@ def _extract_language_requirements(
                 # so "Deutsch (C1 oder C2) und Englisch" is NOT an OR group, while
                 # "Deutsch oder Französisch (mindestens C1)" and
                 # "Deutsch, Englisch oder Französisch (mindestens C1)" ARE OR groups.
-                alt_groups: dict[int, str] = {}
-                for i in range(n - 1):
-                    raw_conn = clause[hits[i][1].end():hits[i + 1][1].start()]
-                    stripped_conn = _strip_parens_and_levels(raw_conn)
-                    if (
-                        re.search(r'\b(?:or|oder)\b', stripped_conn, re.I)
-                        and not re.search(r'\b(?:and|und|sowie)\b', stripped_conn, re.I)
-                    ):
-                        gid = alt_groups.get(i) or hashlib.sha256(
-                            f'{source}:{clause}:{i}'.encode('utf-8')
-                        ).hexdigest()[:16]
-                        alt_groups[i] = alt_groups[i + 1] = gid
-                        j = i - 1
-                        while j >= 0:
-                            prev_conn = _strip_parens_and_levels(
-                                clause[hits[j][1].end():hits[j + 1][1].start()]
-                            )
-                            if re.fullmatch(r'\s*,\s*', prev_conn):
-                                alt_groups[j] = gid
-                                j -= 1
-                            else:
-                                break
+                connectors = [
+                    _strip_parens_and_levels(clause[left.end():right.start()])
+                    for (_, left), (_, right) in zip(hits, hits[1:])
+                ]
+                or_boundaries = {
+                    i for i, connector in enumerate(connectors)
+                    if re.search(r'\b(?:or|oder)\b', connector, re.I)
+                }
+                # Comma-separated enumerations ending in OR also denote alternatives.
+                for boundary in tuple(or_boundaries):
+                    i = boundary - 1
+                    while i >= 0 and re.fullmatch(r'\s*,\s*', connectors[i]):
+                        or_boundaries.add(i)
+                        i -= 1
+                group = hashlib.sha256(f'{source}:{clause}'.encode()).hexdigest()[:16] if or_boundaries else None
 
                 # An OR arm with no identifiable language condition cannot
                 # establish an explicit incompatibility.
@@ -1205,7 +1244,6 @@ def _extract_language_requirements(
                     or re.search(r'\b(?:or|oder)\s*$', leading, re.I)
                 )
                 for i, item in enumerate(per_hit):
-                    group = alt_groups.get(i)
                     ambiguous = item['ambiguous_floor']
                     explicit_level = item['explicit_level']
                     if item['optional'] or not item['has_signal'] or item['non_lang_tail']:
@@ -1231,6 +1269,7 @@ def _extract_language_requirements(
                         'qualitative_range': item['qual'][1] if item['qual'] else None,
                         'ambiguous_floor': ambiguous,
                         'alternative_group': group,
+                        'alternative_arm': sum(boundary < i for boundary in or_boundaries),
                         'source': source,
                         'job_quote': clause[:280],
                     })
@@ -1238,7 +1277,7 @@ def _extract_language_requirements(
 
 
 def _evaluate_languages(
-    parsed_texts: list[tuple[str, bool, list[tuple[str, str]]]],
+    parsed_texts: tuple[tuple[str, bool, tuple[tuple[str, str], ...]], ...],
     profile: dict,
 ) -> dict[str, Any]:
     """Evaluate all language requirements against saved profile language facts."""
@@ -1384,6 +1423,17 @@ def _evaluate_languages(
         # Bare language requirement with no stated level or qualitative descriptor.
         # If paired in an OR group with an explicit floor (e.g. "Deutsch (C1) oder Französisch"),
         # treat an ambiguous bare arm as a review flag unless profile meets the sibling floor.
+        if req['ambiguous_floor']:
+            return 'unknown', {
+                'kind': 'language_unverified',
+                'gate': 'language',
+                'language': lang,
+                'detail': f'Verify the {lang} alternative requirement',
+                'job_source': req['source'],
+                'job_quote': req['job_quote'],
+                'profile_source': 'profile.language_levels',
+                'profile_quote': '',
+            }
         if sibling_explicit_floor:
             if saved is not None:
                 cand_lv, orig_k, orig_v = saved
@@ -1439,7 +1489,18 @@ def _evaluate_languages(
             explicit_floors = [r['explicit_level'] for r in group if r.get('explicit_level')]
             if explicit_floors:
                 sibling_floor = _min_level(explicit_floors)
-        outcomes = [_eval_single(req, sibling_explicit_floor=sibling_floor) for req in group]
+        arm_outcomes: dict[int, list[tuple[str, dict[str, Any]]]] = {}
+        for req in group:
+            arm_outcomes.setdefault(req['alternative_arm'], []).append(
+                _eval_single(req, sibling_explicit_floor=sibling_floor)
+            )
+        # An AND arm fails on any cited incompatibility and passes only when
+        # every member passes. Keep the deciding evidence for each OR arm.
+        precedence = {'pass': 0, 'unknown': 1, 'fail': 2}
+        outcomes = [
+            max(arm, key=lambda outcome: precedence[outcome[0]])
+            for arm in arm_outcomes.values()
+        ]
         if len(group) == 1:
             status, payload = outcomes[0]
             if status == 'fail':
@@ -1502,7 +1563,7 @@ def _evaluate_languages(
 # ---------------------------------------------------------------------------
 
 def _evaluate_authorization(
-    parsed_texts: list[tuple[str, bool, list[tuple[str, str]]]],
+    parsed_texts: tuple[tuple[str, bool, tuple[tuple[str, str], ...]], ...],
     profile: dict,
     raw_metadata: dict,
 ) -> dict[str, Any]:
@@ -1748,7 +1809,7 @@ def _evaluate_authorization(
 
 def _evaluate_location(
     job: dict,
-    parsed_texts: list[tuple[str, bool, list[tuple[str, str]]]],
+    parsed_texts: tuple[tuple[str, bool, tuple[tuple[str, str], ...]], ...],
     profile: dict,
     enriched: dict,
 ) -> dict[str, Any]:
@@ -1956,7 +2017,7 @@ _CLAUSE_LEAD_IN_RE = re.compile(
     re.I,
 )
 _SUBCLAUSE_SEP_RE = re.compile(
-    r'(\s*;\s*|\s*,\s*(?:(?:and|und|sowie|plus)\s+)?|\s+\b(?:and|und|sowie|plus)\b\s+)',
+    r'(\s*;\s*|\s*,\s*(?:(?:and|und|sowie|plus)\s+)?|\s+\b(?:as\s+well\s+as|in\s+addition\s+to|and|und|sowie|plus)\b\s+)',
     re.I,
 )
 _BARE_LANG_OR_MODALITY_RE = re.compile(
@@ -1975,7 +2036,7 @@ _BARE_LANG_OR_MODALITY_RE = re.compile(
     re.I,
 )
 _TRAILING_CLAUSE_CUE_RE = re.compile(
-    r'\b(required|mandatory|erforderlich|notwendig|mit)\s*[.!?]*\s*$',
+    r'\b((?:(?:is|are|ist|sind)\s+)?(?:required|mandatory|erforderlich|notwendig|verpflichtend|vorausgesetzt|voraussetzung)|mit)\s*[.!?]*\s*$',
     re.I,
 )
 
@@ -1993,13 +2054,7 @@ def is_language_or_visa_clause(text: str) -> bool:
     if _PURE_LANG_OR_VISA_HINT.search(text):
         return True
     # Catch natural-language mentions with CEFR/fluency/applicant cues (excluding non-applicant objects).
-    lang_hits = [
-        m
-        for lang, pat in LANGUAGE_PATTERNS.items()
-        for m in pat.finditer(text)
-        if not _is_non_language_mention(lang, text, m)
-    ]
-    if lang_hits and (
+    if _LANGUAGE_PREFILTER.search(text) and (
         _CEFR_TOKEN_RE.search(text)
         or _NATIVE_LEVEL_RE.search(text)
         or _STRICT_NATIVE_RE.search(text)
@@ -2007,11 +2062,15 @@ def is_language_or_visa_clause(text: str) -> bool:
         or LANGUAGE_APPLICANT_CUE.search(text)
         or _LANG_MODALITY_RE.search(text)
     ):
-        return True
+        return any(
+            not _is_non_language_mention(lang, text, match)
+            for lang, pattern in LANGUAGE_PATTERNS.items()
+            for match in pattern.finditer(text)
+        )
     return False
 
 
-def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_language_or_visa_clause) -> str:
+def strip_language_or_visa_subclauses(sentence: str) -> str:
     """Remove only language/visa sub-clauses from ``sentence``, keeping sibling requirement evidence.
 
     Example:
@@ -2021,7 +2080,7 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
     """
     if not sentence:
         return ''
-    if not is_constraint(sentence):
+    if not is_language_or_visa_clause(sentence):
         return sentence
 
     # Protect parentheticals so commas/ands inside parens stay attached to their sub-clause.
@@ -2033,9 +2092,16 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
         working = working[:-1]
 
     for idx, m in reversed(list(enumerate(re.finditer(r'\([^()]*\)', working)))):
-        marker = f'\ue000p{idx}\ue001'
-        protected[marker] = m.group()
-        working = working[:m.start()] + marker + working[m.end():]
+        # Leave level-only parentheticals attached to their language, while
+        # removing self-contained language/permit asides in technical clauses.
+        parenthetical = m.group()[1:-1]
+        outside = f'{working[:m.start()]} {working[m.end():]}'
+        if is_language_or_visa_clause(parenthetical):
+            working = outside.strip()
+        else:
+            marker = f'\ue000p{idx}\ue001'
+            protected[marker] = m.group()
+            working = working[:m.start()] + marker + working[m.end():]
 
     lead_in = ''
     lead_m = _CLAUSE_LEAD_IN_RE.match(working)
@@ -2047,7 +2113,10 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
     # tokens alternates: [part0, sep0, part1, sep1, part2, ...]
     if len(tokens) == 1:
         # Single atomic clause — already known to be language/visa.
-        return ''
+        cleaned = working
+        for marker, original in protected.items():
+            cleaned = cleaned.replace(marker, original)
+        return '' if is_language_or_visa_clause(cleaned) else ' '.join((lead_in + cleaned).split()) + trailing_punct
 
     def _restore(s: str) -> str:
         for marker, orig in protected.items():
@@ -2057,7 +2126,7 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
     parts = [_restore(tokens[i]) for i in range(0, len(tokens), 2)]
     seps = [tokens[i] for i in range(1, len(tokens), 2)]
 
-    drop = [is_constraint(p) for p in parts]
+    drop = [is_language_or_visa_clause(p) for p in parts]
     # Also drop adjacent bare sibling language / modality tails (e.g. "English", "spoken", "in Schrift")
     # directly coordinated with a dropped language sub-clause.
     changed = True
@@ -2074,7 +2143,7 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
     if all(drop):
         return ''
     if not any(drop):
-        return ''
+        return re.sub(r'\s+', ' ', lead_in + _restore(working)).strip() + trailing_punct
 
     kept_indices = [i for i, d in enumerate(drop) if not d]
     # Reassemble kept sub-clauses preserving the original separators between kept siblings.
@@ -2108,8 +2177,8 @@ def strip_language_or_visa_subclauses(sentence: str, *, is_constraint=is_languag
 # Unified gate entry point
 # ---------------------------------------------------------------------------
 
-def evaluate_gates(job: dict, profile: dict, enriched: dict) -> dict[str, Any]:
-    """Run the single deterministic gate evaluator over full posting context + profile facts."""
+def job_requirement_texts(job: dict) -> tuple:
+    """The content and source scopes that determine the parsed posting cache key."""
     raw = job.get('raw_metadata') or {}
     detail_req = raw.get('detail_requirements') or {}
 
@@ -2142,17 +2211,26 @@ def evaluate_gates(job: dict, profile: dict, enriched: dict) -> dict[str, Any]:
             if isinstance(val, str) and val.strip():
                 texts.append((f'{prefix}.{auth_field}', f'{auth_field}: {val}', True))
 
-    # Parse structured_text + scoped_sentences ONCE per text block and reuse across gates & features.
-    parsed_texts: list[tuple[str, bool, list[tuple[str, str]]]] = []
-    description_sentences: list[tuple[str, str]] = []
-    for source, txt, force_req in texts:
-        if not txt:
-            continue
-        init_scope = 'requirements' if force_req else structured_source_scope(source)
-        sents = list(scoped_sentences(structured_text(txt), initial_scope=init_scope))
-        parsed_texts.append((source, force_req, sents))
-        if source == 'description':
-            description_sentences = sents
+    return tuple(texts)
+
+
+@lru_cache(maxsize=256)
+def parse_job_requirement_texts(texts: tuple) -> tuple:
+    return tuple(
+        (source, force_req, tuple(dict.fromkeys(
+            scoped_sentences(
+                structured_text(text),
+                initial_scope='requirements' if force_req else structured_source_scope(source),
+            )
+        )))
+        for source, text, force_req in texts if text
+    )
+
+
+def evaluate_gates(job: dict, profile: dict, enriched: dict) -> dict[str, Any]:
+    """Run the single deterministic gate evaluator over full posting context + profile facts."""
+    raw = job.get('raw_metadata') or {}
+    parsed_texts = parse_job_requirement_texts(job_requirement_texts(job))
 
     lang_res = _evaluate_languages(parsed_texts, profile)
     auth_res = _evaluate_authorization(parsed_texts, profile, raw)
@@ -2194,5 +2272,4 @@ def evaluate_gates(job: dict, profile: dict, enriched: dict) -> dict[str, Any]:
         'authorization_review': auth_res['status'] == 'unknown',
         'metadata_only_onsite': loc_res['metadata_only_onsite'],
         'parsed_texts': parsed_texts,
-        'description_sentences': description_sentences,
     }

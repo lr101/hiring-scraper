@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+from functools import lru_cache
 from itertools import islice
 
 from hiring_scraper.requirements import (
@@ -203,6 +204,7 @@ def has_task_predicate(text):
     return bool(_profile_actions(text))
 
 
+@lru_cache(maxsize=4096)
 def _semantic_objects(text):
     # Imperative "schedule workshops" names an action, not two deliverables.
     text = re.sub(r'^(?:(?:you|we|I)\s+)?schedule\b', ' ', text, flags=re.I)
@@ -213,7 +215,7 @@ def _semantic_objects(text):
         if pattern.search(text):
             concepts.add('concept:' + name)
             text = pattern.sub(' ', text)
-    return _objects(text) | concepts
+    return frozenset(_objects(text) | concepts)
 
 
 # These describe posting administration or attendance, rather than an actor's
@@ -265,26 +267,39 @@ def _task_sentences(job):
             yield source, sentence, 'duties' if explicit else scope
 
 
-def task_units(job, *, sentences=None):
-    rows, seen = [], set()
+@lru_cache(maxsize=1024)
+def _atomic_job_duties(sentence):
+    return tuple(_atomic_duties(sentence))
+
+
+def task_units(job, *, sentences=None, deduplicate_deliverables=False):
+    rows, seen, deliverables = [], set(), set()
     for source, full_sentence, scope in _task_sentences(job) if sentences is None else sentences:
-        governing_clause = _COMPOUND_DUTY.split(full_sentence)[0]
-        for sentence, _ in _atomic_duties(full_sentence):
-            if scope in {'requirements', 'optional', 'benefits'}:
+        if scope in {'requirements', 'optional', 'benefits'}:
+            continue
+        governing_clause = _COMPOUND_DUTY.split(full_sentence, maxsplit=1)[0]
+        for sentence, _ in _atomic_job_duties(full_sentence):
+            sentence = sentence[:1000]
+            key = ' '.join(sentence.casefold().split())
+            if key in seen:
                 continue
             if _excluded(sentence):
                 continue
-            sentence = sentence[:1000]
-            actions, objects = _actions(sentence), _objects(sentence)
-            key = ' '.join(sentence.casefold().split())
-            if not actions or not _semantic_objects(sentence) or key in seen:
+            actions = _actions(sentence)
+            objects = _semantic_objects(sentence) if actions else frozenset()
+            if not objects:
                 continue
+            independent = bool(_INDEPENDENT.search(governing_clause) or _INDEPENDENT.search(sentence))
+            if deduplicate_deliverables:
+                signature = (frozenset(actions), objects, independent)
+                if signature in deliverables:
+                    continue
+                deliverables.add(signature)
             seen.add(key)
             rows.append({'id': hashlib.sha256(key.encode()).hexdigest()[:12], 'job_source': source,
                          'job_quote': sentence[:1000],
-                         'independent_scope': bool(_INDEPENDENT.search(governing_clause)
-                                                   or _INDEPENDENT.search(sentence)),
-                         'actions': sorted(actions), 'objects': sorted(objects)})
+                         'independent_scope': independent,
+                         'actions': sorted(actions), 'objects': sorted(_objects(sentence))})
             if len(rows) >= 40:
                 return rows
     return rows

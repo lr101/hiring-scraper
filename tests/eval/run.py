@@ -12,6 +12,7 @@ never committed.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import math
@@ -150,6 +151,34 @@ def load_cases(
         if value is not None
     }
     return module.load_cases(split=split, **kwargs)
+
+
+def evaluate_clause_removal(matcher_name: str) -> list[dict]:
+    """Measure individually authored posting pairs, independently of clause detection."""
+    matcher = get_matcher(matcher_name)
+    profile = {
+        "desired_roles": ["Platform Engineer", "Plattformingenieur"],
+        "skills": ["Terraform", "Kubernetes", "SQL", "PostgreSQL", "Grafana", "Python", "Docker", "Jira", "Agile"],
+        "language_levels": {"German": "B2", "English": "C2", "French": "C1", "Spanish": "B2"},
+        "application_preferences": {"authorization_country": "Germany"},
+    }
+    results = []
+    with (EVAL_DIR / "public" / "clause_removal.tsv").open(encoding="utf-8", newline="") as fixture:
+        for index, row in enumerate(csv.DictReader(fixture, delimiter="\t"), 1):
+            title = "Platform Engineer" if row["lang"] == "en" else "Plattformingenieur"
+            original, removed = (
+                matcher({"title": title, "description": row[key], "location_text": "Berlin, Germany"}, profile)
+                for key in ("with", "without")
+            )
+            results.append({
+                "id": index,
+                "kind": row["kind"],
+                "lang": row["lang"],
+                "visible": original["eligible"] and removed["eligible"],
+                "original": original["score"],
+                "removed": removed["score"],
+            })
+    return results
 
 
 def _validate_matcher_result(

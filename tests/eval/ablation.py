@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import copy
 
-from hiring_scraper.matching_v2.gates import strip_language_or_visa_subclauses
 import re
 from typing import Any
 
@@ -349,25 +348,67 @@ def _split_sentences(text: str) -> list[str]:
     return parts
 
 
+# This evaluator uses its own recognizers and removes whole conjuncts. The
+# authored pairs separately test cases where heuristic editing is ambiguous.
+_COORDINATION = re.compile(
+    r"\([^()]*\)|,\s*(?:and\s+|und\s+)?|"
+    r"\s+(?:as well as|in addition to|sowie|and|und|plus)\s+", re.I,
+)
+_SHARED_PREFIX = re.compile(
+    r"^(?:(?:you|applicants?)\s+(?:must|need to)|(?:du|sie)\s+(?:musst|müssen|bringst|bringen))\s+", re.I,
+)
+_SHARED_SUFFIX = re.compile(
+    r"\s+(?:(?:is|are|ist|sind)\s+)?(?:required|mandatory|erforderlich|verpflichtend|voraussetzung|mit)$", re.I,
+)
+
+
 def _filter_sentence(sentence: str) -> tuple[str | None, list[str]]:
-    """Filter a single sentence, preserving non-language/visa semicolon clauses."""
+    """Remove independently detected language/authorization text for metric ablation."""
     if ";" in sentence:
-        clauses = [c.strip() for c in sentence.split(";") if c.strip()]
-        if len(clauses) > 1:
-            kept: list[str] = []
-            removed: list[str] = []
-            for clause in clauses:
-                cleaned, stripped = _filter_sentence(clause)
-                removed.extend(stripped)
-                if cleaned:
-                    kept.append(cleaned)
-            if not removed:
-                return sentence, []
-            if not kept:
-                return None, removed
-            return "; ".join(kept), removed
-    cleaned = strip_language_or_visa_subclauses(sentence, is_constraint=is_lang_visa_sentence)
-    return (cleaned or None, [sentence]) if cleaned != sentence else (sentence, [])
+        results = [_filter_sentence(part.strip()) for part in sentence.split(";") if part.strip()]
+        removed = [quote for _, quotes in results for quote in quotes]
+        return (("; ".join(text for text, _ in results if text) or None), removed) if removed else (sentence, [])
+
+    def remove_aside(match: re.Match) -> str:
+        return "" if is_lang_visa_sentence(match[0][1:-1]) else match[0]
+
+    without_asides = re.sub(r"\([^()]*\)", remove_aside, sentence)
+    text = re.sub(r"\s+([.!?])$", r"\1", " ".join(without_asides.split()))
+    if not is_lang_visa_sentence(text):
+        return (text or None, [sentence]) if without_asides != sentence else (sentence, [])
+
+    punct = text[-1] if text.endswith((".", "!", "?")) else ""
+    body = text[:-1] if punct else text
+    prefix = _SHARED_PREFIX.match(body)
+    if prefix:
+        body = body[prefix.end():]
+    suffix = _SHARED_SUFFIX.search(body)
+    if suffix:
+        body = body[:suffix.start()]
+
+    parts, separators = [], []
+    start = 0
+    for boundary in _COORDINATION.finditer(body):
+        if boundary[0].startswith("("):
+            continue
+        parts.append(body[start:boundary.start()].strip())
+        separators.append(boundary[0])
+        start = boundary.end()
+    parts.append(body[start:].strip())
+    keep = [
+        index for index, part in enumerate(parts)
+        if part and not is_lang_visa_sentence(part) and not _PURE_LANG_FILLER_RE.fullmatch(part)
+    ]
+    if not keep or len(keep) == len(parts):
+        return None, [sentence]
+
+    cleaned = parts[keep[0]]
+    for left, right in zip(keep, keep[1:]):
+        cleaned += separators[left] + parts[right]
+    return (
+        ((prefix[0] if prefix else "") + cleaned + (suffix[0] if suffix else "") + punct),
+        [sentence],
+    )
 
 
 def strip_lang_visa_text(text: str) -> tuple[str, list[str]]:

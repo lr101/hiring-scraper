@@ -188,12 +188,12 @@ are flagged for review. Language and work authorization together can deduct up t
 five points on visible jobs. Only explicit incompatibilities supported by quotes
 from the job and profile hide a job during matching.
 
-Job details show the strongest positive and negative contributions with evidence
-quotes, the raw total and the calibrated score. Journey uses the stored score
+With v2 enabled, job details show the strongest positive and negative contributions
+with evidence quotes, the raw total and the calibrated score. Journey uses the stored score
 and explanation while the worker refreshes old matches.
 
-Set `RADIUS_MATCHER=v1` on the API and workers to use the previous rules for this
-release. The default is `v2`. Switching runs the normal background rebuild.
+The default is `v1`. Set `RADIUS_MATCHER=v2` on the API and workers to opt into
+calibrated scoring. Switching runs the normal background rebuild.
 
 For a preview of the local profile matching worker without loading another local embedding
 model, set `HIRING_PREVIEW_PROFILE_MATCHING=true` with a fresh preview slug. Use

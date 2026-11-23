@@ -176,7 +176,11 @@ class TestMatchingV2ContractAndLedger(unittest.TestCase):
             self.assertAlmostEqual(total, float(res['calibration']['raw']), places=4)
 
     def test_fit_tier_respects_unresolved_hard_review_flags(self) -> None:
-        clean_res = match_job_v2(_strong_po_job(), _base_profile())
+        job = _strong_po_job()
+        job['description'] = job['description'].replace(
+            '- 3+ years of experience as a Product Owner or Product Manager.\n', '',
+        )
+        clean_res = match_job_v2(job, _base_profile())
         self.assertTrue(clean_res['eligible'])
         self.assertGreaterEqual(clean_res['score'], 65)
         self.assertEqual(clean_res['fit_tier'], 'recommended')
@@ -184,7 +188,7 @@ class TestMatchingV2ContractAndLedger(unittest.TestCase):
         # Adding an unresolved qualitative language review flag prevents 'recommended'
         # even while keeping score >= 65 and eligible=True.
         flagged_job = _strong_po_job(
-            description=_strong_po_job()['description'] + '\n- Business fluent German required.\n'
+            description=job['description'] + '\n- Business fluent German required.\n'
         )
         flagged_res = match_job_v2(flagged_job, _base_profile())
         self.assertTrue(flagged_res['eligible'])
@@ -560,6 +564,125 @@ class TestMatchingV2CalibrationAndBounds(unittest.TestCase):
 
 
 class TestReviewRegressions(unittest.TestCase):
+    def test_language_disjunction_evaluates_complete_arms(self):
+        job = _strong_po_job(description='Either Spanish B2 or German C2 and French C1 is required')
+        for levels, eligible in (
+            ({'Spanish': 'C2', 'German': 'C2', 'French': 'B1'}, True),
+            ({'Spanish': 'A2', 'German': 'C2', 'French': 'B1'}, False),
+            ({'Spanish': 'A2', 'German': 'C2', 'French': 'C1'}, True),
+            ({'Spanish': 'A2', 'German': 'C2'}, True),
+        ):
+            with self.subTest(levels=levels):
+                self.assertEqual(match_job_v2(job, _base_profile(language_levels=levels))['eligible'], eligible)
+
+    def test_language_floors_respect_polarity_and_actor(self):
+        profile = _base_profile(language_levels={'English': 'B2', 'German': 'B1'})
+        for text, status in (
+            ('English C1 is helpful but not essential', 'pass'),
+            ('C2 level in German is used by our external translation partner', 'unknown'),
+            ('Deutsch C2 ist von Vorteil, aber nicht zwingend erforderlich.', 'pass'),
+            ('English C1 is nice to have.', 'pass'),
+        ):
+            with self.subTest(text=text):
+                result = match_job_v2(_strong_po_job(description=text), profile)
+                self.assertTrue(result['eligible'])
+                self.assertEqual(result['gates']['language']['status'], status)
+
+    def test_onsite_mandates_bind_to_current_vacancy(self):
+        for sentence, eligible in (
+            ('Our warehouse staff must work onsite', True),
+            ('Büroanwesenheit ist verpflichtend', False),
+            ('Präsenz im Büro ist wünschenswert, aber nicht zwingend.', True),
+            ('Arbeit vor Ort ist Pflicht.', False),
+        ):
+            with self.subTest(sentence=sentence):
+                self.assertEqual(match_job_v2(_strong_po_job(description=sentence), _base_profile())['eligible'], eligible)
+
+    def test_permit_mandates_bind_to_current_vacancy(self):
+        profile = _base_profile(application_preferences={
+            'authorized_to_work': False, 'authorization_country': 'Germany',
+        })
+        for sentence, eligible in (
+            ('A valid German work permit is advantageous but not essential', True),
+            ('A valid German work permit can make the process easier.', True),
+            ('Eine gültige deutsche Arbeitserlaubnis ist wünschenswert.', True),
+            ('Eine gültige deutsche Arbeitserlaubnis ist verpflichtend.', False),
+            ('A valid German work permit is required. Visa sponsorship is offered in Paris.', False),
+            ('A valid German work permit is required. Visa sponsorship is available in Germany.', True),
+            ('A valid German work permit is required. Visa sponsorship is available in London.', False),
+            ('A valid German work permit is required. Visa sponsorship is available for nursing roles.', False),
+            ('Unsere Lagerkräfte benötigen eine gültige deutsche Arbeitserlaubnis.', True),
+        ):
+            with self.subTest(sentence=sentence):
+                self.assertEqual(match_job_v2(_strong_po_job(description=sentence), profile)['eligible'], eligible)
+
+    def test_mixed_requirements_keep_technical_and_semantic_evidence(self):
+        from hiring_scraper.semantic_matching import job_sections
+
+        profile = _base_profile(skills=['Terraform'])
+        plain = _strong_po_job(description='Terraform proficiency is required')
+        baseline = match_job_v2(plain, profile)
+        self.assertIn('Terraform', baseline['matched_skills'])
+        for text in (
+            'Terraform proficiency as well as fluency in German is required',
+            'Terraform proficiency in addition to a valid German work permit is required',
+            'Terraform proficiency (fluency in German is helpful) is required',
+        ):
+            with self.subTest(text=text):
+                mixed = _strong_po_job(description=text)
+                result = match_job_v2(mixed, profile)
+                self.assertIn('Terraform', result['matched_skills'])
+                self.assertEqual(job_sections(plain), job_sections(mixed))
+                self.assertLessEqual(abs(baseline['score'] - result['score']), 5)
+
+    def test_job_analysis_reuses_content_and_bounds_duplicate_duties(self):
+        from hiring_scraper.matching_v2.features import _analyze_job
+
+        repeated = 'Coordinate stakeholder workshops and maintain product roadmaps with engineering teams.\n'
+        unique = 'Analyze KPIs using SQL.'
+        job = _strong_po_job(description='Responsibilities:\n' + repeated * 129 + unique)
+        self.assertGreaterEqual(len(job['description']), 11 * 1024)
+        before = _analyze_job.cache_info()
+        first = match_job_v2(job, _base_profile())
+        after_first = _analyze_job.cache_info()
+        second = match_job_v2(dict(job), _base_profile(skills=['Python']))
+        after_second = _analyze_job.cache_info()
+        self.assertEqual(after_first.misses, before.misses + 1)
+        self.assertEqual(after_second.hits, after_first.hits + 1)
+        first_duties = [row['job_quote'] for row in first['duty_evidence']['duties']]
+        second_duties = [row['job_quote'] for row in second['duty_evidence']['duties']]
+        self.assertEqual(first_duties, second_duties)
+        self.assertEqual(len(first_duties), 3)
+        self.assertTrue(any(unique.rstrip('.') in quote for quote in first_duties))
+        first['duty_evidence']['duties'].clear()
+        self.assertEqual(len(match_job_v2(job, _base_profile())['duty_evidence']['duties']), 3)
+        edited = {**job, 'description': job['description'].replace(unique, 'Schedule training workshops.')}
+        self.assertTrue(any(
+            'Schedule training workshops' in row['job_quote']
+            for row in match_job_v2(edited, _base_profile())['duty_evidence']['duties']
+        ))
+
+    def test_observations_supply_requirement_citations_and_review_flags(self):
+        job = _strong_po_job(description=(
+            'Requirements:\nA master’s degree in Business Informatics is required.\n'
+            'At least 3 years of experience with Terraform is required.\n'
+            'At least 2 years of experience with Kubernetes is required.'
+        ))
+        result = match_job_v2(job, _base_profile())
+        degree = next(row for row in result['requirement_observations'] if row['kind'] == 'education')
+        self.assertEqual(degree['status'], 'supported')
+        citation = next(row for row in result['explanation'] if row['signal'] == 'requirement_coverage')
+        self.assertEqual(citation['profile_source'], degree['evidence_source'])
+        self.assertEqual(citation['profile_quote'], degree['evidence_quote'])
+        self.assertTrue(result['mandatory_review'])
+        self.assertTrue(result['uncertain'])
+        self.assertTrue(all(any(tool in note for note in result['unknowns'])
+                            for tool in ('Terraform', 'Kubernetes')))
+        observation = next(row for row in result['requirement_observations'] if row['kind'] == 'experience')
+        condition = next(row for row in result['prerequisite_conditions'] if row['kind'] == 'experience')
+        self.assertEqual(condition['status'], 'unknown')
+        self.assertEqual(condition['job_quote'], observation['job_quote'])
+
     def test_language_floors_apply_to_applicants_and_each_explicit_or_arm(self):
         profile = _base_profile(language_levels={'English': 'B2', 'German': 'B2', 'French': 'B2'})
         for text, status in (

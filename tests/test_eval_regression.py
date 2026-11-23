@@ -44,6 +44,7 @@ from tests.eval.run import (
     assign_split,
     baseline_path,
     evaluate,
+    evaluate_clause_removal,
     get_dataset,
     get_matcher,
     load_cases,
@@ -229,12 +230,21 @@ TARGET_GATE_THRESHOLDS: dict[str, tuple[str, float]] = {
 
 def check_target_gates(metrics: Mapping[str, object]) -> list[str]:
     """Check absolute target acceptance gates against a report or its ``overall`` dict."""
-    overall = metrics.get("overall") if isinstance(metrics, Mapping) else None
-    source: Mapping[str, object] = overall if isinstance(overall, Mapping) else metrics
+    overall = metrics.get("overall")
+    if isinstance(overall, Mapping):
+        failures = [f"overall: {failure}" for failure in check_target_gates(overall)]
+        if "by_split" in metrics or metrics.get("split") == "all":
+            by_split = metrics.get("by_split")
+            heldout = by_split.get("heldout") if isinstance(by_split, Mapping) else None
+            if not isinstance(heldout, Mapping):
+                failures.append("Missing heldout metrics")
+            else:
+                failures.extend(f"heldout: {failure}" for failure in check_target_gates(heldout))
+        return failures
 
     failures: list[str] = []
     for key, (op, threshold) in TARGET_GATE_THRESHOLDS.items():
-        raw = source.get(key)
+        raw = metrics.get(key)
         if raw is None or isinstance(raw, bool) or not isinstance(raw, (int, float)):
             failures.append(f"Missing target metric {key!r}")
             continue
@@ -246,6 +256,20 @@ def check_target_gates(metrics: Mapping[str, object]) -> list[str]:
         elif op == "==" and val != threshold:
             failures.append(f"{key} violates target: {val:.4f} != {threshold:.4f}")
     return failures
+
+
+class TestIndependentClauseRemoval(unittest.TestCase):
+    def test_v2_preserves_score_when_independent_language_or_permit_span_is_removed(self) -> None:
+        pairs = evaluate_clause_removal("v2")
+        self.assertGreaterEqual(len(pairs), 30)
+        self.assertEqual({(row["lang"], row["kind"]) for row in pairs}, {
+            ("en", "language"), ("en", "permit"), ("de", "language"), ("de", "permit"),
+        })
+        for row in pairs:
+            with self.subTest(pair=row["id"], lang=row["lang"], kind=row["kind"]):
+                self.assertTrue(row["visible"])
+                self.assertLessEqual(abs(row["original"] - row["removed"]), 5)
+                self.assertLessEqual(abs(score_band(row["original"]) - score_band(row["removed"])), 1)
 
 
 class TestEvalDatasetIntegrity(unittest.TestCase):
@@ -676,6 +700,12 @@ class TestEvalMetricsUnit(unittest.TestCase):
         # Accepts both flat metrics dict and full report dict with 'overall'.
         self.assertEqual(check_target_gates(passing), [])
         self.assertEqual(check_target_gates({"overall": passing}), [])
+        pooled = {"overall": passing, "by_split": {
+            "dev": passing, "heldout": {**passing, "max_value_share": 0.06},
+        }}
+        self.assertEqual(len(check_target_gates(pooled)), 1)
+        self.assertIn("heldout: max_value_share", check_target_gates(pooled)[0])
+        self.assertIn("Missing heldout metrics", check_target_gates({"overall": passing, "by_split": {}}))
 
         # Each threshold fails when violated.
         violations = {

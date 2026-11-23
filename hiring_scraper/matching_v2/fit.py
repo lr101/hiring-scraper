@@ -30,6 +30,7 @@ from tests.eval.metrics import (
     expected_calibration_error,
     ndcg_at_k,
     pairwise_auc,
+    percentile,
     score_range_metrics,
     score_spread,
 )
@@ -187,7 +188,7 @@ def fit_weights_dev(
         keys.append('semantic_similarity')
 
     best_obj = _ranking_objective(dev_by_dataset, weights)
-    for step in (6.0, 3.0, 1.5, 0.5):
+    for step in (6.0, 3.0, 1.5, 0.5, 0.25):
         improved = True
         rounds = 0
         while improved and rounds < 8:
@@ -215,7 +216,7 @@ def fit_knots_dev(
     dev_by_dataset: dict[str, list[dict[str, Any]]],
     weights: dict[str, float],
     *,
-    num_knots: int = 8,
+    num_knots: int = 10,
     min_slope: float = 0.40,
     max_slope: float = 2.30,
     tail_slope: float = CALIBRATION_TAIL_SLOPE,
@@ -233,7 +234,7 @@ def fit_knots_dev(
     ds_eval_data: list[tuple[list[float], list[int]]] = []
 
     for rows in dev_by_dataset.values():
-        visible = [r for r in rows if r['gate_result']['eligible'] and not r['should_hide']]
+        visible = [r for r in rows if r['gate_result']['eligible']]
         if not visible:
             continue
         ds_w = 100.0 / len(visible)
@@ -256,6 +257,30 @@ def fit_knots_dev(
     )
     anchor_x = [kx for kx, _ in init_knots]
     pava_y = [ky for _, ky in init_knots]
+    # Seed the search at the per-dataset band constraints. The quantiles
+    # reserve margin for integer rounding and evaluation on unseen postings.
+    lower_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 0], 83)
+                     for raws, grades in ds_eval_data if 0 in grades]
+    upper_cutoffs = [percentile([r for r, g in zip(raws, grades) if g == 3], 30)
+                     for raws, grades in ds_eval_data if 3 in grades]
+    band_seed = None
+    if lower_cutoffs and upper_cutoffs:
+        low, high = round(max(lower_cutoffs), 4), round(min(upper_cutoffs), 4)
+        if 50.5 / max_slope <= high - low <= 50.5 / min_slope:
+            anchor_x = sorted({
+                x for x in anchor_x if min(abs(x - low), abs(x - high)) >= 1.0
+            } | {low, high})
+            pava_y = [calibrate_float(x, knots=init_knots, tail_slope=tail_slope) for x in anchor_x]
+            left_slope = min(0.8, 27.5 / max(1.0, low - anchor_x[0]))
+            right_slope = min(0.8, 18.0 / max(1.0, anchor_x[-1] - high))
+            if min(left_slope, right_slope) >= min_slope:
+                band_seed = [
+                    29.0 + left_slope * (x - low) if x < low else
+                    79.5 + right_slope * (x - high) if x > high else
+                    29.0 + (x - low) * 50.5 / (high - low)
+                    for x in anchor_x
+                ]
+
     curr_y = list(pava_y)
 
     # Features share evidence and do not independently reach 1.0. Use the observed
@@ -282,16 +307,20 @@ def fit_knots_dev(
             rng = score_range_metrics(grades, cals)
             i30 = float(rng.get('irrelevant_below_30') or 0.0)
             s80 = float(rng.get('strong_reach_80') or 0.0)
+            good_band = float(rng.get('good_in_band') or 0.0)
             msh = float(rng.get('max_value_share') or 0.0)
             p595 = float(rng.get('spread_p5_p95') or 0.0)
-            # Smooth rubric-band alignment loss on DEV only.
+            # Penalize violations per DEV dataset so pooling cannot hide a miss.
+            # The margin above rollout targets is fixed before evaluating heldout.
             loss = (
                 1.0 * be
                 + 0.35 * ece
-                + 5.00 * max(0.0, 0.88 - i30)
-                + 1.80 * max(0.0, 0.80 - s80)
-                + 3.00 * max(0.0, msh - 0.035)
-                + 0.02 * max(0.0, 72.0 - p595)
+                + 12.0 * max(0.0, 0.83 - i30)
+                + 8.0 * max(0.0, 0.70 - s80)
+                + 1.2 * (1.0 - good_band)
+                + 24.0 * max(0.0, msh - 0.05)
+                + 5.0 * max(0.0, msh - 0.03)
+                + 0.05 * max(0.0, 65.0 - p595)
             )
             losses.append(loss)
         # Ensure strongest attainable raw scores reach 100 on the calibrated scale.
@@ -300,9 +329,12 @@ def fit_knots_dev(
         reg = 0.00004 * sum((a - b) ** 2 for a, b in zip(ky_list, pava_y))
         return (sum(losses) / len(losses) if losses else 0.0) + top_pen + reg
 
+    if band_seed is not None and _valid_slopes(band_seed):
+        if not _valid_slopes(curr_y) or _knot_loss(band_seed) < _knot_loss(curr_y):
+            curr_y = band_seed
     best_loss = _knot_loss(curr_y)
     n_k = len(curr_y)
-    for step in (6.0, 3.0, 1.5, 0.5):
+    for step in (6.0, 3.0, 1.5, 0.5, 0.25):
         improved = True
         rounds = 0
         while improved and rounds < 15:
@@ -336,7 +368,7 @@ def fit_knots_dev(
                 curr_y = best_trial
                 improved = True
 
-    return tuple((round(ax, 2), round(ay, 2)) for ax, ay in zip(anchor_x, curr_y))
+    return tuple((round(ax, 4), round(ay, 4)) for ax, ay in zip(anchor_x, curr_y))
 
 
 def _summarize_split(
@@ -457,7 +489,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"    '{k}': {v:.2f},")
     print('\n=== FITTED CALIBRATION KNOTS (DEV ONLY) ===')
     for x, y in result['knots']:
-        print(f'    ({x:.2f}, {y:.2f}),')
+        print(f'    ({x:.4f}, {y:.4f}),')
     print(
         f"\nDEV upper raw range {result['best_dev_raw']:.2f}–{result['attainable_top_raw']:.2f} "
         f"-> calibrated {result['cal_at_best_dev']}–{result['cal_at_attainable_top']}"

@@ -14,7 +14,7 @@ import math
 import re
 from typing import Any
 
-from hiring_scraper.duty_evidence import assess_duties
+from hiring_scraper.duty_evidence import analyze_duty_units, assess_duties
 from hiring_scraper.matching import (
     EXPERIENCE_PATTERN,
     OPTIONAL,
@@ -35,23 +35,24 @@ from hiring_scraper.matching import (
 from hiring_scraper.matching_v2.gates import (
     NON_REQUIREMENT_V2,
     is_language_or_visa_clause,
+    job_requirement_texts,
+    parse_job_requirement_texts,
     strip_language_or_visa_subclauses,
 )
 from hiring_scraper.matching_v2.weights import SOFT_PENALTIES
 from hiring_scraper.requirements import (
     DEGREE,
     clause_key,
-    education_satisfied,
+    education_evidence,
     is_source_instruction,
     qualification_rows,
     requirement_polarity,
     scoped_sentences,
-    structured_requirement_texts,
     structured_source_scope,
     structured_text,
 )
 from hiring_scraper import task_alignment as _ta
-from hiring_scraper.task_alignment import align_tasks, other_actor
+from hiring_scraper.task_alignment import other_actor
 
 
 # ---------------------------------------------------------------------------
@@ -150,6 +151,14 @@ _SKILL_COMBINED: dict[str, re.Pattern[str]] = {
     skill: re.compile('|'.join(p.pattern for p in pats), re.I)
     for skill, pats in _SKILL_PATTERNS.items()
 }
+
+# Python's case-insensitive regex also matches these Unicode variants of i and s.
+_SKILL_CASE_TRANSLATION = str.maketrans({'İ': 'i', 'ı': 'i', 'ſ': 's'})
+_SKILL_LITERALS = {
+    skill: tuple(alias.translate(_SKILL_CASE_TRANSLATION).lower() for alias in aliases)
+    for skill, aliases in ALL_SKILLS.items()
+}
+
 
 # Skills that frequently appear as incidental/generic tools across unrelated professions.
 GENERIC_SKILLS: frozenset[str] = frozenset({
@@ -844,17 +853,15 @@ def detect_title_seniority(title: str) -> int | None:
     return None
 
 
-def _extract_required_years_from_sentences(
+def _tenure_minimums(
     filtered_sentences: list[tuple[str, str, str]],
-) -> tuple[float | None, str, str]:
-    """Extract required minimum years of experience from pre-parsed, lang/visa-stripped sentences."""
-    best_years: float | None = None
-    best_quote = ''
-    best_source = ''
+) -> list[tuple[float, str, str]]:
+    """Extract stated tenure minima from requirements in the scoring evidence."""
+    minimums = []
     for source, sentence, scope in filtered_sentences:
-        if scope in {'optional', 'benefits'} or is_source_instruction(sentence):
+        if scope not in {'neutral', 'requirements'} or not EXPERIENCE_PATTERN.search(sentence):
             continue
-        if is_company_experience_claim(sentence):
+        if is_source_instruction(sentence) or is_company_experience_claim(sentence):
             continue
         if NON_REQUIREMENT_V2.search(sentence) and not REQUIREMENT.search(sentence):
             continue
@@ -894,11 +901,15 @@ def _extract_required_years_from_sentences(
         effective = min(arm_years)
         if has_non_years_alternative:
             effective = max(0.0, effective - 1.5)
-        if best_years is None or effective > best_years:
-            best_years = effective
-            best_quote = sentence[:240]
-            best_source = source
-    return best_years, best_quote, best_source
+        minimums.append((effective, sentence, source))
+    return minimums
+
+
+def _extract_required_years_from_sentences(
+    filtered_sentences: list[tuple[str, str, str]],
+) -> tuple[float | None, str, str]:
+    years, quote, source = max(_tenure_minimums(filtered_sentences), key=lambda row: row[0], default=(None, '', ''))
+    return years, quote[:240], source
 
 
 def _extract_required_years(texts: list[tuple[str, str]]) -> tuple[float | None, str]:
@@ -1333,17 +1344,15 @@ def _extract_profile_task_facts(
 
 
 def _align_tasks_with_facts(
-    job: dict,
+    tasks: tuple,
     facts: tuple[tuple[str, str, frozenset[str], frozenset[str], str], ...],
-    sentences: list[tuple[str, str, str]],
 ) -> dict[str, Any]:
     """Run task_alignment matching against pre-extracted profile task facts."""
     rows = []
-    for task in _ta.task_units(job, sentences=sentences):
+    for task, objects in tasks:
         best = None
         best_rank = (0.0, 0.0)
         actions = set(task['actions'])
-        objects = _ta._semantic_objects(task['job_quote'])
         for source, quote, fact_actions, fact_objects, context in facts:
             shared = objects & fact_objects
             if not shared:
@@ -1394,6 +1403,8 @@ def _align_tasks_with_facts(
         source, quote, shared_objs, context = best or ('', '', [], 'unspecified')
         rows.append({
             **task,
+            'actions': list(task['actions']),
+            'objects': list(task['objects']),
             'status': status,
             'evidence_source': source,
             'evidence_quote': quote,
@@ -1405,18 +1416,14 @@ def _align_tasks_with_facts(
                 'unknown': 'No source-backed action and deliverable alignment found; absence is not proof of inability.',
             }[status],
         })
-    score = (
-        round(
-            100
-            * sum({'supported': 1.0, 'transferable': 0.5, 'unknown': 0.0}[row['status']] for row in rows)
-            / len(rows)
-        )
-        if rows
-        else None
+    coverage = (
+        sum({'supported': 1.0, 'transferable': 0.5, 'unknown': 0.0}[row['status']] for row in rows)
+        / len(rows) if rows else 0.0
     )
     return {
         'version': _ta.VERSION,
-        'score': score,
+        'score': round(100 * coverage) if rows else None,
+        'coverage': coverage,
         'requirements': rows,
         'facts_considered': len(facts),
         'qualification_proof': False,
@@ -1645,6 +1652,107 @@ def _compute_role_alignment(
 # Main feature extraction entry point
 # ---------------------------------------------------------------------------
 
+# Identifiers in otherwise identical duty lines do not add another work product.
+_DUTY_REFERENCE_SUFFIX = re.compile(r'(?<![\w.+-])\d+([.!?]?)$')
+
+
+@lru_cache(maxsize=256)
+def _analyze_job(title: str, parsed_texts: tuple) -> dict[str, Any]:
+    """Analyze bounded scoring evidence once per hashable posting content and title."""
+    # Strip ONLY language/visa sub-clauses so mixed sentences (e.g. "You must speak fluent
+    # German and have advanced Kubernetes experience") preserve sibling requirement evidence
+    # while ablating language/visa clauses has ZERO leakage into content features.
+    filtered_sentences: list[tuple[str, str, str]] = []  # (source, cleaned_sentence, scope)
+    seen: set[tuple[str, str]] = set()
+    remaining = 24_000
+    for source, force_req, sentences in parsed_texts:
+        # Skip dedicated language/authorization metadata blocks from content features.
+        if force_req:
+            continue
+        for sentence, scope in sentences:
+            if remaining <= 0 or len(filtered_sentences) >= 160:
+                break
+            if is_source_instruction(sentence):
+                continue
+            cleaned = strip_language_or_visa_subclauses(sentence)
+            if not cleaned:
+                continue
+            normalized = ' '.join(cleaned.casefold().split())
+            if scope == 'duties':
+                normalized = _DUTY_REFERENCE_SUFFIX.sub(r'\1', normalized).rstrip(' .!?')
+            key = (normalized, scope)
+            if key in seen:
+                continue
+            seen.add(key)
+            cleaned = cleaned[:min(remaining, 1500)]
+            remaining -= len(cleaned)
+            filtered_sentences.append((source, cleaned, scope))
+
+    filtered_body_texts = [sent for _, sent, scope in filtered_sentences if scope != 'benefits']
+    filtered_body = '\n'.join(filtered_body_texts)
+    duty_sentences = [
+        (src, sent, scope) for src, sent, scope in filtered_sentences
+        if src == 'description' or scope == 'duties'
+    ]
+    job = {'title': title}
+    task_units = _ta.task_units(job, sentences=duty_sentences, deduplicate_deliverables=True)
+    duty_analysis = analyze_duty_units(
+        job, task_units, [(sent, scope) for src, sent, scope in duty_sentences if src == 'description'],
+    )
+    tasks = tuple((task, _ta._semantic_objects(task['job_quote'])) for task in task_units)
+
+    combined_text = f'{title}\n{filtered_body}'
+    normalized_text = combined_text.translate(_SKILL_CASE_TRANSLATION).lower()
+    candidate_skills = tuple(
+        skill for skill, literals in _SKILL_LITERALS.items()
+        if any(literal in normalized_text for literal in literals) and _SKILL_COMBINED[skill].search(combined_text)
+    )
+    mentions = [
+        (skill, 'title', title[:180], 'required', 1.3)
+        for skill in candidate_skills if _SKILL_COMBINED[skill].search(title)
+    ]
+    for src, sentence, scope in filtered_sentences:
+        for skill in candidate_skills:
+            if match := _SKILL_COMBINED[skill].search(sentence):
+                kind = classify_skill_mention(sentence, match.start(), match.end(), scope)
+                if kind != 'incidental':
+                    weight = 1.0 if kind == 'required' else 0.75 if kind == 'duty' else 0.35
+                    mentions.append((skill, src, sentence[:200], kind, weight))
+
+    job_product_quotes: dict[str, str] = {}
+    if filtered_body:
+        for wp, (pat, _) in _WORK_PRODUCTS.items():
+            m_job = pat.search(filtered_body)
+            if m_job:
+                s0 = max(0, m_job.start() - 35)
+                s1 = min(len(filtered_body), m_job.end() + 55)
+                job_product_quotes[wp] = ' '.join(filtered_body[s0:s1].split())
+
+    qual_rows: list[dict[str, Any]] = []
+    for source, sentence, scope in filtered_sentences:
+        if scope in {'optional', 'benefits'}:
+            continue
+        if scope == 'requirements' or REQUIREMENT.search(sentence):
+            qual_rows.extend(qualification_rows(sentence, source))
+
+    return {
+        'sentences': filtered_sentences,
+        'body': filtered_body,
+        'content_tokens': _extract_content_tokens(filtered_body),
+        'disciplines': _detect_disciplines(title, filtered_body_texts),
+        'specialist_duties': tuple(d for d, pattern in _SPECIALIST_DUTY_PATTERNS if pattern.search(filtered_body)),
+        'task_units': tasks,
+        'duties': duty_analysis,
+        'combined_text': combined_text,
+        'candidate_skills': candidate_skills,
+        'skill_mentions': mentions,
+        'product_quotes': job_product_quotes,
+        'qualification_rows': qual_rows,
+        'tenure_minimums': _tenure_minimums(filtered_sentences),
+        'substantive_word_count': len(re.findall(r'[A-Za-zÄÖÜäöüß]{3,}', filtered_body)),
+    }
+
+
 def extract_features(
     job: dict,
     profile: dict,
@@ -1658,53 +1766,12 @@ def extract_features(
     pc = profile_cache if profile_cache is not None else precompute_profile(profile)
 
     title = plain_text(job.get('title'))
-    description = str(job.get('description') or '')
-    raw = job.get('raw_metadata') or {}
-    detail_req = raw.get('detail_requirements') or {}
-
-    # Reuse sentences already parsed in evaluate_gates (avoids 2x structured_text + scoped_sentences).
     parsed_texts = gate_result.get('parsed_texts')
     if parsed_texts is None:
-        raw_texts: list[tuple[str, str]] = [('description', description)]
-        for prefix, container in (('structured', raw), ('detail', detail_req)):
-            if not isinstance(container, dict):
-                continue
-            for field in (
-                'responsibilities',
-                'duties',
-                'skills',
-                'qualifications',
-                'experienceRequirements',
-                'educationRequirements',
-            ):
-                val = container.get(field)
-                if val:
-                    for src, txt in structured_requirement_texts({field: val}, prefix):
-                        raw_texts.append((src, str(txt)))
-        parsed_texts = [
-            (src, False, list(scoped_sentences(structured_text(txt), initial_scope=structured_source_scope(src))))
-            for src, txt in raw_texts
-            if txt
-        ]
-
-    # Strip ONLY language/visa sub-clauses so mixed sentences (e.g. "You must speak fluent
-    # German and have advanced Kubernetes experience") preserve sibling requirement evidence
-    # while ablating language/visa clauses has ZERO leakage into content features.
-    filtered_sentences: list[tuple[str, str, str]] = []  # (source, cleaned_sentence, scope)
-    for source, force_req, sentences in parsed_texts:
-        # Skip dedicated language/authorization metadata blocks from content features.
-        if force_req:
-            continue
-        for sentence, scope in sentences:
-            if is_source_instruction(sentence):
-                continue
-            cleaned = strip_language_or_visa_subclauses(sentence)
-            if not cleaned:
-                continue
-            filtered_sentences.append((source, cleaned, scope))
-
-    filtered_body_texts = [sent for _, sent, scope in filtered_sentences if scope != 'benefits']
-    filtered_body = '\n'.join(filtered_body_texts)
+        parsed_texts = parse_job_requirement_texts(job_requirement_texts(job))
+    analysis = _analyze_job(title, parsed_texts)
+    filtered_sentences = analysis['sentences']
+    filtered_body = analysis['body']
 
     sources = pc['sources']
     duty_sources = pc['duty_sources']
@@ -1720,7 +1787,7 @@ def extract_features(
     prof_content_tokens: frozenset[str] = pc['content_tokens']
 
     # Continuous stopword-filtered content-token overlap (language/visa-free).
-    job_content_tokens = _extract_content_tokens(filtered_body)
+    job_content_tokens = analysis['content_tokens']
     if has_profile_evidence and job_content_tokens and prof_content_tokens:
         tok_hits = len(job_content_tokens & prof_content_tokens)
         raw_lex = tok_hits / max(1.0, min(len(job_content_tokens), 45) + 8.0)
@@ -1731,7 +1798,7 @@ def extract_features(
     # -----------------------------------------------------------------------
     # 1. Disciplines: domain_alignment & domain_mismatch (smoothly continuous)
     # -----------------------------------------------------------------------
-    job_title_disc, job_body_disc, job_disc_counts = _detect_disciplines(title, filtered_body_texts)
+    job_title_disc, job_body_disc, job_disc_counts = analysis['disciplines']
     job_disc = job_title_disc | job_body_disc
 
     if has_profile_evidence and job_disc and prof_disc:
@@ -1774,8 +1841,8 @@ def extract_features(
             uncovered_specialist.append(d)
 
     specialist_duty_hits = 0
-    for d, pat in _SPECIALIST_DUTY_PATTERNS:
-        if d not in prof_disc and pat.search(filtered_body):
+    for d in analysis['specialist_duties']:
+        if d not in prof_disc:
             specialist_mismatch_den += 1.5
             specialist_duty_hits += 1
             if ADJACENT_DISCIPLINES.get(d, set()) & prof_disc:
@@ -1808,15 +1875,8 @@ def extract_features(
     # -----------------------------------------------------------------------
     # 2. Duty coverage (domain-aware: assess_duties + cached align_tasks + work products)
     # -----------------------------------------------------------------------
-    duty_sentences = [
-        (src, sent, scope) for src, sent, scope in filtered_sentences
-        if src == 'description' or scope == 'duties'
-    ]
-    task_alignment = _align_tasks_with_facts(job, pc['task_facts'], duty_sentences)
-    duty_evidence = assess_duties(
-        job, duty_sources, task_alignment,
-        description_sentences=[(sent, scope) for src, sent, scope in duty_sentences if src == 'description'],
-    )
+    task_alignment = _align_tasks_with_facts(analysis['task_units'], pc['task_facts'])
+    duty_evidence = assess_duties(job, duty_sources, task_alignment, analysis=analysis['duties'])
 
     # Re-evaluate assess_duties rows with domain awareness (reading real 'credit' field).
     duty_rows = duty_evidence.get('duties') or []
@@ -1861,16 +1921,8 @@ def extract_features(
     )
 
     # Bilingual work-product coverage across filtered job body vs cached profile products.
-    job_products: set[str] = set()
-    job_product_quotes: dict[str, str] = {}
-    if filtered_body:
-        for wp, (pat, _) in _WORK_PRODUCTS.items():
-            m_job = pat.search(filtered_body)
-            if m_job:
-                job_products.add(wp)
-                s0 = max(0, m_job.start() - 35)
-                s1 = min(len(filtered_body), m_job.end() + 55)
-                job_product_quotes[wp] = ' '.join(filtered_body[s0:s1].split())
+    job_product_quotes = analysis['product_quotes']
+    job_products = job_product_quotes.keys()
 
     wp_cov: float | None = None
     if job_products and has_profile_evidence:
@@ -1899,7 +1951,7 @@ def extract_features(
         elif wp_cov is not None:
             core_duty = wp_cov
         else:
-            legacy_task_score = float(task_alignment.get('score') or 0) / 100.0
+            legacy_task_score = task_alignment['coverage']
             core_duty = legacy_task_score * domain_agreement_factor
         mod_lex = content_overlap * (0.35 + 0.65 * domain_agreement_factor)
         duty_coverage = 0.88 * core_duty + 0.12 * mod_lex
@@ -1921,39 +1973,18 @@ def extract_features(
     job_skill_kinds: dict[str, str] = {}
     job_skill_required: set[str] = set()
 
-    # Single-pass pre-filter: find only skills present anywhere in title or filtered_body.
-    combined_job_text = f'{title}\n{filtered_body}'
-    candidate_skills = [
-        skill for skill, comb_pat in _SKILL_COMBINED.items()
-        if comb_pat.search(combined_job_text)
-    ]
-
-    for skill in candidate_skills:
-        if _SKILL_COMBINED[skill].search(title):
-            job_skill_weights[skill] = max(job_skill_weights.get(skill, 0.0), 1.3)
-            job_skill_quotes.setdefault(skill, title[:180])
-            job_skill_sources.setdefault(skill, 'title')
-            job_skill_kinds.setdefault(skill, 'required')
+    combined_job_text = analysis['combined_text']
+    candidate_skills = analysis['candidate_skills']
+    for skill, src, quote, kind, weight in analysis['skill_mentions']:
+        if skill in GENERIC_SKILLS and src != 'title':
+            weight *= 0.45 + 0.40 * domain_agreement_factor
+        if weight > job_skill_weights.get(skill, 0.0):
+            job_skill_weights[skill] = weight
+            job_skill_quotes[skill] = quote
+            job_skill_sources[skill] = src
+            job_skill_kinds[skill] = kind
+        if kind == 'required':
             job_skill_required.add(skill)
-
-    for src, sentence, scope in filtered_sentences:
-        for skill in candidate_skills:
-            m = _SKILL_COMBINED[skill].search(sentence)
-            if not m:
-                continue
-            kind = classify_skill_mention(sentence, m.start(), m.end(), scope)
-            if kind == 'incidental':
-                continue
-            w = 1.0 if kind == 'required' else 0.75 if kind == 'duty' else 0.35
-            if skill in GENERIC_SKILLS:
-                w *= 0.45 + 0.40 * domain_agreement_factor
-            if w > job_skill_weights.get(skill, 0.0):
-                job_skill_weights[skill] = w
-                job_skill_quotes[skill] = sentence[:200]
-                job_skill_sources[skill] = src
-                job_skill_kinds[skill] = kind
-            if kind == 'required':
-                job_skill_required.add(skill)
 
     # Match custom profile skills substantively against filtered posting text.
     # Keep the evidence shape consumed by the v1 job detail UI.
@@ -2037,19 +2068,13 @@ def extract_features(
     req_total = 0.0
     req_met = 0.0
     requirement_gaps: list[str] = []
-    met_req_quotes: list[str] = []
     formal_prereq_gaps: list[dict[str, str]] = []
     formal_prereq_conditions: list[dict[str, Any]] = []
     requirement_observations: list[dict[str, Any]] = []
     seen_formal_keys: set[str] = set()
 
     edu_profile = pc['edu_profile']
-    qual_rows: list[dict[str, Any]] = []
-    for source, sentence, scope in filtered_sentences:
-        if scope in {'optional', 'benefits'}:
-            continue
-        if scope == 'requirements' or REQUIREMENT.search(sentence):
-            qual_rows.extend(qualification_rows(sentence, source))
+    qual_rows = analysis['qualification_rows']
 
     for row in qual_rows:
         qtext = str(row.get('evidence') or row.get('quote') or row.get('value') or '').strip()
@@ -2073,10 +2098,9 @@ def extract_features(
 
         for arm in arms:
             if DEGREE.search(arm):
-                if education_satisfied(row if isinstance(row, dict) else {'quote': arm}, edu_profile):
+                if evidence := education_evidence(row, edu_profile):
                     arm_satisfied = True
-                    ev_src = 'profile.education'
-                    ev_quote = str(edu_profile.get('education') or '')[:160]
+                    ev_src, ev_quote = evidence
                     break
             arm_skills = [
                 sk for sk in candidate_skills
@@ -2107,7 +2131,6 @@ def extract_features(
         obs_kind = 'license' if is_license else 'education' if is_degree else str(row.get('kind') or 'qualification')
         if arm_satisfied:
             req_met += 1.0
-            met_req_quotes.append(qtext[:180])
             requirement_observations.append({
                 'kind': obs_kind,
                 'requirement': qtext[:200],
@@ -2237,7 +2260,6 @@ def extract_features(
         req_total += w
         if skill in profile_evidenced_skills:
             req_met += w * (domain_agreement_factor if skill in GENERIC_SKILLS else 1.0)
-            met_req_quotes.append(skill)
             requirement_observations.append({
                 'kind': 'skill',
                 'requirement': skill,
@@ -2264,7 +2286,7 @@ def extract_features(
             })
 
     # Detect title-only / non-substantive postings (Finding 6).
-    substantive_word_count = len(re.findall(r'[A-Za-zÄÖÜäöüß]{3,}', filtered_body))
+    substantive_word_count = analysis['substantive_word_count']
     is_title_only = not filtered_body or (
         substantive_word_count < 12
         and not adjusted_duty_scores
@@ -2305,16 +2327,18 @@ def extract_features(
     # 6. Seniority & tenure fit (continuous + bounded soft penalties)
     # -----------------------------------------------------------------------
     job_sen = detect_title_seniority(title)
-    req_years, req_years_quote, req_years_source = _extract_required_years_from_sentences(filtered_sentences)
+    tenure_minimums = analysis['tenure_minimums']
+    req_years, req_years_quote, _ = max(tenure_minimums, key=lambda row: row[0], default=(None, '', ''))
+    req_years_quote = req_years_quote[:240]
     prof_sen = pc['prof_sen']
     prof_years = pc['prof_years']
     prof_sen_quote = pc['prof_sen_quote']
 
-    if req_years is not None:
-        requirement_observations.extend(
-            {**row, 'job_source': req_years_source}
-            for row in _scoped_experience_rows(req_years_quote, prof_years)
-        )
+    requirement_observations.extend(
+        {**row, 'job_source': source}
+        for _, quote, source in tenure_minimums
+        for row in _scoped_experience_rows(quote, prof_years)
+    )
 
     if job_sen is None and req_years is not None:
         if req_years >= 8:
@@ -2380,7 +2404,10 @@ def extract_features(
     else:
         raw_seniority_fit = sum(sen_scores) / len(sen_scores) if sen_scores else 0.50
         relevance_gate = max(domain_alignment, duty_coverage, skill_overlap)
-        seniority_fit = raw_seniority_fit * (0.12 + 0.88 * min(1.0, relevance_gate / 0.55))
+        # Retain a gradient above moderate relevance instead of flattening
+        # distinct evidence at a threshold.
+        relevance_strength = -math.expm1(-4.0 * relevance_gate) / -math.expm1(-4.0)
+        seniority_fit = raw_seniority_fit * (0.12 + 0.88 * relevance_strength)
         if is_title_only:
             seniority_fit = min(seniority_fit, 0.25)
     seniority_fit = max(0.0, min(1.0, seniority_fit))
@@ -2533,6 +2560,10 @@ def extract_features(
         'domain_mismatch': round(max(0.0, min(1.0, domain_mismatch)), 4),
     }
 
+    requirement_citation = next(
+        (row for row in requirement_observations if row['status'] == 'supported'),
+        next(iter(requirement_observations), {}),
+    )
     feature_citations: dict[str, dict[str, str]] = {
         'duty_coverage': {
             'detail': (
@@ -2545,9 +2576,9 @@ def extract_features(
         },
         'requirement_coverage': {
             'detail': f'Requirement coverage {features["requirement_coverage"]:.2f} ({req_met:.1f}/{req_total:.1f} weighted clauses)',
-            'job_quote': met_req_quotes[0] if met_req_quotes else (requirement_gaps[0] if requirement_gaps else ''),
-            'profile_source': 'profile.skills' if met_req_quotes else '',
-            'profile_quote': ', '.join(met_req_quotes[:4]),
+            'job_quote': requirement_citation.get('job_quote', ''),
+            'profile_source': requirement_citation.get('evidence_source', ''),
+            'profile_quote': requirement_citation.get('evidence_quote', ''),
         },
         'skill_overlap': {
             'detail': f'Substantive skill overlap {features["skill_overlap"]:.2f} ({len(matched_skills)} matched, {len(missing_skills)} missing)',

@@ -151,11 +151,13 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
 
 ## Matcher rollout
 
-`RADIUS_MATCHER=v2` is the default and `RADIUS_MATCHER=v1` selects the previous rules
-for one release. Use the same setting for the API and all workers. Both the stored
+`RADIUS_MATCHER=v1` is the default. Set `RADIUS_MATCHER=v2` to opt into the new scorer.
+Use the same setting for the API and all workers. Both the stored
 score version and the profile index version include the active matcher version,
 so switching queues the usual background rebuild. Journey retains user-selected
-stages and displays faithful stored cards while their scores refresh.
+stages and displays faithful stored cards while their scores refresh. V2 promotion
+requires passing the target gates for both the overall and heldout splits of each
+evaluation dataset.
 
 V2 adds evidence and preference contributions into a raw score and maps it
 monotonically onto 0–100 using DEV-fitted knots. Cached local semantic evidence

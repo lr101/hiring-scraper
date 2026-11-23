@@ -197,7 +197,23 @@ def assemble_result(
 
     eligible = bool(gate_result['eligible'])
     conflicts = [item['detail'] for item in gate_result['hard_fails']]
+    experience_review = [
+        {
+            'kind': row['kind'], 'gate': 'qualification', 'status': 'unknown',
+            'detail': f"{row['explanation']} ({row['job_quote']})",
+            'job_source': row['job_source'], 'job_quote': row['job_quote'],
+            'profile_source': row['evidence_source'], 'profile_quote': row['evidence_quote'],
+        }
+        for row in feature_bundle['requirement_observations']
+        if row['kind'] == 'experience' and row['status'] == 'unknown'
+    ]
+    formal_conditions = feature_bundle['formal_prereq_conditions']
+    qualification_review = [
+        *experience_review,
+        *(row for row in formal_conditions if row['status'] == 'unknown'),
+    ]
     unknowns = [
+        *(row['detail'] for row in qualification_review),
         *(item['detail'] for item in gate_result['flags']),
         *(feature_bundle.get('extra_unknowns') or []),
     ]
@@ -220,7 +236,7 @@ def assemble_result(
     qualification_fit = int(round(max(0.0, min(1.0, features['requirement_coverage'])) * 100))
 
     language_review = bool(gate_result['language_review'])
-    mandatory_review = bool(gate_result['authorization_review'])
+    mandatory_review = bool(gate_result['authorization_review'] or qualification_review)
     has_hard_review_flags = bool(
         language_review
         or mandatory_review
@@ -292,8 +308,9 @@ def assemble_result(
             'profile_source': met_item.get('profile_source', ''),
             'profile_quote': met_item.get('profile_quote', ''),
         })
-    for fp_cond in (feature_bundle.get('formal_prereq_conditions') or []):
-        prerequisite_conditions.append(fp_cond)
+    prerequisite_conditions.extend(formal_conditions)
+
+    prerequisite_conditions.extend({**row, 'reason': row['detail']} for row in experience_review)
 
     # Requirement observations (features.py qualification/experience/skill observations + gate items).
     requirement_observations: list[dict[str, Any]] = list(

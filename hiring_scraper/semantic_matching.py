@@ -18,7 +18,7 @@ from hiring_scraper.requirements import (scoped_sentences, structured_text,
 MODEL_ID = 'intfloat/multilingual-e5-small'
 MODEL_REVISION = 'ccc66d3bcd826f577e26b9a4072cc5fe3a7ad6a3'
 MODEL_KEY = f'{MODEL_ID}@{MODEL_REVISION}'
-VERSION = MODEL_KEY + ':profile-sections-v5-qualification-text'
+VERSION = MODEL_KEY + ':profile-sections-v6-constraint-spans'
 DIMENSIONS = 384
 CHUNK_CHARS = 900
 MAX_JOB_CHUNKS = 12

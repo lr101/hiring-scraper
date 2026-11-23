@@ -289,14 +289,14 @@ _POLARITY_BOUNDARY = re.compile(
     r'(?:abgeschlossen\w*\s+)?Studium|Immatrikulation|GMP)\b)', re.I)
 _OPTIONAL_QUALIFICATION = re.compile(
     r'\b(?:optional|preferred|desired|nice.to.have|idealerweise|wünschenswert|'
-    r'bevorzugt|willkommen|von Vorteil|a plus|an? advantage|beneficial)\b', re.I)
+    r'bevorzugt|willkommen|von Vorteil|a plus|an? advantage|advantageous|beneficial|helpful)\b', re.I)
 _WAIVED_QUALIFICATION = re.compile(
     r'\b(?:not|nicht)\s+(?:strictly\s+|zwingend\s+)?'
     r'(?:required|necessary|mandatory|essential|needed|erforderlich|notwendig|vorausgesetzt|verlangt|gefordert|verpflichtend)\b|'
     r'\bnever\s+(?:a\s+)?(?:requirement|prerequisite)\b|'
     r'\bkein\w*\s+(?:zwingende\s+)?Voraussetzung\b', re.I)
 _TRAILING_MODALITY = re.compile(
-    r'\b(?:required|necessary|mandatory|essential|needed|optional|preferred|desired|'
+    r'\b(?:required|necessary|mandatory|essential|needed|optional|preferred|desired|helpful|advantageous|beneficial|'
     r'erforderlich|notwendig|vorausgesetzt|wünschenswert|bevorzugt|willkommen|'
     r'Voraussetzung|Vorteil|plus)(?:\s+(?:for|in|at|für|bei)\s+'
     r'(?:(?!(?:is|are|ist|sind)\b)[\w-]+\s*){1,6})?\s*$', re.I)
@@ -419,7 +419,13 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
         if len(fields) > 1 and 'engineering' in fields:
             fields.remove('engineering')
         field_phrase = re.search(r'(?:degree\s+in|studium\s+(?:in|der|im Bereich|in der Fachrichtung))\s+(.+)', degree_clause, re.I)
-        unknown_field = field_phrase.group(1).strip(' .') if field_phrase and not fields else None
+        unknown_field = None
+        if field_phrase and not fields:
+            unknown_field = re.sub(
+                r'\s+(?:(?:is|are|ist|sind)\s+)?(?:required|mandatory|essential|'
+                r'erforderlich|verpflichtend|vorausgesetzt)\s*$', '',
+                field_phrase[1].strip(' .'), flags=re.I,
+            )
         row('education', 'Degree', hit, level=level, fields=fields, unknown_field=unknown_field,
             alternative=bool(re.search(r'\b(?:or|oder|alternativ)\b', degree_clause, re.I)))
     if re.match(r'^(?:Meister|Techniker|Ingenieur)\b', clause, re.I) and re.search(r'im Bereich', clause, re.I):
@@ -444,9 +450,13 @@ def qualification_rows(clause: str, source: str) -> list[dict]:
 
 
 def education_satisfied(requirement: dict, profile: dict) -> bool:
+    return education_evidence(requirement, profile) is not None
+
+
+def education_evidence(requirement: dict, profile: dict) -> tuple[str, str] | None:
     ranks = {'vocational': 0, 'bachelor': 1, 'master': 2, 'doctorate': 3}
     required = requirement.get('level', 'bachelor')
-    entries = list(profile.get('education') or [])
+    entries = [('profile.education', entry) for entry in profile.get('education') or []]
     for entry in (profile.get('cv_career_facts') or {}).get('education') or []:
         title = str(entry.get('title') or '')
         evidence = title + ' ' + str(entry.get('description') or '')
@@ -467,8 +477,8 @@ def education_satisfied(requirement: dict, profile: dict) -> bool:
             ('doctorate', r'\b(?:phd|doctorate)\b'), ('master', r'\bmaster\b'),
             ('bachelor', r'\bbachelor\b')) if re.search(pattern, title, re.I)), None)
         if level:
-            entries.append({**entry, 'level': level, 'field': title})
-    for education in entries:
+            entries.append(('profile.cv_career_facts.education', {**entry, 'level': level, 'field': title}))
+    for source, education in entries:
         status = str(education.get('status', '')).casefold().replace('-', '_').replace(' ', '_')
         if (education.get('completed') is False or education.get('current') is True or
                 status in {'in_progress', 'ongoing', 'enrolled', 'withdrawn', 'incomplete', 'planned'}):
@@ -485,5 +495,5 @@ def education_satisfied(requirement: dict, profile: dict) -> bool:
         candidate_field = str(education.get('field', ''))
         satisfied = [bool(re.search(r'\b(?:' + DEGREE_FIELDS[field] + r')\b', candidate_field, re.I)) for field in fields]
         if not fields or (any(satisfied) if requirement.get('alternative') else all(satisfied)):
-            return True
-    return False
+            return source, str(education.get('title') or f'{level}: {candidate_field}').strip(': ')[:160]
+    return None
