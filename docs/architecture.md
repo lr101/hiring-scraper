@@ -103,8 +103,36 @@ Several processes write to the same PostgreSQL database. Keep these rules when a
   commit. It drops caches whose inputs changed and queues rematching. Undeclared tracked
   writes fail tests (strict mode) and log an error in production.
 - **Derived data is rebuilt from queues.** A declared job change is queued in `match_dirty_jobs`; companies and jobs needing vectors are queued
-  in `semantic_search_refreshes` by database triggers. Workers drain these queues. Only profile-wide inputs
-  (preferences, CV career facts, profile vectors) mark a whole profile stale.
+  in `semantic_search_refreshes` by database triggers. Workers drain these queues. Only profile-wide scoring inputs
+  (career/matching preferences, `low_afd_vote_share_weight`, `search_area`, CV career facts, profile vectors, or matcher/semantic/requirement scoring versions) mark a whole profile stale via `_profile_index_version`.
+- **Presentation defaults and AI model switches avoid full rebuilds.** Changing only `matching_defaults.min_match_score` or
+  `matching_defaults.include_unknown` does not change `_profile_index_version` or clear `profile_job_matches`; saving those
+  fields calls `source_changes.profile_changed(..., presentation_only=True)` (bumping `source_version` to serialize against
+  in-flight workers without dropping vectors, assessments, or `match_index_version`) and runs
+  `reevaluate_profile_new_applications`, which shares `_tracked_application_pairs` and `application_match_allowed` with the
+  workers, leaves user-decided stages untouched, and defers dirty/stale/legacy rows to `match_dirty_jobs` (`ON CONFLICT DO
+  NOTHING`). Non-presentation edits compare each `profile_llm_scores` row against its own `version`, so edits after a model
+  switch never drop unchanged assessments. Effective AI model or reasoning-effort changes trigger
+  `source_changes.matching_model_changed()` from both `profile_llm.set_matching_model` and worker startup
+  (`profile_llm.reconcile_matching_config_change`, comparing against `ai_matching_observed_config` under advisory lock
+  `(85793011, 9)` so `RADIUS_MATCH_AI_MODEL` / `RADIUS_MATCH_AI_REASONING_EFFORT` env changes also queue affected AI-scored
+  jobs without locking `ai_matching_settings` or adding idle poll queries).
+- **One match computation, single-snapshot reads, and version-stamped explanations.** Indexers (`job_search.py`), AI
+  publication (`profile_llm.py`) and read fallbacks (`search_snapshots.py`, `journey.py`) share `match_compute.compute_match`.
+  Every `profile_job_matches` upsert stores a JSONB-safe (NUL/surrogate/non-finite stripped) `explanation` bounded to
+  `<= 16 KiB` on the final `json.dumps(..., allow_nan=False)` wire bytes (including `requirement_observations` and
+  `local_context.city_election_results`), stamped with internal provenance `_stamp` (`job` revision, `sem` hashes, and
+  assessment `source_hash:scored_at` revision; stripped before returning) and a source-scoped `score_version` (`ScoreStamp`:
+  model/effort enters `llm_version` only, so local-only rows stay reusable across model switches) with
+  `explanation['score'] == match_score`. Read paths validate `profile_job_matches`, `match_dirty_jobs`, `user_profiles`,
+  `match_semantic_documents.source_hash`, `profile_llm_scores.(version, source_hash, scored_at)` and `ai_matching_settings`
+  in ONE consistent SQL statement (`load_stored_match_snapshots`) for only the displayed `(profile_id, job_id)` pairs,
+  loading vectors and assessments only on fallback. Indexed search treats a missing `profile_job_matches` row as an
+  authoritative `profile_conflict` only when the profile index is current and the job is not dirty, and recomputes via
+  `compute_match` otherwise. Journey keeps rank and card score consistent: stale/dirty rows with a faithful stored
+  explanation render the same ranked stored card flagged `'refreshing': True` (with `matching_pending = True`) rather than
+  ranking by an old AI score while showing a recomputed local card; missing/legacy rows recompute on the displayed page and
+  keep the displayed order aligned with the rendered scores.
 - **Profiles are versioned, not locked by publishers.** Profile edits bump
   `user_profiles.source_version` (through `source_changes`). Publishers of per-profile data
   record the versions when they start, compute without locks, then call

@@ -88,6 +88,43 @@ def _queue_rematch(session: Session, job_ids) -> None:
         set_={'revision': statement.excluded.revision}))
 
 
+def queue_stale_rematch(session: Session, job_ids: Iterable[int]) -> None:
+    """Queue stale/legacy jobs for rematching without contending on already-dirty rows."""
+    ids = _ids(job_ids)
+    if not ids:
+        return
+    statement = pg_insert(MatchDirtyJob).from_select(
+        ['job_id', 'revision', 'queued_at'],
+        select(Job.id, literal(uuid4().hex), literal(utcnow())).where(Job.id.in_(ids)),
+    )
+    session.execute(statement.on_conflict_do_nothing(index_elements=['job_id']))
+
+
+def profile_assessment_stale_job_ids(
+    rows: Iterable[tuple[int, str, str]],
+    *,
+    profile_hash: str,
+    job_hashes: dict[int, str],
+    career_facts_changed: bool = False,
+) -> list[int]:
+    """Pure decision: return job IDs whose saved assessments no longer match their own version's inputs.
+
+    Compares each ``(job_id, source_hash, row_version)`` against ``row_version`` rather than
+    the currently selected AI model so an edit right after a model switch does not drop
+    unchanged assessments or force a full profile index rebuild.
+    """
+    from hiring_scraper.app.profile_llm import _hash
+
+    if career_facts_changed:
+        return [int(job_id) for job_id, _, _ in rows]
+    stale: list[int] = []
+    for job_id, digest, row_version in rows:
+        job_hash = job_hashes.get(job_id)
+        if job_hash is None or _hash([row_version, job_hash, profile_hash]) != digest:
+            stale.append(int(job_id))
+    return stale
+
+
 def _invalidate_job_vectors(session: Session, jobs: list[Job]) -> None:
     from hiring_scraper.semantic_matching import job_sections, source_hash
     documents = {row.job_id: row.source_hash for row in session.execute(select(
@@ -100,19 +137,21 @@ def _invalidate_job_vectors(session: Session, jobs: list[Job]) -> None:
 
 
 def _invalidate_job_assessments(session: Session, jobs: list[Job]) -> None:
-    from hiring_scraper.app.profile_llm import matching_config, source_hash
+    from hiring_scraper.app.profile_llm import _hash, job_data, profile_data
     by_id = {job.id: job for job in jobs}
-    scores = session.execute(select(ProfileLLMScore.profile_id, ProfileLLMScore.job_id,
-                                    ProfileLLMScore.source_hash).where(
-        ProfileLLMScore.job_id.in_(list(by_id)))).all()
+    scores = session.execute(select(
+        ProfileLLMScore.profile_id, ProfileLLMScore.job_id,
+        ProfileLLMScore.source_hash, ProfileLLMScore.version,
+    ).where(ProfileLLMScore.job_id.in_(list(by_id)))).all()
     if not scores:
         return
-    config = matching_config(session)
     profiles = {profile.id: profile for profile in session.scalars(select(UserProfile).where(
         UserProfile.id.in_({row.profile_id for row in scores})))}
-    for profile_id, job_id, digest in scores:
-        profile = profiles.get(profile_id)
-        if profile is None or source_hash(by_id[job_id], profile, config=config) != digest:
+    job_hashes = {job_id: _hash(job_data(job)) for job_id, job in by_id.items()}
+    profile_hashes = {pid: _hash(profile_data(profile)) for pid, profile in profiles.items()}
+    for profile_id, job_id, digest, row_version in scores:
+        profile_hash = profile_hashes.get(profile_id)
+        if profile_hash is None or _hash([row_version, job_hashes[job_id], profile_hash]) != digest:
             session.execute(delete(ProfileLLMScore).where(
                 ProfileLLMScore.profile_id == profile_id, ProfileLLMScore.job_id == job_id))
 
@@ -167,21 +206,32 @@ def companies_changed(session: Session, company_ids: Iterable[int]) -> None:
     session.info[_DIRTY] = True
 
 
-def profile_changed(session: Session, profile_id: int, *, career_facts_changed: bool = False) -> None:
+def profile_changed(
+    session: Session,
+    profile_id: int,
+    *,
+    career_facts_changed: bool = False,
+    presentation_only: bool = False,
+) -> None:
     """Declare edits to a profile's preferences or CV.
 
     Drops the profile's vectors and assessments whose inputs changed (all of its
     assessments when ``career_facts_changed``), and marks its Journey index stale
-    when any assessment was dropped. Preference edits also change the index hash,
-    so the match worker rebuilds the profile.
+    when any assessment was dropped. When ``presentation_only`` is true (only
+    ``min_match_score`` / ``include_unknown`` or non-scoring fields changed),
+    bumps ``source_version`` to serialize against in-flight workers without
+    dropping vectors, assessments, or ``match_index_version``.
     """
-    from hiring_scraper.app.profile_llm import matching_config, source_hash
+    from hiring_scraper.app.profile_llm import _hash, job_data, profile_data
     from hiring_scraper.semantic_matching import profile_sections, source_hash as vector_hash
 
     session.flush()
     _declare(session, 'profile', [profile_id])
     # The version bump locks the row until commit; publishers verify the version.
     _bump_profiles(session, [profile_id])
+    if presentation_only:
+        session.info[_DIRTY] = True
+        return
     profile = session.scalar(select(UserProfile).where(UserProfile.id == profile_id)
                              .execution_options(populate_existing=True))
     if profile is None:
@@ -190,15 +240,26 @@ def profile_changed(session: Session, profile_id: int, *, career_facts_changed: 
         MatchSemanticDocument.profile_id == profile_id)).scalar()
     if stored is not None and stored != vector_hash(profile_sections(profile.matching_preferences)):
         session.execute(delete(MatchSemanticDocument).where(MatchSemanticDocument.profile_id == profile_id))
-    scores = session.execute(select(ProfileLLMScore.job_id, ProfileLLMScore.source_hash).where(
-        ProfileLLMScore.profile_id == profile_id)).all()
-    stale = [job_id for job_id, _ in scores] if career_facts_changed else []
-    if scores and not career_facts_changed:
-        config = matching_config(session)
-        jobs = {job.id: job for job in session.scalars(select(Job).where(
-            Job.id.in_([job_id for job_id, _ in scores])))}
-        stale = [job_id for job_id, digest in scores
-                 if job_id not in jobs or source_hash(jobs[job_id], profile, config=config) != digest]
+    scores = session.execute(select(
+        ProfileLLMScore.job_id, ProfileLLMScore.source_hash, ProfileLLMScore.version,
+    ).where(ProfileLLMScore.profile_id == profile_id)).all()
+    if scores:
+        if career_facts_changed:
+            stale = profile_assessment_stale_job_ids(
+                scores, profile_hash='', job_hashes={}, career_facts_changed=True,
+            )
+        else:
+            jobs = {job.id: job for job in session.scalars(select(Job).where(
+                Job.id.in_([job_id for job_id, _, _ in scores])))}
+            job_hashes = {job_id: _hash(job_data(job)) for job_id, job in jobs.items()}
+            stale = profile_assessment_stale_job_ids(
+                scores,
+                profile_hash=_hash(profile_data(profile)),
+                job_hashes=job_hashes,
+                career_facts_changed=False,
+            )
+    else:
+        stale = []
     if stale:
         session.execute(delete(ProfileLLMScore).where(ProfileLLMScore.profile_id == profile_id,
                                                       ProfileLLMScore.job_id.in_(stale)))
@@ -215,6 +276,34 @@ def assessments_changed(session: Session, job_ids: Iterable[int]) -> None:
     _declare(session, 'job', ids)
     _queue_rematch(session, ids)
     session.info[_DIRTY] = True
+
+
+def matching_model_changed(session: Session, *, batch_size: int = 1000) -> int:
+    """Declare an AI matching model/effort change: rematch only AI-scored jobs.
+
+    Local-only jobs already hold valid scores and need no rebuild; stale AI
+    assessments fall back to local results when the match worker drains these
+    queued job IDs (and on read before the worker catches up).
+    """
+    session.flush()
+    queued = 0
+    cursor = 0
+    while True:
+        ids = session.scalars(
+            select(ProfileLLMScore.job_id)
+            .distinct()
+            .where(ProfileLLMScore.job_id > cursor)
+            .order_by(ProfileLLMScore.job_id)
+            .limit(batch_size)
+        ).all()
+        if not ids:
+            break
+        cursor = ids[-1]
+        _declare(session, 'job', ids)
+        _queue_rematch(session, ids)
+        queued += len(ids)
+    session.info[_DIRTY] = True
+    return queued
 
 
 def vectors_changed(session: Session, *, job_ids: Iterable[int] = (), profile_ids: Iterable[int] = ()) -> None:

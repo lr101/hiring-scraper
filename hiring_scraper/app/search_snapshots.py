@@ -19,8 +19,8 @@ from hiring_scraper.app.application_deduplication import index_vacancy_identitie
 from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.models import (
     Company, ConfiguredLocation, Job, JobApplication, JobFeed, JobLocation, JobSearchRefresh,
-    JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, ProfileJobMatch,
-    SemanticSearchDocument, UserProfile, utcnow,
+    JobSearchResult, JobSearchSnapshot, JobSearchState, JobVacancyGroup, MatchDirtyJob,
+    ProfileJobMatch, SemanticSearchDocument, UserProfile, utcnow,
 )
 from hiring_scraper.app.discovery_jobs import german_company_filter
 from hiring_scraper.election_data import municipality_vote_result
@@ -29,7 +29,15 @@ from hiring_scraper.app.enrichment import current_enrichment, job_input
 from hiring_scraper.app.applications import (
     APPLICATION_STATUSES, application_json, canonical_application_states_for_jobs, vacancy_group_ids_for_jobs,
 )
-from hiring_scraper.matching import VERSION as MATCHING_VERSION, match_job
+from hiring_scraper.app.match_compute import (
+    apply_profile_match_scope,
+    compute_match,
+    current_score_stamp,
+    indexed_missing_match_action,
+    load_stored_match_snapshots,
+    stored_match_explanation,
+)
+from hiring_scraper.matching import VERSION as MATCHING_VERSION
 from hiring_scraper.semantic_matching import MODEL_KEY as SEMANTIC_MODEL_KEY
 from hiring_scraper.app.board_scope import (
     deduplicate_jobs, expiry, fully_remote, geographic_scope, remote_countries,
@@ -234,32 +242,62 @@ def canonical_state(state: str | None) -> str | None:
 
 def profile_match(job, profile, scope, semantic_documents=None):
     from sqlalchemy.orm import object_session
-    from hiring_scraper.app.profile_semantics import cached_semantic_evidence
-    from hiring_scraper.app.profile_llm import apply_cached_assessment, load_matching_documents as load_semantic_documents
-    source = job_input(job)
+    from hiring_scraper.app.job_search import profile_match_index_stale
+    from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
+
+    session = None
+    for obj in (job, profile):
+        try:
+            session = object_session(obj)
+        except Exception:
+            session = None
+        if session is not None:
+            break
     if semantic_documents is None:
-        semantic_documents = load_semantic_documents(object_session(job), [job], [profile])
-    semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, semantic_documents)
-    match = match_job(source, profile.matching_preferences, current_enrichment(job), semantic=semantic)
-    match = apply_cached_assessment(match, job, profile, semantic_documents)
-    return _apply_profile_match_scope(match, scope)
+        if session is not None and getattr(profile, 'id', None) is not None and getattr(job, 'id', None) is not None:
+            snapshots = load_stored_match_snapshots(session, [(profile.id, job.id)])
+            stored = stored_match_explanation(
+                None,
+                job,
+                profile,
+                snapshot=snapshots.get((profile.id, job.id)),
+                scope=scope,
+            )
+            if stored is not None:
+                return stored
+        semantic_documents = load_semantic_documents(session, [job], [profile])
+        return compute_match(job, profile, semantic_documents, scope=scope)
+
+    stored = None
+    if hasattr(semantic_documents, 'match_snapshots'):
+        stored = stored_match_explanation(
+            None,
+            job,
+            profile,
+            snapshot=semantic_documents.match_snapshots.get((profile.id, job.id)),
+            scope=scope,
+        )
+    elif hasattr(semantic_documents, 'indexed_matches'):
+        indexed = semantic_documents.indexed_matches.get((profile.id, job.id))
+        if indexed is not None:
+            stored = stored_match_explanation(
+                indexed,
+                job,
+                profile,
+                semantic_documents,
+                expected_version=current_score_stamp(session, documents=semantic_documents),
+                dirty_job_ids=getattr(semantic_documents, 'dirty_job_ids', None),
+                profile_stale=profile_match_index_stale(profile),
+                scope=scope,
+            )
+    if stored is not None:
+        return stored
+    return compute_match(job, profile, semantic_documents, scope=scope)
 
 
 def _apply_profile_match_scope(match, scope):
     """External geography remains authoritative after local or cached scoring."""
-    if scope is not None:
-        scope_unknowns = scope.get('unknowns') or []
-        match['unknowns'] = list(dict.fromkeys((match.get('unknowns') or []) + scope_unknowns))
-        if scope_unknowns:
-            match['uncertain'] = True
-            if match.get('fit_tier') == 'recommended':
-                match['fit_tier'] = 'possible'
-        if not scope['eligible']:
-            match['eligible'] = False
-            match['fit_tier'] = 'unlikely'
-            match['conflicts'] = (match.get('conflicts') or []) + [
-                'Search scope: ' + scope['reason'].replace('_', ' ')]
-    return match
+    return apply_profile_match_scope(match, scope)
 
 
 def result_scope(job, latitude, longitude, radius_km, place, country, state=None, employer_country=None,
@@ -350,7 +388,8 @@ def _scoped_candidate_winners(session, candidate_ids, latitude, longitude, radiu
 def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
                profile, min_match_score, include_unknown, place=None, country=None,
                location_scope='area', state=None, employer_country=None,
-               include_internal=False, indexed_matches=None, precomputed_scopes=None):
+               include_internal=False, indexed_matches=None, precomputed_scopes=None,
+               match_snapshots=None, dirty_job_ids=None):
     filtered = {'expired': 0, 'remote_country': 0, 'outside_area': 0,
                 'remote_not_selected': 0, 'not_remote': 0,
                 'profile_conflict': 0, 'below_score': 0, 'uncertain': 0}
@@ -374,35 +413,103 @@ def _jobs_page(jobs, sort, offset, limit, latitude, longitude, radius_km,
     if profile is not None:
         selected = []
         from sqlalchemy.orm import object_session
+        from hiring_scraper.app.job_search import _profile_index_version, profile_match_index_stale
         from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
-        semantic_documents = load_semantic_documents(object_session(profile), matching, [profile])
+        profile_session = None
+        try:
+            profile_session = object_session(profile)
+        except Exception:
+            profile_session = None
+        expected_index_version = _profile_index_version(profile)
+        if match_snapshots is not None or (indexed_matches is not None and profile_session is not None):
+            snapshots = (
+                match_snapshots
+                if match_snapshots is not None
+                else load_stored_match_snapshots(
+                    profile_session,
+                    [(profile.id, job.id) for job in matching if getattr(job, 'id', None) is not None],
+                )
+            )
+            job_hash_cache: dict[int, str] = {}
+            profile_hash_cache: dict[int, str] = {}
+            fallback_jobs = []
+            for job in matching:
+                snapshot = snapshots.get((profile.id, job.id))
+                if snapshot is not None and snapshot.match is not None:
+                    stored = stored_match_explanation(
+                        None,
+                        job,
+                        profile,
+                        snapshot=snapshot,
+                        expected_profile_index_version=expected_index_version,
+                        scope=scopes[job.id],
+                        job_hash_cache=job_hash_cache,
+                        profile_hash_cache=profile_hash_cache,
+                    )
+                    if stored is not None:
+                        matches[job.id] = stored
+                        continue
+                    fallback_jobs.append(job)
+                else:
+                    profile_is_stale = (
+                        snapshot.profile_index_version != expected_index_version
+                        if snapshot is not None
+                        else profile_match_index_stale(profile)
+                    )
+                    job_dirty = snapshot.dirty if snapshot is not None else False
+                    if indexed_missing_match_action(profile_stale=profile_is_stale, job_dirty=job_dirty) == 'profile_conflict':
+                        matches[job.id] = {
+                            'eligible': False, 'score': 0, 'fit_tier': 'unlikely',
+                            'uncertain': False, 'unknowns': [],
+                        }
+                    else:
+                        fallback_jobs.append(job)
+            if fallback_jobs:
+                semantic_documents = load_semantic_documents(profile_session, fallback_jobs, [profile])
+                for job in fallback_jobs:
+                    matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
+        elif indexed_matches is not None:
+            profile_is_stale = profile_match_index_stale(profile)
+            dirty_ids = set(dirty_job_ids or ())
+            semantic_documents = load_semantic_documents(None, matching, [profile]) if indexed_matches else None
+            expected_stamp = current_score_stamp(None, documents=semantic_documents)
+            fallback_jobs = []
+            for job in matching:
+                indexed = indexed_matches.get(job.id)
+                if indexed is None:
+                    if indexed_missing_match_action(profile_stale=profile_is_stale, job_dirty=job.id in dirty_ids) == 'profile_conflict':
+                        matches[job.id] = {
+                            'eligible': False, 'score': 0, 'fit_tier': 'unlikely',
+                            'uncertain': False, 'unknowns': [],
+                        }
+                    else:
+                        fallback_jobs.append(job)
+                else:
+                    stored = stored_match_explanation(
+                        indexed,
+                        job,
+                        profile,
+                        semantic_documents,
+                        expected_version=expected_stamp,
+                        dirty_job_ids=dirty_ids,
+                        profile_stale=profile_is_stale,
+                        scope=scopes[job.id],
+                    )
+                    if stored is not None:
+                        matches[job.id] = stored
+                    else:
+                        fallback_jobs.append(job)
+            if fallback_jobs:
+                if semantic_documents is None:
+                    semantic_documents = load_semantic_documents(None, fallback_jobs, [profile])
+                for job in fallback_jobs:
+                    matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
+        else:
+            semantic_documents = load_semantic_documents(profile_session, matching, [profile])
+            for job in matching:
+                matches[job.id] = compute_match(job, profile, semantic_documents, scope=scopes[job.id])
         for job in matching:
-            indexed = (indexed_matches or {}).get(job.id)
-            if indexed_matches is not None and indexed is None:
-                match = {'eligible': False, 'score': 0, 'fit_tier': 'unlikely',
-                         'uncertain': False, 'unknowns': []}
-            elif indexed is None:
-                match = profile_match(job, profile, scopes[job.id], semantic_documents)
-            else:
-                match = {'eligible': True, 'score': indexed.match_score,
-                         'fit_tier': indexed.match_tier, 'uncertain': bool(indexed.match_uncertain),
-                         'unknowns': []}
-                if (match['uncertain'] and
-                        (profile.id, job.id) in getattr(semantic_documents, 'llm_scores', {})):
-                    # The index keeps only the uncertainty flag; recover the local
-                    # unverified-tenure notes so the AI overlay cannot silently drop them.
-                    local = match_job(job_input(job), profile.matching_preferences, current_enrichment(job))
-                    match.update({key: local[key] for key in ('soft_conflicts', 'requirement_observations')
-                                  if key in local})
-                from hiring_scraper.app.profile_llm import apply_cached_assessment
-                match = apply_cached_assessment(match, job, profile, semantic_documents)
-                if (match['score_source'] == 'local' and
-                        (profile.id, job.id) in getattr(semantic_documents, 'llm_scores', {})):
-                    # Bulk source writes may leave a derived rank behind. Its old
-                    # model number is never a valid local fallback for a stale hash.
-                    match = profile_match(job, profile, None, semantic_documents)
-                match = _apply_profile_match_scope(match, scopes[job.id])
-            matches[job.id] = match
+            match = matches[job.id]
             if not match['eligible']:
                 filtered['profile_conflict'] += 1
             elif match['score'] < min_match_score:
@@ -562,16 +669,14 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
             joinedload(Job.employer_company), selectinload(Job.locations),
         )).unique().all()
         batch_scopes = {job_id: scopes_by_id[job_id] for job_id in batch_ids}
-        indexed_matches: dict[int, dict[int, ProfileJobMatch]] = {
-            item.id: {} for item in profiles
-        }
-        if profiles and batch_ids:
-            indexed_rows = session.scalars(select(ProfileJobMatch).where(
-                ProfileJobMatch.profile_id.in_([item.id for item in profiles]),
-                ProfileJobMatch.job_id.in_(batch_ids),
-            )).all()
-            for indexed in indexed_rows:
-                indexed_matches[indexed.profile_id][indexed.job_id] = indexed
+        batch_snapshots = (
+            load_stored_match_snapshots(
+                session,
+                [(item.id, job_id) for item in profiles for job_id in batch_ids],
+            )
+            if profiles and batch_ids
+            else {}
+        )
 
         result_rows = [{
             'snapshot_key': key,
@@ -590,8 +695,8 @@ def _search_page(session: Session, candidate_ids: list[int], profiles: list[Any]
                 jobs, sort, 0, 1, latitude, longitude, radius_km, profile,
                 min_score, include_unknown, place, country, location_scope,
                 state, employer_country, include_internal=True,
-                indexed_matches=indexed_matches.get(profile.id, {}) if profile else None,
                 precomputed_scopes=batch_scopes,
+                match_snapshots=batch_snapshots if profile else None,
             )
             entries = page.pop('_search_entries', [])
             page.pop('_matching_job_ids', None)

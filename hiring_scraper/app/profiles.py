@@ -19,7 +19,12 @@ from hiring_scraper.app import source_changes
 from hiring_scraper.app.database import dialect_insert, get_session
 from hiring_scraper.app.models import ProfileCV, ProfilePhoto, UserProfile, utcnow
 from hiring_scraper.app.cv_documents import MAX_BYTES, TYPES
-from hiring_scraper.app.job_search import clear_profile_match_scores
+from hiring_scraper.app.job_search import (
+    _profile_index_version,
+    clear_profile_match_scores,
+    reevaluate_profile_new_applications,
+    scoring_preferences,
+)
 from hiring_scraper.election_data import municipality_vote_result
 from hiring_scraper.matching import extract_profile_skills, normalize_skills
 
@@ -295,6 +300,7 @@ def _save(profile, request, session):
     data['skills'] = normalize_skills(data['skills'])
     previous = profile.preferences or {}
     previous_matching = profile.matching_preferences
+    previous_index_version = _profile_index_version(profile) if profile.id is not None else None
     previous_weight = profile.low_afd_vote_share_weight
     defaults = data.get('matching_defaults') or {}
     requested_weight = defaults.pop('low_afd_vote_share_weight', 0)
@@ -327,17 +333,25 @@ def _save(profile, request, session):
         data.get('application_details', {}).pop('experiences', None)
     profile.preferences = data
     profile.updated_at = utcnow()
-    preferences_changed = profile.matching_preferences != previous_matching
-    if preferences_changed:
+    current_matching = profile.matching_preferences
+    if profile.id is not None:
+        scoring_changed = _profile_index_version(profile) != previous_index_version
+        presentation_changed = (not scoring_changed) and (current_matching != previous_matching)
+    else:
+        scoring_changed = True
+        presentation_changed = False
+    if scoring_changed:
         profile.match_index_version = None
     session.add(profile)
-    if profile.id is not None and preferences_changed:
+    if profile.id is not None and scoring_changed:
         # Acquire the profile row lock before clearing derived rows. Job refreshes
         # lock profiles in the same order, so no stale New rows can race past an edit.
         session.flush()
         clear_profile_match_scores(session, profile.id)
     if profile.id is not None:
-        source_changes.profile_changed(session, profile.id)
+        source_changes.profile_changed(session, profile.id, presentation_only=not scoring_changed)
+    if profile.id is not None and presentation_changed:
+        reevaluate_profile_new_applications(session, profile)
     session.commit()
     return profile_json(profile)
 

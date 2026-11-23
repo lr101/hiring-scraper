@@ -243,11 +243,62 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
     # Bind only this page's stable job IDs, regardless of the full Journey size.
     jobs = session.scalars(select(Job).where(Job.id.in_({row.job_id for row in applications})).options(
         joinedload(Job.feed).joinedload(JobFeed.company), joinedload(Job.employer_company),
-        selectinload(Job.locations))).unique().all()
+        selectinload(Job.locations))).unique().all() if applications else []
     jobs_by_id = {job.id: job for job in jobs}
     profiles_by_id = {profile.id: profile for profile in profiles}
+    from hiring_scraper.app.job_search import _profile_index_version
+    from hiring_scraper.app.match_compute import (
+        compute_match,
+        load_stored_match_snapshots,
+        select_journey_card,
+        snapshot_explanation_is_current,
+    )
     from hiring_scraper.app.profile_llm import load_matching_documents as load_semantic_documents
-    semantic_documents = load_semantic_documents(session, jobs, profiles)
+
+    displayed_pairs = [(row.profile_id, row.job_id) for row in applications]
+    snapshots = load_stored_match_snapshots(session, displayed_pairs) if displayed_pairs else {}
+    expected_versions = {profile.id: _profile_index_version(profile) for profile in profiles}
+    job_hash_cache: dict[int, str] = {}
+    profile_hash_cache: dict[int, str] = {}
+    cards: dict[tuple[int, int], dict[str, Any]] = {}
+    fallback_pairs: list[tuple[int, int]] = []
+    for application in applications:
+        pair = (application.profile_id, application.job_id)
+        job = jobs_by_id[application.job_id]
+        profile = profiles_by_id[application.profile_id]
+        snapshot = snapshots.get(pair)
+        is_current = snapshot_explanation_is_current(
+            snapshot,
+            job,
+            profile,
+            expected_profile_index_version=expected_versions[application.profile_id],
+            job_hash_cache=job_hash_cache,
+            profile_hash_cache=profile_hash_cache,
+        )
+        mode, card = select_journey_card(
+            snapshot.match if snapshot is not None else None,
+            ranked_score=application.match_rank,
+            is_current=is_current,
+        )
+        if mode == 'refreshing':
+            matching_pending = True
+            cards[pair] = card
+        elif mode == 'stored':
+            cards[pair] = card
+        else:
+            fallback_pairs.append(pair)
+    if fallback_pairs:
+        fallback_jobs = [jobs_by_id[jid] for jid in sorted({jid for _, jid in fallback_pairs})]
+        fallback_profiles = [profiles_by_id[pid] for pid in sorted({pid for pid, _ in fallback_pairs})]
+        fallback_documents = load_semantic_documents(session, fallback_jobs, fallback_profiles)
+        for pid, jid in fallback_pairs:
+            cards[(pid, jid)] = compute_match(jobs_by_id[jid], profiles_by_id[pid], fallback_documents)
+        if sort == 'match':
+            applications = sorted(
+                applications,
+                key=lambda row: (cards[(row.profile_id, row.job_id)]['score'], row.discovered_rank, row.posted_rank, row.id),
+                reverse=True,
+            )
     items = []
     for application in applications:
         job = jobs_by_id[application.job_id]
@@ -255,7 +306,7 @@ def list_applications(profile_ids: str = Query(..., max_length=1200),
         item['application'] = application_json(application)
         item['profile_id'] = application.profile_id
         item['profile_name'] = profiles_by_id[application.profile_id].name
-        item['profile_match'] = search_snapshots.profile_match(job, profiles_by_id[application.profile_id], None, semantic_documents)
+        item['profile_match'] = cards[(application.profile_id, application.job_id)]
         items.append(item)
     return {'profile_ids': selected_ids, 'items': items, 'counts': counts,
             'total': total,

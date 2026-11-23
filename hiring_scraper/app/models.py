@@ -7,6 +7,7 @@ from sqlalchemy import (
     BigInteger, Boolean, CheckConstraint, DateTime, Float, ForeignKey, Index, Integer, LargeBinary,
     JSON, String, Text, UniqueConstraint, false, select, text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
 
@@ -483,6 +484,8 @@ class ProfileJobMatch(Base):
     match_score: Mapped[int] = mapped_column(Integer, nullable=False)
     match_tier: Mapped[str] = mapped_column(String(24), nullable=False)
     match_uncertain: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    explanation: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    score_version: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
 
 class AIMatchingSelection(Base):
@@ -523,6 +526,15 @@ class AIMatchingSetting(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     model: Mapped[str] = mapped_column(String(100), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+
+
+class AIMatchingObservedConfig(Base):
+    """Last effective AI matching config version observed by the match pipeline."""
+    __tablename__ = 'ai_matching_observed_config'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    version: Mapped[str] = mapped_column(String(160), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
 
 

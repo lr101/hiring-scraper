@@ -20,12 +20,16 @@ from hiring_scraper.app import codex_runtime, requirement_evidence, source_chang
 from hiring_scraper.app.board_scope import expiry
 from hiring_scraper.app.database import dialect_insert, SessionLocal
 from hiring_scraper.app.enrichment import SOURCE_FIELDS, current_enrichment, job_input
-from hiring_scraper.app.models import AIMatchingSelection, AIMatchingSetting, AIMatchingTask, AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, hold_profiles, utcnow
+from hiring_scraper.app.models import (
+    AIMatchingObservedConfig, AIMatchingSelection, AIMatchingSetting, AIMatchingTask,
+    AIMatchingWorker, Job, ProfileJobMatch, ProfileLLMScore, UserProfile, hold_profiles, utcnow,
+)
 from hiring_scraper.app.profile_semantics import load_semantic_documents as _load_semantic_documents
 from hiring_scraper.matching import match_job, required_application_artifact
 from hiring_scraper.requirements import DEGREE, CERTIFICATE, DEGREE_FIELDS, qualification_rows, requirement_polarity, scoped_sentences, structured_text
 from hiring_scraper.semantic_matching import job_sections
 
+_DEFAULT_MATCH_JOB = match_job
 LOG = logging.getLogger(__name__)
 MODEL = os.getenv('RADIUS_MATCH_AI_MODEL', '').strip() or 'gpt-6.1-sol'
 EFFORT = os.getenv('RADIUS_MATCH_AI_REASONING_EFFORT', '').strip() or 'high'
@@ -74,18 +78,85 @@ def matching_version(session=None):
     return matching_config(session).version
 
 
+def matching_config_change_action(
+    observed_version: str | None,
+    effective_version: str,
+    *,
+    has_mismatched_scores: bool = False,
+) -> tuple[bool, bool]:
+    """Pure decision: return ``(should_enqueue, should_persist)`` for AI config reconciliation."""
+    if observed_version == effective_version:
+        return False, False
+    if observed_version is None:
+        return bool(has_mismatched_scores), True
+    return True, True
+
+
+def _upsert_observed_config(session, version: str, now=None) -> None:
+    timestamp = utcnow() if now is None else now
+    insert = dialect_insert(session)
+    session.execute(
+        insert(AIMatchingObservedConfig)
+        .values(id=1, version=version, updated_at=timestamp)
+        .on_conflict_do_update(
+            index_elements=['id'],
+            set_={'version': version, 'updated_at': timestamp},
+        )
+    )
+
+
 def set_matching_model(model):
     if model not in AVAILABLE_MODELS:
         raise ValueError('Choose one of the supported AI matching models.')
     with SessionLocal() as session:
+        session.execute(text('SELECT pg_advisory_xact_lock(85793011, 9)'))
+        now = utcnow()
         insert = dialect_insert(session)
-        session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=utcnow())
-            .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': utcnow()}))
-        # A model change invalidates derived ranks and forces workers in every
-        # process to observe the new cache provenance on their next snapshot.
-        session.query(UserProfile).update({UserProfile.match_index_version: None})
+        session.execute(insert(AIMatchingSetting).values(id=1, model=model, updated_at=now)
+            .on_conflict_do_update(index_elements=['id'], set_={'model': model, 'updated_at': now}))
+        _upsert_observed_config(session, MatchingConfig(model, EFFORT).version, now=now)
+        # Local-only jobs keep valid derived scores. Queue rematching only for
+        # jobs with saved AI assessments so they fall back cleanly to local scores.
+        source_changes.matching_model_changed(session)
         session.commit()
     return {'model': model, 'available_models': list(AVAILABLE_MODELS), 'reasoning_effort': EFFORT}
+
+
+def reconcile_matching_config_change(session=None) -> int:
+    """Detect effective AI model/effort changes (including env vars) and queue AI-scored jobs."""
+    owns_session = session is None
+    active_session = SessionLocal() if owns_session else session
+    try:
+        active_session.execute(text('SELECT pg_advisory_xact_lock(85793011, 9)'))
+        effective = matching_config(active_session).version
+        observed = active_session.scalar(
+            select(AIMatchingObservedConfig.version)
+            .where(AIMatchingObservedConfig.id == 1)
+            .execution_options(populate_existing=True)
+        )
+        has_mismatched = False
+        if observed is None:
+            has_mismatched = active_session.scalar(
+                select(ProfileLLMScore.job_id)
+                .where(ProfileLLMScore.version != effective)
+                .limit(1)
+            ) is not None
+        should_enqueue, should_persist = matching_config_change_action(
+            observed, effective, has_mismatched_scores=has_mismatched,
+        )
+        if not should_enqueue and not should_persist:
+            if owns_session:
+                active_session.rollback()
+            return 0
+        queued = source_changes.matching_model_changed(active_session) if should_enqueue else 0
+        if should_persist:
+            _upsert_observed_config(active_session, effective)
+        if owns_session:
+            active_session.commit()
+        return queued
+    finally:
+        if owns_session:
+            active_session.close()
 
 
 def _object(properties):
@@ -1026,17 +1097,19 @@ def refresh_llm_scores_once(*, generate=None, usage=None, sync=True):
             # profile's authoritative rank atomically with the saved judgment,
             # so page ordering never uses a stale local score with a new AI card.
             from hiring_scraper.app.job_search import _upsert_profile_matches
-            from hiring_scraper.app.profile_semantics import cached_semantic_evidence
+            from hiring_scraper.app.match_compute import (
+                compute_match,
+                current_score_stamp,
+                match_row_payload,
+            )
             documents = load_matching_documents(session, [job], [profile])
-            source = job_input(job)
-            semantic = cached_semantic_evidence(source, profile.matching_preferences, job.id, profile.id, documents)
-            local = match_job(source, profile.matching_preferences, current_enrichment(job),
-                **({'semantic': semantic} if semantic else {}))
-            result = apply_cached_assessment(local, job, profile, documents)
+            matcher = None if match_job is _DEFAULT_MATCH_JOB else match_job
+            result = compute_match(job, profile, documents, matcher=matcher)
             if result['eligible']:
-                _upsert_profile_matches(session, [{'profile_id': profile_id, 'job_id': job_id,
-                    'match_score': result['score'], 'match_tier': result['fit_tier'],
-                    'match_uncertain': bool(result.get('uncertain'))}])
+                score_stamp = current_score_stamp(session, documents=documents)
+                _upsert_profile_matches(session, [
+                    match_row_payload(profile_id, job_id, result, score_stamp, job=job, documents=documents),
+                ])
             else:
                 from sqlalchemy import delete
                 session.execute(delete(ProfileJobMatch).where(ProfileJobMatch.profile_id == profile_id,

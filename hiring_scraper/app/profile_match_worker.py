@@ -9,7 +9,12 @@ import time
 
 from hiring_scraper.app.job_search import ProfileIndexChanged, refresh_profile_match_indexes_once, refresh_dirty_job_matches_once
 from hiring_scraper.app.profile_semantics import refresh_semantic_documents_once
-from hiring_scraper.app.profile_llm import refresh_llm_scores_once, sync_matching_queue, matching_worker_heartbeat
+from hiring_scraper.app.profile_llm import (
+    matching_worker_heartbeat,
+    reconcile_matching_config_change,
+    refresh_llm_scores_once,
+    sync_matching_queue,
+)
 from hiring_scraper.app import codex_runtime
 from hiring_scraper.app.database import log_worker_failure
 from hiring_scraper.app.auto_preparation import prepare_once
@@ -67,12 +72,28 @@ def _run_match_stage(refresh) -> None:
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
     LOG.info("profile match worker started")
+    config_reconciled = False
+    try:
+        queued = reconcile_matching_config_change()
+        config_reconciled = True
+        if queued:
+            LOG.info("Queued %s AI-scored jobs after AI matching config change", queued)
+    except Exception as error:
+        log_worker_failure(LOG, "Could not reconcile AI matching config at startup; retrying next cycle", error)
     next_semantic_attempt = 0.0
     stop = threading.Event()
     threading.Thread(target=matching_loop, args=(stop,), daemon=True, name="ai-matching").start()
     next_preparation_attempt = 0.0
     try:
         while True:
+            if not config_reconciled:
+                try:
+                    queued = reconcile_matching_config_change()
+                    config_reconciled = True
+                    if queued:
+                        LOG.info("Queued %s AI-scored jobs after AI matching config change", queued)
+                except Exception as error:
+                    log_worker_failure(LOG, "Could not reconcile AI matching config; retrying next cycle", error)
             # Order: local rule backfill (cheap, never starved by the model), then
             # vectors, then the changed-job rematch so edited postings use fresh
             # semantic evidence. Each stage gets a turn even if another fails.
