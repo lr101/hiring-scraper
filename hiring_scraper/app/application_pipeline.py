@@ -18,6 +18,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 from hiring_scraper.app.application_pdf import RenderResult
+from hiring_scraper.documents import editorial
 from hiring_scraper.documents.evidence import build_evidence
 from hiring_scraper.documents.grounding import check_document
 from hiring_scraper.documents.schema import (
@@ -35,8 +36,9 @@ from hiring_scraper.documents.schema import (
     unit_by_id,
     walk_units,
 )
+from hiring_scraper.documents.text import unit_full_text
 
-PIPELINE_VERSION = 'application-documents-v2.1'
+PIPELINE_VERSION = 'application-documents-v2.2'
 SLEEP = time.sleep
 PROMPTS = Path(__file__).with_name('prompts')
 DocumentKind = Literal['cv', 'letter']
@@ -104,6 +106,7 @@ class _Skills(_Response):
     section_id: str
     unit_ids: list[str]
     hidden_ids: list[str]
+    additions: list[_SourcedText]
 
 
 class _CvResponse(_Response):
@@ -323,7 +326,7 @@ def _cv_entries(base: CvDocument, evidence: dict) -> list[dict]:
 
 
 def _cv_draft(
-    output: dict, base: CvDocument, entries: list[dict],
+    output: dict, base: CvDocument, entries: list[dict], evidence: dict[str, str], posting: str,
 ) -> tuple[CvDocument, list[Finding]]:
     reply = _CvResponse.model_validate(output)
     if not 1 <= len(reply.profile) <= 2:
@@ -331,6 +334,7 @@ def _cv_draft(
     if any(not unit.sources for unit in [reply.headline, *reply.profile]):
         raise _InvalidResponse('Cite the evidence supporting the headline and each profile unit.')
     counts = {entry['entry_id']: entry['base_count'] for entry in entries}
+    entry_bank = {entry.id: entry for section in base.sections for entry in section.entries}
     findings = []
 
     def unknown(message: str) -> None:
@@ -349,10 +353,16 @@ def _cv_draft(
             raise _InvalidResponse('Each entry needs between one fewer and one more bullet than its base count, at least one.')
         if any(not bullet.sources for bullet in proposed.bullets):
             raise _InvalidResponse('Cite evidence supporting every rewritten CV bullet.')
+        if any(unit.lead_in for unit in entry_bank[entry_id].units if not unit.hidden):
+            if any(previous.lead_in.strip() and not bullet.lead_in.strip()
+                   for previous, bullet in zip(proposed.bullets, proposed.bullets[1:], strict=False)):
+                raise _InvalidResponse('Keep each labelled project in one bullet with its lead-in. Merge unlabelled continuations.')
         edits[entry_id] = proposed.bullets
 
     skill_sections = {s.id for s in base.sections if s.kind == 'skills'}
     skills = {}
+    if sum(len(section.additions) for section in reply.skills) > 4:
+        raise _InvalidResponse('Add at most four evidence-backed competencies across all skills sections.')
     for proposed in reply.skills:
         if proposed.section_id not in skill_sections:
             unknown('The CV response referred to an unknown skills section.')
@@ -361,7 +371,7 @@ def _cv_draft(
         else:
             skills[proposed.section_id] = proposed
 
-    doc = base.model_copy(deep=True)
+    doc = _new_cv(base)
     used_ids = {unit.id for unit in walk_units(doc)}
 
     def new_id(stem: str) -> str:
@@ -400,7 +410,65 @@ def _cv_draft(
             section.units = [by_id[key] for key in order if key in by_id]
             for unit in section.units:
                 unit.hidden = unit.hidden or unit.id in hidden
-    return CvDocument.model_validate(doc.model_dump()), findings
+            additions = []
+            existing = {unit.text.strip().casefold() for unit in section.units}
+            for item in proposed.additions:
+                unit = _ai(new_id('u-ai-competency'), item)
+                if unit.text.casefold() in existing or len(section.units) + len(additions) >= MAX_SECTION_UNITS:
+                    continue
+                if not _supported_competency(unit, evidence, posting):
+                    findings.append(_finding('cv', 'review_grounding',
+                                             'An added competency lacked support from its cited evidence and the posting.'))
+                    continue
+                additions.append(unit)
+                existing.add(unit.text.casefold())
+            section.units = additions + section.units
+    doc = CvDocument.model_validate(doc.model_dump())
+    _check_cv_prose(doc)
+    return doc, findings
+
+
+def _new_cv(base: CvDocument) -> CvDocument:
+    doc = base.model_copy(deep=True)
+    doc.page = 'a4'
+    for section in doc.sections:
+        for entry in section.entries:
+            editorial.normalize_study_entry(entry)
+    return doc
+
+
+def _supported_competency(unit: Unit, evidence: dict[str, str], posting: str) -> bool:
+    return (bool(unit.sources) and all(key in evidence for key in unit.sources)
+            and editorial.supports_competency(unit.text, (evidence[key] for key in unit.sources), posting))
+
+
+def _check_cv_prose(doc: CvDocument) -> None:
+    if not doc.headline.hidden and doc.headline.origin == 'ai':
+        _plain(doc.headline.text, 70)
+    bullets = [
+        unit_full_text(unit)
+        for section in doc.sections for entry in section.entries for unit in entry.units if not unit.hidden
+    ]
+    for section in doc.sections:
+        if section.kind != 'profile':
+            continue
+        for unit in section.units:
+            if unit.hidden or unit.origin != 'ai':
+                continue
+            if editorial.FIRST_PERSON.search(unit.text):
+                raise _InvalidResponse('Use implied first person in the CV profile, without I or ich.')
+            if any(editorial.near_duplicate(sentence, bullet)
+                   for sentence in re.split(r'(?<=[.!?])\s+', unit.text) for bullet in bullets):
+                raise _InvalidResponse('Synthesize the strongest evidence in the CV profile without repeating a bullet.')
+
+
+def _detail_findings(doc: CvDocument, evidence: dict[str, str]) -> list[Finding]:
+    return [
+        _finding('cv', 'review_coverage', 'A rewritten bullet may omit a distinguishing detail from its cited base bullet.',
+                 unit_id=unit.id, suggestion='Compare the rewrite with its cited base bullet and retain verified specifics.')
+        for section in doc.sections for entry in section.entries for unit in entry.units
+        if unit.origin == 'ai' and not unit.hidden and editorial.omitted_details(unit, evidence, entry.id)
+    ]
 
 
 def _date_line(inp: PreparationInput, base: CvDocument) -> str:
@@ -452,14 +520,50 @@ def _salutation(inp: PreparationInput, company: str, proposed_name: str) -> str:
             and re.search(rf'(?<!\w){re.escape(name)}(?!\w)', description)):
         return f'Guten Tag {name},' if inp.language == 'de' else f'Dear {name},'
     if inp.language == 'de':
-        return f'Sehr geehrtes {company + "-" if company else ""}Recruiting-Team,'
-    return f'Dear {company + " " if company else ""}Recruiting Team,'
+        return 'Sehr geehrte Damen und Herren,'
+    short = _LEGAL_SUFFIX.sub('', company).rstrip(' ,.')
+    return f'Dear {short + " " if short else ""}Hiring Team,'
 
 
-def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> LetterDocument:
+_LEGAL_SUFFIX = re.compile(
+    r'(?:[,\s]+(?:GmbH\s*(?:&|und)\s*Co\.?\s*K(?:G|GaA)|'
+    r'GmbH|gGmbH|AG|SE|Inc(?:orporated)?|Corp(?:oration)?|Ltd|Limited|LL[CP]|PLC|L\.L\.C|'
+    r'Co|KG|KGaA|OHG|UG|GbR|S[àa]rl|SAS|SA|BV|NV|Pty)\.?)+$',
+    re.I,
+)
+
+
+def _check_letter_prose(letter: LetterDocument, cv: CvDocument, base: CvDocument) -> None:
+    copied = editorial.cv_ngrams(cv)
+    companies = {
+        entry.id: ' '.join(entry.locked.company.casefold().split())
+        for section in base.sections for entry in section.entries
+    }
+    used = set()
+    for unit in letter.paragraphs:
+        groups = set()
+        for source in unit.sources:
+            match = re.fullmatch(r'cv:([^:]+):[bi]\d+', source)
+            if match and match[1] in companies:
+                company = companies[match[1]]
+                groups.add(match[1] if editorial.GENERIC_ENTRY_LABEL.fullmatch(company) else company)
+        if used & groups:
+            raise _InvalidResponse('Use only one paragraph per employer or project. Consolidate examples that cite the same entry.')
+        used.update(groups)
+        if editorial.ngrams(unit.text) & copied:
+            raise _InvalidResponse('Rewrite in fresh prose: no sequence of eight consecutive words may match the CV.')
+        if letter.language == 'en' and editorial.EN_CONTRACTION.search(unit.text):
+            raise _InvalidResponse('Spell out all contractions in the English letter.')
+        if len(editorial.CONDITIONAL.findall(unit.text)) > 1:
+            raise _InvalidResponse('Use at most one conditional (würde or would) per paragraph. Prefer the indicative.')
+
+
+def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument, cv: CvDocument | None = None) -> LetterDocument:
     reply = _LetterResponse.model_validate(output)
-    if not 3 <= len(reply.paragraphs) <= 6:
-        raise _InvalidResponse('Return 3 to 6 body paragraphs plus the final closing sentence.')
+    if not 3 <= len(reply.paragraphs) <= 4:
+        raise _InvalidResponse('Return 4–5 paragraphs total: 3–4 body paragraphs and the final closing sentence.')
+    if reply.paragraphs[0].role != 'motivation' or any(p.role == 'motivation' for p in reply.paragraphs[1:]):
+        raise _InvalidResponse('Open with one employer-focused motivation paragraph, then give relevant examples.')
     paragraphs = [
         _ai(f'u-letter-p{i}', item, role=item.role) for i, item in enumerate(reply.paragraphs, 1)
     ]
@@ -470,8 +574,8 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> Lett
     company = re.sub(r'\s*\([^()]*\)\s*$', '', company).strip()[:200]
     city = _recipient_city(' '.join(str(inp.job.get('location') or '').split()))
     name = _sender_name(base.header.name)
-    return LetterDocument(
-        language=inp.language, page=base.page,
+    letter = LetterDocument(
+        language=inp.language, page='a4',
         sender={'name': name, 'lines': [c.text for c in base.header.contacts[:10]]},
         recipient_lines=[line for line in (company, city) if line], place_date=_date_line(inp, base),
         subject=_ai('u-letter-subject', _SourcedText(text=reply.subject.text, sources=['job'])),
@@ -480,6 +584,8 @@ def _letter_draft(output: dict, inp: PreparationInput, base: CvDocument) -> Lett
                                            text='Mit freundlichen Grüßen' if inp.language == 'de' else 'Kind regards,'),
         signature=name,
     )
+    _check_letter_prose(letter, cv if cv is not None else base, base)
+    return letter
 
 
 def _units(doc: Document, *, visible_only: bool = False) -> list[dict]:
@@ -506,6 +612,7 @@ def _high(findings: list[Finding]) -> set[tuple]:
 
 def _review(
     output: dict, docs: dict[DocumentKind, Document], ground: Callable[[Document], list[Finding]],
+    base: CvDocument, evidence: dict[str, str], posting: str,
 ) -> tuple[dict, list[Finding], list[dict], int]:
     reply = _ReviewEnvelope.model_validate(output)
     docs = docs.copy()
@@ -543,7 +650,8 @@ def _review(
             continue
         if proposed.kind in ('rephrase', 'shorten') and unit.origin == 'ai' and not unit.hidden and key not in touched:
             candidate = apply_patch(doc, unit.id, text, 'ai')
-            if not _high(ground(candidate)) - _high(ground(doc)):
+            if (_valid_review_edit(candidate, docs, unit, base, evidence, posting)
+                    and not _high(ground(candidate)) - _high(ground(doc))):
                 docs[kind] = candidate
                 touched.add(key)
                 applied.append({'document': kind, 'unit_id': unit.id, 'kind': proposed.kind})
@@ -552,6 +660,31 @@ def _review(
         findings.append(_finding(kind, code, 'Review suggested a manual wording change.',
                                  unit_id=unit.id, suggestion=text))
     return docs, findings, applied, malformed
+
+
+def _valid_review_edit(
+    candidate: Document, docs: dict[DocumentKind, Document], unit: Unit,
+    base: CvDocument, evidence: dict[str, str], posting: str,
+) -> bool:
+    cv = candidate if isinstance(candidate, CvDocument) else docs['cv']
+    letter = candidate if isinstance(candidate, LetterDocument) else docs['letter']
+    try:
+        _check_cv_prose(cv)
+        _check_letter_prose(letter, cv, base)
+    except _InvalidResponse:
+        return False
+    if isinstance(candidate, CvDocument):
+        for section in candidate.sections:
+            if section.kind == 'skills':
+                updated = next((u for u in section.units if u.id == unit.id), None)
+                if updated is not None:
+                    return _supported_competency(updated, evidence, posting)
+            for entry in section.entries:
+                updated = next((u for u in entry.units if u.id == unit.id), None)
+                if updated is not None:
+                    return not (editorial.omitted_details(updated, evidence, entry.id)
+                                - editorial.omitted_details(unit, evidence, entry.id))
+    return True
 
 
 def _render(
@@ -610,6 +743,7 @@ def prepare_documents(
 ) -> PreparationResult:
     base = CvDocument.model_validate(inp.base_cv)
     evidence = build_evidence(base, inp.profile)
+    posting = ' '.join(str(inp.job.get(key) or '') for key in ('title', 'description'))
     digest = _input_digest(inp, base, evidence)
     stages = {}
     renders = {}
@@ -644,22 +778,23 @@ def prepare_documents(
         resume(stats, checkpoint)
     else:
         entries = _cv_entries(base, evidence)
-        skills = [{'section_id': s.id, 'units': [u.model_dump() for u in s.units]}
+        skills = [{'section_id': s.id, 'title': s.title, 'units': [u.model_dump() for u in s.units]}
                   for s in base.sections if s.kind == 'skills']
         prompt = _prompt('cv', inp, evidence, entries=entries, skills=skills)
         try:
             cv, draft_findings = _generate(generate, prompt, _CvResponse,
-                                           lambda output: _cv_draft(output, base, entries), stats, hooks.cancelled)
+                                           lambda output: _cv_draft(output, base, entries, evidence, posting),
+                                           stats, hooks.cancelled)
             state = 'completed'
         except GenerationError as error:
             if not error.retryable:
                 raise
-            cv = base
+            cv = _new_cv(base)
             draft_findings = [_finding('cv', 'review_format', 'CV tailoring stopped; the base CV is available.')]
             stats['error'] = error.code
             state = 'fallback'
         renders['cv'], render_findings = _render('cv', cv, render)
-        cv_findings = draft_findings + ground(cv) + render_findings
+        cv_findings = draft_findings + _detail_findings(cv, evidence) + ground(cv) + render_findings
         publish('cv', cv, cv_findings)
         timing = complete(stats, started, state)
         if state == 'completed':
@@ -675,7 +810,7 @@ def prepare_documents(
         resume(stats, checkpoint)
     else:
         prompt = _prompt('letter', inp, evidence, cv_units=_units(cv, visible_only=True))
-        letter = _generate(generate, prompt, _LetterResponse, lambda output: _letter_draft(output, inp, base),
+        letter = _generate(generate, prompt, _LetterResponse, lambda output: _letter_draft(output, inp, base, cv),
                            stats, hooks.cancelled)
         renders['letter'], render_findings = _render('letter', letter, render)
         letter_findings = ground(letter) + render_findings
@@ -700,7 +835,7 @@ def prepare_documents(
                              findings=_numbered(findings), render=renders)
             try:
                 reviewed, review_findings, applied, malformed = _generate(
-                    generate, prompt, _ReviewResponse, lambda output: _review(output, docs, ground),
+                    generate, prompt, _ReviewResponse, lambda output: _review(output, docs, ground, base, evidence, posting),
                     stats, hooks.cancelled,
                 )
                 state = 'completed'
@@ -714,7 +849,9 @@ def prepare_documents(
             for kind, doc in reviewed.items():
                 if doc != docs[kind]:
                     renders[kind], render_findings = _render(kind, doc, render)
-                    final_findings[kind] = (draft_findings if kind == 'cv' else []) + ground(doc) + render_findings
+                    final_findings[kind] = ground(doc) + render_findings
+                    if isinstance(doc, CvDocument):
+                        final_findings[kind] = draft_findings + _detail_findings(doc, evidence) + final_findings[kind]
             docs = reviewed
             findings = final_findings['cv'] + final_findings['letter'] + review_findings
             for kind, doc in docs.items():

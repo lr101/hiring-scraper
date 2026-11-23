@@ -27,3 +27,10 @@ Patches: for AI-written units only, propose replacement text with a kind:
 - content: adds, removes or changes facts. These are shown to the applicant, not applied.
 A patch keeps the unit's cited facts and cites nothing new. Return empty lists when the drafts
 are already good.
+
+Check that the CV headline names the demonstrated role family in at most 70 characters,
+the profile uses implied first person and adds to the bullets, and all differentiating
+details of a rewritten bullet remain. Check that the letter stays within 4–5 paragraphs
+including its closing, uses each employer or project at most once, uses fresh prose and
+keeps the experience stage accurate. Use indicative voice, with at most one conditional
+per paragraph, and spell out English contractions.

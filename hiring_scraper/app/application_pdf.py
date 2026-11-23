@@ -219,6 +219,21 @@ class _Renderer:
                 raise RenderFailed('view_error', 'The document view reported an error.')
             printable_px = (height_mm - 2 * _PAGE_MARGIN_MM) * _MM_TO_PX
             limit = PAGE_LIMITS[payload['kind']]
+            pdf_options = {'prefer_css_page_size': True, 'print_background': True}
+            pdf = await page.pdf(**pdf_options)
+            compact = False
+            if payload['kind'] == 'cv':
+                from pypdf import PdfReader
+
+                height = await page.locator('.doc-page-content').evaluate('(el) => el.scrollHeight')
+                if height <= printable_px * limit and len(PdfReader(io.BytesIO(pdf)).pages) > limit:
+                    # Keeping entries together can add a page even when their total height fits.
+                    await page.locator('.doc-page').evaluate("(el) => el.classList.add('doc-page--compact')")
+                    candidate = await page.pdf(**pdf_options)
+                    if len(PdfReader(io.BytesIO(candidate)).pages) <= limit:
+                        pdf, compact = candidate, True
+                    else:
+                        await page.locator('.doc-page').evaluate("(el) => el.classList.remove('doc-page--compact')")
             telemetry = await page.evaluate(
                 """([printable, limit]) => {
                     const root = document.querySelector('.doc-page-content') || document.body;
@@ -247,8 +262,8 @@ class _Renderer:
                 'estimated_pages': est_pages,
                 'overflow_px': round(max(0.0, height - limit * printable_px), 1),
                 'overflow_px_by_page': overflow_by_page,
+                'compact_layout': compact,
             })
-            pdf = await page.pdf(prefer_css_page_size=True, print_background=True)
             return pdf, telemetry
         finally:
             try:
@@ -366,13 +381,24 @@ def render_document(
     payload = {'kind': kind, 'document': model.model_dump(mode='json'), 'photo': photo}
     pdf, telemetry = _RENDERER.render(payload, model.page, timeout)
 
-    from pypdf import PdfReader
+    from pypdf import PdfReader, PdfWriter
 
     try:
         reader = PdfReader(io.BytesIO(pdf))
         pages = len(reader.pages)
         page_texts = [page.extract_text() or '' for page in reader.pages]
         text = '\n'.join(page_texts)
+        if isinstance(model, CvDocument):
+            author = model.header.name
+            title = 'Lebenslauf' if model.language == 'de' else 'CV'
+        else:
+            author = model.sender.name
+            title = 'Anschreiben' if model.language == 'de' else 'Cover letter'
+        writer = PdfWriter(clone_from=reader)
+        writer.add_metadata({'/Title': f'{author} – {title}', '/Author': author})
+        with io.BytesIO() as output:
+            writer.write(output)
+            pdf = output.getvalue()
     except Exception:  # noqa: BLE001 - corrupt output
         raise RenderFailed('pdf_unreadable', 'The rendered PDF could not be read.') from None
     limit = PAGE_LIMITS[kind]

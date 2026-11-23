@@ -1,44 +1,47 @@
-Task: write the cover letter body. Sender, recipient, date and signature are filled in for you.
+Task: write a cover letter tailored to the specific work in the posting. Sender, recipient,
+date, salutation, sign-off and signature are filled in by the application.
 
-Ground it in the accepted CV shown under CV UNITS (cite their evidence ids, not the unit ids) and
-in the EVIDENCE block. Aim for about 270 words across the paragraphs, in this arc:
+Write three or four paragraphs in paragraphs and one sentence in closing, for four or five
+body paragraphs in total. Aim for about 260–290 words including the closing sentence.
 
-1. role "motivation": the specific reason this company, its product or its work appeals, tied to
-   something concrete in the applicant's background. Use the natural role title in the prose.
-   Make the connection in a short opening. Save the steps of a past project for its own paragraph.
-   Describe the product using capabilities explicitly stated in the posting. Express interest in
-   the present tense. Leave out stories about what sparked an interest or changed the applicant's
-   outlook unless the evidence says so.
-2. role "experience", one or two paragraphs: one per most relevant employer or project. Give
-   the employer early, then follow one problem, action and supported result or deliverable.
-   If the evidence shows how feedback changed a concept or informed a decision, show that
-   progression. Center the example on an action the role calls for when the evidence supports
-   it. Vary the openings so the paragraphs read as a letter.
-3. role "education": the academic or technical foundation that supports the role. Include one
-   relevant application of that foundation, when supported, and keep the paragraph brief.
-   Highlight the step or collaboration that transfers to the job instead of listing credentials
-   and artifacts already visible in the CV.
-4. role "bring": name a contribution the applicant could make, drawing on an evidenced way they
-   work. Present future work as a proposal that identifies a concrete decision and what would
-   inform it. Develop the opening's thread without repeating earlier examples or phrases.
-   Explain how a proven approach would transfer to that decision.
+- Open with one motivation paragraph. Name what interests the applicant about the employer's
+  actual product, customers or work and the problem the role helps solve. Use only capabilities
+  and customer needs supported by the posting. Skip tenuous personal connections, origin stories
+  and autobiography. State interest directly, in the present tense.
+- Select the two strongest examples for the posting's core responsibilities by default. Add a
+  third only when it proves a separate core responsibility that the first two do not address.
+  If the strongest prior work has a different scope or stage, use the relevant steps of that
+  work rather than a less relevant example from a different domain. Use
+  one paragraph per employer or project. Combine all details from any one CV entry into
+  that paragraph and cite its cv:<entry_id>:b<n> or cv:<entry_id>:i<n> ids. Do not cite
+  that entry again in a different paragraph. Additional career evidence can supplement it.
+  Use experience or education for these paragraphs.
+- Develop each example in flowing prose. Start with the situation or decision, describe the
+  applicant's contribution at its verified scope, and end every experience or education
+  paragraph with one sentence about what that
+  experience means for this job. Make the final sentence about the target work, using a
+  specific task or decision. Vary sentence openings and avoid repeating a noun three times
+  in one paragraph. Explain why the actions fit together, instead of retelling the CV in order.
+  For projects outside the employer's domain, lead with the relevant method or decision and
+  give only enough context to understand it. Leave degree names and ancillary facts to the CV.
+- Use fresh wording even for the same evidence. No eight consecutive words may match any CV
+  unit. Keep distinctive details intact while changing the focus and sentence structure.
+- If the evidence does not show a requirement such as a specific tenure or ownership through
+  release, do not imply it. Where useful, one honest sentence can frame transferable experience
+  and the stage at which the applicant earned it. Include relevant verified qualifications
+  such as language proficiency in the example where they matter, without tacking them on
+  after its final connection to the target work.
+- If a fourth paragraph adds something beyond the two examples, use bring to name one concrete work
+  decision and what would inform it, at the scope the applicant can offer. Prefer indicative
+  voice and use at most one conditional (würde or would) in any paragraph. In English, spell
+  out contractions. In German, use formal register and continue correctly after the comma.
 
-Then `closing` is a brief invitation to talk, without repeating the company or role name
-(the sign-off such as "Kind regards" is added for you). `subject` names the role (and the
-reference number if the job gives one). For `contact_name`, copy the first and last name
-of a person the posting explicitly identifies as a contact for this vacancy. Omit titles
-and honorifics. Return an empty string when the contact has only a first name, appears
-only as an email address, or is absent. The application formats the greeting.
+Cite evidence ids in EVIDENCE, including the original sources behind claims shown in CV UNITS.
+Use job for facts established by the posting. Check sentence by sentence that the evidence
+supports the action, method and outcome at the stated scope. Keep recommendations distinct
+from decisions or adoption. Do not claim unverified work even when closely related.
 
-When a paragraph names an employer from the CV, cite at least one evidence id from that
-employer's entry (`cv:<entry_id>:b<n>` or `cv:<entry_id>:i<n>`).
-Check each experience paragraph sentence by sentence against those citations before submitting.
-Use the source that describes the specific action and scope. A citation about the same employer
-or project is insufficient if it supports a different claim. Where the source establishes a
-method or recommendation, describe it without implying adoption, ownership or results.
-Check that purpose clauses preserve scope too. For example, bringing people together to inform
-feature priorities does not mean the applicant decided which features to prioritize. If the same
-project appears in the CV, verify the original evidence independently before reusing its wording.
-In German, continue the first sentence after the greeting's comma with standard German
-capitalization. Use the formal register throughout and write short, direct sentences that
-sound natural when read aloud.
+Use closing for a single brief invitation to talk. Name the role in subject and include a
+reference number if the posting gives one. For contact_name, copy the full name of the person
+the posting identifies as the contact for this vacancy, without any title or honorific. Return
+an empty string if only a first name or an email is given, or if there is no named contact.

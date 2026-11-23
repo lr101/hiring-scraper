@@ -119,6 +119,42 @@ class RenderTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertRegex(result.text, r'●\s*Kalibrierte')
 
+    def test_pdf_metadata_identifies_document_and_author(self):
+        from pypdf import PdfReader
+
+        for kind, doc, title in [
+            ('cv', fictional_cv(), 'Jörg Übermaß – Lebenslauf'),
+            ('letter', fictional_letter(), 'Jörg Übermaß – Anschreiben'),
+        ]:
+            with self.subTest(kind=kind):
+                result = application_pdf.render_document(kind, doc.model_dump())
+                metadata = PdfReader(BytesIO(result.pdf)).metadata
+                self.assertEqual(metadata.title, title)
+                self.assertEqual(metadata.author, 'Jörg Übermaß')
+
+    def test_education_keeps_institution_heading_and_bullets_together(self):
+        from pypdf import PdfReader
+
+        doc = fictional_cv(bullets=15)
+        doc.sections.insert(2, Section(
+            id='s-education', kind='education', title='Ausbildung', entries=[
+                Entry(id='study-1', kind='study', label='Hochschule',
+                      locked=LockedEntry(company='University', title='Fiktivlabor', start='2020', end='2020'),
+                      units=[
+                          Unit(id=f'u-study-b{n}', text=f'Auswertung {n}: ' + 'Kalibrierte Sensoren im Prüfstand. ' * 6)
+                          for n in range(1, 5)
+                      ]),
+            ],
+        ))
+        result = application_pdf.render_document('cv', doc.model_dump())
+        pages = [page.extract_text() for page in PdfReader(BytesIO(result.pdf)).pages]
+        self.assertEqual(len(pages), 2)
+        self.assertNotIn('UNIVERSITY', result.text)
+        self.assertNotIn('HOCHSCHULE', result.text)
+        self.assertEqual(result.text.upper().count('FIKTIVLABOR'), 1)
+        for part in ('AUSBILDUNG', 'FIKTIVLABOR', 'Auswertung 1:', 'Auswertung 4:'):
+            self.assertIn(part, pages[1])
+
     def test_long_cv_reports_overflow(self):
         doc = fictional_cv(bullets=45).model_dump(mode='json')
         result = application_pdf.render_document('cv', doc)
@@ -127,6 +163,23 @@ class RenderTests(unittest.TestCase):
         overflow = next(c for c in result.checks if c['code'] == 'overflow')
         self.assertEqual(overflow['status'], 'warning')
         self.assertGreater(len(result.telemetry['beyond_limit_units']), 0)
+
+    def test_compact_print_avoids_an_extra_page_from_entry_breaks(self):
+        doc = fictional_cv()
+        doc.sections[1].entries = [
+            Entry(id=f'work-{i}', kind='work',
+                  locked=LockedEntry(company=f'Labor {i}', title='Projektingenieur', start='2020', end='2021'),
+                  units=[
+                      Unit(id=f'u-work-{i}-b{n}', text=f'Messreihe {n} im Labor {i}. '
+                           + 'Kalibrierte Sensoren und erfasste auftretende Abweichungen im Prüfstand. ' * 3)
+                      for n in range(count)
+                  ])
+            for i, count in enumerate((10, 8, 8, 6), 1)
+        ]
+        result = application_pdf.render_document('cv', doc.model_dump())
+        self.assertEqual(result.pages, 2)
+        self.assertFalse(result.page_limit_exceeded)
+        self.assertEqual(self._passed(result, 'reading_order'), 'passed')
 
     def test_entry_intro_stays_with_first_bullet_at_page_break(self):
         from pypdf import PdfReader

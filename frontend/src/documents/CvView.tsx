@@ -26,6 +26,13 @@ function visibleUnits(units: Unit[], showHidden: boolean): Unit[] {
   return showHidden ? units : units.filter((unit) => !unit.hidden)
 }
 
+const genericEntryLabel = /^(?:university|college|hochschule|universität|internship|praktikum|education|ausbildung)$/i
+
+function italicizeQuotedTitles(text: string): ReactNode {
+  const parts = text.split(/("[^"]+"|“[^”]+”|„[^“”]+[“”]|«[^»]+»|»[^«]+«)/u)
+  return parts.map((part, index) => index % 2 ? <em key={index}>{part}</em> : part)
+}
+
 function renderSectionUnits(
   section: Section,
   showHidden: boolean,
@@ -143,13 +150,15 @@ function renderSectionUnits(
           data-unit-id={unit.id}
           data-unit-hidden={unit.hidden ? 'true' : undefined}
         >
-          {renderUnitContent(renderUnit, {
-            unit,
-            kind: 'paragraph',
-            splittable: true,
-            sectionId: section.id,
-            index,
-          })}
+          {section.kind === 'text' && !renderUnit && !unit.lead_in
+            ? italicizeQuotedTitles(unit.text)
+            : renderUnitContent(renderUnit, {
+              unit,
+              kind: 'paragraph',
+              splittable: true,
+              sectionId: section.id,
+              index,
+            })}
         </p>
       ))}
     </div>
@@ -166,20 +175,26 @@ function renderEntry(
   const introUnits = visibleUnits(entry.intro, showHidden)
   const bulletUnits = visibleUnits(entry.units, showHidden)
   const dates = formatEntryDates(entry.locked, language)
+  const { company, title, location } = entry.locked
+  const genericCompany = genericEntryLabel.test(company.trim())
+  const companyLine = genericCompany ? title : company
+  const showTitle = !genericCompany && !genericEntryLabel.test(title.trim())
+    && company.trim().toLowerCase() !== title.trim().toLowerCase()
+  const label = entry.label.trim()
 
   return (
     <article key={entry.id} className="doc-cv-entry" data-entry-id={entry.id}>
-      {entry.label.trim() ? <p className="doc-cv-entry-label">{entry.label}</p> : null}
+      {label && !genericEntryLabel.test(label) ? <p className="doc-cv-entry-label">{label}</p> : null}
       <div className="doc-cv-entry-header">
         <div className="doc-cv-entry-row">
-          <span className="doc-cv-entry-company">{entry.locked.company}</span>
-          {entry.locked.location ? (
-            <span className="doc-cv-entry-location">{entry.locked.location}</span>
+          <span className="doc-cv-entry-company">{companyLine}</span>
+          {location ? (
+            <span className="doc-cv-entry-location">{location}</span>
           ) : null}
         </div>
-        {(entry.locked.title || dates) ? (
+        {(showTitle || dates) ? (
           <div className="doc-cv-entry-row">
-            <span className="doc-cv-entry-title">{entry.locked.title}</span>
+            <span className="doc-cv-entry-title">{showTitle ? title : ''}</span>
             {dates ? <span className="doc-cv-entry-dates">{dates}</span> : null}
           </div>
         ) : null}

@@ -312,7 +312,7 @@
 
 .doc-cv-inline {
   margin: 0;
-  text-align: justify;
+  text-align: left;
 }
 
 .doc-cv-inline-sep {
@@ -461,5 +461,26 @@
   .doc-page:last-child {
     break-after: auto;
     page-break-after: auto;
+  }
+
+  .doc-cv-entry:has(.doc-cv-bullet:nth-child(2)) {
+    break-inside: avoid;
+  }
+
+  .doc-cv-entry .doc-cv-bullet:first-child {
+    break-after: avoid;
+  }
+
+  .doc-kind-cv.doc-page--compact {
+    font-size: 9.5pt;
+    line-height: 1.12;
+  }
+
+  .doc-page--compact .doc-cv-section {
+    margin-top: 6pt;
+  }
+
+  .doc-page--compact .doc-cv-entry:not(:first-of-type) {
+    margin-top: 4pt;
   }
 }

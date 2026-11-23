@@ -1,48 +1,53 @@
-Task: tailor the applicant's CV to the job. The layout, section order, employers, titles and
-dates are fixed; you rewrite the prose units and choose emphasis.
+Task: tailor the CV to the posting. Preserve verified employers, titles, dates and section
+order. Identify the core work the employer is hiring for and map it to the strongest evidence.
 
-Headline
-- One line naming the applicant's demonstrated role focus, at the seniority the evidence supports.
-  If several experiences point toward a new role, name the demonstrated field and focus
-  instead of using that new role as a professional title.
-
-Profile
-- One compact paragraph of two or three sentences. Describe the applicant's role and where they
-  showed their most relevant strengths. Save employer-specific motivation for the letter.
-- Describe the work in concrete terms. If the profile names a past employer, cite a bullet or
-  intro from that employer's entry alongside any career evidence used for the claim.
-- Use the profile to connect two complementary strengths. Lead with the strength most relevant
-  to the opening and identify the stage or context in which the applicant demonstrated it.
-  Leave the list of project artifacts to the entries.
+Headline and profile
+- Write a one-line headline of at most 70 characters, preferably 45–60. Name the posting's
+  role family using terms the evidence supports. Use a functional focus rather than claiming
+  an unverified job title, seniority level, tenure, or ownership.
+- Write one compact profile paragraph of about 35–50 words in implied first person (no I, I'm,
+  I've or ich). Use two sentences, with no more than one concrete example in each.
+  Lead with the strongest relevant evidence so it is visible on page one, even when the
+  project itself appears later. Mention the applicant's concrete method or output where it
+  directly addresses a core responsibility, especially if it is elsewhere on the CV.
+  Connect two complementary strengths and name the actual stage or context. Synthesize
+  across evidence instead of paraphrasing a bullet. Save motivation for the letter.
+- Cite the actual work supporting each claim. If the profile names a past employer, cite a
+  bullet or intro from that entry. Keep any evidence gap visible in the scope of the wording.
 
 Entries
-- For each entry id listed under ENTRIES, return its bullets. Start from that entry's bullet
-  bank (`cv:<entry_id>:b<n>` ids) and the career evidence lines that belong to the same
-  employer or project; select, reorder and rewrite them so the most relevant work comes first.
-  Keep the bullets for any one project together, with enough context in its first bullet for
-  readers to understand the rest.
-- Return between one fewer and one more bullet than the base count shown for the entry, at least
-  one. Aim for 12–24 words without padding. Cite sources from the same entry or career evidence
-  about it. Use the terminology of the applicant's own work even if the target job uses different
-  terms. Keep academic projects anchored to the activity and its actual scope.
-- Give each bullet one accomplishment. Begin with the verb and its object from the strongest
-  source for that action. Add a method, second action or outcome only if a citation directly
-  supports it at the same scope.
-- Separate evaluation criteria from validation methods unless the source explicitly connects
-  them. For example, if a source describes checking accessibility and separately describes
-  testing a prototype in interviews, do not say the interviews tested accessibility.
-- Keep the differentiating details that the posting calls for and the evidence supports, such as
-  which decisions the applicant shaped, what they built, or whom they worked with. When the
-  posting asks for prioritization or partner collaboration, say what the applicant actually
-  prioritized or coordinated if the entry's evidence documents it. Keep numbers and tool names
-  beside the action that used or produced them.
-- When relevant and evidenced, show what changed after feedback and who helped inform the
-  next decision. For cross-functional work, prioritize the specific external or internal
-  collaboration over a list of artifacts that leaves the collaboration implicit.
-- `lead_in` is optional: a short bold label ending with a colon when the base entry uses
-  lead-ins (for example for projects); otherwise an empty string.
+- For each listed entry, select and reorder its bullets by relevance, including education
+  projects. Cite the original bullet for every rewrite and any career evidence that supplies
+  further verified detail. Lead with the work closest to the hiring responsibilities rather than
+  the most impressive result in a less relevant area. Use only evidence from the same employer
+  or project.
+- Return between one fewer and one more bullet than the base count, with at least one. Give
+  each bullet a distinct responsibility: separate its action and purpose from the other
+  bullets under that entry. Before writing, give each bullet a different topic and choose
+  a single place for overlapping facts such as coordination, requirements or feedback.
+  For example, when several bullets concern program work, distinguish partner relationships,
+  event delivery, and participant operations instead of listing general coordination twice.
+  Use the lower end of the count range when that makes the responsibilities clearer.
+- Start with a direct verb and concrete object. Use consistent CV voice without explicit
+  pronouns. Aim for 18–28 words for most bullets and 25–40 for project bullets that need
+  context. Use parallel objects and concise clauses, especially when listing artifacts.
+  In German, use a direct active verb where a reflexive construction sounds indirect.
+  For joint work, use a structure like "Wirkte an … mit" or "Trug zu … bei".
+- Retain the details that distinguish each cited source, such as named collaborators,
+  languages used, tools, drawings or other deliverables, suppliers, scope and verified metrics.
+  Keep the original distinctions between actions, methods and outcomes. State details once,
+  where they best substantiate the distinct responsibility. Avoid restating an action or
+  purpose in the same bullet.
+- Use one self-contained bullet per labelled project. Preserve a short project lead_in ending
+  with a colon and merge related details into that bullet. Do not follow a labelled project
+  bullet with an unlabelled continuation. Use an empty lead_in for ordinary work bullets.
+- Keep degree names in education headings. Do not repeat the degree in prose or project bullets.
 
 Skills
-- For each skills section listed, return the existing unit ids in the order that best fits the
-  job in `unit_ids`, and the ids to hide in `hidden_ids`. Use only ids that are listed; do not
-  add skills.
+- Return the existing unit ids in relevance order in unit_ids and ids to hide in hidden_ids.
+  Hide lower-value items to keep the section readable.
+- Use additions for up to four new competency items across the CV, or an empty list. Use a
+  short phrase with posting terminology and cite the applicant's evidence ids for every term.
+  Use at least one substantive posting term, and pick the rest of the phrasing from the cited
+  evidence with only light inflection. The posting itself is not evidence. Keep scope
+  qualifiers, and omit synonyms or duplicates of existing competencies.
